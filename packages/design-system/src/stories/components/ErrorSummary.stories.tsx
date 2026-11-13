@@ -32,7 +32,7 @@ import { HeadingLevelProvider, Inline, Stack, Text } from "../../primitives";
 import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 const meta = {
   title: "Components/ErrorSummary",
@@ -396,4 +396,17 @@ export const DoDont: Story = {
       dontText="A generic title and repeated 'Required.' leave the reader to find which field is wrong."
     />
   ),
+  play: async ({ canvasElement }) => {
+    const { do: good, dont: bad } = halves(canvasElement);
+    const items = (half: HTMLElement) =>
+      within(half)
+        .getAllByRole("button")
+        .map((item) => item.textContent);
+    // Each item names its field and what fixes it.
+    await expect(within(good).getByRole("alert")).toHaveAccessibleName("There is a problem");
+    await expect(items(good)).toEqual(["Enter a task title.", "Choose a program."]);
+    // A generic title over the same word twice: nothing says which field is wrong.
+    await expect(within(bad).getByRole("alert")).toHaveAccessibleName("Error");
+    await expect(items(bad)).toEqual(["Required.", "Required."]);
+  },
 };

@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { chromium } from "playwright";
 import { setTimeout as wait } from "node:timers/promises";
 import { localWorkspace } from "./tests/local-workspace.mjs";
+import { artifactPath } from "./tests/artifacts.mjs";
 
 const origin = process.env.APP_TEST_URL ?? "http://localhost:8080";
 assert.ok(["localhost", "127.0.0.1"].includes(new URL(origin).hostname));
@@ -184,7 +185,7 @@ try {
   );
   await contained("Desktop saved-view manager");
   await page.screenshot({
-    path: "/private/tmp/ledger-saved-views-desktop.png",
+    path: artifactPath("ledger-saved-views-desktop.png"),
     animations: "disabled",
   });
   await page.setViewportSize({ width: 390, height: 844 });
@@ -195,7 +196,7 @@ try {
   await confirmation.getByRole("button", { name: "Cancel", exact: true }).click();
   await row.waitFor();
   await page.screenshot({
-    path: "/private/tmp/ledger-saved-views-mobile.png",
+    path: artifactPath("ledger-saved-views-mobile.png"),
     animations: "disabled",
   });
   await row.getByRole("button", { name: "Delete", exact: true }).click();
@@ -224,7 +225,7 @@ try {
 } catch (error) {
   if (page) {
     await page
-      .screenshot({ path: "/private/tmp/ledger-saved-views-failure.png", animations: "disabled" })
+      .screenshot({ path: artifactPath("ledger-saved-views-failure.png"), animations: "disabled" })
       .catch(() => {});
     console.error((await page.locator("body").innerText()).slice(0, 12000));
   }

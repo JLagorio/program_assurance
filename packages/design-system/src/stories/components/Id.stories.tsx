@@ -9,7 +9,7 @@ import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
 const { Specimens } = storyLayout;
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 const meta = {
   title: "Components/Id",
@@ -175,4 +175,33 @@ export const Dont: Story = {
       />
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    const ids = (half: HTMLElement) =>
+      Array.from(half.querySelectorAll<HTMLElement>('[data-slot="id"]'));
+    const colour = (element: Element) => getComputedStyle(element).color;
+    // An Id takes its sentence's colour; in the link colour it promises a link that is not there.
+    // Forced colours paint every word one system colour, so the Don't's difference shows only
+    // outside them.
+    const colourPair = halves(canvasElement, 0);
+    for (const id of ids(colourPair.do)) await expect(colour(id)).toBe(colour(id.parentElement!));
+    await expect(within(colourPair.dont).queryByRole("link")).toBeNull();
+    if (!window.matchMedia("(forced-colors: active)").matches)
+      for (const id of ids(colourPair.dont))
+        await expect(colour(id)).not.toBe(colour(id.parentElement!));
+    // Many ids are an Id.List, each its own run; joined with commas they are one string.
+    const list = halves(canvasElement, 1);
+    await expect(ids(list.do).map((id) => id.textContent)).toEqual([
+      "AC-2",
+      "AC-2(1)",
+      "AC-2(3)",
+      "AC-3",
+    ]);
+    await expect(ids(list.dont)).toHaveLength(0);
+    await expect(list.dont).toHaveTextContent("AC-2, AC-2(1), AC-2(3), AC-3");
+    // The id as the record writes it; a prose rendering is not what a search finds.
+    const written = halves(canvasElement, 2);
+    await expect(ids(written.do).map((id) => id.textContent)).toEqual(["CTRL-0412"]);
+    await expect(ids(written.dont)).toHaveLength(0);
+    await expect(written.dont).not.toHaveTextContent("CTRL-0412");
+  },
 };

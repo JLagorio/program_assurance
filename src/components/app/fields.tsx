@@ -488,6 +488,7 @@ export function RecordField({
   disabled,
   controlRef,
   placeholder = "Choose…",
+  readOnly = false,
 }: FieldFrameProps & {
   value: string | null | undefined;
   onChange: (value: string | null) => void;
@@ -502,6 +503,11 @@ export function RecordField({
   /** Whether a chosen record can be cleared. Off for a required field unsaid. */
   clearable?: boolean | undefined;
   placeholder?: string | undefined;
+  /**
+   * Keeps the field's Tab stop and its record but takes no choice, for a record something else
+   * holds: pair it with a `description` that says why and what frees it.
+   */
+  readOnly?: boolean | undefined;
 }) {
   const [input, setInput] = useState("");
   const term = useDebounced(input);
@@ -539,6 +545,7 @@ export function RecordField({
       <FieldLabel>{label}</FieldLabel>
       <Combobox<ComboboxOption>
         items={items}
+        readOnly={readOnly}
         value={chosen}
         isItemEqualToValue={(item, other) => item.value === other.value}
         // The server filters: the list shows what it returned.
@@ -551,7 +558,7 @@ export function RecordField({
         <ComboboxInput
           ref={bind(controlRef)}
           placeholder={placeholder}
-          showClear={clearable}
+          showClear={clearable && !readOnly}
           onKeyDown={retryOnEnter(enterRetries, retry)}
         />
         <ComboboxContent>

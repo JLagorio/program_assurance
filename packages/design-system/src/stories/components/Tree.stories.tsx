@@ -7,11 +7,13 @@ import { createRef, useState } from "react";
 import { Badge, Button, Count, IconButton, Id, Item, Tree } from "../../components";
 import { Box, Stack } from "../../primitives";
 import * as storyLayout from "../_lib/matrix";
+import * as direction from "../_lib/direction";
 import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
 const { Specimens } = storyLayout;
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
+const { along } = direction;
 
 const meta = {
   title: "Components/Tree",
@@ -372,6 +374,50 @@ export const Dont: Story = {
       />
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    const rows = (half: HTMLElement) => within(half).getAllByRole("treeitem");
+    // An icon on every row of a level, or none, so its labels start in one place; icons on
+    // some rows start them in two.
+    const icons = halves(canvasElement, 0);
+    const labelStart = (row: HTMLElement) => {
+      const text = document
+        .createTreeWalker(row, NodeFilter.SHOW_TEXT, {
+          acceptNode: (node) =>
+            node.nodeValue?.trim() ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP,
+        })
+        .nextNode()!;
+      const range = document.createRange();
+      range.selectNodeContents(text);
+      return Math.round(along(row, range.getBoundingClientRect()).start);
+    };
+    const childStarts = (half: HTMLElement) =>
+      new Set(
+        rows(half)
+          .filter((row) => row.getAttribute("aria-level") === "2")
+          .map(labelStart),
+      ).size;
+    await expect(childStarts(icons.do)).toBe(1);
+    await expect(childStarts(icons.dont)).toBe(2);
+    // One level of nesting is a collapsible list; a tree one level deep is a tree for nothing.
+    const depth = halves(canvasElement, 1);
+    await expect(within(depth.do).queryByRole("tree")).toBeNull();
+    await expect(within(depth.do).getAllByRole("list").length).toBeGreaterThan(0);
+    const levels = rows(depth.dont).map((row) => Number(row.getAttribute("aria-level")));
+    await expect(Math.max(...levels)).toBe(2);
+    // The collapsed parent of the selected row shows the selection; otherwise nothing does.
+    const selection = halves(canvasElement, 2);
+    await expect(
+      within(selection.do).getByRole("treeitem", { selected: true }),
+    ).toHaveAccessibleName("Finance");
+    await expect(within(selection.dont).queryByRole("treeitem", { selected: true })).toBeNull();
+    // A collection's entries are its children in the one tree, not a tree inside its row.
+    const nested = halves(canvasElement, 3);
+    await expect(within(nested.do).getAllByRole("tree")).toHaveLength(1);
+    await expect(
+      rows(nested.do).filter((row) => row.getAttribute("aria-level") === "2"),
+    ).toHaveLength(2);
+    await expect(rows(nested.dont)[0]!.querySelector('[role="tree"]')).not.toBeNull();
+  },
 };
 
 function TreeDemo() {

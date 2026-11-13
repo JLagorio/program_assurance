@@ -46,14 +46,9 @@ const EXCEPTIONS = new Map([
   ["primitives/Stack.stories.tsx", "presentational labels and frames show the spacing"],
 ]);
 
-/** Families whose first manifest story reads an arg the manifest prints as written. Only shrinks. */
-const ARGS_EXCEPTIONS = new Map([
-  ["components/Attachment.stories.tsx", "the Playground's description follows the state control"],
-  [
-    "components/Field.stories.tsx",
-    "the Playground shows its FieldError while the invalid control is on",
-  ],
-]);
+/** Families whose first manifest story reads an arg the manifest prints as written. Empty, and
+    only shrinks: a first story writes its values in, or reads an arg as prop={args.key}. */
+const ARGS_EXCEPTIONS = new Map();
 
 const unwrap = (node) => {
   while (

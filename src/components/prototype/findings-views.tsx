@@ -35,6 +35,7 @@ import { LevelIndicator, StatusBadge } from "@/components/app/status";
 import { useWorkspace } from "@/components/app/workspace";
 import { Page } from "@/components/app/shell";
 import { ObservationsRegister } from "./observations-register";
+import { SystemAssetsRegister } from "./system-assets-register";
 import { RetainedTabPanels } from "./program-shared";
 import { ProductCollection } from "./product-collection";
 import { useOwnerAssignment, useOwnerOptions } from "./assign-owner";
@@ -47,6 +48,7 @@ import {
   useOpenRecord,
 } from "./record-preview";
 import { TraceBand } from "./assurance-trace";
+import { IssueRequirements } from "./issue-requirements";
 import { RecordSummaryPreview, type RecordSummaryField } from "./record-summary-preview";
 import { RecordTrail, TrailLink } from "./record-trail";
 import {
@@ -514,27 +516,7 @@ export function Findings({
               {name === "issues" && <OperationalIssueRegister />}
               {name === "observations" && <ObservationsRegister fill />}
               {name === "findings" && <AssessmentFindingRegister />}
-              {name === "assets" && (
-                <EntitySection
-                  fill
-                  table="inventory_items"
-                  view={registerViews.systemAssets}
-                  title="System assets"
-                  description="An asset is a hardware or software item in a system's inventory."
-                  columns={[
-                    { key: "asset_id", label: "Asset ID" },
-                    { key: "name", label: "Asset" },
-                    {
-                      key: "system_id",
-                      label: "System",
-                      render: (row) => (
-                        <RelationName table="systems" id={row["system_id"] as string} />
-                      ),
-                    },
-                    { key: "description", label: "Description" },
-                  ]}
-                />
-              )}
+              {name === "assets" && <SystemAssetsRegister />}
             </>
           )}
         </RetainedTabPanels>
@@ -582,9 +564,16 @@ function ResultsRevision({
   );
 }
 
+/**
+ * An assessment finding's record: the assessor's verdict on a part of a control, where it stands
+ * and what it reaches as its band and trace (the control it judges, the evidence it cites, the
+ * operational issue it became, the risks it raised and their remediation), then what the assessor
+ * wrote and the observations, evidence and risk assessments it rests on.
+ */
 export function FindingRecord({ id }: { id: string }) {
   const workspace = useWorkspace();
   const query = useRow("assessment_findings", id);
+  const trace = useAssuranceTrace({ kind: "finding", id });
   const results = useRow(
     "assessment_results_revisions",
     query.data?.assessment_results_revision_id,
@@ -625,6 +614,7 @@ export function FindingRecord({ id }: { id: string }) {
                 onCancel={() => setEditing(null)}
               />
             )}
+            <TraceBand trace={trace} kind="finding" name={`the assessment finding ${row.title}`} />
             <AsideLayout
               aside={
                 <Shell.Aside
@@ -861,10 +851,20 @@ function IssueObservations({ issue }: { issue: Row<"operational_issues"> }) {
 }
 
 /**
- * An operational issue's record: where it stands and what it reaches, as its band and trace; what
- * was observed; and the remediation items and tasks that answer it.
+ * An operational issue's record: where it stands and what it reaches, as its band and trace; the
+ * requirements it names; what was observed; and the remediation items and tasks that answer it.
+ * `linkRequirement` is the address asking it to open its Link requirement, the fix its trace offers
+ * while it names no requirement.
  */
-export function IssueRecord({ id }: { id: string }) {
+export function IssueRecord({
+  id,
+  linkRequirement = false,
+  onLinkRequirementOpened,
+}: {
+  id: string;
+  linkRequirement?: boolean | undefined;
+  onLinkRequirementOpened?: (() => void) | undefined;
+}) {
   const query = useRow("operational_issues", id);
   const trace = useAssuranceTrace({ kind: "issue", id });
   const [editing, setEditing] = useState<DataRecord | null>(null);
@@ -942,6 +942,11 @@ export function IssueRecord({ id }: { id: string }) {
             >
               <Stack space="space.250" className="min-w-0">
                 <Described label="Description" text={row.description} />
+                <IssueRequirements
+                  issue={row}
+                  linkAsked={linkRequirement}
+                  onLinkOpened={onLinkRequirementOpened}
+                />
                 <IssueObservations issue={row} />
                 <EntitySection
                   showHeading

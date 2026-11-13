@@ -224,8 +224,8 @@ test("a misspelt variant is respelled only when one spelling is near enough", ()
   for (const cls of ["tablet:flex", "hoveed:flex", "max-sn:flex", "@mdd:flex", "od:flex"])
     assert.equal(meant(cls), undefined, cls);
   // Two spellings as near as each other give none (oven is one edit from even and from open),
-  // and so does a word as near to a breakpoint as to a state (wile: file, wide), or nearest one.
-  for (const cls of ["oven:flex", "ivalid:flex", "wile:flex", "smm:flex", "ltg:flex"])
+  // and so does a word as near to a breakpoint as to a state (mdd: md, odd), or nearest one.
+  for (const cls of ["oven:flex", "ivalid:flex", "mdd:flex", "smm:flex", "ltg:flex"])
     assert.equal(meant(cls), undefined, cls);
   assert.equal(editDistance("tablet", "target"), 2);
   assert.equal(editDistance("redcue", "reduce"), 1);
@@ -253,10 +253,7 @@ test("a class's replacement respells every variant at fault and keeps everything
 test("a breakpoint's finding lists the container sizes first, then the window breakpoints", () => {
   const { containers, breakpoints } = sizeLists();
   assert.equal(containers, "@3xs 16rem to @7xl 80rem, @compact 25rem and @split 50rem");
-  assert.equal(
-    breakpoints,
-    "sm 40rem, md 48rem, lg 64rem, aside 75rem, panel or xl 80rem and wide 110rem",
-  );
+  assert.equal(breakpoints, "sm 40rem, md 48rem, lg 64rem and panel or xl 80rem");
   const { cause, data } = problemOf("tablet:flex");
   assert.equal(cause, "breakpoint");
   assert.deepEqual(Object.keys(data), ["variant", "containers", "breakpoints"]);

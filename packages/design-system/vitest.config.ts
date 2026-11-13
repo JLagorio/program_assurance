@@ -89,6 +89,9 @@ const storybookProject = ({
   test: {
     name: `storybook-${name}`,
     maxWorkers: 3,
+    // The CI runner draws three to four times slower than a laptop: Data Table Matrix took
+    // 14 to 18.6 s there against vitest's 15 s default, so a story gets 30 s.
+    testTimeout: 30_000,
     exclude,
     provide: { "ledger/gates-record": record, ...provide },
     setupFiles: [path.join(dirname, "test/storybook.setup.ts")],

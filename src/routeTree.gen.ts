@@ -15,6 +15,7 @@ import { Route as CampaignsRouteImport } from './routes/campaigns'
 import { Route as CatalogRouteImport } from './routes/catalog'
 import { Route as EvidenceRouteImport } from './routes/evidence'
 import { Route as ProgramsRouteImport } from './routes/programs'
+import { Route as ReviewQueueRouteImport } from './routes/review-queue'
 import { Route as RisksRouteImport } from './routes/risks'
 import { Route as SchemaRouteImport } from './routes/schema'
 import { Route as VendorsRouteImport } from './routes/vendors'
@@ -40,14 +41,18 @@ import { Route as TasksTaskIdRouteImport } from './routes/tasks.$taskId'
 import { Route as WorkstreamsWorkstreamIdRouteImport } from './routes/workstreams.$workstreamId'
 import { Route as CatalogControlsControlIdRouteImport } from './routes/catalog_.controls.$controlId'
 import { Route as FindingsAssetsAssetIdRouteImport } from './routes/findings.assets.$assetId'
+import { Route as LibraryBusinessLinesIndexRouteImport } from './routes/library.business-lines.index'
+import { Route as LibraryBusinessLinesLineIdRouteImport } from './routes/library.business-lines.$lineId'
 import { Route as LibraryComponentsIndexRouteImport } from './routes/library.components.index'
 import { Route as LibraryComponentsComponentKeyRouteImport } from './routes/library.components.$componentKey'
+import { Route as LibraryProductAssessmentsAssessmentIdRouteImport } from './routes/library.product-assessments.$assessmentId'
 import { Route as LibraryProductsIndexRouteImport } from './routes/library.products.index'
 import { Route as LibraryProductsProductKeyRouteImport } from './routes/library.products.$productKey'
 import { Route as LibraryRequirementsIndexRouteImport } from './routes/library.requirements.index'
 import { Route as LibraryRequirementsDefinitionKeyRouteImport } from './routes/library.requirements.$definitionKey'
 import { Route as ProgramsProgramIdAuthorizationRouteImport } from './routes/programs.$programId_.authorization'
 import { Route as ProgramsProgramIdBaselineRouteImport } from './routes/programs.$programId_.baseline'
+import { Route as ProgramsProgramIdComplianceRouteImport } from './routes/programs.$programId_.compliance'
 import { Route as ProgramsProgramIdCompositionRouteImport } from './routes/programs.$programId_.composition'
 import { Route as ProgramsProgramIdConmonRouteImport } from './routes/programs.$programId_.conmon'
 import { Route as ProgramsProgramIdControlBaselineRouteImport } from './routes/programs.$programId_.control-baseline'
@@ -57,6 +62,7 @@ import { Route as ProgramsProgramIdExportRouteImport } from './routes/programs.$
 import { Route as ProgramsProgramIdIngestionRouteImport } from './routes/programs.$programId_.ingestion'
 import { Route as ProgramsProgramIdInheritanceRouteImport } from './routes/programs.$programId_.inheritance'
 import { Route as ProgramsProgramIdPostureRouteImport } from './routes/programs.$programId_.posture'
+import { Route as ProgramsProgramIdProductDeltaRouteImport } from './routes/programs.$programId_.product-delta'
 import { Route as ProgramsProgramIdResiliencyRouteImport } from './routes/programs.$programId_.resiliency'
 import { Route as ProgramsProgramIdRiskRouteImport } from './routes/programs.$programId_.risk'
 import { Route as ProgramsProgramIdSctmRouteImport } from './routes/programs.$programId_.sctm'
@@ -98,6 +104,11 @@ const EvidenceRoute = EvidenceRouteImport.update({
 const ProgramsRoute = ProgramsRouteImport.update({
   id: '/programs',
   path: '/programs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReviewQueueRoute = ReviewQueueRouteImport.update({
+  id: '/review-queue',
+  path: '/review-queue',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RisksRoute = RisksRouteImport.update({
@@ -226,6 +237,18 @@ const FindingsAssetsAssetIdRoute = FindingsAssetsAssetIdRouteImport.update({
   path: '/findings/assets/$assetId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LibraryBusinessLinesIndexRoute =
+  LibraryBusinessLinesIndexRouteImport.update({
+    id: '/library/business-lines/',
+    path: '/library/business-lines/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const LibraryBusinessLinesLineIdRoute =
+  LibraryBusinessLinesLineIdRouteImport.update({
+    id: '/library/business-lines/$lineId',
+    path: '/library/business-lines/$lineId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const LibraryComponentsIndexRoute = LibraryComponentsIndexRouteImport.update({
   id: '/library/components/',
   path: '/library/components/',
@@ -235,6 +258,12 @@ const LibraryComponentsComponentKeyRoute =
   LibraryComponentsComponentKeyRouteImport.update({
     id: '/library/components/$componentKey',
     path: '/library/components/$componentKey',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const LibraryProductAssessmentsAssessmentIdRoute =
+  LibraryProductAssessmentsAssessmentIdRouteImport.update({
+    id: '/library/product-assessments/$assessmentId',
+    path: '/library/product-assessments/$assessmentId',
     getParentRoute: () => rootRouteImport,
   } as any)
 const LibraryProductsIndexRoute = LibraryProductsIndexRouteImport.update({
@@ -270,6 +299,12 @@ const ProgramsProgramIdBaselineRoute =
   ProgramsProgramIdBaselineRouteImport.update({
     id: '/$programId_/baseline',
     path: '/$programId/baseline',
+    getParentRoute: () => ProgramsRoute,
+  } as any)
+const ProgramsProgramIdComplianceRoute =
+  ProgramsProgramIdComplianceRouteImport.update({
+    id: '/$programId_/compliance',
+    path: '/$programId/compliance',
     getParentRoute: () => ProgramsRoute,
   } as any)
 const ProgramsProgramIdCompositionRoute =
@@ -322,6 +357,12 @@ const ProgramsProgramIdPostureRoute =
   ProgramsProgramIdPostureRouteImport.update({
     id: '/$programId_/posture',
     path: '/$programId/posture',
+    getParentRoute: () => ProgramsRoute,
+  } as any)
+const ProgramsProgramIdProductDeltaRoute =
+  ProgramsProgramIdProductDeltaRouteImport.update({
+    id: '/$programId_/product-delta',
+    path: '/$programId/product-delta',
     getParentRoute: () => ProgramsRoute,
   } as any)
 const ProgramsProgramIdResiliencyRoute =
@@ -400,6 +441,7 @@ export interface FileRoutesByFullPath {
   '/catalog': typeof CatalogRoute
   '/evidence': typeof EvidenceRoute
   '/programs': typeof ProgramsRouteWithChildren
+  '/review-queue': typeof ReviewQueueRoute
   '/risks': typeof RisksRouteWithChildren
   '/schema': typeof SchemaRoute
   '/vendors': typeof VendorsRoute
@@ -425,11 +467,14 @@ export interface FileRoutesByFullPath {
   '/register/': typeof RegisterIndexRoute
   '/catalog/controls/$controlId': typeof CatalogControlsControlIdRoute
   '/findings/assets/$assetId': typeof FindingsAssetsAssetIdRoute
+  '/library/business-lines/$lineId': typeof LibraryBusinessLinesLineIdRoute
   '/library/components/$componentKey': typeof LibraryComponentsComponentKeyRoute
+  '/library/product-assessments/$assessmentId': typeof LibraryProductAssessmentsAssessmentIdRoute
   '/library/products/$productKey': typeof LibraryProductsProductKeyRoute
   '/library/requirements/$definitionKey': typeof LibraryRequirementsDefinitionKeyRoute
   '/programs/$programId/authorization': typeof ProgramsProgramIdAuthorizationRoute
   '/programs/$programId/baseline': typeof ProgramsProgramIdBaselineRoute
+  '/programs/$programId/compliance': typeof ProgramsProgramIdComplianceRoute
   '/programs/$programId/composition': typeof ProgramsProgramIdCompositionRoute
   '/programs/$programId/conmon': typeof ProgramsProgramIdConmonRoute
   '/programs/$programId/control-baseline': typeof ProgramsProgramIdControlBaselineRoute
@@ -439,6 +484,7 @@ export interface FileRoutesByFullPath {
   '/programs/$programId/ingestion': typeof ProgramsProgramIdIngestionRoute
   '/programs/$programId/inheritance': typeof ProgramsProgramIdInheritanceRoute
   '/programs/$programId/posture': typeof ProgramsProgramIdPostureRoute
+  '/programs/$programId/product-delta': typeof ProgramsProgramIdProductDeltaRoute
   '/programs/$programId/resiliency': typeof ProgramsProgramIdResiliencyRoute
   '/programs/$programId/risk': typeof ProgramsProgramIdRiskRoute
   '/programs/$programId/sctm': typeof ProgramsProgramIdSctmRoute
@@ -447,6 +493,7 @@ export interface FileRoutesByFullPath {
   '/records/$collection/$recordId': typeof RecordsCollectionRecordIdRoute
   '/register/poam/$poamId': typeof RegisterPoamPoamIdRoute
   '/register/risks/$riskId': typeof RegisterRisksRiskIdRoute
+  '/library/business-lines/': typeof LibraryBusinessLinesIndexRoute
   '/library/components/': typeof LibraryComponentsIndexRoute
   '/library/products/': typeof LibraryProductsIndexRoute
   '/library/requirements/': typeof LibraryRequirementsIndexRoute
@@ -462,6 +509,7 @@ export interface FileRoutesByTo {
   '/catalog': typeof CatalogRoute
   '/evidence': typeof EvidenceRoute
   '/programs': typeof ProgramsRouteWithChildren
+  '/review-queue': typeof ReviewQueueRoute
   '/risks': typeof RisksRouteWithChildren
   '/schema': typeof SchemaRoute
   '/vendors': typeof VendorsRoute
@@ -487,11 +535,14 @@ export interface FileRoutesByTo {
   '/register': typeof RegisterIndexRoute
   '/catalog/controls/$controlId': typeof CatalogControlsControlIdRoute
   '/findings/assets/$assetId': typeof FindingsAssetsAssetIdRoute
+  '/library/business-lines/$lineId': typeof LibraryBusinessLinesLineIdRoute
   '/library/components/$componentKey': typeof LibraryComponentsComponentKeyRoute
+  '/library/product-assessments/$assessmentId': typeof LibraryProductAssessmentsAssessmentIdRoute
   '/library/products/$productKey': typeof LibraryProductsProductKeyRoute
   '/library/requirements/$definitionKey': typeof LibraryRequirementsDefinitionKeyRoute
   '/programs/$programId/authorization': typeof ProgramsProgramIdAuthorizationRoute
   '/programs/$programId/baseline': typeof ProgramsProgramIdBaselineRoute
+  '/programs/$programId/compliance': typeof ProgramsProgramIdComplianceRoute
   '/programs/$programId/composition': typeof ProgramsProgramIdCompositionRoute
   '/programs/$programId/conmon': typeof ProgramsProgramIdConmonRoute
   '/programs/$programId/control-baseline': typeof ProgramsProgramIdControlBaselineRoute
@@ -501,6 +552,7 @@ export interface FileRoutesByTo {
   '/programs/$programId/ingestion': typeof ProgramsProgramIdIngestionRoute
   '/programs/$programId/inheritance': typeof ProgramsProgramIdInheritanceRoute
   '/programs/$programId/posture': typeof ProgramsProgramIdPostureRoute
+  '/programs/$programId/product-delta': typeof ProgramsProgramIdProductDeltaRoute
   '/programs/$programId/resiliency': typeof ProgramsProgramIdResiliencyRoute
   '/programs/$programId/risk': typeof ProgramsProgramIdRiskRoute
   '/programs/$programId/sctm': typeof ProgramsProgramIdSctmRoute
@@ -509,6 +561,7 @@ export interface FileRoutesByTo {
   '/records/$collection/$recordId': typeof RecordsCollectionRecordIdRoute
   '/register/poam/$poamId': typeof RegisterPoamPoamIdRoute
   '/register/risks/$riskId': typeof RegisterRisksRiskIdRoute
+  '/library/business-lines': typeof LibraryBusinessLinesIndexRoute
   '/library/components': typeof LibraryComponentsIndexRoute
   '/library/products': typeof LibraryProductsIndexRoute
   '/library/requirements': typeof LibraryRequirementsIndexRoute
@@ -525,6 +578,7 @@ export interface FileRoutesById {
   '/catalog': typeof CatalogRoute
   '/evidence': typeof EvidenceRoute
   '/programs': typeof ProgramsRouteWithChildren
+  '/review-queue': typeof ReviewQueueRoute
   '/risks': typeof RisksRouteWithChildren
   '/schema': typeof SchemaRoute
   '/vendors': typeof VendorsRoute
@@ -550,11 +604,14 @@ export interface FileRoutesById {
   '/register/': typeof RegisterIndexRoute
   '/catalog_/controls/$controlId': typeof CatalogControlsControlIdRoute
   '/findings/assets/$assetId': typeof FindingsAssetsAssetIdRoute
+  '/library/business-lines/$lineId': typeof LibraryBusinessLinesLineIdRoute
   '/library/components/$componentKey': typeof LibraryComponentsComponentKeyRoute
+  '/library/product-assessments/$assessmentId': typeof LibraryProductAssessmentsAssessmentIdRoute
   '/library/products/$productKey': typeof LibraryProductsProductKeyRoute
   '/library/requirements/$definitionKey': typeof LibraryRequirementsDefinitionKeyRoute
   '/programs/$programId_/authorization': typeof ProgramsProgramIdAuthorizationRoute
   '/programs/$programId_/baseline': typeof ProgramsProgramIdBaselineRoute
+  '/programs/$programId_/compliance': typeof ProgramsProgramIdComplianceRoute
   '/programs/$programId_/composition': typeof ProgramsProgramIdCompositionRoute
   '/programs/$programId_/conmon': typeof ProgramsProgramIdConmonRoute
   '/programs/$programId_/control-baseline': typeof ProgramsProgramIdControlBaselineRoute
@@ -564,6 +621,7 @@ export interface FileRoutesById {
   '/programs/$programId_/ingestion': typeof ProgramsProgramIdIngestionRoute
   '/programs/$programId_/inheritance': typeof ProgramsProgramIdInheritanceRoute
   '/programs/$programId_/posture': typeof ProgramsProgramIdPostureRoute
+  '/programs/$programId_/product-delta': typeof ProgramsProgramIdProductDeltaRoute
   '/programs/$programId_/resiliency': typeof ProgramsProgramIdResiliencyRoute
   '/programs/$programId_/risk': typeof ProgramsProgramIdRiskRoute
   '/programs/$programId_/sctm': typeof ProgramsProgramIdSctmRoute
@@ -572,6 +630,7 @@ export interface FileRoutesById {
   '/records/$collection/$recordId': typeof RecordsCollectionRecordIdRoute
   '/register/poam/$poamId': typeof RegisterPoamPoamIdRoute
   '/register/risks/$riskId': typeof RegisterRisksRiskIdRoute
+  '/library/business-lines/': typeof LibraryBusinessLinesIndexRoute
   '/library/components/': typeof LibraryComponentsIndexRoute
   '/library/products/': typeof LibraryProductsIndexRoute
   '/library/requirements/': typeof LibraryRequirementsIndexRoute
@@ -589,6 +648,7 @@ export interface FileRouteTypes {
     | '/catalog'
     | '/evidence'
     | '/programs'
+    | '/review-queue'
     | '/risks'
     | '/schema'
     | '/vendors'
@@ -614,11 +674,14 @@ export interface FileRouteTypes {
     | '/register/'
     | '/catalog/controls/$controlId'
     | '/findings/assets/$assetId'
+    | '/library/business-lines/$lineId'
     | '/library/components/$componentKey'
+    | '/library/product-assessments/$assessmentId'
     | '/library/products/$productKey'
     | '/library/requirements/$definitionKey'
     | '/programs/$programId/authorization'
     | '/programs/$programId/baseline'
+    | '/programs/$programId/compliance'
     | '/programs/$programId/composition'
     | '/programs/$programId/conmon'
     | '/programs/$programId/control-baseline'
@@ -628,6 +691,7 @@ export interface FileRouteTypes {
     | '/programs/$programId/ingestion'
     | '/programs/$programId/inheritance'
     | '/programs/$programId/posture'
+    | '/programs/$programId/product-delta'
     | '/programs/$programId/resiliency'
     | '/programs/$programId/risk'
     | '/programs/$programId/sctm'
@@ -636,6 +700,7 @@ export interface FileRouteTypes {
     | '/records/$collection/$recordId'
     | '/register/poam/$poamId'
     | '/register/risks/$riskId'
+    | '/library/business-lines/'
     | '/library/components/'
     | '/library/products/'
     | '/library/requirements/'
@@ -651,6 +716,7 @@ export interface FileRouteTypes {
     | '/catalog'
     | '/evidence'
     | '/programs'
+    | '/review-queue'
     | '/risks'
     | '/schema'
     | '/vendors'
@@ -676,11 +742,14 @@ export interface FileRouteTypes {
     | '/register'
     | '/catalog/controls/$controlId'
     | '/findings/assets/$assetId'
+    | '/library/business-lines/$lineId'
     | '/library/components/$componentKey'
+    | '/library/product-assessments/$assessmentId'
     | '/library/products/$productKey'
     | '/library/requirements/$definitionKey'
     | '/programs/$programId/authorization'
     | '/programs/$programId/baseline'
+    | '/programs/$programId/compliance'
     | '/programs/$programId/composition'
     | '/programs/$programId/conmon'
     | '/programs/$programId/control-baseline'
@@ -690,6 +759,7 @@ export interface FileRouteTypes {
     | '/programs/$programId/ingestion'
     | '/programs/$programId/inheritance'
     | '/programs/$programId/posture'
+    | '/programs/$programId/product-delta'
     | '/programs/$programId/resiliency'
     | '/programs/$programId/risk'
     | '/programs/$programId/sctm'
@@ -698,6 +768,7 @@ export interface FileRouteTypes {
     | '/records/$collection/$recordId'
     | '/register/poam/$poamId'
     | '/register/risks/$riskId'
+    | '/library/business-lines'
     | '/library/components'
     | '/library/products'
     | '/library/requirements'
@@ -713,6 +784,7 @@ export interface FileRouteTypes {
     | '/catalog'
     | '/evidence'
     | '/programs'
+    | '/review-queue'
     | '/risks'
     | '/schema'
     | '/vendors'
@@ -738,11 +810,14 @@ export interface FileRouteTypes {
     | '/register/'
     | '/catalog_/controls/$controlId'
     | '/findings/assets/$assetId'
+    | '/library/business-lines/$lineId'
     | '/library/components/$componentKey'
+    | '/library/product-assessments/$assessmentId'
     | '/library/products/$productKey'
     | '/library/requirements/$definitionKey'
     | '/programs/$programId_/authorization'
     | '/programs/$programId_/baseline'
+    | '/programs/$programId_/compliance'
     | '/programs/$programId_/composition'
     | '/programs/$programId_/conmon'
     | '/programs/$programId_/control-baseline'
@@ -752,6 +827,7 @@ export interface FileRouteTypes {
     | '/programs/$programId_/ingestion'
     | '/programs/$programId_/inheritance'
     | '/programs/$programId_/posture'
+    | '/programs/$programId_/product-delta'
     | '/programs/$programId_/resiliency'
     | '/programs/$programId_/risk'
     | '/programs/$programId_/sctm'
@@ -760,6 +836,7 @@ export interface FileRouteTypes {
     | '/records/$collection/$recordId'
     | '/register/poam/$poamId'
     | '/register/risks/$riskId'
+    | '/library/business-lines/'
     | '/library/components/'
     | '/library/products/'
     | '/library/requirements/'
@@ -776,6 +853,7 @@ export interface RootRouteChildren {
   CatalogRoute: typeof CatalogRoute
   EvidenceRoute: typeof EvidenceRoute
   ProgramsRoute: typeof ProgramsRouteWithChildren
+  ReviewQueueRoute: typeof ReviewQueueRoute
   RisksRoute: typeof RisksRouteWithChildren
   SchemaRoute: typeof SchemaRoute
   VendorsRoute: typeof VendorsRoute
@@ -797,11 +875,14 @@ export interface RootRouteChildren {
   RegisterIndexRoute: typeof RegisterIndexRoute
   CatalogControlsControlIdRoute: typeof CatalogControlsControlIdRoute
   FindingsAssetsAssetIdRoute: typeof FindingsAssetsAssetIdRoute
+  LibraryBusinessLinesLineIdRoute: typeof LibraryBusinessLinesLineIdRoute
   LibraryComponentsComponentKeyRoute: typeof LibraryComponentsComponentKeyRoute
+  LibraryProductAssessmentsAssessmentIdRoute: typeof LibraryProductAssessmentsAssessmentIdRoute
   LibraryProductsProductKeyRoute: typeof LibraryProductsProductKeyRoute
   LibraryRequirementsDefinitionKeyRoute: typeof LibraryRequirementsDefinitionKeyRoute
   RegisterPoamPoamIdRoute: typeof RegisterPoamPoamIdRoute
   RegisterRisksRiskIdRoute: typeof RegisterRisksRiskIdRoute
+  LibraryBusinessLinesIndexRoute: typeof LibraryBusinessLinesIndexRoute
   LibraryComponentsIndexRoute: typeof LibraryComponentsIndexRoute
   LibraryProductsIndexRoute: typeof LibraryProductsIndexRoute
   LibraryRequirementsIndexRoute: typeof LibraryRequirementsIndexRoute
@@ -849,6 +930,13 @@ declare module '@tanstack/react-router' {
       path: '/programs'
       fullPath: '/programs'
       preLoaderRoute: typeof ProgramsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/review-queue': {
+      id: '/review-queue'
+      path: '/review-queue'
+      fullPath: '/review-queue'
+      preLoaderRoute: typeof ReviewQueueRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/risks': {
@@ -1026,6 +1114,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FindingsAssetsAssetIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/library/business-lines/': {
+      id: '/library/business-lines/'
+      path: '/library/business-lines'
+      fullPath: '/library/business-lines/'
+      preLoaderRoute: typeof LibraryBusinessLinesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/library/business-lines/$lineId': {
+      id: '/library/business-lines/$lineId'
+      path: '/library/business-lines/$lineId'
+      fullPath: '/library/business-lines/$lineId'
+      preLoaderRoute: typeof LibraryBusinessLinesLineIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/library/components/': {
       id: '/library/components/'
       path: '/library/components'
@@ -1038,6 +1140,13 @@ declare module '@tanstack/react-router' {
       path: '/library/components/$componentKey'
       fullPath: '/library/components/$componentKey'
       preLoaderRoute: typeof LibraryComponentsComponentKeyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/library/product-assessments/$assessmentId': {
+      id: '/library/product-assessments/$assessmentId'
+      path: '/library/product-assessments/$assessmentId'
+      fullPath: '/library/product-assessments/$assessmentId'
+      preLoaderRoute: typeof LibraryProductAssessmentsAssessmentIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/library/products/': {
@@ -1080,6 +1189,13 @@ declare module '@tanstack/react-router' {
       path: '/$programId/baseline'
       fullPath: '/programs/$programId/baseline'
       preLoaderRoute: typeof ProgramsProgramIdBaselineRouteImport
+      parentRoute: typeof ProgramsRoute
+    }
+    '/programs/$programId_/compliance': {
+      id: '/programs/$programId_/compliance'
+      path: '/$programId/compliance'
+      fullPath: '/programs/$programId/compliance'
+      preLoaderRoute: typeof ProgramsProgramIdComplianceRouteImport
       parentRoute: typeof ProgramsRoute
     }
     '/programs/$programId_/composition': {
@@ -1143,6 +1259,13 @@ declare module '@tanstack/react-router' {
       path: '/$programId/posture'
       fullPath: '/programs/$programId/posture'
       preLoaderRoute: typeof ProgramsProgramIdPostureRouteImport
+      parentRoute: typeof ProgramsRoute
+    }
+    '/programs/$programId_/product-delta': {
+      id: '/programs/$programId_/product-delta'
+      path: '/$programId/product-delta'
+      fullPath: '/programs/$programId/product-delta'
+      preLoaderRoute: typeof ProgramsProgramIdProductDeltaRouteImport
       parentRoute: typeof ProgramsRoute
     }
     '/programs/$programId_/resiliency': {
@@ -1249,6 +1372,7 @@ interface ProgramsRouteChildren {
   ProgramsNewRoute: typeof ProgramsNewRoute
   ProgramsProgramIdAuthorizationRoute: typeof ProgramsProgramIdAuthorizationRoute
   ProgramsProgramIdBaselineRoute: typeof ProgramsProgramIdBaselineRoute
+  ProgramsProgramIdComplianceRoute: typeof ProgramsProgramIdComplianceRoute
   ProgramsProgramIdCompositionRoute: typeof ProgramsProgramIdCompositionRoute
   ProgramsProgramIdConmonRoute: typeof ProgramsProgramIdConmonRoute
   ProgramsProgramIdControlBaselineRoute: typeof ProgramsProgramIdControlBaselineRoute
@@ -1258,6 +1382,7 @@ interface ProgramsRouteChildren {
   ProgramsProgramIdIngestionRoute: typeof ProgramsProgramIdIngestionRoute
   ProgramsProgramIdInheritanceRoute: typeof ProgramsProgramIdInheritanceRoute
   ProgramsProgramIdPostureRoute: typeof ProgramsProgramIdPostureRoute
+  ProgramsProgramIdProductDeltaRoute: typeof ProgramsProgramIdProductDeltaRoute
   ProgramsProgramIdResiliencyRoute: typeof ProgramsProgramIdResiliencyRoute
   ProgramsProgramIdRiskRoute: typeof ProgramsProgramIdRiskRoute
   ProgramsProgramIdSctmRoute: typeof ProgramsProgramIdSctmRoute
@@ -1274,6 +1399,7 @@ const ProgramsRouteChildren: ProgramsRouteChildren = {
   ProgramsNewRoute: ProgramsNewRoute,
   ProgramsProgramIdAuthorizationRoute: ProgramsProgramIdAuthorizationRoute,
   ProgramsProgramIdBaselineRoute: ProgramsProgramIdBaselineRoute,
+  ProgramsProgramIdComplianceRoute: ProgramsProgramIdComplianceRoute,
   ProgramsProgramIdCompositionRoute: ProgramsProgramIdCompositionRoute,
   ProgramsProgramIdConmonRoute: ProgramsProgramIdConmonRoute,
   ProgramsProgramIdControlBaselineRoute: ProgramsProgramIdControlBaselineRoute,
@@ -1283,6 +1409,7 @@ const ProgramsRouteChildren: ProgramsRouteChildren = {
   ProgramsProgramIdIngestionRoute: ProgramsProgramIdIngestionRoute,
   ProgramsProgramIdInheritanceRoute: ProgramsProgramIdInheritanceRoute,
   ProgramsProgramIdPostureRoute: ProgramsProgramIdPostureRoute,
+  ProgramsProgramIdProductDeltaRoute: ProgramsProgramIdProductDeltaRoute,
   ProgramsProgramIdResiliencyRoute: ProgramsProgramIdResiliencyRoute,
   ProgramsProgramIdRiskRoute: ProgramsProgramIdRiskRoute,
   ProgramsProgramIdSctmRoute: ProgramsProgramIdSctmRoute,
@@ -1329,6 +1456,7 @@ const rootRouteChildren: RootRouteChildren = {
   CatalogRoute: CatalogRoute,
   EvidenceRoute: EvidenceRoute,
   ProgramsRoute: ProgramsRouteWithChildren,
+  ReviewQueueRoute: ReviewQueueRoute,
   RisksRoute: RisksRouteWithChildren,
   SchemaRoute: SchemaRoute,
   VendorsRoute: VendorsRoute,
@@ -1350,11 +1478,15 @@ const rootRouteChildren: RootRouteChildren = {
   RegisterIndexRoute: RegisterIndexRoute,
   CatalogControlsControlIdRoute: CatalogControlsControlIdRoute,
   FindingsAssetsAssetIdRoute: FindingsAssetsAssetIdRoute,
+  LibraryBusinessLinesLineIdRoute: LibraryBusinessLinesLineIdRoute,
   LibraryComponentsComponentKeyRoute: LibraryComponentsComponentKeyRoute,
+  LibraryProductAssessmentsAssessmentIdRoute:
+    LibraryProductAssessmentsAssessmentIdRoute,
   LibraryProductsProductKeyRoute: LibraryProductsProductKeyRoute,
   LibraryRequirementsDefinitionKeyRoute: LibraryRequirementsDefinitionKeyRoute,
   RegisterPoamPoamIdRoute: RegisterPoamPoamIdRoute,
   RegisterRisksRiskIdRoute: RegisterRisksRiskIdRoute,
+  LibraryBusinessLinesIndexRoute: LibraryBusinessLinesIndexRoute,
   LibraryComponentsIndexRoute: LibraryComponentsIndexRoute,
   LibraryProductsIndexRoute: LibraryProductsIndexRoute,
   LibraryRequirementsIndexRoute: LibraryRequirementsIndexRoute,

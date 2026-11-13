@@ -25,7 +25,7 @@ import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
 const { Matrix: Grid, Specimens } = storyLayout;
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 const meta = {
   title: "Components/Input",
@@ -559,6 +559,41 @@ export const Dont: Story = {
         />
       </Stack>
     );
+  },
+  play: async ({ canvasElement }) => {
+    // The label names the field and the placeholder only shows the format; a placeholder in the
+    // label's place has no label behind it and is gone at the first keystroke.
+    const label = halves(canvasElement, 0);
+    await expect(within(label.do).getByRole("textbox", { name: "Owner" })).toHaveAttribute(
+      "placeholder",
+      "first.last@example.mil",
+    );
+    const unlabelled = within(label.dont).getByRole<HTMLInputElement>("textbox");
+    await expect(unlabelled.labels).toHaveLength(0);
+    await userEvent.type(unlabelled, "d");
+    await expect(unlabelled.matches(":placeholder-shown")).toBe(false);
+    // A label is a noun in sentence case with no colon; the Don't's is an instruction in title
+    // case.
+    const wording = halves(canvasElement, 1);
+    await expect(within(wording.do).getByRole("textbox")).toHaveAccessibleName("Program name");
+    const instruction = within(wording.dont).getByRole("textbox");
+    await expect(instruction).toHaveAccessibleName(/:$/);
+    await expect(instruction).toHaveAccessibleName(/ [A-Z].* [A-Z]/);
+    // The error says what is wrong and what fixes it; Invalid input repeats the red border.
+    const error = halves(canvasElement, 2);
+    const owner = (half: HTMLElement) => within(half).getByRole("textbox", { name: "Owner" });
+    await expect(owner(error.do)).toBeInvalid();
+    await expect(owner(error.do)).toHaveAccessibleDescription(
+      "Choose a person who is on the program.",
+    );
+    await expect(owner(error.dont)).toBeInvalid();
+    await expect(owner(error.dont)).toHaveAccessibleDescription("Invalid input");
+    // A field as wide as its answer; the Don't's runs far past five letters.
+    const width = halves(canvasElement, 3);
+    const across = (half: HTMLElement) =>
+      within(half).getByRole("textbox", { name: "Acronym" }).getBoundingClientRect().width;
+    await expect(across(width.do)).toBeLessThanOrEqual(120);
+    await expect(across(width.dont)).toBeGreaterThan(1.5 * across(width.do));
   },
 };
 

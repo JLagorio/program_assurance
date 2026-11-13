@@ -544,9 +544,22 @@ export function useServerCounts(
   questions: readonly ServerResultQuestion[],
   options: ServerRowsOptions = {},
 ): (number | undefined)[] {
+  return useServerCountQueries(read, questions, options).map((count) => count.data);
+}
+
+/**
+ * Each count `useServerCounts` reads, as its query: for a number that says it is loading, or that
+ * it could not be read (a Portfolio tile, a tab's count), never a zero. One HEAD request a
+ * question, with the exact count and no rows.
+ */
+export function useServerCountQueries(
+  read: ServerRead,
+  questions: readonly ServerResultQuestion[],
+  options: ServerRowsOptions = {},
+): UseQueryResult<number, Error>[] {
   const workspace = useWorkspace();
   useDerivedFrom(workspace.tenantId, read.models, read.model ?? read.source);
-  const counts = useQueries({
+  return useQueries({
     queries: questions.map((question) => {
       const asked = serverQuestion(read, { ...question, pageIndex: 0, pageSize: 1 });
       return {
@@ -574,7 +587,6 @@ export function useServerCounts(
       };
     }),
   });
-  return counts.map((count) => count.data);
 }
 
 /**

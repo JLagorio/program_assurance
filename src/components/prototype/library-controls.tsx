@@ -1,4 +1,12 @@
 import { StatusBadge } from "@/components/app/status";
+import {
+  readingText,
+  readingTitle,
+  sourceKinds,
+  sourceName,
+  type ParameterReading,
+  type ParameterSource,
+} from "@/lib/control-parameters";
 import { idSet, useRow, useRows, type Row } from "@/lib/models";
 import { useParameterChoices } from "@/lib/parameter-reads";
 import { labelFor } from "@/lib/records";
@@ -209,7 +217,17 @@ type ParameterText = Pick<
   "id" | "source_id" | "label" | "has_selection" | "selection_count" | "props"
 >;
 type ParameterChoice = Pick<Row<"parameter_choices">, "id" | "parameter_id" | "ordinal" | "value">;
-type Placeholders = ReadonlyMap<string, { parameter: ParameterText; choices: string[] }>;
+/** What a program's values for a control's parameters read, by the parameter's id (control-parameters). */
+type ProgramParameterValues = ReadonlyMap<string, readonly ParameterReading[]>;
+type Placeholders = ReadonlyMap<
+  string,
+  {
+    parameter: ParameterText;
+    choices: string[];
+    /** What the parameter reads in the program the control is read in; none in the catalog. */
+    readings?: readonly ParameterReading[] | undefined;
+  }
+>;
 
 /** OSCAL's parameter insertion in authored prose: `{{ insert: param, ac-1_prm_1 }}`. */
 const INSERT = /\{\{\s*insert:\s*param,\s*([^\s}]+)\s*\}\}/g;
@@ -222,19 +240,28 @@ const propValue = (props: unknown, name: string): string | undefined => {
   return undefined;
 };
 
-/** Every parameter a control's prose may insert, by its id and by the alternative id it carries. */
+/**
+ * Every parameter a control's prose may insert, by its id and by the alternative id it carries,
+ * with what it reads in the program where `values` gives the program's.
+ */
 function placeholderIndex(
   parameters: readonly ParameterText[],
   choices: readonly ParameterChoice[],
+  values?: ProgramParameterValues | null | undefined,
 ): Placeholders {
-  const index = new Map<string, { parameter: ParameterText; choices: string[] }>();
+  const index = new Map<
+    string,
+    { parameter: ParameterText; choices: string[]; readings?: readonly ParameterReading[] }
+  >();
   for (const parameter of parameters) {
+    const readings = values?.get(parameter.id);
     const entry = {
       parameter,
       choices: choices
         .filter((choice) => choice.parameter_id === parameter.id)
         .sort((a, b) => a.ordinal - b.ordinal)
         .map((choice) => choice.value),
+      ...(readings ? { readings } : {}),
     };
     index.set(parameter.source_id, entry);
     const alternative = propValue(parameter.props, "alt-identifier");
@@ -261,18 +288,57 @@ function placeholderText(id: string, index: Placeholders, depth = 0): string {
   return `[Assignment: ${parameter.label ?? id}]`;
 }
 
-/** Authored control prose with each insertion shown as its labelled placeholder. */
+/** A program's values as the control's text prints them; an insertion in a value reads as its placeholder. */
+function programValueText(reading: Pick<ParameterReading, "values">, index: Placeholders) {
+  return readingText(reading).replace(INSERT, (_, inner: string) => placeholderText(inner, index));
+}
+
+/**
+ * A parameter where the control's prose inserts it. In the catalog it is its labelled placeholder,
+ * subtle and in brackets. In a program that gives it values they stand in its place, in the text's
+ * own colour and at its medium weight, so they read as the program's words and stay told from the
+ * prose; hovering one names the parameter and where the value comes from. Where the program's
+ * control baselines set different values, each reads in turn, joined by "or", a baseline that sets
+ * none by the placeholder.
+ */
+function Insertion({ id, index }: { id: string; index: Placeholders }) {
+  const entry = index.get(id);
+  const readings = entry?.readings;
+  const placeholder = (
+    <Text weight="medium" color="color.text.subtle">
+      {placeholderText(id, index)}
+    </Text>
+  );
+  if (!entry || !readings?.some((reading) => reading.values.length)) return placeholder;
+  const label =
+    entry.parameter.label ?? propValue(entry.parameter.props, "label") ?? entry.parameter.source_id;
+  const disagree = readings.length > 1;
+  return (
+    <>
+      {readings.map((reading, at) => (
+        <Fragment key={at}>
+          {at > 0 && " or "}
+          {reading.values.length ? (
+            <Text weight="medium" title={readingTitle(label, reading, disagree)}>
+              {programValueText(reading, index)}
+            </Text>
+          ) : (
+            placeholder
+          )}
+        </Fragment>
+      ))}
+    </>
+  );
+}
+
+/** Authored control prose with each insertion shown as its labelled placeholder, or the program's values. */
 function withPlaceholders(text: string, index: Placeholders): ReactNode[] {
   const out: ReactNode[] = [];
   let last = 0;
   for (const match of text.matchAll(INSERT)) {
     const at = match.index ?? 0;
     if (at > last) out.push(text.slice(last, at));
-    out.push(
-      <Text key={at} weight="medium" color="color.text.subtle">
-        {placeholderText(match[1] ?? "", index)}
-      </Text>,
-    );
+    out.push(<Insertion key={at} id={match[1] ?? ""} index={index} />);
     last = at + match[0].length;
   }
   if (last < text.length) out.push(text.slice(last));
@@ -455,21 +521,28 @@ function PartList({
 /**
  * A control's text as the catalog prints it: each root part (Statement, Discussion, an assessment
  * objective or method) under a heading at the contextual level, its items under their labels, and
- * every parameter insertion as a labelled placeholder. The one composition of a control's parts.
+ * every parameter insertion as a labelled placeholder, or as the program's values where `values`
+ * gives them. The one composition of a control's parts.
  */
 export function ControlStatement({
   parts,
   parameters,
   choices,
   roots,
+  values,
 }: {
   parts: readonly Row<"control_parts">[];
   parameters: readonly ParameterText[];
   choices: readonly ParameterChoice[];
   /** The root part names to show, in catalog order: ["statement", "guidance"], say. */
   roots: readonly string[];
+  /** What the parameters read in the program the control is read in; the catalog's words without. */
+  values?: ProgramParameterValues | null | undefined;
 }) {
-  const index = useMemo(() => placeholderIndex(parameters, choices), [parameters, choices]);
+  const index = useMemo(
+    () => placeholderIndex(parameters, choices, values),
+    [parameters, choices, values],
+  );
   const shown = parts
     .filter((part) => part.parent_part_id === null && roots.includes(part.name))
     .sort((a, b) => a.ordinal - b.ordinal);
@@ -750,25 +823,94 @@ function ImportSource({ id }: { id: string | null }) {
   );
 }
 
+/** The layers a program's value comes from, each by name with what it is: "Program tailoring · Tailoring". */
+function SourceNames({ sources }: { sources: readonly ParameterSource[] }) {
+  return sources.map((source, at) => (
+    <Fragment key={source.kind === "catalog" ? "catalog" : source.resolutionId}>
+      {at > 0 && "; "}
+      {source.kind === "catalog" ? (
+        sourceKinds.catalog
+      ) : (
+        <>
+          {source.title}
+          <Text color="color.text.subtle">{` · ${sourceKinds[source.kind]}`}</Text>
+        </>
+      )}
+    </Fragment>
+  ));
+}
+
+/**
+ * What a parameter reads in the program, as the control's text prints it: the value and the layer
+ * it comes from, or that nothing sets it. Where the program's control baselines set different
+ * values, one line each, with the baselines that read so and where it comes from.
+ */
+function ProgramValueFacts({
+  readings,
+  index,
+}: {
+  readings: readonly ParameterReading[];
+  index: Placeholders;
+}) {
+  const [only] = readings;
+  if (readings.length === 1 && only)
+    return (
+      <>
+        <KeyValue label="Program value" wrap>
+          {only.values.length ? programValueText(only, index) : <Absent label="Not set" />}
+        </KeyValue>
+        {only.sources.length > 0 && (
+          <KeyValue label="Set by" wrap>
+            <SourceNames sources={only.sources} />
+          </KeyValue>
+        )}
+      </>
+    );
+  return (
+    <KeyValue label="Program value" wrap>
+      <List>
+        {readings.map((reading, at) => (
+          <List.Item key={at}>
+            {reading.values.length ? programValueText(reading, index) : <Absent label="Not set" />}
+            <Text color="color.text.subtle">
+              {` · ${reading.stacks.join(", ")}`}
+              {reading.sources.length > 0 &&
+                `, set by ${reading.sources.map(sourceName).join(" and ")}`}
+            </Text>
+          </List.Item>
+        ))}
+      </List>
+    </KeyValue>
+  );
+}
+
 export function ParameterGroup({
   parameter,
   parameters,
   choices,
+  readings,
 }: {
   parameter: Row<"parameters">;
   parameters: readonly ParameterText[];
   choices: readonly ParameterChoice[];
+  /**
+   * What the parameter reads in the program the control is read in, as the control's text prints
+   * it; none in the catalog, or where none of the program's baselines selects the control.
+   */
+  readings?: readonly ParameterReading[] | undefined;
 }) {
   const index = useMemo(() => placeholderIndex(parameters, choices), [parameters, choices]);
   const values = useRows("parameter_values", { parameter_id: parameter.id });
   const guidelines = useRows("parameter_guidelines", { parameter_id: parameter.id });
   const own = index.get(parameter.source_id)?.choices ?? [];
+  const rationales = [...new Set(readings?.flatMap((reading) => reading.rationales) ?? [])];
   return (
     <Inspector.Group title={propValue(parameter.props, "label") ?? parameter.source_id}>
       <KeyValue.Group>
         <KeyValue label="Label" wrap>
           {parameter.label ?? <Absent />}
         </KeyValue>
+        {readings && <ProgramValueFacts readings={readings} index={index} />}
         {parameter.usage && (
           <KeyValue label="Usage" wrap>
             {parameter.usage}
@@ -805,7 +947,8 @@ export function ParameterGroup({
           <QueryValue queries={[values]}>
             {() =>
               values.data?.length ? (
-                values.data.map((value) => value.value).join("; ")
+                // In the words a program's value is printed in, the catalog's own included.
+                readingText({ values: values.data.map((value) => value.value) })
               ) : (
                 <Absent label="Not assigned in the catalog" />
               )
@@ -813,6 +956,11 @@ export function ParameterGroup({
           </QueryValue>
         </KeyValue>
       </KeyValue.Group>
+      {rationales.map((rationale) => (
+        <Prose key={rationale} label="Rationale">
+          {rationale}
+        </Prose>
+      ))}
       <QueryState queries={[guidelines]}>
         {guidelines.data?.map((guideline) => (
           <Prose key={guideline.id} label="Guideline">

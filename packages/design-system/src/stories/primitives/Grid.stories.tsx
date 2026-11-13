@@ -5,7 +5,7 @@ import { Box, Grid, Inline, Stack, Text } from "../../primitives";
 import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 const meta = {
   title: "Primitives/Grid",
@@ -284,6 +284,39 @@ export const Dont: Story = {
       />
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    const frame = (half: HTMLElement) => half.firstElementChild as HTMLElement;
+    const grid = (half: HTMLElement) => frame(half).firstElementChild as HTMLElement;
+    // minmax(0, 1fr) lets the long name truncate inside its column; with 1fr 1fr the name is the
+    // column's minimum, and the second column is pushed out of the frame.
+    const columns = halves(canvasElement, 0);
+    const inFrame = (half: HTMLElement) =>
+      within(half).getByText("short").parentElement!.getBoundingClientRect().right <=
+      frame(half).getBoundingClientRect().right;
+    const name = within(columns.do).getByText(longToken);
+    await expect(name.scrollWidth).toBeGreaterThan(name.clientWidth + 1);
+    await expect(inFrame(columns.do)).toBe(true);
+    await expect(inFrame(columns.dont)).toBe(false);
+    // One template per breakpoint stacks the cells under md; three columns hold at every width.
+    const breakpoint = halves(canvasElement, 1);
+    const tracks = (half: HTMLElement) =>
+      getComputedStyle(grid(half)).gridTemplateColumns.split(" ").length;
+    const md = window.matchMedia("(width >= 48rem)").matches;
+    await expect(tracks(breakpoint.do)).toBe(md ? 3 : 1);
+    await expect(tracks(breakpoint.dont)).toBe(3);
+    // Chips of their own width wrap in an Inline; a Grid stretches every chip to a third and
+    // leaves a hole in its last row.
+    const chips = halves(canvasElement, 2);
+    const boxes = (half: HTMLElement) =>
+      Array.from(grid(half).children, (chip) => chip.getBoundingClientRect());
+    const widths = (half: HTMLElement) =>
+      new Set(boxes(half).map((box) => Math.round(box.width))).size;
+    await expect(widths(chips.do)).toBeGreaterThan(1);
+    await expect(widths(chips.dont)).toBe(1);
+    const lastRow = Math.round(boxes(chips.dont).at(-1)!.top);
+    const inLastRow = boxes(chips.dont).filter((box) => Math.round(box.top) === lastRow);
+    await expect(inLastRow).toHaveLength(2);
+  },
 };
 
 export const Playground: Story = {

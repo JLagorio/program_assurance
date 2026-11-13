@@ -4,6 +4,7 @@ import { randomUUID, createHash } from "node:crypto";
 import { chromium } from "playwright";
 import { localWorkspace } from "./tests/local-workspace.mjs";
 import { evidenceAssessmentFixture } from "./tests/evidence-assessment-fixture.mjs";
+import { artifactPath } from "./tests/artifacts.mjs";
 const origin = process.env.APP_TEST_URL ?? "http://localhost:8080";
 assert.ok(["localhost", "127.0.0.1"].includes(new URL(origin).hostname));
 const w = await localWorkspace("evidence-reader-browser");
@@ -125,7 +126,7 @@ try {
     return bounds && bounds.width > 0 && bounds.right <= innerWidth;
   });
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
-  await page.screenshot({ path: "/private/tmp/evidence-reader-find-mobile.png", fullPage: true });
+  await page.screenshot({ path: artifactPath("evidence-reader-find-mobile.png"), fullPage: true });
   await findInput.press("Escape");
   await find.waitFor({ state: "hidden" });
   assert.equal(await page.locator('[data-document-anchor-id^="find:"]').count(), 0);
@@ -177,7 +178,7 @@ try {
   await page.goto(`${origin}/evidence?citation=${citations[0].id}`);
   await page.getByRole("button", { name: /Cited passage, page 1:/ }).waitFor();
   await page.getByRole("link", { name: "Open supporting record", exact: true }).waitFor();
-  await page.screenshot({ path: "/private/tmp/evidence-reader-desktop.png", fullPage: true });
+  await page.screenshot({ path: artifactPath("evidence-reader-desktop.png"), fullPage: true });
   await page.getByRole("button", { name: "Close passage", exact: true }).click();
   await select();
   await page.getByRole("button", { name: "Discuss selection", exact: true }).click();
@@ -222,7 +223,7 @@ try {
     "Keep this unsent reply.",
   );
   await page.getByRole("alertdialog").waitFor({ state: "hidden" });
-  await page.screenshot({ path: "/private/tmp/evidence-reader-mobile.png", fullPage: true });
+  await page.screenshot({ path: artifactPath("evidence-reader-mobile.png"), fullPage: true });
   await mobileSheet
     .getByRole("textbox", { name: "Reply to this discussion", exact: true })
     .fill("");
@@ -395,7 +396,7 @@ try {
     );
   if (page)
     await page
-      .screenshot({ path: "/private/tmp/evidence-reader-failure.png", fullPage: true })
+      .screenshot({ path: artifactPath("evidence-reader-failure.png"), fullPage: true })
       .catch(() => {});
   throw error;
 } finally {

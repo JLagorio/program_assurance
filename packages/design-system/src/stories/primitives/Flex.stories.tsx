@@ -1,10 +1,11 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { expect, within } from "storybook/test";
 
 import { Box, Flex, Grid, Inline, Stack, Text } from "../../primitives";
 import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 const meta = {
   title: "Primitives/Flex",
@@ -183,6 +184,46 @@ export const Dont: Story = {
       />
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    // Each child's place in its container: offset, size.
+    const layout = (half: HTMLElement) => {
+      const container = half.firstElementChild!;
+      const origin = container.getBoundingClientRect();
+      return Array.from(container.children, (child) => {
+        const box = child.getBoundingClientRect();
+        const place = [box.left - origin.left, box.top - origin.top, box.width, box.height];
+        return place.map(Math.round);
+      });
+    };
+    // A row with one gap is an Inline; the Flex that spells out the defaults draws the same pixels.
+    const row = halves(canvasElement, 0);
+    await expect(layout(row.dont)).toEqual(layout(row.do));
+    // A column with one gap is a Stack, to the pixel.
+    const column = halves(canvasElement, 1);
+    await expect(layout(column.dont)).toEqual(layout(column.do));
+    // A Grid's template holds the rail at its width; in a Flex a long word in the main column
+    // shrinks it. The play writes a long file name into each main column for a moment.
+    const rail = halves(canvasElement, 2);
+    const railWidth = (half: HTMLElement, main: string) => {
+      const text = within(half).getByText("main").firstChild!;
+      text.nodeValue = main;
+      try {
+        return Math.round(
+          within(half).getByText("rail").parentElement!.getBoundingClientRect().width,
+        );
+      } finally {
+        text.nodeValue = "main";
+      }
+    };
+    // A file name longer than the main column at any width.
+    const file = Array(3)
+      .fill("evidence_2026_05_12_boundary_protection_firewall_ruleset_export_final")
+      .join("_");
+    await expect(railWidth(rail.do, "main")).toBe(96);
+    await expect(railWidth(rail.do, file)).toBe(96);
+    await expect(railWidth(rail.dont, "main")).toBe(96);
+    await expect(railWidth(rail.dont, file)).toBeLessThan(96);
+  },
 };
 
 export const Playground: Story = {

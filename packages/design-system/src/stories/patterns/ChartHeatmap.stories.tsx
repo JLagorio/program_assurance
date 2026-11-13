@@ -25,7 +25,7 @@ import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
 const { Specimens } = storyLayout;
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 const findings = (r: string, c: string) => findingsByFamilyMonth[r]?.[heatMonths.indexOf(c)];
 const variance = (r: string, c: string) => varianceByPhase[r]?.[heatMonths.indexOf(c)];
@@ -912,6 +912,32 @@ export const Dont: Story = {
       />
     </Grid>
   ),
+  play: async ({ canvasElement }) => {
+    const cells = (half: HTMLElement) =>
+      Array.from(
+        half.querySelectorAll<HTMLElement>('[data-slot="chart-heatmap-cell"]:not([data-empty])'),
+      );
+    const status = (cell: HTMLElement) =>
+      /\bbg-(danger|warning|information|success)\b/.exec(cell.className)?.[1];
+    // A count is how much: steps of one sequential scale, with a key that says what dark means.
+    // Painted as statuses, nine findings read as danger and two as success.
+    const counts = halves(canvasElement, 0);
+    for (const cell of cells(counts.do)) await expect(cell.style.backgroundColor).toMatch(/var\(/);
+    await expect(cells(counts.do).filter(status)).toHaveLength(0);
+    await expect(counts.do.querySelector('[data-slot="chart-scale"]')).not.toBeNull();
+    await expect(new Set(cells(counts.dont).map(status)).size).toBeGreaterThan(1);
+    await expect(counts.dont.querySelector('[data-slot="chart-scale"]')).toBeNull();
+    // Status cells print their count; hidden, the counts are only said, and the number stands
+    // apart from its cell.
+    const printed = halves(canvasElement, 1);
+    const drawn = (half: HTMLElement) =>
+      cells(half).filter(
+        (cell) => /\d/.test(cell.textContent ?? "") && !cell.querySelector(".sr-only"),
+      );
+    await expect(drawn(printed.do).length).toBeGreaterThan(0);
+    await expect(drawn(printed.dont)).toHaveLength(0);
+    await expect(printed.dont.querySelector('[data-slot="badge"]')).toHaveTextContent("2");
+  },
 };
 
 export const Playground: Story = {

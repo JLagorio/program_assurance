@@ -1,3 +1,4 @@
+import { useConfirmation } from "@/components/app/confirmation";
 import { Page } from "@/components/app/shell";
 import { StatusBadge } from "@/components/app/status";
 import { useWorkspace } from "@/components/app/workspace";
@@ -5,22 +6,33 @@ import { useCollectionTable } from "@/components/prototype/collection-question";
 import { canAuthorLibrary } from "@/components/prototype/library-utils";
 import { OverlayDialog } from "@/components/prototype/overlay-dialog";
 import { ProductCollection } from "@/components/prototype/product-collection";
-import { RecordLink, useDisplayedRecords } from "@/components/prototype/record-preview";
+import {
+  RecordLink,
+  useDisplayedRecords,
+  useRemovalFocus,
+} from "@/components/prototype/record-preview";
 import { RecordSummaryPreview } from "@/components/prototype/record-summary-preview";
+import { useDeleteControlOverlay } from "@/lib/control-overlays";
 import { useRows, type Row } from "@/lib/models";
-import { revisionStates } from "@/lib/status";
+import { overlayDecisionActions, revisionStates } from "@/lib/status";
 import {
   Button,
   DataTable,
   DateTime,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  IconButton,
   Id,
   PageHeader,
   Prose,
   defineColumns,
+  toast,
   useLedgerLocale,
 } from "@ledger/design-system";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Plus } from "lucide-react";
+import { MoreHorizontal, Plus } from "lucide-react";
 import { useMemo, useState } from "react";
 
 export const Route = createFileRoute("/overlays/")({
@@ -36,9 +48,11 @@ type OverlayRow = Pick<
   | "title"
   | "description"
   | "state"
+  | "revision"
   | "include_count"
   | "exclude_count"
   | "application_count"
+  | "parameter_count"
   | "updated_at"
 >;
 
@@ -57,8 +71,18 @@ const columns = defineColumns<OverlayRow>((c) => [
     ),
   }),
   c.status("state", { header: "State", width: 125, priority: 2, statuses: revisionStates }),
-  c.number("include_count", { header: "Adds", width: 100, priority: 3 }),
-  c.number("exclude_count", { header: "Removes", width: 110, priority: 3 }),
+  c.number("include_count", {
+    header: overlayDecisionActions.include.label,
+    width: 100,
+    priority: 3,
+  }),
+  c.number("exclude_count", {
+    header: overlayDecisionActions.exclude.label,
+    width: 110,
+    priority: 3,
+  }),
+  // How many parameters it sets values for.
+  c.number("parameter_count", { header: "Parameters", width: 120, priority: 4 }),
   // How many baselines apply the overlay.
   c.number("application_count", { header: "Applied", width: 110, priority: 4 }),
   c.date("updated_at", { header: "Updated", priority: 5 }),
@@ -76,9 +100,11 @@ function OverlaysIndex() {
       "title",
       "description",
       "state",
+      "revision",
       "include_count",
       "exclude_count",
       "application_count",
+      "parameter_count",
       "updated_at",
     ],
   });
@@ -100,8 +126,47 @@ function OverlaysIndex() {
   });
   const displayed = useDisplayedRecords(table);
   const canCreate = canAuthorLibrary(workspace.role);
+  const remove = useDeleteControlOverlay();
+  const { confirm, confirmation } = useConfirmation();
+  // A deleted overlay takes its row and the preview that asked; focus comes to Create overlay.
+  const focus = useRemovalFocus(overlays.data ?? NO_OVERLAYS);
+  /** Delete overlay, from the preview of a draft: it asks first, and says a failure in the prompt. */
+  async function deleteOverlay(row: OverlayRow) {
+    const total = row.include_count + row.exclude_count;
+    const held = [
+      ...(total
+        ? [`${formatNumber(total)} control ${total === 1 ? "decision" : "decisions"}`]
+        : []),
+      ...(row.parameter_count
+        ? [
+            `${formatNumber(row.parameter_count)} parameter ${row.parameter_count === 1 ? "value" : "values"}`,
+          ]
+        : []),
+    ].join(" and ");
+    const deleted = await confirm({
+      title: "Delete overlay?",
+      description: `${row.title}${held ? ` and its ${held}` : ""} will be deleted. A deleted overlay cannot be restored.`,
+      confirmLabel: "Delete overlay",
+      variant: "danger",
+      failureTitle: "The overlay was not deleted",
+      action: async () => {
+        focus.removed(row.id);
+        await remove.mutateAsync({ overlayId: row.id, expectedRevision: row.revision });
+      },
+    });
+    if (!deleted) return;
+    setSelected((current) => (current?.id === row.id ? null : current));
+    toast.add({
+      type: "success",
+      title: "Overlay deleted",
+      description: `${row.code} is no longer in the library.`,
+    });
+  }
   const create = canCreate ? (
     <Button
+      ref={(node: HTMLButtonElement | null) => {
+        focus.target.current = node;
+      }}
       size="small"
       variant="primary"
       iconBefore={<Plus />}
@@ -161,13 +226,18 @@ function OverlaysIndex() {
             { key: "code", label: "Code", render: (row) => <Id>{row.code}</Id> },
             {
               key: "include_count",
-              label: "Adds",
+              label: overlayDecisionActions.include.label,
               render: (row) => formatNumber(row.include_count),
             },
             {
               key: "exclude_count",
-              label: "Removes",
+              label: overlayDecisionActions.exclude.label,
               render: (row) => formatNumber(row.exclude_count),
+            },
+            {
+              key: "parameter_count",
+              label: "Parameters",
+              render: (row) => formatNumber(row.parameter_count),
             },
             {
               key: "application_count",
@@ -184,10 +254,33 @@ function OverlaysIndex() {
           rows={displayed}
           onSelect={setSelected}
           onClose={() => setSelected(null)}
+          // A draft can be deleted from here; everything else about it is the record's.
+          recordActions={
+            canCreate && selected.state === "draft" ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  render={
+                    <IconButton
+                      size="small"
+                      variant="subtle"
+                      label="Overlay actions"
+                      icon={<MoreHorizontal />}
+                    />
+                  }
+                />
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem variant="danger" onClick={() => void deleteOverlay(selected)}>
+                    Delete overlay
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : undefined
+          }
         >
           {selected.description ? <Prose label="Description">{selected.description}</Prose> : null}
         </RecordSummaryPreview>
       )}
+      {confirmation}
     </Page>
   );
 }

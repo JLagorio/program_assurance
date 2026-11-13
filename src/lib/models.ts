@@ -70,6 +70,7 @@ type Schema = Omit<Tables, "composition_nodes" | "composition_nodes_archive_2026
       include_count: number;
       exclude_count: number;
       application_count: number;
+      parameter_count: number;
     };
     Insert: never;
     Update: never;

@@ -32,7 +32,7 @@ import * as pairLayout from "../_lib/pair";
 import * as typeStyle from "../_lib/type-style";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 const { typeOf, ramp } = typeStyle;
 
 const meta = {
@@ -334,6 +334,29 @@ export const Dont: Story = {
       />
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    const headings = (half: HTMLElement) => within(half).getAllByRole("heading");
+    // One h1, then the outline in order; a section at the page's size takes its level too.
+    const outline = halves(canvasElement, 0);
+    const levels = (half: HTMLElement) => headings(half).map((heading) => heading.tagName);
+    await expect(levels(outline.do)).toEqual(["H1", "H2", "H3"]);
+    await expect(levels(outline.dont)).toEqual(["H1", "H1", "H3"]);
+    // A page title is `page`; `display` is a figure's size and shouts over the page.
+    const title = halves(canvasElement, 1);
+    const { tag: _do, ...pageType } = typeOf(headings(title.do)[0]!);
+    const { tag: _dont, ...displayType } = typeOf(headings(title.dont)[0]!);
+    await expect(pageType).toEqual(ramp.page);
+    await expect(displayType).toEqual(ramp.display);
+    // A heading is color.text and the tone goes on the fact beside it; the Don't moves the tone
+    // to the heading. Forced colours paint both one system colour, so this shows outside them.
+    if (!window.matchMedia("(forced-colors: active)").matches) {
+      const tone = halves(canvasElement, 2);
+      const colour = (element: Element) => getComputedStyle(element).color;
+      const fact = colour(within(tone.do).getByText("2 past due"));
+      await expect(colour(headings(tone.do)[0]!)).not.toBe(fact);
+      await expect(colour(headings(tone.dont)[0]!)).toBe(fact);
+    }
+  },
 };
 
 /** The level a heading placed here takes, read from the context: what a part that renders a heading of its own sees. */

@@ -1,4 +1,5 @@
 import { ControlBaselineSummary, ProgramControlBaseline } from "./control-baseline";
+import { ProgramInheritance } from "./program-inheritance";
 import { DueDate, EmptyMessage, MissingRecord, type QueryStatus } from "./work-common";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
@@ -56,7 +57,6 @@ import { LevelIndicator, StatusBadge } from "@/components/app/status";
 import { useWorkspace } from "@/components/app/workspace";
 import { Page } from "@/components/app/shell";
 import { AssessmentBrowser } from "@/components/prototype/assessment-browser";
-import type { AssessmentKind } from "@/components/prototype/assessment-tabs";
 import { EvidenceBrowser } from "@/components/prototype/evidence-browser";
 import { WorkTable } from "@/components/prototype/work-table";
 import { ObservationsRegister } from "./observations-register";
@@ -66,6 +66,8 @@ import { ProgramSystemsTree } from "./program-systems-tree";
 import { ProgramLibrary } from "./program-library";
 import { ProgramControlStatusView } from "./program-control-status";
 import { ProgramControlStatusTray, ProgramOpenWork } from "./program-overview";
+import { ProgramProductDeltaTrays, ProgramProductDeltaView } from "./product-delta";
+import { ProgramComplianceView, ProgramRequirementsTrays } from "./compliance-matrix";
 import { ProgramTimeline } from "./program-timeline";
 import { ProgramActivity } from "./program-activity";
 import { ProgramSspAssembly } from "./ssp-assembly";
@@ -84,7 +86,35 @@ import {
   ProgramQueryState,
   ProgramEditor,
   RetainedTabPanels,
+  type ProgramColumn,
 } from "./program-shared";
+import { programRiskTechniquesColumn } from "@/lib/register-views";
+import { codedName, useProgramRiskTechniques } from "@/lib/risk-threats";
+import { serverRead, useServerCountQueries } from "@/lib/server-table";
+
+/** The collections a program's tab strip counts beyond its systems, which it reads anyway. */
+type CountedCollection = "engineering_requirements" | "assessment_campaigns" | "evidence_artifacts";
+
+/**
+ * How many records of a collection the program holds: one HEAD request with the exact count, no
+ * rows. A write to the collection counts again.
+ */
+function useProgramCount(source: CountedCollection, programId: string) {
+  const read = useMemo(
+    () => serverRead({ source, columns: ["id"], scope: { program_id: programId } }),
+    [source, programId],
+  );
+  return useServerCountQueries(read, [{}])[0]!;
+}
+
+/**
+ * A tab's count once it is this program's: none while it loads, after a failure, or while another
+ * program's count still stands in.
+ */
+const counted = (
+  count: ReturnType<typeof useProgramCount>,
+): count is ReturnType<typeof useProgramCount> & { data: number } =>
+  count.isSuccess && !count.isPlaceholderData;
 
 export const programTabs = [
   "Overview",
@@ -133,6 +163,8 @@ export function programTab(value: unknown): ProgramTab {
 const programViews = [
   ["Posture", "/programs/$programId/posture"],
   ["Control status", "/programs/$programId/control-status"],
+  ["Product delta", "/programs/$programId/product-delta"],
+  ["Compliance matrix", "/programs/$programId/compliance"],
   ["Control baseline", "/programs/$programId/control-baseline"],
   ["Cyber resiliency", "/programs/$programId/resiliency"],
   ["Workbook", "/programs/$programId/workbook"],
@@ -152,7 +184,6 @@ export function ProgramWorkspace({
   view,
   requirementId,
   requirementTab,
-  assessmentTab,
   postureReading,
   onPostureReading,
 }: {
@@ -163,7 +194,6 @@ export function ProgramWorkspace({
   requirementId?: string | undefined;
   requirementTab?: RequirementTab | undefined;
   /** The Assessment campaigns tab's own tab, which the address keeps. */
-  assessmentTab?: AssessmentKind | undefined;
   /** What the Posture view counts, which the address keeps, and how it is chosen. */
   postureReading?: PostureReading | undefined;
   onPostureReading?: ((reading: PostureReading) => void) | undefined;
@@ -173,12 +203,11 @@ export function ProgramWorkspace({
   const navigate = useNavigate();
   const query = useRow("programs", programId);
   const systems = useRows("systems", { program_id: programId });
-  // What the tab strip counts and the Overview's open work reads: ids and statuses, not records.
-  const requirements = useRows(
-    "engineering_requirements",
-    { program_id: programId },
-    { columns: ["id"] },
-  );
+  // What the tab strip counts: how many the program holds, counted on the server, never read.
+  const requirementCount = useProgramCount("engineering_requirements", programId);
+  const campaignCount = useProgramCount("assessment_campaigns", programId);
+  const evidenceCount = useProgramCount("evidence_artifacts", programId);
+  // What the Overview's open work reads: ids and statuses, not records.
   const tasks = useRows("tasks", { program_id: programId }, { columns: ["id", "status"] });
   const issues = useRows(
     "operational_issues",
@@ -186,12 +215,6 @@ export function ProgramWorkspace({
     { columns: ["id", "status", "severity"] },
   );
   const risks = useRows("risks", { program_id: programId }, { columns: ["id", "status"] });
-  const evidence = useRows("evidence_artifacts", { program_id: programId }, { columns: ["id"] });
-  const assessments = useRows(
-    "assessment_campaigns",
-    { program_id: programId },
-    { columns: ["id"] },
-  );
   const gates = useRows("lifecycle_gates", { program_id: programId });
   const parties = useRows("parties", undefined, { columns: ["id", "name"] });
   // Loaded with the program on every tab, for the rail and the dialogs that read the same rows.
@@ -208,12 +231,6 @@ export function ProgramWorkspace({
     () => new Set((systems.data ?? []).map((system) => system.id)),
     [systems.data],
   );
-  // The Assessment campaigns tab's own tab, as it was last shown: its panel is retained, so
-  // choosing that tab again shows it as the reader left it.
-  const shownAssessmentTab = useRef(assessmentTab);
-  useEffect(() => {
-    if (tab === "Assessment campaigns" && !view) shownAssessmentTab.current = assessmentTab;
-  }, [tab, view, assessmentTab]);
   function select(next: ProgramTab) {
     void navigate({
       to: "/programs/$programId",
@@ -225,7 +242,6 @@ export function ProgramWorkspace({
         tab: next,
         requirementId: undefined,
         requirementTab: undefined,
-        assessmentTab: next === "Assessment campaigns" ? shownAssessmentTab.current : undefined,
       }),
     });
   }
@@ -236,15 +252,20 @@ export function ProgramWorkspace({
   const programName = `${program.code} · ${program.name}`;
   const counts: Partial<Record<ProgramTab, number>> = {
     ...(systems.isSuccess && { System: systems.data.length }),
-    ...(requirements.isSuccess && { Requirements: requirements.data.length }),
-    ...(assessments.isSuccess && { "Assessment campaigns": assessments.data.length }),
-    ...(evidence.isSuccess && { Evidence: evidence.data.length }),
+    ...(counted(requirementCount) && { Requirements: requirementCount.data }),
+    ...(counted(campaignCount) && { "Assessment campaigns": campaignCount.data }),
+    ...(counted(evidenceCount) && { Evidence: evidenceCount.data }),
   };
   // The Overview's open work: its three reads, said in one alert when one fails.
   const queues: QueryStatus[] = [tasks, issues, risks];
   const canEditProgram = workspace.role !== "viewer";
-  const tabLink = (next: ProgramTab) => (
-    <Link to="/programs/$programId" params={{ programId }} search={{ tab: next }} />
+  const tabLink = (next: ProgramTab, question?: Record<string, unknown>, section?: string) => (
+    <Link
+      to="/programs/$programId"
+      params={{ programId }}
+      search={{ tab: next, ...question }}
+      {...(section ? { hash: section } : {})}
+    />
   );
   /** A tab's content: drawn the first time the tab is chosen, and kept while another is shown. */
   const tabContent = (name: ProgramTab): ReactNode => {
@@ -256,8 +277,16 @@ export function ProgramWorkspace({
           <AsideLayout aside={<ProgramDetailsAside program={program} />}>
             <Stack space="space.300" className="min-w-0">
               {queues.some((queue) => queue.isError) && <ProgramQueryState queries={queues} />}
-              <ProgramOpenWork tasks={tasks} issues={issues} risks={risks} tabLink={tabLink} />
+              <ProgramOpenWork
+                programId={programId}
+                tasks={tasks}
+                issues={issues}
+                risks={risks}
+                tabLink={tabLink}
+              />
               <ProgramControlStatusTray programId={programId} programName={program.name} />
+              <ProgramProductDeltaTrays programId={programId} />
+              <ProgramRequirementsTrays programId={programId} />
               <ProgramQueryState queries={[gates]}>
                 <ProgramTimeline programId={programId} gates={gates.data ?? []} />
               </ProgramQueryState>
@@ -298,7 +327,7 @@ export function ProgramWorkspace({
                       <Item
                         key={system.id}
                         id={<Id>{system.code}</Id>}
-                        idWidth={104}
+                        idWidth="wide"
                         title={system.name}
                         link={
                           <Link
@@ -365,23 +394,9 @@ export function ProgramWorkspace({
         return <ProgramSspAssembly programId={programId} />;
       case "Assessment campaigns":
         return (
-          <AssessmentBrowser
-            programId={programId}
-            tab={assessmentTab}
-            // Each tab is a step in the history, as the program's own tabs are.
-            onTabChange={(next) =>
-              void navigate({
-                to: "/programs/$programId",
-                params: { programId },
-                search: (previous) => ({
-                  ...previous,
-                  tab: "Assessment campaigns",
-                  assessmentTab: next,
-                }),
-                resetScroll: false,
-              })
-            }
-          />
+          // Campaigns, events, objectives and scopes under Section headings: the program's strip
+          // is the only tab strip on the page.
+          <AssessmentBrowser programId={programId} layout="sections" />
         );
       case "Schedule":
         return (
@@ -535,6 +550,10 @@ export function ProgramWorkspace({
                 />
               ) : view === "Control status" ? (
                 <ProgramControlStatusView programId={programId} />
+              ) : view === "Product delta" ? (
+                <ProgramProductDeltaView programId={programId} />
+              ) : view === "Compliance matrix" ? (
+                <ProgramComplianceView programId={programId} />
               ) : view === "Control baseline" ? (
                 <ProgramControlBaseline programId={programId} />
               ) : view === "Cyber resiliency" ? (
@@ -647,6 +666,11 @@ function ProgramDetailsAside({ program }: { program: Row<"programs"> }) {
           <KeyValue label="Code">
             <Id>{program.code}</Id>
           </KeyValue>
+          {program.business_line_id && (
+            <KeyValue label="Business line">
+              <RelationName table="business_lines" id={program.business_line_id} />
+            </KeyValue>
+          )}
           <KeyValue label="Sponsor">
             <RelationName table="parties" id={program.sponsor_party_id} />
           </KeyValue>
@@ -956,13 +980,38 @@ function ProgramMonitoring({ programId }: { programId: string }) {
     </ProgramQueryState>
   );
 }
+/** A risk that names no ATT&CK technique: one list, so its row reads the same on every render. */
+const NO_TECHNIQUES: readonly { key: string; label: string }[] = [];
+
 /**
  * The POA&M & risk tab: the program's POA&M plans and their remediation items, then its risks,
- * three collections under their Section headings.
+ * three collections under their Section headings. The risks list the ATT&CK techniques each names,
+ * by identifier and name, with a filter on them, which a control's Risks count opens.
  */
 function ProgramPoamsAndRisks({ programId }: { programId: string }) {
   const documents = useRows("poam_documents", { program_id: programId });
   const ids = new Set((documents.data ?? []).map((document) => document.id));
+  // Read once for the program's risks; the columns stay the same while the reads do.
+  const threats = useProgramRiskTechniques(programId);
+  const techniques = threats.risks;
+  const riskColumns = useMemo((): ProgramColumn[] => {
+    const named = new Map(
+      [...(techniques ?? [])].map(([riskId, list]) => [
+        riskId,
+        list.map((technique) => ({ key: technique.code, label: codedName(technique) })),
+      ]),
+    );
+    return [
+      { key: "title", title: "Risk" },
+      { key: "status", title: "Status" },
+      {
+        key: programRiskTechniquesColumn,
+        title: "ATT&CK techniques",
+        items: (row) => named.get(row.id) ?? NO_TECHNIQUES,
+      },
+      { key: "updated_at", title: "Updated" },
+    ];
+  }, [techniques]);
   return (
     <Stack space="space.300">
       <ProgramCollection
@@ -1000,11 +1049,8 @@ function ProgramPoamsAndRisks({ programId }: { programId: string }) {
         empty={{ title: "No risks yet" }}
         title="Risks"
         filters={{ program_id: programId }}
-        columns={[
-          { key: "title", title: "Risk" },
-          { key: "status", title: "Status" },
-          { key: "updated_at", title: "Updated" },
-        ]}
+        columns={riskColumns}
+        queries={threats.queries}
       />
     </Stack>
   );
@@ -1059,24 +1105,7 @@ function ProgramFocusedView({
       />
     );
   if (view === "Inheritance resolution")
-    return (
-      <ProgramCollection
-        name="provider_capabilities"
-        fill
-        empty={{ title: "No provider capabilities yet" }}
-        title="Provider capabilities"
-        owner="program"
-        where={(row) => systemIds.has(String(row["providing_system_id"]))}
-        initialValues={
-          systemIds.size === 1 ? { providing_system_id: [...systemIds][0]! } : undefined
-        }
-        columns={[
-          { key: "code", title: "Capability" },
-          { key: "name", title: "Name" },
-          { key: "description", title: "Description" },
-        ]}
-      />
-    );
+    return <ProgramInheritance programId={programId} systemIds={systemIds} />;
   if (view === "Scanner ingestion")
     return (
       <ProgramCollection

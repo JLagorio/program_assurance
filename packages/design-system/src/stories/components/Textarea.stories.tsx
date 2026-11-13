@@ -19,7 +19,7 @@ import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
 const { Matrix: Grid } = storyLayout;
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 const meta = {
   title: "Components/Textarea",
@@ -479,6 +479,31 @@ export const Dont: Story = {
         />
       </Stack>
     );
+  },
+  play: async ({ canvasElement }) => {
+    const height = (field: HTMLElement) => field.getBoundingClientRect().height;
+    // A one-line answer is an Input; three rows for a name invite an essay.
+    const answer = halves(canvasElement, 0);
+    const line = within(answer.do).getByRole("textbox", { name: "Program name" });
+    const rows = within(answer.dont).getByRole("textbox", { name: "Program name" });
+    await expect(line.tagName).toBe("INPUT");
+    await expect(rows.tagName).toBe("TEXTAREA");
+    await expect(height(rows)).toBeGreaterThan(2 * height(line));
+    // Two rows for a note; ten lie about the answer and push the form down the screen.
+    const note = halves(canvasElement, 1);
+    const short = within(note.do).getByRole("textbox", { name: "Note" });
+    const long = within(note.dont).getByRole("textbox", { name: "Note" });
+    await expect(height(long)).toBeGreaterThan(3 * height(short));
+    // The hint carries the guidance and stays; instructions in the placeholder go at the first
+    // keystroke.
+    const guidance = halves(canvasElement, 2);
+    await expect(
+      within(guidance.do).getByRole("textbox", { name: "Function" }),
+    ).toHaveAccessibleDescription("What it does for the mission, in one or two sentences.");
+    const placeholder = within(guidance.dont).getByRole("textbox", { name: "Function" });
+    await expect(placeholder).not.toHaveAccessibleDescription();
+    await userEvent.type(placeholder, "R");
+    await expect(placeholder.matches(":placeholder-shown")).toBe(false);
   },
 };
 

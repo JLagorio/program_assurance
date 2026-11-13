@@ -3,14 +3,17 @@ import { describe, expect, it, vi } from "vitest";
 vi.mock("@/components/app/workspace", () => ({ useWorkspace: () => ({}) }));
 
 const {
+  OVERLAY_CHANGED_BEFORE_DELETE,
   OVERLAY_CHANGED_ELSEWHERE,
   OVERLAY_CODE_TAKEN,
   RESILIENCY_TABLE,
+  deleteControlOverlay,
   publishControlOverlay,
   resiliencyDecisions,
   resiliencyRationale,
   saveControlOverlay,
   setOverlayDecisions,
+  setOverlayParameters,
 } = await import("./control-overlays");
 
 type Answer = { data: unknown; error: { code?: string; message: string } | null };
@@ -90,6 +93,39 @@ describe("control overlay commands", () => {
     });
   });
 
+  it("sends parameter values, trimmed and in order, and removals in one request", async () => {
+    const { client: rpc, calls } = client({ data: overlay, error: null });
+    await setOverlayParameters(rpc, context, {
+      overlayId: "overlay",
+      expectedRevision: 2,
+      parameters: [
+        { parameterId: "ac-2_prm_1", values: [" quarterly ", "on change"], rationale: " Fielded " },
+      ],
+      removedParameterIds: ["ac-1_prm_1"],
+    });
+    expect(calls[0]).toMatchObject({
+      name: "set_control_overlay_parameters",
+      headers: { Authorization: "Bearer token" },
+      args: {
+        p_tenant_id: "tenant",
+        p_overlay_id: "overlay",
+        p_expected_revision: 2,
+        p_parameters: [
+          { parameterId: "ac-2_prm_1", values: ["quarterly", "on change"], rationale: "Fielded" },
+        ],
+        p_removed: ["ac-1_prm_1"],
+      },
+    });
+    const stale = client({ data: null, error: { code: "PT409", message: "changed" } });
+    await expect(
+      setOverlayParameters(stale.client, context, {
+        overlayId: "overlay",
+        expectedRevision: 1,
+        parameters: [],
+      }),
+    ).rejects.toThrow(OVERLAY_CHANGED_ELSEWHERE);
+  });
+
   it("publishes at the revision the reader saw", async () => {
     const { client: rpc, calls } = client({ data: overlay, error: null });
     await publishControlOverlay(rpc, context, { overlayId: "overlay", expectedRevision: 2 });
@@ -120,6 +156,36 @@ describe("control overlay commands", () => {
         decisions: [],
       }),
     ).rejects.toThrow("AC-1 is withdrawn");
+  });
+
+  it("deletes a draft at the revision the reader saw, and says when it was already gone", async () => {
+    const deleted = client({ data: true, error: null });
+    await expect(
+      deleteControlOverlay(deleted.client, context, { overlayId: "overlay", expectedRevision: 3 }),
+    ).resolves.toBe(true);
+    expect(deleted.calls[0]).toMatchObject({
+      name: "delete_control_overlay",
+      headers: { Authorization: "Bearer token" },
+      args: { p_tenant_id: "tenant", p_overlay_id: "overlay", p_expected_revision: 3 },
+    });
+    const gone = client({ data: false, error: null });
+    await expect(
+      deleteControlOverlay(gone.client, context, { overlayId: "overlay", expectedRevision: 3 }),
+    ).resolves.toBe(false);
+    const stale = client({ data: null, error: { code: "PT409", message: "changed" } });
+    await expect(
+      deleteControlOverlay(stale.client, context, { overlayId: "overlay", expectedRevision: 2 }),
+    ).rejects.toThrow(OVERLAY_CHANGED_BEFORE_DELETE);
+    const published = client({
+      data: null,
+      error: { code: "23514", message: "A published overlay cannot be deleted" },
+    });
+    await expect(
+      deleteControlOverlay(published.client, context, {
+        overlayId: "overlay",
+        expectedRevision: 3,
+      }),
+    ).rejects.toThrow("A published overlay cannot be deleted");
   });
 });
 

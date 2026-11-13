@@ -1,0 +1,4 @@
+{
+  "about": "Do and don't stories with no play that asserts what makes the Do right and the Don't wrong, by file and export, with why (story-dont-play.test.mjs). The list may only shrink (scripts/check-allow-lists.mjs): give the story its play rather than listing it.",
+  "stories": {}
+}

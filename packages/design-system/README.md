@@ -36,7 +36,7 @@ Base UI's Field.Control, so a Field binds them. A fixed list is Select and a lis
 | `@ledger/design-system/reset.css`                                                         | `src/styles/reset.css`. Import before `ledger.css`.                        |
 | `@ledger/design-system/ledger.css`                                                        | `src/styles/ledger.css`                                                    |
 | `@ledger/design-system/base.css`                                                          | `src/styles/base.css`                                                      |
-| `@ledger/design-system/fonts.css`                                                         | `src/styles/fonts.css`, the self-hosted Geist faces. Optional.             |
+| `@ledger/design-system/fonts.css`                                                         | `src/styles/fonts.css`, the self-hosted Geist and Geist Mono faces. Optional.             |
 | `@ledger/design-system/tokens.css`                                                        | `src/generated/tokens.css`, the variables alone                            |
 | `@ledger/design-system/tokens.json`                                                       | `src/generated/tokens.figma.json`, the legacy merged source                |
 | `@ledger/design-system/tokens.dtcg.light.json`, `tokens.dtcg.dark.json`                   | The DTCG 2025.10 documents, one per mode                                   |
@@ -87,7 +87,7 @@ Configure Vite with the React and Tailwind plugins. Import this stylesheet from 
 @import "@ledger/design-system/fonts.css";
 ```
 
-`base.css` supplies optional document defaults, and `fonts.css` the Geist faces the type tokens name. The package's `@source` directive includes its components in Tailwind's scan. Components do not inject CSS during server rendering.
+`base.css` supplies optional document defaults, and `fonts.css` the Geist and Geist Mono faces the type tokens name. The package's `@source` directive includes its components in Tailwind's scan. Components do not inject CSS during server rendering.
 
 ```tsx
 import type { ReactNode } from "react";

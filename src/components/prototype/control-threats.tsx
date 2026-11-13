@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { Crosshair } from "lucide-react";
-import { Absent, DataTable, Section, defineColumns } from "@ledger/design-system";
+import { Absent, DataTable, Section, TextLink, defineColumns } from "@ledger/design-system";
 import { RESILIENCY_GUIDANCE_KINDS } from "@/lib/control-resiliency";
 import { controlThreats, risksByTechnique, type CounteredTechnique } from "@/lib/control-threats";
 import {
@@ -12,9 +13,9 @@ import {
   type ControlLinkScope,
   type ItemLinkScope,
 } from "@/lib/frameworks";
-import { idSet, useRows } from "@/lib/models";
-import { codedName, type ThreatTactic } from "@/lib/risk-threats";
-import { useCollectionTable } from "./collection-question";
+import { programRiskTechniquesColumn, registerViews } from "@/lib/register-views";
+import { codedName, useProgramRiskTechniques, type ThreatTactic } from "@/lib/risk-threats";
+import { questionSearch, useCollectionTable } from "./collection-question";
 import { ProductCollection } from "./product-collection";
 import {
   RecordLink,
@@ -48,11 +49,23 @@ const named = (records: readonly { code: string; title: string }[]) =>
   records.map((record) => ({ key: record.code, label: record.title }));
 
 /**
+ * The program's POA&M & risk tab with its risks asked for exactly the ones that name a technique,
+ * by the technique's identifier and name, as the risks' ATT&CK techniques column lists it; the
+ * address names the risks' Section, which brings it into view.
+ */
+const risksNaming = (technique: string) => ({
+  tab: "POA&M & risk" as const,
+  ...questionSearch(registerViews.programRisks, {
+    filters: [{ id: programRiskTechniquesColumn, value: [technique] }],
+  }),
+});
+
+/**
  * The columns: a technique by its identifier and name, which opens its preview, then what the
  * appendix prints with it for this control. Inside a program, how many of its risks name the
- * technique stays in a narrow row longest, as a number does.
+ * technique stays in a narrow row longest, as a number does, and a count opens those risks.
  */
-function threatColumns(onPreview: (id: string) => void, withRisks: boolean) {
+function threatColumns(onPreview: (id: string) => void, programId: string | undefined) {
   return defineColumns<ThreatRow>((c) => [
     c.text("name", {
       header: "ATT&CK technique",
@@ -104,14 +117,34 @@ function threatColumns(onPreview: (id: string) => void, withRisks: boolean) {
       searchable: true,
       items: (row) => row.effects.map((effect) => ({ key: effect, label: effect })),
     }),
-    ...(withRisks
+    ...(programId
       ? [
           c.number("risks", {
             header: "Risks",
             width: 88,
             priority: 1,
-            // A count that could not be read never reads as zero: the page's alert says why.
-            cell: (row) => row.risks ?? <Absent label="Could not load" />,
+            // A count that could not be read never reads as zero: the page's alert says why. A
+            // count opens the program's risks that name the technique; a zero opens nothing.
+            cell: (row) =>
+              row.risks === null ? (
+                <Absent label="Could not load" />
+              ) : row.risks > 0 ? (
+                <TextLink
+                  aria-label={`${row.risks} ${row.risks === 1 ? "risk names" : "risks name"} ${row.name}`}
+                  render={
+                    <Link
+                      to="/programs/$programId"
+                      params={{ programId }}
+                      search={risksNaming(row.name)}
+                      hash={registerViews.programRisks}
+                    />
+                  }
+                >
+                  {row.risks}
+                </TextLink>
+              ) : (
+                row.risks
+              ),
           }),
         ]
       : []),
@@ -188,22 +221,12 @@ export function ControlThreats({
     kinds: RESILIENCY_GUIDANCE_KINDS,
     enabled: countered,
   });
-  // The program's risks that name a technique. A link keeps the item it was made from, and an
-  // item's id changes when the appendix is read again: the count goes by the item's code.
-  const riskLinks = useRows(
-    "risk_attack_techniques",
-    { "risks.program_id": programId ?? "" },
-    { columns: ["risk_id", "framework_item_id"], enabled: !!programId && countered },
-  );
-  const riskItemIds = useMemo(
-    () => idSet(riskLinks.data?.map((link) => link.framework_item_id)),
-    [riskLinks.data],
-  );
-  const riskItems = useRows(
-    "framework_items",
-    { id: riskItemIds },
-    { columns: ["id", "code"], enabled: riskItemIds.length > 0 },
-  );
+  // The program's risks that name a technique: the reads the program's risks register lists their
+  // techniques from. A link keeps the item it was made from, and an item's id changes when the
+  // appendix is read again: the count goes by the item's code.
+  const programRisks = useProgramRiskTechniques(programId, { enabled: countered });
+  const riskLinks = programRisks.links;
+  const riskItems = programRisks.items;
 
   const techniques = useMemo(
     () =>
@@ -213,13 +236,14 @@ export function ControlThreats({
       }),
     [links.data, attack.data, approaches.data],
   );
-  // Counted once both reads have answered: links whose items are not read yet would count as none.
+  // Counted once both reads have answered (`risks` says so): links whose items are not read yet
+  // would count as none.
   const riskCounts = useMemo(
     () =>
-      programId && riskLinks.data && (riskItems.data || !riskItemIds.length)
+      programId && riskLinks.data && programRisks.risks
         ? risksByTechnique(riskLinks.data, riskItems.data ?? [])
         : null,
-    [programId, riskLinks.data, riskItems.data, riskItemIds.length],
+    [programId, riskLinks.data, riskItems.data, programRisks.risks],
   );
   const rows = useMemo<ThreatRow[]>(
     () =>
@@ -242,8 +266,7 @@ export function ControlThreats({
   );
 
   const [previewId, setPreviewId] = useState<string | null>(null);
-  const withRisks = !!programId;
-  const columns = useMemo(() => threatColumns(setPreviewId, withRisks), [withRisks]);
+  const columns = useMemo(() => threatColumns(setPreviewId, programId), [programId]);
   // The preview is the table's, so opening or stepping through it never rebuilds the columns.
   const tablePreview = useMemo(
     () => ({ onPreview: (row: ThreatRow) => setPreviewId(row.id), activeId: previewId }),
@@ -269,9 +292,7 @@ export function ControlThreats({
     return links.isError ? <ReportFailures queries={[links]} /> : null;
   // The techniques read whole without the program's risks: when that count cannot be read, the
   // rows stay, the Risks column says so and the failure is handed to the page's alert.
-  const riskReads: QueryStatus[] = programId
-    ? [riskLinks, ...(riskItemIds.length ? [riskItems] : [])]
-    : [];
+  const riskReads: QueryStatus[] = programId ? programRisks.queries : [];
   const uncounted = riskReads.filter((read) => read.isError && read.data === undefined);
   const queries: QueryStatus[] = [
     links,

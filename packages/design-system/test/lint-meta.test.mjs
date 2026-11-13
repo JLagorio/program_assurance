@@ -8,7 +8,6 @@ import { Linter } from "eslint";
 import tseslint from "typescript-eslint";
 
 import ledger from "../eslint-plugin/index.js";
-import { closureFailures, deprecated } from "../eslint-plugin/classes.js";
 import { staleness } from "../eslint-plugin/data.js";
 import { defineRule, withAllowance } from "../eslint-plugin/report.js";
 import { REPO, forParser, loadCases, recordReports } from "./lint-helpers.mjs";
@@ -22,17 +21,11 @@ const OPT_IN = ["product-responsive-table", "product-line-tabs"];
 
 /**
  * Message ids no source can reach with the tokens as they are, and the condition that keeps them
- * so. When the condition fails, the id is reachable and needs a case.
+ * so. When the condition fails, the id is reachable and needs a case. (no-deprecated-token's
+ * message for a token with no replacement it can ask for is reached through fixture tokens in
+ * its cases, since every token deprecated today has one.)
  */
 const UNREACHABLE = {
-  "no-deprecated-token": {
-    // A deprecated token without a replacement the rule can ask for: none, or one another class
-    // rule would report. Every one today has a replacement that passes them all.
-    deprecated: () =>
-      Object.values(deprecated).every(
-        (entry) => entry.replacementClass && closureFailures(entry.replacementClass).length === 0,
-      ),
-  },
   // Lint data not built from today's inputs, which every rule that reads it reports once per
   // file; lint-data.test.mjs builds such copies.
   "no-arbitrary-value": { stale: () => staleness() === null },

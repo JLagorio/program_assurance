@@ -10,7 +10,8 @@ import { useStaleOnWrite } from "./server-table";
 /*
  * A program's posture: its system elements by the control families its requirements meet. A
  * requirement stands at every element it is allocated to and under every family of a control it
- * maps; an open issue or an open risk stands where the requirements its evidence supports stand.
+ * maps; an open issue stands where the requirements it names and those its evidence supports
+ * stand, and an open risk where its issues stand.
  * `program_posture` counts each cell on the server, each element with the elements inside it,
  * every record once. This module names the rows and says what a cell reads as.
  *
@@ -455,7 +456,10 @@ export function postureCells(posture: ProgramPosture | ProgramResiliencyPosture)
 
 /** What a reading counts that the grid does not place, by why. */
 export type PostureLeftOut =
-  /** Open issues or open risks: none of the requirements their evidence supports stands in a cell. */
+  /**
+   * Open issues or open risks: none of the requirements the issues name or their evidence supports
+   * stands in a cell.
+   */
   | { records: "issues" | "risks"; unplaced: number }
   /**
    * Requirements: allocated to no element, or (by technique) allocated and meeting no control that

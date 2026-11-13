@@ -47,8 +47,9 @@ export type ToolbarProps = Omit<ComponentProps<"div">, "children" | "placeholder
 
 /**
  * What has moved into More and whether the row has become two. On two rows, `reserve` is the
- * room the search leaves the saved views beside it, and `squeeze` is the views' width when they
- * cannot show whole there (0 when they can).
+ * room the search leaves the saved views beside it, `viewsBelow` says the views lead the second
+ * row instead, and `squeeze` is the views' width when they cannot show whole where they sit (0
+ * when they can).
  */
 type Fold = {
   filters: boolean;
@@ -56,14 +57,23 @@ type Fold = {
   rows: 1 | 2;
   reserve: number;
   squeeze: number;
+  viewsBelow: boolean;
 };
-const unfolded: Fold = { filters: false, display: false, rows: 1, reserve: 0, squeeze: 0 };
+const unfolded: Fold = {
+  filters: false,
+  display: false,
+  rows: 1,
+  reserve: 0,
+  squeeze: 0,
+  viewsBelow: false,
+};
 const sameFold = (a: Fold, b: Fold) =>
   a.filters === b.filters &&
   a.display === b.display &&
   a.rows === b.rows &&
   a.reserve === b.reserve &&
-  a.squeeze === b.squeeze;
+  a.squeeze === b.squeeze &&
+  a.viewsBelow === b.viewsBelow;
 
 /** The narrowest the search gets while it shares one row with everything else. */
 const searchMinimum = 160;
@@ -72,6 +82,12 @@ const searchMinimum = 160;
  * saved views scroll inside what is left.
  */
 const searchBesideViews = 128;
+/**
+ * The narrowest the saved views get beside the search, or their whole width when that is less: a
+ * menu's label keeps a few letters before its ellipsis. Where the first row leaves them less (a
+ * panel at its narrowest), the search takes that row alone and the views lead the second.
+ */
+const viewsBesideSearch = 96;
 /** More's width before it has rendered once. */
 const moreEstimate = 72;
 const moreSelector = "[data-toolbar-more]";
@@ -171,8 +187,10 @@ function rowWidth(group: HTMLElement) {
  * beside it, and folds instead of stacking: filters move into More first, then the display
  * controls. When search, views, More and the actions still cannot share one row, the row wraps
  * into two in the same order: the search with the saved views, then More with the actions at the
- * end. When More and the actions cannot share the second row either, the actions take a line of
- * their own under More.
+ * end. Where the first row would leave the saved views too little to keep a few letters of their
+ * label (a panel at its narrowest), the search takes it alone and the views lead the second row,
+ * beside More. When More and the actions cannot share the second row either, the actions take a
+ * line of their own under More.
  */
 export function Toolbar(toolbarProps: ToolbarProps) {
   const {
@@ -280,14 +298,34 @@ export function Toolbar(toolbarProps: ToolbarProps) {
     // Two rows keep the one-row order: the search fills the first row up to the saved views, and
     // More and the actions start the second. The search keeps at least searchBesideViews; views
     // wider than the rest scroll inside their share. One spare pixel keeps both on the first row.
+    // Where that share is under viewsBesideSearch, a label would keep a letter or none: the search
+    // takes the first row alone and the views lead the second, beside More where they hold their
+    // least there, else on a line of their own, still in the one-row order.
     let reserve = 0;
     let squeeze = 0;
+    let viewsBelow = false;
     if (rows === 2 && viewsWidth > 0) {
-      const share = Math.max(0, Math.min(viewsWidth, available - searchBesideViews - gap));
-      if (share < viewsWidth) squeeze = Math.floor(share);
-      reserve = Math.ceil((squeeze || viewsWidth) + gap) + 1;
+      const least = Math.min(viewsWidth, viewsBesideSearch);
+      const besideSearch = Math.max(0, available - searchBesideViews - gap);
+      if (besideSearch >= least) {
+        const share = Math.min(viewsWidth, besideSearch);
+        if (share < viewsWidth) squeeze = Math.floor(share);
+        reserve = Math.ceil((squeeze || viewsWidth) + gap) + 1;
+      } else {
+        viewsBelow = true;
+        const besideMore = available - (folded ? more + gap : 0);
+        const room = besideMore >= least ? besideMore : available;
+        if (room < viewsWidth) squeeze = Math.max(0, Math.floor(room));
+      }
     }
-    const next: Fold = { filters: foldFilters, display: foldDisplay, rows, reserve, squeeze };
+    const next: Fold = {
+      filters: foldFilters,
+      display: foldDisplay,
+      rows,
+      reserve,
+      squeeze,
+      viewsBelow,
+    };
     if (sameFold(next, fold)) return;
     const doc = element.ownerDocument;
     const active = doc.activeElement;

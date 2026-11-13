@@ -54,14 +54,13 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-/** The short path: a label, a control and a hint in a Field, with no ids. The Field ties them together. */
+/** The short path: a label, a control and a hint in a Field, with no ids. The Field ties them together, and its `invalid`, `required` and `disabled` reach the control; Every control adds the FieldError that says what fixes each one. */
 export const Playground: Story = {
   render: (args) => (
     <Field {...args} className="w-layout-list max-w-full">
       <FieldLabel>Owner</FieldLabel>
       <Input defaultValue="Dana Whitlock" />
       <FieldDescription>The person who answers for this record.</FieldDescription>
-      {args.invalid && <FieldError>Choose a person who is on the program.</FieldError>}
     </Field>
   ),
   play: async ({ canvasElement }) => {

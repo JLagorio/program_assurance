@@ -7,7 +7,7 @@ import { Box, Inline, Stack, Text, VisuallyHidden } from "../../primitives";
 import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 const meta = {
   title: "Layout/PageSkeleton",
@@ -112,6 +112,25 @@ export const Dont: Story = {
       />
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    const toolbar = '[data-slot="page-skeleton-toolbar"]';
+    // The page's shape says what is coming, its toolbar and rows where they will land; a spinner
+    // says only that something loads, and has no shape.
+    const page = halves(canvasElement, 0);
+    const shape = within(page.do).getByRole("status");
+    await expect(shape).toHaveTextContent("Loading findings");
+    await expect(shape.querySelector(toolbar)).not.toBeNull();
+    await expect(within(page.dont).getByRole("status")).toHaveAccessibleName("Loading");
+    await expect(page.dont.querySelector('[data-slot="skeleton"]')).toBeNull();
+    // A section that loads alone draws its own shape and says what it waits for; the page's
+    // skeleton under it draws a toolbar the section does not have.
+    const section = halves(canvasElement, 1);
+    await expect(section.do.querySelector('[aria-busy="true"]')).toHaveTextContent(
+      "Loading control coverage",
+    );
+    await expect(section.do.querySelector(toolbar)).toBeNull();
+    await expect(section.dont.querySelector(toolbar)).not.toBeNull();
+  },
 };
 
 export const Playground: Story = {};

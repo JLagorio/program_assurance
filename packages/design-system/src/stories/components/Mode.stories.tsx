@@ -21,7 +21,7 @@ import { measure, settled, type Paint } from "../tokens/_contrast";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
 const { Matrix, Specimens } = storyLayout;
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 const meta = {
   title: "Components/Mode",
@@ -137,6 +137,40 @@ export const Dont: Story = {
       />
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    // Three states, System chosen; a two-state toggle has no answer for the reader's machine.
+    const states = halves(canvasElement, 0);
+    const appearance = within(states.do).getByRole("group", { name: "Appearance" });
+    await expect(within(appearance).getAllByRole("button")).toHaveLength(3);
+    await expect(within(appearance).getByRole("button", { name: "System" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    await expect(within(states.dont).getAllByRole("button")).toHaveLength(1);
+    await expect(within(states.dont).queryByRole("button", { name: "System" })).toBeNull();
+    // A token follows the mode, so the card flips with it; a colour by hand stays white in both.
+    // Each half is set to light and then dark for a moment, as the switch sets the page.
+    const surface = halves(canvasElement, 1);
+    const fills = (half: HTMLElement) => {
+      const card = half.firstElementChild!;
+      const fill = (mode: string) => {
+        half.setAttribute("data-color-mode", mode);
+        return getComputedStyle(card).backgroundColor;
+      };
+      try {
+        return [fill("light"), fill("dark")];
+      } finally {
+        half.removeAttribute("data-color-mode");
+      }
+    };
+    const [handLight, handDark] = fills(surface.dont);
+    await expect(handLight).toBe(handDark);
+    // Forced colours paint both cards one system colour, so the token's flip shows outside them.
+    if (!window.matchMedia("(forced-colors: active)").matches) {
+      const [tokenLight, tokenDark] = fills(surface.do);
+      await expect(tokenLight).not.toBe(tokenDark);
+    }
+  },
 };
 
 /** A controlled read-only field must not silently write the surrounding provider. */

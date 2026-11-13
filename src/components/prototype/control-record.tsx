@@ -19,6 +19,7 @@ import { ShieldCheck } from "lucide-react";
 import { Page } from "@/components/app/shell";
 import { StatusBadge } from "@/components/app/status";
 import { controlPrograms, useAssuranceTrace } from "@/lib/assurance-trace";
+import { parameterReadings, useProgramControlParameters } from "@/lib/control-parameters";
 import { useProgramControlStatus } from "@/lib/control-status";
 import { idSet, useRow, useRows, type Row } from "@/lib/models";
 import { useParameterChoices } from "@/lib/parameter-reads";
@@ -31,7 +32,13 @@ import { ControlStandingFacts } from "./control-status";
 import { ProductCollection } from "./product-collection";
 import { RecordLink, useOpenRecord } from "./record-preview";
 import { RecordTrail, TrailLink } from "./record-trail";
-import { EmptyMessage, MissingRecord, QueryState, RecordActions } from "./work-common";
+import {
+  EmptyMessage,
+  MissingRecord,
+  QueryState,
+  RecordActions,
+  ReportFailures,
+} from "./work-common";
 
 type Control = Row<"controls">;
 
@@ -119,7 +126,9 @@ function ControlDetails({
  * open, then what NIST SP 800-160 gives the control (the cyber resiliency techniques it supports
  * with their guidance, and the ATT&CK techniques it counters), then what the page adds (`children`:
  * where the programs stand, the enhancements), then the assessment objectives, the parameters and
- * the links, each closed until asked for.
+ * the links, each closed until asked for. Read in a program, the text prints the program's values
+ * for the parameters in place of the catalog's placeholders, and the Parameters say each value and
+ * the layer it comes from.
  */
 function ControlText({
   control,
@@ -135,19 +144,34 @@ function ControlText({
   const parameters = useRows("parameters", { control_id: control.id });
   const choices = useParameterChoices(parameters.data);
   const links = useRows("control_links", { control_id: control.id });
+  // The program's values, which the text waits for; when they cannot be read the catalog's
+  // placeholders stand and the page's alert says why.
+  const programValues = useProgramControlParameters(programId, control.id);
+  const values = useMemo(
+    () => (programValues.data ? parameterReadings(programValues.data) : null),
+    [programValues.data],
+  );
+  const textReads = [
+    parts,
+    parameters,
+    choices,
+    ...(programId && !programValues.isError ? [programValues] : []),
+  ];
   const has = (roots: readonly string[]) =>
     (parts.data ?? []).some((part) => part.parent_part_id === null && roots.includes(part.name));
   const statement = ["overview", "statement", "guidance"] as const;
   const objectives = ["assessment-objective", "assessment-method"] as const;
   return (
     <>
-      <QueryState queries={[parts, parameters, choices]}>
+      {programId && <ReportFailures queries={[programValues]} />}
+      <QueryState queries={textReads}>
         {has(statement) ? (
           <ControlStatement
             parts={parts.data ?? []}
             parameters={parameters.data ?? []}
             choices={choices.data ?? []}
             roots={statement}
+            values={values}
           />
         ) : (
           <EmptyMessage
@@ -171,6 +195,7 @@ function ControlText({
             parameters={parameters.data ?? []}
             choices={choices.data ?? []}
             roots={objectives}
+            values={values}
           />
         </Section>
       )}
@@ -191,6 +216,7 @@ function ControlText({
                   parameter={parameter}
                   parameters={parameters.data ?? []}
                   choices={choices.data ?? []}
+                  readings={values?.get(parameter.id)}
                 />
               ))}
           </Stack>

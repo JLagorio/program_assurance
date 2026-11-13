@@ -1,3 +1,4 @@
+import { useLocation } from "@tanstack/react-router";
 import { ProductCollection } from "./product-collection";
 import { useCollectionTable } from "./collection-question";
 import { DueDate, QueryState, type QueryStatus } from "./work-common";
@@ -105,6 +106,14 @@ export type ProgramColumn = {
    * and names its controls by the record, never by its id; `render` still draws the cell.
    */
   names?: TableName | undefined;
+  /**
+   * Several values in one cell, read beside the rows (a risk's ATT&CK techniques): the record's
+   * items, each once, in the order they show. The column is a list, whose filter lists each value
+   * once and finds a row by any of them, the collection's search finds a row by any of them too,
+   * and it is one of the toolbar's filters. A row with none reads "No" and the column's title.
+   * Keep the items the same while the reads behind them are (memoize the columns on them).
+   */
+  items?: ((row: DataRecord) => readonly { key: string; label: string }[]) | undefined;
 };
 
 export { QueryState as ProgramQueryState } from "./work-common";
@@ -574,6 +583,39 @@ export function ProgramCollection({
   const displayedRef = useRef<DataRecord[]>([]);
   const query = useRows(name, filters);
   const workspace = useWorkspace();
+  // A link that names this collection's section (the Overview's trays, `#program-risks`) brings
+  // it into view once its rows are read and moves focus to it, as a count that filters a section
+  // on its own tab does; once for each arrival, not on every refetch. The collections above it on
+  // the tab may still be loading and grow, so it stays aligned while the page settles, until the
+  // reader scrolls, presses a key or touches the page, or three seconds pass.
+  const hash = useLocation({ select: (location) => location.hash });
+  const sectionRef = useRef<HTMLElement>(null);
+  const arrived = useRef<string | null>(null);
+  const loaded = query.data !== undefined;
+  useEffect(() => {
+    const target = `program-${name}`;
+    if (hash !== target) {
+      arrived.current = null;
+      return;
+    }
+    const node = sectionRef.current;
+    if (!section || !loaded || !node || arrived.current === hash) return;
+    arrived.current = hash;
+    const align = () => node.scrollIntoView({ block: "start" });
+    align();
+    node.focus({ preventScroll: true });
+    const observer = new ResizeObserver(align);
+    observer.observe(document.body);
+    const inputs = ["wheel", "touchstart", "keydown", "pointerdown"] as const;
+    const stop = () => {
+      observer.disconnect();
+      window.clearTimeout(timer);
+      for (const input of inputs) window.removeEventListener(input, stop);
+    };
+    const timer = window.setTimeout(stop, 3000);
+    for (const input of inputs) window.addEventListener(input, stop, { passive: true });
+    return stop;
+  }, [hash, loaded, name, section]);
   const [selected, setSelected] = useState<DataRecord | null | undefined>(undefined);
   useEndOnHide(() => setSelected(undefined));
   const activeId =
@@ -616,7 +658,15 @@ export function ProgramCollection({
     () =>
       records.map((row) => {
         const view: DataRecord = { ...row };
-        for (const column of columns) if (column.value) view[column.key] = column.value(row);
+        for (const column of columns)
+          if (column.value) view[column.key] = column.value(row);
+          // A list's labels, as one value: the row reads as changed when its items do, so the
+          // table's sort, search and filter read them again.
+          else if (column.items)
+            view[column.key] = column
+              .items(row)
+              .map((item) => item.label)
+              .join("\n");
         if (namingKey) {
           // The linked record's name; one the reader cannot see leaves the row unnamed.
           const id = row[namingKey];
@@ -720,6 +770,15 @@ export function ProgramCollection({
                   : {}),
             });
           }
+          const items = column.items;
+          if (items)
+            return c.list(column.key, {
+              header,
+              width: 240,
+              searchable: true,
+              items: (row: DataRecord) => items(raw(row)),
+              empty: () => <Absent label={`No ${header}`} />,
+            });
           if (column.kind === "person")
             return c.person(column.key, {
               header,
@@ -768,7 +827,10 @@ export function ProgramCollection({
     .filter(
       (column, index) =>
         index > 0 &&
-        (STATUS_KEYS.has(column.key) || CHIP_KEYS.has(column.key) || /_type$/.test(column.key)),
+        (STATUS_KEYS.has(column.key) ||
+          CHIP_KEYS.has(column.key) ||
+          /_type$/.test(column.key) ||
+          column.items !== undefined),
     )
     .map((column) => column.key)
     .slice(0, 3);
@@ -784,6 +846,17 @@ export function ProgramCollection({
   });
   const displayed = useDisplayedRecords(table, undefined, byId);
   displayedRef.current = displayed;
+  // A list's filter lists every value its rows hold, each with how many rows hold it under the
+  // other filters, however many there are: past the kit's facet limit a list's filter would be a
+  // text field instead, and a value a link asks for would not read as chosen on its chip.
+  const listKeys = new Set(columns.filter((column) => column.items).map((column) => column.key));
+  const listOptions = (key: string) =>
+    [...(table.getColumn(key)?.getFacetedUniqueValues() ?? new Map<unknown, number>())]
+      .filter(([value]) => typeof value === "string" && value !== "")
+      .map(([value, count]) => ({ value: String(value), count }))
+      .sort((a, b) =>
+        a.value.localeCompare(b.value, undefined, { numeric: true, sensitivity: "base" }),
+      );
   const openCreate = () => {
     if (dialogNavigation)
       dialogNavigation.openRecord({
@@ -867,7 +940,12 @@ export function ProgramCollection({
       // A collection inside a preview answers the task at hand; its question ends with it.
       keepQuestion={!dialogNavigation}
       filters={chips.map((key) => (
-        <DataTable.Filter key={key} table={table} column={key} />
+        <DataTable.Filter
+          key={key}
+          table={table}
+          column={key}
+          options={listKeys.has(key) ? listOptions(key) : undefined}
+        />
       ))}
       action={allowCreate ? createAction : extraActions}
       // A record with no page opens its preview, as its name and its eye do.
@@ -886,7 +964,14 @@ export function ProgramCollection({
   );
   return (
     <>
-      {section ? <Section title={title}>{content}</Section> : content}
+      {section ? (
+        // Its view's name, so a link can bring the collection into view (the Overview's trays).
+        <Section id={`program-${name}`} ref={sectionRef} tabIndex={-1} title={title}>
+          {content}
+        </Section>
+      ) : (
+        content
+      )}
       {selected !== undefined && (
         <ProgramRecordDialog
           table={name}

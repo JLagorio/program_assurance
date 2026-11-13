@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { chromium } from "playwright";
 import { setTimeout as wait } from "node:timers/promises";
 import { localWorkspace } from "./tests/local-workspace.mjs";
+import { artifactPath } from "./tests/artifacts.mjs";
 const workspace = await localWorkspace("collection-browser");
 const { client, tenantId } = workspace;
 const origin = process.env.APP_TEST_URL ?? "http://localhost:8080";
@@ -109,13 +110,13 @@ try {
   await page.keyboard.up("Shift");
   assert.match(await dialog.textContent(), /3 selected/);
   await page.screenshot({
-    path: "/private/tmp/collection-favorites-desktop.png",
+    path: artifactPath("collection-favorites-desktop.png"),
     animations: "disabled",
   });
   await page.setViewportSize({ width: 390, height: 844 });
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
   await page.screenshot({
-    path: "/private/tmp/collection-favorites-phone.png",
+    path: artifactPath("collection-favorites-phone.png"),
     animations: "disabled",
   });
   await dialog.getByRole("button", { name: "Remove selected", exact: true }).click();
@@ -170,13 +171,13 @@ try {
     "Workbook reorder saves",
   );
   await page.screenshot({
-    path: "/private/tmp/collection-workbook-desktop.png",
+    path: artifactPath("collection-workbook-desktop.png"),
     animations: "disabled",
   });
   await page.setViewportSize({ width: 390, height: 844 });
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
   await page.screenshot({
-    path: "/private/tmp/collection-workbook-phone.png",
+    path: artifactPath("collection-workbook-phone.png"),
     animations: "disabled",
   });
   assert.deepEqual(errors, []);
@@ -185,7 +186,7 @@ try {
   );
 } catch (error) {
   if (page) {
-    await page.screenshot({ path: "/private/tmp/collection-browser-failure.png", fullPage: true });
+    await page.screenshot({ path: artifactPath("collection-browser-failure.png"), fullPage: true });
     console.error(await page.locator("body").textContent());
   }
   throw error;

@@ -10,7 +10,7 @@ import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
 const { Specimens } = storyLayout;
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 const meta = {
   title: "Components/LinkButton",
@@ -359,4 +359,25 @@ export const Dont: Story = {
       />
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    // Navigation is a real anchor; a Button that navigates from onClick has no address to open.
+    const navigation = halves(canvasElement, 0);
+    await expect(
+      within(navigation.do).getByRole("link", { name: "View requirements" }),
+    ).toHaveAttribute("href", "#requirements");
+    await expect(
+      within(navigation.dont).getByRole("button", { name: "View requirements" }),
+    ).not.toHaveAttribute("href");
+    await expect(within(navigation.dont).queryByRole("link")).toBeNull();
+    // A link in a sentence sits in its line; a button-shaped one is taller than the line it
+    // breaks.
+    const inline = halves(canvasElement, 1);
+    const height = (link: HTMLElement) => link.getBoundingClientRect().height;
+    const line = (link: HTMLElement) =>
+      parseFloat(getComputedStyle(link.parentElement!).lineHeight);
+    const inSentence = within(inline.do).getByRole("link", { name: "AC-2" });
+    const buttonShaped = within(inline.dont).getByRole("link", { name: "AC-2" });
+    await expect(height(inSentence)).toBeLessThanOrEqual(line(inSentence));
+    await expect(height(buttonShaped)).toBeGreaterThan(line(buttonShaped));
+  },
 };

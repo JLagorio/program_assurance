@@ -167,8 +167,10 @@ for (const b of [
 // the field's danger and focus borders against the input surface it sits on
 for (const b of ["color.border.danger", "color.border.focused"])
   add(b, "color.background.input", 3);
-// The field border is light by decision (Josef, 2026-09-04): it must stay visible at rest, and the
-// focus and danger borders above carry 3:1. Restored 2026-09-06 after the audit had darkened it.
+// The text-field border is light by decision (Josef, 2026-09-04): it must stay visible at rest, and
+// the focus and danger borders above carry 3:1. Restored 2026-09-06 after the audit had darkened
+// it. A choice control does not take it: the Checkbox and Radio box is color.border.bold, held at
+// 3:1 below.
 for (const surface of [
   ...surfaces,
   "color.background.input.hovered",
@@ -229,14 +231,7 @@ const selectedFills = [
   "color.background.selected.pressed",
 ];
 for (const surface of surfaces) {
-  add(
-    "color.border.input",
-    surface,
-    3,
-    "field and choice-control boundary",
-    surface,
-    contrastModes,
-  );
+  add("color.border.input", surface, 3, "text-field boundary", surface, contrastModes);
   add("color.border", surface, 3, "hairline", surface, contrastModes);
   for (const state of [...neutralStateFills, ...selectedFills]) {
     add(state, surface, 3, "state fill against its resting surface", surface, contrastModes);
@@ -524,6 +519,28 @@ for (const surface of surfaces) {
 for (const state of ["hovered", "pressed"])
   for (const fill of [`elevation.surface.${state}`, `elevation.surface.overlay.${state}`])
     add("color.border.focused", fill, 3, "focus ring on a hovered or pressed surface");
+// TRAY (Josef, 2026-11-13): a Tray's fill, elevation.surface.tray, is a step deeper than the sunken
+// surface in light, so a tray of raised cards reads apart from a white page. What the tray draws
+// on it holds in every mode: its heading's title and count, a link's words there (color.text), a
+// zero count (color.text.subtlest), an action (color.text.subtle) and a TextLink in it
+// (color.text.brand), the icon and the heading link's chevron, and the heading link's focus ring.
+// A Stat.Row draws on its own raised row inside the tray: its label and number, the muted zero's
+// label and number (held on every surface above) and each tone's words and icon hold on
+// elevation.surface.raised. The raised cards' edge, color.border, is a hairline: 3:1 against the
+// tray under increased contrast, as every hairline is against its surface, and decorative in the
+// standard modes, where the raised fill sets a card apart.
+const tray = "elevation.surface.tray";
+for (const text of ["color.text", "color.text.subtle", "color.text.subtlest", "color.text.brand"])
+  add(text, tray, 4.5, "tray heading, count, action and link");
+add("color.icon.subtle", tray, 3, "tray icon and heading link's chevron");
+add("color.border.focused", tray, 3, "tray heading link's focus ring");
+add("color.border", tray, 3, "raised card's edge on the tray", tray, contrastModes);
+for (const s of status) {
+  add(`color.text.${s}`, "elevation.surface.raised", 4.5, "stat row's label and number, toned");
+  add(`color.icon.${s}`, "elevation.surface.raised", 3, "stat row's icon, toned");
+}
+for (const icon of ["color.icon.subtle", "color.icon.subtlest"])
+  add(icon, "elevation.surface.raised", 3, "stat row's icon and chevron");
 
 const results = [];
 for (const mode of modes) {

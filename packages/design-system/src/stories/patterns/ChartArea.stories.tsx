@@ -10,7 +10,7 @@ import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
 const { Specimens } = storyLayout;
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 const meta = {
   title: "Patterns/Chart/Area",
@@ -348,6 +348,38 @@ export const Dont: Story = {
       />
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    // The value axis's top tick, the largest number it can show, once the axis has drawn it.
+    // The category axis prints names, so the numbers are the value axis's.
+    const top = async (plot: Element) => {
+      let largest = -Infinity;
+      await waitFor(() => {
+        const ticks = Array.from(
+          plot.querySelectorAll(".recharts-cartesian-axis-tick-value"),
+          (tick) => Number(tick.textContent!.replace(/,/g, "")),
+        ).filter(Number.isFinite);
+        expect(ticks.length).toBeGreaterThan(0);
+        largest = Math.max(...ticks);
+      });
+      return largest;
+    };
+    // Series that are not parts of one whole are lines, each read against the axis; stacked, the
+    // axis climbs to the week's total, a number nobody asked for (34, in week 35).
+    const parts = halves(canvasElement, 0);
+    await expect(parts.do.querySelectorAll(".recharts-line")).toHaveLength(3);
+    await expect(parts.do.querySelector(".recharts-area")).toBeNull();
+    await expect(await top(parts.do)).toBeLessThan(34);
+    await expect(parts.dont.querySelectorAll(".recharts-area")).toHaveLength(3);
+    await expect(await top(parts.dont)).toBeGreaterThanOrEqual(34);
+    // Two series that cross are lines; as washes the translucent fills overlap and mix.
+    const crossing = halves(canvasElement, 1);
+    await expect(crossing.do.querySelectorAll(".recharts-line")).toHaveLength(2);
+    await expect(crossing.do.querySelector(".recharts-area")).toBeNull();
+    const washes = Array.from(crossing.dont.querySelectorAll(".recharts-area-area"));
+    await expect(washes).toHaveLength(2);
+    for (const wash of washes)
+      await expect(Number(wash.getAttribute("fill-opacity"))).toBeLessThan(1);
+  },
 };
 
 export const Playground: Story = {

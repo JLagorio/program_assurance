@@ -20,7 +20,7 @@ import { Inline, Stack, Text } from "../../primitives";
 import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 const families = [
   ["ac", "AC · Access control"],
@@ -247,4 +247,20 @@ export const DoDont: Story = {
       dontText="Two checkboxes for one answer let the reader tick both and announce two independent choices."
     />
   ),
+  play: async ({ canvasElement }) => {
+    const { do: good, dont: bad } = halves(canvasElement);
+    // One answer is a radio group: one tab stop, and choosing one answer lets go of the other.
+    const accept = within(good).getByRole("radio", { name: "Accept this version" });
+    const na = within(good).getByRole("radio", { name: "Not applicable" });
+    await expect([accept, na].filter((radio) => radio.tabIndex === 0)).toHaveLength(1);
+    await userEvent.click(na);
+    await expect(na).toBeChecked();
+    await expect(accept).not.toBeChecked();
+    // Two checkboxes take a tick each: two answers to one question.
+    const both = ["Accept this version", "Not applicable"].map((name) =>
+      within(bad).getByRole("checkbox", { name }),
+    );
+    await userEvent.click(both[1]!);
+    for (const box of both) await expect(box).toBeChecked();
+  },
 };

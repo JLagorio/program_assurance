@@ -16,7 +16,7 @@ import { Inline, Stack, Text } from "../../primitives";
 import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 const meta = {
   title: "Patterns/SearchDialog",
@@ -530,4 +530,22 @@ export const Dont: Story = {
       dontText="Records as commands in the CommandPalette: a label alone, a dialog named “Command palette”, and “No commands match” while the records load."
     />
   ),
+  play: async ({ canvasElement }) => {
+    const { do: good, dont: bad } = halves(canvasElement);
+    // Each record leads with its identifier, its name and its kind and owner under it, so the
+    // reader knows which record Enter opens; the search names what it finds.
+    for (const row of within(good).getAllByRole("option"))
+      await expect(row.firstElementChild).toHaveAttribute("data-slot", "id");
+    await expect(within(good).getByRole("combobox")).toHaveAttribute(
+      "placeholder",
+      "Search programs, risks and controls",
+    );
+    // Records as commands: a label alone, under a search that asks for a command.
+    for (const row of within(bad).getAllByRole("option"))
+      await expect(row.childElementCount).toBe(0);
+    await expect(within(bad).getByRole("combobox")).toHaveAttribute(
+      "placeholder",
+      "Type a command…",
+    );
+  },
 };

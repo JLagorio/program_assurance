@@ -20,7 +20,7 @@ import { Box, Stack, Text } from "../../primitives";
 import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 const meta = {
   title: "Patterns/Composer",
@@ -341,6 +341,19 @@ export const Dont: Story = {
       dontText="Do not promise autosave when the composer only submits on request."
     />
   ),
+  play: async ({ canvasElement }) => {
+    const { do: good, dont: bad } = halves(canvasElement);
+    // The hint names the save boundary the composer has: Send.
+    await expect(within(good).getByRole("textbox", { name: "Reply" })).toHaveAccessibleDescription(
+      "Saved when Send succeeds.",
+    );
+    await expect(within(good).getByRole("button", { name: "Send" })).toBeVisible();
+    // The Don't promises autosave from a composer that saves only when Send is pressed.
+    await expect(
+      within(bad).getByRole("textbox", { name: "Misleading reply" }),
+    ).toHaveAccessibleDescription("Everything is saved automatically.");
+    await expect(within(bad).getByRole("button", { name: "Send" })).toBeVisible();
+  },
 };
 export const Playground: Story = {};
 

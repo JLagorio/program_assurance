@@ -37,7 +37,7 @@ import { Box, Heading, Stack, Text, VisuallyHidden } from "../../primitives";
 import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 type Control = { id: string; code: string; title: string; inSet: boolean };
 
@@ -726,6 +726,18 @@ export const Dont: Story = {
       />
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    const { do: good, dont: bad } = halves(canvasElement);
+    const nothingChosen = (half: HTMLElement) =>
+      half.querySelector('[data-slot="work-pane-detail"] [data-slot="empty"]');
+    // The label names the list, the search sits under it, and nothing chosen is an Empty.
+    await expect(within(good).getByRole("list")).toHaveAccessibleName("Catalog controls");
+    await expect(nothingChosen(good)).not.toBeNull();
+    // A search as the label leaves the list no name of its own: it is read as the search's,
+    // and a grey sentence is no Empty.
+    await expect(within(bad).getByRole("list")).toHaveAccessibleName("Search catalog controls");
+    await expect(nothingChosen(bad)).toBeNull();
+  },
 };
 
 export const Playground: Story = {};

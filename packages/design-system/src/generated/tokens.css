@@ -361,9 +361,7 @@
   --ds-dimension-breakpoint-sm: 40rem;
   --ds-dimension-breakpoint-md: 48rem;
   --ds-dimension-breakpoint-lg: 64rem;
-  --ds-dimension-breakpoint-aside: 75rem;
   --ds-dimension-breakpoint-panel: 80rem;
-  --ds-dimension-breakpoint-wide: 110rem;
   --ds-dimension-breakpoint-xl: 80rem;
   --ds-dimension-container-3xs: 16rem;
   --ds-dimension-container-2xs: 18rem;
@@ -401,12 +399,15 @@
   --ds-dimension-part-skeleton-circle: 32px;
   --ds-dimension-part-skeleton-block: 96px;
   --ds-dimension-part-empty-measure: 400px;
+  --ds-dimension-part-empty-illustration: 128px;
   --ds-dimension-part-key-value: 8rem;
   --ds-dimension-part-key-value-label-narrow: 5.5rem;
   --ds-dimension-part-key-value-label: 6.5rem;
   --ds-dimension-part-key-value-label-wide: 10rem;
   --ds-dimension-part-code-block: 560px;
+  --ds-dimension-part-item-id-narrow: 48px;
   --ds-dimension-part-item-id: 72px;
+  --ds-dimension-part-item-id-wide: 104px;
   --ds-dimension-part-filter: 220px;
   --ds-dimension-part-table-search: 200px;
   --ds-dimension-part-preview-sheet: 720px;
@@ -436,6 +437,7 @@
   --ds-elevation-surface-hovered: var(--ds-color-neutral-100);
   --ds-elevation-surface-pressed: var(--ds-color-neutral-200);
   --ds-elevation-surface-sunken: var(--ds-color-neutral-100);
+  --ds-elevation-surface-tray: var(--ds-color-neutral-200);
   --ds-elevation-surface-raised: var(--ds-color-neutral-0);
   --ds-elevation-surface-raised-hovered: var(--ds-color-neutral-100);
   --ds-elevation-surface-raised-pressed: var(--ds-color-neutral-200);
@@ -448,7 +450,7 @@
   --ds-utility-elevation-surface-current: var(--ds-elevation-surface);
   --ds-font-family-body: "Geist Variable", "Geist", "Inter", ui-sans-serif, system-ui, sans-serif;
   --ds-font-family-heading: "Geist Variable", "Geist", "Inter", ui-sans-serif, system-ui, sans-serif;
-  --ds-font-family-code: "Geist Mono", "JetBrains Mono", ui-monospace, "SFMono-Regular", "Menlo", "Consolas", "Liberation Mono", monospace;
+  --ds-font-family-code: "Geist Mono Variable", "Geist Mono", "JetBrains Mono", ui-monospace, "SFMono-Regular", "Menlo", "Consolas", "Liberation Mono", monospace;
   --ds-font-weight-regular: 400;
   --ds-font-weight-medium: 500;
   --ds-font-weight-semibold: 600;
@@ -771,6 +773,7 @@
   --ds-elevation-surface-hovered: var(--ds-color-neutral-100);
   --ds-elevation-surface-pressed: var(--ds-color-neutral-200);
   --ds-elevation-surface-sunken: var(--ds-color-neutral-100);
+  --ds-elevation-surface-tray: var(--ds-color-neutral-200);
   --ds-elevation-surface-raised: var(--ds-color-neutral-0);
   --ds-elevation-surface-raised-hovered: var(--ds-color-neutral-100);
   --ds-elevation-surface-raised-pressed: var(--ds-color-neutral-200);
@@ -1002,6 +1005,7 @@
   --ds-elevation-surface-hovered: var(--ds-color-dark-neutral-200);
   --ds-elevation-surface-pressed: var(--ds-color-dark-neutral-250);
   --ds-elevation-surface-sunken: var(--ds-color-dark-neutral-minus-100);
+  --ds-elevation-surface-tray: var(--ds-color-dark-neutral-minus-100);
   --ds-elevation-surface-raised: var(--ds-color-dark-neutral-200);
   --ds-elevation-surface-raised-hovered: var(--ds-color-dark-neutral-250);
   --ds-elevation-surface-raised-pressed: var(--ds-color-dark-neutral-300);
@@ -1234,6 +1238,7 @@
     --ds-elevation-surface-hovered: var(--ds-color-dark-neutral-200);
     --ds-elevation-surface-pressed: var(--ds-color-dark-neutral-250);
     --ds-elevation-surface-sunken: var(--ds-color-dark-neutral-minus-100);
+    --ds-elevation-surface-tray: var(--ds-color-dark-neutral-minus-100);
     --ds-elevation-surface-raised: var(--ds-color-dark-neutral-200);
     --ds-elevation-surface-raised-hovered: var(--ds-color-dark-neutral-250);
     --ds-elevation-surface-raised-pressed: var(--ds-color-dark-neutral-300);

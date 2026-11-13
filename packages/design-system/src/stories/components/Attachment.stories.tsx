@@ -30,7 +30,7 @@ import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
 const { Matrix } = storyLayout;
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 const meta = {
   title: "Components/Attachment",
@@ -84,7 +84,7 @@ export const AttachmentMatrix: Story = {
   ),
 };
 
-/** Each part is optional. Keep both file identity and useful metadata visible. */
+/** Each part is optional. Keep both file identity and useful metadata visible. The description is the file's type and size, true in every state; the matrix shows what each state says. */
 export const Playground: Story = {
   render: (args) => (
     <Attachment {...args}>
@@ -93,7 +93,7 @@ export const Playground: Story = {
       </Attachment.Media>
       <Attachment.Content>
         <Attachment.Title>quarterly-report.pdf</Attachment.Title>
-        <Attachment.Description>{descriptions[args.state ?? "done"]}</Attachment.Description>
+        <Attachment.Description>PDF · 2.4 MB</Attachment.Description>
       </Attachment.Content>
     </Attachment>
   ),
@@ -738,4 +738,19 @@ export const DoDont: Story = {
       dontText="The error state with the usual metadata: only the red border says it failed."
     />
   ),
+  play: async ({ canvasElement }) => {
+    const { do: good, dont: bad } = halves(canvasElement);
+    const card = (half: HTMLElement) =>
+      half.querySelector<HTMLElement>('[data-slot="attachment"]')!;
+    // The failure is said in words, with the way on: Retry and Remove, each named for the file.
+    await expect(card(good)).toHaveTextContent("Could not upload. The connection was lost.");
+    await expect(within(good).getByRole("button", { name: "Retry site-survey.pdf" })).toBeVisible();
+    await expect(
+      within(good).getByRole("button", { name: "Remove site-survey.pdf" }),
+    ).toBeVisible();
+    // The same error state over the usual metadata: no word says it failed, and there is no way on.
+    await expect(card(bad)).toHaveAttribute("data-state", "error");
+    await expect(card(bad)).not.toHaveTextContent(/could not|fail|error/i);
+    await expect(within(bad).queryByRole("button")).toBeNull();
+  },
 };

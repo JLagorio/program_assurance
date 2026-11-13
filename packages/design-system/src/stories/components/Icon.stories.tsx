@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { CircleCheck, Clock, Shield, TriangleAlert } from "lucide-react";
-import { expect } from "storybook/test";
+import { expect, within } from "storybook/test";
 
 import { Icon } from "../../components";
 import { Inline, Stack, Text } from "../../primitives";
@@ -9,7 +9,7 @@ import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
 const { Specimens } = storyLayout;
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 const meta = {
   title: "Components/Icon",
@@ -157,6 +157,20 @@ export const Dont: Story = {
       />
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    // A mark that stands alone is an image with a name; aria-label on a span names nothing.
+    const alone = halves(canvasElement, 0);
+    await expect(
+      within(alone.do).getByRole("img", { name: "Authorization boundary" }),
+    ).toBeVisible();
+    await expect(within(alone.dont).queryByRole("img")).toBeNull();
+    // Beside its word the icon is decoration and the word is the name; a label repeats it.
+    const beside = halves(canvasElement, 1);
+    await expect(within(beside.do).queryByRole("img")).toBeNull();
+    await expect(within(beside.do).getByText("Met")).toBeVisible();
+    await expect(within(beside.dont).getByRole("img", { name: "Met" })).toBeVisible();
+    await expect(within(beside.dont).getByText("Met")).toBeVisible();
+  },
 };
 
 export const Playground: Story = {};

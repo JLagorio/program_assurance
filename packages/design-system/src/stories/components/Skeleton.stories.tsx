@@ -9,7 +9,7 @@ import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
 const { Specimens } = storyLayout;
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 const meta = {
   title: "Components/Skeleton",
@@ -213,6 +213,37 @@ export const Dont: Story = {
       />
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    const bones = (half: HTMLElement) =>
+      Array.from(half.querySelectorAll<HTMLElement>('[data-slot="skeleton"]'));
+    // A loading section holds its shape, busy and saying what is coming; a spinner in its place
+    // holds no shape and says only that something loads.
+    const section = halves(canvasElement, 0);
+    await expect(section.do.querySelector('[aria-busy="true"]')).toHaveTextContent(
+      "Loading the section",
+    );
+    await expect(bones(section.do).length).toBeGreaterThan(0);
+    await expect(bones(section.dont)).toHaveLength(0);
+    await expect(within(section.dont).getByRole("status")).toHaveAccessibleName("Loading");
+    // The shape of what is coming, a circle and lines; one grey block says nothing of what.
+    const row = halves(canvasElement, 1);
+    const round = (bone: HTMLElement) => {
+      const { width, height } = bone.getBoundingClientRect();
+      return width === height && getComputedStyle(bone).borderRadius !== "0px";
+    };
+    await expect(bones(row.do).filter(round)).toHaveLength(1);
+    await expect(row.do.querySelectorAll('[data-slot="skeleton"] > div')).toHaveLength(2);
+    await expect(bones(row.dont)).toHaveLength(1);
+    await expect(round(bones(row.dont)[0]!)).toBe(false);
+    // Lines about as long as the note will be; six full lines promise more than arrives.
+    const note = halves(canvasElement, 2);
+    const widths = (half: HTMLElement) =>
+      new Set(bones(half).map((bone) => Math.round(bone.getBoundingClientRect().width)));
+    await expect(bones(note.do)).toHaveLength(2);
+    await expect(widths(note.do).size).toBe(2);
+    await expect(bones(note.dont)).toHaveLength(6);
+    await expect(widths(note.dont).size).toBe(1);
+  },
 };
 
 /** A line of text on its way, with the controls. */

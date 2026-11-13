@@ -1,5 +1,5 @@
 import type { AssuranceTrace } from "./assurance-trace";
-import type { ControlStatus } from "./control-status";
+import type { ControlStanding } from "./control-status";
 
 /*
  * What a reader does next. A control's status says where a program stands on it; its next step is
@@ -13,6 +13,9 @@ type TraceRequirement = AssuranceTrace["requirements"][number];
 
 /** A requirement a step names: enough to say it and to open it. */
 export type StepRequirement = { id: string; code: string; programId: string };
+
+/** A product assessment a step names: enough to open it. */
+export type StepAssessment = { id: string; title: string };
 
 const stepRequirement = (requirement: TraceRequirement): StepRequirement => ({
   id: requirement.id,
@@ -31,18 +34,32 @@ export type ControlNextStep =
   /** Evidence is cited and no assessor has published a determination. */
   | { kind: "assess" }
   /** An assessor found the control short of satisfied: the findings say why. */
-  | { kind: "review_findings" };
+  | { kind: "review_findings" }
+  /**
+   * The product assessment the program's variants inherit the control from found it short of
+   * satisfied: the assessment says why, and the one that decided it is named.
+   */
+  | { kind: "review_product_assessment"; assessment: StepAssessment };
+
+/**
+ * Where a program stands on a control, as its next step reads it: the status, and whose
+ * determination it is with the product assessments behind one the product made.
+ */
+export type StepStanding = Pick<ControlStanding, "status"> &
+  Partial<Pick<ControlStanding, "determinedBy" | "productAssessments">>;
 
 /**
  * The next step for a control at a status: the one thing that moves it up the ladder. A satisfied
- * control has none. `requirements` are the requirements that map the control, as its trace reads
- * them; without them a control with no evidence still says its step, and names no requirement.
+ * control has none, whoever determined it. `requirements` are the requirements that map the
+ * control, as its trace reads them; without them a control with no evidence still says its step,
+ * and names no requirement. A determination short of satisfied leads to what decided it: the
+ * program's assessment findings, or the product assessment the program inherits it from.
  */
 export function controlNextStep(
-  status: ControlStatus,
+  standing: StepStanding,
   requirements?: readonly TraceRequirement[] | undefined,
 ): ControlNextStep | null {
-  switch (status) {
+  switch (standing.status) {
     case "no_requirement":
       return { kind: "map_requirement" };
     case "no_evidence": {
@@ -52,8 +69,16 @@ export function controlNextStep(
     case "not_assessed":
       return { kind: "assess" };
     case "other_than_satisfied":
-    case "partially_satisfied":
-      return { kind: "review_findings" };
+    case "partially_satisfied": {
+      const decided =
+        standing.determinedBy === "product" ? standing.productAssessments?.[0] : undefined;
+      return decided
+        ? {
+            kind: "review_product_assessment",
+            assessment: { id: decided.id, title: decided.title },
+          }
+        : { kind: "review_findings" };
+    }
     case "satisfied":
       return null;
   }
@@ -72,34 +97,72 @@ export function nextStepLabel(step: ControlNextStep | TraceGapFix): string {
       return "Open assessment campaigns";
     case "review_findings":
       return "Open assessment findings";
+    case "review_product_assessment":
+      return "Open product assessment";
+    case "decided_by_product":
+      return `Decided by ${step.assessment.title}`;
+    case "link_requirement":
+      return "Link requirement";
   }
 }
+
+/** An operational issue a step names: enough to open it. */
+export type StepIssue = { id: string };
 
 /** The fix for a trace's gap: the stage that holds no record, and what fills it. */
 export type TraceGapFix =
   /** A control no requirement of the program maps. */
   | { stage: "requirement"; kind: "map_requirement" }
+  /**
+   * A control no requirement of the program maps and every product variant of the program
+   * inherits with a determination: nothing is missing, and the product assessment that decided it
+   * is named instead of a fix.
+   */
+  | { stage: "requirement"; kind: "decided_by_product"; assessment: StepAssessment }
+  /** An operational issue that names no requirement, and whose evidence supports none. */
+  | { stage: "requirement"; kind: "link_requirement"; issue: StepIssue }
   /** A requirement that cites no evidence: the one the trace is about, or a control's first. */
   | { stage: "evidence"; kind: "link_evidence"; requirement: StepRequirement }
   /** A requirement that maps no control. */
   | { stage: "control"; kind: "map_control"; requirement: StepRequirement };
 
+/** Whether a gap's entry is a fix the reader makes, rather than words that say why it is empty. */
+export const isReaderFix = (fix: TraceGapFix) => fix.kind !== "decided_by_product";
+
 /**
  * The gaps of a trace that its record's reader can close, each with the stage it fills. A control
  * read inside a program offers a requirement where none maps it and, where its requirements cite
  * no evidence, evidence for the first of them; a requirement offers a control and evidence of its
- * own. A stage with nothing wrong in it (no operational issue, no risk) is not a gap, and a record
- * further down the chain closes nothing upstream from its own page.
+ * own; and an operational issue that names no requirement offers one, since the link is the
+ * issue's own, made on its page. A stage with nothing wrong in it (no operational issue, no risk)
+ * is not a gap, and otherwise a record further down the chain closes nothing upstream from its own
+ * page: evidence, a finding, a risk and a remediation item offer nothing.
+ *
+ * `standing` is where the program stands on a control, as the program's control status reads it.
+ * A control the program's product variants inherit with a determination (`determinedBy`
+ * "product") is decided by the product assessment, not missing a requirement: its requirements
+ * stage names that assessment, the one that decided it first, and offers no requirement.
  */
 export function traceGapFixes(
   trace: Pick<AssuranceTrace, "focus" | "controls" | "requirements" | "evidence">,
   programId?: string | null | undefined,
+  standing?: StepStanding | null | undefined,
 ): TraceGapFix[] {
   const fixes: TraceGapFix[] = [];
   if (trace.focus.kind === "control") {
     if (!programId) return fixes;
     if (trace.requirements.length === 0) {
-      fixes.push({ stage: "requirement", kind: "map_requirement" });
+      const decided =
+        standing?.determinedBy === "product" ? standing.productAssessments?.[0] : undefined;
+      fixes.push(
+        decided
+          ? {
+              stage: "requirement",
+              kind: "decided_by_product",
+              assessment: { id: decided.id, title: decided.title },
+            }
+          : { stage: "requirement", kind: "map_requirement" },
+      );
     } else if (trace.evidence.length === 0) {
       const bare = trace.requirements.find((requirement) => requirement.evidence_count === 0);
       if (bare)
@@ -118,5 +181,7 @@ export function traceGapFixes(
     if (trace.evidence.length === 0)
       fixes.push({ stage: "evidence", kind: "link_evidence", requirement: stepRequirement(own) });
   }
+  if (trace.focus.kind === "issue" && trace.requirements.length === 0)
+    fixes.push({ stage: "requirement", kind: "link_requirement", issue: { id: trace.focus.id } });
   return fixes;
 }

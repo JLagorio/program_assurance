@@ -340,7 +340,7 @@ export function SystemAssuranceDetails({
             <Item
               key={child.id}
               id={child.code}
-              idWidth={104}
+              idWidth="wide"
               title={child.name}
               meta={labelFor(child.system_type)}
               {...(onDrill

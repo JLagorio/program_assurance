@@ -9,7 +9,7 @@ import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
 const { Specimens } = storyLayout;
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 /**
  * Typography: Eyebrow, Absent and Prose, the three parts between Text and Heading. No one of them
@@ -138,6 +138,33 @@ export const Dont: Story = {
       />
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    // An eyebrow is one to three words; a sentence in uppercase is hard to read.
+    const eyebrow = halves(canvasElement, 0);
+    const words = (half: HTMLElement) =>
+      half.querySelector('[data-slot="eyebrow"]')!.textContent!.trim().split(/\s+/).length;
+    await expect(words(eyebrow.do)).toBeLessThanOrEqual(3);
+    await expect(words(eyebrow.dont)).toBeGreaterThan(3);
+    // A labelled paragraph puts the eyebrow over the text; a run-in label reads as the sentence.
+    const label = halves(canvasElement, 1);
+    const name = label.do.querySelector<HTMLElement>('[data-slot="eyebrow"]')!;
+    await expect(name).toHaveTextContent(/^Rationale$/);
+    await expect(name.getBoundingClientRect().bottom).toBeLessThanOrEqual(
+      within(label.do)
+        .getByText(/^The July run/)
+        .getBoundingClientRect().top,
+    );
+    await expect(within(label.dont).getByText("Rationale:").parentElement).toHaveTextContent(
+      /^Rationale: The July run/,
+    );
+    // Nothing there is an Absent in the value's place; N/A says a different fact.
+    const missing = halves(canvasElement, 2);
+    await expect(missing.do.querySelector('[data-slot="absent"]')).toHaveTextContent(
+      "Not recorded",
+    );
+    await expect(missing.dont.querySelector('[data-slot="absent"]')).toBeNull();
+    await expect(within(missing.dont).getByText("N/A")).toBeVisible();
+  },
 };
 
 /** The Eyebrow's tone and words as controls. */

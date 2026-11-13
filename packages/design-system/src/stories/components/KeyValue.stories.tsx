@@ -10,7 +10,7 @@ import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
 const { Specimens } = storyLayout;
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 const meta = {
   title: "Components/KeyValue",
@@ -252,6 +252,27 @@ export const Dont: Story = {
       />
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    const values = (half: HTMLElement) => within(half).getAllByRole("definition");
+    // One label width, so the values start in one column; a width per row staggers them.
+    const column = halves(canvasElement, 0);
+    const starts = (half: HTMLElement) =>
+      new Set(values(half).map((value) => Math.round(value.getBoundingClientRect().left))).size;
+    await expect(starts(column.do)).toBe(1);
+    await expect(starts(column.dont)).toBe(3);
+    // A statement wraps and is read whole; truncated, it is cut and the rest waits on a hover.
+    const statement = halves(canvasElement, 1);
+    const [whole] = values(statement.do);
+    const [cut] = values(statement.dont);
+    await expect(whole!.scrollWidth).toBeLessThanOrEqual(whole!.clientWidth + 1);
+    await expect(cut!.scrollWidth).toBeGreaterThan(cut!.clientWidth + 1);
+    // Nothing there is an Absent; a colon on the label and N/A say a different fact.
+    const missing = halves(canvasElement, 2);
+    await expect(within(missing.do).getByRole("term")).toHaveTextContent(/^Assessor$/);
+    await expect(values(missing.do)[0]).toHaveTextContent("Not recorded");
+    await expect(within(missing.dont).getByRole("term")).toHaveTextContent(/:$/);
+    await expect(values(missing.dont)[0]).toHaveTextContent(/^N\/A$/);
+  },
 };
 
 /** An identifier or a timestamp with no spaces: `wrap` breaks it inside the rail rather than past it; without `wrap` it truncates and shows the whole on hover. */

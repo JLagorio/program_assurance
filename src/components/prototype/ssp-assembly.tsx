@@ -13,7 +13,7 @@ import {
   useEndOnHide,
   useOpenRecord,
 } from "./record-preview";
-import { EmptyMessage, QueryState, type QueryStatus } from "./work-common";
+import { EmptyMessage, QueryState, ReportFailures, type QueryStatus } from "./work-common";
 import {
   Absent,
   Alert,
@@ -61,11 +61,13 @@ import { programRequirementScope } from "@/lib/requirement-reads";
 import type { DataRecord } from "@/lib/records";
 import { assembleSsp, sspSelectionGaps, type SspControlAssembly } from "@/lib/ssp-assembly";
 import {
+  controlStatuses,
   implementationStatuses,
   recordedImplementationStatuses,
   revisionStates,
   statusLabel,
 } from "@/lib/status";
+import { useProgramControlStatus, type ControlStatus } from "@/lib/control-status";
 import { EvidenceVersionDetails } from "./evidence-version-details";
 import { ProductRecordDialog } from "./product-record-dialog";
 import type { ProgramTableName } from "./program-shared";
@@ -193,6 +195,8 @@ type ControlRow = SspControlAssembly & {
   name: string;
   /** Where the program's control baseline gets the control: the reference baseline or a layer. */
   origin: string | null;
+  /** Where the program stands on the control; none for a control outside its control baseline. */
+  controlStatus: ControlStatus | null;
 };
 
 /** Rows from several scoped reads of one table, each once. */
@@ -666,14 +670,23 @@ function SspAssemblyPlan({
     return map;
   }, [baselines]);
   const hasBaseline = baselines.length > 0;
+  // Where the program stands on each control of its control baseline, by the catalog control: the
+  // one read the Overview and the Control status view draw. The column shows once it answers.
+  const controlStatus = useProgramControlStatus(programId);
+  const standings = useMemo(
+    () => new Map(controlStatus.data?.controls.map((control) => [control.id, control.status])),
+    [controlStatus.data],
+  );
+  const hasStatus = controlStatus.data?.baseline === true;
   const controlRows = useMemo<ControlRow[]>(
     () =>
       rows.map((row) => ({
         ...row,
         name: `${row.code} ${row.title}`,
         origin: origins.get(row.selection.control_id) ?? null,
+        controlStatus: standings.get(row.selection.control_id) ?? null,
       })),
-    [rows, origins],
+    [rows, origins, standings],
   );
   const selected = controlRows.find((row) => row.id === selectedId);
   const editable = plan.state === "draft" && workspace.role !== "viewer";
@@ -732,6 +745,22 @@ function SspAssemblyPlan({
               <Absent />
             ),
         }),
+        ...(hasStatus
+          ? [
+              c.status("controlStatus", {
+                header: "Control status",
+                width: 200,
+                statuses: controlStatuses,
+                cell: (row) => (
+                  <StatusBadge
+                    statuses={controlStatuses}
+                    value={row.controlStatus}
+                    absentLabel="Not in the program baseline"
+                  />
+                ),
+              }),
+            ]
+          : []),
         ...(hasBaseline
           ? [
               c.text("origin", {
@@ -746,7 +775,7 @@ function SspAssemblyPlan({
         c.number("requirementCount", { header: "Requirements", width: 130 }),
         c.number("evidenceCount", { header: "Evidence", width: 105 }),
       ]),
-    [controlRecord, openPreview, hasBaseline],
+    [controlRecord, openPreview, hasBaseline, hasStatus],
   );
   // Each preview is its table's, so opening or stepping through one never rebuilds the columns.
   const controlPreview = useMemo(
@@ -1080,11 +1109,13 @@ function SspAssemblyPlan({
         views={views}
         filters={
           <>
+            {hasStatus ? <DataTable.Filter table={table} column="controlStatus" /> : null}
             {hasBaseline ? <DataTable.Filter table={table} column="origin" /> : null}
             <DataTable.Filter table={table} column="narrative" />
           </>
         }
       />
+      <ReportFailures queries={[controlStatus]} />
       {selected && (
         // The preview stays open under a dialog opened from it, so focus returns to its trigger.
         <RecordPreviewPanel
@@ -1122,6 +1153,15 @@ function SspAssemblyPlan({
                   value={selected.implementation?.implementation_status}
                 />
               </KeyValue>
+              {hasStatus && (
+                <KeyValue label="Control status">
+                  <StatusBadge
+                    statuses={controlStatuses}
+                    value={selected.controlStatus}
+                    absentLabel="Not in the program baseline"
+                  />
+                </KeyValue>
+              )}
             </KeyValue.Group>
             {requirementPreview && (
               <RecordSummaryPreview

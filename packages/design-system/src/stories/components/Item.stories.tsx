@@ -54,7 +54,7 @@ export const ItemMatrix: Story = {
           meta="Whitcombe LLP"
           trailing="Sep 18, 2026"
         />
-        <Item id="EV-2201" idWidth={120} title="A wider id column, shared by the group" />
+        <Item id="EV-2201" idWidth="wide" title="A wider id column, shared by the group" />
       </Item.Group>
       <Item.Group>
         <Item
@@ -119,7 +119,7 @@ export const ItemMatrix: Story = {
         <Item
           leading={<Dot tone="success" />}
           id="MS-A"
-          idWidth={48}
+          idWidth="narrow"
           title="Kickoff"
           meta="Complete"
           trailing="4 Mar"
@@ -127,7 +127,7 @@ export const ItemMatrix: Story = {
         <Item
           leading={<Dot tone="warning" />}
           id="MS-B"
-          idWidth={48}
+          idWidth="narrow"
           title="Design review"
           meta="At risk"
           trailing="18 Sep"
@@ -135,7 +135,7 @@ export const ItemMatrix: Story = {
         <Item
           leading={<Dot tone="neutral" />}
           id="MS-C"
-          idWidth={48}
+          idWidth="narrow"
           title="Authorization"
           meta="Planned"
           trailing="2 Dec"
@@ -183,7 +183,7 @@ export const Lists: Story = {
         <Item
           leading={<Dot tone="success" />}
           id="MS-A"
-          idWidth={48}
+          idWidth="narrow"
           title="Kickoff"
           meta="Complete"
           trailing="4 Mar"
@@ -191,7 +191,7 @@ export const Lists: Story = {
         <Item
           leading={<Dot tone="warning" />}
           id="MS-B"
-          idWidth={48}
+          idWidth="narrow"
           title="Design review"
           meta="At risk"
           trailing="18 Sep"
@@ -199,7 +199,7 @@ export const Lists: Story = {
         <Item
           leading={<Dot tone="neutral" />}
           id="MS-C"
-          idWidth={48}
+          idWidth="narrow"
           title="Authorization"
           meta="Planned"
           trailing="2 Dec"
@@ -237,7 +237,7 @@ export const Nested: Story = {
       <Item
         leading={<Dot tone="warning" />}
         id="MS-B"
-        idWidth={48}
+        idWidth="narrow"
         title="Design review"
         meta="At risk"
         trailing="18 Sep"
@@ -263,7 +263,7 @@ export const Nested: Story = {
       <Item
         leading={<Dot tone="success" />}
         id="MS-A"
-        idWidth={48}
+        idWidth="narrow"
         title="Kickoff"
         meta="Complete"
         trailing="4 Mar"
@@ -451,7 +451,7 @@ export const OpenRowAndDescription: Story = {
             <Item
               key={row.id}
               id={row.id}
-              idWidth={104}
+              idWidth="wide"
               title={row.title}
               meta={row.meta}
               description="Defined in the organization's policy"
@@ -622,6 +622,45 @@ export const RightToLeft: Story = {
         text.getBoundingClientRect().right - 1,
       );
     }
+  },
+};
+
+/**
+ * `idWidth` is a named step, the same for every row of a group so the ids line up: `narrow` (48px)
+ * for a short code, `default` (72px, the width without one) for most codes, and `wide` (104px) for
+ * a long one, such as a system's code or a parameter id. A longer id is cut and shows whole on
+ * hover.
+ */
+export const IdWidths: Story = {
+  tags: ["!manifest"],
+  name: "Id widths",
+  render: () => (
+    <Stack space="space.300" className="max-w-layout-measure">
+      <Item.Group aria-label="Milestones" size="compact">
+        <Item id="MS-A" idWidth="narrow" title="Kickoff" />
+        <Item id="MS-B" idWidth="narrow" title="Design review" />
+      </Item.Group>
+      <Item.Group aria-label="Evidence" size="compact">
+        <Item id="EV-2201" title="Bank reconciliation, July" />
+        <Item id="AC-2(1)" title="Automated system account management" />
+      </Item.Group>
+      <Item.Group aria-label="Systems" size="compact">
+        <Item id="GND-SEG-01" idWidth="wide" title="Ground segment" />
+        <Item id="ac-01_odp.01" idWidth="wide" title="personnel or roles" />
+      </Item.Group>
+    </Stack>
+  ),
+  play: async ({ canvas }) => {
+    // Each step is its token: 48, 72 and 104px, and every row of a group takes the same.
+    for (const [list, width] of [
+      ["Milestones", 48],
+      ["Evidence", 72],
+      ["Systems", 104],
+    ] as const)
+      for (const row of within(canvas.getByRole("list", { name: list })).getAllByRole("listitem")) {
+        const column = row.querySelector<HTMLElement>('[data-slot="truncate"]')!;
+        await expect(column.getBoundingClientRect().width).toBeCloseTo(width, 0);
+      }
   },
 };
 

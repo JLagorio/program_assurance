@@ -8,7 +8,7 @@ import { Stack } from "../../primitives";
 import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 /* Every story names its zone and its now, so what it shows does not depend on the machine. */
 const LosAngeles = ({ children }: { children: ReactNode }) => (
@@ -320,4 +320,21 @@ export const Dont: Story = {
       />
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    const seconds = /\d:\d\d:\d\d/;
+    // An instant through the provider: a <time> that keeps the moment, in the one format, to the
+    // minute. toLocaleString writes the host's own format, with seconds, and keeps no moment.
+    const instant = halves(canvasElement, 0);
+    const time = instant.do.querySelector("time")!;
+    await expect(time).toHaveAttribute("datetime", "2026-09-19T00:30:00.000Z");
+    await expect(time.textContent).not.toMatch(seconds);
+    await expect(instant.dont.querySelector("time")).toBeNull();
+    await expect(instant.dont.textContent).toMatch(seconds);
+    // Overdue in words and an icon beside the date; red text alone reads as an ordinary date.
+    const overdue = halves(canvasElement, 1);
+    await expect(overdue.do).toHaveTextContent("Overdue");
+    await expect(overdue.do.querySelector('[data-slot="date-label"] > svg')).not.toBeNull();
+    await expect(overdue.dont).not.toHaveTextContent("Overdue");
+    await expect(overdue.dont.querySelector("svg")).toBeNull();
+  },
 };

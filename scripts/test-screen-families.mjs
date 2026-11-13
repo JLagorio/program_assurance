@@ -422,7 +422,12 @@ try {
       component_definition_id: component.id,
       version_number: 1,
     });
-    const product = await insert("products", { code: `PROD-${label}`, name: `${label} product` });
+    const line = await insert("business_lines", { code: `BL-${label}`, name: `${label} line` });
+    const product = await insert("products", {
+      code: `PROD-${label}`,
+      name: `${label} product`,
+      business_line_id: line.id,
+    });
     await insert("product_revisions", { product_id: product.id, version_number: 1 });
     await insert("requirement_definitions", {
       code: `REQ-${label}`,

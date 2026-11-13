@@ -9,7 +9,7 @@ import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
 const { Matrix } = storyLayout;
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 const meta = {
   title: "Components/Banner",
@@ -248,4 +248,25 @@ export const Dont: Story = {
       />
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    const message = (half: HTMLElement) =>
+      half.querySelector<HTMLElement>('[data-slot="banner-message"]')!.textContent ?? "";
+    // A banner is about the whole site; the Don't names one record, which belongs to its page.
+    const scope = halves(canvasElement, 0);
+    const record = /\b[A-Z]+-\d+\b/;
+    await expect(message(scope.do)).not.toMatch(record);
+    await expect(message(scope.dont)).toMatch(record);
+    // Feedback after an act is an Alert that says what happened, never a banner.
+    const feedback = halves(canvasElement, 1);
+    await expect(within(feedback.do).getByRole("status")).toHaveAttribute("data-slot", "alert");
+    await expect(within(feedback.do).getByRole("status")).toHaveTextContent("Snapshot submitted");
+    await expect(within(feedback.dont).getByRole("status")).toHaveAttribute("data-slot", "banner");
+    // One sentence and one action; the Don't writes two sentences and two actions in one link.
+    const length = halves(canvasElement, 2);
+    const sentences = (half: HTMLElement) => message(half).match(/[.!?](?=\s|$)/g)?.length ?? 0;
+    await expect(sentences(length.do)).toBe(1);
+    await expect(within(length.do).getByRole("link")).toHaveAccessibleName("Ask for an extension");
+    await expect(sentences(length.dont)).toBe(2);
+    await expect(within(length.dont).getByRole("link")).toHaveAccessibleName(/, or /);
+  },
 };

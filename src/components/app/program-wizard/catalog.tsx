@@ -350,6 +350,7 @@ export function CatalogStep({
                             added: preview.counts.added,
                             removed: preview.counts.excluded,
                             total: preview.counts.selected,
+                            parameters: existing.parameters.length,
                           },
                         ]
                       : []),

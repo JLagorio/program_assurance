@@ -9,10 +9,9 @@
 //   call           a call the reader cannot follow
 //   prop           a component's prop other than className, or a parameter
 //   reassigned     a variable written after it is declared (a received className written too)
-//   escaped        an object handed to something that may change it (contextual mode)
 //   member         a member the reader cannot find
 //   spread         an entry behind a spread the reader cannot read
-//   computed-key   a key only known at runtime (contextual mode)
+//   computed-key   a key only known at runtime
 //   rest           a rest element, which is no one slot of its initialiser
 //   shape          a destructuring route into a value of another shape
 //   unknown        a name with no declaration the reader can use
@@ -20,11 +19,11 @@
 //
 // class-sites.js adds glued-template and tagged-template, which only a class can be.
 //
-// Two modes. `vocabulary` (the default; the token rules) reads every string that can render, as
-// Tailwind's scanner would: a dynamic key reads every entry of a readable map, and an object handed
-// to a call is still read. `contextual` (a rule that judges what lands on one element, from batch 5)
-// takes shadcn's semantics: the last write wins, and a dynamic key or an escaped object is
-// unreadable. Ported from @shadcn/lint's sites/collect.ts.
+// It reads every string that can render, as Tailwind's scanner would: a dynamic key reads every
+// entry of a readable map, an object handed to a call is still read, and a variable written again
+// gives every value written to it. Ported from @shadcn/lint's sites/collect.ts, whose other mode
+// (the last write wins, a dynamic key or an escaped object unreadable) no rule here needed, so it
+// went on 2026-11-13.
 
 /** Wrappers that change a value's type, not its value. */
 const WRAPPERS = new Set([
@@ -207,45 +206,6 @@ function ownWrites(variable) {
   return { assigned, appended };
 }
 
-/**
- * Whether an object bound to a variable is handed to something that may keep or change it: passed
- * to a call (other than a reader `opts.reads` names), bound or assigned to another name, returned,
- * stored in an object or an array, or passed as a JSX attribute other than a class or a style.
- * Reading a member or spreading it hands nothing over. Contextual mode only.
- */
-export function isEscaped(variable, { reads } = {}) {
-  return variable.references.some((reference) => {
-    if (!reference.isRead()) return false;
-    let value = referenceExpression(reference.identifier);
-    let parent = value.parent;
-    while (
-      (parent?.type === "ConditionalExpression" && parent.test !== value) ||
-      parent?.type === "LogicalExpression" ||
-      (parent?.type === "SequenceExpression" && parent.expressions.at(-1) === value)
-    ) {
-      value = referenceExpression(parent);
-      parent = value.parent;
-    }
-    if (parent?.type === "JSXExpressionContainer" && parent.parent?.type === "JSXAttribute") {
-      const name = parent.parent.name.type === "JSXIdentifier" ? parent.parent.name.name : "";
-      return !/^style$|class/i.test(name);
-    }
-    if (
-      (parent?.type === "CallExpression" || parent?.type === "NewExpression") &&
-      parent.arguments.includes(value)
-    )
-      return !(parent.callee.type === "Identifier" && reads?.has(parent.callee.name));
-    return (
-      (parent?.type === "VariableDeclarator" && parent.init === value) ||
-      (parent?.type === "AssignmentExpression" && parent.right === value) ||
-      (parent?.type === "ReturnStatement" && parent.argument === value) ||
-      (parent?.type === "ArrowFunctionExpression" && parent.body === value) ||
-      (parent?.type === "Property" && parent.value === value) ||
-      parent?.type === "ArrayExpression"
-    );
-  });
-}
-
 /* ---------- a binding's value ---------- */
 
 /**
@@ -342,8 +302,8 @@ function elementOf(fn, root, binding) {
  * What a name's value is where it is written:
  * - `{ none: true }` for `undefined`;
  * - `{ unreadable }` with its reason; a let or var whose every write assigns the name itself also
- *   carries `writes: { init, steps, fallback, assigned, appended }` (ownWrites), which vocabulary
- *   mode reads;
+ *   carries `writes: { init, steps, fallback, assigned, appended }` (ownWrites), which the walk
+ *   reads;
  * - `{ parameter: { key, fallback, whole, objectDefault, defaults }, element, variable }` for a
  *   parameter never written: the prop it destructures (`key`, or null), the default written beside
  *   it, whether it is the whole props object (with its own object default), and the defaults
@@ -525,16 +485,13 @@ export function returnsOf(fn) {
  * value, `project` a destructured slot into its initialiser, `containers` finds the object and
  * array literals an expression can be, `values` the entries a member read can give, and
  * `separated` whether a value always renders with whitespace at one edge. Each takes
- * `say(node, reason)` for what it cannot read. `opts.mode` is "vocabulary" or "contextual";
- * `opts.reads` names the helpers that read an object without keeping it (contextual escape).
+ * `say(node, reason)` for what it cannot read.
  *
- * Vocabulary mode also reads what contextual mode leaves to the last write: a let or var assigned
- * after it is declared gives its initialiser and every value assigned to it (`k += " x"` when the
- * appended text starts with whitespace), and an array method's callback parameter
- * (`TABS.map((tab) => …)`) gives each element of a list the walk can read.
+ * A let or var assigned after it is declared gives its initialiser and every value assigned to it
+ * (`k += " x"` when the appended text starts with whitespace), and an array method's callback
+ * parameter (`TABS.map((tab) => …)`) gives each element of a list the walk can read.
  */
 export function valueWalker(context, opts = {}) {
-  const contextual = opts.mode === "contextual";
   const path = opts.path ?? new Set();
   /** Runs `fn` unless `key` is already on the route, so a value that refers to itself stops. */
   const guard = (key, fn) => {
@@ -615,10 +572,9 @@ export function valueWalker(context, opts = {}) {
   const name = (identifier, steps, onValue, say) => {
     const found = bindingOf(context, identifier);
     if (found.none) return;
-    if (found.writes && !contextual)
-      return guard(found.variable, () => written(found, steps, onValue, say));
+    if (found.writes) return guard(found.variable, () => written(found, steps, onValue, say));
     if (found.unreadable) return say(identifier, found.unreadable);
-    if (found.element && !contextual)
+    if (found.element)
       return guard(found.variable, () => elements(found.element, steps, onValue, say));
     if (found.parameter) {
       const { fallback, whole, defaults } = found.parameter;
@@ -638,17 +594,11 @@ export function valueWalker(context, opts = {}) {
       return;
     }
     if (found.fn) return say(identifier, "expression");
-    if (
-      contextual &&
-      unwrap(found.init)?.type === "ObjectExpression" &&
-      isEscaped(found.variable, opts)
-    )
-      return say(identifier, "escaped");
     if (found.fallback) guard(found.fallback, () => project(found.fallback, steps, onValue, say));
     guard(found.variable, () => project(found.init, [...found.steps, ...steps], onValue, say));
   };
 
-  /** A let or var written after it is declared (vocabulary mode): its initialiser, every value
+  /** A let or var written after it is declared: its initialiser, every value
       assigned to it, and each appended value that starts with whitespace. */
   const written = ({ writes }, steps, onValue, say) => {
     const { init, steps: own, fallback, assigned, appended } = writes;
@@ -888,13 +838,13 @@ export function valueWalker(context, opts = {}) {
   };
 
   /** The values a member read can give: the entry of a same-file map or list for a key the source
-      fixes; in vocabulary mode, every entry for a key only known at runtime, a computed one too. */
+      fixes; every entry for a key only known at runtime, a computed one too. */
   const values = (member, say) => {
     const key = memberKey(member);
     const object = unwrap(member.object);
     if (object?.type === "Identifier") {
       const found = bindingOf(context, object);
-      if (found.parameter && (contextual || !found.element)) {
+      if (found.parameter && !found.element) {
         // A same-file function's parameter read for a call is what the call gives it; one the
         // call leaves out, with no default, is undefined and has no member.
         const argument = argumentOf(found);
@@ -917,11 +867,9 @@ export function valueWalker(context, opts = {}) {
     for (const container of found) {
       if (container.type === "ArrayExpression") {
         if (key === null) {
-          if (contextual) say(member, "computed-key");
-          else
-            for (const element of container.elements)
-              if (element?.type === "SpreadElement") say(element, "spread");
-              else if (element) out.push(element);
+          for (const element of container.elements)
+            if (element?.type === "SpreadElement") say(element, "spread");
+            else if (element) out.push(element);
         } else if (!/^\d+$/.test(key)) say(member, "member");
         else {
           const index = Number(key);
@@ -933,22 +881,11 @@ export function valueWalker(context, opts = {}) {
       }
       const entries = entriesOf(container);
       if (key === null) {
-        if (contextual) say(member, "computed-key");
-        else
-          for (const entry of entries)
-            // A key the map computes (`{ [Tone.Danger]: "…" }`) may be the one asked for too.
-            if (entry.reason === "computed-key") out.push(entry.unknown.value);
-            else if (entry.unknown) say(entry.unknown, entry.reason);
-            else out.push(entry.value);
-        continue;
-      }
-      if (contextual) {
-        // The last write wins, and a spread the reader cannot see after it may overwrite it.
-        const last = entries.findLastIndex((entry) => entry.key === key);
-        const after = entries.slice(last + 1).some((entry) => entry.unknown);
-        if (after) say(member, "spread");
-        else if (last >= 0) out.push(entries[last].value);
-        else say(member, "member");
+        for (const entry of entries)
+          // A key the map computes (`{ [Tone.Danger]: "…" }`) may be the one asked for too.
+          if (entry.reason === "computed-key") out.push(entry.unknown.value);
+          else if (entry.unknown) say(entry.unknown, entry.reason);
+          else out.push(entry.value);
         continue;
       }
       const hits = entries.filter((entry) => entry.key === key);
@@ -976,16 +913,15 @@ export function valueWalker(context, opts = {}) {
   };
 }
 
-/** The walk the exported readers share for a file, in each mode, when a caller brings no state of
-    its own (a route, calls in force, the helpers that read an object): every walk ends with its
-    route and its calls as it found them, so one serves them all. */
+/** The walk the exported readers share for a file, when a caller brings no state of its own (a
+    route, calls in force): every walk ends with its route and its calls as it found them, so one
+    serves them all. */
 const walkers = new WeakMap();
 function walkerOf(context, opts) {
-  if (opts.path || opts.given?.size || opts.reads) return valueWalker(context, opts);
-  const mode = opts.mode === "contextual" ? "contextual" : "vocabulary";
-  let byMode = walkers.get(context.sourceCode);
-  if (!byMode) walkers.set(context.sourceCode, (byMode = {}));
-  return (byMode[mode] ??= valueWalker(context, { mode }));
+  if (opts.path || opts.given?.size) return valueWalker(context, opts);
+  let walker = walkers.get(context.sourceCode);
+  if (!walker) walkers.set(context.sourceCode, (walker = valueWalker(context)));
+  return walker;
 }
 
 /** An object's entries in source order, same-file spreads flattened in, each `{ key, value,

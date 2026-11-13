@@ -35,7 +35,7 @@ import {
   useDataTable,
 } from "@ledger/design-system";
 import { useWorkspace } from "@/components/app/workspace";
-import { useModelSave, useRow, useRows, type Row } from "@/lib/models";
+import { idSet, useModelSave, useRow, useRows, type Row } from "@/lib/models";
 import { useLinkRequirementEvidence } from "@/lib/requirement-evidence";
 import { useRemoveRequirementLink } from "@/lib/requirement-links";
 import { labelFor } from "@/lib/records";
@@ -54,7 +54,37 @@ import {
 } from "./record-preview";
 import { QueryState } from "./work-common";
 
-type EvidenceChoice = {
+/** What a row says of its artifact: the browser's columns, and whose evidence it is. */
+const artifactColumns = ["id", "title", "artifact_kind", "program_id", "owner_party_id"] as const;
+/** What a row says of its version: the browser's columns, and what a draft lacks to be published. */
+const versionColumns = [
+  "id",
+  "artifact_id",
+  "version_number",
+  "state",
+  "collected_at",
+  "external_uri",
+  "storage_object_id",
+] as const;
+/** A linked version's preview draws its facts and its file too. */
+const linkedArtifactColumns = [...artifactColumns, "description"] as const;
+const linkedVersionColumns = [
+  ...versionColumns,
+  "published_at",
+  "expires_at",
+  "storage_object_name",
+  "media_type",
+  "byte_size",
+  "sha256",
+  "provenance",
+] as const;
+type ArtifactSummary = Pick<Row<"evidence_artifacts">, (typeof artifactColumns)[number]>;
+type VersionSummary = Pick<Row<"evidence_versions">, (typeof versionColumns)[number]>;
+
+type EvidenceChoice<
+  A extends ArtifactSummary = ArtifactSummary,
+  V extends VersionSummary = VersionSummary,
+> = {
   id: string;
   title: string;
   versionLabel: string;
@@ -65,9 +95,64 @@ type EvidenceChoice = {
   context: string;
   state: string;
   collected: string | undefined;
-  artifact: Row<"evidence_artifacts">;
-  version: Row<"evidence_versions">;
+  artifact: A;
+  version: V;
 };
+/** A version linked to the requirement, read with what its preview draws. */
+type LinkedChoice = EvidenceChoice<
+  Pick<Row<"evidence_artifacts">, (typeof linkedArtifactColumns)[number]>,
+  Pick<Row<"evidence_versions">, (typeof linkedVersionColumns)[number]>
+>;
+
+/** Each version as a row, with its artifact's title, kind, owner and context, artifact by artifact. */
+function evidenceChoices<A extends ArtifactSummary, V extends VersionSummary>(
+  versions: readonly V[] | undefined,
+  artifacts: readonly A[] | undefined,
+  parties: readonly { id: string; name: string }[] | undefined,
+): EvidenceChoice<A, V>[] {
+  const artifactMap = new Map((artifacts ?? []).map((row) => [row.id, row]));
+  const names = new Map((parties ?? []).map((party) => [party.id, party.name]));
+  return (versions ?? [])
+    .flatMap((version) => {
+      const artifact = artifactMap.get(version.artifact_id);
+      if (!artifact) return [];
+      return [
+        {
+          id: version.id,
+          title: artifact.title,
+          versionLabel: `Version ${version.version_number}`,
+          kind: labelFor(artifact.artifact_kind),
+          state: version.state,
+          owner: artifact.owner_party_id ? (names.get(artifact.owner_party_id) ?? null) : null,
+          ownerMissing: !!artifact.owner_party_id && !names.has(artifact.owner_party_id),
+          context: artifact.program_id ? "This program" : "Workspace",
+          collected: version.collected_at ?? undefined,
+          artifact,
+          version,
+        },
+      ];
+    })
+    .sort(
+      (a, b) =>
+        a.title.localeCompare(b.title) || b.version.version_number - a.version.version_number,
+    );
+}
+
+/**
+ * A version the browser previews: its artifact and version read whole as the preview opens, since
+ * the browser's rows carry only what its columns draw.
+ */
+function CandidateDetails({ choice }: { choice: EvidenceChoice }) {
+  const artifact = useRow("evidence_artifacts", choice.artifact.id);
+  const version = useRow("evidence_versions", choice.id);
+  return (
+    <QueryState queries={[artifact, version]}>
+      {artifact.data && version.data ? (
+        <EvidenceVersionDetails artifact={artifact.data} version={version.data} />
+      ) : null}
+    </QueryState>
+  );
+}
 
 /** The owner as a person, or what the lookup came to. */
 const ownerCell = (row: EvidenceChoice) =>
@@ -105,11 +190,48 @@ export function RequirementEvidence({
   const openRecord = useOpenRecord();
   const requirement = useRow("requirement_revisions", requirementRevisionId);
   const identity = useRow("engineering_requirements", requirement.data?.engineering_requirement_id);
-  const links = useRows("requirement_evidence", { requirement_revision_id: requirementRevisionId });
-  const artifacts = useRows("evidence_artifacts");
-  const versions = useRows("evidence_versions");
-  const parties = useRows("parties");
+  const links = useRows(
+    "requirement_evidence",
+    { requirement_revision_id: requirementRevisionId },
+    { columns: ["id", "revision", "evidence_version_id", "claim", "applicability_rationale"] },
+  );
+  // The linked versions and their artifacts, with what the table and its preview draw.
+  const linkedIds = idSet(links.data?.map((row) => row.evidence_version_id));
+  const versions = useRows(
+    "evidence_versions",
+    { id: linkedIds },
+    { columns: linkedVersionColumns, enabled: links.isSuccess },
+  );
+  const artifacts = useRows(
+    "evidence_artifacts",
+    { "evidence_versions.id": linkedIds },
+    { columns: linkedArtifactColumns, enabled: links.isSuccess },
+  );
+  const parties = useRows("parties", undefined, { columns: ["id", "name"] });
   const [surface, setSurface] = useState<"browse" | "create" | "prepare" | null>(null);
+  // What the browser offers is read once it first opens: this program's evidence and the
+  // workspace's unscoped artifacts, each version with what the browser's columns draw.
+  const [browsed, setBrowsed] = useState(false);
+  const programArtifacts = useRows(
+    "evidence_artifacts",
+    { program_id: programId },
+    { columns: artifactColumns, enabled: browsed },
+  );
+  const workspaceArtifacts = useRows(
+    "evidence_artifacts",
+    { program_id: null },
+    { columns: artifactColumns, enabled: browsed },
+  );
+  const programVersions = useRows(
+    "evidence_versions",
+    { "evidence_artifacts.program_id": programId },
+    { columns: versionColumns, enabled: browsed },
+  );
+  const workspaceVersions = useRows(
+    "evidence_versions",
+    { "evidence_artifacts.program_id": null },
+    { columns: versionColumns, enabled: browsed },
+  );
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [previewId, setPreviewId] = useState<string | null>(null);
   // A preview belongs to its tab: it ends when the record's tab hides this collection.
@@ -131,67 +253,55 @@ export function RequirementEvidence({
   // Loaded once every query has data; a failed refresh keeps what was loaded.
   const loaded = queries.every((query) => query.data !== undefined);
   const loadFailed = queries.some((query) => query.data === undefined && query.isError);
+  // The browser's reads beside the tab's: it waits on both and says either's failure.
+  const offered = [programArtifacts, workspaceArtifacts, programVersions, workspaceVersions];
+  const browserQueries = [...queries, ...offered];
   // The browser's state: a failed load, or a failed refresh whose rows stay under the alert. The
   // alert stays while its Try again runs, so focus stays on it.
-  const browserState = queries.some((query) => query.isError)
+  const browserState = browserQueries.some((query) => query.isError)
     ? "error"
-    : !loaded
+    : !browserQueries.every((query) => query.data !== undefined)
       ? "loading"
       : "ready";
   const requirementName = identity.data
     ? `${identity.data.code} · ${requirement.data?.title ?? ""}`
     : (requirement.data?.title ?? "This requirement");
-  const all = useMemo<EvidenceChoice[]>(() => {
-    const artifactMap = new Map((artifacts.data ?? []).map((row) => [row.id, row]));
-    return (versions.data ?? [])
-      .flatMap((version) => {
-        const artifact = artifactMap.get(version.artifact_id);
-        if (!artifact) return [];
-        return [
-          {
-            id: version.id,
-            title: artifact.title,
-            versionLabel: `Version ${version.version_number}`,
-            kind: labelFor(artifact.artifact_kind),
-            state: version.state,
-            owner: artifact.owner_party_id
-              ? (parties.data?.find((party) => party.id === artifact.owner_party_id)?.name ?? null)
-              : null,
-            ownerMissing:
-              !!artifact.owner_party_id &&
-              !parties.data?.some((party) => party.id === artifact.owner_party_id),
-            context: artifact.program_id ? "This program" : "Workspace",
-            collected: version.collected_at ?? undefined,
-            artifact,
-            version,
-          },
-        ];
-      })
-      .sort(
-        (a, b) =>
-          a.title.localeCompare(b.title) || b.version.version_number - a.version.version_number,
-      );
-  }, [artifacts.data, versions.data, parties.data]);
   const linkFor = useMemo(
     () => new Map((links.data ?? []).map((row) => [row.evidence_version_id, row])),
     [links.data],
   );
-  const linked = useMemo(() => all.filter((row) => linkFor.has(row.id)), [all, linkFor]);
-  const eligible = all.filter(
-    (row) =>
-      row.version.state === "published" &&
-      (!row.artifact.program_id || row.artifact.program_id === programId) &&
-      !linkFor.has(row.id),
+  const linked = useMemo<LinkedChoice[]>(
+    () =>
+      evidenceChoices(versions.data, artifacts.data, parties.data).filter((row) =>
+        linkFor.has(row.id),
+      ),
+    [versions.data, artifacts.data, parties.data, linkFor],
   );
-  const availableVersions = all.filter(
-    (row) => !row.artifact.program_id || row.artifact.program_id === programId,
+  // Every version the browser can offer: this program's evidence and unscoped workspace artifacts.
+  const availableVersions = useMemo(
+    () =>
+      evidenceChoices(
+        [...(programVersions.data ?? []), ...(workspaceVersions.data ?? [])],
+        [...(programArtifacts.data ?? []), ...(workspaceArtifacts.data ?? [])],
+        parties.data,
+      ),
+    [
+      programVersions.data,
+      workspaceVersions.data,
+      programArtifacts.data,
+      workspaceArtifacts.data,
+      parties.data,
+    ],
+  );
+  const eligible = availableVersions.filter(
+    (row) => row.version.state === "published" && !linkFor.has(row.id),
   );
   const draftVersions = availableVersions.filter((row) => row.version.state === "draft");
   const draftsWithoutSource = draftVersions.filter(
     (row) => !row.version.external_uri && !row.version.storage_object_id,
   );
   const publishedVersions = availableVersions.filter((row) => row.version.state === "published");
-  const preview = all.find((row) => row.id === previewId);
+  const preview = linked.find((row) => row.id === previewId);
   const focus = useRemovalFocus(linked);
   async function unlink(row: EvidenceChoice) {
     const record = linkFor.get(row.id);
@@ -222,7 +332,7 @@ export function RequirementEvidence({
   }
   const columns = useMemo(
     () =>
-      defineColumns<EvidenceChoice>((c) => [
+      defineColumns<LinkedChoice>((c) => [
         // The artifact's name is the row's identity: it opens the version and carries the eye.
         c.id("title", {
           header: "Artifact",
@@ -245,7 +355,7 @@ export function RequirementEvidence({
         c.date("collected", { header: "Collected" }),
         ...(canUnlink
           ? [
-              c.actions((row: EvidenceChoice) => [
+              c.actions((row: LinkedChoice) => [
                 {
                   label: "Unlink evidence",
                   tone: "danger" as const,
@@ -261,7 +371,7 @@ export function RequirementEvidence({
   );
   // The preview is the table's, so opening or stepping through it never rebuilds the columns.
   const tablePreview = useMemo(
-    () => ({ onPreview: (row: EvidenceChoice) => setPreviewId(row.id), activeId: previewId }),
+    () => ({ onPreview: (row: LinkedChoice) => setPreviewId(row.id), activeId: previewId }),
     [previewId],
   );
   const table = useDataTable({
@@ -285,6 +395,7 @@ export function RequirementEvidence({
   function beginBrowse() {
     setPreviewId(null);
     setSelectedIds([]);
+    setBrowsed(true);
     setSurface("browse");
   }
   async function confirmLink(records: EvidenceChoice[]) {
@@ -397,12 +508,10 @@ export function RequirementEvidence({
           state={browserState}
           error="The evidence could not be loaded."
           onRetry={() => {
-            for (const query of queries) if (query.isError) void query.refetch();
+            for (const query of browserQueries) if (query.isError) void query.refetch();
           }}
           empty={noneEligible}
-          renderPreview={(row) => (
-            <EvidenceVersionDetails artifact={row.artifact} version={row.version} />
-          )}
+          renderPreview={(row) => <CandidateDetails choice={row} />}
           selectedIds={selectedIds}
           onSelectionChange={setSelectedIds}
           onClose={closeBrowser}

@@ -10,7 +10,7 @@ import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
 const { Matrix } = storyLayout;
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 const meta = {
   title: "Components/TimeField",
@@ -211,4 +211,17 @@ export const Dont: Story = {
       dontText="A moment in time as a time alone. The day and the zone are lost; a moment is a DateTimeField."
     />
   ),
+  play: async ({ canvasElement }) => {
+    const { do: good, dont: bad } = halves(canvasElement);
+    // A time of day that repeats is a wall time and needs no day: its hint says when it recurs.
+    await expect(
+      within(good).getByRole("spinbutton", { name: "Daily stand-up" }),
+    ).toHaveAccessibleDescription("Every weekday, in each team's own time.");
+    // A moment held as a time alone: nothing in the field keeps its day or its zone.
+    const moment = within(bad).getByRole("spinbutton", { name: "Evidence collected" });
+    await expect(moment).toHaveValue("4:05 PM");
+    await expect(within(bad).getAllByRole("spinbutton")).toHaveLength(1);
+    await expect(within(bad).queryByRole("button")).toBeNull();
+    await expect(bad.querySelector('[data-slot="time-field-zone"]')).toBeNull();
+  },
 };

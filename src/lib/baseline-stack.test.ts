@@ -6,6 +6,10 @@ import {
   layerChange,
   stackAt,
   stackReversals,
+  stackWithout,
+  whatIfChange,
+  withParameters,
+  idleLayer,
 } from "./baseline-stack";
 
 const decision = (controlId: string, action: "include" | "exclude", rationale = "why") => ({
@@ -167,6 +171,71 @@ describe("stackAt", () => {
   });
 });
 
+describe("stackWithout", () => {
+  const stack = deriveStack(
+    ["ac-1", "ac-2", "pe-18"],
+    [
+      {
+        key: "allocation",
+        kind: "overlay",
+        title: "Allocation",
+        overlayId: "allocation",
+        decisions: [
+          decision("ac-3", "include"),
+          decision("pe-18", "exclude"),
+          decision("ac-1", "include"),
+        ],
+      },
+      {
+        key: "deployed",
+        kind: "overlay",
+        title: "Deployed",
+        overlayId: "deployed",
+        decisions: [decision("pe-18", "include"), decision("ac-3", "include")],
+      },
+      {
+        key: "program",
+        kind: "tailoring",
+        title: "Program",
+        decisions: [decision("ac-2", "exclude"), decision("ac-3", "exclude")],
+      },
+    ],
+  );
+
+  it("reads the saved stack itself when nothing is switched off", () => {
+    const same = stackWithout(stack, new Set());
+    expect([...same.selected].sort()).toEqual([...stack.selected].sort());
+    expect(same.layers.map((layer) => layer.total)).toEqual(stack.layers.map((l) => l.total));
+    expect(whatIfChange(stack.selected, same.selected)).toEqual({ more: 0, fewer: 0 });
+  });
+
+  it("keeps a layer switched off in its place, changing nothing, and applies the later ones again", () => {
+    const without = stackWithout(stack, new Set(["allocation"]));
+    expect(without.baselineCount).toBe(3);
+    expect(
+      without.layers.map((layer) => [layer.key, layer.added, layer.removed, layer.total]),
+    ).toEqual([
+      ["allocation", 0, 0, 3],
+      // pe-18 is still in the baseline, so Deployed reaffirms it, and ac-3 is now Deployed's own add.
+      ["deployed", 1, 0, 4],
+      ["program", 0, 2, 2],
+    ]);
+    expect(without.layers[1]).toMatchObject({ reaffirmed: 1 });
+    expect([...without.selected].sort()).toEqual(["ac-1", "pe-18"]);
+    expect(without.origins.get("pe-18")?.layerKey).toBeNull();
+  });
+
+  it("switches off the tailoring and counts what the what-if has more and fewer than the saved result", () => {
+    const without = stackWithout(stack, new Set(["program"]));
+    expect([...without.selected].sort()).toEqual(["ac-1", "ac-2", "ac-3", "pe-18"]);
+    expect([...stack.selected].sort()).toEqual(["ac-1", "pe-18"]);
+    expect(whatIfChange(stack.selected, without.selected)).toEqual({ more: 2, fewer: 0 });
+    const both = stackWithout(stack, new Set(["deployed", "program"]));
+    expect([...both.selected].sort()).toEqual(["ac-1", "ac-2", "ac-3"]);
+    expect(whatIfChange(stack.selected, both.selected)).toEqual({ more: 2, fewer: 1 });
+  });
+});
+
 describe("deriveSavedBaseline", () => {
   const hop = (resolutionId: string) => ({
     resolutionId,
@@ -248,5 +317,34 @@ describe("layerChange", () => {
     expect(layerChange({ added: 201, removed: 17 })).toBe("+201 −17");
     expect(layerChange({ added: 0, removed: 4 })).toBe("−4");
     expect(layerChange({ added: 0, removed: 0 })).toBe("No change");
+    expect(layerChange({ added: 3, removed: 8, parameters: 2 })).toBe("+3 −8 · 2 parameters");
+    expect(layerChange({ added: 0, removed: 0, parameters: 1 })).toBe("1 parameter");
+  });
+});
+
+describe("withParameters", () => {
+  it("counts a layer's values for the controls its result selects, and no others", () => {
+    const stack = deriveStack(
+      ["ac-1", "ac-2"],
+      [
+        {
+          key: "allocation",
+          kind: "overlay",
+          title: "Allocation",
+          decisions: [decision("ac-3", "include"), decision("ac-2", "exclude")],
+        },
+        { key: "values", kind: "overlay", title: "Values only", decisions: [] },
+      ],
+    );
+    const counted = withParameters(stack, (key) =>
+      key === "allocation"
+        ? [{ controlId: "ac-3" }, { controlId: "ac-2" }, { controlId: null }]
+        : key === "values"
+          ? [{ controlId: "ac-1" }]
+          : undefined,
+    );
+    expect(counted.layers.map((layer) => layer.parameters)).toEqual([1, 1]);
+    expect(counted.layers.map(idleLayer)).toEqual([false, false]);
+    expect(idleLayer(stack.layers[1]!)).toBe(true);
   });
 });

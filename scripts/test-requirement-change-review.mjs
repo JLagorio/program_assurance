@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 import { chromium, expect as browserExpect } from "playwright/test";
 const expect = browserExpect.configure({ timeout: 30000 });
 import { localWorkspace } from "./tests/local-workspace.mjs";
+import { artifactPath } from "./tests/artifacts.mjs";
 const origin = process.env.APP_TEST_URL ?? "http://localhost:8080";
 assert.ok(["localhost", "127.0.0.1"].includes(new URL(origin).hostname));
 const workspace = await localWorkspace("requirement-change-review");
@@ -119,7 +120,7 @@ try {
     comparison.getByRole("button", { name: `Open discussion: ${subject}`, exact: true }),
   ).toBeVisible();
   await page.screenshot({
-    path: "/private/tmp/requirement-change-review-desktop.png",
+    path: artifactPath("requirement-change-review-desktop.png"),
     animations: "disabled",
   });
   await edit("Keep audit events for one year.\nReview access daily.");
@@ -205,7 +206,7 @@ try {
     )
     .toBe(true);
   await page.screenshot({
-    path: "/private/tmp/requirement-change-review-long.png",
+    path: artifactPath("requirement-change-review-long.png"),
     animations: "disabled",
   });
 
@@ -253,7 +254,7 @@ try {
     titleChange.getByRole("button", { name: `Open discussion: ${scalarSubject}`, exact: true }),
   ).toBeVisible();
   await page.screenshot({
-    path: "/private/tmp/requirement-change-review-scalar.png",
+    path: artifactPath("requirement-change-review-scalar.png"),
     animations: "disabled",
   });
   await page.goto(titleUrl);
@@ -275,7 +276,7 @@ try {
     "Phone page does not overflow",
   );
   await page.screenshot({
-    path: "/private/tmp/requirement-change-review-phone.png",
+    path: artifactPath("requirement-change-review-phone.png"),
     animations: "disabled",
   });
   assert.deepEqual(errors, []);
@@ -290,7 +291,7 @@ try {
   }
   if (page)
     await page
-      .screenshot({ path: "/private/tmp/requirement-change-review-failure.png", fullPage: true })
+      .screenshot({ path: artifactPath("requirement-change-review-failure.png"), fullPage: true })
       .catch(() => {});
   throw error;
 } finally {

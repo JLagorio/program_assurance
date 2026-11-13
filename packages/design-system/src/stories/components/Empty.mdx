@@ -114,7 +114,7 @@ Empty has no states of its own. Loading is [Skeleton](?path=/docs/components-ske
 
 - **`size`**: `default` or `compact`.
 - **`frame`**: `dashed` (the default region) or `none`, for a table cell, a page body, a panel that has its own edges. Compact never draws a frame.
-- **`kind`** on `EmptyIllustration`: the twelve above. Every scene is 128 by 84px, so empty states sit at one height across a page.
+- **`kind`** on `EmptyIllustration`: the twelve above. Every scene is 128 by 84px, so empty states sit at one height across a page. Each is drawn in its own box of 64 by 42 units, a viewBox: a unit is a 64th of the picture's width, `dimension.part.emptyIllustration`, so the scene scales with that one width and no step of the spacing scale resizes it.
 
 <Canvas of={Stories.OnAPage} />
 
@@ -135,16 +135,16 @@ A title or a description with an unbroken code, hash or address breaks where it 
 
 ## Style
 
-| Element      | Token                                                                                                                                             |
-| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Frame        | `color.border` dashed · `radius.large` · `space.300` × `space.600`                                                                                |
-| Gaps         | `space.300` between picture, message and actions · `space.100` between title and description                                                      |
-| Title        | `font.heading.page` at medium · `color.text`                                                                                                      |
-| Description  | `font.body` · `color.text.subtle` · `dimension.part.emptyMeasure`, a 400px measure                                                                |
-| Icon circle  | `dimension.control.large` · `color.background.neutral` · `color.icon.subtle`                                                                      |
-| Illustration | 128 × 84px · `elevation.surface.raised` and `.sunken` · `color.border` and `.bold` · `color.skeleton` · `color.background.neutral`                |
-| Badge        | `dimension.control.medium` · `color.background.neutral.bold`, `.success.bold` or `.brand.bold` · `color.icon.inverse` · `elevation.shadow.raised` |
-| Compact      | no frame · `space.150` between media and message · `font.body` medium · `font.body.small`                                                         |
+| Element      | Token                                                                                                                                                                                                     |
+| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Frame        | `color.border` dashed · `radius.large` · `space.300` × `space.600`                                                                                                                                        |
+| Gaps         | `space.300` between picture, message and actions · `space.100` between title and description                                                                                                              |
+| Title        | `font.heading.page` at medium · `color.text`                                                                                                                                                              |
+| Description  | `font.body` · `color.text.subtle` · `dimension.part.emptyMeasure`, a 400px measure                                                                                                                        |
+| Icon circle  | `dimension.control.large` · `color.background.neutral` · `color.icon.subtle`                                                                                                                              |
+| Illustration | `dimension.part.emptyIllustration` wide, 128px; a box of 64 × 42 units, 84px tall · `elevation.surface.raised` and `.sunken` · `color.border` and `.bold` · `color.skeleton` · `color.background.neutral` |
+| Badge        | 16 units, 32px · `color.background.neutral.bold`, `.success.bold` or `.brand.bold` · `color.icon.inverse` · `elevation.shadow.raised`                                                                     |
+| Compact      | no frame · `space.150` between media and message · `font.body` medium · `font.body.small`                                                                                                                 |
 
 ## Accessibility
 

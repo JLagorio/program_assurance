@@ -70,6 +70,37 @@ An implemented requirement is an SSP implementation claim for one selected contr
 
 The canonical `systems` tree separates containment from authorization-boundary ownership. `composition_nodes` forwards legacy reads/writes to that tree. SSP component records bridge to canonical elements through explicit or unambiguous inventory relationships; reusable definitions remain separate. Configuration baselines pin component versions and parameter values. Requirement allocations name exactly one root/nested system, provider capability, or security process. Published provider offerings and explicit inheritance acceptances preserve the implementation versions accepted by consumers. [Complete assurance model](assurance-schema.md) · [Assurance migration](../supabase/migrations/20260912010000_assurance_schema.sql)
 
+## Products, variants and customer requirements
+
+```mermaid
+erDiagram
+    tenants ||--o{ business_lines : owns
+    business_lines |o--o{ products : holds
+    business_lines |o--o{ programs : runs
+    products ||--o{ product_revisions : versions
+    products ||--o{ product_configurations : builds
+    product_revisions ||--o{ product_elements : element_tree
+    product_elements |o--o{ product_elements : parent_element
+    product_configurations ||--o{ product_configuration_elements : membership
+    product_elements ||--o{ product_configuration_elements : included
+    product_revisions ||--o{ product_assessments : judged_by
+    profile_resolutions ||--o{ product_assessments : against_baseline
+    product_assessments ||--o{ product_determinations : records
+    product_elements |o--o{ product_determinations : element_or_whole
+    controls ||--o{ product_determinations : control
+    assessment_findings |o--o{ product_determinations : optional_finding
+    product_revisions |o--o{ systems : variant_version
+    product_configurations |o--o{ systems : variant_configuration
+    product_elements |o--o{ systems : inherited_element
+    systems |o--o{ assessment_campaigns : delta_assessment
+    programs ||--o{ requirement_sources : receives
+    requirement_sources |o--o{ engineering_requirements : source_paragraph
+    engineering_requirements ||--o| requirement_compliance : program_answer
+    programs ||--o{ requirement_import_requests : import_receipts
+```
+
+A product is judged once and read by configuration. A `product_assessments` row judges one published product version against one published control baseline, and each `product_determinations` row is an assessor's determination on one control for one element of that version, or for the product as a whole (no element). A configuration's standing on a control is the worst determination among the elements it includes. A variant is a program system created from a configuration: its boundary names the version and configuration it took, each inherited element names its product element, and what the program changed in one (`systems.product_change_kinds`, software, firmware, hardware or data, with its rationale) is written only by `declare_product_element_change`. A delta assessment is an assessment campaign that names its variant (`assessment_campaigns.variant_system_id`, set only by `plan_delta_assessment`). A customer's requirements document is a `requirement_sources` row; a requirement names its source and its paragraph (`engineering_requirements.source_id`, `source_reference`), and the program's answer to it is one `requirement_compliance` row. `requirement_import_requests` keeps each import's receipt, so the same request sent again answers what it answered. The reads and commands over them are in [Products, configurations and variants](products.md). [Product assurance migration](../supabase/migrations/20261112130000_product_assurance.sql) · [Customer requirements migration](../supabase/migrations/20261112140000_customer_requirements.sql)
+
 ## Assessment conclusions and evidence
 
 ```mermaid

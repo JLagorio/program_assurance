@@ -1,6 +1,3 @@
 {
-  "about": "Product lint reports per rule and file when the rule, or its wider reach, landed (TOO-13 layout through primitive props, CNT-18 new-tab links). The counts may only shrink: fix the site and lower or delete its entry (scripts/check-allow-lists.mjs compares with the base branch).",
-  "ledger/prefer-text-link": {
-    "src/components/prototype/system-evidence.tsx": 1
-  }
+  "about": "Product lint reports per rule and file when the rule, or its wider reach, landed (TOO-13 layout through primitive props, CNT-18 new-tab links). The counts may only shrink: fix the site and lower or delete its entry (scripts/check-allow-lists.mjs compares with the base branch)."
 }

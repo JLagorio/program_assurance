@@ -112,6 +112,20 @@
     "model": "operational_issues"
   },
   {
+    "file": "library.business-lines.$lineId.tsx",
+    "path": "/library/business-lines/$lineId",
+    "title": "Business line",
+    "family": "record",
+    "model": "business_lines"
+  },
+  {
+    "file": "library.business-lines.index.tsx",
+    "path": "/library/business-lines/",
+    "title": "Business lines",
+    "family": "register",
+    "model": "business_lines"
+  },
+  {
     "file": "library.components.$componentKey.tsx",
     "path": "/library/components/$componentKey",
     "title": "Component",
@@ -134,6 +148,18 @@
     "model": "component_definitions"
   },
   {
+    "file": "library.product-assessments.$assessmentId.tsx",
+    "path": "/library/product-assessments/$assessmentId",
+    "title": "Product assessment",
+    "family": "record",
+    "model": "product_assessments",
+    "missingRecord": {
+      "kind": "Product assessment",
+      "backTo": "/library/products",
+      "reason": "A product assessment requires a published product version and a published control baseline; supabase/tests/product_assurance.sql and the products demo seed exercise a loaded one."
+    }
+  },
+  {
     "file": "library.products.$productKey.tsx",
     "path": "/library/products/$productKey",
     "title": "Product",
@@ -142,7 +168,8 @@
     "tabList": "Product sections",
     "collectionTabs": ["Structure", "Configurations", "Variants"],
     "tabExceptions": {
-      "Overview": "Authored product properties and Details rail.",
+      "Overview": "What the version gives in one tray, authored product properties and the Details rail.",
+      "Assessment": "A Stat band, a card a configuration and the controls as a List one toggle away.",
       "Versions": "The contract preserves the ordered version-selection Table."
     }
   },
@@ -230,10 +257,11 @@
     "family": "record",
     "model": "programs",
     "tabList": "Program work",
-    "collectionTabs": ["System", "Library", "Requirements", "Assessment campaigns", "Evidence"],
+    "collectionTabs": ["System", "Library", "Requirements", "Evidence"],
     "tabExceptions": {
       "Overview": "Metrics, properties, multiple sections and the program's activity Timeline.",
       "Controls": "Controls are grouped by system.",
+      "Assessment campaigns": "Campaigns, events, scopes and objectives are distinct collections.",
       "Schedule": "Tasks, gates and responsibilities are distinct collections.",
       "Findings": "Operational issues and observations are distinct collections.",
       "POA&M & risk": "POA&M plans, remediation items and risks are distinct collections."
@@ -262,6 +290,13 @@
     "model": "programs"
   },
   {
+    "file": "programs.$programId_.compliance.tsx",
+    "path": "/programs/$programId/compliance",
+    "title": "Program",
+    "family": "program-view",
+    "model": "programs"
+  },
+  {
     "file": "programs.$programId_.control-status.tsx",
     "path": "/programs/$programId/control-status",
     "title": "Program",
@@ -271,6 +306,13 @@
   {
     "file": "programs.$programId_.posture.tsx",
     "path": "/programs/$programId/posture",
+    "title": "Program",
+    "family": "program-view",
+    "model": "programs"
+  },
+  {
+    "file": "programs.$programId_.product-delta.tsx",
+    "path": "/programs/$programId/product-delta",
     "title": "Program",
     "family": "program-view",
     "model": "programs"
@@ -468,6 +510,13 @@
       "Responses": "Requires an assessment revision; combines properties and two collections.",
       "Evidence": "Requires an assessment revision; this independent fixture checks its prerequisite empty state."
     }
+  },
+  {
+    "file": "review-queue.tsx",
+    "path": "/review-queue",
+    "title": "Review queue",
+    "family": "register",
+    "model": "review_queue_rows"
   },
   {
     "file": "risks.$riskId.tsx",

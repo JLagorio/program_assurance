@@ -47,9 +47,12 @@ An Indicator has one state and does not hover, focus or disable. The tone is the
 
 <Canvas of={Stories.InRows} />
 
+<Canvas of={Stories.Emphasis} />
+
 ## Modifiers
 
 - **`tone`** as in Variants; `neutral` when unsaid.
+- **`emphasis="bold"`** for the one level that must not read as its neighbour, Critical beside High, both `danger`: the word takes the tone's text colour at semibold beside the same Dot. It is still never a pill, and it does nothing on `neutral`, the lowest rung.
 - **Dot `label`** makes the Dot an image with that name, for a screen reader, where the Dot must stand without its word. A sighted reader still sees colour alone, so it is the last resort: write the word, as an Indicator.
 - **`className`** for placement, never for colour.
 

@@ -234,13 +234,13 @@ export default {
     {
       // templateColumns keys only the window breakpoints Grid's ResponsiveTemplate has (base, sm,
       // md, lg, xl): any other variant, a Ledger breakpoint or a state, keys none of them.
-      code: `${layout} <><Grid className="grid-cols-1 aside:grid-cols-2">x</Grid><Grid className="grid-cols-1 hover:grid-cols-2 wide:grid-cols-4">y</Grid></>`,
+      code: `${layout} <><Grid className="grid-cols-1 panel:grid-cols-2">x</Grid><Grid className="grid-cols-1 hover:grid-cols-2 max-panel:grid-cols-4">y</Grid></>`,
       errors: [
         {
           messageId: "primitive",
           data: {
             part: "Grid",
-            classes: "grid-cols-1, aside:grid-cols-2",
+            classes: "grid-cols-1, panel:grid-cols-2",
             advice: "Use templateColumns (it keys base, sm, md, lg and xl only).",
           },
         },
@@ -248,7 +248,7 @@ export default {
           messageId: "primitive",
           data: {
             part: "Grid",
-            classes: "grid-cols-1, hover:grid-cols-2, wide:grid-cols-4",
+            classes: "grid-cols-1, hover:grid-cols-2, max-panel:grid-cols-4",
             advice: "Use templateColumns (it keys base, sm, md, lg and xl only).",
           },
         },

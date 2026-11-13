@@ -9,7 +9,7 @@ import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
 const { Specimens } = storyLayout;
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 const meta = {
   title: "Components/Fact",
@@ -169,6 +169,27 @@ export const Dont: Story = {
       />
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    const facts = (half: HTMLElement) => half.querySelectorAll('[data-slot="fact"]').length;
+    // Four to six facts the reader acts on; eleven bury the owner in a strip three lines tall.
+    const count = halves(canvasElement, 0);
+    await expect(facts(count.do)).toBeGreaterThanOrEqual(4);
+    await expect(facts(count.do)).toBeLessThanOrEqual(6);
+    await expect(facts(count.dont)).toBeGreaterThan(6);
+    // A value is a word, a name, a number or a date; the Don't's is a sentence.
+    const value = halves(canvasElement, 1);
+    const sentence = /[.!?]$/;
+    const valueOf = (half: HTMLElement) => within(half).getByRole("definition").textContent!.trim();
+    await expect(valueOf(value.do)).not.toMatch(sentence);
+    await expect(valueOf(value.dont)).toMatch(sentence);
+    // A missing value keeps its fact, which says so; dropped, nothing says an assessor is missing.
+    const missing = halves(canvasElement, 2);
+    const assessor = within(missing.do)
+      .getByText("Assessor")
+      .closest<HTMLElement>('[data-slot="fact"]')!;
+    await expect(within(assessor).getByRole("definition")).toHaveTextContent("Not recorded");
+    await expect(within(missing.dont).queryByText("Assessor")).toBeNull();
+  },
 };
 
 const urn = "urn:uuid:0b9a3f4e-5c1d-4e7a-9f2b-8c6d1e0a7b3f";

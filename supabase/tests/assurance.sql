@@ -104,6 +104,77 @@ begin
   perform pg_temp.expect_error('update public.implementation_statements set description = ''Must not change'', revision = 2 where id = ''f4000000-0000-0000-0000-000000000001''','23514');
 end $$;
 
+-- The chain reads an assessor's finding (assurance_trace, migration 20261113211500): its links run
+-- as the caller and are closed to an anonymous session.
+do $$
+declare f text;
+begin
+  foreach f in array array['public.assurance_findings(uuid)', 'public.assurance_finding_evidence(uuid)',
+      'public.assurance_finding_issues(uuid)', 'public.assurance_finding_risks(uuid)',
+      'public.assurance_remediation_risks(uuid)'] loop
+    if has_function_privilege('anon', f, 'execute') or has_function_privilege('public', f, 'execute') then
+      raise exception '% may be executed by an anonymous session', f;
+    end if;
+    if not has_function_privilege('authenticated', f, 'execute') then
+      raise exception '% may not be executed by a signed-in session', f;
+    end if;
+    if (select p.prosecdef from pg_catalog.pg_proc p where p.oid = f::regprocedure) then
+      raise exception '% does not run as its caller', f;
+    end if;
+  end loop;
+end $$;
+
+-- On the published SSP above, a campaign's results judge the implemented control's statement. While
+-- the results are a draft the finding is in its own trace alone; once published, the control reaches
+-- it in its program and in no other.
+do $$
+declare
+  v_tenant uuid := current_setting('test.tenant')::uuid;
+  v_program uuid := 'b0000000-0000-0000-0000-000000000001';
+  v_finding uuid := 'f7300000-0000-0000-0000-000000000001';
+  v_control uuid; v_part uuid; v_set uuid; t jsonb;
+begin
+  if not exists (select 1 from public.ssp_revisions where id = 'f2000000-0000-0000-0000-000000000001') then return; end if;
+  select sc.control_id, ist.control_part_id into v_control, v_part
+    from public.implemented_requirements ir
+    join public.selected_controls sc on sc.id = ir.selected_control_id
+    join public.implementation_statements ist on ist.implemented_requirement_id = ir.id
+    where ir.id = 'f3000000-0000-0000-0000-000000000001';
+  insert into public.assessment_campaigns(id, tenant_id, title, program_id)
+    values ('f7000000-0000-0000-0000-000000000001', v_tenant, 'Rollback campaign', v_program);
+  insert into public.assessment_plan_revisions(id, tenant_id, version_number, campaign_id, ssp_revision_id, title)
+    values ('f7100000-0000-0000-0000-000000000001', v_tenant, 1, 'f7000000-0000-0000-0000-000000000001',
+      'f2000000-0000-0000-0000-000000000001', 'Rollback plan');
+  update public.assessment_plan_revisions set state = 'published', published_at = now(), revision = 2
+    where id = 'f7100000-0000-0000-0000-000000000001';
+  insert into public.assessment_results_revisions(id, tenant_id, version_number, assessment_plan_revision_id, title)
+    values ('f7200000-0000-0000-0000-000000000001', v_tenant, 1, 'f7100000-0000-0000-0000-000000000001', 'Rollback results');
+  insert into public.result_sets(tenant_id, assessment_results_revision_id, title)
+    values (v_tenant, 'f7200000-0000-0000-0000-000000000001', 'Rollback set') returning id into v_set;
+  insert into public.assessment_findings(id, tenant_id, assessment_results_revision_id, result_set_id, target_control_part_id, title, determination, determined_at)
+    values (v_finding, v_tenant, 'f7200000-0000-0000-0000-000000000001', v_set, v_part, 'Rollback finding', 'other_than_satisfied', now());
+  t := public.assurance_trace(v_tenant, 'control', v_control, v_program);
+  if t->'findings' <> '[]'::jsonb then
+    raise exception 'A finding of draft results was reached from its control: %', t->'findings';
+  end if;
+  t := public.assurance_trace(v_tenant, 'finding', v_finding);
+  if jsonb_array_length(t->'findings') <> 1 or t->'findings'->0->>'results_state' <> 'draft'
+    or t->'findings'->0->>'program_id' <> v_program::text
+    or t->'links'->'control_finding' <> jsonb_build_array(jsonb_build_array(v_control, v_finding)) then
+    raise exception 'A finding''s own trace answered %', t;
+  end if;
+  update public.assessment_results_revisions set state = 'published', published_at = now(), revision = 2
+    where id = 'f7200000-0000-0000-0000-000000000001';
+  t := public.assurance_trace(v_tenant, 'control', v_control, v_program);
+  if jsonb_array_length(t->'findings') <> 1 or t->'findings'->0->>'id' <> v_finding::text
+    or t->'findings'->0->>'determination' <> 'other_than_satisfied' then
+    raise exception 'A control did not reach the published finding on it: %', t->'findings';
+  end if;
+  if public.assurance_trace(v_tenant, 'control', v_control, gen_random_uuid())->'findings' <> '[]'::jsonb then
+    raise exception 'A control kept to another program reached this program''s finding';
+  end if;
+end $$;
+
 -- Viewers can read, cannot create records or promote themselves.
 select set_config('request.jwt.claim.sub', 'a0000000-0000-0000-0000-000000000002', true);
 do $$ begin

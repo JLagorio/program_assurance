@@ -129,6 +129,7 @@
     "bg-surface-raised-hovered",
     "bg-surface-raised-pressed",
     "bg-surface-sunken",
+    "bg-surface-tray",
     "bg-warning",
     "bg-warning-bold",
     "bg-warning-bold-hovered",
@@ -401,6 +402,11 @@
       "replacement": "color.chart.categorical.7",
       "class": "fill-chart-categorical-8",
       "replacementClass": "fill-chart-categorical-7"
+    },
+    "dimension.container.compact": {
+      "replacement": "dimension.container.sm",
+      "class": null,
+      "replacementClass": null
     },
     "font.heading.large": {
       "replacement": "font.heading.display",

@@ -31,7 +31,7 @@ import {
 import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 const meta = {
   title: "Components/Toaster",
@@ -489,6 +489,44 @@ function Raise({ label, options }: { label: string; options: ToastOptions }) {
 export const Dont: Story = {
   tags: ["!manifest"],
   render: () => <DontExamples />,
+  play: async ({ canvasElement }) => {
+    const page = within(canvasElement.ownerDocument.body);
+    const title = { selector: '[data-slot="toast-title"]' };
+    const raise = async (half: HTMLElement, button: string, words: string) => {
+      await userEvent.click(within(half).getByRole("button", { name: button }));
+      return (await page.findByText(words, title)).closest<HTMLElement>('[data-slot="toast"]')!;
+    };
+    // F6 takes focus to the toasts, as a keyboard reader reaches them, and Close dismisses one.
+    const dismiss = async (toast: HTMLElement, words: string) => {
+      await userEvent.keyboard("{F6}");
+      await userEvent.click(await within(toast).findByRole("button", { name: "Close" }));
+      await waitFor(() => expect(page.queryByText(words, title)).not.toBeInTheDocument());
+    };
+    // A failure the reader must act on stays beside what failed, with its way out in it.
+    const failure = halves(canvasElement, 0);
+    await expect(within(failure.do).getByRole("alert")).toContainElement(
+      within(failure.do).getByRole("button", { name: "Try again" }),
+    );
+    // In a toast it is raised away from what failed, and no way out comes with it.
+    const raised = await raise(failure.dont, "Save requirement", "Something went wrong");
+    await expect(failure.dont).not.toContainElement(raised);
+    await expect(within(raised).queryByRole("button", { name: "Try again" })).toBeNull();
+    await dismiss(raised, "Something went wrong");
+    // A title that says what happened and one short line; the Don't's paragraph runs on.
+    const words = halves(canvasElement, 1);
+    const lines = (toast: HTMLElement) => {
+      const description = toast.querySelector<HTMLElement>('[data-slot="toast-description"]')!;
+      const line = parseFloat(getComputedStyle(description).lineHeight);
+      return Math.round(description.getBoundingClientRect().height / line);
+    };
+    const brief = await raise(words.do, "Link evidence", "Evidence linked");
+    await expect(lines(brief)).toBe(1);
+    await dismiss(brief, "Evidence linked");
+    const wordy = "The evidence was linked successfully";
+    const paragraph = await raise(words.dont, "Link evidence, wordy", wordy);
+    await expect(lines(paragraph)).toBeGreaterThan(1);
+    await dismiss(paragraph, wordy);
+  },
 };
 
 function DontExamples() {

@@ -16,7 +16,7 @@ import { Inline, Stack, Text } from "../../primitives";
 import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 const meta = {
   title: "Patterns/RecordPicker",
@@ -361,4 +361,25 @@ export const Dont: Story = {
       />
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    const { do: good, dont: bad } = halves(canvasElement);
+    const rows = (half: HTMLElement) => within(half).getAllByRole("option");
+    const badges = (row: HTMLElement) => row.querySelectorAll('[data-slot="badge"]').length;
+    // Each row leads with its id, then its name and a line of meta, and one badge at the end;
+    // the search says what it finds.
+    for (const row of rows(good)) {
+      await expect(row.firstElementChild).toHaveAttribute("data-slot", "id");
+      await expect(badges(row)).toBeLessThanOrEqual(1);
+    }
+    await expect(within(good).getByRole("combobox")).toHaveAttribute(
+      "placeholder",
+      "Search evidence…",
+    );
+    // No id, a paragraph and three badges a row, under a search that says only Search.
+    for (const row of rows(bad)) {
+      await expect(row.querySelector('[data-slot="id"]')).toBeNull();
+      await expect(badges(row)).toBe(3);
+    }
+    await expect(within(bad).getByRole("combobox")).toHaveAttribute("placeholder", "Search…");
+  },
 };

@@ -280,10 +280,11 @@ try {
   // A scoped descendant provides a summary; it does not categorize either ancestor or leaf.
   for (const system of [parent, leaf])
     await expect(await impact(system, "confidentiality")).not.toContainText(/Low|Moderate|High/);
-  // The baseline names the profile and says where it comes from; the counts are exact.
+  // The baseline names the profile once, on the element that sets it, and says where it comes
+  // from; an element that takes it from another says only whose it is. The counts are exact.
   await expect(await cell(root, "Baseline")).toContainText(low.title);
   await expect(await cell(root, "Baseline")).toContainText("From the boundary SSP");
-  await expect(await cell(scoped, "Baseline")).toContainText(low.title);
+  await expect(await cell(scoped, "Baseline")).not.toContainText(low.title);
   await expect(await cell(scoped, "Baseline")).toContainText(`Inherited from ${root.code}`);
   await expect(await cell(root, "Controls")).toHaveText(String(low.count));
   await expect(await cell(scoped, "Requirements")).toHaveText("1");
@@ -467,10 +468,12 @@ try {
   await expect(page).toHaveURL(new RegExp(`/programs/${program.id}\\?tab=System$`));
   await expect(table().locator("tr[data-row-id]")).toHaveCount(38);
 
-  // Scopes live under Assessments now.
+  // Scopes live under their heading on the program's Assessment campaigns tab, with the
+  // campaigns, events and objectives: the program's strip is the page's only tab strip.
   await page.goto(`${origin}/programs/${program.id}?tab=Assessments`);
-  await page.getByRole("tab", { name: /^Scopes/ }).click();
-  const scopesTable = page.getByRole("table", { name: "Assessment scopes", exact: true });
+  await expect(page.locator("main").getByRole("tablist")).toHaveCount(1);
+  await expect(page.getByRole("heading", { name: "Scopes", exact: true })).toBeVisible();
+  const scopesTable = page.getByRole("table", { name: "Scopes", exact: true });
   await expect(scopesTable).toContainText(assessment.name);
   await expect(scopesTable).toContainText(scoped.name);
   assert.deepEqual(errors, []);

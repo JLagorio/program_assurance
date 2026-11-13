@@ -1,14 +1,20 @@
 import type { ReactElement, ReactNode } from "react";
 
-import type { Tone } from "../../components/badge";
+import type { TokenName } from "../../generated/tokens";
 
 /*
  * The chart family's data shapes: what a caller hands a part, and what a part hands back when a
  * mark is chosen. No runtime imports, so the pure helpers beside it run under `node --test`.
  */
 
-/** A status tone, `brand`, `neutral`, or one of the six categorical hues; `categorical.7` is Other. */
-export type ChartTone = Tone | "brand" | `categorical.${1 | 2 | 3 | 4 | 5 | 6 | 7}`;
+/**
+ * A status tone, `brand`, `neutral`, or one of the six categorical hues; `categorical.7` is Other.
+ * Every `color.chart.*` token that has a hovered step, named after `color.chart.` (`danger` for
+ * `color.chart.danger.hovered`), so the tones follow the tokens.
+ */
+export type ChartTone = {
+  [Name in TokenName]: Name extends `color.chart.${infer Tone}.hovered` ? Tone : never;
+}[TokenName];
 
 /** The plot's height: `small` 120px for a rail or a cell, `medium` 200px for a section, `large` 320px for the one chart a page is about. */
 export type ChartSize = "small" | "medium" | "large";

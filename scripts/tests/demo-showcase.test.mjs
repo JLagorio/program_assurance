@@ -4,7 +4,7 @@ import { resolve } from "node:path";
 import test from "node:test";
 import { gunzipSync } from "node:zlib";
 import * as scenario from "../demo/showcase-scenario.mjs";
-import { buildPayload, fiscalYear } from "../seed-demo-showcase.mjs";
+import { buildPayload, fiscalYear, readArchive } from "../seed-demo-showcase.mjs";
 
 const framework = (name) =>
   JSON.parse(gunzipSync(readFileSync(resolve("supabase/reference", `${name}.json.gz`))));
@@ -168,4 +168,147 @@ test("the schedule and the scanner imports are laid out from the as-of day", () 
     if (job.status === "completed") assert.ok(job.completedAt >= job.startedAt);
     if (job.status === "queued") assert.equal(job.startedAt, undefined);
   }
+});
+
+// WS-X90's assessments: the archived results as determinations (archivedAssessments).
+
+const archive = readArchive();
+const determinationWords = new Set([
+  "satisfied",
+  "partially_satisfied",
+  "other_than_satisfied",
+  "not_assessed",
+]);
+
+test("the initial assessment records the archive's 74-control scope, one determination a control", () => {
+  const { initial } = payload.assessments;
+  const scope = archive.assessments.find((assessment) => assessment.id === initial.source);
+  assert.equal(scope.scope.control_ids.length, 74);
+  assert.deepEqual(
+    initial.determinations.map((entry) => entry.control).sort(),
+    [...scope.scope.control_ids].sort(),
+  );
+  for (const entry of initial.determinations) {
+    assert.ok(determinationWords.has(entry.determination), entry.control);
+    assert.ok(entry.determinedAt >= initial.startsAt && entry.determinedAt <= initial.endsAt);
+    assert.ok(entry.determinedAt < initial.resultsPublishedAt);
+    assert.ok(!/\{\w+\}/.test(entry.description), `${entry.control} keeps a placeholder`);
+  }
+});
+
+test("a failure raised its finding, and the finding's severity decides how short it falls", () => {
+  const raised = new Map(archive.findings.map((finding) => [finding.id, finding]));
+  const short = [payload.assessments.initial, ...payload.assessments.expanded.increments]
+    .flatMap((revision) => revision.determinations)
+    .filter((entry) =>
+      ["partially_satisfied", "other_than_satisfied"].includes(entry.determination),
+    );
+  assert.ok(short.length > 0);
+  for (const entry of short) {
+    const finding = raised.get(entry.finding);
+    assert.ok(finding, `${entry.control} names no finding`);
+    assert.ok(
+      finding.control_ids.includes(entry.control),
+      `${entry.finding} is not about ${entry.control}`,
+    );
+    assert.equal(
+      entry.determination,
+      ["high", "critical"].includes(finding.severity)
+        ? "other_than_satisfied"
+        : "partially_satisfied",
+    );
+  }
+  for (const entry of payload.assessments.initial.determinations.filter(
+    (item) => item.determination === "satisfied" || item.determination === "not_assessed",
+  ))
+    assert.equal(entry.finding, null);
+});
+
+test("the expanded assessment's first increment is published and the rest, to the as-of day, a draft", () => {
+  const [first, second] = payload.assessments.expanded.increments;
+  assert.ok(first.publishedAt > `${first.through}T23:59:59Z`);
+  assert.equal(second.publishedAt, undefined);
+  assert.equal(second.endsAt, null);
+  for (const entry of first.determinations)
+    assert.ok(entry.determinedAt.slice(0, 10) <= first.through);
+  for (const entry of second.determinations) {
+    assert.ok(entry.determinedAt.slice(0, 10) > first.through);
+    assert.ok(
+      entry.determinedAt.slice(0, 10) <= payload.asOf,
+      `${entry.control} is judged after the as-of day`,
+    );
+  }
+  // The first increment holds roughly half the widened scope, as the archive says.
+  const widened = archive.assessments.find(
+    (item) => item.id === payload.assessments.expanded.source,
+  );
+  const share = first.determinations.length / widened.scope.control_ids.length;
+  assert.ok(share > 0.4 && share < 0.6, `the first increment holds ${share} of the scope`);
+  // The expanded assessment judges what the widened scope added, not the original 74 again.
+  const original = new Set(
+    payload.assessments.initial.determinations.map((entry) => entry.control),
+  );
+  for (const entry of first.determinations) assert.ok(!original.has(entry.control), entry.control);
+});
+
+test("each evidence review follows the worst result that examined the version, on its day", () => {
+  const reviews = Object.entries(payload.evidenceReviews);
+  assert.ok(reviews.length > 0);
+  const examined = new Map();
+  for (const result of archive.assessment_results)
+    if (result.assessed_on.slice(0, 10) <= payload.asOf)
+      for (const evidence of result.evidence_ids)
+        examined.set(evidence, [...(examined.get(evidence) ?? []), result]);
+  for (const [evidence, review] of reviews) {
+    const results = examined.get(evidence) ?? [];
+    assert.ok(results.length, `${evidence} is reviewed and no result examined it`);
+    const failed = results.some((result) => ["fail", "inconclusive"].includes(result.outcome));
+    assert.equal(review.decision, failed ? "needs_revision" : "accepted", evidence);
+    assert.ok(
+      results.some((result) => result.assessed_on === review.reviewedAt),
+      evidence,
+    );
+  }
+});
+
+test("each risk the showcase links a technique to says its threat, its weakness and why it carries its levels", () => {
+  const { risks, fromRequirement, levels, due, dueAt } = scenario.riskAssessments;
+  for (const title of Object.keys(scenario.riskTechniques)) {
+    const words = risks[title];
+    assert.ok(words, `${title} has no threat or vulnerability`);
+    const [threat, vulnerability, rationale] = words;
+    assert.ok(threat.trim() && vulnerability.trim(), title);
+    assert.match(rationale, /likelihood: .+ impact: /i, `${title}'s rationale names no levels`);
+  }
+  for (const kind of ["Monitoring", "Configuration", "Enforcement", "Verification"]) {
+    const [threat, vulnerability] = fromRequirement[kind];
+    for (const text of [threat, vulnerability, fromRequirement.rationale])
+      for (const [, key] of text.matchAll(/\{(\w+)\}/g))
+        assert.ok(
+          ["requirement", "controls", "elements", "likelihood", "impact"].includes(key),
+          `${kind} names {${key}}`,
+        );
+    assert.match(vulnerability, /^\{requirement\} is not met: /);
+  }
+  assert.deepEqual(Object.keys(levels), ["very_low", "low", "moderate", "high", "very_high"]);
+  // A response is due sooner the more severe its risk, whatever the response.
+  for (const [response, days] of Object.entries(due)) {
+    assert.ok(
+      days.critical < days.high && days.high < days.moderate && days.moderate < days.low,
+      response,
+    );
+  }
+  assert.match(dueAt, /^\d{2}:\d{2}:\d{2}Z$/);
+  assert.deepEqual(payload.riskAssessments, scenario.riskAssessments);
+});
+
+// Issue requirements (issue_requirements): the six "Unmet requirement" issues that cite no evidence.
+test("each issue the scenario links names the requirement its title says it is about", () => {
+  const links = Object.entries(scenario.issueRequirements);
+  assert.equal(links.length, 6);
+  for (const [issue, code] of links) {
+    assert.match(code, /^REQ-\d{3}$/);
+    assert.equal(issue, `Unmet requirement ${code}`);
+  }
+  assert.deepEqual(payload.issueRequirements, scenario.issueRequirements);
 });

@@ -10,7 +10,7 @@ import { HeadingLevelProvider, Inline, Stack, Text } from "../../primitives";
 import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 const groups = [
   {
@@ -398,4 +398,27 @@ export const Dont: Story = {
       dontText="Bold text over a hand-built row of facts: no heading in the outline, no label and value pairing, and nothing folds."
     />
   ),
+  play: async ({ canvasElement }) => {
+    const { do: good, dont: bad } = halves(canvasElement);
+    // A heading at the rail's level that folds, each label paired with its value, and the
+    // provenance folded away.
+    const details = within(good).getByRole("heading", { name: "Details", level: 2 });
+    await expect(within(details).getByRole("button", { name: "Details" })).toHaveAttribute(
+      "aria-expanded",
+      "true",
+    );
+    await expect(within(good).getByRole("button", { name: "Provenance" })).toHaveAttribute(
+      "aria-expanded",
+      "false",
+    );
+    await expect(
+      within(good)
+        .getAllByRole("term")
+        .map((term) => term.textContent),
+    ).toEqual(["Owner", "Due"]);
+    // Bold text over hand-built rows: no heading, no pairing, and nothing that folds.
+    await expect(within(bad).queryByRole("heading")).toBeNull();
+    await expect(within(bad).queryAllByRole("term")).toHaveLength(0);
+    await expect(within(bad).queryByRole("button")).toBeNull();
+  },
 };

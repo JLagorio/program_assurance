@@ -34,7 +34,7 @@ import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
 const { Specimens } = storyLayout;
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 /** A real pointer over the element, so CSS `:hover` applies in the browser tests; Storybook itself only dispatches the events. */
 async function nativeHover(target: HTMLElement) {
@@ -169,7 +169,7 @@ function cardActions(name: string) {
         />
         <DropdownMenuContent align="end" style={{ width: 200 }}>
           <DropdownMenuItem onClick={() => {}}>Edit the link</DropdownMenuItem>
-          <DropdownMenuItem variant="destructive" onClick={() => {}}>
+          <DropdownMenuItem variant="danger" onClick={() => {}}>
             Unlink
           </DropdownMenuItem>
         </DropdownMenuContent>
@@ -574,6 +574,48 @@ export const Dont: Story = {
       />
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    const parts = (half: HTMLElement, slot: string) =>
+      Array.from(half.querySelectorAll<HTMLElement>(`[data-slot="${slot}"]`));
+    // The name is the link to the record and the card holds no primary; the Don't puts a primary
+    // Open and an Unlink in every card, and no link.
+    const cards = halves(canvasElement, 0);
+    for (const card of parts(cards.do, "related-card")) {
+      await expect(within(card).getAllByRole("link").length).toBeGreaterThan(0);
+      await expect(card.querySelector('[data-button-variant="primary"]')).toBeNull();
+    }
+    for (const card of parts(cards.dont, "related-card")) {
+      await expect(within(card).queryByRole("link")).toBeNull();
+      const buttons = within(card).getAllByRole("button");
+      await expect(buttons.map((button) => button.textContent)).toEqual(["Open", "Unlink"]);
+      await expect(buttons[0]).toHaveAttribute("data-button-variant", "primary");
+    }
+    // Nothing linked is an empty state with the way to add one; grey text has no way out.
+    const nothing = halves(canvasElement, 1);
+    await expect(parts(nothing.do, "empty")).toHaveLength(1);
+    await expect(within(nothing.do).getByRole("button", { name: "Add" })).toBeVisible();
+    await expect(parts(nothing.dont, "empty")).toHaveLength(0);
+    await expect(within(nothing.dont).queryByRole("button")).toBeNull();
+    // Five rows and See all; fourteen rows run longer than the page beside them.
+    const handful = halves(canvasElement, 2);
+    await expect(parts(handful.do, "item")).toHaveLength(5);
+    await expect(within(handful.do).getByRole("link", { name: "See all 14" })).toBeVisible();
+    await expect(parts(handful.dont, "item")).toHaveLength(14);
+    await expect(within(handful.dont).queryByRole("link", { name: /See all/ })).toBeNull();
+    // A noun for the title and an id, a name and a state a row; a sentence for the title and
+    // three badges and a paragraph a row make the card a page.
+    const rows = halves(canvasElement, 3);
+    const words = (half: HTMLElement) =>
+      within(half).getByRole("heading").textContent!.replace(/\d/g, "").trim().split(/\s+/).length;
+    await expect(words(rows.do)).toBeLessThanOrEqual(3);
+    for (const row of parts(rows.do, "item"))
+      await expect(parts(row, "badge").length).toBeLessThanOrEqual(1);
+    await expect(words(rows.dont)).toBeGreaterThan(3);
+    for (const row of parts(rows.dont, "item")) {
+      await expect(parts(row, "badge")).toHaveLength(3);
+      await expect(row).toHaveTextContent(/Found by the ACAS scan/);
+    }
+  },
 };
 
 /** The props on the controls: `layout` swaps the finding rows for system cards. */

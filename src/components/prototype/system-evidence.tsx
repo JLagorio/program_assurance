@@ -9,7 +9,6 @@ import {
 import { ProductCollection } from "./product-collection";
 import { useCollectionTable } from "./collection-question";
 import { useEffect, useId, useMemo, useRef, useState, type FormEvent } from "react";
-import { ExternalLink } from "lucide-react";
 import {
   Absent,
   Alert,
@@ -31,13 +30,11 @@ import {
   FieldLegend,
   FieldSet,
   FilterChip,
-  Icon,
   KeyValue,
   RadioGroup,
   RadioGroupItem,
   Stack,
   TextLink,
-  VisuallyHidden,
   defineColumns,
   toast,
   useLedgerLocale,
@@ -540,12 +537,8 @@ export function SystemEvidence({
             </KeyValue>
             {preview.uri && (
               <KeyValue label="Source">
-                <TextLink href={preview.uri} target="_blank" rel="noopener noreferrer">
+                <TextLink href={preview.uri} newTab>
                   Open evidence source
-                  <VisuallyHidden> (opens in a new tab)</VisuallyHidden>{" "}
-                  <Icon>
-                    <ExternalLink />
-                  </Icon>
                 </TextLink>
               </KeyValue>
             )}

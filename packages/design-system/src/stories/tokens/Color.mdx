@@ -34,7 +34,7 @@ Ids and counts stay neutral, and so does an avatar by default. An Id is blue onl
 | Off                                                        | `color.text.disabled` | `color.icon.disabled` |
 | On a bold fill                                             | `color.text.inverse`  | `color.icon.inverse`  |
 
-An icon mirrors its text, one step bolder where a thin glyph needs it. Text and Heading take these as `color="color.text.subtle"`; a class says `text-subtle`.
+An icon mirrors its text, one step bolder where a thin glyph needs it. Text takes any of these as `color="color.text.subtle"`; a class says `text-subtle`. A Heading takes only `color.text`, its default, and the inverse on a bold fill (`color="color.text.inverse"`, or `color.text.warning.inverse` on warning's): a title is never subtle or toned.
 
 ## Status
 
@@ -145,11 +145,12 @@ Hairline plus soft lift, never heavy. A surface pairs with a shadow; nothing els
 | --------------------------------------- | --------------------------- | -------------------- | ----------------------------------------------- |
 | The page                                | `elevation.surface`         | `bg-surface`         | none                                            |
 | A well: the side nav, a grouped list    | `elevation.surface.sunken`  | `bg-surface-sunken`  | none                                            |
+| A Tray's counted cards                  | `elevation.surface.tray`    | `bg-surface-tray`    | none                                            |
 | A card                                  | `elevation.surface.raised`  | `bg-surface-raised`  | `elevation.shadow.raised` (`shadow-raised`)     |
 | A menu, popover or dialog               | `elevation.surface.overlay` | `bg-surface-overlay` | `elevation.shadow.overlay` (`shadow-overlay`)   |
 | Content scrolling under a sticky header |                             |                      | `elevation.shadow.overflow` (`shadow-overflow`) |
 
-Each surface has `hovered` and `pressed` states. In dark, surfaces climb in lightness instead of casting more shadow. These three shadows are the only ones; `ledger/no-kit-shadow` reports any other.
+Each surface has `hovered` and `pressed` states. In dark, surfaces climb in lightness instead of casting more shadow. These three shadows are the only ones: `ledger/no-non-token-class` reports any other shadow class (`shadow-lg`, `drop-shadow-md`), and `ledger/no-arbitrary-value` a shadow written as a value (`shadow-[0_1px_2px_black]`).
 
 The pairing is a rule: `surface.raised` always with `shadow.raised`, `surface.overlay` always with `shadow.overlay`, and never the other way round; `surface.sunken` casts nothing and never sits on a raised surface; the page casts nothing. A card inside a card is not a deeper elevation, it is a decision to make with a rule or a well instead. `shadow.overflow` is the one shadow without a surface: the edge of content scrolling under a sticky header, which no part draws yet.
 

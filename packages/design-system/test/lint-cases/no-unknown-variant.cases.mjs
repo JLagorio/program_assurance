@@ -23,7 +23,7 @@ export default {
     },
     // Every breakpoint the kit has, xl (the alias of panel) included, and the container sizes.
     {
-      code: '<div className="sm:flex md:flex lg:flex aside:flex panel:flex xl:flex wide:flex max-wide:hidden min-aside:grid @3xs:flex @compact:flex @split:flex @7xl:flex @min-[400px]:flex" />',
+      code: '<div className="sm:flex md:flex lg:flex panel:flex xl:flex max-panel:hidden min-lg:grid @3xs:flex @compact:flex @split:flex @7xl:flex @min-[400px]:flex" />',
     },
     // The ARIA forms the repository writes.
     {
@@ -208,6 +208,17 @@ export default {
         data: { cls, variant },
         suggestions: [],
       })),
+    },
+    {
+      // The breakpoints the shell's aside area read left with it: aside: and wide: generate
+      // nothing, and their max- and min- forms are sizes no breakpoint has.
+      code: '<div className="aside:flex wide:grid max-wide:hidden min-aside:grid" />',
+      errors: [
+        { messageId: "variant", data: { cls: "aside:flex", variant: "aside" }, suggestions: [] },
+        { messageId: "variant", data: { cls: "wide:grid", variant: "wide" }, suggestions: [] },
+        breakpoint("max-wide:hidden", "max-wide"),
+        breakpoint("min-aside:grid", "min-aside"),
+      ],
     },
     {
       // A word near a breakpoint's name is a size, and so is one under not-, which negates one.

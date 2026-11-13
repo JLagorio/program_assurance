@@ -17,6 +17,7 @@ import {
   defineColumns,
   useLedgerLocale,
 } from "@ledger/design-system";
+import { StatusBadge } from "@/components/app/status";
 import {
   controlStatusFamilies,
   controlStatusShare,
@@ -26,7 +27,7 @@ import {
   type ProgramControlStatus,
 } from "@/lib/control-status";
 import { registerViews } from "@/lib/register-views";
-import { controlStatuses } from "@/lib/status";
+import { controlDeterminers, controlStatuses } from "@/lib/status";
 import { useCollectionTable } from "./collection-question";
 import { controlStatusLink, controlStatusListSearch } from "./control-status-link";
 import { ControlStatusKey, ControlStatusMap } from "./control-status";
@@ -70,15 +71,31 @@ const listColumns = (programId: string) =>
       priority: 1,
       statuses: controlStatuses,
     }),
-    c.text("family", { header: "Control family", width: 260, priority: 4 }),
-    c.number("requirements", { header: "Requirements", width: 130, priority: 2 }),
-    c.number("evidenced", { header: "With evidence", width: 130, priority: 3 }),
+    // Whose determination the status is; a control nobody has determined is not determined yet.
+    c.status("determinedBy", {
+      header: "Determined by",
+      width: 190,
+      priority: 2,
+      statuses: controlDeterminers,
+      cell: (row) => (
+        <StatusBadge
+          statuses={controlDeterminers}
+          value={row.determinedBy}
+          size="xsmall"
+          absentLabel="Not determined"
+        />
+      ),
+    }),
+    c.text("family", { header: "Control family", width: 260, priority: 5 }),
+    c.number("requirements", { header: "Requirements", width: 130, priority: 3 }),
+    c.number("evidenced", { header: "With evidence", width: 130, priority: 4 }),
   ]);
 
 /**
- * The baseline's controls as a register: each with where the program stands on it, the family it
- * belongs to, the requirements that map it and how many of them cite evidence. Its question lives
- * in the address, so a count that links here opens what it counts.
+ * The baseline's controls as a register: each with where the program stands on it and whose
+ * determination that is, the family it belongs to, the requirements that map it and how many of
+ * them cite evidence. Its question lives in the address, so a count that links here opens what it
+ * counts.
  */
 function ControlStatusList({
   programId,
@@ -114,6 +131,7 @@ function ControlStatusList({
       filters={
         <>
           <DataTable.Filter table={table} column="status" />
+          <DataTable.Filter table={table} column="determinedBy" />
           <DataTable.Filter table={table} column="family" />
         </>
       }
@@ -144,7 +162,9 @@ function FamilyCard({ programId, family }: { programId: string; family: ControlS
     }),
     [family.controls],
   );
-  const evidenced = family.total - family.counts.no_requirement - family.counts.no_evidence;
+  // A control cites evidence when one of its requirements does. A determination needs none: the
+  // product's assessment, or an assessor, may have decided a control no requirement maps.
+  const evidenced = controls.controls.filter((control) => control.evidenced > 0).length;
   const open = useCallback(
     (controlId: string) => openRecord("controls", { id: controlId, program_id: programId }),
     [openRecord, programId],

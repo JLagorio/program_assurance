@@ -2,6 +2,7 @@ import { useMemo, type ReactElement, type ReactNode } from "react";
 import {
   Absent,
   KeyValue,
+  Stack,
   Tally,
   TileMap,
   TileMapKey,
@@ -24,9 +25,10 @@ import {
   type ProgramControlStatus,
 } from "@/lib/control-status";
 import { controlNextStep } from "@/lib/next-steps";
-import { controlStatuses } from "@/lib/status";
+import { controlDeterminers, controlStatuses } from "@/lib/status";
 import { QueryValue } from "./library-shared";
 import { NextStepLink } from "./next-step";
+import { RecordLink } from "./record-preview";
 import { ReportFailures } from "./work-common";
 
 /**
@@ -105,8 +107,9 @@ export function ControlStatusTally({
 /**
  * Every control of a program's control baseline as one mark, coloured by where the program stands
  * on it: `grid` is a row a family, `strip` the whole baseline in one run for a card. A mark says
- * its control, its status and what the program holds for it, in words. Give the same controls as a
- * table one step away: the List of the program's Control status view.
+ * its control, its status, whose determination that is and what the program holds for it, in
+ * words. Give the same controls as a table one step away: the List of the program's Control status
+ * view.
  */
 export function ControlStatusMap({
   status,
@@ -126,7 +129,9 @@ export function ControlStatusMap({
     const mark = (control: ControlStanding): TileMapMark => ({
       id: control.id,
       label: `${control.code} ${control.title}`,
-      description: `${controlStatuses[control.status].label} · ${formatNumber(control.requirements)} ${
+      description: `${controlStatuses[control.status].label}${
+        control.determinedBy ? ` · ${controlDeterminers[control.determinedBy].label}` : ""
+      } · ${formatNumber(control.requirements)} ${
         control.requirements === 1 ? "requirement" : "requirements"
       }, ${formatNumber(control.evidenced)} with evidence`,
       ...marks[control.status],
@@ -151,10 +156,12 @@ export function ControlStatusMap({
 
 /**
  * Where a program stands on one control, as the first rows of the control's Details: its control
- * status and the next step that moves it up the ladder, a link to where the step is done. The
- * status comes from the read the program's Overview and its Control status view share, so the
- * page opens on what the reader came from. `requirements` are the requirements that map the
- * control, as its trace reads them: the step names the first that cites no evidence.
+ * status, whose determination it is (the program's assessment, or each product assessment the
+ * program's variants inherit it from, a link to its record), and the next step that moves it up
+ * the ladder, a link to where the step is done. The status comes from the read the program's
+ * Overview and its Control status view share, so the page opens on what the reader came from.
+ * `requirements` are the requirements that map the control, as its trace reads them: the step
+ * names the first that cites no evidence.
  */
 export function ControlStandingFacts({
   programId,
@@ -170,7 +177,7 @@ export function ControlStandingFacts({
   const standing = controlId
     ? statuses.data?.controls.find((control) => control.id === controlId)
     : undefined;
-  const step = standing ? controlNextStep(standing.status, requirements) : null;
+  const step = standing ? controlNextStep(standing, requirements) : null;
   return (
     <>
       <ReportFailures queries={[statuses]} />
@@ -185,6 +192,25 @@ export function ControlStandingFacts({
           }
         </QueryValue>
       </KeyValue>
+      {standing?.determinedBy && (
+        <KeyValue label="Determined by" wrap>
+          {standing.determinedBy === "product" && standing.productAssessments.length > 0 ? (
+            <Stack space="space.050" alignInline="start">
+              {standing.productAssessments.map((assessment) => (
+                <RecordLink
+                  key={assessment.id}
+                  table="product_assessments"
+                  record={{ id: assessment.id }}
+                >
+                  {assessment.title}
+                </RecordLink>
+              ))}
+            </Stack>
+          ) : (
+            controlDeterminers[standing.determinedBy].label
+          )}
+        </KeyValue>
+      )}
       {step && (
         <KeyValue label="Next step" wrap>
           <NextStepLink step={step} programId={programId} />

@@ -2486,6 +2486,7 @@
             "elevation.surface.raised.hovered": ["bg-surface-raised-hovered"],
             "elevation.surface.raised.pressed": ["bg-surface-raised-pressed"],
             "elevation.surface.sunken": ["bg-surface-sunken"],
+            "elevation.surface.tray": ["bg-surface-tray"],
             "utility.elevation.surface.current": ["bg-surface-current"]
           }
         },
@@ -3094,7 +3095,7 @@
     "Calendar": {
       "kind": "component",
       "file": "components/calendar.tsx",
-      "line": 39,
+      "line": 47,
       "root": {
         "p": ["p-150"],
         "w": ["w-fit"]
@@ -3109,7 +3110,7 @@
     "CalendarDayButton": {
       "kind": "component",
       "file": "components/calendar.tsx",
-      "line": 235,
+      "line": 253,
       "root": {
         "align-items": ["items-center"],
         "bg-color": [
@@ -3139,8 +3140,9 @@
           "data-[selected-single=true]:forced-color-adjust-none"
         ],
         "gap": ["gap-075"],
-        "h": ["h-control-medium"],
+        "h": ["h-400", "h-control-medium"],
         "justify-content": ["justify-center"],
+        "min-w": ["min-w-0"],
         "p": ["p-0"],
         "pe": ["pe-100"],
         "pointer-events": ["disabled:pointer-events-none"],
@@ -3148,7 +3150,6 @@
         "px": ["px-150"],
         "rounded": ["data-[range-middle=true]:rounded-none", "rounded-medium"],
         "select": ["select-none"],
-        "size": ["size-400"],
         "text-color": [
           "aria-expanded:text-default",
           "data-[disabled]:not-data-[loading]:text-disabled",
@@ -3162,6 +3163,7 @@
         ],
         "transition": ["transition-colors"],
         "utility:outline-focused": ["focus-visible:outline-focused"],
+        "w": ["w-full"],
         "whitespace": ["whitespace-nowrap"]
       },
       "props": {
@@ -3218,7 +3220,6 @@
           "pointer-events",
           "position",
           "select",
-          "size",
           "w",
           "whitespace"
         ],
@@ -3229,7 +3230,7 @@
         "effects": ["shadow"],
         "motion": ["duration", "ease", "transition"]
       },
-      "unread": ["a member: getDefaultClassNames().day_button (calendar.tsx:261)"]
+      "unread": ["a member: getDefaultClassNames().day_button (calendar.tsx:280)"]
     },
     "Card": {
       "kind": "component",
@@ -3279,10 +3280,13 @@
     "CardAction": {
       "kind": "component",
       "file": "components/card.tsx",
-      "line": 185,
+      "line": 189,
       "root": {
         "align-items": ["items-center"],
-        "col-start": ["@3xs/card-header:col-start-2"],
+        "col-start": [
+          "@3xs/card-header:col-start-2",
+          "group-data-[action=beside]/card-header:col-start-2"
+        ],
         "col-start-end": ["col-span-full"],
         "display": ["flex"],
         "flex-wrap": ["flex-wrap"],
@@ -3290,9 +3294,15 @@
         "justify-content": ["justify-end"],
         "justify-self": ["justify-self-end"],
         "max-w": ["max-w-full"],
-        "pt": ["@3xs/card-header:pt-0", "pt-100"],
-        "row-start": ["@3xs/card-header:row-start-1"],
-        "row-start-end": ["@3xs/card-header:row-span-2"]
+        "pt": ["@3xs/card-header:pt-0", "group-data-[action=beside]/card-header:pt-0", "pt-100"],
+        "row-start": [
+          "@3xs/card-header:row-start-1",
+          "group-data-[action=beside]/card-header:row-start-1"
+        ],
+        "row-start-end": [
+          "@3xs/card-header:row-span-2",
+          "group-data-[action=beside]/card-header:row-span-2"
+        ]
       },
       "props": {},
       "derived": {},
@@ -3315,7 +3325,7 @@
     "CardContent": {
       "kind": "component",
       "file": "components/card.tsx",
-      "line": 199,
+      "line": 203,
       "root": {
         "min-w": ["min-w-0"],
         "px": ["group-data-[size=small]/card:px-150", "px-200"]
@@ -3330,9 +3340,13 @@
     "CardDescription": {
       "kind": "component",
       "file": "components/card.tsx",
-      "line": 170,
+      "line": 174,
       "root": {
-        "col-start-end": ["@3xs/card-header:col-auto", "col-span-full"],
+        "col-start-end": [
+          "@3xs/card-header:col-auto",
+          "col-span-full",
+          "group-data-[action=beside]/card-header:col-auto"
+        ],
         "font-family": ["font-body"],
         "min-w": ["min-w-0"],
         "text-color": ["text-subtle"]
@@ -3348,7 +3362,7 @@
     "CardFooter": {
       "kind": "component",
       "file": "components/card.tsx",
-      "line": 210,
+      "line": 214,
       "root": {
         "align-items": ["items-center"],
         "border-color": ["border-default"],
@@ -3368,11 +3382,12 @@
     "CardHeader": {
       "kind": "component",
       "file": "components/card.tsx",
-      "line": 109,
+      "line": 110,
       "root": {
         "align-items": ["items-start"],
         "auto-rows": ["auto-rows-min"],
         "border-color": ["border-default"],
+        "class:group/card-header": ["group/card-header"],
         "container-named": ["has-data-[slot=card-action]:@container/card-header"],
         "display": ["grid"],
         "gap-x": ["gap-x-200"],
@@ -3384,7 +3399,14 @@
       "props": {},
       "derived": {},
       "sets": {
-        "layout": ["align-items", "auto-rows", "container-named", "display", "grid-cols"],
+        "layout": [
+          "align-items",
+          "auto-rows",
+          "class:group/card-header",
+          "container-named",
+          "display",
+          "grid-cols"
+        ],
         "spacing": ["gap-x", "gap-y", "pb", "px"],
         "color": ["border-color"]
       }
@@ -3392,10 +3414,14 @@
     "CardTitle": {
       "kind": "component",
       "file": "components/card.tsx",
-      "line": 141,
+      "line": 145,
       "root": {
         "break": ["break-words"],
-        "col-start-end": ["@3xs/card-header:col-auto", "col-span-full"],
+        "col-start-end": [
+          "@3xs/card-header:col-auto",
+          "col-span-full",
+          "group-data-[action=beside]/card-header:col-auto"
+        ],
         "font-family": ["font-heading-overlay"],
         "min-w": ["min-w-0"],
         "text-color": ["text-default"]
@@ -3441,7 +3467,7 @@
     "Chart.Area": {
       "kind": "component",
       "file": "patterns/chart/line.tsx",
-      "line": 790,
+      "line": 794,
       "root": {
         "position": ["relative"]
       },
@@ -3474,7 +3500,7 @@
     "Chart.Bar": {
       "kind": "component",
       "file": "patterns/chart/bar.tsx",
-      "line": 298,
+      "line": 299,
       "root": {
         "position": ["relative"]
       },
@@ -3608,7 +3634,7 @@
     "Chart.Line": {
       "kind": "component",
       "file": "patterns/chart/line.tsx",
-      "line": 564,
+      "line": 568,
       "root": {
         "position": ["relative"]
       },
@@ -5351,7 +5377,7 @@
     "DataTable": {
       "kind": "component",
       "file": "patterns/data-table/data-table.tsx",
-      "line": 1501,
+      "line": 1507,
       "root": {},
       "props": {
         "fill": {
@@ -8510,9 +8536,10 @@
     "EmptyIllustration": {
       "kind": "component",
       "file": "components/empty.tsx",
-      "line": 502,
+      "line": 534,
       "root": {
         "align-items": ["items-end"],
+        "container-type": ["@container"],
         "display": ["flex"],
         "justify-content": ["justify-center"],
         "select": ["select-none"],
@@ -8521,7 +8548,14 @@
       "props": {},
       "derived": {},
       "sets": {
-        "layout": ["align-items", "display", "justify-content", "select", "shrink"]
+        "layout": [
+          "align-items",
+          "container-type",
+          "display",
+          "justify-content",
+          "select",
+          "shrink"
+        ]
       }
     },
     "EmptyMedia": {
@@ -10192,7 +10226,7 @@
     "Indicator": {
       "kind": "component",
       "file": "components/badge.tsx",
-      "line": 395,
+      "line": 401,
       "root": {
         "align-items": ["items-center"],
         "display": ["inline-flex"],
@@ -10202,10 +10236,19 @@
         "whitespace": ["whitespace-nowrap"]
       },
       "props": {
+        "emphasis": {
+          "font-weight": {
+            "bold": ["font-semibold"]
+          }
+        },
         "tone": {
           "text-color": {
             "!neutral": ["text-default"],
-            "neutral": ["text-subtle"]
+            "danger": ["text-danger"],
+            "information": ["text-information"],
+            "neutral": ["text-subtle"],
+            "success": ["text-success"],
+            "warning": ["text-warning"]
           }
         }
       },
@@ -10214,7 +10257,7 @@
         "layout": ["align-items", "display", "max-w", "whitespace"],
         "spacing": ["gap"],
         "color": ["text-color"],
-        "typography": ["font-family"]
+        "typography": ["font-family", "font-weight"]
       }
     },
     "Inline": {
@@ -10988,7 +11031,7 @@
     "Item": {
       "kind": "component",
       "file": "components/item.tsx",
-      "line": 92,
+      "line": 112,
       "root": {
         "class:group/item": ["group/item"],
         "col-start-end": ["col-span-full"],
@@ -11006,7 +11049,7 @@
     "Item.Group": {
       "kind": "component",
       "file": "components/item.tsx",
-      "line": 338,
+      "line": 358,
       "root": {},
       "props": {},
       "derived": {},
@@ -11015,7 +11058,7 @@
     "ItemGroup": {
       "kind": "component",
       "file": "components/item.tsx",
-      "line": 338,
+      "line": 358,
       "root": {},
       "props": {},
       "derived": {},
@@ -11964,13 +12007,13 @@
     "PaginationContent": {
       "kind": "component",
       "file": "components/pagination.tsx",
-      "line": 39,
+      "line": 43,
       "root": {
         "align-items": ["items-center"],
         "display": ["flex"],
         "flex-wrap": ["flex-wrap"],
         "gap": ["gap-025"],
-        "justify-content": ["justify-center"],
+        "justify-content": ["justify-end"],
         "list-style-type": ["list-none"],
         "p": ["p-0"]
       },
@@ -11985,7 +12028,7 @@
     "PaginationEllipsis": {
       "kind": "component",
       "file": "components/pagination.tsx",
-      "line": 129,
+      "line": 133,
       "root": {
         "align-items": ["items-center"],
         "display": ["flex"],
@@ -12003,7 +12046,7 @@
     "PaginationItem": {
       "kind": "component",
       "file": "components/pagination.tsx",
-      "line": 56,
+      "line": 60,
       "root": {},
       "props": {},
       "derived": {},
@@ -12012,7 +12055,7 @@
     "PaginationLink": {
       "kind": "component",
       "file": "components/pagination.tsx",
-      "line": 61,
+      "line": 65,
       "root": {
         "align-items": ["items-center"],
         "bg-color": [
@@ -12128,7 +12171,7 @@
     "PaginationNext": {
       "kind": "component",
       "file": "components/pagination.tsx",
-      "line": 112,
+      "line": 116,
       "root": {
         "align-items": ["items-center"],
         "bg-color": [
@@ -12244,7 +12287,7 @@
     "PaginationPrevious": {
       "kind": "component",
       "file": "components/pagination.tsx",
-      "line": 88,
+      "line": 92,
       "root": {
         "align-items": ["items-center"],
         "bg-color": [
@@ -14420,7 +14463,7 @@
     "Shell": {
       "kind": "component",
       "file": "layout/shell/root.tsx",
-      "line": 112,
+      "line": 95,
       "root": {
         "bg-color": ["bg-surface"],
         "text-color": ["text-default"]
@@ -14652,23 +14695,22 @@
     "Shell.Aside": {
       "kind": "component",
       "file": "layout/shell/root.tsx",
-      "line": 842,
+      "line": 723,
       "root": {
         "min-w": ["min-w-0"],
-        "pb": ["pb-200"],
-        "pt": ["pt-100"]
+        "pb": ["pb-200"]
       },
       "props": {},
       "derived": {},
       "sets": {
         "layout": ["min-w"],
-        "spacing": ["pb", "pt"]
+        "spacing": ["pb"]
       }
     },
     "Shell.Banner": {
       "kind": "component",
       "file": "layout/shell/root.tsx",
-      "line": 734,
+      "line": 617,
       "root": {
         "outline-style": ["outline-none"]
       },
@@ -14681,7 +14723,7 @@
     "Shell.Main": {
       "kind": "component",
       "file": "layout/shell/root.tsx",
-      "line": 783,
+      "line": 666,
       "root": {
         "outline-style": ["outline-none"],
         "pb": ["lg:pb-400", "pb-300"],
@@ -16620,7 +16662,7 @@
     "Table": {
       "kind": "component",
       "file": "components/table.tsx",
-      "line": 387,
+      "line": 489,
       "root": {
         "border-collapse": ["border-collapse"],
         "font-family": ["font-body"],
@@ -16638,7 +16680,7 @@
     "Table.Cell": {
       "kind": "component",
       "file": "components/table.tsx",
-      "line": 864,
+      "line": 1041,
       "root": {
         "h": ["h-row"],
         "max-w": ["max-w-0"],
@@ -16655,40 +16697,6 @@
             "center": ["text-center"],
             "end": ["text-end"],
             "start": ["text-start"]
-          }
-        },
-        "edge": {
-          "border-color": {
-            "*": ["after:border-default"],
-            "true": ["after:border-default"]
-          },
-          "border-w-e": {
-            "*": ["group-data-[scrolled-start]/scroll:after:border-e"],
-            "true": ["after:border-e"]
-          },
-          "border-w-s": {
-            "*": ["group-data-[scrolled-end]/scroll:after:border-s"],
-            "true": ["after:border-s"]
-          },
-          "end": {
-            "*": ["after:end-0"],
-            "true": ["after:end-0"]
-          },
-          "inset-y": {
-            "*": ["after:inset-y-0"],
-            "true": ["after:inset-y-0"]
-          },
-          "pointer-events": {
-            "*": ["after:pointer-events-none"],
-            "true": ["after:pointer-events-none"]
-          },
-          "position": {
-            "*": ["after:absolute"],
-            "true": ["after:absolute"]
-          },
-          "start": {
-            "*": ["after:start-0"],
-            "true": ["after:start-0"]
           }
         },
         "rowHeader": {
@@ -16711,7 +16719,7 @@
       },
       "derived": {
         "bg-color": {
-          "props": ["pinned", "sticky"],
+          "props": ["edge", "offset", "pinned", "sticky"],
           "classes": [
             "bg-surface-current",
             "group-data-[selected]/row:bg-selected",
@@ -16719,12 +16727,40 @@
             "group-hover/row:bg-surface-hovered"
           ]
         },
+        "border-color": {
+          "props": ["edge", "offset", "pinned", "sticky"],
+          "classes": ["after:border-default"]
+        },
+        "border-w-e": {
+          "props": ["edge", "offset", "pinned", "sticky"],
+          "classes": ["after:border-e", "group-data-[scrolled-start]/scroll:after:border-e"]
+        },
+        "border-w-s": {
+          "props": ["edge", "offset", "pinned", "sticky"],
+          "classes": ["after:border-s", "group-data-[scrolled-end]/scroll:after:border-s"]
+        },
+        "end": {
+          "props": ["edge", "offset", "pinned", "sticky"],
+          "classes": ["after:end-0"]
+        },
+        "inset-y": {
+          "props": ["edge", "offset", "pinned", "sticky"],
+          "classes": ["after:inset-y-0"]
+        },
+        "pointer-events": {
+          "props": ["edge", "offset", "pinned", "sticky"],
+          "classes": ["after:pointer-events-none"]
+        },
         "position": {
-          "props": ["pinned", "sticky"],
-          "classes": ["sticky"]
+          "props": ["edge", "offset", "pinned", "sticky"],
+          "classes": ["after:absolute", "sticky"]
+        },
+        "start": {
+          "props": ["edge", "offset", "pinned", "sticky"],
+          "classes": ["after:start-0"]
         },
         "z": {
-          "props": ["pinned", "sticky"],
+          "props": ["edge", "offset", "pinned", "sticky"],
           "classes": ["z-10"]
         }
       },
@@ -16753,7 +16789,7 @@
     "Table.Detail": {
       "kind": "component",
       "file": "components/table.tsx",
-      "line": 1509,
+      "line": 1692,
       "root": {
         "px": ["px-200"],
         "py": ["py-150"],
@@ -16769,7 +16805,7 @@
     "Table.Disclosure": {
       "kind": "component",
       "file": "components/table.tsx",
-      "line": 1450,
+      "line": 1633,
       "root": {
         "h": ["h-row"],
         "max-w": ["max-w-0", "max-w-none"],
@@ -16786,40 +16822,6 @@
             "center": ["text-center"],
             "end": ["text-end"],
             "start": ["text-start"]
-          }
-        },
-        "edge": {
-          "border-color": {
-            "*": ["after:border-default"],
-            "true": ["after:border-default"]
-          },
-          "border-w-e": {
-            "*": ["group-data-[scrolled-start]/scroll:after:border-e"],
-            "true": ["after:border-e"]
-          },
-          "border-w-s": {
-            "*": ["group-data-[scrolled-end]/scroll:after:border-s"],
-            "true": ["after:border-s"]
-          },
-          "end": {
-            "*": ["after:end-0"],
-            "true": ["after:end-0"]
-          },
-          "inset-y": {
-            "*": ["after:inset-y-0"],
-            "true": ["after:inset-y-0"]
-          },
-          "pointer-events": {
-            "*": ["after:pointer-events-none"],
-            "true": ["after:pointer-events-none"]
-          },
-          "position": {
-            "*": ["after:absolute"],
-            "true": ["after:absolute"]
-          },
-          "start": {
-            "*": ["after:start-0"],
-            "true": ["after:start-0"]
           }
         },
         "rowHeader": {
@@ -16842,7 +16844,7 @@
       },
       "derived": {
         "bg-color": {
-          "props": ["pinned", "sticky"],
+          "props": ["edge", "offset", "pinned", "sticky"],
           "classes": [
             "bg-surface-current",
             "group-data-[selected]/row:bg-selected",
@@ -16850,12 +16852,40 @@
             "group-hover/row:bg-surface-hovered"
           ]
         },
+        "border-color": {
+          "props": ["edge", "offset", "pinned", "sticky"],
+          "classes": ["after:border-default"]
+        },
+        "border-w-e": {
+          "props": ["edge", "offset", "pinned", "sticky"],
+          "classes": ["after:border-e", "group-data-[scrolled-start]/scroll:after:border-e"]
+        },
+        "border-w-s": {
+          "props": ["edge", "offset", "pinned", "sticky"],
+          "classes": ["after:border-s", "group-data-[scrolled-end]/scroll:after:border-s"]
+        },
+        "end": {
+          "props": ["edge", "offset", "pinned", "sticky"],
+          "classes": ["after:end-0"]
+        },
+        "inset-y": {
+          "props": ["edge", "offset", "pinned", "sticky"],
+          "classes": ["after:inset-y-0"]
+        },
+        "pointer-events": {
+          "props": ["edge", "offset", "pinned", "sticky"],
+          "classes": ["after:pointer-events-none"]
+        },
         "position": {
-          "props": ["pinned", "sticky"],
-          "classes": ["sticky"]
+          "props": ["edge", "offset", "pinned", "sticky"],
+          "classes": ["after:absolute", "sticky"]
+        },
+        "start": {
+          "props": ["edge", "offset", "pinned", "sticky"],
+          "classes": ["after:start-0"]
         },
         "z": {
-          "props": ["pinned", "sticky"],
+          "props": ["edge", "offset", "pinned", "sticky"],
           "classes": ["z-10"]
         }
       },
@@ -16884,7 +16914,7 @@
     "Table.Group": {
       "kind": "component",
       "file": "components/table.tsx",
-      "line": 1231,
+      "line": 1414,
       "root": {
         "border-color": ["border-default"],
         "border-w-t": ["border-t"]
@@ -16899,7 +16929,7 @@
     "Table.Handle": {
       "kind": "component",
       "file": "components/table.tsx",
-      "line": 1536,
+      "line": 1719,
       "root": {
         "align-items": ["items-center"],
         "bg-color": ["hover:bg-neutral-subtle-hovered"],
@@ -16943,7 +16973,7 @@
     "Table.Header": {
       "kind": "component",
       "file": "components/table.tsx",
-      "line": 655,
+      "line": 817,
       "root": {
         "bg-color": ["bg-surface-current"],
         "class:group/th": ["group/th"],
@@ -16962,40 +16992,6 @@
             "center": ["text-center"],
             "end": ["text-end"],
             "start": ["text-start"]
-          }
-        },
-        "edge": {
-          "border-color": {
-            "*": ["after:border-default"],
-            "true": ["after:border-default"]
-          },
-          "border-w-e": {
-            "*": ["group-data-[scrolled-start]/scroll:after:border-e"],
-            "true": ["after:border-e"]
-          },
-          "border-w-s": {
-            "*": ["group-data-[scrolled-end]/scroll:after:border-s"],
-            "true": ["after:border-s"]
-          },
-          "end": {
-            "*": ["after:end-0"],
-            "true": ["after:end-0"]
-          },
-          "inset-y": {
-            "*": ["after:inset-y-0"],
-            "true": ["after:inset-y-0"]
-          },
-          "pointer-events": {
-            "*": ["after:pointer-events-none"],
-            "true": ["after:pointer-events-none"]
-          },
-          "position": {
-            "*": ["after:absolute"],
-            "true": ["after:absolute"]
-          },
-          "start": {
-            "*": ["after:start-0"],
-            "true": ["after:start-0"]
           }
         },
         "hairline": {
@@ -17021,6 +17017,11 @@
             "true": ["before:z-10"]
           }
         },
+        "resize": {
+          "pe": {
+            "*": ["any-pointer-coarse:pe-300"]
+          }
+        },
         "wrap": {
           "whitespace": {
             "false": ["whitespace-nowrap"],
@@ -17030,17 +17031,45 @@
       },
       "derived": {
         "bg-color": {
-          "props": ["pinned", "sticky"],
+          "props": ["edge", "offset", "pinned", "sticky"],
           "classes": ["bg-surface-current"],
           "unset": ["bg-surface-current"]
         },
+        "border-color": {
+          "props": ["edge", "offset", "pinned", "sticky"],
+          "classes": ["after:border-default"]
+        },
+        "border-w-e": {
+          "props": ["edge", "offset", "pinned", "sticky"],
+          "classes": ["after:border-e", "group-data-[scrolled-start]/scroll:after:border-e"]
+        },
+        "border-w-s": {
+          "props": ["edge", "offset", "pinned", "sticky"],
+          "classes": ["after:border-s", "group-data-[scrolled-end]/scroll:after:border-s"]
+        },
+        "end": {
+          "props": ["edge", "offset", "pinned", "sticky"],
+          "classes": ["after:end-0"]
+        },
+        "inset-y": {
+          "props": ["edge", "offset", "pinned", "sticky"],
+          "classes": ["after:inset-y-0"]
+        },
+        "pointer-events": {
+          "props": ["edge", "offset", "pinned", "sticky"],
+          "classes": ["after:pointer-events-none"]
+        },
         "position": {
-          "props": ["pinned", "sticky"],
-          "classes": ["sticky"],
+          "props": ["edge", "offset", "pinned", "sticky"],
+          "classes": ["after:absolute", "sticky"],
           "unset": ["sticky"]
         },
+        "start": {
+          "props": ["edge", "offset", "pinned", "sticky"],
+          "classes": ["after:start-0"]
+        },
         "z": {
-          "props": ["pinned", "sticky"],
+          "props": ["edge", "offset", "pinned", "sticky"],
           "classes": ["z-20"]
         }
       },
@@ -17060,7 +17089,7 @@
           "whitespace",
           "z"
         ],
-        "spacing": ["px"],
+        "spacing": ["pe", "px"],
         "color": ["bg-color", "border-color", "text-color"],
         "typography": ["font-family", "font-weight"],
         "shape": ["border-w-b", "border-w-e", "border-w-s"]
@@ -17069,7 +17098,7 @@
     "Table.Id": {
       "kind": "component",
       "file": "components/table.tsx",
-      "line": 1068,
+      "line": 1251,
       "root": {
         "h": ["h-row"],
         "max-w": ["max-w-0", "max-w-none"],
@@ -17086,40 +17115,6 @@
             "center": ["text-center"],
             "end": ["text-end"],
             "start": ["text-start"]
-          }
-        },
-        "edge": {
-          "border-color": {
-            "*": ["after:border-default"],
-            "true": ["after:border-default"]
-          },
-          "border-w-e": {
-            "*": ["group-data-[scrolled-start]/scroll:after:border-e"],
-            "true": ["after:border-e"]
-          },
-          "border-w-s": {
-            "*": ["group-data-[scrolled-end]/scroll:after:border-s"],
-            "true": ["after:border-s"]
-          },
-          "end": {
-            "*": ["after:end-0"],
-            "true": ["after:end-0"]
-          },
-          "inset-y": {
-            "*": ["after:inset-y-0"],
-            "true": ["after:inset-y-0"]
-          },
-          "pointer-events": {
-            "*": ["after:pointer-events-none"],
-            "true": ["after:pointer-events-none"]
-          },
-          "position": {
-            "*": ["after:absolute"],
-            "true": ["after:absolute"]
-          },
-          "start": {
-            "*": ["after:start-0"],
-            "true": ["after:start-0"]
           }
         },
         "rowHeader": {
@@ -17142,7 +17137,7 @@
       },
       "derived": {
         "bg-color": {
-          "props": ["pinned", "sticky"],
+          "props": ["edge", "offset", "pinned", "sticky"],
           "classes": [
             "bg-surface-current",
             "group-data-[selected]/row:bg-selected",
@@ -17150,12 +17145,40 @@
             "group-hover/row:bg-surface-hovered"
           ]
         },
+        "border-color": {
+          "props": ["edge", "offset", "pinned", "sticky"],
+          "classes": ["after:border-default"]
+        },
+        "border-w-e": {
+          "props": ["edge", "offset", "pinned", "sticky"],
+          "classes": ["after:border-e", "group-data-[scrolled-start]/scroll:after:border-e"]
+        },
+        "border-w-s": {
+          "props": ["edge", "offset", "pinned", "sticky"],
+          "classes": ["after:border-s", "group-data-[scrolled-end]/scroll:after:border-s"]
+        },
+        "end": {
+          "props": ["edge", "offset", "pinned", "sticky"],
+          "classes": ["after:end-0"]
+        },
+        "inset-y": {
+          "props": ["edge", "offset", "pinned", "sticky"],
+          "classes": ["after:inset-y-0"]
+        },
+        "pointer-events": {
+          "props": ["edge", "offset", "pinned", "sticky"],
+          "classes": ["after:pointer-events-none"]
+        },
         "position": {
-          "props": ["pinned", "sticky"],
-          "classes": ["sticky"]
+          "props": ["edge", "offset", "pinned", "sticky"],
+          "classes": ["after:absolute", "sticky"]
+        },
+        "start": {
+          "props": ["edge", "offset", "pinned", "sticky"],
+          "classes": ["after:start-0"]
         },
         "z": {
-          "props": ["pinned", "sticky"],
+          "props": ["edge", "offset", "pinned", "sticky"],
           "classes": ["z-10"]
         }
       },
@@ -17184,7 +17207,7 @@
     "Table.List": {
       "kind": "component",
       "file": "components/table.tsx",
-      "line": 1602,
+      "line": 1785,
       "root": {
         "align-items": ["items-center"],
         "display": ["flex"],
@@ -17224,7 +17247,7 @@
     "Table.Name": {
       "kind": "component",
       "file": "components/table.tsx",
-      "line": 1774,
+      "line": 1957,
       "root": {
         "align-items": ["items-center"],
         "display": ["flex"],
@@ -17242,7 +17265,7 @@
     "Table.Row": {
       "kind": "component",
       "file": "components/table.tsx",
-      "line": 941,
+      "line": 1124,
       "root": {
         "border-color": ["border-default"],
         "border-w-b": ["border-b", "last:border-b-0"],
@@ -17277,7 +17300,7 @@
     "Table.Selection": {
       "kind": "component",
       "file": "components/table.tsx",
-      "line": 1148,
+      "line": 1331,
       "root": {},
       "props": {
         "header": {
@@ -17299,7 +17322,7 @@
     "Table.Tree": {
       "kind": "component",
       "file": "components/table.tsx",
-      "line": 1393,
+      "line": 1576,
       "root": {
         "h": ["h-row"],
         "max-w": ["max-w-0", "max-w-none"],
@@ -17316,40 +17339,6 @@
             "center": ["text-center"],
             "end": ["text-end"],
             "start": ["text-start"]
-          }
-        },
-        "edge": {
-          "border-color": {
-            "*": ["after:border-default"],
-            "true": ["after:border-default"]
-          },
-          "border-w-e": {
-            "*": ["group-data-[scrolled-start]/scroll:after:border-e"],
-            "true": ["after:border-e"]
-          },
-          "border-w-s": {
-            "*": ["group-data-[scrolled-end]/scroll:after:border-s"],
-            "true": ["after:border-s"]
-          },
-          "end": {
-            "*": ["after:end-0"],
-            "true": ["after:end-0"]
-          },
-          "inset-y": {
-            "*": ["after:inset-y-0"],
-            "true": ["after:inset-y-0"]
-          },
-          "pointer-events": {
-            "*": ["after:pointer-events-none"],
-            "true": ["after:pointer-events-none"]
-          },
-          "position": {
-            "*": ["after:absolute"],
-            "true": ["after:absolute"]
-          },
-          "start": {
-            "*": ["after:start-0"],
-            "true": ["after:start-0"]
           }
         },
         "rowHeader": {
@@ -17372,7 +17361,7 @@
       },
       "derived": {
         "bg-color": {
-          "props": ["pinned", "sticky"],
+          "props": ["edge", "offset", "pinned", "sticky"],
           "classes": [
             "bg-surface-current",
             "group-data-[selected]/row:bg-selected",
@@ -17380,12 +17369,40 @@
             "group-hover/row:bg-surface-hovered"
           ]
         },
+        "border-color": {
+          "props": ["edge", "offset", "pinned", "sticky"],
+          "classes": ["after:border-default"]
+        },
+        "border-w-e": {
+          "props": ["edge", "offset", "pinned", "sticky"],
+          "classes": ["after:border-e", "group-data-[scrolled-start]/scroll:after:border-e"]
+        },
+        "border-w-s": {
+          "props": ["edge", "offset", "pinned", "sticky"],
+          "classes": ["after:border-s", "group-data-[scrolled-end]/scroll:after:border-s"]
+        },
+        "end": {
+          "props": ["edge", "offset", "pinned", "sticky"],
+          "classes": ["after:end-0"]
+        },
+        "inset-y": {
+          "props": ["edge", "offset", "pinned", "sticky"],
+          "classes": ["after:inset-y-0"]
+        },
+        "pointer-events": {
+          "props": ["edge", "offset", "pinned", "sticky"],
+          "classes": ["after:pointer-events-none"]
+        },
         "position": {
-          "props": ["pinned", "sticky"],
-          "classes": ["sticky"]
+          "props": ["edge", "offset", "pinned", "sticky"],
+          "classes": ["after:absolute", "sticky"]
+        },
+        "start": {
+          "props": ["edge", "offset", "pinned", "sticky"],
+          "classes": ["after:start-0"]
         },
         "z": {
-          "props": ["pinned", "sticky"],
+          "props": ["edge", "offset", "pinned", "sticky"],
           "classes": ["z-10"]
         }
       },
@@ -18604,7 +18621,7 @@
     "Toolbar": {
       "kind": "component",
       "file": "patterns/toolbar.tsx",
-      "line": 177,
+      "line": 195,
       "root": {
         "align-items": ["items-center"],
         "display": ["flex"],
@@ -18704,7 +18721,7 @@
       "props": {
         "tone": {
           "bg-color": {
-            "!danger": ["bg-surface-sunken"],
+            "!danger": ["bg-surface-tray"],
             "danger": ["bg-danger-bold"]
           }
         }

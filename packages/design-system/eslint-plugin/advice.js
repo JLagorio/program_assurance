@@ -160,7 +160,7 @@ export function layoutAdvice({ part, classes, column }) {
   const displays = of("display").map(({ base }) => base);
   const templates = of("grid").map(({ base, variants }) => {
     const [, axis, value] = /^grid-(cols|rows)-(.+)$/.exec(base) ?? [];
-    // Only a window breakpoint Grid keys: any other variant (a Ledger breakpoint such as aside:,
+    // Only a window breakpoint Grid keys: any other variant (the kit's own panel:,
     // a state such as hover:, two at once) is none of templateColumns' keys.
     const breakpoint = variants.length === 0 ? "base" : variants.length === 1 ? variants[0] : "";
     return { axis, breakpoint, value: template(value ?? "") };

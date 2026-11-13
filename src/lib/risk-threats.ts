@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
@@ -12,7 +13,7 @@ import {
   type FrameworkItem,
   type FrameworkItemLink,
 } from "./frameworks";
-import { invalidateModel, type ReadContext, type TableName } from "./models";
+import { idSet, invalidateModel, useRows, type ReadContext, type TableName } from "./models";
 import { useStaleOnWrite } from "./server-table";
 
 /*
@@ -346,6 +347,75 @@ export function useLinkRiskTechniques() {
       ),
     onSuccess: () => void invalidateModel(cache, workspace.tenantId, LINK_MODEL),
   });
+}
+
+/** An ATT&CK technique by its identifier and name, as a register lists the ones a risk names. */
+export type NamedTechnique = { code: string; title: string };
+
+/**
+ * The ATT&CK techniques each risk names, by the risk's id, each once and in the order of their
+ * identifiers. A risk's link keeps the item of the reading it was made from, and an item's id
+ * changes when the appendix is read again while its code does not: `items` gives the code and
+ * title of every item the links name, and a link whose item is not among them is passed over. A
+ * risk that names a technique through two readings names it once.
+ */
+export function techniquesByRisk(
+  links: readonly { risk_id: string; framework_item_id: string }[],
+  items: readonly { id: string; code: string; title: string }[],
+): Map<string, NamedTechnique[]> {
+  const byId = new Map(items.map((item) => [item.id, item]));
+  const named = new Map<string, NamedTechnique[]>();
+  for (const link of links) {
+    const item = byId.get(link.framework_item_id);
+    if (!item) continue;
+    const techniques = named.get(link.risk_id) ?? [];
+    named.set(link.risk_id, techniques);
+    if (!techniques.some((held) => held.code === item.code))
+      techniques.push({ code: item.code, title: item.title });
+  }
+  for (const techniques of named.values()) techniques.sort((a, b) => comparePlace(a.code, b.code));
+  return named;
+}
+
+/**
+ * The ATT&CK techniques a program's risks name, in two requests: the links, read through the
+ * risks' program, and the items they name. `risks` gives each risk's techniques once both have
+ * answered (`techniquesByRisk`); `links` and `items` are the rows, which a count by technique reads
+ * (`risksByTechnique` in control-threats). `queries` are the reads to wait on and say the failure
+ * of. A program's risks register lists the techniques, and a control's record counts the risks
+ * that name each, from the same reads.
+ */
+export function useProgramRiskTechniques(
+  programId: string | null | undefined,
+  { enabled = true }: { enabled?: boolean | undefined } = {},
+) {
+  const links = useRows(
+    "risk_attack_techniques",
+    { "risks.program_id": programId ?? "" },
+    { columns: ["risk_id", "framework_item_id"], enabled: !!programId && enabled },
+  );
+  const itemIds = useMemo(
+    () => idSet(links.data?.map((link) => link.framework_item_id)),
+    [links.data],
+  );
+  const items = useRows(
+    "framework_items",
+    { id: itemIds },
+    { columns: ["id", "code", "title"], enabled: itemIds.length > 0 },
+  );
+  // Read once both have answered: links whose items are not read yet would name nothing.
+  const risks = useMemo(
+    () =>
+      links.data && (items.data || !itemIds.length)
+        ? techniquesByRisk(links.data, items.data ?? [])
+        : undefined,
+    [links.data, items.data, itemIds.length],
+  );
+  const queries = useMemo(
+    () => [links, ...(itemIds.length ? [items] : [])],
+    [links, items, itemIds.length],
+  );
+  return { links, items, risks, queries };
 }
 
 /** Unlink one technique from a risk; the risk's read refreshes behind the confirmation. */

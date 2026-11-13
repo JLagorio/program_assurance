@@ -1,14 +1,21 @@
 import assert from "node:assert/strict";
+import { registerHooks } from "node:module";
 import test from "node:test";
-import {
-  fitColumns,
-  fitFrame,
-  identityOf,
-  PIN_SHARE,
-  rankColumns,
-  shareSlack,
-  yieldPins,
-} from "../src/patterns/data-table/responsive.ts";
+
+// responsive.ts takes the rule for which pins give way from the Table's own module
+// (`../../components/table-pins`, which a plain Table reads too), a specifier the bundler and tsc
+// resolve without an extension; Node's type stripping needs one, so the test adds it.
+registerHooks({
+  resolve: (specifier, context, nextResolve) =>
+    nextResolve(
+      specifier.startsWith(".") && !/\.[cm]?[jt]sx?$/.test(specifier)
+        ? `${specifier}.ts`
+        : specifier,
+      context,
+    ),
+});
+const { fitColumns, fitFrame, identityOf, PIN_SHARE, rankColumns, shareSlack, yieldPins } =
+  await import("../src/patterns/data-table/responsive.ts");
 
 /** The released ids, sorted, so an assertion reads as a list. */
 const released = (...args) => [...yieldPins(...args)].sort();

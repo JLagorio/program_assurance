@@ -6,8 +6,9 @@ import { AppLogo, AppSwitcher, Mark, Profile, TopNav } from "./top-nav";
 
 /**
  * The navigation system. Shell is the root; its areas are its immediate children in a fixed
- * order: Banner, TopNav, SideNav, Main, Aside, Panel. Routes contribute Aside and Panel through
- * stable portal destinations; their content and state belong to the route.
+ * order: Banner, TopNav, SideNav, Main, Panel. Routes contribute the Panel through a stable portal
+ * destination; its content and state belong to the route. A record's Details are a Shell.Aside in
+ * the page, an AsideLayout's `aside`.
  * The package owns the areas and their behaviour: the side nav collapses, resizes, flies out on
  * hover and overlays the page on a narrow viewport; the panel resizes, runs the height of the
  * window under the banner beside the top nav from the large breakpoint (below the panel

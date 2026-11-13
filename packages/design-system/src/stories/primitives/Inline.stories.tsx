@@ -7,7 +7,7 @@ import { Box, Heading, Inline, Stack, Text } from "../../primitives";
 import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 const meta = {
   title: "Primitives/Inline",
@@ -327,10 +327,42 @@ export const Dont: Story = {
             </Inline>
           </Inline>
         }
-        dontText="A separator on a list element. The dot is a span between list items, which a list may not contain; the list is no longer a list."
+        dontText="A separator on a list element. A span between list items would make the list no longer a list, so the Inline draws none and says so in the console."
       />
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    // The separator is drawn between the children and hidden from a screen reader; a dot written
+    // as a child is read aloud.
+    const separator = halves(canvasElement, 0);
+    await expect(
+      within(separator.do).getByText("·").closest('[aria-hidden="true"]'),
+    ).not.toBeNull();
+    await expect(within(separator.dont).getByText("·").closest('[aria-hidden="true"]')).toBeNull();
+    // A row of chips wraps inside its frame; one that does not stays one row and its last chip
+    // runs past the row's end. Measured once the web font has loaded.
+    void canvasElement.offsetWidth;
+    await document.fonts.ready;
+    const wrap = halves(canvasElement, 1);
+    const fit = (half: HTMLElement) => {
+      const row = half.firstElementChild!.firstElementChild!;
+      const chips = Array.from(row.children);
+      const tops = new Set(chips.map((chip) => Math.round(chip.getBoundingClientRect().top)));
+      const end = chips.at(-1)!.getBoundingClientRect().right;
+      return { rows: tops.size, past: end > row.getBoundingClientRect().right + 1 };
+    };
+    await expect(fit(wrap.do).rows).toBeGreaterThan(1);
+    await expect(fit(wrap.do).past).toBe(false);
+    await expect(fit(wrap.dont)).toEqual({ rows: 1, past: true });
+    // A list of chips holds list items alone; a separator would put a span between them, so on a
+    // list element the Inline draws none.
+    const list = halves(canvasElement, 2);
+    const children = (half: HTMLElement) =>
+      Array.from(within(half).getByRole("list").children, (child) => child.tagName);
+    await expect(children(list.do)).toEqual(["LI", "LI"]);
+    await expect(children(list.dont)).toEqual(["LI", "LI"]);
+    await expect(within(list.dont).queryByText("·")).toBeNull();
+  },
 };
 
 /** A row of chips wraps (`shouldWrap`), so it fits any width it is given. */

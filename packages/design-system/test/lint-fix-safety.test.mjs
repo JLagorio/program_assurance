@@ -429,7 +429,9 @@ test("closure: a proposed class passes every Ledger class rule, or is not offere
 test("closure: every fix a rule emits over the variant battery writes a class that passes", () => {
   const battery = ["", "hover:", "md:hover:", "!", "dark:", "group-hover:", "aria-selected:"];
   const rule = withRules({ "ledger/no-deprecated-token": "error" });
-  for (const entry of Object.values(deprecated))
+  // A deprecated token that no class paints (a container size, read as an @ variant) has no class
+  // for the rule to report.
+  for (const entry of Object.values(deprecated).filter(({ class: cls }) => cls))
     for (const prefix of [...battery, "trailing"]) {
       const cls = prefix === "trailing" ? `${entry.class}!` : `${prefix}${entry.class}`;
       const source = `export const A = () => <path className="${cls}" />;`;

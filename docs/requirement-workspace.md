@@ -26,7 +26,7 @@ The evidence picker, linked evidence preview and version preparation share `Evid
 
 ## Verification
 
-With the local stack and frontend running, `npm run test:requirements` exercises authorization and atomic edits, edit history, preserved record and relationship IDs, exact evidence links, the preview and full-page flows, retained selections, failed-save recovery and stale edits. It creates and removes disposable test workspaces. Read-only developer workspace checks are available through `node scripts/test-requirements-workspace.mjs`.
+With the local stack and frontend running, `npm run test:requirements` exercises authorization and atomic edits, edit history, preserved record and relationship IDs, exact evidence links, the preview and full-page flows, retained selections, failed-save recovery and stale edits. It creates and removes disposable test workspaces.
 
 ## Workbook authoring and review
 

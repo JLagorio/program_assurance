@@ -44,6 +44,7 @@ import { useSetPlannedCompletion } from "@/lib/due-dates";
 import { ownerField } from "@/lib/owner-assign";
 import { type DataRecord } from "@/lib/records";
 import {
+  determinations,
   remediationStatuses,
   revisionStates,
   riskLevels,
@@ -59,7 +60,6 @@ import {
   EntityEditor,
   EntitySection,
   ModelFacts,
-  ModelTable,
   QueryState,
   RelationName,
   RevisionName,
@@ -71,7 +71,6 @@ import { TraceBand, TraceRemediationSection } from "./assurance-trace";
 import { RiskThreats } from "./risk-threats";
 import { useAssuranceTrace } from "@/lib/assurance-trace";
 
-const asRecords = (rows: unknown[] | undefined) => (rows ?? []) as DataRecord[];
 /** A person: in a table, their avatar and name, sorted and found by the name; as a fact, the name. */
 const party = (key = "owner_party_id", label = "Owner"): DisplayColumn => ({
   key,
@@ -839,34 +838,142 @@ function registerTab(value: unknown): RegisterTab | undefined {
 }
 
 /**
- * The assessment findings short of satisfied that no risk assessment records yet. Read when the
- * Unrolled findings tab is first shown, never with the register's other tabs.
+ * An assessment finding as Unrolled findings reads it: every column its preview's Edit seeds the
+ * form from, since the form saves a column it is not given as empty.
+ */
+type UnrolledRow = ServerRow<
+  "assessment_finding_rows",
+  | "id"
+  | "tenant_id"
+  | "assessment_results_revision_id"
+  | "result_set_id"
+  | "target_control_part_id"
+  | "title"
+  | "description"
+  | "determination"
+  | "assessor_party_id"
+  | "determined_at"
+  | "revision"
+  | "updated_at",
+  "tenant_id" | "title" | "determination" | "revision" | "updated_at"
+>;
+
+/** The determinations short of satisfied, in the vocabulary's order. */
+const shortOfSatisfied = Object.keys(determinations).filter((value) => value !== "satisfied");
+
+/**
+ * The assessment findings short of satisfied that no risk assessment records yet, a page at a time
+ * from the server, newest change first.
+ */
+const unrolledRead = serverRead({
+  source: "assessment_finding_rows",
+  model: "assessment_findings",
+  // A finding leaves once a risk assessment records it.
+  models: ["finding_risks"],
+  columns: [
+    "id",
+    "tenant_id",
+    "assessment_results_revision_id",
+    "result_set_id",
+    "target_control_part_id",
+    "title",
+    "description",
+    "determination",
+    "assessor_party_id",
+    "determined_at",
+    "revision",
+    "updated_at",
+  ],
+  scope: { linked_to_risk: false, determination: shortOfSatisfied },
+  search: ["title"],
+  fields: {
+    determination: { labels: determinations, sort: "determination_rank" },
+    determined_at: { filter: false },
+  },
+  order: [{ column: "updated_at", ascending: false }],
+});
+
+/** The tab's columns, one list for every render: stepping through the preview rebuilds none. */
+const unrolledColumns = defineColumns<UnrolledRow>((c) => [
+  c.text("title", {
+    header: "Title",
+    hideable: false,
+    minWidth: 180,
+    priority: 0,
+    cell: (row) => (
+      <RecordLink table="assessment_findings" record={row}>
+        {row.title}
+      </RecordLink>
+    ),
+  }),
+  c.status("determination", { header: "Determination", width: 140, statuses: determinations }),
+  c.date("determined_at", { header: "Determined" }),
+]);
+
+/** What the preview says of a finding, beside its name: the tab's other columns. */
+const unrolledFields: RecordSummaryField<UnrolledRow>[] = [
+  { key: "determination", label: "Determination", statuses: determinations },
+  {
+    key: "determined_at",
+    label: "Determined",
+    render: (row) =>
+      row.determined_at ? <DateTime value={row.determined_at} /> : <Absent label="Not recorded" />,
+  },
+];
+
+const unrolledOptions = shortOfSatisfied.map((value) => ({ value }));
+const findingNoun = { one: "assessment finding", other: "assessment findings" };
+
+/**
+ * The assessment findings short of satisfied that no risk assessment records yet, read a page at
+ * a time from the server when the Unrolled findings tab is first shown, never with the register's
+ * other tabs.
  */
 function UnrolledFindings() {
-  const findings = useRows("assessment_findings"),
-    links = useRows("finding_risks", undefined, { columns: ["id", "finding_id"] });
-  const unrolled = findings.data?.filter(
-    (row) =>
-      !links.data?.some((link) => link.finding_id === row.id) && row.determination !== "satisfied",
-  );
+  const openRecord = useOpenRecord();
+  const [preview, setPreview] = useState<UnrolledRow | null>(null);
+  // A preview belongs to its tab: it ends when the register's tab hides this collection.
+  useEndOnHide(() => setPreview(null));
+  const collection = useServerCollection<UnrolledRow>(unrolledRead, {
+    columns: unrolledColumns,
+    preview: useMemo(
+      () => ({ onPreview: setPreview, activeId: preview?.id ?? null }),
+      [preview?.id],
+    ),
+    label: "assessment findings",
+    resizable: true,
+    reorderable: true,
+  });
+  const { table } = collection;
+  const displayed = useDisplayedRecords(table);
   return (
-    <ModelTable
-      model="assessment_findings"
-      fill
-      rows={asRecords(unrolled)}
-      queries={[findings, links]}
-      columns={[
-        { key: "title" },
-        { key: "determination" },
-        { key: "determined_at", label: "Determined" },
-      ]}
-      empty={{
-        illustration: "done",
-        title: "Nothing unrolled",
-        description: "No unresolved finding is awaiting a recorded risk relationship.",
-      }}
-      searchLabel="Find assessment findings"
-    />
+    <>
+      <ProductCollection
+        {...collection}
+        fill
+        noun={findingNoun}
+        onRowClick={(row) => openRecord("assessment_findings", row, () => setPreview(row))}
+        empty={{
+          illustration: "done",
+          title: "Nothing unrolled",
+          description: "No unresolved finding is awaiting a recorded risk relationship.",
+        }}
+        searchLabel="Find assessment findings"
+        filters={
+          <DataTable.Filter table={table} column="determination" options={unrolledOptions} />
+        }
+      />
+      {preview && (
+        <RecordSummaryPreview
+          model="assessment_findings"
+          record={preview}
+          rows={displayed}
+          onSelect={setPreview}
+          onClose={() => setPreview(null)}
+          fields={unrolledFields}
+        />
+      )}
+    </>
   );
 }
 

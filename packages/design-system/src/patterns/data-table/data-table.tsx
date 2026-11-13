@@ -59,7 +59,13 @@ import { MatchDirection } from "../../components/tooltip";
 import { Id } from "../../components/id";
 import { TablePagination } from "./pagination";
 import { Skeleton } from "../../components/skeleton";
-import { PreviewEye, Table, headerTrailingWidth, previewValueClass } from "../../components/table";
+import {
+  PreviewEye,
+  Table,
+  TablePinsGiveWay,
+  headerTrailingWidth,
+  previewValueClass,
+} from "../../components/table";
 import { token, tokenLiterals } from "../../generated/tokens";
 import { cn } from "../../lib/cn";
 import { useFillWindow } from "../../lib/use-fill-window";
@@ -2443,12 +2449,14 @@ function DataTableRoot<TData extends RowData>({
             />
           </div>
         ) : null}
-        {/* A reorderable or resizable table says where a column moved, or how wide it now is, from its menu, in one polite status. */}
-        {options?.reorderable || options?.resizable ? (
-          <ColumnMoveStatus>{body}</ColumnMoveStatus>
-        ) : (
-          body
-        )}
+        {/* A reorderable or resizable table says where a column moved, or how wide it now is, from its menu, in one polite status. The table works out which pins give way itself (drawnPins), so its Table does not. */}
+        <TablePinsGiveWay.Provider value={false}>
+          {options?.reorderable || options?.resizable ? (
+            <ColumnMoveStatus>{body}</ColumnMoveStatus>
+          ) : (
+            body
+          )}
+        </TablePinsGiveWay.Provider>
         <RowActionsMenu table={table} handle={popups.actions} />
         <GlanceCard table={table} handle={popups.glance} />
         {showPager ? (

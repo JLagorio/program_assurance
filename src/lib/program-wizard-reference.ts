@@ -1,6 +1,6 @@
 import type { Row } from "./models";
 import type { Json } from "./database.types";
-import { deriveStack, type BaselineDerivation } from "./baseline-stack";
+import { deriveStack, withParameters, type BaselineDerivation } from "./baseline-stack";
 import { resolutionChain, type ChainHop } from "./profile-chain";
 
 /** The layered resolver the database authors with: a base profile imported with include-all. */
@@ -866,11 +866,20 @@ export function previewProgramTailoring(
   };
 }
 
+/** A parameter value of an overlay: what it sets, the control the parameter belongs to and why. */
+export type DraftOverlayValue = {
+  parameterId: string;
+  controlId: string | null;
+  values: readonly string[];
+  rationale: string;
+};
 /** A published overlay as the setup's draft stack reads it. */
 export type DraftOverlay = {
   id: string;
   title: string;
   decisions: readonly { controlId: string; action: "include" | "exclude"; rationale: string }[];
+  /** Its parameter values: each a setting of its layer where the layer selects its control. */
+  parameters?: readonly DraftOverlayValue[] | undefined;
 };
 export type DraftStack<T extends WizardReferenceData = WizardReferenceData> = {
   /** The reference records with one unsaved layer per overlay that changes the baseline. */
@@ -897,18 +906,26 @@ export function stackDraftOverlays<T extends WizardReferenceData>(
   const baseIds = data.selectedControls
     .filter((row) => row.profile_resolution_id === baseResolutionId)
     .map((row) => row.control_id);
-  const derivation = deriveStack(
-    baseIds,
-    overlays.map((overlay) => ({
-      key: overlay.id,
-      kind: "overlay" as const,
-      title: overlay.title,
-      overlayId: overlay.id,
-      decisions: overlay.decisions,
-    })),
+  // An overlay's values count where its layer selects their controls, as applying it authors them.
+  const valuesOf = (key: string) => overlays.find((overlay) => overlay.id === key)?.parameters;
+  const derivation = withParameters(
+    deriveStack(
+      baseIds,
+      overlays.map((overlay) => ({
+        key: overlay.id,
+        kind: "overlay" as const,
+        title: overlay.title,
+        overlayId: overlay.id,
+        decisions: overlay.decisions,
+      })),
+    ),
+    valuesOf,
   );
   if (!overlays.length) return { data, resolutionId: baseResolutionId, derivation };
   const sourceIds = new Map(data.controls.map((control) => [control.id, control.source_id]));
+  const parameterSources = new Map(
+    data.parameters.map((parameter) => [parameter.id, parameter.source_id]),
+  );
   const catalogDocument = data.catalogRevisions.find(
     (row) => row.id === catalogRevisionId,
   )?.document_revision_id;
@@ -920,6 +937,8 @@ export function stackDraftOverlays<T extends WizardReferenceData>(
     selectedControls: [...data.selectedControls],
     profileImports: [...data.profileImports],
     profileRules: [...data.profileRules],
+    profileParameterSettings: [...data.profileParameterSettings],
+    profileParameterValues: [...data.profileParameterValues],
   };
   let cursor = baseResolutionId;
   const selected = new Set(baseIds);
@@ -928,7 +947,14 @@ export function stackDraftOverlays<T extends WizardReferenceData>(
     const removed = layer.effects.filter((row) => row.effect === "removed");
     for (const row of added) selected.add(row.controlId);
     for (const row of removed) selected.delete(row.controlId);
-    if (!added.length && !removed.length) continue;
+    // The overlay's values for the controls the layer selects are the layer's own settings.
+    const values = (valuesOf(layer.key) ?? []).filter(
+      (value) =>
+        !!value.controlId &&
+        selected.has(value.controlId) &&
+        parameterSources.has(value.parameterId),
+    );
+    if (!added.length && !removed.length && !values.length) continue;
     const base = next.resolutions.find((row) => row.id === cursor);
     const baseRevision = next.profileRevisions.find((row) => row.id === base?.profile_revision_id);
     if (!base || !baseRevision) break;
@@ -1010,6 +1036,32 @@ export function stackDraftOverlays<T extends WizardReferenceData>(
     };
     added.forEach((row, ordinal) => rule("include", row, ordinal));
     removed.forEach((row, ordinal) => rule("exclude", row, ordinal));
+    values.forEach((value, ordinal) => {
+      const sourceId = parameterSources.get(value.parameterId) ?? value.parameterId;
+      const setting = `${id}:setting:${ordinal}`;
+      next.profileParameterSettings.push({
+        id: setting,
+        profile_revision_id: `${id}:revision`,
+        parameter_id: value.parameterId,
+        parameter_source_id: sourceId,
+        label: null,
+        usage: null,
+        rationale: value.rationale,
+      });
+      value.values.forEach((text, index) =>
+        next.profileParameterValues.push({ setting_id: setting, ordinal: index, value: text }),
+      );
+      next.profileRules.push({
+        id: `${id}:set-parameter:${ordinal}`,
+        profile_revision_id: `${id}:revision`,
+        profile_import_id: null,
+        kind: "set-parameter",
+        ordinal,
+        source_pointer: `/profile/modify/set-parameters/${ordinal}`,
+        definition: { "param-id": sourceId, values: [...value.values] },
+        rationale: value.rationale,
+      });
+    });
     [...selected].forEach((control_id, ordinal) =>
       next.selectedControls.push({
         id: `${id}:selected:${control_id}`,

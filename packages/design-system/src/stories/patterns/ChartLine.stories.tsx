@@ -21,7 +21,7 @@ import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
 const { Specimens } = storyLayout;
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 const meta = {
   title: "Patterns/Chart/Line",
@@ -828,6 +828,33 @@ export const Dont: Story = {
       />
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    const lines = (half: HTMLElement) => Array.from(half.querySelectorAll(".recharts-line-curve"));
+    // One series is the point, in brand with the rest neutral; five hues make the legend the
+    // chart.
+    const emphasis = halves(canvasElement, 0);
+    const strokes = (half: HTMLElement) =>
+      new Set(lines(half).map((line) => line.getAttribute("stroke"))).size;
+    await waitFor(() => expect(lines(emphasis.do)).toHaveLength(5));
+    await expect(strokes(emphasis.do)).toBe(2);
+    await waitFor(() => expect(lines(emphasis.dont)).toHaveLength(5));
+    await expect(strokes(emphasis.dont)).toBe(5);
+    // Label the end; a mark on every point of both series is noise nobody reads.
+    const labelled = halves(canvasElement, 1);
+    const dots = (half: HTMLElement) => half.querySelectorAll(".recharts-line-dots > *").length;
+    await waitFor(() => expect(dots(labelled.dont)).toBe(byMonth.length * 2));
+    await expect(dots(labelled.do)).toBe(0);
+    // A gap where the data was not there, and the description says why; a line across the
+    // missing months draws two counts that never happened.
+    const gaps = halves(canvasElement, 2);
+    const segments = (half: HTMLElement) =>
+      lines(half).map((line) => line.getAttribute("d")?.match(/M/g)?.length ?? 0);
+    await expect(within(gaps.do).getByRole("figure")).toHaveAccessibleDescription(
+      /The register was down in April and July/,
+    );
+    await waitFor(() => expect(segments(gaps.do)).toEqual([3, 3]));
+    await waitFor(() => expect(segments(gaps.dont)).toEqual([1, 1]));
+  },
 };
 
 export const Playground: Story = {

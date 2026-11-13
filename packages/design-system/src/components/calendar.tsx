@@ -12,9 +12,16 @@ import {
   type WeekNumber,
 } from "react-day-picker";
 
+import { token } from "../generated/tokens";
 import { announce } from "../lib/announce";
 import { cn } from "../lib/cn";
 import { Button, buttonVariants, type ButtonProps } from "./button";
+
+/* A day's column: `space.400`, 32px, where the month has the room, and narrower down to the 24px
+   touch minimum, `space.300`, where it does not. A grid track sized so has a min-content of the
+   one and a max-content of the other, so a month sized to its content keeps 32px days while a
+   column narrower than seven of them shrinks every day alike instead of painting past its edge. */
+const dayColumn = `minmax(${token("space.300")}, ${token("space.400")})`;
 
 export type CalendarProps = ComponentProps<typeof DayPicker> & {
   buttonVariant?: ButtonProps["variant"];
@@ -32,13 +39,15 @@ export type CalendarProps = ComponentProps<typeof DayPicker> & {
 export const CalendarAnnounceContext = createContext(true);
 
 /**
- * A month you pick a day (or a range) from. react-day-picker underneath; 32px cells, the selection
- * is the blue budget, today is weight 600 with no dot. Words, digits, week start and `lang` follow
- * the LedgerProvider's locale; a completed range is announced.
+ * A month you pick a day (or a range) from. react-day-picker underneath; 32px cells where the
+ * month has the room, narrower down to the 24px touch minimum in a column that does not hold seven
+ * of them, the selection is the blue budget, today is weight 600 with no dot. Words, digits, week
+ * start and `lang` follow the LedgerProvider's locale; a completed range is announced.
  */
 export function Calendar({
   className,
   classNames,
+  styles,
   formatters,
   labels,
   components,
@@ -69,8 +78,9 @@ export function Calendar({
     ? (date: Date, options: Intl.DateTimeFormatOptions) =>
         date.toLocaleDateString(locale.code, options)
     : formatCalendarDate;
-  // A day column is 32px: a locale whose short names are whole words there (Arabic's "الأربعاء")
-  // heads its columns with the narrow form, and every header keeps the full name as its label.
+  // A day column is 24px to 32px: a locale whose short names are whole words there (Arabic's
+  // "الأربعاء") heads its columns with the narrow form, and every header keeps the full name as its
+  // label.
   const weekdayForm: "short" | "narrow" = Array.from({ length: 7 }, (_, day) =>
     // 7 January 2024 is a Sunday; the seven days from it are one of each weekday.
     calendarFormat(new Date(2024, 0, 7 + day), { weekday: "short" }),
@@ -156,22 +166,25 @@ export function Calendar({
         months: "relative flex flex-col gap-200 sm:flex-row sm:flex-wrap sm:justify-center",
         month: cn("flex flex-col gap-150", navLayout === "around" && "relative"),
         month_caption: "flex h-control-small items-center justify-center px-400",
-        caption_label: "inline-flex items-center gap-050 font-body font-medium",
+        // One line, so a narrow month never folds its caption over the weekdays.
+        caption_label: "inline-flex items-center gap-050 whitespace-nowrap font-body font-medium",
         dropdowns: "flex h-control-medium items-center justify-center gap-100",
         dropdown_root:
           "relative flex h-control-small items-center rounded-medium border border-input px-075 focus-within:border-focused focus-within:outline-field-focused",
         dropdown: "absolute inset-0 w-full cursor-pointer opacity-0",
-        week_number_header: "w-400",
-        week_number: "w-400 text-center font-body-xsmall text-subtle",
+        week_number_header: "p-0",
+        week_number: "text-center font-body-xsmall text-subtle",
         nav: "absolute inset-x-0 top-0 flex h-control-small items-center justify-between",
         button_previous: cn(navButton, navLayout === "around" && "absolute start-0 top-0"),
         button_next: cn(navButton, navLayout === "around" && "absolute end-0 top-0"),
         month_grid: "w-full border-collapse",
-        weekdays: "flex",
-        weekday: "w-400 text-center font-body-xsmall font-medium text-subtle",
-        week: "flex pt-050",
-        day: "group/day relative size-400 p-0 text-center",
-        day_button: "size-400",
+        // Each row is a grid with a column a cell (`dayColumn`, a week number's included), so the
+        // rows of a month share their widths and shrink together.
+        weekdays: "grid grid-flow-col",
+        weekday: "text-center font-body-xsmall font-medium text-subtle",
+        week: "grid grid-flow-col pt-050",
+        day: "group/day relative h-400 p-0 text-center",
+        day_button: "h-400 w-full",
         today: "[&>button]:font-semibold",
         outside: "[&>button]:text-subtlest",
         disabled: "[&>button]:text-disabled",
@@ -180,6 +193,11 @@ export function Calendar({
         range_middle: "bg-selected",
         range_end: "rounded-e-medium bg-selected",
         ...classNames,
+      }}
+      styles={{
+        ...styles,
+        weekdays: { gridAutoColumns: dayColumn, ...styles?.weekdays },
+        week: { gridAutoColumns: dayColumn, ...styles?.week },
       }}
       components={{
         Root: CalendarRoot,
@@ -225,7 +243,7 @@ function CalendarWeekNumber({
 }: ComponentProps<typeof WeekNumber>) {
   return (
     <th {...props}>
-      <div className="flex size-400 items-center justify-center">{children}</div>
+      <div className="flex h-400 w-full items-center justify-center">{children}</div>
     </th>
   );
 }
@@ -257,7 +275,8 @@ export function CalendarDayButton({ className, day, modifiers, ...props }: Calen
         // In forced colours the browser drops the fills that mark the selection; the selected
         // day and the range keep their own colours there, so the choice stays visible.
         "data-[selected-single=true]:forced-color-adjust-none data-[range-start=true]:forced-color-adjust-none data-[range-end=true]:forced-color-adjust-none data-[range-middle=true]:forced-color-adjust-none",
-        "size-400 p-0 font-body font-regular text-default data-[selected-single=true]:bg-brand-bold data-[selected-single=true]:text-inverse data-[selected-single=true]:hover:bg-brand-bold-hovered data-[range-start=true]:bg-brand-bold data-[range-start=true]:text-inverse data-[range-start=true]:hover:bg-brand-bold-hovered data-[range-end=true]:bg-brand-bold data-[range-end=true]:text-inverse data-[range-end=true]:hover:bg-brand-bold-hovered data-[range-middle=true]:rounded-none data-[range-middle=true]:bg-selected data-[range-middle=true]:text-default data-[range-middle=true]:hover:bg-selected-hovered",
+        // As wide as its day's column (24px to 32px), and 32px tall.
+        "h-400 w-full min-w-0 p-0 font-body font-regular text-default data-[selected-single=true]:bg-brand-bold data-[selected-single=true]:text-inverse data-[selected-single=true]:hover:bg-brand-bold-hovered data-[range-start=true]:bg-brand-bold data-[range-start=true]:text-inverse data-[range-start=true]:hover:bg-brand-bold-hovered data-[range-end=true]:bg-brand-bold data-[range-end=true]:text-inverse data-[range-end=true]:hover:bg-brand-bold-hovered data-[range-middle=true]:rounded-none data-[range-middle=true]:bg-selected data-[range-middle=true]:text-default data-[range-middle=true]:hover:bg-selected-hovered",
         getDefaultClassNames().day_button,
         className,
       )}

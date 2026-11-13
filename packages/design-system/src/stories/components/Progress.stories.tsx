@@ -17,7 +17,7 @@ import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
 const { Matrix } = storyLayout;
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 const meta = {
   title: "Components/Progress",
   component: Progress,
@@ -253,6 +253,26 @@ export const Dont: Story = {
       />
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    // A share of a whole is a measure that says each of its parts; as a progressbar it is a task
+    // 73 percent done, and the gaps and the unassessed controls are not said.
+    const coverage = halves(canvasElement, 0);
+    await expect(within(coverage.do).queryByRole("progressbar")).toBeNull();
+    await expect(within(coverage.do).getByRole("img")).toHaveAccessibleName(
+      "Control coverage: 41 met, 6 gaps, 9 unassessed",
+    );
+    const task = within(coverage.dont).getByRole("progressbar");
+    await expect(task).toHaveAccessibleName("Control coverage");
+    await expect(task).toHaveAttribute("aria-valuenow", "73");
+    // A wait of unknown length is said as in progress; a full bar says it finished.
+    const wait = halves(canvasElement, 1);
+    const running = within(wait.do).getByRole("progressbar", { name: "Importing the catalogue" });
+    await expect(running).not.toHaveAttribute("aria-valuenow");
+    await expect(running).toHaveAttribute("aria-valuetext", "In progress");
+    await expect(
+      within(wait.dont).getByRole("progressbar", { name: "Importing the catalogue" }),
+    ).toHaveAttribute("aria-valuenow", "100");
+  },
 };
 
 const progressRef = createRef<HTMLDivElement>();

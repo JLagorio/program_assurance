@@ -19,7 +19,7 @@ import { Inline, Stack, Text } from "../../primitives";
 import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 const meta = {
   title: "Components/FileTrigger",
@@ -338,4 +338,14 @@ export const DoDont: Story = {
       dontText="An Input with type file: the browser's button loses its frame and the control reads as text."
     />
   ),
+  play: async ({ canvasElement }) => {
+    const { do: good, dont: bad } = halves(canvasElement);
+    // A real button, named by its field, with the constraints beside it as its description.
+    const trigger = within(good).getByRole("button", { name: /^Report/ });
+    await expect(trigger.tagName).toBe("BUTTON");
+    await expect(trigger).toHaveAccessibleDescription("PDF, up to 10 MB.");
+    // The native file input is drawn as a text field, with no button a reader can name.
+    await expect(bad.querySelector('input[type="file"]')).toHaveAttribute("data-slot", "input");
+    await expect(within(bad).queryByRole("button")).toBeNull();
+  },
 };

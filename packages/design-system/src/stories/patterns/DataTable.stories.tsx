@@ -58,7 +58,7 @@ import { interact } from "../_lib/interact";
 import { displayedRows, showRow } from "../..";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 const { along, arrows, isRtl, towardsEnd } = direction;
 
 const meta = {
@@ -2413,6 +2413,29 @@ export const Dont: Story = {
       />
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    // Filters are chips in the toolbar, built from the columns; a filter row puts fields in the
+    // header, which a reader meets before the first record.
+    const filters = halves(canvasElement, 0);
+    await expect(within(filters.do).getByRole("button", { name: /Status/ })).toBeVisible();
+    await expect(within(filters.do).getByRole("button", { name: /Owner/ })).toBeVisible();
+    await expect(within(filters.do).queryByRole("table")).toBeNull();
+    const table = within(filters.dont).getByRole("table");
+    const firstRecord = within(table).getAllByRole("row")[2]!;
+    const fields = within(table).getAllByRole("textbox");
+    await expect(fields).toHaveLength(2);
+    for (const field of fields)
+      await expect(
+        field.compareDocumentPosition(firstRecord) & Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy();
+    // Loading keeps the header and draws skeleton rows; a spinner in place of the table loses the
+    // columns.
+    const loading = halves(canvasElement, 1);
+    await expect(within(loading.do).getAllByRole("columnheader").length).toBeGreaterThan(0);
+    await expect(loading.do.querySelector('[data-slot="skeleton"]')).not.toBeNull();
+    await expect(within(loading.dont).queryAllByRole("columnheader")).toHaveLength(0);
+    await expect(within(loading.dont).getByRole("status")).toBeVisible();
+  },
 };
 
 const kinds = columnKinds<{ name: string; count: number }>();

@@ -28,7 +28,7 @@ import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
 const { Matrix: Grid } = storyLayout;
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 const meta = {
   title: "Components/DatePicker",
@@ -434,6 +434,33 @@ export const Dont: Story = {
         />
       </Stack>
     );
+  },
+  play: async ({ canvasElement }) => {
+    const field = (half: HTMLElement, name: RegExp) => within(half).getByRole("button", { name });
+    // The placeholder says what to do and the hint what the date means; a format as the
+    // placeholder asks for typing where nothing can be typed.
+    const placeholder = halves(canvasElement, 0);
+    const scheduled = field(placeholder.do, /Scheduled completion/);
+    await expect(scheduled).toHaveTextContent("Choose a date");
+    await expect(scheduled).toHaveAccessibleDescription("When the milestone is due.");
+    await expect(field(placeholder.dont, /Scheduled completion/)).toHaveTextContent("MM/DD/YYYY");
+    await expect(within(placeholder.dont).queryByRole("textbox")).toBeNull();
+    // A remembered date is typed, with its format in the hint; the Don't offers only a month
+    // grid to page back through.
+    const remembered = halves(canvasElement, 1);
+    await expect(
+      within(remembered.do).getByRole("textbox", { name: "Authorized" }),
+    ).toHaveAccessibleDescription("Month and year, as on the ATO letter.");
+    await expect(within(remembered.dont).queryByRole("textbox")).toBeNull();
+    await expect(field(remembered.dont, /Authorized/)).toHaveAttribute("aria-haspopup", "dialog");
+    // One day in a form is a field whose month opens when asked; laid out inline, the month
+    // takes the room of six fields for one answer.
+    const inline = halves(canvasElement, 2);
+    const row = field(inline.do, /Scheduled completion/).getBoundingClientRect().height;
+    await expect(within(inline.do).queryByRole("grid")).toBeNull();
+    await expect(
+      within(inline.dont).getByRole("grid").getBoundingClientRect().height,
+    ).toBeGreaterThan(5 * row);
   },
 };
 

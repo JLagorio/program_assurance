@@ -5,6 +5,7 @@ import { setTimeout as wait } from "node:timers/promises";
 import { chromium } from "playwright";
 import ExcelJS from "exceljs";
 import { localWorkspace } from "./tests/local-workspace.mjs";
+import { artifactPath } from "./tests/artifacts.mjs";
 
 const origin = process.env.APP_TEST_URL ?? process.env.APP_BASE_URL ?? "http://localhost:8080";
 assert.ok(["localhost", "127.0.0.1"].includes(new URL(origin).hostname));
@@ -428,11 +429,17 @@ async function verifyAutomaticRowSizing() {
     "Automatically wrapped prose fits within its row",
   );
   await assertFits(1440);
-  await page.screenshot({ path: "/tmp/program-assurance-row-height-desktop.png", fullPage: true });
+  await page.screenshot({
+    path: artifactPath("program-assurance-row-height-desktop.png"),
+    fullPage: true,
+  });
   await page.setViewportSize({ width: 390, height: 844 });
   await selectCell("A14");
   await assertFits(390);
-  await page.screenshot({ path: "/tmp/program-assurance-row-height-mobile.png", fullPage: true });
+  await page.screenshot({
+    path: artifactPath("program-assurance-row-height-mobile.png"),
+    fullPage: true,
+  });
   await page.setViewportSize({ width: 1440, height: 1050 });
   console.log(
     "Wrapped font-driven row growth, explicit sizing, fit/reset, and pointer row resizing verified at desktop and390px.",
@@ -676,7 +683,7 @@ async function verifyBorderRangesAndCustomFont() {
     "Choosing border pen settings does not mutate cells",
   );
   await page.screenshot({
-    path: "/tmp/program-assurance-border-controls.png",
+    path: artifactPath("program-assurance-border-controls.png"),
     fullPage: true,
     animations: "disabled",
   });
@@ -766,7 +773,7 @@ async function captureWorkbookContexts() {
   await selectCell("B12");
   await page.screenshot({
     animations: "disabled",
-    path: "/private/tmp/workbook-context-desktop.png",
+    path: artifactPath("workbook-context-desktop.png"),
     fullPage: true,
   });
   await selectCell("C12");
@@ -774,7 +781,7 @@ async function captureWorkbookContexts() {
   await page.getByRole("menuitem", { name: "Edit comment", exact: true }).waitFor();
   await page.screenshot({
     animations: "disabled",
-    path: "/private/tmp/workbook-context-cell-menu.png",
+    path: artifactPath("workbook-context-cell-menu.png"),
     fullPage: true,
   });
   await page.keyboard.press("Escape");
@@ -787,7 +794,7 @@ async function captureWorkbookContexts() {
   await page.getByRole("menuitem", { name: "Insert 1 column left", exact: true }).waitFor();
   await page.screenshot({
     animations: "disabled",
-    path: "/private/tmp/workbook-context-column-menu.png",
+    path: artifactPath("workbook-context-column-menu.png"),
     fullPage: true,
   });
   await page.keyboard.press("Escape");
@@ -798,7 +805,7 @@ async function captureWorkbookContexts() {
   await page.getByRole("menuitem", { name: "Rename", exact: true }).waitFor();
   await page.screenshot({
     animations: "disabled",
-    path: "/private/tmp/workbook-context-sheet-menu.png",
+    path: artifactPath("workbook-context-sheet-menu.png"),
     fullPage: true,
   });
   await page.keyboard.press("Escape");
@@ -807,20 +814,20 @@ async function captureWorkbookContexts() {
   await assertFits(390);
   await page.screenshot({
     animations: "disabled",
-    path: "/private/tmp/workbook-context-mobile.png",
+    path: artifactPath("workbook-context-mobile.png"),
     fullPage: true,
   });
   await sheet("SCTM");
   await selectCell("A2");
   await page.screenshot({
     animations: "disabled",
-    path: "/private/tmp/workbook-context-sctm-mobile.png",
+    path: artifactPath("workbook-context-sctm-mobile.png"),
     fullPage: true,
   });
   await page.setViewportSize({ width: 1440, height: 1050 });
   await page.screenshot({
     animations: "disabled",
-    path: "/private/tmp/workbook-context-sctm-desktop.png",
+    path: artifactPath("workbook-context-sctm-desktop.png"),
     fullPage: true,
   });
   await sheet("Analysis");
@@ -1227,7 +1234,7 @@ try {
   const reviewedStatement = `${originalStatement}\nEach record shall retain its original timestamp.`;
   assert.equal(await statementEditor.inputValue(), reviewedStatement);
   await page.screenshot({
-    path: "/tmp/program-assurance-workbook-inline-desktop.png",
+    path: artifactPath("program-assurance-workbook-inline-desktop.png"),
     fullPage: true,
   });
   assert.equal(
@@ -1447,7 +1454,7 @@ try {
     "center",
   );
   await page.screenshot({
-    path: "/tmp/program-assurance-toolbar-analysis-desktop.png",
+    path: artifactPath("program-assurance-toolbar-analysis-desktop.png"),
     fullPage: true,
   });
   await page.setViewportSize({ width: 390, height: 844 });
@@ -1457,7 +1464,7 @@ try {
   );
   await assertFits(390);
   await page.screenshot({
-    path: "/tmp/program-assurance-toolbar-analysis-mobile.png",
+    path: artifactPath("program-assurance-toolbar-analysis-mobile.png"),
     fullPage: true,
   });
   await page.setViewportSize({ width: 1440, height: 1050 });
@@ -1493,7 +1500,10 @@ try {
   await sheet("Analysis");
   assert.equal(await (await selectCell("B12")).inputValue(), "=SUM(A12,5)");
   await page.getByRole("gridcell", { name: /^B12, .*: 12$/ }).waitFor();
-  await page.screenshot({ path: "/tmp/program-assurance-workbook-desktop.png", fullPage: true });
+  await page.screenshot({
+    path: artifactPath("program-assurance-workbook-desktop.png"),
+    fullPage: true,
+  });
   console.log("Analysis calculation, history and persisted reload verified.");
   await selectCell("A25");
   assert.equal(
@@ -1587,7 +1597,7 @@ try {
   assert.equal(await statementEditor.inputValue(), reviewedStatement);
   await assertFits(390);
   await page.screenshot({
-    path: "/tmp/program-assurance-workbook-inline-mobile.png",
+    path: artifactPath("program-assurance-workbook-inline-mobile.png"),
     fullPage: true,
   });
   await statementEditor.press("Escape");
@@ -1599,7 +1609,10 @@ try {
       .title,
     "Mobile reviewed workbook title",
   );
-  await page.screenshot({ path: "/tmp/program-assurance-workbook-mobile.png", fullPage: true });
+  await page.screenshot({
+    path: artifactPath("program-assurance-workbook-mobile.png"),
+    fullPage: true,
+  });
 
   // The database commits, but the browser never receives the receipt. Recovery
   // must keep that exact request across a reload instead of submitting a new edit.
@@ -1684,7 +1697,7 @@ try {
     await pivot.getByRole("row", { name: "REQ-WB 1", exact: true }).waitFor();
     await assertFits(width);
     await page.screenshot({
-      path: `/tmp/program-assurance-workbook-pivot-${width}.png`,
+      path: artifactPath(`program-assurance-workbook-pivot-${width}.png`),
       fullPage: true,
     });
     await view("Spreadsheet");
@@ -1732,7 +1745,7 @@ try {
   await page.mouse.move(650, 105);
   await page.getByRole("tooltip").waitFor({ state: "hidden" });
   await page.screenshot({
-    path: "/private/tmp/macro-workbook-final-desktop.png",
+    path: artifactPath("macro-workbook-final-desktop.png"),
     fullPage: true,
     animations: "disabled",
   });
@@ -1742,7 +1755,7 @@ try {
   await mobileRules.getByText(/Rule 1: Greater than 5/).waitFor();
   await assertFits(390);
   await page.screenshot({
-    path: "/private/tmp/macro-workbook-final-authoring-mobile.png",
+    path: artifactPath("macro-workbook-final-authoring-mobile.png"),
     fullPage: true,
     animations: "disabled",
   });
@@ -1759,7 +1772,7 @@ try {
     const details = page.getByRole("button", { name: "Technical details", exact: true });
     if (await details.isVisible()) await details.click();
     await page
-      .screenshot({ path: "/tmp/program-assurance-workbook-failure.png", fullPage: true })
+      .screenshot({ path: artifactPath("program-assurance-workbook-failure.png"), fullPage: true })
       .catch(() => {});
     console.error((await page.locator("body").innerText()).slice(-7000));
     if (errors.length) console.error("Page errors:", errors);

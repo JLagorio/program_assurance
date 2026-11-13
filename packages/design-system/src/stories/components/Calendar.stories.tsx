@@ -162,6 +162,42 @@ export const InANarrowPanel: Story = {
   },
 };
 
+/** In a column narrower than seven 32px days, the body of a panel at its narrowest (208px), every day narrows alike, down to the 24px touch minimum, and the month keeps inside the column instead of painting past its edge. The keyboard still walks the days. */
+export const InAPanelAtItsNarrowest: Story = {
+  name: "In a panel at its narrowest",
+  render: () => (
+    <section aria-label="Narrow column" style={{ maxWidth: 208 }}>
+      <SingleDemo />
+    </section>
+  ),
+  play: async ({ canvasElement }) => {
+    const column = within(canvasElement).getByRole("region", { name: "Narrow column" });
+    const bounds = column.getBoundingClientRect();
+    const grid = within(column).getByRole("grid");
+    await expect(grid.getBoundingClientRect().left).toBeGreaterThanOrEqual(bounds.left - 0.5);
+    await expect(grid.getBoundingClientRect().right).toBeLessThanOrEqual(bounds.right + 0.5);
+    const days = within(column).getAllByRole("button", { name: /2026/ });
+    const widths = new Set<number>();
+    for (const day of days) {
+      const box = day.getBoundingClientRect();
+      await expect(box.left).toBeGreaterThanOrEqual(bounds.left - 0.5);
+      await expect(box.right).toBeLessThanOrEqual(bounds.right + 0.5);
+      await expect(box.width).toBeGreaterThanOrEqual(24);
+      await expect(box.height).toBeGreaterThanOrEqual(24);
+      widths.add(Math.round(box.width));
+    }
+    // Narrower than 32px, because the column asks it, and every day alike.
+    await expect(Math.max(...widths)).toBeLessThan(32);
+    await expect(widths.size).toBe(1);
+    const selected = within(column).getByRole("button", { name: /September 14, 2026/ });
+    selected.focus();
+    await userEvent.keyboard("{ArrowDown}");
+    await waitFor(() =>
+      expect(within(column).getByRole("button", { name: /September 21, 2026/ })).toHaveFocus(),
+    );
+  },
+};
+
 function RangePopoverDemo() {
   const [range, setRange] = useState<DateRange | undefined>({
     from: new Date(2026, 8, 7),

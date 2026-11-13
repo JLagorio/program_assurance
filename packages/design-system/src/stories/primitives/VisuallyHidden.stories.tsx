@@ -7,7 +7,7 @@ import { Box, Inline, Stack, Text, VisuallyHidden } from "../../primitives";
 import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 const meta = {
   title: "Primitives/VisuallyHidden",
@@ -82,6 +82,19 @@ export const Dont: Story = {
       />
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    const { do: good, dont: bad } = halves(canvasElement);
+    // The mark's meaning is text in its place, read before the name.
+    const meaning = within(good).getByText("Authorization boundary:");
+    const name = within(good).getByText("Tactical edge segment");
+    await expect(
+      meaning.compareDocumentPosition(name) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    await expect(good).toHaveTextContent(/^Authorization boundary:\s*Tactical edge segment$/);
+    // A title is no text: what is read is the name alone.
+    await expect(bad.querySelector('[title="Authorization boundary"]')).not.toBeNull();
+    await expect(bad).toHaveTextContent(/^Tactical edge segment$/);
+  },
 };
 
 export const Playground: Story = {};

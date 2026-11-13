@@ -63,10 +63,13 @@ import { useEffect, useId, useMemo, useRef, useState, type FormEvent, type RefOb
 import { LibrarySelect, QueryValue, VersionHistory } from "./library-shared";
 import { canAuthorLibrary, useVersionFocus, type VersionChoice } from "./library-utils";
 import { ProductCollection } from "./product-collection";
+import { ProductAssessmentsSection } from "./product-assessment";
+import { ProductAssessmentTab, ProductStandingTray } from "./product-standing";
 import { ProductRecordDialog } from "./product-record-dialog";
 import { ProductStructure } from "./product-structure";
 import { RetainedTabPanels } from "./program-shared";
 import { RecordLink, useDisplayedRecords, useEndOnHide, useOpenRecord } from "./record-preview";
+import { RelationName } from "./record-tools";
 import { RecordSummaryPreview } from "./record-summary-preview";
 import { RecordTrail, TrailLink } from "./record-trail";
 import {
@@ -86,6 +89,8 @@ function downloadJson(filename: string, value: unknown) {
 }
 
 type ProductLine = Row<"products"> & {
+  /** The business line the product belongs to, by name; none for a product not placed in one. */
+  businessLine: string | null;
   configurations: number;
   elements: number;
   /** The latest version's number, none before the first version. */
@@ -95,10 +100,28 @@ type ProductLine = Row<"products"> & {
   variants: number;
 };
 
+/**
+ * The Products register. A product belongs to a business line, which the register names, links to
+ * and filters by; the line's own record reads down to its products and programs.
+ */
 export function ProductLibraryIndex() {
+  return (
+    <Page>
+      <PageHeader>
+        <PageHeader.Heading>
+          <PageHeader.Title>Products</PageHeader.Title>
+        </PageHeader.Heading>
+      </PageHeader>
+      <ProductsRegister />
+    </Page>
+  );
+}
+
+function ProductsRegister() {
   const navigate = useNavigate();
   const workspace = useWorkspace();
   const products = useRows("products");
+  const businessLines = useRows("business_lines", undefined, { columns: ["id", "name"] });
   const revisions = useRows("product_revisions");
   const configurations = useRows("product_configurations");
   // The elements whole, since Export writes them; of the systems, only the variants' versions.
@@ -118,6 +141,8 @@ export function ProductLibraryIndex() {
         const revisionIds = new Set(versions.map((row) => row.id));
         return {
           ...product,
+          businessLine:
+            businessLines.data?.find((line) => line.id === product.business_line_id)?.name ?? null,
           configurations: (configurations.data ?? []).filter(
             (row) => row.product_id === product.id && row.state === "active",
           ).length,
@@ -133,7 +158,14 @@ export function ProductLibraryIndex() {
           ).length,
         };
       }),
-    [products.data, revisions.data, configurations.data, elements.data, systems.data],
+    [
+      products.data,
+      revisions.data,
+      configurations.data,
+      elements.data,
+      systems.data,
+      businessLines.data,
+    ],
   );
   const columns = useMemo(
     () =>
@@ -154,6 +186,19 @@ export function ProductLibraryIndex() {
               {row.name}
             </RecordLink>
           ),
+        }),
+        c.text("businessLine", {
+          header: "Business line",
+          width: 180,
+          priority: 2,
+          cell: (row) =>
+            row.business_line_id && row.businessLine ? (
+              <RecordLink table="business_lines" record={{ id: row.business_line_id }}>
+                {row.businessLine}
+              </RecordLink>
+            ) : (
+              <Absent label="No business line" />
+            ),
         }),
         c.number("configurations", { header: "Configurations", width: 150 }),
         c.number("elements", { header: "Elements", width: 110 }),
@@ -192,12 +237,7 @@ export function ProductLibraryIndex() {
       </Button>
     ) : undefined;
   return (
-    <Page>
-      <PageHeader>
-        <PageHeader.Heading>
-          <PageHeader.Title>Products</PageHeader.Title>
-        </PageHeader.Heading>
-      </PageHeader>
+    <>
       {creating && (
         <ProductRecordDialog
           table="products"
@@ -225,7 +265,7 @@ export function ProductLibraryIndex() {
           },
         ]}
         table={table}
-        queries={[products, revisions, configurations, elements, systems]}
+        queries={[products, revisions, configurations, elements, systems, businessLines]}
         fill
         onRowClick={(row) => {
           void navigate({ to: "/library/products/$productKey", params: { productKey: row.id } });
@@ -240,6 +280,7 @@ export function ProductLibraryIndex() {
         searchLabel="Find products"
         filters={
           <>
+            <DataTable.Filter table={table} column="businessLine" />
             <DataTable.Filter table={table} column="versionState" />
             <DataTable.Filter table={table} column="state" />
           </>
@@ -251,6 +292,11 @@ export function ProductLibraryIndex() {
           model="products"
           fields={[
             { key: "code", label: "Code" },
+            {
+              key: "businessLine",
+              label: "Business line",
+              render: (row) => row.businessLine ?? <Absent label="No business line" />,
+            },
             { key: "description", label: "Description" },
             {
               key: "state",
@@ -283,7 +329,7 @@ export function ProductLibraryIndex() {
           onClose={() => setSelected(null)}
         />
       )}
-    </Page>
+    </>
   );
 }
 
@@ -323,11 +369,17 @@ export function ProductLibraryRecord({
   const versionChoice = useRef<VersionChoice | null>(null);
   const [editProduct, setEditProduct] = useState(false);
   const versions = [...(revisions.data ?? [])].sort((a, b) => b.version_number - a.version_number);
+  // With no version asked for, the record opens on the latest published version, and on a draft
+  // only while nothing is published: a reader comes for what the product is, not what is changing.
   const current =
     versions.find(
       (revision) =>
         revision.id === selectedVersion || String(revision.version_number) === selectedVersion,
-    ) ?? versions[0];
+    ) ??
+    versions.find((revision) => revision.state === "published") ??
+    versions[0];
+  // One draft at a time: a second would copy a version the open draft has moved past.
+  const openDraft = versions.find((revision) => revision.state === "draft");
   const publishContent = useRows(
     "product_elements",
     current ? { product_revision_id: current.id } : {},
@@ -458,7 +510,9 @@ export function ProductLibraryRecord({
                       ? "Loading the versions."
                       : busy
                         ? "A version is being created."
-                        : undefined
+                        : openDraft
+                          ? `Version ${openDraft.version_number} is a draft. Publish it before creating another.`
+                          : undefined
                   }
                   onClick={() => void newVersion()}
                 >
@@ -537,7 +591,14 @@ export function ProductLibraryRecord({
   );
 }
 
-const productTabs = ["Overview", "Structure", "Configurations", "Variants", "Versions"] as const;
+const productTabs = [
+  "Overview",
+  "Assessment",
+  "Structure",
+  "Configurations",
+  "Variants",
+  "Versions",
+] as const;
 export type ProductTab = (typeof productTabs)[number];
 
 function ProductRevision({
@@ -563,6 +624,7 @@ function ProductRevision({
   onTab: (tab: ProductTab) => void;
 }) {
   const openRecord = useOpenRecord();
+  const navigate = useNavigate();
   // Choosing a version keeps the tab, so focus goes to the twin of the control that chose it: the
   // rail's select on Overview, the history's mark on Versions.
   const versionFocus = useVersionFocus(versionChoice);
@@ -594,6 +656,32 @@ function ProductRevision({
     { id: idSet(systems.data?.map((row) => row.program_id)) },
     { columns: ["id", "name"], enabled: systems.isSuccess },
   );
+  // Which of the product's versions an assessor judged: a version that was not points at one that was.
+  const assessments = useRows(
+    "product_assessments",
+    { product_revision_id: versionIds, state: "published" },
+    { columns: ["id", "product_revision_id", "state"] },
+  );
+  const assessedVersion = useMemo(() => {
+    const judged = new Set(assessments.data?.map((row) => row.product_revision_id));
+    if (!assessments.data || judged.has(revision.id)) return undefined;
+    return [...versions]
+      .sort((a, b) => b.version_number - a.version_number)
+      .find((version) => judged.has(version.id));
+  }, [assessments.data, versions, revision.id]);
+  /** The assessed version on a tab of this record, for a version that was not assessed. */
+  const assessedOn = (shownTab: ProductTab) =>
+    assessedVersion && {
+      shown: revision.version_number,
+      number: assessedVersion.version_number,
+      link: (
+        <Link
+          to="/library/products/$productKey"
+          params={{ productKey: product.id }}
+          search={(current) => ({ ...current, version: assessedVersion.id, tab: shownTab })}
+        />
+      ),
+    };
   const [variantPreview, setVariantPreview] = useState<VariantLine | null>(null);
   // A preview belongs to the tab it was opened from: choosing another tab ends it.
   const [previewTab, setPreviewTab] = useState(tab);
@@ -749,6 +837,12 @@ function ProductRevision({
                               <KeyValue label="Code">
                                 <Id>{product.code}</Id>
                               </KeyValue>
+                              <KeyValue label="Business line">
+                                <RelationName
+                                  table="business_lines"
+                                  id={product.business_line_id}
+                                />
+                              </KeyValue>
                               <KeyValue label="Version">
                                 <LibrarySelect
                                   inline
@@ -839,10 +933,37 @@ function ProductRevision({
                         systems,
                       ]}
                     />
-                    <Prose label="Description" className="max-w-layout-measure">
-                      {product.description || <Absent label="No description" />}
-                    </Prose>
+                    <Stack space="space.300" className="min-w-0">
+                      {/* What the version gives, before what it is. */}
+                      <ProductStandingTray
+                        revisionId={revision.id}
+                        assessed={assessedOn("Assessment")}
+                        assessmentTab={
+                          <Link
+                            to="/library/products/$productKey"
+                            params={{ productKey: product.id }}
+                            search={(current) => ({ ...current, tab: "Assessment" })}
+                          />
+                        }
+                      />
+                      <Prose label="Description" className="max-w-layout-measure">
+                        {product.description || <Absent label="No description" />}
+                      </Prose>
+                    </Stack>
                   </AsideLayout>
+                );
+              case "Assessment":
+                return (
+                  <ProductAssessmentTab
+                    revisionId={revision.id}
+                    assessed={assessedOn("Assessment")}
+                    assessments={
+                      <ProductAssessmentsSection product={product} revision={revision} />
+                    }
+                    navigate={(search) =>
+                      void navigate({ to: ".", search: search as never, resetScroll: false })
+                    }
+                  />
                 );
               case "Structure":
                 return (

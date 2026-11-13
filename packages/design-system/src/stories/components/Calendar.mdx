@@ -19,9 +19,10 @@ const [date, setDate] = useState<Date>();
 <Calendar mode="single" selected={date} onSelect={setDate} />;
 ```
 
-Calendar takes DayPicker's own props: `mode` (single, multiple or range), `selected` and `onSelect`, disabled matchers, `startMonth` and `endMonth`, `numberOfMonths`, `captionLayout="dropdown"`, `showWeekNumber`. Custom `components`, `formatters`, `labels` and `classNames` merge with Calendar's defaults; customize a day with the exported CalendarDayButton so DayPicker's focus, selection and events stay intact. `buttonVariant` sets the navigation buttons. Days are 32px cells, above the 24px touch minimum.
+Calendar takes DayPicker's own props: `mode` (single, multiple or range), `selected` and `onSelect`, disabled matchers, `startMonth` and `endMonth`, `numberOfMonths`, `captionLayout="dropdown"`, `showWeekNumber`. Custom `components`, `formatters`, `labels`, `classNames` and `styles` merge with Calendar's defaults; customize a day with the exported CalendarDayButton so DayPicker's focus, selection and events stay intact. `buttonVariant` sets the navigation buttons. Days are 32px cells where the month has the room, as in a popover sized to its content. In a column narrower than seven of them, such as a panel at its narrowest, every day narrows alike, down to the 24px touch minimum, and the month keeps inside the column instead of painting past its edge; each row is a grid of day columns that shrink together.
 
 <Canvas of={Stories.Single} />
+<Canvas of={Stories.InAPanelAtItsNarrowest} />
 
 ## Days and zones
 

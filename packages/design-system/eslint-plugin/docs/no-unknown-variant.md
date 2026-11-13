@@ -21,13 +21,13 @@ It reads classes wherever the class rules do: `className`, `class`, any `*ClassN
 
 ## Why
 
-Tailwind drops a candidate it cannot parse without a word: `hovr:bg-surface-raised-hovered` builds, ships and never changes the row on hover, and nothing in the build or the browser says so. A breakpoint Ledger does not have is the same silence, and a common one, since the kit's breakpoints are its own (`aside`, `panel` and `wide` beside `sm`, `md` and `lg`) and Tailwind's `2xl` is gone. A layout that follows the window is also the wrong key inside Main or a panel, whose width the navigation and the panel take from; the product contract keys such a layout to its container (`@split:`, `@compact:`). An `aria-` variant with a misspelt name does generate CSS, for an attribute no element sets, so the state it styles never shows.
+Tailwind drops a candidate it cannot parse without a word: `hovr:bg-surface-raised-hovered` builds, ships and never changes the row on hover, and nothing in the build or the browser says so. A breakpoint Ledger does not have is the same silence, and a common one, since the kit's breakpoints are its own (`panel` beside `sm`, `md`, `lg` and `xl`) and Tailwind's `2xl` is gone. A layout that follows the window is also the wrong key inside Main or a panel, whose width the navigation and the panel take from; the product contract keys such a layout to its container (`@split:`, `@md:`). An `aria-` variant with a misspelt name does generate CSS, for an attribute no element sets, so the state it styles never shows.
 
 ## Instead
 
 - A misspelt variant: the spelling the message names, or the editor suggestion that writes it.
-- A layout inside Main, a panel or any part that fills a region: a container query on the container sizes (`@compact:`, `@split:`, `@md:`), with `@container` on the region; [Metrics](../../src/stories/tokens/Metrics.mdx) lists the sizes.
-- A layout of the whole window: a breakpoint (`sm:`, `md:`, `lg:`, `aside:`, `panel:`, `wide:`), or its `max-` form.
+- A layout inside Main, a panel or any part that fills a region: a container query on the container sizes (`@sm:`, `@md:`, `@split:`), with `@container` on the region; [Metrics](../../src/stories/tokens/Metrics.mdx) lists the sizes.
+- A layout of the whole window: a breakpoint (`sm:`, `md:`, `lg:`, `panel:`, `xl:`), or its `max-` form.
 - A state: the attribute the element sets (`aria-expanded:`, `aria-selected:`, `data-open:`), and a state of the element's own under `data-`.
 - A state of a named group: the group's variant with the name (`group-hover/row:`), on an element inside `group/row`.
 - A position or a feature: the value itself (`nth-3:`, `nth-[2n+1]:`, `supports-[display:grid]:`); a position known only at runtime is a `data-` attribute the element sets.

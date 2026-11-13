@@ -38,6 +38,7 @@ const nouns = {
   assurance_workbook_requests: "workbook request",
   authorization_decisions: "authorization decision",
   authorization_packages: "authorization package",
+  business_lines: "business line",
   // The catalog's Controls register: a control with its family and the profiles selecting it.
   catalog_control_rows: "control",
   catalog_groups: "catalog group",
@@ -63,6 +64,7 @@ const nouns = {
   control_links: "control link",
   control_mappings: "mapping entry",
   control_overlay_decisions: "overlay decision",
+  control_overlay_parameters: "overlay parameter value",
   control_overlay_rows: "overlay",
   control_overlays: "overlay",
   control_parts: "control part",
@@ -107,10 +109,14 @@ const nouns = {
   ingestion_jobs: "ingestion job",
   inheritance_acceptances: "inheritance acceptance",
   inventory_components: "implemented component",
+  // The System assets register: an inventory item with its system by name.
+  inventory_item_rows: "inventory item",
   inventory_items: "inventory item",
   issue_evidence: "evidence citation",
   issue_observations: "linked observation",
   issue_poams: "linked remediation item",
+  // A requirement an operational issue is about.
+  issue_requirements: "linked requirement",
   library_apply_requests: "library apply request",
   library_assignment_targets: "library assignment target",
   library_assignments: "library assignment",
@@ -118,6 +124,8 @@ const nouns = {
   mapping_collections: "mapping collection",
   mapping_endpoints: "mapping endpoint",
   observation_evidence: "evidence citation",
+  // The observations registers: an observation with its program and its test step's result.
+  observation_rows: "observation",
   observations: "observation",
   offered_implementations: "offering",
   // The operational issues register: an issue with its program and owner by name.
@@ -149,8 +157,10 @@ const nouns = {
   procedure_revisions: "procedure revision",
   procedure_steps: "procedure step",
   procedures: "procedure",
+  product_assessments: "product assessment",
   product_configuration_elements: "configuration element",
   product_configurations: "configuration",
+  product_determinations: "product determination",
   product_elements: "product element",
   product_revisions: "product version",
   products: "product",
@@ -164,6 +174,10 @@ const nouns = {
   profile_revisions: "profile revision",
   profile_rules: "tailoring rule",
   profiles: "profile",
+  // A program with the moment it last saw activity: the Portfolio's Recently updated programs.
+  program_activity: "program",
+  // A receipt of Edit overlays (set_program_baseline_overlays).
+  program_baseline_requests: "control baseline change request",
   program_control_requirement_counts: "control coverage",
   program_reference_choices: "reference choice",
   // The program Requirements register: a requirement, its latest revision and its place in a tree.
@@ -174,6 +188,7 @@ const nouns = {
   provider_capabilities: "provider capability",
   ref_sources: "reference source",
   requirement_allocations: "allocation",
+  requirement_compliance: "compliance statement",
   requirement_applicability: "applicability decision",
   requirement_control_links: "control mapping",
   requirement_decompositions: "requirement decomposition",
@@ -182,12 +197,17 @@ const nouns = {
   requirement_edit_requests: "requirement edit request",
   requirement_evidence: "evidence citation",
   requirement_implementations: "support link",
+  requirement_import_requests: "requirement import request",
   requirement_revision_requests: "requirement revision request",
   requirement_revisions: "requirement revision",
+  requirement_sources: "requirements document",
   requirement_verifications: "requirement verification",
   result_observations: "result observation",
   result_sets: "result set",
   review_decisions: "review decision",
+  // The Review queue: a record of any kind waiting on a reviewer (evidence to accept, a gate to
+  // decide, a discussion to resolve).
+  review_queue_rows: "review",
   // An ATT&CK technique a risk concerns, from NIST SP 800-160 Vol. 2 Rev. 1, Appendix F.
   risk_attack_techniques: "linked ATT&CK technique",
   risk_observations: "linked observation",
@@ -331,6 +351,15 @@ export function productCreateLabel(table: string, values?: Record<string, unknow
 const columnLabels: Record<string, Record<string, string>> = {
   // A criterion drawn from NIST SP 800-160 Vol. 1 names the security outcome it came from.
   gate_criteria: { outcome_item_id: "Security outcome" },
+  // A delta assessment's campaign names the product variant it assesses.
+  assessment_campaigns: { variant_system_id: "Variant" },
+  // What a program changed in an element it inherited from a product, and why.
+  systems: {
+    product_change_kinds: "Changed here",
+    product_change_rationale: "Reason for the change",
+    product_changed_at: "Marked as modified",
+    product_changed_by: "Marked by",
+  },
 };
 
 /**

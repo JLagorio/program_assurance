@@ -257,12 +257,15 @@ try {
   });
   assert.equal(support.length, 1);
 
-  // Requirements tab: adopt from the library, then allocate an existing requirement.
+  // Requirements tab: adopt from the library, then allocate an existing requirement. Add from
+  // library is the tab's second way in, in the menu beside Allocate requirements.
   await tabs().getByRole("tab", { name: "Requirements", exact: true }).click();
   await page
     .getByRole("tabpanel")
-    .getByRole("button", { name: "Add from library", exact: true })
+    .getByRole("button", { name: "More ways to allocate requirements", exact: true })
+    .first()
     .click();
+  await page.getByRole("menuitem", { name: "Add from library", exact: true }).click();
   await sheet().getByRole("row").filter({ hasText: "RQD-RETAIN" }).first().click();
   await sheet().getByRole("button", { name: "Continue", exact: true }).click();
   await expect(page.getByRole("dialog")).toHaveCount(1);
@@ -316,9 +319,12 @@ try {
   await page.reload();
   await tabs().getByRole("tab", { name: "Library", exact: true }).click();
   await expect(libraryTable).toContainText("v2 available");
+  // The row's click opens the definition's own record, as its name does; the eye opens the
+  // library use's preview, which offers the review.
   await libraryTable
     .locator("tr[data-row-id]")
     .filter({ hasText: "Corporate audit policy" })
+    .getByRole("button", { name: /^Preview / })
     .click();
   await page
     .locator('[data-shell-area="panel"]')

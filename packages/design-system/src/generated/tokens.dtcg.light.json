@@ -3803,14 +3803,6 @@
         },
         "$description": "Tailwind's lg, 1024px. The side nav is inline from here and an overlay below."
       },
-      "aside": {
-        "$type": "dimension",
-        "$value": {
-          "value": 75,
-          "unit": "rem"
-        },
-        "$description": "1200px. The aside sits beside Main from here, whatever the side nav's width, while no panel is open; from `lg` it does while the side nav leaves Main its minimum, and otherwise it follows Main."
-      },
       "panel": {
         "$type": "dimension",
         "$value": {
@@ -3818,14 +3810,6 @@
           "unit": "rem"
         },
         "$description": "1280px. The panel is a full-height column beside the page from here; below, it replaces Main under the top nav."
-      },
-      "wide": {
-        "$type": "dimension",
-        "$value": {
-          "value": 110,
-          "unit": "rem"
-        },
-        "$description": "1760px. The aside sits beside Main even while a panel is open."
       },
       "xl": {
         "$type": "dimension",
@@ -4012,10 +3996,11 @@
           "value": 25,
           "unit": "rem"
         },
-        "$description": "400px at the default text size. Below it a region is compact (`@compact:`): a header gives its actions a row of their own under the title. In rem, so it scales with the reader's text size; the Shell.Panel header switches on dimension.query.panelHeader, in px.",
+        "$description": "Deprecated: no part or screen reads it. 400px at the default text size (`@compact:`). The nearest container size is dimension.container.sm (`@sm:`, 24rem), and the Shell.Panel header keeps its own 400px query, dimension.query.panelHeader, in px.",
         "$extensions": {
           "ledger": {
-            "introduced": "0.7.0"
+            "introduced": "0.7.0",
+            "deprecated": "dimension.container.sm"
           }
         }
       },
@@ -4276,6 +4261,19 @@
           }
         }
       },
+      "emptyIllustration": {
+        "$type": "dimension",
+        "$value": {
+          "value": 128,
+          "unit": "px"
+        },
+        "$description": "An EmptyIllustration's width. Each scene is drawn in its own box of 64 by 42 units, a viewBox, so its height follows, 84px, and every part of it scales with this width.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.8.0"
+          }
+        }
+      },
       "keyValue": {
         "$type": "dimension",
         "$value": {
@@ -4341,16 +4339,42 @@
           }
         }
       },
+      "itemIdNarrow": {
+        "$type": "dimension",
+        "$value": {
+          "value": 48,
+          "unit": "px"
+        },
+        "$description": "An Item's narrow id column: idWidth \"narrow\", for a short code (MS-A).",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.8.0"
+          }
+        }
+      },
       "itemId": {
         "$type": "dimension",
         "$value": {
           "value": 72,
           "unit": "px"
         },
-        "$description": "An Item's id column, unless its idWidth gives another, so the ids of a list line up.",
+        "$description": "An Item's id column: idWidth \"default\", and the width without an idWidth, for most codes (EV-2201, AC-2(1)), so the ids of a list line up.",
         "$extensions": {
           "ledger": {
             "introduced": "0.7.0"
+          }
+        }
+      },
+      "itemIdWide": {
+        "$type": "dimension",
+        "$value": {
+          "value": 104,
+          "unit": "px"
+        },
+        "$description": "An Item's wide id column: idWidth \"wide\", for a long code (a system's code, a parameter id such as ac-01_odp.01).",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.8.0"
           }
         }
       },
@@ -4725,6 +4749,16 @@
           }
         }
       },
+      "tray": {
+        "$type": "color",
+        "$value": "{color.neutral.200}",
+        "$description": "A Tray's fill: a well a step deeper than elevation.surface.sunken in light, so a tray of raised cards reads apart from a white page. In dark it is the sunken surface, already well below the page.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.8.0"
+          }
+        }
+      },
       "raised": {
         "default": {
           "$type": "color",
@@ -5033,6 +5067,7 @@
       "code": {
         "$type": "fontFamily",
         "$value": [
+          "Geist Mono Variable",
           "Geist Mono",
           "JetBrains Mono",
           "ui-monospace",
@@ -5042,7 +5077,7 @@
           "Liberation Mono",
           "monospace"
         ],
-        "$description": "Code blocks and data previews only. Never UI text. The package ships no mono face, so the stack names faces the machine has: Geist Mono or JetBrains Mono where installed, else the system monospace."
+        "$description": "Code blocks and data previews only. Never UI text. Geist Mono Variable is the face fonts.css loads; Geist Mono and JetBrains Mono are faces the machine may have, then the system monospace."
       }
     },
     "weight": {

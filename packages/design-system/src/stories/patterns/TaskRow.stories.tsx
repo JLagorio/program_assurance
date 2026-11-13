@@ -8,7 +8,7 @@ import { Stack, Text } from "../../primitives";
 import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 const meta = {
   title: "Patterns/TaskRow",
@@ -132,6 +132,15 @@ export const Dont: Story = {
       dontText="Do not expose storage codes or bury every field in the title."
     />
   ),
+  play: async ({ canvasElement }) => {
+    const { do: good, dont: bad } = halves(canvasElement);
+    // The status is content of its own, in the product's words, and the title is the task.
+    await expect(good.querySelector('[data-slot="badge"]')).toHaveTextContent("Needs review");
+    await expect(within(good).getByText("Review draft")).toBeVisible();
+    // Every field buried in the title as storage codes, and no status to read.
+    await expect(bad.querySelector('[data-slot="badge"]')).toBeNull();
+    await expect(within(bad).getByText(/^Review draft — status \d+ — assigned \d+$/)).toBeVisible();
+  },
 };
 export const Playground: Story = {
   render: (args) => (

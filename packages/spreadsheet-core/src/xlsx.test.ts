@@ -77,6 +77,17 @@ describe("XLSX interchange", () => {
       style: { format: "text" },
     });
   });
+  it("imports a workbook whose first sheet holds nothing", async () => {
+    const { default: ExcelJS } = await import("exceljs");
+    const source = new ExcelJS.Workbook();
+    source.addWorksheet("Cover");
+    source.addWorksheet("Requirements").addRow(["Para", "Requirement text"]);
+    const imported = await importXlsx(new Uint8Array(await source.xlsx.writeBuffer()));
+    expect(imported.workbook.sheets.map((sheet) => sheet.name)).toEqual(["Cover", "Requirements"]);
+    expect(cellAt(imported.workbook.sheets[1]!, { row: 0, column: 1 })!.input).toBe(
+      "Requirement text",
+    );
+  });
   it("rejects invalid and oversized archives before parsing", () => {
     expect(() => validateXlsxArchive(new Uint8Array(30))).toThrow();
     expect(() => validateXlsxArchive(new Uint8Array(10_000_001))).toThrow("10 MB");

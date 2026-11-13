@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 /**
  * Server-paged registers: the catalog's CCIs and Controls, a program's Requirements tab, the risk
- * register, operational issues, assessment findings, evidence and My work read one page at a time
+ * register, operational issues, observations, assessment findings, system assets, unrolled
+ * findings, evidence and My work read one page at a time
  * from the server, which pages, sorts (a derived column too), filters, searches and counts the whole
  * result; the question lives in the address, where the Portfolio's tiles ask it; saved views count
  * the whole register; and a preview counts the whole result and steps across a page edge. Every
@@ -389,6 +390,58 @@ try {
     ["partially_satisfied", "other_than_satisfied"].includes(finding.determination),
   ).length;
   assert.ok(unsatisfied > PAGE, "The unsatisfied findings fill more than a page");
+  // Unrolled findings: those short of satisfied that no risk assessment records, the whole result.
+  const unrolled = findings.filter((finding) => finding.determination !== "satisfied").length;
+  // Thirty observations, made by examining, interviewing and testing in turn, one a day.
+  const observationMethods = ["examine", "interview", "test"];
+  const observations = await insert(
+    "observations",
+    Array.from({ length: 30 }, (_, index) => ({
+      program_id: program.id,
+      title: `Paging observation ${String(index + 1).padStart(2, "0")}`,
+      method: observationMethods[index % 3],
+      observed_at: new Date(Date.UTC(2026, 0, 30 - index)).toISOString(),
+    })),
+  );
+  const tested = observations.filter((row) => row.method === "test").length;
+  const byObserved = await data(
+    client
+      .from("observation_rows")
+      .select("id")
+      .order("observed_at", { ascending: true, nullsFirst: false })
+      .order("id"),
+  );
+  assert.equal(byObserved.length, observations.length);
+  // Thirty assets, one an element of the paging system each, their ids A-1 to A-30: A-2 reads
+  // before A-10.
+  const elements = await insert(
+    "systems",
+    Array.from({ length: 30 }, (_, index) => ({
+      program_id: program.id,
+      parent_system_id: system.id,
+      is_authorization_boundary: false,
+      code: `PAGING-EL-${String(index + 1).padStart(2, "0")}`,
+      name: `Paging element ${String(index + 1).padStart(2, "0")}`,
+      system_type: "hardware",
+    })),
+  );
+  const assets = await insert(
+    "inventory_items",
+    elements.map((element, index) => ({
+      system_id: system.id,
+      composition_node_id: element.id,
+      asset_id: `A-${index + 1}`,
+      name: `Paging asset ${String(index + 1).padStart(2, "0")}`,
+    })),
+  );
+  const byAssetId = await data(
+    client.from("inventory_item_rows").select("id,asset_id").order("asset_order").order("id"),
+  );
+  assert.deepEqual(
+    byAssetId.slice(0, 3).map((row) => row.asset_id),
+    ["A-1", "A-2", "A-3"],
+    "Asset ids read in their natural order",
+  );
   // Thirty artifacts of three kinds, the first twenty-seven with a version; of those, five
   // accepted and five sent back for revision.
   const kinds = ["document", "dataset", "log"];
@@ -960,8 +1013,38 @@ try {
   // ——— Operational issues: the Portfolio's tile asks the register's question of the server ————
   const issueLabel = "Operational issues";
   const issueTable = page.getByRole("table", { name: issueLabel, exact: true });
+  reads.length = 0;
+  counts.length = 0;
   await fresh("/");
-  await page.getByRole("link", { name: /^Open operational issues/ }).click();
+  // The tiles count on the server, a HEAD request each, and read no issue, finding or risk.
+  const issueTile = page.getByRole("link", { name: /^Open operational issues/ });
+  await expect(issueTile).toContainText(number(openIssues));
+  await expect(page.getByRole("link", { name: /^Unsatisfied assessment findings/ })).toContainText(
+    number(unsatisfied),
+  );
+  expectNoBaseReads(
+    [
+      "operational_issues",
+      "operational_issue_rows",
+      "assessment_findings",
+      "assessment_finding_rows",
+    ],
+    "The Portfolio's tiles read no issue or finding",
+  );
+  for (const view of ["operational_issue_rows", "assessment_finding_rows", "risk_rows"])
+    assert.ok(
+      counts.some((url) => url.pathname.endsWith(`/rest/v1/${view}`)),
+      `The Portfolio counts ${view} on the server`,
+    );
+  // Recently updated programs ranks by the latest activity in each program, read in one request.
+  const recentPrograms = page.getByRole("table", { name: "Recently updated programs" });
+  await expect(recentPrograms).toContainText(program.name);
+  assert.ok(
+    reads.some((url) => url.pathname.endsWith("/rest/v1/program_activity")),
+    "Recently updated programs reads the programs' last activity",
+  );
+  console.log("PASS the Portfolio's tiles count on the server, and its programs rank by activity");
+  await issueTile.click();
   await expect(range(issueLabel)).toContainText(`1–${PAGE} of ${number(openIssues)}`);
   await expect(rows(issueTable)).toHaveCount(PAGE);
   await expect.poll(() => question().get("operational-issues.filters")).toContain("triaged");
@@ -972,7 +1055,9 @@ try {
   // The other tabs' registers read nothing until their tab is first shown.
   assert.equal(
     reads.filter((url) =>
-      /\/rest\/v1\/(assessment_finding_rows|observations|inventory_items)$/.test(url.pathname),
+      /\/rest\/v1\/(assessment_finding_rows|observation_rows|observations|inventory_item_rows|inventory_items)$/.test(
+        url.pathname,
+      ),
     ).length,
     0,
     "The hidden tabs' registers read nothing",
@@ -1076,6 +1161,143 @@ try {
   console.log(
     `PASS Unsatisfied assessment findings opens the server's ${unsatisfied}, sorted by rank across pages`,
   );
+
+  // ——— Observations: a page from the server, a method filtered and the date sorted there ————————
+  const observationLabel = "observations";
+  const observationTable = page.getByRole("table", { name: observationLabel, exact: true });
+  reads.length = 0;
+  await fresh("/findings?tab=observations");
+  await expect(rows(observationTable)).toHaveCount(PAGE);
+  await expect(range(observationLabel)).toContainText(
+    `1–${PAGE} of ${number(observations.length)}`,
+  );
+  expectPagedReads("observation_rows");
+  expectNoBaseReads(
+    ["observations", "step_results", "programs"],
+    "The register reads its view, not the observations, their step results and programs",
+  );
+  console.log(`PASS Observations read one page with the whole count (${observations.length})`);
+
+  await page
+    .getByRole("button", { name: /^Method/ })
+    .first()
+    .click();
+  await page.getByRole("checkbox", { name: "Test", exact: true }).click();
+  await page.keyboard.press("Escape");
+  await expect(rows(observationTable)).toHaveCount(tested);
+  await expect.poll(() => question().get("observations.filters")).toContain("test");
+  console.log(`PASS Observations filter by method on the server (${tested} tests)`);
+
+  await fresh("/findings?tab=observations");
+  await expect(rows(observationTable)).toHaveCount(PAGE);
+  await sortBy(observationTable, "Observed", "ascending");
+  await expect
+    .poll(() => rowIds(observationTable))
+    .toEqual(byObserved.slice(0, PAGE).map((row) => row.id));
+  await pager(observationLabel).getByRole("button", { name: "Next page", exact: true }).click();
+  await expect
+    .poll(() => rowIds(observationTable))
+    .toEqual(byObserved.slice(PAGE).map((row) => row.id));
+  await expect.poll(() => question().get("observations.page")).toBe("2");
+  console.log("PASS Observations sort by the day observed on the server across every page");
+
+  // An observation has no page of its own: its preview counts the whole result and steps across
+  // the page edge, and offers no fuller record.
+  await fresh("/findings?tab=observations");
+  await expect(rows(observationTable)).toHaveCount(PAGE);
+  const observationTitle = new Map(observations.map((row) => [row.id, row.title]));
+  const shownObservations = await rowIds(observationTable);
+  const lastObservation = observationTitle.get(shownObservations[PAGE - 1]);
+  await eye(observationTable, shownObservations[PAGE - 1]).click();
+  await expectPreviewHeader(page, { title: lastObservation, fullRecord: false });
+  await expect(status()).toHaveText(
+    `${lastObservation}, ${PAGE} of ${observations.length} records`,
+  );
+  await step("Next record").click();
+  await expect(status()).toContainText(`, ${PAGE + 1} of ${observations.length} records`);
+  await expect.poll(() => question().get("observations.page")).toBe("2");
+  await expect(step("Next record")).toBeFocused();
+  await step("Previous record").click();
+  await expect(status()).toHaveText(
+    `${lastObservation}, ${PAGE} of ${observations.length} records`,
+  );
+  await escapePreview();
+  console.log("PASS Observation preview counts the whole register and steps across the page edge");
+
+  // ——— System assets: a page from the server, asset ids sorted as they read ————————————————————
+  const assetLabel = "system assets";
+  const assetTable = page.getByRole("table", { name: assetLabel, exact: true });
+  reads.length = 0;
+  await fresh("/findings?tab=assets");
+  await expect(rows(assetTable)).toHaveCount(PAGE);
+  await expect(range(assetLabel)).toContainText(`1–${PAGE} of ${number(assets.length)}`);
+  expectPagedReads("inventory_item_rows");
+  expectNoBaseReads(
+    ["inventory_items", "systems"],
+    "The register reads its view, not the items and their systems",
+  );
+  console.log(`PASS System assets read one page with the whole count (${assets.length})`);
+
+  await sortBy(assetTable, "Asset ID", "ascending");
+  await expect
+    .poll(() => rowIds(assetTable))
+    .toEqual(byAssetId.slice(0, PAGE).map((row) => row.id));
+  await expect.poll(() => question().get("system-assets.sort")).toBe("asset_id");
+  await pager(assetLabel).getByRole("button", { name: "Next page", exact: true }).click();
+  await expect.poll(() => rowIds(assetTable)).toEqual(byAssetId.slice(PAGE).map((row) => row.id));
+  console.log(
+    "PASS System assets sort by asset id as the ids read (A-2 before A-10) on the server",
+  );
+
+  await fresh("/findings?tab=assets");
+  await page.getByRole("searchbox", { name: "Find system assets", exact: true }).fill("A-1");
+  // A-1 and A-10 to A-19: the search is the server's, over the asset id.
+  await expect(rows(assetTable)).toHaveCount(11);
+  await expect.poll(() => question().get("system-assets.q")).toBe("A-1");
+  console.log("PASS System assets search their ids on the server");
+
+  // The preview counts the whole register, steps across the page edge, and its Edit is seeded
+  // with every field from the page's row.
+  await fresh("/findings?tab=assets");
+  await expect(rows(assetTable)).toHaveCount(PAGE);
+  const assetName = new Map(assets.map((row) => [row.id, row.name]));
+  const shownAssets = await rowIds(assetTable);
+  const lastAsset = assetName.get(shownAssets[PAGE - 1]);
+  await assetTable
+    .locator(`tbody tr[data-row-id="${shownAssets[PAGE - 1]}"]`)
+    .getByRole("button", { name: `Preview ${lastAsset}`, exact: true })
+    .click();
+  await expectPreviewHeader(page, { title: lastAsset, recordActions: ["Edit inventory item"] });
+  await expect(status()).toHaveText(`${lastAsset}, ${PAGE} of ${assets.length} records`);
+  await step("Next record").click();
+  await expect(status()).toContainText(`, ${PAGE + 1} of ${assets.length} records`);
+  await expect.poll(() => question().get("system-assets.page")).toBe("2");
+  await step("Previous record").click();
+  await expect(status()).toHaveText(`${lastAsset}, ${PAGE} of ${assets.length} records`);
+  await panel().getByRole("button", { name: "Edit inventory item", exact: true }).click();
+  const assetDialog = page.getByRole("dialog", { name: "Edit inventory item" });
+  await expect(assetDialog.getByRole("textbox", { name: /^Name/ })).toHaveValue(lastAsset);
+  await expect(assetDialog.getByRole("textbox", { name: /^Asset/ }).first()).toHaveValue(
+    assets.find((row) => row.id === shownAssets[PAGE - 1]).asset_id,
+  );
+  await assetDialog.getByRole("button", { name: "Cancel", exact: true }).click();
+  await expect(assetDialog).toHaveCount(0);
+  await escapePreview();
+  console.log("PASS System asset preview steps across the page edge, and its Edit is seeded");
+
+  // ——— Unrolled findings: the findings short of satisfied no risk assessment records ———————————
+  const unrolledLabel = "assessment findings";
+  const unrolledTable = page.getByRole("table", { name: unrolledLabel, exact: true });
+  reads.length = 0;
+  await fresh("/register?tab=unrolled");
+  await expect(rows(unrolledTable)).toHaveCount(PAGE);
+  await expect(range(unrolledLabel)).toContainText(`1–${PAGE} of ${number(unrolled)}`);
+  expectPagedReads("assessment_finding_rows");
+  expectNoBaseReads(
+    ["assessment_findings", "finding_risks"],
+    "Unrolled findings read their view, not every finding and every link to a risk",
+  );
+  console.log(`PASS Unrolled findings read one page of the server's ${unrolled}`);
 
   // ——— Evidence: saved views counted, a kind filtered and a review sorted on the server ————————
   const evidenceLabel = "Evidence";

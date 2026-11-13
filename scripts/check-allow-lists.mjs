@@ -20,6 +20,8 @@
  *   misses today, per rule and carrier, and the routes around every rule (lint-redteam.test.mjs).
  * - packages/design-system/test/css-token-allow.json: literal lengths in the kit's stylesheets that
  *   no token of their value and role holds yet, per file and literal (css-tokens.test.mjs).
+ * - packages/design-system/test/dont-play-allow.json: Do and don't stories with no play that
+ *   asserts what makes the Do right and the Don't wrong, per story (story-dont-play.test.mjs).
  *
  * Two more are computed, not committed:
  *
@@ -54,6 +56,7 @@ const LISTS = [
   "scripts/docs-render-allow.json",
   "packages/design-system/test/lint-redteam-escapes.json",
   "packages/design-system/test/css-token-allow.json",
+  "packages/design-system/test/dont-play-allow.json",
 ];
 const SUPPRESSIONS = [
   "eslint-suppressions.json",

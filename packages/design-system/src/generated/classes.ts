@@ -200,6 +200,7 @@ export const classByToken = {
   "elevation.surface.hovered": "bg-surface-hovered",
   "elevation.surface.pressed": "bg-surface-pressed",
   "elevation.surface.sunken": "bg-surface-sunken",
+  "elevation.surface.tray": "bg-surface-tray",
   "elevation.surface.raised": "bg-surface-raised",
   "elevation.surface.raised.hovered": "bg-surface-raised-hovered",
   "elevation.surface.raised.pressed": "bg-surface-raised-pressed",

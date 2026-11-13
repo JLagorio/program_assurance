@@ -8,11 +8,12 @@ import { useStaleOnWrite } from "./server-table";
 
 /*
  * The assurance chain around one record. A control is met by requirements, a requirement is
- * supported by evidence, an operational issue cites evidence, a risk rests on an issue and a
- * remediation item answers it. `assurance_trace` walks the chain outward from the record in one
- * request, as the reader, and this module says what the walk found: the links a screen draws
- * between the stages, where the record reaches (control families, system elements) and how its
- * remediation stands.
+ * supported by evidence, an assessor's finding judges a control and cites evidence, an operational
+ * issue cites evidence, names the requirement it is about or is what a finding became, a risk rests
+ * on an issue or was raised by a finding, and a remediation item answers an issue or a risk.
+ * `assurance_trace` walks the chain outward from the record in one request, as the reader, and
+ * this module says what the walk found: the links a screen draws between the stages, where the
+ * record reaches (control families, system elements) and how its remediation stands.
  */
 
 /** The stages of the chain, in the order a trace reads. */
@@ -20,6 +21,7 @@ export const TRACE_KINDS = [
   "control",
   "requirement",
   "evidence",
+  "finding",
   "issue",
   "risk",
   "remediation",
@@ -31,6 +33,7 @@ export const traceTables = {
   control: "controls",
   requirement: "engineering_requirements",
   evidence: "evidence_artifacts",
+  finding: "assessment_findings",
   issue: "operational_issues",
   risk: "risks",
   remediation: "poam_items",
@@ -44,8 +47,14 @@ export const TRACE_MODELS = [
   "requirement_allocations",
   "evidence_artifacts",
   "evidence_versions",
+  "assessment_findings",
+  "assessment_results_revisions",
+  "finding_evidence",
+  "finding_observations",
+  "finding_risks",
   "issue_evidence",
   "issue_observations",
+  "issue_requirements",
   "observation_evidence",
   "operational_issues",
   "risk_observations",
@@ -54,6 +63,7 @@ export const TRACE_MODELS = [
   "issue_poams",
   "poam_items",
   "poam_item_revisions",
+  "poam_item_risks",
   "poam_milestones",
 ] as const satisfies readonly TableName[];
 
@@ -85,6 +95,20 @@ const evidenceSchema = z.object({
   collected_at: text,
   review: z.string(),
   expires_at: text,
+});
+/**
+ * An assessor's finding: its determination on a part of a control, when it was made, and the state
+ * of its results. A walk reaches a finding of published results only, so a draft is only ever the
+ * record traced.
+ */
+const findingSchema = z.object({
+  id,
+  title: z.string(),
+  determination: z.string(),
+  determined_at: text,
+  results_state: text,
+  /** The program of its results' campaign; none where the reader cannot read the campaign. */
+  program_id: id.nullable(),
 });
 const issueSchema = z.object({
   id,
@@ -128,6 +152,7 @@ const traceSchema = z.object({
   controls: z.array(controlSchema),
   requirements: z.array(requirementSchema),
   evidence: z.array(evidenceSchema),
+  findings: z.array(findingSchema),
   issues: z.array(issueSchema),
   risks: z.array(riskSchema),
   remediation: z.array(remediationSchema),
@@ -136,8 +161,18 @@ const traceSchema = z.object({
     control_requirement: pairs,
     requirement_evidence: pairs,
     evidence_issue: pairs,
+    /** A requirement and an issue that names it, whatever evidence lies between them. */
+    requirement_issue: pairs,
+    /** A control and a finding that judges one of its parts. */
+    control_finding: pairs,
+    evidence_finding: pairs,
+    /** A finding and the issue it became: one resting on an observation the finding rests on. */
+    finding_issue: pairs,
     issue_risk: pairs,
+    finding_risk: pairs,
     issue_remediation: pairs,
+    /** A risk and a remediation item whose latest commitment cites it. */
+    risk_remediation: pairs,
   }),
 });
 
@@ -145,6 +180,7 @@ export type AssuranceTrace = z.infer<typeof traceSchema>;
 export type TraceControl = z.infer<typeof controlSchema>;
 export type TraceRequirement = z.infer<typeof requirementSchema>;
 export type TraceEvidence = z.infer<typeof evidenceSchema>;
+export type TraceFinding = z.infer<typeof findingSchema>;
 export type TraceIssue = z.infer<typeof issueSchema>;
 export type TraceRisk = z.infer<typeof riskSchema>;
 export type TraceRemediation = z.infer<typeof remediationSchema>;
@@ -222,11 +258,15 @@ export const traceKey = (kind: TraceKind, recordId: string) => `${kind}:${record
 export type TraceLink = { from: string; to: string };
 
 /**
- * The links between the stages as a trace draws them, left to right. Four are recorded: a control
- * and the requirement that meets it, a requirement and its evidence, evidence and the issue that
- * cites it, an issue and the risk that rests on it. Remediation is recorded against the issue; a
- * trace reads it after the risk, so an item is linked from each risk of its issue, and straight
- * from the issue when no risk in the trace rests on it.
+ * The links between the stages as a trace draws them, left to right. Each recorded pair is drawn
+ * from its earlier record to its later one: a control and the requirement that meets it, a
+ * requirement and its evidence, evidence and the issue that cites it, a requirement and the issue
+ * that names it (drawn across the evidence and findings stages), a control and the finding that
+ * judges it (across requirements and evidence), evidence and the finding that cites it, a finding
+ * and the issue it became, an issue and the risk that rests on it, a finding and the risk it raised
+ * (across the issues), and a risk and the remediation item whose commitment cites it. An item
+ * linked to an issue is read after the risk, so it is linked from each risk of its issue, and
+ * straight from the issue when no risk in the trace rests on it.
  */
 export function traceLinks(trace: AssuranceTrace): TraceLink[] {
   const links: TraceLink[] = [];
@@ -241,13 +281,25 @@ export function traceLinks(trace: AssuranceTrace): TraceLink[] {
     add(traceKey("control", control), traceKey("requirement", requirement));
   for (const [requirement, evidence] of trace.links.requirement_evidence)
     add(traceKey("requirement", requirement), traceKey("evidence", evidence));
+  for (const [control, finding] of trace.links.control_finding)
+    add(traceKey("control", control), traceKey("finding", finding));
+  for (const [evidence, finding] of trace.links.evidence_finding)
+    add(traceKey("evidence", evidence), traceKey("finding", finding));
   for (const [evidence, issue] of trace.links.evidence_issue)
     add(traceKey("evidence", evidence), traceKey("issue", issue));
+  for (const [requirement, issue] of trace.links.requirement_issue)
+    add(traceKey("requirement", requirement), traceKey("issue", issue));
+  for (const [finding, issue] of trace.links.finding_issue)
+    add(traceKey("finding", finding), traceKey("issue", issue));
   const risksOf = new Map<string, string[]>();
   for (const [issue, risk] of trace.links.issue_risk) {
     add(traceKey("issue", issue), traceKey("risk", risk));
     risksOf.set(issue, [...(risksOf.get(issue) ?? []), risk]);
   }
+  for (const [finding, risk] of trace.links.finding_risk)
+    add(traceKey("finding", finding), traceKey("risk", risk));
+  for (const [risk, item] of trace.links.risk_remediation)
+    add(traceKey("risk", risk), traceKey("remediation", item));
   for (const [issue, item] of trace.links.issue_remediation) {
     const risks = risksOf.get(issue);
     if (risks?.length)
@@ -256,6 +308,10 @@ export function traceLinks(trace: AssuranceTrace): TraceLink[] {
   }
   return links;
 }
+
+/** Whether an assessor's determination falls short of satisfied: what a finding raises. */
+export const shortOfSatisfied = (determination: string) =>
+  determination === "partially_satisfied" || determination === "other_than_satisfied";
 
 /** A control family a trace reaches, with how many of its controls. */
 export type TraceFamily = { code: string; title: string | null; controls: number };
@@ -351,7 +407,8 @@ export const openRisk = (status: string) => status !== "closed";
 /**
  * A control's standing in each program that has a requirement meeting it, from a trace read
  * without a program: how many requirements, how many of them with evidence, and the open issues
- * and risks their evidence leads to.
+ * and risks the trace reaches in that program (those that name the requirements, cite their
+ * evidence or came from a finding on the control, and the risks they and the findings lead to).
  */
 export type ControlProgramLine = {
   programId: string;

@@ -373,7 +373,14 @@ export {
 export { Icon, type IconColorToken, type IconProps, type IconSize } from "./icon";
 export { Id, IdList, type IdListProps, type IdProps } from "./id";
 
-export { Item, ItemGroup, type ItemGroupProps, type ItemProps, type ItemSize } from "./item";
+export {
+  Item,
+  ItemGroup,
+  type ItemGroupProps,
+  type ItemIdWidth,
+  type ItemProps,
+  type ItemSize,
+} from "./item";
 export {
   Kbd,
   KbdGroup,

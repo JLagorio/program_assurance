@@ -18,7 +18,7 @@ import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
 const { Matrix: Grid } = storyLayout;
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 const meta = {
   title: "Components/Count",
@@ -189,6 +189,35 @@ export const Dont: Story = {
       />
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    const count = (half: HTMLElement) => half.querySelector<HTMLElement>('[data-slot="count"]')!;
+    const digits = (half: HTMLElement) => count(half).textContent!.replace(/\D/g, "").length;
+    // A count is named by the word beside it; alone, nothing says what it counts.
+    const named = halves(canvasElement, 0);
+    await expect(named.do).toHaveTextContent(/^Findings\s*3$/);
+    await expect(named.dont).toHaveTextContent(/^3$/);
+    // A severity is a word with a Dot; a red count says only a number and leaves the rank to
+    // colour.
+    const severity = halves(canvasElement, 1);
+    const indicator = severity.do.querySelector<HTMLElement>('[data-slot="indicator"]')!;
+    await expect(indicator).toHaveTextContent("High");
+    await expect(indicator.querySelector('[data-slot="dot"]')).not.toBeNull();
+    await expect(severity.dont).toHaveTextContent(/^3$/);
+    await expect(count(severity.dont)).toHaveAttribute("data-appearance", "important");
+    // A state is a Badge; a Count's round pill holds a number, and the Don't puts a word in it.
+    const state = halves(canvasElement, 2);
+    await expect(
+      within(state.do).getByText("Verified").closest('[data-slot="badge"]'),
+    ).not.toBeNull();
+    await expect(state.do.querySelector('[data-slot="count"]')).toBeNull();
+    await expect(count(state.dont)).toHaveTextContent("Verified");
+    await expect(digits(state.dont)).toBe(0);
+    // Past its ceiling the pill says so in three digits; the Don't's six belong in a Stat.
+    const ceiling = halves(canvasElement, 3);
+    await expect(count(ceiling.do)).toHaveTextContent("999+");
+    await expect(digits(ceiling.do)).toBe(3);
+    await expect(digits(ceiling.dont)).toBe(6);
+  },
 };
 
 export const Playground: Story = {};

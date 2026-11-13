@@ -18,7 +18,7 @@ import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
 const { Matrix } = storyLayout;
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 const meta = {
   title: "Components/Alert",
@@ -272,4 +272,34 @@ export const Dont: Story = {
       />
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    const failure = halves(canvasElement, 0);
+    // The Do says it failed with a shape as well as a colour, under a title, and its way out is
+    // part of the message.
+    const message = within(failure.do).getByRole("alert");
+    await expect(message.querySelector('[data-slot="alert-icon"]')).not.toBeNull();
+    await expect(message.querySelector('[data-slot="alert-title"]')).toHaveTextContent(
+      "Records could not be refreshed",
+    );
+    await expect(message).toContainElement(
+      within(failure.do).getByRole("button", { name: "Try again" }),
+    );
+    // The Don't says it in colour alone, and its retry stands outside the message.
+    const bar = failure.dont.querySelector<HTMLElement>('[data-slot="alert"]')!;
+    await expect(
+      bar.querySelector('[data-slot="alert-icon"], [data-slot="alert-title"]'),
+    ).toBeNull();
+    await expect(bar).not.toContainElement(
+      within(failure.dont).getByRole("button", { name: "Retry loading" }),
+    );
+    // A standing note is read in place; the Don't announces it as a failure on arrival.
+    const note = halves(canvasElement, 1);
+    await expect(within(note.do).getByRole("note")).toHaveTextContent(
+      "Viewers cannot edit this program",
+    );
+    await expect(within(note.do).queryByRole("alert")).toBeNull();
+    await expect(within(note.dont).getByRole("alert")).toHaveTextContent(
+      "Viewers cannot edit this program",
+    );
+  },
 };

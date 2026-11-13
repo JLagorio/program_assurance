@@ -93,7 +93,7 @@ export function Splitter({
       setAreaHeight(el.clientHeight);
     };
     update();
-    // Main as well as the area: opening the panel or the aside changes how far this area may grow.
+    // Main as well as the area: opening the panel changes how far this area may grow.
     const observer = new ResizeObserver(update);
     observer.observe(el);
     const main = el.closest('[data-slot="shell"]')?.querySelector(MAIN);

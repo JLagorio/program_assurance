@@ -9,7 +9,7 @@ import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
 const { Specimens } = storyLayout;
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 const meta = {
   title: "Components/List",
@@ -180,6 +180,18 @@ export const Dont: Story = {
       />
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    // Two things to fix are a list of two; typed bullets are two sentences that start with one.
+    const list = halves(canvasElement, 0);
+    const items = within(within(list.do).getByRole("list")).getAllByRole("listitem");
+    await expect(items).toHaveLength(2);
+    await expect(within(list.dont).queryByRole("list")).toBeNull();
+    await expect(within(list.dont).getAllByText(/^• /)).toHaveLength(2);
+    // Steps in order are numbered; bullets say nothing of which comes first.
+    const order = halves(canvasElement, 1);
+    await expect(within(order.do).getByRole("list").tagName).toBe("OL");
+    await expect(within(order.dont).getByRole("list").tagName).toBe("UL");
+  },
 };
 
 export const Playground: Story = {};

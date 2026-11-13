@@ -64,6 +64,7 @@ import {
   useDescribePoint,
   useFrame,
   useFrameData,
+  useFontLoads,
   useFrameReport,
   useMotion,
   usePicked,
@@ -348,15 +349,18 @@ export function ChartBar({
   const active = useRef<Active | null>(null);
   const locate = useRef<Locate | null>(null);
   const [plotWidth, setPlotWidth] = useState<number | undefined>(undefined);
+  // Every label below is measured again once the page's font has loaded.
+  const fonts = useFontLoads();
   const categoryText = (d: ChartDatum) => formatX((d[x] as string | number | undefined) ?? "");
   // A horizontal chart's category column: as wide as its longest name, 56px to 160px.
   const categoryWidth = useMemo(() => {
+    void fonts;
     const longest = Math.max(
       0,
       ...data.map((d) => labelWidth(formatX((d[x] as string | number | undefined) ?? ""))),
     );
     return Math.min(160, Math.max(56, 8 + longest));
-  }, [data, x, formatX]);
+  }, [data, x, formatX, fonts]);
   const keys = useMemo(() => series.map((s) => s.key), [series]);
   const negative = useMemo(() => hasNegative(data, keys), [data, keys]);
   const valueWidth = useMemo(

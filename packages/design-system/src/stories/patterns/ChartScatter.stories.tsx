@@ -10,7 +10,7 @@ import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
 const { Specimens } = storyLayout;
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 /** Open findings on two measures: how long each has been open, and what it exposes. POA-118 and POA-131 sit at the same place. */
 const findings = [
@@ -563,6 +563,25 @@ export const Dont: Story = {
       />
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    const { do: good, dont: bad } = halves(canvasElement);
+    const legend = (half: HTMLElement) =>
+      half.querySelectorAll('[data-slot="chart-legend"] li').length;
+    const fills = (half: HTMLElement) =>
+      new Set(
+        Array.from(half.querySelectorAll('.recharts-scatter [fill^="var("]'), (point) =>
+          point.getAttribute("fill"),
+        ),
+      );
+    // Three groups in the status tones, because the groups are statuses.
+    await expect(legend(good)).toBe(3);
+    await waitFor(() => expect(fills(good).size).toBe(3));
+    for (const fill of fills(good)) await expect(fill).toMatch(/danger|warning|neutral/);
+    // Five owners in five categorical hues, and a legend as long as the plot.
+    await expect(legend(bad)).toBe(5);
+    await waitFor(() => expect(fills(bad).size).toBe(5));
+    for (const fill of fills(bad)) await expect(fill).toMatch(/categorical/);
+  },
 };
 
 export const Playground: Story = {

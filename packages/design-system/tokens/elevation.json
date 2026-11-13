@@ -42,6 +42,16 @@
           }
         }
       },
+      "tray": {
+        "$value": "{color.neutral.200}",
+        "$description": "A Tray's fill: a well a step deeper than elevation.surface.sunken in light, so a tray of raised cards reads apart from a white page. In dark it is the sunken surface, already well below the page.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.darkNeutral.-100}",
+            "introduced": "0.8.0"
+          }
+        }
+      },
       "raised": {
         "default": {
           "$value": "{color.neutral.0}",

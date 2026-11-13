@@ -1,7 +1,8 @@
 // ledger/no-deprecated-token: a deprecated token class, fixed in place to its replacement where the
-// source can be rewritten as it reads, and explained where it cannot. The one deprecated token is
+// source can be rewritten as it reads, and explained where it cannot. The cases use
 // fill-chart-categorical-8, replaced by fill-chart-categorical-7.
 import ledger from "../../eslint-plugin/index.js";
+import { deprecated } from "../../eslint-plugin/classes.js";
 import { render } from "../../eslint-plugin/report.js";
 import { allowKey, PRODUCT } from "../lint-helpers.mjs";
 
@@ -10,6 +11,20 @@ const to = "fill-chart-categorical-7";
 const { messages } = ledger.rules["no-deprecated-token"].meta;
 const replace = { cls: from, replacement: to };
 const byHand = (reason) => ({ messageId: "replaceByHand", data: { ...replace, reason } });
+
+// Every deprecated token that a class paints has a replacement the rule can write, so the message
+// that names none is reached through two fixture tokens, listed as the token build lists one in
+// src/generated/utilities.json: one with no replacement, and one whose replacement's class is no
+// class the kit generates, which ledger/no-non-token-class would report. Neither class is any
+// token's, so they reach nothing but these cases.
+const retired = "bg-retired-token";
+const orphaned = "bg-orphaned-token";
+deprecated["color.background.retired"] = { class: retired };
+deprecated["color.background.orphaned"] = {
+  replacement: "color.background.orphan",
+  class: orphaned,
+  replacementClass: "bg-orphan",
+};
 
 export default {
   valid: [
@@ -26,6 +41,21 @@ export default {
       code: `<path className="${from}" />`,
       output: `<path className="${to}" />`,
       errors: [{ messageId: "replace", data: replace, line: 1, column: 17 }],
+    },
+    {
+      // A token with no replacement is named alone, and nothing is written.
+      code: `<div className="${retired} w-full" />`,
+      output: null,
+      errors: [{ messageId: "deprecated", data: { cls: retired }, line: 1, column: 16 }],
+    },
+    {
+      // A replacement another class rule would report is not asked for either; the class keeps
+      // its variants.
+      code: `export const c = cn("hover:${orphaned}", "w-full");`,
+      output: null,
+      errors: [
+        { messageId: "deprecated", data: { cls: `hover:${orphaned}` }, line: 1, column: 21 },
+      ],
     },
     {
       // Variants and both important marks keep their places.

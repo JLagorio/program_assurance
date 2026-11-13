@@ -7,6 +7,7 @@ import { ProductLibraryRecord, type ProductTab } from "@/components/prototype/li
 /** Every tab the record has: a record, so the type checker notices a tab added or removed there. */
 const productTabs: Record<ProductTab, true> = {
   Overview: true,
+  Assessment: true,
   Structure: true,
   Configurations: true,
   Variants: true,

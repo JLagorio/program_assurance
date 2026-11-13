@@ -101,7 +101,7 @@ const originLabel: Record<WizardParameterPreview["origin"], string> = {
  * parameters name items of the cyber resiliency framework. `undefined` for every other parameter,
  * and for these five while the framework's reference data is not loaded: the values are then typed.
  */
-type Offer =
+export type Offer =
   | { state: "loading" }
   | { state: "failed"; retrying: boolean; retry: () => void }
   | {
@@ -113,9 +113,10 @@ type Offer =
 
 /**
  * The cyber resiliency vocabulary, read once as the dialog opens on a set that holds one of
- * SA-24's parameters, and what each parameter is offered from it.
+ * SA-24's parameters, and what each parameter is offered from it. An overlay's Set parameter values
+ * offers the same.
  */
-function useOffers(enabled: boolean) {
+export function useOffers(enabled: boolean) {
   const items = useFrameworkItems(CYBER_RESILIENCY_FRAMEWORK, { kinds: RESILIENCY_KINDS, enabled });
   const framework = useFramework(CYBER_RESILIENCY_FRAMEWORK, { enabled });
   const title = framework.data?.title;
@@ -388,10 +389,12 @@ type ParameterField = "values" | "rationale";
  * How the values are entered: a Select for one literal choice, several from a list for more (boxes,
  * or a searched list under headings when the choices come in groups), else lines of text.
  */
-type EntryMode = "one" | "many" | "text";
+export type EntryMode = "one" | "many" | "text";
 
-function entryMode(
-  item: WizardParameterPreview,
+export function entryMode(
+  item: Pick<WizardParameterPreview, "choices" | "values"> & {
+    parameter: Pick<WizardParameterPreview["parameter"], "has_selection" | "selection_count">;
+  },
   vocabulary: ResiliencyVocabulary | undefined,
 ): EntryMode {
   // A vocabulary's titles are chosen as a source's choices are, several at once. A value that
@@ -501,6 +504,129 @@ function GroupedChoices({
     </Field>
   );
 }
+
+/**
+ * A parameter's values, entered the way its kind asks (`entryMode`): a Select for one literal
+ * choice, boxes for several, a searched list of chips for a vocabulary that prints its choices
+ * under headings, lines of text otherwise; while a vocabulary loads, a skeleton keeps its place.
+ * The tailoring's parameter editor and an overlay's Set parameter values both draw it.
+ */
+export function ParameterValueEntry({
+  mode,
+  waiting,
+  sourceChoices,
+  choices,
+  vocabulary,
+  source,
+  choiceHeading,
+  one,
+  chosen,
+  text,
+  onOne,
+  onPick,
+  onText,
+  error,
+  controlRef,
+}: {
+  mode: EntryMode;
+  /** The vocabulary is on its way: the field keeps its place. */
+  waiting: boolean;
+  /** The parameter's own choices, as the source prints them. */
+  sourceChoices: readonly string[];
+  /** What the values are picked from: the vocabulary's titles, else the source's choices. */
+  choices: readonly string[];
+  vocabulary: ResiliencyVocabulary | undefined;
+  /** Where the vocabulary is printed, said under the field. */
+  source: string | undefined;
+  /** "Source choices", with how many may be chosen. */
+  choiceHeading: string;
+  one: string | null;
+  chosen: string[];
+  text: string;
+  onOne: (value: string | null) => void;
+  onPick: (next: string[]) => void;
+  onText: (value: string) => void;
+  error: string | undefined;
+  /** Where an error sends focus. */
+  controlRef: (node: HTMLElement | null) => void;
+}) {
+  if (waiting)
+    return (
+      <div aria-busy="true">
+        <Skeleton shape="block" />
+        <VisuallyHidden role="status">Loading the choices</VisuallyHidden>
+      </div>
+    );
+  if (mode === "one")
+    return (
+      <ChoiceField
+        label="Parameter value"
+        value={one}
+        onChange={onOne}
+        options={sourceChoices.map((choice) => ({ value: choice, label: choice }))}
+        required
+        error={error}
+        controlRef={controlRef}
+        description="One of the source's choices."
+      />
+    );
+  if (mode === "many" && vocabulary?.groups.length)
+    return (
+      <GroupedChoices
+        label="Parameter values"
+        groups={vocabulary.groups}
+        value={chosen}
+        onChange={onPick}
+        words={listWords[vocabulary.list]}
+        description={source}
+        error={error}
+        controlRef={controlRef}
+      />
+    );
+  if (mode === "many")
+    return (
+      <Field invalid={error ? true : undefined} required>
+        <CheckboxGroup value={chosen} onValueChange={onPick}>
+          <FieldLegend variant="label">Parameter values</FieldLegend>
+          {vocabulary ? (
+            source ? (
+              <FieldDescription>{source}</FieldDescription>
+            ) : null
+          ) : (
+            <FieldDescription>{choiceHeading}.</FieldDescription>
+          )}
+          {choices.map((choice, index) => (
+            <Field key={choice} orientation="horizontal">
+              {/* The first box is where an error sends focus. */}
+              <Checkbox value={choice} {...(index === 0 ? { ref: controlRef } : {})} />
+              <FieldLabel>{choice}</FieldLabel>
+            </Field>
+          ))}
+          {error ? <FieldError>{error}</FieldError> : null}
+        </CheckboxGroup>
+      </Field>
+    );
+  return (
+    <TextField
+      label="Parameter values"
+      value={text}
+      onChange={onText}
+      required
+      multiline
+      error={error}
+      controlRef={controlRef}
+      description={
+        sourceChoices.length
+          ? "One value per line, each matching one of the source's choices."
+          : "One value per line."
+      }
+    />
+  );
+}
+
+/** "Source choices", with how many of them a parameter takes. */
+export const choiceHeadingOf = (parameter: { selection_count: string | null }) =>
+  `Source choices${parameter.selection_count ? ` · ${parameter.selection_count.replaceAll("-", " ")}` : ""}`;
 
 function ParameterEditor({
   formId,
@@ -619,7 +745,7 @@ function ParameterEditor({
     setRecorded("recorded");
     onDirty(false);
   }
-  const choiceHeading = `Source choices${parameter.selection_count ? ` · ${parameter.selection_count.replaceAll("-", " ")}` : ""}`;
+  const choiceHeading = choiceHeadingOf(parameter);
   return (
     <form
       id={formId}
@@ -710,79 +836,29 @@ function ParameterEditor({
                     </Alert>
                   ) : null}
                   <ErrorSummary issues={feedback.summary} focusKey={feedback.attempts} />
-                  {waiting ? (
-                    <div aria-busy="true">
-                      <Skeleton shape="block" />
-                      <VisuallyHidden role="status">Loading the choices</VisuallyHidden>
-                    </div>
-                  ) : mode === "one" ? (
-                    <ChoiceField
-                      label="Parameter value"
-                      value={values[0] ?? null}
-                      onChange={(value) => {
-                        setValues(value ? [value] : []);
-                        changed();
-                      }}
-                      options={item.choices.map((choice) => ({ value: choice, label: choice }))}
-                      required
-                      error={errorFor("values")}
-                      controlRef={feedback.ref("values")}
-                      description="One of the source's choices."
-                    />
-                  ) : mode === "many" && vocabulary?.groups.length ? (
-                    <GroupedChoices
-                      label="Parameter values"
-                      groups={vocabulary.groups}
-                      value={chosen}
-                      onChange={pick}
-                      words={listWords[vocabulary.list]}
-                      description={source}
-                      error={errorFor("values")}
-                      controlRef={feedback.ref("values")}
-                    />
-                  ) : mode === "many" ? (
-                    <Field invalid={errorFor("values") ? true : undefined} required>
-                      <CheckboxGroup value={chosen} onValueChange={pick}>
-                        <FieldLegend variant="label">Parameter values</FieldLegend>
-                        {vocabulary ? (
-                          source ? (
-                            <FieldDescription>{source}</FieldDescription>
-                          ) : null
-                        ) : (
-                          <FieldDescription>{choiceHeading}.</FieldDescription>
-                        )}
-                        {choices.map((choice, index) => (
-                          <Field key={choice} orientation="horizontal">
-                            {/* The first box is where an error sends focus. */}
-                            <Checkbox
-                              value={choice}
-                              {...(index === 0 ? { ref: feedback.ref("values") } : {})}
-                            />
-                            <FieldLabel>{choice}</FieldLabel>
-                          </Field>
-                        ))}
-                        {errorFor("values") ? <FieldError>{errorFor("values")}</FieldError> : null}
-                      </CheckboxGroup>
-                    </Field>
-                  ) : (
-                    <TextField
-                      label="Parameter values"
-                      value={text}
-                      onChange={(value) => {
-                        setText(value);
-                        changed();
-                      }}
-                      required
-                      multiline
-                      error={errorFor("values")}
-                      controlRef={feedback.ref("values")}
-                      description={
-                        item.choices.length
-                          ? "One value per line, each matching one of the source's choices."
-                          : "One value per line."
-                      }
-                    />
-                  )}
+                  <ParameterValueEntry
+                    mode={mode}
+                    waiting={waiting}
+                    sourceChoices={item.choices}
+                    choices={choices}
+                    vocabulary={vocabulary}
+                    source={source}
+                    choiceHeading={choiceHeading}
+                    one={values[0] ?? null}
+                    chosen={chosen}
+                    text={text}
+                    onOne={(value) => {
+                      setValues(value ? [value] : []);
+                      changed();
+                    }}
+                    onPick={pick}
+                    onText={(value) => {
+                      setText(value);
+                      changed();
+                    }}
+                    error={errorFor("values")}
+                    controlRef={feedback.ref("values")}
+                  />
                   <TextField
                     label="Parameter override rationale"
                     value={rationale}

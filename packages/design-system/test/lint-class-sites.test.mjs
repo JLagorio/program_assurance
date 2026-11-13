@@ -268,27 +268,20 @@ test("objectsOf follows a member into a map, and a written object is unreadable"
     (context, value) => objectsOf(context, value),
   );
   assert.equal(inner.properties[0].key.name, "padding");
-  for (const mode of ["vocabulary", "contextual"]) {
-    const reasons = [];
-    const [found] = ask(
-      "const s = { width: 1 }; mutate(s); s.width = el.offsetWidth; export const A = () => <div style={s} />;",
-      (context, value) => objectsOf(context, value, { mode, onUnreadable: unreadable(reasons) }),
-    );
-    assert.deepEqual([found, reasons], [[], ["reassigned"]], mode);
-  }
+  const reasons = [];
+  const [found] = ask(
+    "const s = { width: 1 }; mutate(s); s.width = el.offsetWidth; export const A = () => <div style={s} />;",
+    (context, value) => objectsOf(context, value, { onUnreadable: unreadable(reasons) }),
+  );
+  assert.deepEqual([found, reasons], [[], ["reassigned"]]);
 });
 
-test("an object handed to a call is read for its vocabulary, and unreadable in context", () => {
+test("an object handed to a call is still read", () => {
   const code = "const s = { width: 1 }; mutate(s); export const A = () => <div style={s} />;";
   assert.equal(ask(code, (context, value) => objectsOf(context, value))[0].length, 1);
-  const reasons = [];
-  const [found] = ask(code, (context, value) =>
-    objectsOf(context, value, { mode: "contextual", onUnreadable: unreadable(reasons) }),
-  );
-  assert.deepEqual([found, reasons], [[], ["escaped"]]);
 });
 
-test("leaves reads a const to its literal; a variable written again gives every value in vocabulary, none in context", () => {
+test("leaves reads a const to its literal; a variable written again gives every value", () => {
   const [[width]] = ask(
     "const W = 288;\nexport const A = () => <div style={W} />;",
     (context, value) => leaves(context, value),
@@ -296,20 +289,19 @@ test("leaves reads a const to its literal; a variable written again gives every 
   assert.deepEqual([width.value, width.loc.start.line], [288, 1]);
   const code =
     'let w = 1; if (wide) w = 2; w ??= measure(); w += " 3"; w += "4"; export const A = () => <div style={w} />;';
-  const read = (mode) => {
+  const read = () => {
     const reasons = [];
     const [found] = ask(code, (context, value) =>
-      leaves(context, value, { mode, onUnreadable: unreadable(reasons) }),
+      leaves(context, value, { onUnreadable: unreadable(reasons) }),
     );
     return [found.map((leaf) => leaf.value), reasons];
   };
   // The appended " 3" starts with whitespace, so it is a value of its own; "4" glues to the value
   // before it, which no expression states.
-  assert.deepEqual(read("vocabulary"), [
+  assert.deepEqual(read(), [
     [1, 2, " 3"],
     ["call", "reassigned"],
   ]);
-  assert.deepEqual(read("contextual"), [[], ["reassigned"]]);
   // A write the file does not state as a value (a counter, a member write) leaves it unreadable.
   for (const written of [
     "let w = 1; w++;",
@@ -326,10 +318,8 @@ test("leaves reads a const to its literal; a variable written again gives every 
 
 test("the walk reads Object.freeze, an enum, useState, useCallback and a callback's list element", () => {
   // Every style attribute's leaves, in order.
-  const values = (code, mode) =>
-    ask(code, (context, value) =>
-      leaves(context, value, { mode }).map((leaf) => leaf.value),
-    ).flat();
+  const values = (code) =>
+    ask(code, (context, value) => leaves(context, value).map((leaf) => leaf.value)).flat();
   assert.deepEqual(
     values(
       'const m = Object.freeze({ a: "x", b: "y" }); export const A = ({ k }) => <i style={m[k]} />;',
@@ -357,8 +347,6 @@ test("the walk reads Object.freeze, an enum, useState, useCallback and a callbac
   const tabs =
     'const TABS = [{ id: "a", pad: "x" }, { id: "b", pad: "y" }]; export const A = () => TABS.map((tab) => <i key={tab.id} style={tab.pad} />);';
   assert.deepEqual(values(tabs), ["x", "y"]);
-  // In context a callback's element is one of many, so it stays a parameter.
-  assert.deepEqual(values(tabs, "contextual"), []);
   assert.deepEqual(
     values(
       'const TABS = { a: { pad: "x" } }; export const A = () => Object.values(TABS).map(({ pad }) => <i style={pad} />);',
@@ -393,18 +381,13 @@ test("leaves follows a destructured slot through a branch, a function and useMem
   );
 });
 
-test("memberValues reads every entry for a runtime key in vocabulary mode, none in context", () => {
+test("memberValues reads every entry for a runtime key", () => {
   const code =
     'const tones = { a: "x", b: "y" }; export const A = ({ t }) => <i style={tones[t]} />;';
   assert.deepEqual(
     ask(code, (context, value) => memberValues(context, value).map((node) => node.value))[0],
     ["x", "y"],
   );
-  const reasons = [];
-  const [found] = ask(code, (context, value) =>
-    memberValues(context, value, { mode: "contextual", onUnreadable: unreadable(reasons) }),
-  );
-  assert.deepEqual([found, reasons], [[], ["computed-key"]]);
 });
 
 test("entriesOf flattens a same-file spread, and says what it cannot read", () => {

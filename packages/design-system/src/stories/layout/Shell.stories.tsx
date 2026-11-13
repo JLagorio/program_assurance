@@ -88,7 +88,7 @@ import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
 const { Specimens } = storyLayout;
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 const meta = {
   title: "Layout/Shell",
@@ -874,7 +874,19 @@ export const Remembered: Story = {
     // The flyout still shows while the browser remembers the side nav collapsed.
     const toggle = canvas.getByRole("button", { name: "Expand side navigation" });
     await userEvent.hover(toggle);
-    await waitFor(() => expect(sideNav()).toBeVisible());
+    const flyout = await waitFor(() => {
+      const nav = sideNav();
+      expect(nav).toBeVisible();
+      return nav!;
+    });
+    // It lands before the pointer leaves. It flies out over the frame's top-left corner, where the
+    // test browser's own pointer rests, and Chromium on Linux tells it that pointer has entered once
+    // the slide ends: entered after the leave, it would stay open, as it should for a pointer that
+    // rests on it.
+    await Promise.all(
+      flyout.getAnimations().map((animation) => animation.finished.catch(() => undefined)),
+    );
+    await nextFrames();
     await userEvent.unhover(toggle);
     await waitFor(() => expect(sideNav()).not.toBeInTheDocument());
     // Leave it as found.
@@ -1083,15 +1095,13 @@ function RecordDetails() {
   );
 }
 
-/** A route composes its header, tabs and supporting context inside the persistent shell. The Details are Overview's: an AsideLayout in its panel, the rail beside the body where it fits and the Details disclosure above it where it does not. `placement="shell"` renders the Aside on its own instead, which takes the shell's area beside Main (deprecated). */
+/** A route composes its header, tabs and supporting context inside the persistent shell. The Details are Overview's: an AsideLayout in its panel, the rail beside the body where it fits and the Details disclosure above it where it does not. */
 function RecordDemo({
   sideNavWidth,
   shortcut,
-  placement = "layout",
 }: {
   sideNavWidth?: number | undefined;
   shortcut?: boolean | undefined;
-  placement?: "layout" | "shell" | undefined;
 } = {}) {
   const [tab, setTab] = useState<(typeof tabs)[number]>("Overview");
   return (
@@ -1151,7 +1161,7 @@ function RecordDemo({
               ))}
             </TabsList>
             <TabsContent value={tab}>
-              <RecordTab tab={tab} placement={placement} />
+              <RecordTab tab={tab} />
             </TabsContent>
           </Tabs>
         </Stack>
@@ -1161,16 +1171,9 @@ function RecordDemo({
 }
 
 /** A tab's work; on Overview, beside the record's Details. */
-function RecordTab({
-  tab,
-  placement,
-}: {
-  tab: (typeof tabs)[number];
-  placement: "layout" | "shell";
-}) {
+function RecordTab({ tab }: { tab: (typeof tabs)[number] }) {
   const work = (
     <Stack space="space.300" className="min-w-0">
-      {tab === "Overview" && placement === "shell" ? <RecordDetails /> : null}
       <Section title={tab} count={tab === "Overview" ? undefined : 12}>
         <Stack space="space.100">
           <Text color="color.text.subtle">
@@ -1198,11 +1201,7 @@ function RecordTab({
       </Section>
     </Stack>
   );
-  return tab === "Overview" && placement === "layout" ? (
-    <AsideLayout aside={<RecordDetails />}>{work}</AsideLayout>
-  ) : (
-    work
-  );
+  return tab === "Overview" ? <AsideLayout aside={<RecordDetails />}>{work}</AsideLayout> : work;
 }
 
 /** A record's Details are its Overview's, an AsideLayout's Aside; selected work occupies Panel; modal flows use Sheet. */
@@ -1574,6 +1573,52 @@ export const Dont: Story = {
       />
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    const links = (half: HTMLElement) =>
+      within(half)
+        .getAllByRole("link")
+        .map((link) => link.textContent?.trim());
+    // The side nav holds what the reader opens, every program among it; phases in the nav are one
+    // program's states, and every other program is nowhere.
+    const objects = halves(canvasElement, 0);
+    await expect(links(objects.do)).toContain("Programs");
+    await expect(links(objects.dont)).toEqual([
+      "Categorize",
+      "Select",
+      "Implement",
+      "Assess",
+      "Authorize",
+    ]);
+    // Two levels at most: a section, one expandable, its items. The Don't nests three deep.
+    const levels = halves(canvasElement, 1);
+    const expandable = '[data-slot="shell-sidenav-expandable"]';
+    const depth = (half: HTMLElement) =>
+      Math.max(
+        ...Array.from(half.querySelectorAll(expandable), (element) => {
+          let count = 0;
+          for (let at: Element | null = element; at; at = at.parentElement!.closest(expandable))
+            count += 1;
+          return count;
+        }),
+      );
+    await expect(depth(levels.do)).toBe(1);
+    await expect(depth(levels.dont)).toBe(3);
+    // The end slot is named icon buttons; text buttons and a primary turn it into a sales slot.
+    const end = halves(canvasElement, 2);
+    for (const name of ["Help", "Notifications", "Settings"]) {
+      const item = within(end.do).getByRole("button", { name });
+      await expect(item.querySelector("svg")).not.toBeNull();
+      await expect(item.textContent!.trim()).toBe("");
+    }
+    await expect(end.do.querySelector('[data-button-variant="primary"]')).toBeNull();
+    await expect(within(end.dont).getByRole("button", { name: "Upgrade" })).toHaveAttribute(
+      "data-button-variant",
+      "primary",
+    );
+    await expect(within(end.dont).getByRole("button", { name: "Help centre" })).toHaveTextContent(
+      "Help centre",
+    );
+  },
 };
 
 /** Every part forwards its native props and its ref: an area takes a data attribute, the toggle a ref, the profile is a menu's trigger through render. */
@@ -2236,15 +2281,6 @@ const shellLaptop = {
   },
 };
 
-/** The deprecated Aside beside Main from the top of the page to its end, with Main at least its minimum. */
-async function checkRailBeside(main: HTMLElement, aside: HTMLElement) {
-  const box = (el: HTMLElement) => el.getBoundingClientRect();
-  await waitFor(() => expect(box(aside).left).toBeGreaterThanOrEqual(box(main).right - 1));
-  await expect(Math.abs(box(aside).top - box(main).top)).toBeLessThanOrEqual(1);
-  await expect(box(aside).bottom).toBeGreaterThanOrEqual(box(main).bottom - 1);
-  await expect(box(main).width).toBeGreaterThanOrEqual(mainMinimum());
-}
-
 /** The Details as Overview's rail: under the tab strip, beside the body at its end, inside Main. */
 async function checkRailInTab(canvasElement: HTMLElement, details: HTMLElement) {
   const canvas = within(canvasElement);
@@ -2283,26 +2319,6 @@ export const RecordRailLaptop: Story = {
     // Expanded again: the rail.
     await userEvent.click(canvas.getByRole("button", { name: "Expand side navigation" }));
     await checkRailInTab(canvasElement, details);
-  },
-};
-
-/**
- * An Aside rendered on its own, outside an AsideLayout, takes the shell's area beside Main from
- * the top of the page, a complementary landmark beside it (deprecated: give it to an AsideLayout).
- */
-export const DeprecatedShellAside: Story = {
-  name: "Aside beside Main (deprecated) at 1100px",
-  tags: ["!manifest"],
-  parameters: shellLaptop,
-  globals: { viewport: { value: "shellLaptop", isRotated: false } },
-  render: () => <RecordDemo placement="shell" />,
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement);
-    await waitFor(() => expect(window.innerWidth).toBe(1100));
-    const main = canvas.getByRole("main");
-    const aside = await canvas.findByRole("complementary", { name: "Record properties" });
-    await expect(main).not.toContainElement(aside);
-    await checkRailBeside(main, aside);
   },
 };
 
@@ -2888,7 +2904,9 @@ export const OverlayFocusPhone: Story = {
     await waitFor(() => expect(dialog.contains(doc.activeElement)).toBe(true));
     for (let step = 0; step < 3; step += 1) {
       await userEvent.tab();
-      await expect(dialog.contains(doc.activeElement)).toBe(true);
+      // Tab from the last control lands on the dialog's focus guard, which sends focus back to the
+      // first one on the next frame.
+      await waitFor(() => expect(dialog.contains(doc.activeElement)).toBe(true));
     }
     await userEvent.keyboard("{Escape}");
     await waitFor(() => expect(within(doc.body).queryByRole("dialog")).toBeNull());

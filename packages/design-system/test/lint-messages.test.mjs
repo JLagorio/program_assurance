@@ -32,7 +32,6 @@ const recorded = recordReports(await loadCases());
  * still rendered and checked.
  */
 const FIXTURES = {
-  "no-deprecated-token": { deprecated: { cls: "bg-retired-token" } },
   // Each reason the lint data is stale (data.js), through one of the rules that carry it.
   "no-arbitrary-value": {
     stale: {

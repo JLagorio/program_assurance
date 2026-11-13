@@ -497,6 +497,12 @@ export function RequirementsTable({
               onSelect: () =>
                 void navigate({ to: "/programs/$programId/workbook", params: { programId } }),
             },
+            {
+              // A customer's requirements with the program's answer to each, and Import requirements.
+              label: "Open compliance matrix",
+              onSelect: () =>
+                void navigate({ to: "/programs/$programId/compliance", params: { programId } }),
+            },
           ]}
           filters={
             <>

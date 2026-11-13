@@ -890,6 +890,9 @@
 @utility bg-surface-sunken {
   background-color: var(--ds-elevation-surface-sunken);
 }
+@utility bg-surface-tray {
+  background-color: var(--ds-elevation-surface-tray);
+}
 @utility bg-surface-raised {
   background-color: var(--ds-elevation-surface-raised);
 }

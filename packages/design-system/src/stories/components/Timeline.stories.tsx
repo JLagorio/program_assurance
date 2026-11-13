@@ -54,7 +54,7 @@ import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
 const { Specimens } = storyLayout;
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 const meta = {
   title: "Components/Timeline",
@@ -1137,6 +1137,42 @@ export const Dont: Story = {
       />
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    const events = (half: HTMLElement) =>
+      within(half)
+        .getAllByRole("listitem")
+        .map((event) => event.textContent);
+    // Newest first, so what just happened leads; oldest first leaves it at the bottom.
+    const order = halves(canvasElement, 0);
+    await expect(events(order.do)[0]).toContain("2h ago");
+    await expect(events(order.dont).at(-1)).toContain("2h ago");
+    // The title says what happened, the meta who and the description why; the whole story in
+    // the title is cut, and who did it is cut with it.
+    const story = halves(canvasElement, 1);
+    const whole = within(story.do).getByText("Due date moved");
+    await expect(whole.scrollWidth).toBeLessThanOrEqual(whole.clientWidth + 1);
+    await expect(within(story.do).getByText("Dana Whitfield · 14 Sep → 18 Sep")).toBeVisible();
+    await expect(within(story.do).getByText(/^Moved to line up/)).toBeVisible();
+    const cut = within(story.dont).getByText(/^Dana Whitfield moved the due date/);
+    await expect(cut.scrollWidth).toBeGreaterThan(cut.clientWidth + 1);
+    // A tone where the event has one; a colour on every marker says something went wrong.
+    const tones = halves(canvasElement, 2);
+    const marks = (half: HTMLElement) =>
+      Array.from(half.querySelectorAll('[data-slot="timeline-marker"] [data-slot="dot"]'), (dot) =>
+        dot.getAttribute("data-tone"),
+      );
+    await expect(marks(tones.do)).toEqual(["success", "neutral", "neutral", "neutral"]);
+    await expect(new Set(marks(tones.dont)).size).toBe(4);
+    await expect(marks(tones.dont)).toContain("danger");
+    // Records with a date are an Item list; on a rail they promise a story that is not there.
+    const records = halves(canvasElement, 3);
+    await expect(records.do.querySelector('[data-slot="item-group-list"]')).not.toBeNull();
+    await expect(records.do.querySelector('[data-slot="timeline"]')).toBeNull();
+    await expect(within(records.dont).getByRole("list", { name: "Evidence" })).toHaveAttribute(
+      "data-slot",
+      "timeline",
+    );
+  },
 };
 
 export const Playground: Story = {};

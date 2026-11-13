@@ -524,7 +524,7 @@ function createReader(context, { classFunctions, variantFunctions }, self) {
       if (!unresolved.some((entry) => entry.node === node && entry.reason === reason))
         unresolved.push({ node, reason, ...extra });
     };
-    const walk = valueWalker(context, { mode: "vocabulary" });
+    const walk = valueWalker(context);
     // How many resolutions deep the reader is: a helper call read directly (at depth 0) belongs to
     // this site; one reached through a name, a member or a function is a site of its own.
     let hops = 0;
@@ -1081,7 +1081,7 @@ function createReader(context, { classFunctions, variantFunctions }, self) {
   const spreadSites = (spread) =>
     remember(spread, () => {
       const list = [];
-      const walk = valueWalker(context, { mode: "vocabulary" });
+      const walk = valueWalker(context);
       for (const object of objectsOf(context, spread.argument)) {
         const last = new Map();
         for (const entry of walk.entriesOf(object))
@@ -1258,7 +1258,7 @@ function createReader(context, { classFunctions, variantFunctions }, self) {
   /** Whether a spread sets `key` whatever it is: every object it can be has the key, and the
       reader can read all of it. */
   const setsAlways = (argument, key) => {
-    const walk = valueWalker(context, { mode: "vocabulary" });
+    const walk = valueWalker(context);
     const { found, reasons } = walk.containers(argument);
     return (
       !reasons.length &&

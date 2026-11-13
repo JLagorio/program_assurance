@@ -12,9 +12,11 @@ const {
   determinations,
   evidenceReviewDecisions,
   operationalIssueStatuses,
+  reviewQueueKinds,
   riskLevels,
   riskStatuses,
   severityLevels,
+  stepDeterminations,
   taskPriorities,
   taskStatuses,
 } = await import("./status");
@@ -396,6 +398,8 @@ describe("the registers' views", () => {
       ],
       ["task_rows", "status_rank", Object.keys(taskStatuses)],
       ["task_rows", "priority_rank", Object.keys(taskPriorities)],
+      ["observation_rows", "result_rank", Object.keys(stepDeterminations)],
+      ["review_queue_rows", "kind_rank", Object.keys(reviewQueueKinds)],
     ];
     for (const [view, column, values] of expected)
       expect(ranks(view, column), `${view}.${column}`).toEqual(values);

@@ -20,7 +20,7 @@ import {
 import { VisuallyHidden } from "../primitives/visually-hidden";
 import { Skeleton } from "./skeleton";
 
-/** `neutral` is the sunken surface; `danger` is the bold fill, for the one count on a screen that cannot wait. */
+/** `neutral` is the tray's own sunken fill (`elevation.surface.tray`); `danger` is the bold fill, for the one count on a screen that cannot wait. */
 export type TrayTone = "neutral" | "danger";
 
 export type TrayProps = Omit<ComponentProps<"div">, "title" | "role"> & {
@@ -48,8 +48,8 @@ export type TrayProps = Omit<ComponentProps<"div">, "title" | "role"> & {
 };
 
 /** The surface a tray's children read, so a tile that paints the current surface paints the tray's. */
-const sunkenSurface = {
-  "--ds-utility-elevation-surface-current": "var(--ds-elevation-surface-sunken)",
+const traySurface = {
+  "--ds-utility-elevation-surface-current": "var(--ds-elevation-surface-tray)",
 } as CSSProperties;
 
 const isZero = (value: ReactNode) => value === 0 || value === "0";
@@ -135,10 +135,10 @@ export function Tray({
       data-tone={tone}
       className={cn(
         "flex min-w-0 flex-col gap-075 rounded-xlarge p-075",
-        bold ? "bg-danger-bold" : "bg-surface-sunken",
+        bold ? "bg-danger-bold" : "bg-surface-tray",
         className,
       )}
-      style={{ ...sunkenSurface, ...style }}
+      style={{ ...traySurface, ...style }}
     >
       <div
         data-slot="tray-header"

@@ -8,7 +8,7 @@ import { Stack } from "../../primitives";
 import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 /* Every story names its zone, so what it shows and submits does not depend on the machine. */
 const LosAngeles = ({ children }: { children: ReactNode }) => (
@@ -295,4 +295,16 @@ export const Dont: Story = {
       dontText="A moment with the zone hidden. Readers in two offices read the same time as two moments."
     />
   ),
+  play: async ({ canvasElement }) => {
+    const { do: good, dont: bad } = halves(canvasElement);
+    // The zone is in view beside the time, and the time is named with it.
+    const zone = good.querySelector<HTMLElement>('[data-slot="time-field-zone"]')!;
+    const long = zone.querySelector(".sr-only")!.textContent!;
+    const named = new RegExp(long.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+    await expect(zone).toBeVisible();
+    await expect(within(good).getByRole("spinbutton")).toHaveAccessibleName(named);
+    // Hidden, nothing on screen or in the time's name says which zone the time is in.
+    await expect(bad.querySelector('[data-slot="time-field-zone"]')).toBeNull();
+    await expect(within(bad).getByRole("spinbutton")).not.toHaveAccessibleName(named);
+  },
 };

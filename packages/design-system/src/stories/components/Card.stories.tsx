@@ -51,8 +51,9 @@ const slotBox = (scope: Element, slot: string) => {
 
 /**
  * Where a card header put its action (beside the title, or on its own row after the
- * description) and whether the header has the 16rem inside its inset that keeps it beside the
- * title (a card about 18rem wide).
+ * description) and whether the header has the room that keeps it beside the title: the title's
+ * readable measure (12rem, or the title's own width on one line when shorter), the gap and the
+ * action's controls side by side, whatever the card's width.
  */
 const headerLayout = (card: Element) => {
   const header = card.querySelector('[data-slot="card-header"]');
@@ -63,8 +64,20 @@ const headerLayout = (card: Element) => {
   const contentEnd = box.right - parseFloat(style.paddingInlineEnd);
   const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
   const action = slotBox(card, "card-action");
+  // The title's width on one line, read as the header reads it, and put back before paint.
+  const title = card.querySelector<HTMLElement>('[data-slot="card-title"]')!;
+  const width = title.style.width;
+  title.style.width = "max-content";
+  const titleWidth = title.getBoundingClientRect().width;
+  title.style.width = width;
+  const actionPart = card.querySelector<HTMLElement>('[data-slot="card-action"]')!;
+  const controls = [...actionPart.children].map((child) => child.getBoundingClientRect().width);
+  const actionWidth =
+    controls.reduce((sum, w) => sum + w, 0) +
+    (parseFloat(getComputedStyle(actionPart).columnGap) || 0) * Math.max(0, controls.length - 1);
+  const needed = Math.min(12 * rem, titleWidth) + parseFloat(style.columnGap) + actionWidth;
   return {
-    room: contentEnd - contentStart >= 16 * rem,
+    room: contentEnd - contentStart + 0.5 >= needed,
     beside: action.top < slotBox(card, "card-title").bottom,
     afterDescription: action.top >= slotBox(card, "card-description").bottom,
     atEnd: Math.abs(action.right - contentEnd) < 1,
@@ -130,9 +143,9 @@ export const Playground: Story = {
     const card = canvas.getByRole("region", { name: "Review preferences" });
     await expect(args.ref).toHaveBeenCalledWith(card);
     await expect(canvas.getByRole("heading", { level: 2 })).toHaveTextContent("Review preferences");
-    // At whatever width the story renders: with 16rem inside the header's inset (a card about
-    // 18rem wide) the action sits at the end of the title's row; in a narrower card it takes its
-    // own row after the description, at the end.
+    // At whatever width the story renders: where the header holds the title's readable measure
+    // beside the action, the action sits at the end of the title's row; where it does not, it
+    // takes its own row after the description, at the end.
     const layout = headerLayout(card);
     await expect(layout).toEqual({
       room: layout.room,
@@ -147,7 +160,7 @@ export const Playground: Story = {
   },
 };
 
-/** A full-width card on a 340px phone is about 18rem wide, so its short action stays at the end of the title's row. */
+/** A full-width card on a 340px phone holds the title beside its short action, so the action stays at the end of the title's row. */
 export const OnASmallPhone: Story = {
   name: "On a small phone",
   globals: { viewport: { value: "ledgerSmall", isRotated: false } },
@@ -161,6 +174,35 @@ export const OnASmallPhone: Story = {
       afterDescription: false,
       atEnd: true,
     });
+    await expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(
+      document.documentElement.clientWidth,
+    );
+  },
+};
+
+/** A full-width card on a 320px phone is 288px wide, 2px short of 16rem inside its header's inset. The header decides from the title's measure and the action, not from a fixed width, so the short action still sits at the end of the title's row. */
+export const OnANarrowPhone: Story = {
+  name: "On a narrow phone",
+  globals: { viewport: { value: "ledgerNarrow", isRotated: false } },
+  render: reviewPreferences,
+  play: async ({ canvasElement }) => {
+    await waitFor(() => expect(window.innerWidth).toBe(320));
+    const card = within(canvasElement).getByRole("region", { name: "Review preferences" });
+    const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
+    const header = card.querySelector<HTMLElement>('[data-slot="card-header"]')!;
+    const style = getComputedStyle(header);
+    // Less than 16rem inside the inset: the width at which a fixed fold would put it below.
+    await expect(
+      header.clientWidth - parseFloat(style.paddingInlineStart) - parseFloat(style.paddingInlineEnd),
+    ).toBeLessThan(16 * rem);
+    await waitFor(() =>
+      expect(headerLayout(card)).toEqual({
+        room: true,
+        beside: true,
+        afterDescription: false,
+        atEnd: true,
+      }),
+    );
     await expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(
       document.documentElement.clientWidth,
     );

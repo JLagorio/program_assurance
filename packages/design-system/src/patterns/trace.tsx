@@ -56,7 +56,7 @@ export type TraceStage = {
 
 /**
  * A link between two records, by their ids. It is drawn from the earlier stage to the later one,
- * whichever end is named first, and through any stage between them.
+ * whichever end is named first, and through any stage between them, one with no record included.
  */
 export type TraceLink = { from: string; to: string };
 
@@ -469,6 +469,15 @@ export function Trace({
                   <>
                     {stage.empty ? <p data-slot="trace-empty">{stage.empty}</p> : null}
                     {stage.action ? <div data-slot="trace-action">{stage.action}</div> : null}
+                    {column.length ? (
+                      // A stage with nothing in it still gives each link that passes it a gap of its
+                      // own, under what it says, so the wire runs through it and never over the words.
+                      <div data-slot="trace-passes" aria-hidden>
+                        {column.map((entry) => (
+                          <div key={entry.id} data-slot="trace-pass" data-trace-id={entry.id} />
+                        ))}
+                      </div>
+                    ) : null}
                   </>
                 )}
                 {more > 0 || open ? (

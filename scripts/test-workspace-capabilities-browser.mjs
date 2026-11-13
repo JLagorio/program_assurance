@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 import { chromium } from "playwright";
 import { setTimeout as wait } from "node:timers/promises";
 import { localWorkspace } from "./tests/local-workspace.mjs";
+import { artifactPath } from "./tests/artifacts.mjs";
 
 const origin = process.env.APP_TEST_URL ?? "http://localhost:8080";
 assert.ok(["localhost", "127.0.0.1"].includes(new URL(origin).hostname));
@@ -176,7 +177,7 @@ try {
   );
   await contained("Desktop saved views");
   await page.screenshot({
-    path: "/private/tmp/workspace-capabilities-programs-desktop.png",
+    path: artifactPath("workspace-capabilities-programs-desktop.png"),
     animations: "disabled",
   });
 
@@ -330,13 +331,13 @@ try {
   );
   await contained("Desktop attention");
   await page.screenshot({
-    path: "/private/tmp/workspace-capabilities-attention-desktop.png",
+    path: artifactPath("workspace-capabilities-attention-desktop.png"),
     animations: "disabled",
   });
   await page.setViewportSize({ width: 390, height: 844 });
   await contained("390px attention");
   await page.screenshot({
-    path: "/private/tmp/workspace-capabilities-attention-mobile.png",
+    path: artifactPath("workspace-capabilities-attention-mobile.png"),
     animations: "disabled",
   });
   await page.goto(`${origin}/programs`);
@@ -348,7 +349,7 @@ try {
   await dialog.getByRole("option").filter({ hasText: passage }).waitFor();
   await contained("390px source search");
   await page.screenshot({
-    path: "/private/tmp/workspace-capabilities-search-mobile.png",
+    path: artifactPath("workspace-capabilities-search-mobile.png"),
     animations: "disabled",
   });
   assert.deepEqual(errors, []);
@@ -362,7 +363,7 @@ try {
     console.error("Page error:", error.message);
     await page
       .screenshot({
-        path: "/private/tmp/workspace-capabilities-failure.png",
+        path: artifactPath("workspace-capabilities-failure.png"),
         animations: "disabled",
       })
       .catch(() => {});

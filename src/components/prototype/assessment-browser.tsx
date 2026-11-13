@@ -7,6 +7,7 @@ import {
   DateTime,
   Person,
   Prose,
+  Section,
   Stack,
   Tabs,
   TabsContent,
@@ -68,10 +69,18 @@ const day = (value: unknown) =>
 /** Campaigns, their events, their objectives and, within a program, its assessment scopes: registers under one tab strip, each on the kit's table with its own search, chips and create action. Choosing a campaign's event count opens its events with the Campaign chip already set. */
 export function AssessmentBrowser({
   programId,
+  layout = "tabs",
   tab: routeTab,
   onTabChange,
 }: {
   programId?: string;
+  /**
+   * How the collections share the surface. `tabs` is the Assessment campaigns page, a register
+   * page that holds several collections under its one h1. `sections` is a program's Assessment
+   * campaigns tab, where the program's own strip is the only one: the collections sit under
+   * Section headings, each compact with a secondary create action, as on POA&M & risk.
+   */
+  layout?: "tabs" | "sections" | undefined;
   /** The tab the address names, where the route keeps it; with no `onTabChange` the tab is local. */
   tab?: AssessmentKind | undefined;
   /** Puts the chosen tab in the address, as a new history entry. */
@@ -79,6 +88,7 @@ export function AssessmentBrowser({
 }) {
   const workspace = useWorkspace();
   const { formatPlural } = useLedgerLocale();
+  const sectioned = layout === "sections";
   const campaigns = useRows("assessment_campaigns", programId ? { program_id: programId } : {});
   const plans = useRows("assessment_plan_revisions");
   const events = useRows("assessment_events");
@@ -106,8 +116,10 @@ export function AssessmentBrowser({
   useEndOnHide(() => setSelection(null));
   const [displayed, setDisplayed] = useState<Record<string, DataRecord[]>>({});
   // A campaign's event count opens the Events tab; its button leaves with the Campaigns panel, so
-  // focus goes to the tab the reader is now on.
+  // focus goes to the tab the reader is now on. Under Section headings it brings the Events
+  // section into view and focus goes to it.
   const eventsTab = useRef<HTMLButtonElement>(null);
+  const eventsSection = useRef<HTMLElement>(null);
   // A name the reader cannot see stays null, so it sorts last and its cell says Absent.
   const partyName = useCallback(
     (id: string | null | undefined) =>
@@ -197,8 +209,9 @@ export function AssessmentBrowser({
   const add = (kind: AssessmentRecordKind, size: "small" | "medium") =>
     workspace.role !== "viewer" ? (
       <Button
-        size={size}
-        variant="primary"
+        // Among other collections under Section headings the create action is a small secondary.
+        size={sectioned ? "small" : size}
+        variant={sectioned ? "secondary" : "primary"}
         iconBefore={<Plus />}
         onClick={() =>
           edit({
@@ -293,286 +306,311 @@ export function AssessmentBrowser({
       </>
     );
   };
-  return (
-    <Stack space="space.200">
-      {form && <ModelForm target={form} onClose={() => setForm(null)} />}
-      <Tabs value={tab} onValueChange={(value) => setTab(value as AssessmentKind)}>
-        <TabsList variant="line" aria-label="Assessment collections">
-          {kinds.map((name) => (
-            <TabsTrigger value={name} key={name} {...(name === "Events" ? { ref: eventsTab } : {})}>
-              {name}
-              {/* Every strip counts the same way: 0 once the rows load, and up to 9999. */}
-              {counts[name] !== undefined ? <Count value={counts[name]} max={9999} /> : null}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-        <TabsContent value="Campaigns" keepMounted>
-          <AssessmentTable<CampaignRow>
-            model="assessment_campaigns"
-            fill
-            label="Campaigns"
-            view="assessment-campaigns"
-            rows={campaignRows}
-            queries={[campaigns, programs, parties, events]}
-            filters={["status"]}
-            actions={add("Campaigns", "small")}
-            selectedId={
-              selection?.table === "assessment_campaigns" ? selection.existing?.id : undefined
-            }
-            onDisplayedRowsChange={(rows) =>
-              setDisplayed((previous) => ({
-                ...previous,
-                assessment_campaigns: rows as unknown as DataRecord[],
-              }))
-            }
-            onPreview={inspect("assessment_campaigns")}
-            empty={{
-              illustration: "calendar",
-              title: "No campaigns yet",
-              description:
-                "Schedule an assessment campaign to plan its events and record their objectives.",
-              action: add("Campaigns", "medium"),
-            }}
-            // The name's 180 minimum and the status's 120 fit a phone's row together.
-            columns={[
-              { label: "Campaign", key: "title" },
-              ...(programId
-                ? []
-                : [
-                    {
-                      label: "Program",
-                      key: "program" as const,
-                      value: (row: CampaignRow) => row.program ?? <Absent label="Not available" />,
-                      width: 180,
-                      priority: 3,
-                    },
-                  ]),
+  const campaignsTable = (
+    <AssessmentTable<CampaignRow>
+      model="assessment_campaigns"
+      fill={!sectioned}
+      compact={sectioned}
+      label="Campaigns"
+      view="assessment-campaigns"
+      rows={campaignRows}
+      queries={[campaigns, programs, parties, events]}
+      filters={["status"]}
+      actions={add("Campaigns", "small")}
+      selectedId={selection?.table === "assessment_campaigns" ? selection.existing?.id : undefined}
+      onDisplayedRowsChange={(rows) =>
+        setDisplayed((previous) => ({
+          ...previous,
+          assessment_campaigns: rows as unknown as DataRecord[],
+        }))
+      }
+      onPreview={inspect("assessment_campaigns")}
+      empty={{
+        illustration: "calendar",
+        title: "No campaigns yet",
+        description:
+          "Schedule an assessment campaign to plan its events and record their objectives.",
+        action: add("Campaigns", "medium"),
+      }}
+      // The name's 180 minimum and the status's 120 fit a phone's row together.
+      columns={[
+        { label: "Campaign", key: "title" },
+        ...(programId
+          ? []
+          : [
               {
-                label: "Status",
-                key: "status",
-                statuses: campaignStatuses,
-                width: 120,
-                priority: 1,
-              },
-              {
-                label: "Owner",
-                key: "owner",
-                kind: "person",
-                value: (row) =>
-                  row.owner ? (
-                    <Person name={row.owner} />
-                  ) : (
-                    <Absent label={hidden(row.owner_party_id)} />
-                  ),
+                label: "Program",
+                key: "program" as const,
+                value: (row: CampaignRow) => row.program ?? <Absent label="Not available" />,
                 width: 180,
-                priority: 4,
-              },
-              { label: "Starts", key: "starts_at", width: 120, priority: 2 },
-              { label: "Ends", key: "ends_at", width: 120, priority: 5 },
-              {
-                label: "Events",
-                key: "events",
-                kind: "number",
-                width: 100,
-                priority: 6,
-                value: (row) =>
-                  row.events > 0 ? (
-                    <Button
-                      variant="link"
-                      size="small"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        setCampaignId(row.id);
-                        setTab("Events");
-                        requestAnimationFrame(() => eventsTab.current?.focus());
-                      }}
-                    >
-                      <VisuallyHidden>
-                        {`Show ${formatPlural(row.events, { one: "{count} event", other: "{count} events" })} of ${row.title}`}
-                      </VisuallyHidden>
-                      <span aria-hidden>{row.events}</span>
-                    </Button>
-                  ) : (
-                    row.events
-                  ),
-              },
-            ]}
-          />
-        </TabsContent>
-        <TabsContent value="Events" keepMounted>
-          <AssessmentTable
-            model="assessment_events"
-            selectedId={
-              selection?.table === "assessment_events" ? selection.existing?.id : undefined
-            }
-            onDisplayedRowsChange={(rows) =>
-              setDisplayed((previous) => ({
-                ...previous,
-                assessment_events: rows as DataRecord[],
-              }))
-            }
-            key={campaignId ?? "all"}
-            fill
-            label="Events"
-            view="assessment-events"
-            keepQuestion={`assessment-events-${campaignId ?? "all"}`}
-            rows={eventRows}
-            queries={[events, campaigns, plans]}
-            filters={["campaign", "status"]}
-            initialFilters={campaignFilter}
-            actions={add("Events", "small")}
-            empty={{
-              illustration: "calendar",
-              title: "No events yet",
-              description: "Add an assessment event under a campaign to schedule its window.",
-              action: add("Events", "medium"),
-            }}
-            columns={[
-              { label: "Event", key: "title" },
-              {
-                label: "Campaign",
-                key: "campaign",
-                value: (row) => row.campaign ?? <Absent label="Not available" />,
-                width: 190,
                 priority: 3,
               },
-              { label: "Plan version", key: "plan", kind: "number", width: 135, priority: 5 },
-              {
-                label: "Status",
-                key: "status",
-                statuses: campaignStatuses,
-                width: 120,
-                priority: 1,
-              },
-              { label: "Starts", key: "starts_at", width: 120, priority: 2 },
-              { label: "Ends", key: "ends_at", width: 120, priority: 4 },
-            ]}
-            onPreview={inspect("assessment_events")}
-          />
-        </TabsContent>
-        <TabsContent value="Objectives" keepMounted>
-          <AssessmentTable
-            model="assessment_objectives"
-            selectedId={
-              selection?.table === "assessment_objectives" ? selection.existing?.id : undefined
-            }
-            onDisplayedRowsChange={(rows) =>
-              setDisplayed((previous) => ({
-                ...previous,
-                assessment_objectives: rows as DataRecord[],
-              }))
-            }
-            key={campaignId ?? "all"}
-            fill
-            label="Objectives"
-            view="assessment-objectives"
-            keepQuestion={`assessment-objectives-${campaignId ?? "all"}`}
-            rows={objectiveRows}
-            queries={[objectives, plans, campaigns]}
-            filters={["campaign"]}
-            initialFilters={campaignFilter}
-            actions={add("Objectives", "small")}
-            empty={{
-              illustration: "shield",
-              title: "No objectives yet",
-              description:
-                "Record what each assessment plan sets out to show, and the control or requirement it targets.",
-              action: add("Objectives", "medium"),
-            }}
-            columns={[
-              { label: "Objective", key: "title" },
-              { label: "Statement", key: "description" },
-              {
-                label: "Campaign",
-                key: "campaign",
-                value: (row) => row.campaign ?? <Absent label="Not available" />,
-                width: 190,
-              },
-              {
-                label: "Plan",
-                key: "plan",
-                value: (row) => row.plan ?? <Absent label="Not available" />,
-                width: 190,
-              },
-              {
-                label: "Target",
-                value: (row) =>
-                  row.target_control_part_id ? (
-                    <RecordLink table="control_parts" record={{ id: row.target_control_part_id }}>
-                      Control statement
-                    </RecordLink>
-                  ) : row.requirement_revision_id ? (
-                    <RecordLink
-                      table="requirement_revisions"
-                      record={{ id: row.requirement_revision_id }}
-                    >
-                      Requirement revision
-                    </RecordLink>
-                  ) : (
-                    <Absent />
-                  ),
-                width: 170,
-              },
-            ]}
-            onPreview={inspect("assessment_objectives")}
-          />
-        </TabsContent>
-        {programId && (
-          <TabsContent value="Scopes" keepMounted>
-            <QueryState queries={[systems]}>
-              <ProgramCollection
-                name="scopes"
-                fill
-                title="Assessment scopes"
-                where={inProgram}
-                initialValues={{ system_id: firstBoundary?.id ?? null }}
-                columns={[
-                  { key: "code", title: "Scope" },
-                  { key: "name", title: "Name" },
-                  {
-                    key: "system_id",
-                    title: "System",
-                    render: (record) => (
-                      <RelationName table="systems" id={String(record["system_id"])} />
-                    ),
-                  },
-                  {
-                    key: "composition_node_id",
-                    title: "Element",
-                    render: (record) =>
-                      record["composition_node_id"] ? (
-                        <RelationName table="systems" id={String(record["composition_node_id"])} />
-                      ) : (
-                        <Text color="color.text.subtle">Whole system</Text>
-                      ),
-                  },
-                  ...(["confidentiality", "integrity", "availability"] as const).map(
-                    (dimension) => ({
-                      key: `${dimension}_impact`,
-                      title:
-                        dimension === "confidentiality"
-                          ? "Conf."
-                          : dimension === "integrity"
-                            ? "Integ."
-                            : "Avail.",
-                      render: (record: DataRecord) => (
-                        <LevelIndicator
-                          levels={impactLevels}
-                          value={(record[`${dimension}_impact`] as string | null) ?? null}
-                        />
-                      ),
-                    }),
-                  ),
-                ]}
-                empty={{
-                  title: "No scopes yet",
-                  description: "Create a scope to categorize a subset of a system for assessment.",
+            ]),
+        {
+          label: "Status",
+          key: "status",
+          statuses: campaignStatuses,
+          width: 120,
+          priority: 1,
+        },
+        {
+          label: "Owner",
+          key: "owner",
+          kind: "person",
+          value: (row) =>
+            row.owner ? <Person name={row.owner} /> : <Absent label={hidden(row.owner_party_id)} />,
+          width: 180,
+          priority: 4,
+        },
+        { label: "Starts", key: "starts_at", width: 120, priority: 2 },
+        { label: "Ends", key: "ends_at", width: 120, priority: 5 },
+        {
+          label: "Events",
+          key: "events",
+          kind: "number",
+          width: 100,
+          priority: 6,
+          value: (row) =>
+            row.events > 0 ? (
+              <Button
+                variant="link"
+                size="small"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setCampaignId(row.id);
+                  if (sectioned) {
+                    requestAnimationFrame(() => {
+                      eventsSection.current?.scrollIntoView({ block: "start" });
+                      eventsSection.current?.focus({ preventScroll: true });
+                    });
+                    return;
+                  }
+                  setTab("Events");
+                  requestAnimationFrame(() => eventsTab.current?.focus());
                 }}
+              >
+                <VisuallyHidden>
+                  {`Show ${formatPlural(row.events, { one: "{count} event", other: "{count} events" })} of ${row.title}`}
+                </VisuallyHidden>
+                <span aria-hidden>{row.events}</span>
+              </Button>
+            ) : (
+              row.events
+            ),
+        },
+      ]}
+    />
+  );
+  const eventsTable = (
+    <AssessmentTable
+      model="assessment_events"
+      selectedId={selection?.table === "assessment_events" ? selection.existing?.id : undefined}
+      onDisplayedRowsChange={(rows) =>
+        setDisplayed((previous) => ({
+          ...previous,
+          assessment_events: rows as DataRecord[],
+        }))
+      }
+      key={campaignId ?? "all"}
+      fill={!sectioned}
+      compact={sectioned}
+      label="Events"
+      view="assessment-events"
+      keepQuestion={`assessment-events-${campaignId ?? "all"}`}
+      rows={eventRows}
+      queries={[events, campaigns, plans]}
+      filters={["campaign", "status"]}
+      initialFilters={campaignFilter}
+      actions={add("Events", "small")}
+      empty={{
+        illustration: "calendar",
+        title: "No events yet",
+        description: "Add an assessment event under a campaign to schedule its window.",
+        action: add("Events", "medium"),
+      }}
+      columns={[
+        { label: "Event", key: "title" },
+        {
+          label: "Campaign",
+          key: "campaign",
+          value: (row) => row.campaign ?? <Absent label="Not available" />,
+          width: 190,
+          priority: 3,
+        },
+        { label: "Plan version", key: "plan", kind: "number", width: 135, priority: 5 },
+        {
+          label: "Status",
+          key: "status",
+          statuses: campaignStatuses,
+          width: 120,
+          priority: 1,
+        },
+        { label: "Starts", key: "starts_at", width: 120, priority: 2 },
+        { label: "Ends", key: "ends_at", width: 120, priority: 4 },
+      ]}
+      onPreview={inspect("assessment_events")}
+    />
+  );
+  const objectivesTable = (
+    <AssessmentTable
+      model="assessment_objectives"
+      selectedId={selection?.table === "assessment_objectives" ? selection.existing?.id : undefined}
+      onDisplayedRowsChange={(rows) =>
+        setDisplayed((previous) => ({
+          ...previous,
+          assessment_objectives: rows as DataRecord[],
+        }))
+      }
+      key={campaignId ?? "all"}
+      fill={!sectioned}
+      compact={sectioned}
+      label="Objectives"
+      view="assessment-objectives"
+      keepQuestion={`assessment-objectives-${campaignId ?? "all"}`}
+      rows={objectiveRows}
+      queries={[objectives, plans, campaigns]}
+      filters={["campaign"]}
+      initialFilters={campaignFilter}
+      actions={add("Objectives", "small")}
+      empty={{
+        illustration: "shield",
+        title: "No objectives yet",
+        description:
+          "Record what each assessment plan sets out to show, and the control or requirement it targets.",
+        action: add("Objectives", "medium"),
+      }}
+      columns={[
+        { label: "Objective", key: "title" },
+        { label: "Statement", key: "description" },
+        {
+          label: "Campaign",
+          key: "campaign",
+          value: (row) => row.campaign ?? <Absent label="Not available" />,
+          width: 190,
+        },
+        {
+          label: "Plan",
+          key: "plan",
+          value: (row) => row.plan ?? <Absent label="Not available" />,
+          width: 190,
+        },
+        {
+          label: "Target",
+          value: (row) =>
+            row.target_control_part_id ? (
+              <RecordLink table="control_parts" record={{ id: row.target_control_part_id }}>
+                Control statement
+              </RecordLink>
+            ) : row.requirement_revision_id ? (
+              <RecordLink
+                table="requirement_revisions"
+                record={{ id: row.requirement_revision_id }}
+              >
+                Requirement revision
+              </RecordLink>
+            ) : (
+              <Absent />
+            ),
+          width: 170,
+        },
+      ]}
+      onPreview={inspect("assessment_objectives")}
+    />
+  );
+  const scopesTable = (
+    <QueryState queries={[systems]}>
+      <ProgramCollection
+        name="scopes"
+        fill={!sectioned}
+        section={sectioned}
+        title={sectioned ? "Scopes" : "Assessment scopes"}
+        where={inProgram}
+        initialValues={{ system_id: firstBoundary?.id ?? null }}
+        columns={[
+          { key: "code", title: "Scope" },
+          { key: "name", title: "Name" },
+          {
+            key: "system_id",
+            title: "System",
+            render: (record) => <RelationName table="systems" id={String(record["system_id"])} />,
+          },
+          {
+            key: "composition_node_id",
+            title: "Element",
+            render: (record) =>
+              record["composition_node_id"] ? (
+                <RelationName table="systems" id={String(record["composition_node_id"])} />
+              ) : (
+                <Text color="color.text.subtle">Whole system</Text>
+              ),
+          },
+          ...(["confidentiality", "integrity", "availability"] as const).map((dimension) => ({
+            key: `${dimension}_impact`,
+            title:
+              dimension === "confidentiality"
+                ? "Conf."
+                : dimension === "integrity"
+                  ? "Integ."
+                  : "Avail.",
+            render: (record: DataRecord) => (
+              <LevelIndicator
+                levels={impactLevels}
+                value={(record[`${dimension}_impact`] as string | null) ?? null}
               />
-            </QueryState>
+            ),
+          })),
+        ]}
+        empty={{
+          title: "No scopes yet",
+          description: "Create a scope to categorize a subset of a system for assessment.",
+        }}
+      />
+    </QueryState>
+  );
+  return (
+    <Stack space={sectioned ? "space.300" : "space.200"}>
+      {form && <ModelForm target={form} onClose={() => setForm(null)} />}
+      {sectioned ? (
+        <>
+          <Section title="Campaigns">{campaignsTable}</Section>
+          <Section title="Events" ref={eventsSection} tabIndex={-1}>
+            {eventsTable}
+          </Section>
+          {/* The longest collection last, so the short ones are read without paging past it. */}
+          {scopesTable}
+          <Section title="Objectives">{objectivesTable}</Section>
+        </>
+      ) : (
+        <Tabs value={tab} onValueChange={(value) => setTab(value as AssessmentKind)}>
+          <TabsList variant="line" aria-label="Assessment collections">
+            {kinds.map((name) => (
+              <TabsTrigger
+                value={name}
+                key={name}
+                {...(name === "Events" ? { ref: eventsTab } : {})}
+              >
+                {name}
+                {/* Every strip counts the same way: 0 once the rows load, and up to 9999. */}
+                {counts[name] !== undefined ? <Count value={counts[name]} max={9999} /> : null}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          <TabsContent value="Campaigns" keepMounted>
+            {campaignsTable}
           </TabsContent>
-        )}
-      </Tabs>
+          <TabsContent value="Events" keepMounted>
+            {eventsTable}
+          </TabsContent>
+          <TabsContent value="Objectives" keepMounted>
+            {objectivesTable}
+          </TabsContent>
+          {programId && (
+            <TabsContent value="Scopes" keepMounted>
+              {scopesTable}
+            </TabsContent>
+          )}
+        </Tabs>
+      )}
       {selected && selection && (
         <RecordPreviewPanel
           title={String(selected["title"])}

@@ -144,6 +144,13 @@ export type Database = {
             foreignKeyName: "activity_events_tenant_id_program_id_fkey";
             columns: ["tenant_id", "program_id"];
             isOneToOne: false;
+            referencedRelation: "program_activity";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "activity_events_tenant_id_program_id_fkey";
+            columns: ["tenant_id", "program_id"];
+            isOneToOne: false;
             referencedRelation: "programs";
             referencedColumns: ["tenant_id", "id"];
           },
@@ -342,6 +349,7 @@ export type Database = {
           title: string;
           updated_at: string;
           updated_by: string | null;
+          variant_system_id: string | null;
         };
         Insert: {
           created_at?: string;
@@ -359,6 +367,7 @@ export type Database = {
           title: string;
           updated_at?: string;
           updated_by?: string | null;
+          variant_system_id?: string | null;
         };
         Update: {
           created_at?: string;
@@ -376,6 +385,7 @@ export type Database = {
           title?: string;
           updated_at?: string;
           updated_by?: string | null;
+          variant_system_id?: string | null;
         };
         Relationships: [
           {
@@ -396,6 +406,13 @@ export type Database = {
             foreignKeyName: "assessment_campaigns_tenant_id_program_id_fkey";
             columns: ["tenant_id", "program_id"];
             isOneToOne: false;
+            referencedRelation: "program_activity";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "assessment_campaigns_tenant_id_program_id_fkey";
+            columns: ["tenant_id", "program_id"];
+            isOneToOne: false;
             referencedRelation: "programs";
             referencedColumns: ["tenant_id", "id"];
           },
@@ -404,6 +421,34 @@ export type Database = {
             columns: ["tenant_id", "scope_id"];
             isOneToOne: false;
             referencedRelation: "scopes";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "assessment_campaigns_variant_system";
+            columns: ["tenant_id", "variant_system_id"];
+            isOneToOne: false;
+            referencedRelation: "composition_nodes";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "assessment_campaigns_variant_system";
+            columns: ["tenant_id", "variant_system_id"];
+            isOneToOne: false;
+            referencedRelation: "system_effective_baselines";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "assessment_campaigns_variant_system";
+            columns: ["tenant_id", "variant_system_id"];
+            isOneToOne: false;
+            referencedRelation: "system_effective_baselines";
+            referencedColumns: ["tenant_id", "system_id"];
+          },
+          {
+            foreignKeyName: "assessment_campaigns_variant_system";
+            columns: ["tenant_id", "variant_system_id"];
+            isOneToOne: false;
+            referencedRelation: "systems";
             referencedColumns: ["tenant_id", "id"];
           },
         ];
@@ -940,6 +985,13 @@ export type Database = {
             foreignKeyName: "assessment_subjects_tenant_id_inventory_item_id_fkey";
             columns: ["tenant_id", "inventory_item_id"];
             isOneToOne: false;
+            referencedRelation: "inventory_item_rows";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "assessment_subjects_tenant_id_inventory_item_id_fkey";
+            columns: ["tenant_id", "inventory_item_id"];
+            isOneToOne: false;
             referencedRelation: "inventory_items";
             referencedColumns: ["tenant_id", "id"];
           },
@@ -1285,6 +1337,13 @@ export type Database = {
             foreignKeyName: "assurance_citations_tenant_id_program_id_fkey";
             columns: ["tenant_id", "program_id"];
             isOneToOne: false;
+            referencedRelation: "program_activity";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "assurance_citations_tenant_id_program_id_fkey";
+            columns: ["tenant_id", "program_id"];
+            isOneToOne: false;
             referencedRelation: "programs";
             referencedColumns: ["tenant_id", "id"];
           },
@@ -1482,6 +1541,13 @@ export type Database = {
             foreignKeyName: "assurance_review_threads_tenant_id_program_id_fkey";
             columns: ["tenant_id", "program_id"];
             isOneToOne: false;
+            referencedRelation: "program_activity";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "assurance_review_threads_tenant_id_program_id_fkey";
+            columns: ["tenant_id", "program_id"];
+            isOneToOne: false;
             referencedRelation: "programs";
             referencedColumns: ["tenant_id", "id"];
           },
@@ -1583,6 +1649,13 @@ export type Database = {
             foreignKeyName: "assurance_workbook_requests_tenant_id_program_id_fkey";
             columns: ["tenant_id", "program_id"];
             isOneToOne: false;
+            referencedRelation: "program_activity";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "assurance_workbook_requests_tenant_id_program_id_fkey";
+            columns: ["tenant_id", "program_id"];
+            isOneToOne: false;
             referencedRelation: "programs";
             referencedColumns: ["tenant_id", "id"];
           },
@@ -1635,6 +1708,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "tenants";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "assurance_workbooks_tenant_id_program_id_fkey";
+            columns: ["tenant_id", "program_id"];
+            isOneToOne: true;
+            referencedRelation: "program_activity";
+            referencedColumns: ["tenant_id", "id"];
           },
           {
             foreignKeyName: "assurance_workbooks_tenant_id_program_id_fkey";
@@ -1780,6 +1860,13 @@ export type Database = {
             foreignKeyName: "authorization_packages_tenant_id_program_id_fkey";
             columns: ["tenant_id", "program_id"];
             isOneToOne: false;
+            referencedRelation: "program_activity";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "authorization_packages_tenant_id_program_id_fkey";
+            columns: ["tenant_id", "program_id"];
+            isOneToOne: false;
             referencedRelation: "programs";
             referencedColumns: ["tenant_id", "id"];
           },
@@ -1809,6 +1896,66 @@ export type Database = {
             columns: ["tenant_id", "system_id"];
             isOneToOne: false;
             referencedRelation: "systems";
+            referencedColumns: ["tenant_id", "id"];
+          },
+        ];
+      };
+      business_lines: {
+        Row: {
+          code: string;
+          created_at: string;
+          created_by: string | null;
+          description: string | null;
+          id: string;
+          name: string;
+          owner_party_id: string | null;
+          revision: number;
+          state: string;
+          tenant_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          code: string;
+          created_at?: string;
+          created_by?: string | null;
+          description?: string | null;
+          id?: string;
+          name: string;
+          owner_party_id?: string | null;
+          revision?: number;
+          state?: string;
+          tenant_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          code?: string;
+          created_at?: string;
+          created_by?: string | null;
+          description?: string | null;
+          id?: string;
+          name?: string;
+          owner_party_id?: string | null;
+          revision?: number;
+          state?: string;
+          tenant_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "business_lines_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "business_lines_tenant_id_owner_party_id_fkey";
+            columns: ["tenant_id", "owner_party_id"];
+            isOneToOne: false;
+            referencedRelation: "parties";
             referencedColumns: ["tenant_id", "id"];
           },
         ];
@@ -2613,6 +2760,13 @@ export type Database = {
             columns: ["tenant_id", "poam_item_id"];
             isOneToOne: false;
             referencedRelation: "poam_items";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "comments_tenant_id_program_id_fkey";
+            columns: ["tenant_id", "program_id"];
+            isOneToOne: false;
+            referencedRelation: "program_activity";
             referencedColumns: ["tenant_id", "id"];
           },
           {
@@ -3508,6 +3662,77 @@ export type Database = {
           },
         ];
       };
+      control_overlay_parameters: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          id: string;
+          overlay_id: string;
+          parameter_id: string;
+          parameter_values: string[];
+          rationale: string;
+          revision: number;
+          tenant_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          overlay_id: string;
+          parameter_id: string;
+          parameter_values: string[];
+          rationale: string;
+          revision?: number;
+          tenant_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          overlay_id?: string;
+          parameter_id?: string;
+          parameter_values?: string[];
+          rationale?: string;
+          revision?: number;
+          tenant_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "control_overlay_parameters_parameter_id_fkey";
+            columns: ["parameter_id"];
+            isOneToOne: false;
+            referencedRelation: "parameters";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "control_overlay_parameters_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "control_overlay_parameters_tenant_id_overlay_id_fkey";
+            columns: ["tenant_id", "overlay_id"];
+            isOneToOne: false;
+            referencedRelation: "control_overlay_rows";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "control_overlay_parameters_tenant_id_overlay_id_fkey";
+            columns: ["tenant_id", "overlay_id"];
+            isOneToOne: false;
+            referencedRelation: "control_overlays";
+            referencedColumns: ["tenant_id", "id"];
+          },
+        ];
+      };
       control_overlays: {
         Row: {
           catalog_revision_id: string;
@@ -4186,6 +4411,8 @@ export type Database = {
           id: string;
           program_id: string;
           revision: number;
+          source_id: string | null;
+          source_reference: string | null;
           tenant_id: string;
           updated_at: string;
           updated_by: string | null;
@@ -4198,6 +4425,8 @@ export type Database = {
           id?: string;
           program_id: string;
           revision?: number;
+          source_id?: string | null;
+          source_reference?: string | null;
           tenant_id: string;
           updated_at?: string;
           updated_by?: string | null;
@@ -4210,6 +4439,8 @@ export type Database = {
           id?: string;
           program_id?: string;
           revision?: number;
+          source_id?: string | null;
+          source_reference?: string | null;
           tenant_id?: string;
           updated_at?: string;
           updated_by?: string | null;
@@ -4223,11 +4454,25 @@ export type Database = {
             referencedColumns: ["tenant_id", "id"];
           },
           {
+            foreignKeyName: "engineering_requirement_source";
+            columns: ["tenant_id", "program_id", "source_id"];
+            isOneToOne: false;
+            referencedRelation: "requirement_sources";
+            referencedColumns: ["tenant_id", "program_id", "id"];
+          },
+          {
             foreignKeyName: "engineering_requirements_tenant_id_fkey";
             columns: ["tenant_id"];
             isOneToOne: false;
             referencedRelation: "tenants";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "engineering_requirements_tenant_id_program_id_fkey";
+            columns: ["tenant_id", "program_id"];
+            isOneToOne: false;
+            referencedRelation: "program_activity";
+            referencedColumns: ["tenant_id", "id"];
           },
           {
             foreignKeyName: "engineering_requirements_tenant_id_program_id_fkey";
@@ -4303,6 +4548,13 @@ export type Database = {
             columns: ["tenant_id", "owner_party_id"];
             isOneToOne: false;
             referencedRelation: "parties";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "evidence_artifacts_tenant_id_program_id_fkey";
+            columns: ["tenant_id", "program_id"];
+            isOneToOne: false;
+            referencedRelation: "program_activity";
             referencedColumns: ["tenant_id", "id"];
           },
           {
@@ -4536,6 +4788,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "tenants";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "evidence_uses_tenant_id_program_id_fkey";
+            columns: ["tenant_id", "program_id"];
+            isOneToOne: false;
+            referencedRelation: "program_activity";
+            referencedColumns: ["tenant_id", "id"];
           },
           {
             foreignKeyName: "evidence_uses_tenant_id_program_id_fkey";
@@ -4835,6 +5094,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "tenants";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "finding_observations_tenant_id_observation_id_fkey";
+            columns: ["tenant_id", "observation_id"];
+            isOneToOne: false;
+            referencedRelation: "observation_rows";
+            referencedColumns: ["tenant_id", "id"];
           },
           {
             foreignKeyName: "finding_observations_tenant_id_observation_id_fkey";
@@ -6027,6 +6293,13 @@ export type Database = {
             foreignKeyName: "ingestion_jobs_tenant_id_program_id_fkey";
             columns: ["tenant_id", "program_id"];
             isOneToOne: false;
+            referencedRelation: "program_activity";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "ingestion_jobs_tenant_id_program_id_fkey";
+            columns: ["tenant_id", "program_id"];
+            isOneToOne: false;
             referencedRelation: "programs";
             referencedColumns: ["tenant_id", "id"];
           },
@@ -6191,6 +6464,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "systems";
             referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "inventory_components_tenant_id_system_id_inventory_item_id_fkey";
+            columns: ["tenant_id", "system_id", "inventory_item_id"];
+            isOneToOne: false;
+            referencedRelation: "inventory_item_rows";
+            referencedColumns: ["tenant_id", "system_id", "id"];
           },
           {
             foreignKeyName: "inventory_components_tenant_id_system_id_inventory_item_id_fkey";
@@ -6480,6 +6760,13 @@ export type Database = {
             foreignKeyName: "issue_observations_tenant_id_observation_id_fkey";
             columns: ["tenant_id", "observation_id"];
             isOneToOne: false;
+            referencedRelation: "observation_rows";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "issue_observations_tenant_id_observation_id_fkey";
+            columns: ["tenant_id", "observation_id"];
+            isOneToOne: false;
             referencedRelation: "observations";
             referencedColumns: ["tenant_id", "id"];
           },
@@ -6550,6 +6837,102 @@ export type Database = {
           },
         ];
       };
+      issue_requirements: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          engineering_requirement_id: string;
+          id: string;
+          issue_id: string;
+          program_id: string;
+          revision: number;
+          tenant_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          engineering_requirement_id: string;
+          id?: string;
+          issue_id: string;
+          program_id: string;
+          revision?: number;
+          tenant_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          engineering_requirement_id?: string;
+          id?: string;
+          issue_id?: string;
+          program_id?: string;
+          revision?: number;
+          tenant_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "issue_requirements_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "issue_requirements_tenant_id_program_id_engineering_requir_fkey";
+            columns: ["tenant_id", "program_id", "engineering_requirement_id"];
+            isOneToOne: false;
+            referencedRelation: "engineering_requirements";
+            referencedColumns: ["tenant_id", "program_id", "id"];
+          },
+          {
+            foreignKeyName: "issue_requirements_tenant_id_program_id_engineering_requir_fkey";
+            columns: ["tenant_id", "program_id", "engineering_requirement_id"];
+            isOneToOne: false;
+            referencedRelation: "program_requirement_rows";
+            referencedColumns: ["tenant_id", "program_id", "id"];
+          },
+          {
+            foreignKeyName: "issue_requirements_tenant_id_program_id_engineering_requir_fkey";
+            columns: ["tenant_id", "program_id", "engineering_requirement_id"];
+            isOneToOne: false;
+            referencedRelation: "requirement_workbook_rows";
+            referencedColumns: ["tenant_id", "program_id", "id"];
+          },
+          {
+            foreignKeyName: "issue_requirements_tenant_id_program_id_fkey";
+            columns: ["tenant_id", "program_id"];
+            isOneToOne: false;
+            referencedRelation: "program_activity";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "issue_requirements_tenant_id_program_id_fkey";
+            columns: ["tenant_id", "program_id"];
+            isOneToOne: false;
+            referencedRelation: "programs";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "issue_requirements_tenant_id_program_id_issue_id_fkey";
+            columns: ["tenant_id", "program_id", "issue_id"];
+            isOneToOne: false;
+            referencedRelation: "operational_issue_rows";
+            referencedColumns: ["tenant_id", "program_id", "id"];
+          },
+          {
+            foreignKeyName: "issue_requirements_tenant_id_program_id_issue_id_fkey";
+            columns: ["tenant_id", "program_id", "issue_id"];
+            isOneToOne: false;
+            referencedRelation: "operational_issues";
+            referencedColumns: ["tenant_id", "program_id", "id"];
+          },
+        ];
+      };
       library_apply_requests: {
         Row: {
           created_at: string;
@@ -6585,6 +6968,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "tenants";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "library_apply_requests_tenant_id_program_id_fkey";
+            columns: ["tenant_id", "program_id"];
+            isOneToOne: false;
+            referencedRelation: "program_activity";
+            referencedColumns: ["tenant_id", "id"];
           },
           {
             foreignKeyName: "library_apply_requests_tenant_id_program_id_fkey";
@@ -6820,6 +7210,13 @@ export type Database = {
             foreignKeyName: "library_assignments_tenant_id_program_id_fkey";
             columns: ["tenant_id", "program_id"];
             isOneToOne: false;
+            referencedRelation: "program_activity";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "library_assignments_tenant_id_program_id_fkey";
+            columns: ["tenant_id", "program_id"];
+            isOneToOne: false;
             referencedRelation: "programs";
             referencedColumns: ["tenant_id", "id"];
           },
@@ -6930,6 +7327,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "tenants";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "lifecycle_gates_tenant_id_program_id_fkey";
+            columns: ["tenant_id", "program_id"];
+            isOneToOne: false;
+            referencedRelation: "program_activity";
+            referencedColumns: ["tenant_id", "id"];
           },
           {
             foreignKeyName: "lifecycle_gates_tenant_id_program_id_fkey";
@@ -7144,6 +7548,13 @@ export type Database = {
             foreignKeyName: "observation_evidence_tenant_id_observation_id_fkey";
             columns: ["tenant_id", "observation_id"];
             isOneToOne: false;
+            referencedRelation: "observation_rows";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "observation_evidence_tenant_id_observation_id_fkey";
+            columns: ["tenant_id", "observation_id"];
+            isOneToOne: false;
             referencedRelation: "observations";
             referencedColumns: ["tenant_id", "id"];
           },
@@ -7208,6 +7619,13 @@ export type Database = {
           updated_by?: string | null;
         };
         Relationships: [
+          {
+            foreignKeyName: "observations_program_tenant_fk";
+            columns: ["tenant_id", "program_id"];
+            isOneToOne: false;
+            referencedRelation: "program_activity";
+            referencedColumns: ["tenant_id", "id"];
+          },
           {
             foreignKeyName: "observations_program_tenant_fk";
             columns: ["tenant_id", "program_id"];
@@ -7399,6 +7817,13 @@ export type Database = {
             columns: ["tenant_id", "owner_party_id"];
             isOneToOne: false;
             referencedRelation: "parties";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "operational_issues_tenant_id_program_id_fkey";
+            columns: ["tenant_id", "program_id"];
+            isOneToOne: false;
+            referencedRelation: "program_activity";
             referencedColumns: ["tenant_id", "id"];
           },
           {
@@ -8365,6 +8790,13 @@ export type Database = {
             foreignKeyName: "poam_documents_tenant_id_program_id_fkey";
             columns: ["tenant_id", "program_id"];
             isOneToOne: false;
+            referencedRelation: "program_activity";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "poam_documents_tenant_id_program_id_fkey";
+            columns: ["tenant_id", "program_id"];
+            isOneToOne: false;
             referencedRelation: "programs";
             referencedColumns: ["tenant_id", "id"];
           },
@@ -8418,6 +8850,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "tenants";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "poam_item_observations_tenant_id_observation_id_fkey";
+            columns: ["tenant_id", "observation_id"];
+            isOneToOne: false;
+            referencedRelation: "observation_rows";
+            referencedColumns: ["tenant_id", "id"];
           },
           {
             foreignKeyName: "poam_item_observations_tenant_id_observation_id_fkey";
@@ -9077,7 +9516,100 @@ export type Database = {
             foreignKeyName: "procedures_tenant_id_program_id_fkey";
             columns: ["tenant_id", "program_id"];
             isOneToOne: false;
+            referencedRelation: "program_activity";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "procedures_tenant_id_program_id_fkey";
+            columns: ["tenant_id", "program_id"];
+            isOneToOne: false;
             referencedRelation: "programs";
+            referencedColumns: ["tenant_id", "id"];
+          },
+        ];
+      };
+      product_assessments: {
+        Row: {
+          assessor_party_id: string | null;
+          completed_on: string | null;
+          created_at: string;
+          created_by: string | null;
+          description: string | null;
+          id: string;
+          product_revision_id: string;
+          profile_resolution_id: string;
+          published_at: string | null;
+          revision: number;
+          started_on: string | null;
+          state: string;
+          tenant_id: string;
+          title: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          assessor_party_id?: string | null;
+          completed_on?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          description?: string | null;
+          id?: string;
+          product_revision_id: string;
+          profile_resolution_id: string;
+          published_at?: string | null;
+          revision?: number;
+          started_on?: string | null;
+          state?: string;
+          tenant_id: string;
+          title: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          assessor_party_id?: string | null;
+          completed_on?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          description?: string | null;
+          id?: string;
+          product_revision_id?: string;
+          profile_resolution_id?: string;
+          published_at?: string | null;
+          revision?: number;
+          started_on?: string | null;
+          state?: string;
+          tenant_id?: string;
+          title?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "product_assessments_profile_resolution_id_fkey";
+            columns: ["profile_resolution_id"];
+            isOneToOne: false;
+            referencedRelation: "profile_resolutions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "product_assessments_tenant_id_assessor_party_id_fkey";
+            columns: ["tenant_id", "assessor_party_id"];
+            isOneToOne: false;
+            referencedRelation: "parties";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "product_assessments_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "product_assessments_tenant_id_product_revision_id_fkey";
+            columns: ["tenant_id", "product_revision_id"];
+            isOneToOne: false;
+            referencedRelation: "product_revisions";
             referencedColumns: ["tenant_id", "id"];
           },
         ];
@@ -9207,6 +9739,107 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "products";
             referencedColumns: ["tenant_id", "id"];
+          },
+        ];
+      };
+      product_determinations: {
+        Row: {
+          assessment_finding_id: string | null;
+          control_id: string;
+          created_at: string;
+          created_by: string | null;
+          determination: string;
+          id: string;
+          product_assessment_id: string;
+          product_element_id: string | null;
+          product_revision_id: string;
+          rationale: string | null;
+          revision: number;
+          tenant_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          assessment_finding_id?: string | null;
+          control_id: string;
+          created_at?: string;
+          created_by?: string | null;
+          determination: string;
+          id?: string;
+          product_assessment_id: string;
+          product_element_id?: string | null;
+          product_revision_id: string;
+          rationale?: string | null;
+          revision?: number;
+          tenant_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          assessment_finding_id?: string | null;
+          control_id?: string;
+          created_at?: string;
+          created_by?: string | null;
+          determination?: string;
+          id?: string;
+          product_assessment_id?: string;
+          product_element_id?: string | null;
+          product_revision_id?: string;
+          rationale?: string | null;
+          revision?: number;
+          tenant_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "product_determinations_control_id_fkey";
+            columns: ["control_id"];
+            isOneToOne: false;
+            referencedRelation: "catalog_control_rows";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "product_determinations_control_id_fkey";
+            columns: ["control_id"];
+            isOneToOne: false;
+            referencedRelation: "controls";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "product_determinations_tenant_id_assessment_finding_id_fkey";
+            columns: ["tenant_id", "assessment_finding_id"];
+            isOneToOne: false;
+            referencedRelation: "assessment_finding_rows";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "product_determinations_tenant_id_assessment_finding_id_fkey";
+            columns: ["tenant_id", "assessment_finding_id"];
+            isOneToOne: false;
+            referencedRelation: "assessment_findings";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "product_determinations_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "product_determinations_tenant_id_product_assessment_id_pro_fkey";
+            columns: ["tenant_id", "product_assessment_id", "product_revision_id"];
+            isOneToOne: false;
+            referencedRelation: "product_assessments";
+            referencedColumns: ["tenant_id", "id", "product_revision_id"];
+          },
+          {
+            foreignKeyName: "product_determinations_tenant_id_product_revision_id_produ_fkey";
+            columns: ["tenant_id", "product_revision_id", "product_element_id"];
+            isOneToOne: false;
+            referencedRelation: "product_elements";
+            referencedColumns: ["tenant_id", "product_revision_id", "id"];
           },
         ];
       };
@@ -9358,6 +9991,7 @@ export type Database = {
       };
       products: {
         Row: {
+          business_line_id: string | null;
           code: string;
           created_at: string;
           created_by: string | null;
@@ -9371,6 +10005,7 @@ export type Database = {
           updated_by: string | null;
         };
         Insert: {
+          business_line_id?: string | null;
           code: string;
           created_at?: string;
           created_by?: string | null;
@@ -9384,6 +10019,7 @@ export type Database = {
           updated_by?: string | null;
         };
         Update: {
+          business_line_id?: string | null;
           code?: string;
           created_at?: string;
           created_by?: string | null;
@@ -9397,6 +10033,13 @@ export type Database = {
           updated_by?: string | null;
         };
         Relationships: [
+          {
+            foreignKeyName: "products_business_line";
+            columns: ["tenant_id", "business_line_id"];
+            isOneToOne: false;
+            referencedRelation: "business_lines";
+            referencedColumns: ["tenant_id", "id"];
+          },
           {
             foreignKeyName: "products_tenant_id_fkey";
             columns: ["tenant_id"];
@@ -9499,6 +10142,7 @@ export type Database = {
           created_by: string | null;
           id: string;
           not_applicable_control_ids: string[];
+          not_applicable_parameter_ids: string[];
           overlay_id: string;
           profile_resolution_id: string;
           reaffirmed_control_ids: string[];
@@ -9512,6 +10156,7 @@ export type Database = {
           created_by?: string | null;
           id?: string;
           not_applicable_control_ids?: string[];
+          not_applicable_parameter_ids?: string[];
           overlay_id: string;
           profile_resolution_id: string;
           reaffirmed_control_ids?: string[];
@@ -9525,6 +10170,7 @@ export type Database = {
           created_by?: string | null;
           id?: string;
           not_applicable_control_ids?: string[];
+          not_applicable_parameter_ids?: string[];
           overlay_id?: string;
           profile_resolution_id?: string;
           reaffirmed_control_ids?: string[];
@@ -10019,6 +10665,51 @@ export type Database = {
           },
         ];
       };
+      program_baseline_requests: {
+        Row: {
+          choice_id: string;
+          created_at: string;
+          created_by: string;
+          id: string;
+          payload_sha256: string;
+          result: Json;
+          tenant_id: string;
+        };
+        Insert: {
+          choice_id: string;
+          created_at?: string;
+          created_by: string;
+          id: string;
+          payload_sha256: string;
+          result: Json;
+          tenant_id: string;
+        };
+        Update: {
+          choice_id?: string;
+          created_at?: string;
+          created_by?: string;
+          id?: string;
+          payload_sha256?: string;
+          result?: Json;
+          tenant_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "program_baseline_requests_tenant_id_choice_id_fkey";
+            columns: ["tenant_id", "choice_id"];
+            isOneToOne: false;
+            referencedRelation: "program_reference_choices";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "program_baseline_requests_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       program_reference_choices: {
         Row: {
           catalog_revision_id: string;
@@ -10077,6 +10768,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "tenants";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "program_reference_choices_tenant_id_program_id_fkey";
+            columns: ["tenant_id", "program_id"];
+            isOneToOne: false;
+            referencedRelation: "program_activity";
+            referencedColumns: ["tenant_id", "id"];
           },
           {
             foreignKeyName: "program_reference_choices_tenant_id_program_id_fkey";
@@ -10149,6 +10847,13 @@ export type Database = {
             foreignKeyName: "program_role_assignments_tenant_id_program_id_fkey";
             columns: ["tenant_id", "program_id"];
             isOneToOne: false;
+            referencedRelation: "program_activity";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "program_role_assignments_tenant_id_program_id_fkey";
+            columns: ["tenant_id", "program_id"];
+            isOneToOne: false;
             referencedRelation: "programs";
             referencedColumns: ["tenant_id", "id"];
           },
@@ -10194,6 +10899,13 @@ export type Database = {
             foreignKeyName: "program_wizard_requests_tenant_id_program_id_fkey";
             columns: ["tenant_id", "program_id"];
             isOneToOne: false;
+            referencedRelation: "program_activity";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "program_wizard_requests_tenant_id_program_id_fkey";
+            columns: ["tenant_id", "program_id"];
+            isOneToOne: false;
             referencedRelation: "programs";
             referencedColumns: ["tenant_id", "id"];
           },
@@ -10201,6 +10913,7 @@ export type Database = {
       };
       programs: {
         Row: {
+          business_line_id: string | null;
           code: string;
           created_at: string;
           created_by: string | null;
@@ -10217,6 +10930,7 @@ export type Database = {
           updated_by: string | null;
         };
         Insert: {
+          business_line_id?: string | null;
           code: string;
           created_at?: string;
           created_by?: string | null;
@@ -10233,6 +10947,7 @@ export type Database = {
           updated_by?: string | null;
         };
         Update: {
+          business_line_id?: string | null;
           code?: string;
           created_at?: string;
           created_by?: string | null;
@@ -10249,6 +10964,13 @@ export type Database = {
           updated_by?: string | null;
         };
         Relationships: [
+          {
+            foreignKeyName: "programs_business_line";
+            columns: ["tenant_id", "business_line_id"];
+            isOneToOne: false;
+            referencedRelation: "business_lines";
+            referencedColumns: ["tenant_id", "id"];
+          },
           {
             foreignKeyName: "programs_tenant_id_fkey";
             columns: ["tenant_id"];
@@ -10619,6 +11341,77 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "scopes";
             referencedColumns: ["tenant_id", "id"];
+          },
+        ];
+      };
+      requirement_compliance: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          engineering_requirement_id: string;
+          id: string;
+          revision: number;
+          statement: string | null;
+          status: string;
+          tenant_id: string;
+          updated_at: string;
+          updated_by: string | null;
+          verification_method: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          engineering_requirement_id: string;
+          id?: string;
+          revision?: number;
+          statement?: string | null;
+          status: string;
+          tenant_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          verification_method?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          engineering_requirement_id?: string;
+          id?: string;
+          revision?: number;
+          statement?: string | null;
+          status?: string;
+          tenant_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          verification_method?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "requirement_compliance_tenant_id_engineering_requirement_i_fkey";
+            columns: ["tenant_id", "engineering_requirement_id"];
+            isOneToOne: true;
+            referencedRelation: "engineering_requirements";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "requirement_compliance_tenant_id_engineering_requirement_i_fkey";
+            columns: ["tenant_id", "engineering_requirement_id"];
+            isOneToOne: true;
+            referencedRelation: "program_requirement_rows";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "requirement_compliance_tenant_id_engineering_requirement_i_fkey";
+            columns: ["tenant_id", "engineering_requirement_id"];
+            isOneToOne: true;
+            referencedRelation: "requirement_workbook_rows";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "requirement_compliance_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
           },
         ];
       };
@@ -11111,6 +11904,58 @@ export type Database = {
           },
         ];
       };
+      requirement_import_requests: {
+        Row: {
+          created_at: string;
+          created_by: string;
+          id: string;
+          payload_sha256: string;
+          program_id: string;
+          result: Json;
+          tenant_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          created_by: string;
+          id: string;
+          payload_sha256: string;
+          program_id: string;
+          result: Json;
+          tenant_id: string;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string;
+          id?: string;
+          payload_sha256?: string;
+          program_id?: string;
+          result?: Json;
+          tenant_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "requirement_import_requests_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "requirement_import_requests_tenant_id_program_id_fkey";
+            columns: ["tenant_id", "program_id"];
+            isOneToOne: false;
+            referencedRelation: "program_activity";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "requirement_import_requests_tenant_id_program_id_fkey";
+            columns: ["tenant_id", "program_id"];
+            isOneToOne: false;
+            referencedRelation: "programs";
+            referencedColumns: ["tenant_id", "id"];
+          },
+        ];
+      };
       requirement_revision_requests: {
         Row: {
           activity_event_id: string | null;
@@ -11272,6 +12117,89 @@ export type Database = {
           },
         ];
       };
+      requirement_sources: {
+        Row: {
+          code: string;
+          created_at: string;
+          created_by: string | null;
+          description: string | null;
+          document_reference: string | null;
+          id: string;
+          issuer_party_id: string | null;
+          program_id: string;
+          received_on: string | null;
+          revision: number;
+          tenant_id: string;
+          title: string;
+          updated_at: string;
+          updated_by: string | null;
+          version_label: string | null;
+        };
+        Insert: {
+          code: string;
+          created_at?: string;
+          created_by?: string | null;
+          description?: string | null;
+          document_reference?: string | null;
+          id?: string;
+          issuer_party_id?: string | null;
+          program_id: string;
+          received_on?: string | null;
+          revision?: number;
+          tenant_id: string;
+          title: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          version_label?: string | null;
+        };
+        Update: {
+          code?: string;
+          created_at?: string;
+          created_by?: string | null;
+          description?: string | null;
+          document_reference?: string | null;
+          id?: string;
+          issuer_party_id?: string | null;
+          program_id?: string;
+          received_on?: string | null;
+          revision?: number;
+          tenant_id?: string;
+          title?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          version_label?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "requirement_sources_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "requirement_sources_tenant_id_issuer_party_id_fkey";
+            columns: ["tenant_id", "issuer_party_id"];
+            isOneToOne: false;
+            referencedRelation: "parties";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "requirement_sources_tenant_id_program_id_fkey";
+            columns: ["tenant_id", "program_id"];
+            isOneToOne: false;
+            referencedRelation: "program_activity";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "requirement_sources_tenant_id_program_id_fkey";
+            columns: ["tenant_id", "program_id"];
+            isOneToOne: false;
+            referencedRelation: "programs";
+            referencedColumns: ["tenant_id", "id"];
+          },
+        ];
+      };
       requirement_verifications: {
         Row: {
           created_at: string;
@@ -11391,6 +12319,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "tenants";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "result_observations_tenant_id_observation_id_fkey";
+            columns: ["tenant_id", "observation_id"];
+            isOneToOne: false;
+            referencedRelation: "observation_rows";
+            referencedColumns: ["tenant_id", "id"];
           },
           {
             foreignKeyName: "result_observations_tenant_id_observation_id_fkey";
@@ -11697,6 +12632,13 @@ export type Database = {
             foreignKeyName: "risk_observations_tenant_id_observation_id_fkey";
             columns: ["tenant_id", "observation_id"];
             isOneToOne: false;
+            referencedRelation: "observation_rows";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "risk_observations_tenant_id_observation_id_fkey";
+            columns: ["tenant_id", "observation_id"];
+            isOneToOne: false;
             referencedRelation: "observations";
             referencedColumns: ["tenant_id", "id"];
           },
@@ -11953,6 +12895,13 @@ export type Database = {
             columns: ["tenant_id", "owner_party_id"];
             isOneToOne: false;
             referencedRelation: "parties";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "risks_tenant_id_program_id_fkey";
+            columns: ["tenant_id", "program_id"];
+            isOneToOne: false;
+            referencedRelation: "program_activity";
             referencedColumns: ["tenant_id", "id"];
           },
           {
@@ -12295,6 +13244,13 @@ export type Database = {
             columns: ["tenant_id", "owner_party_id"];
             isOneToOne: false;
             referencedRelation: "parties";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "security_processes_tenant_id_program_id_fkey";
+            columns: ["tenant_id", "program_id"];
+            isOneToOne: false;
+            referencedRelation: "program_activity";
             referencedColumns: ["tenant_id", "id"];
           },
           {
@@ -12938,6 +13894,10 @@ export type Database = {
           lifecycle_status: string | null;
           name: string;
           parent_system_id: string | null;
+          product_change_kinds: string[] | null;
+          product_change_rationale: string | null;
+          product_changed_at: string | null;
+          product_changed_by: string | null;
           product_configuration_id: string | null;
           product_element_id: string | null;
           product_revision_id: string | null;
@@ -12967,6 +13927,10 @@ export type Database = {
           lifecycle_status?: string | null;
           name: string;
           parent_system_id?: string | null;
+          product_change_kinds?: string[] | null;
+          product_change_rationale?: string | null;
+          product_changed_at?: string | null;
+          product_changed_by?: string | null;
           product_configuration_id?: string | null;
           product_element_id?: string | null;
           product_revision_id?: string | null;
@@ -12996,6 +13960,10 @@ export type Database = {
           lifecycle_status?: string | null;
           name?: string;
           parent_system_id?: string | null;
+          product_change_kinds?: string[] | null;
+          product_change_rationale?: string | null;
+          product_changed_at?: string | null;
+          product_changed_by?: string | null;
           product_configuration_id?: string | null;
           product_element_id?: string | null;
           product_revision_id?: string | null;
@@ -13056,6 +14024,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "tenants";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "systems_tenant_id_program_id_fkey";
+            columns: ["tenant_id", "program_id"];
+            isOneToOne: false;
+            referencedRelation: "program_activity";
+            referencedColumns: ["tenant_id", "id"];
           },
           {
             foreignKeyName: "systems_tenant_id_program_id_fkey";
@@ -13807,6 +14782,13 @@ export type Database = {
             foreignKeyName: "tasks_tenant_id_program_id_fkey";
             columns: ["tenant_id", "program_id"];
             isOneToOne: false;
+            referencedRelation: "program_activity";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "tasks_tenant_id_program_id_fkey";
+            columns: ["tenant_id", "program_id"];
+            isOneToOne: false;
             referencedRelation: "programs";
             referencedColumns: ["tenant_id", "id"];
           },
@@ -14161,6 +15143,13 @@ export type Database = {
             foreignKeyName: "workstreams_tenant_id_program_id_fkey";
             columns: ["tenant_id", "program_id"];
             isOneToOne: false;
+            referencedRelation: "program_activity";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "workstreams_tenant_id_program_id_fkey";
+            columns: ["tenant_id", "program_id"];
+            isOneToOne: false;
             referencedRelation: "programs";
             referencedColumns: ["tenant_id", "id"];
           },
@@ -14388,6 +15377,7 @@ export type Database = {
           exclude_count: number | null;
           id: string | null;
           include_count: number | null;
+          parameter_count: number | null;
           revision: number | null;
           state: string | null;
           tenant_id: string | null;
@@ -14403,6 +15393,7 @@ export type Database = {
           exclude_count?: never;
           id?: string | null;
           include_count?: never;
+          parameter_count?: never;
           revision?: number | null;
           state?: string | null;
           tenant_id?: string | null;
@@ -14418,6 +15409,7 @@ export type Database = {
           exclude_count?: never;
           id?: string | null;
           include_count?: never;
+          parameter_count?: never;
           revision?: number | null;
           state?: string | null;
           tenant_id?: string | null;
@@ -14479,6 +15471,13 @@ export type Database = {
             columns: ["tenant_id", "owner_party_id"];
             isOneToOne: false;
             referencedRelation: "parties";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "evidence_artifacts_tenant_id_program_id_fkey";
+            columns: ["tenant_id", "program_id"];
+            isOneToOne: false;
+            referencedRelation: "program_activity";
             referencedColumns: ["tenant_id", "id"];
           },
           {
@@ -14837,6 +15836,179 @@ export type Database = {
           },
         ];
       };
+      inventory_item_rows: {
+        Row: {
+          asset_id: string | null;
+          asset_order: string | null;
+          asset_owner_party_id: string | null;
+          composition_node_id: string | null;
+          created_at: string | null;
+          created_by: string | null;
+          description: string | null;
+          id: string | null;
+          installed_on: string | null;
+          manufacturer: string | null;
+          model: string | null;
+          name: string | null;
+          retired_on: string | null;
+          revision: number | null;
+          serial_number: string | null;
+          system_code: string | null;
+          system_id: string | null;
+          system_name: string | null;
+          system_program_id: string | null;
+          tenant_id: string | null;
+          updated_at: string | null;
+          updated_by: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "inventory_items_system_element";
+            columns: ["tenant_id", "system_id", "composition_node_id"];
+            isOneToOne: false;
+            referencedRelation: "composition_nodes";
+            referencedColumns: ["tenant_id", "system_id", "id"];
+          },
+          {
+            foreignKeyName: "inventory_items_system_element";
+            columns: ["tenant_id", "system_id", "composition_node_id"];
+            isOneToOne: false;
+            referencedRelation: "system_effective_baselines";
+            referencedColumns: ["tenant_id", "boundary_system_id", "id"];
+          },
+          {
+            foreignKeyName: "inventory_items_system_element";
+            columns: ["tenant_id", "system_id", "composition_node_id"];
+            isOneToOne: false;
+            referencedRelation: "system_effective_baselines";
+            referencedColumns: ["tenant_id", "boundary_system_id", "system_id"];
+          },
+          {
+            foreignKeyName: "inventory_items_system_element";
+            columns: ["tenant_id", "system_id", "composition_node_id"];
+            isOneToOne: false;
+            referencedRelation: "systems";
+            referencedColumns: ["tenant_id", "boundary_system_id", "id"];
+          },
+          {
+            foreignKeyName: "inventory_items_tenant_id_asset_owner_party_id_fkey";
+            columns: ["tenant_id", "asset_owner_party_id"];
+            isOneToOne: false;
+            referencedRelation: "parties";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "inventory_items_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "inventory_items_tenant_id_system_id_fkey";
+            columns: ["tenant_id", "system_id"];
+            isOneToOne: false;
+            referencedRelation: "composition_nodes";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "inventory_items_tenant_id_system_id_fkey";
+            columns: ["tenant_id", "system_id"];
+            isOneToOne: false;
+            referencedRelation: "system_effective_baselines";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "inventory_items_tenant_id_system_id_fkey";
+            columns: ["tenant_id", "system_id"];
+            isOneToOne: false;
+            referencedRelation: "system_effective_baselines";
+            referencedColumns: ["tenant_id", "system_id"];
+          },
+          {
+            foreignKeyName: "inventory_items_tenant_id_system_id_fkey";
+            columns: ["tenant_id", "system_id"];
+            isOneToOne: false;
+            referencedRelation: "systems";
+            referencedColumns: ["tenant_id", "id"];
+          },
+        ];
+      };
+      observation_rows: {
+        Row: {
+          assessment_event_id: string | null;
+          created_at: string | null;
+          created_by: string | null;
+          description: string | null;
+          expires_at: string | null;
+          id: string | null;
+          method: string | null;
+          observed_at: string | null;
+          observer_party_id: string | null;
+          program_id: string | null;
+          program_name: string | null;
+          result: string | null;
+          result_rank: number | null;
+          revision: number | null;
+          step_result_id: string | null;
+          subject_id: string | null;
+          tenant_id: string | null;
+          title: string | null;
+          updated_at: string | null;
+          updated_by: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "observations_program_tenant_fk";
+            columns: ["tenant_id", "program_id"];
+            isOneToOne: false;
+            referencedRelation: "program_activity";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "observations_program_tenant_fk";
+            columns: ["tenant_id", "program_id"];
+            isOneToOne: false;
+            referencedRelation: "programs";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "observations_tenant_id_assessment_event_id_fkey";
+            columns: ["tenant_id", "assessment_event_id"];
+            isOneToOne: false;
+            referencedRelation: "assessment_events";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "observations_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "observations_tenant_id_observer_party_id_fkey";
+            columns: ["tenant_id", "observer_party_id"];
+            isOneToOne: false;
+            referencedRelation: "parties";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "observations_tenant_id_step_result_id_fkey";
+            columns: ["tenant_id", "step_result_id"];
+            isOneToOne: false;
+            referencedRelation: "step_results";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "observations_tenant_id_subject_id_fkey";
+            columns: ["tenant_id", "subject_id"];
+            isOneToOne: false;
+            referencedRelation: "assessment_subjects";
+            referencedColumns: ["tenant_id", "id"];
+          },
+        ];
+      };
       operational_issue_rows: {
         Row: {
           closed_at: string | null;
@@ -14880,6 +16052,13 @@ export type Database = {
             foreignKeyName: "operational_issues_tenant_id_program_id_fkey";
             columns: ["tenant_id", "program_id"];
             isOneToOne: false;
+            referencedRelation: "program_activity";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "operational_issues_tenant_id_program_id_fkey";
+            columns: ["tenant_id", "program_id"];
+            isOneToOne: false;
             referencedRelation: "programs";
             referencedColumns: ["tenant_id", "id"];
           },
@@ -14914,6 +16093,26 @@ export type Database = {
           },
         ];
       };
+      program_activity: {
+        Row: {
+          code: string | null;
+          id: string | null;
+          last_activity_at: string | null;
+          name: string | null;
+          status: string | null;
+          tenant_id: string | null;
+          updated_at: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "programs_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       program_control_requirement_counts: {
         Row: {
           control_id: string | null;
@@ -14929,6 +16128,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "tenants";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "engineering_requirements_tenant_id_program_id_fkey";
+            columns: ["tenant_id", "program_id"];
+            isOneToOne: false;
+            referencedRelation: "program_activity";
+            referencedColumns: ["tenant_id", "id"];
           },
           {
             foreignKeyName: "engineering_requirements_tenant_id_program_id_fkey";
@@ -14986,6 +16192,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "tenants";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "engineering_requirements_tenant_id_program_id_fkey";
+            columns: ["tenant_id", "program_id"];
+            isOneToOne: false;
+            referencedRelation: "program_activity";
+            referencedColumns: ["tenant_id", "id"];
           },
           {
             foreignKeyName: "engineering_requirements_tenant_id_program_id_fkey";
@@ -15145,10 +16358,44 @@ export type Database = {
             foreignKeyName: "engineering_requirements_tenant_id_program_id_fkey";
             columns: ["tenant_id", "program_id"];
             isOneToOne: false;
+            referencedRelation: "program_activity";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "engineering_requirements_tenant_id_program_id_fkey";
+            columns: ["tenant_id", "program_id"];
+            isOneToOne: false;
             referencedRelation: "programs";
             referencedColumns: ["tenant_id", "id"];
           },
         ];
+      };
+      review_queue_rows: {
+        Row: {
+          determination_count: number | null;
+          due_on: string | null;
+          id: string | null;
+          kind: string | null;
+          kind_rank: number | null;
+          name: string | null;
+          owner_name: string | null;
+          owner_party_id: string | null;
+          parent_id: string | null;
+          parent_name: string | null;
+          parent_table: string | null;
+          program_id: string | null;
+          program_name: string | null;
+          record_table: string | null;
+          requested_by_name: string | null;
+          requested_by_party_id: string | null;
+          target: Json | null;
+          tenant_id: string | null;
+          version_number: number | null;
+          waiting_on_name: string | null;
+          waiting_on_party_id: string | null;
+          waiting_since: string | null;
+        };
+        Relationships: [];
       };
       risk_rows: {
         Row: {
@@ -15188,6 +16435,13 @@ export type Database = {
             columns: ["tenant_id", "owner_party_id"];
             isOneToOne: false;
             referencedRelation: "parties";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "risks_tenant_id_program_id_fkey";
+            columns: ["tenant_id", "program_id"];
+            isOneToOne: false;
+            referencedRelation: "program_activity";
             referencedColumns: ["tenant_id", "id"];
           },
           {
@@ -15306,6 +16560,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "tenants";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "tasks_tenant_id_program_id_fkey";
+            columns: ["tenant_id", "program_id"];
+            isOneToOne: false;
+            referencedRelation: "program_activity";
+            referencedColumns: ["tenant_id", "id"];
           },
           {
             foreignKeyName: "tasks_tenant_id_program_id_fkey";
@@ -15432,6 +16693,36 @@ export type Database = {
           generation: number;
         }[];
       };
+      assurance_finding_evidence: {
+        Args: { p_tenant_id: string };
+        Returns: {
+          artifact_id: string;
+          finding_id: string;
+        }[];
+      };
+      assurance_finding_issues: {
+        Args: { p_tenant_id: string };
+        Returns: {
+          finding_id: string;
+          issue_id: string;
+        }[];
+      };
+      assurance_finding_risks: {
+        Args: { p_tenant_id: string };
+        Returns: {
+          finding_id: string;
+          risk_id: string;
+        }[];
+      };
+      assurance_findings: {
+        Args: { p_tenant_id: string };
+        Returns: {
+          control_id: string;
+          finding_id: string;
+          program_id: string;
+          published: boolean;
+        }[];
+      };
       assurance_issue_evidence: {
         Args: { p_tenant_id: string };
         Returns: {
@@ -15443,6 +16734,13 @@ export type Database = {
         Args: { p_tenant_id: string };
         Returns: {
           issue_id: string;
+          risk_id: string;
+        }[];
+      };
+      assurance_remediation_risks: {
+        Args: { p_tenant_id: string };
+        Returns: {
+          poam_item_id: string;
           risk_id: string;
         }[];
       };
@@ -15561,9 +16859,27 @@ export type Database = {
         };
         Returns: Json;
       };
+      declare_product_element_change: {
+        Args: {
+          p_expected_revision: number;
+          p_kinds: string[];
+          p_rationale: string;
+          p_system_id: string;
+          p_tenant_id: string;
+        };
+        Returns: Json;
+      };
       delete_assurance_view: {
         Args: { p_id: string; p_revision: number; p_tenant_id: string };
         Returns: undefined;
+      };
+      delete_control_overlay: {
+        Args: {
+          p_expected_revision: number;
+          p_overlay_id: string;
+          p_tenant_id: string;
+        };
+        Returns: boolean;
       };
       edit_requirement: {
         Args: {
@@ -15581,6 +16897,16 @@ export type Database = {
         Returns: string;
       };
       ensure_personal_tenant: { Args: never; Returns: string };
+      import_customer_requirements: {
+        Args: {
+          p_program_id: string;
+          p_request_id: string;
+          p_requirements: Json;
+          p_source: Json;
+          p_tenant_id: string;
+        };
+        Returns: Json;
+      };
       install_assurance_workbook_presence_policies: {
         Args: never;
         Returns: boolean;
@@ -15600,8 +16926,32 @@ export type Database = {
         Returns: Json;
       };
       natural_sort_key: { Args: { value: string }; Returns: string };
+      overlay_parameter_values: {
+        Args: {
+          p_parameter: Database["public"]["Tables"]["parameters"]["Row"];
+          p_values: Json;
+        };
+        Returns: string[];
+      };
+      plan_delta_assessment: {
+        Args: {
+          p_request_id: string;
+          p_system_id: string;
+          p_tenant_id: string;
+          p_title?: string;
+        };
+        Returns: Json;
+      };
+      product_assessment_sheet: {
+        Args: { p_assessment_id: string; p_tenant_id: string };
+        Returns: Json;
+      };
       product_component_definition: {
         Args: { p_revision_id: string; p_tenant_id: string };
+        Returns: Json;
+      };
+      product_control_status: {
+        Args: { p_product_revision_id: string; p_tenant_id: string };
         Returns: Json;
       };
       product_export_control_implementations: {
@@ -15618,6 +16968,10 @@ export type Database = {
         Returns: Json;
       };
       product_export_uuid: { Args: { seed: string }; Returns: string };
+      program_control_parameters: {
+        Args: { p_control_id: string; p_program_id: string };
+        Returns: Json;
+      };
       program_control_status: { Args: { p_program_id: string }; Returns: Json };
       program_posture: {
         Args: { p_program_id: string; p_tenant_id: string };
@@ -15696,7 +17050,22 @@ export type Database = {
         };
         Returns: Json;
       };
+      record_product_determinations: {
+        Args: {
+          p_assessment_id: string;
+          p_control_ids: string[];
+          p_determination: string;
+          p_element_id: string;
+          p_rationale: string;
+          p_tenant_id: string;
+        };
+        Returns: Json;
+      };
       reference_owner: { Args: { table_name: string }; Returns: string[] };
+      requirement_source_compliance: {
+        Args: { p_source_id: string; p_tenant_id: string };
+        Returns: Json;
+      };
       resolve_assurance_destination: {
         Args: { p_target: Json; p_tenant_id: string };
         Returns: Json;
@@ -15855,12 +17224,73 @@ export type Database = {
           isSetofReturn: false;
         };
       };
+      set_control_overlay_parameters: {
+        Args: {
+          p_expected_revision: number;
+          p_overlay_id: string;
+          p_parameters: Json;
+          p_removed: Json;
+          p_tenant_id: string;
+        };
+        Returns: {
+          catalog_revision_id: string;
+          code: string;
+          created_at: string;
+          created_by: string | null;
+          description: string | null;
+          id: string;
+          revision: number;
+          state: string;
+          tenant_id: string;
+          title: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        SetofOptions: {
+          from: "*";
+          to: "control_overlays";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
+      set_program_baseline_overlays: {
+        Args: {
+          p_choice_id: string;
+          p_expected_revision: number;
+          p_overlay_ids: Json;
+          p_request_id: string;
+          p_tenant_id: string;
+        };
+        Returns: Json;
+      };
+      take_product_version: {
+        Args: {
+          p_expected_revision: number;
+          p_product_revision_id: string;
+          p_request_id: string;
+          p_system_id: string;
+          p_tenant_id: string;
+        };
+        Returns: Json;
+      };
       update_library_assignment: {
         Args: {
           p_assignment_id: string;
           p_new_revision_id: string;
           p_rationale: string;
           p_request_id: string;
+          p_tenant_id: string;
+        };
+        Returns: Json;
+      };
+      variant_control_delta: {
+        Args: { p_system_id: string; p_tenant_id: string };
+        Returns: Json;
+      };
+      variant_version_changes: {
+        Args: {
+          p_product_revision_id: string;
+          p_system_id: string;
           p_tenant_id: string;
         };
         Returns: Json;

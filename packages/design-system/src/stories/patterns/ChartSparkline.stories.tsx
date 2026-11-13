@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { expect } from "storybook/test";
+import { expect, within } from "storybook/test";
 
 import { Chart } from "../..";
 import { Stat, Table } from "../../components";
@@ -11,7 +11,7 @@ import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
 const { Specimens } = storyLayout;
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 const meta = {
   title: "Patterns/Chart/Sparkline",
@@ -288,6 +288,23 @@ export const Dont: Story = {
       />
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    // The number beside the line carries the value; a line alone says only which way it went.
+    const value = halves(canvasElement, 0);
+    await expect(value.do).toHaveTextContent(/^5$/);
+    await expect(within(value.dont).getByRole("img", { name: "Open findings" })).toBeVisible();
+    await expect(value.dont.textContent).not.toMatch(/\d/);
+    // One tone, the status the number carries; a categorical hue on it asks what is wrong.
+    const tone = halves(canvasElement, 1);
+    const paint = (half: HTMLElement) =>
+      Array.from(half.querySelectorAll('[data-slot="chart-sparkline"] [fill^="var("]'), (mark) =>
+        mark.getAttribute("fill"),
+      );
+    await expect(paint(tone.do).length).toBeGreaterThan(0);
+    for (const fill of paint(tone.do)) await expect(fill).toMatch(/success/);
+    await expect(paint(tone.dont).length).toBeGreaterThan(0);
+    for (const fill of paint(tone.dont)) await expect(fill).toMatch(/categorical/);
+  },
 };
 
 export const Playground: Story = {

@@ -4,6 +4,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { useWorkspace } from "@/components/app/workspace";
 import { database, requireIdentity } from "./database";
+import { invalidateModel } from "./models";
 
 const uuid = z.string().uuid();
 const stableId = z.string().regex(/^[A-Za-z0-9_-]{1,160}$/);
@@ -352,6 +353,10 @@ export async function invalidateReviewQueries(
     ...(operation === "create-citation"
       ? [cache.invalidateQueries({ queryKey: ["workspace-search", tenantId] })]
       : []),
+    // A discussion opened or resolved joins or leaves the Review queue, whose pages watch the model.
+    ...(operation === "create-thread" || operation === "set-status"
+      ? [invalidateModel(cache, tenantId, "assurance_review_threads")]
+      : []),
   ]);
 }
 export function useAssuranceReviewCommand() {
@@ -542,8 +547,14 @@ export function useAssuranceCitation(citationId?: string) {
     },
   });
 }
-export function citationReaderHref(
-  citation: Pick<AssuranceCitation, "id" | "evidence_version_id">,
+/**
+ * Where a citation leads: the reader at its passage when the workspace captured the cited file,
+ * else its version's review, whose Cited by holds the passage and the link to its source. A
+ * source the workspace holds no file of has nothing to read.
+ */
+export function citationHref(
+  citation: Pick<AssuranceCitation, "id" | "evidence_version_id" | "source_storage_object_name">,
 ) {
-  return `/evidence?version=${citation.evidence_version_id}&citation=${citation.id}&reader=true`;
+  const review = `/evidence?version=${citation.evidence_version_id}&citation=${citation.id}`;
+  return citation.source_storage_object_name ? `${review}&reader=true` : review;
 }

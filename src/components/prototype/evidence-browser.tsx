@@ -41,6 +41,7 @@ import {
 import { RecordTrail, TrailLink } from "./record-trail";
 import { TraceBand } from "./assurance-trace";
 import { useAssuranceTrace } from "@/lib/assurance-trace";
+import { useAssuranceCitation } from "@/lib/assurance-review";
 import { Page } from "@/components/app/shell";
 import type { ReactNode } from "react";
 import { ProductCollection } from "./product-collection";
@@ -262,7 +263,7 @@ const evidenceNoun = { one: "evidence artifact", other: "evidence artifacts" };
 const later = <T extends { revision: number }>(a: T | undefined, b: T | undefined) =>
   a && b ? (b.revision > a.revision ? b : a) : (a ?? b);
 
-export function EvidenceBrowser(props: {
+type EvidenceBrowserProps = {
   programId?: string | undefined;
   initialArtifactId?: string | undefined;
   initialVersionId?: string | undefined;
@@ -271,18 +272,72 @@ export function EvidenceBrowser(props: {
   sourceSha?: string | undefined;
   initialLocation?: EvidenceReaderWorkspaceProps["initialLocation"];
   citationTarget?: EvidenceReaderWorkspaceProps["target"];
-}) {
-  if (props.reader || props.citationId)
+};
+
+export function EvidenceBrowser(props: EvidenceBrowserProps) {
+  if (props.citationId && !props.reader)
+    return <CitedEvidence {...props} citationId={props.citationId} />;
+  if (props.reader) return <EvidenceReading {...props} />;
+  return <EvidenceRegister {...props} />;
+}
+
+/**
+ * The document reader. A version the workspace holds no file of has nothing to read, so a link
+ * that asks for its reader opens its review instead, where its source and citations are; the
+ * reader's own load would only fail and offer a Retry that cannot help.
+ */
+function EvidenceReading(props: EvidenceBrowserProps) {
+  const versionId = props.citationId ? undefined : props.initialVersionId;
+  const version = useRows(
+    "evidence_versions",
+    { id: versionId ? [versionId] : [] },
+    { enabled: !!versionId, columns: ["id", "storage_object_name"] },
+  );
+  const citation = useAssuranceCitation(props.citationId);
+  const read = version.data?.[0];
+  // A citation whose source the workspace captured no file of reads the same way.
+  const unreadable =
+    read && !read.storage_object_name
+      ? read.id
+      : citation.data && !citation.data.source_storage_object_name
+        ? citation.data.evidence_version_id
+        : undefined;
+  if (unreadable)
     return (
-      <EvidenceReaderWorkspace
-        versionId={props.initialVersionId}
-        citationId={props.citationId}
-        sourceSha={props.sourceSha}
-        initialLocation={props.initialLocation}
-        target={props.citationTarget}
+      <EvidenceRegister
+        programId={props.programId}
+        initialArtifactId={props.initialArtifactId}
+        initialVersionId={unreadable}
       />
     );
-  return <EvidenceRegister {...props} />;
+  return (
+    <EvidenceReaderWorkspace
+      versionId={props.initialVersionId}
+      citationId={props.citationId}
+      sourceSha={props.sourceSha}
+      initialLocation={props.initialLocation}
+      target={props.citationTarget}
+    />
+  );
+}
+
+/**
+ * Where a link that names a citation leads. A citation whose file the workspace captured opens the
+ * reader at its passage. One cited from a source the workspace holds no file of has nothing to
+ * read, so it opens its version's review, whose Cited by holds the passage and the link to the
+ * source. A link that asks for the reader gets the reader, and its reason when it has no file.
+ */
+function CitedEvidence(props: EvidenceBrowserProps & { citationId: string }) {
+  const citation = useAssuranceCitation(props.citationId);
+  if (citation.data && !citation.data.source_storage_object_name)
+    return (
+      <EvidenceRegister
+        programId={props.programId}
+        initialArtifactId={props.initialArtifactId}
+        initialVersionId={citation.data.evidence_version_id}
+      />
+    );
+  return <EvidenceReading {...props} />;
 }
 function EvidenceRegister({
   programId,
@@ -966,7 +1021,10 @@ function EvidenceVersion({ version }: { version: Row<"evidence_versions"> }) {
         {/* Authored text reads as a paragraph at every width, not squeezed beside a label. */}
         {version.provenance ? <Prose label="Provenance">{version.provenance}</Prose> : null}
       </Section>
-      <TextLink href={`/evidence?version=${version.id}&reader=true`}>Read document</TextLink>
+      {/* A version with no captured file has nothing to read; its source is in the facts above. */}
+      {version.storage_object_name ? (
+        <TextLink href={`/evidence?version=${version.id}&reader=true`}>Read document</TextLink>
+      ) : null}
       {collection && <EvidenceFile collection={collection} record={version as DataRecord} />}
       <EvidenceSupport versionId={version.id} />
       <EvidenceReviews versionId={version.id} />
@@ -990,16 +1048,23 @@ function SupportedRequirement({ revisionId }: { revisionId: string }) {
 }
 
 function EvidenceSupport({ versionId }: { versionId: string }) {
+  // Of each link, the record it supports and nothing else: the table names that record.
   const filter = { evidence_version_id: versionId };
-  const requirements = useRows("requirement_evidence", filter);
-  const implementations = useRows("implementation_evidence", filter);
-  const observations = useRows("observation_evidence", filter);
-  const findings = useRows("finding_evidence", filter);
-  const runs = useRows("test_run_evidence", filter);
-  const steps = useRows("step_result_evidence", filter);
-  const tasks = useRows("task_evidence", filter);
-  const issues = useRows("issue_evidence", filter);
-  const gates = useRows("gate_evidence", filter);
+  const requirements = useRows("requirement_evidence", filter, {
+    columns: ["id", "requirement_revision_id"],
+  });
+  const implementations = useRows("implementation_evidence", filter, {
+    columns: ["id", "implementation_statement_id"],
+  });
+  const observations = useRows("observation_evidence", filter, {
+    columns: ["id", "observation_id"],
+  });
+  const findings = useRows("finding_evidence", filter, { columns: ["id", "finding_id"] });
+  const runs = useRows("test_run_evidence", filter, { columns: ["id", "test_run_id"] });
+  const steps = useRows("step_result_evidence", filter, { columns: ["id", "step_result_id"] });
+  const tasks = useRows("task_evidence", filter, { columns: ["id", "task_id"] });
+  const issues = useRows("issue_evidence", filter, { columns: ["id", "issue_id"] });
+  const gates = useRows("gate_evidence", filter, { columns: ["id", "gate_criterion_id"] });
   const groups = [
     {
       label: "Requirement",

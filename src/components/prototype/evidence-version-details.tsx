@@ -142,6 +142,29 @@ export function EvidenceReviews({ versionId }: { versionId: string }) {
   );
 }
 
+/** What the details draw of an artifact: a caller reads these columns, not every one. */
+export type EvidenceArtifactFacts = Pick<
+  Row<"evidence_artifacts">,
+  "id" | "description" | "artifact_kind" | "owner_party_id"
+>;
+/** What the details draw of a version, its file included: a caller reads these columns. */
+export type EvidenceVersionFacts = Pick<
+  Row<"evidence_versions">,
+  | "id"
+  | "version_number"
+  | "state"
+  | "collected_at"
+  | "published_at"
+  | "expires_at"
+  | "external_uri"
+  | "media_type"
+  | "byte_size"
+  | "sha256"
+  | "provenance"
+  | "storage_object_name"
+  | "storage_object_id"
+>;
+
 /** The same pinned evidence content in the picker, linked preview and upload flow. */
 export function EvidenceVersionDetails({
   artifact,
@@ -151,8 +174,8 @@ export function EvidenceVersionDetails({
   onFileDirtyChange,
   triggerRef,
 }: {
-  artifact: Row<"evidence_artifacts">;
-  version: Row<"evidence_versions">;
+  artifact: EvidenceArtifactFacts;
+  version: EvidenceVersionFacts;
   showFile?: boolean;
   onFileBusyChange?: ((busy: boolean) => void) | undefined;
   onFileDirtyChange?: ((dirty: boolean) => void) | undefined;

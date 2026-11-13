@@ -6,13 +6,18 @@ import type { BaselineLayer } from "@/lib/baseline-stack";
 export type StackRow = Pick<
   BaselineLayer,
   "key" | "kind" | "title" | "added" | "removed" | "total"
->;
+> & {
+  /** How many parameters the layer sets values for. */
+  parameters?: number | undefined;
+};
 
 /**
  * How a control baseline is formed, read top to bottom: the reference baseline, each overlay and
- * the tailoring in the order they apply, with what each added and removed and the running count,
- * then the result. One line a row, numbers only. Its
- * order is its meaning, so it is the kit `Table`, with no search or sort.
+ * the tailoring in the order they apply, with what each added and removed, how many parameters it
+ * sets values for and the running count, then the result. One line a row, numbers only. Its
+ * order is its meaning, so it is the kit `Table`, with no search or sort. With `actions` (program
+ * setup, Edit overlays) the layer's name and its controls are pinned at the two ends, so in a
+ * narrow frame the numbers scroll between them and every layer's controls stay in reach.
  */
 export function BaselineStackTable({
   label,
@@ -34,16 +39,24 @@ export function BaselineStackTable({
   resultLabel?: string | undefined;
 }) {
   const result = layers.at(-1)?.total ?? reference.count;
+  // The two ends a narrow frame keeps in view while the numbers scroll between them; the name
+  // wraps, and its floor leaves both ends room in a 340px phone's dialog.
+  const start = actions ? ({ pinned: "start", edge: "scrolled" } as const) : {};
+  const end = actions ? ({ pinned: "end", edge: "scrolled" } as const) : {};
   const change = (layer: StackRow, kind: "added" | "removed") => {
     const count = layer[kind];
     if (!count) return <Text color="color.text.subtle">0</Text>;
     return `${kind === "added" ? "+" : "−"}${count}`;
   };
+  const values = (layer: StackRow) =>
+    layer.parameters ? layer.parameters : <Text color="color.text.subtle">0</Text>;
   return (
     <Table aria-label={label}>
       <thead>
         <tr>
-          <Table.Header minWidth={220}>Layer</Table.Header>
+          <Table.Header minWidth={actions ? 136 : 220} {...start}>
+            Layer
+          </Table.Header>
           <Table.Header width={120}>Type</Table.Header>
           <Table.Header align="end" width={96}>
             Added
@@ -51,11 +64,14 @@ export function BaselineStackTable({
           <Table.Header align="end" width={96}>
             Removed
           </Table.Header>
+          <Table.Header align="end" width={112}>
+            Parameters
+          </Table.Header>
           <Table.Header align="end" width={96}>
             Controls
           </Table.Header>
           {actions ? (
-            <Table.Header align="end" width={132}>
+            <Table.Header align="end" width={132} {...end}>
               Actions
             </Table.Header>
           ) : null}
@@ -63,34 +79,45 @@ export function BaselineStackTable({
       </thead>
       <tbody>
         <Table.Row>
-          <Table.Cell wrap>{reference.name}</Table.Cell>
+          <Table.Cell wrap {...start}>
+            {reference.name}
+          </Table.Cell>
           <Table.Cell>Baseline</Table.Cell>
           <Table.Cell />
           <Table.Cell />
+          <Table.Cell />
           <Table.Cell align="end">{reference.count}</Table.Cell>
-          {actions ? <Table.Cell /> : null}
+          {actions ? <Table.Cell {...end} /> : null}
         </Table.Row>
         {layers.map((layer, index) => (
           <Table.Row key={layer.key}>
-            <Table.Cell wrap>{name(layer)}</Table.Cell>
+            <Table.Cell wrap {...start}>
+              {name(layer)}
+            </Table.Cell>
             <Table.Cell>{layer.kind === "overlay" ? "Overlay" : "Tailoring"}</Table.Cell>
             <Table.Cell align="end">{change(layer, "added")}</Table.Cell>
             <Table.Cell align="end">{change(layer, "removed")}</Table.Cell>
+            <Table.Cell align="end">{values(layer)}</Table.Cell>
             <Table.Cell align="end">{layer.total}</Table.Cell>
-            {actions ? <Table.Cell align="end">{actions(layer, index)}</Table.Cell> : null}
+            {actions ? (
+              <Table.Cell align="end" {...end}>
+                {actions(layer, index)}
+              </Table.Cell>
+            ) : null}
           </Table.Row>
         ))}
         <Table.Row>
-          <Table.Cell wrap>
+          <Table.Cell wrap {...start}>
             <Text weight="semibold">{resultLabel}</Text>
           </Table.Cell>
+          <Table.Cell />
           <Table.Cell />
           <Table.Cell />
           <Table.Cell />
           <Table.Cell align="end">
             <Text weight="semibold">{result}</Text>
           </Table.Cell>
-          {actions ? <Table.Cell /> : null}
+          {actions ? <Table.Cell {...end} /> : null}
         </Table.Row>
       </tbody>
     </Table>

@@ -23,7 +23,7 @@ import { Stack } from "../../primitives";
 import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 const meta = {
   title: "Patterns/CommandPalette",
@@ -308,6 +308,20 @@ export const Dont: Story = {
       />
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    const { do: good, dont: bad } = halves(canvasElement);
+    // Commands sit under headings that say what kind they are, each a verb and its object, with
+    // its shortcut said as the row's keys.
+    const record = within(good).getByRole("group", { name: "Record" });
+    await expect(
+      within(record).getByRole("option", { name: "Record an assessment" }),
+    ).toHaveAttribute("aria-keyshortcuts");
+    await expect(within(good).getByRole("group", { name: "Go to" })).toBeVisible();
+    // Six nouns in one list: nothing groups them, so nothing says which is a place to go and which
+    // a thing to do.
+    await expect(within(bad).queryAllByRole("group")).toHaveLength(0);
+    await expect(within(bad).getAllByRole("option")).toHaveLength(6);
+  },
 };
 
 function RepeatedCommandsDemo() {

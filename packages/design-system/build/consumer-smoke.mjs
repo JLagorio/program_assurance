@@ -105,8 +105,11 @@ try {
     !css.includes("--toast-swipe-movement-y")
   )
     throw new Error("Consumer CSS is missing Base UI toast stack and swipe geometry");
-  if (!/@font-face\{[^}]*font-family:\s*["']?Geist Variable/.test(css.replace(/\s*\n\s*/g, "")))
+  const faces = css.replace(/\s*\n\s*/g, "");
+  if (!/@font-face\{[^}]*font-family:\s*["']?Geist Variable/.test(faces))
     throw new Error("Consumer CSS is missing the packaged Geist faces from fonts.css");
+  if (!/@font-face\{[^}]*font-family:\s*["']?Geist Mono Variable/.test(faces))
+    throw new Error("Consumer CSS is missing the packaged Geist Mono faces from fonts.css");
   // The lint data spells classes no element renders (m-(--ds-space-negative-025) is one of its
   // variable spellings); ledger.css keeps it out of Tailwind's scan.
   if (css.includes("--ds-space-negative-025\\)"))

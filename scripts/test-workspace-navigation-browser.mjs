@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { chromium } from "playwright";
 import { setTimeout as wait } from "node:timers/promises";
 import { localWorkspace } from "./tests/local-workspace.mjs";
+import { artifactPath } from "./tests/artifacts.mjs";
 const workspace = await localWorkspace("navigation-browser");
 const { client, tenantId } = workspace;
 const origin = process.env.APP_TEST_URL ?? "http://localhost:8080";
@@ -169,7 +170,7 @@ try {
     "Remote search settles before visual inspection",
   );
   await page.screenshot({
-    path: "/private/tmp/navigation-launcher-phone.png",
+    path: artifactPath("navigation-launcher-phone.png"),
     animations: "disabled",
   });
   await dialog.getByRole("option").filter({ hasText: "Navigation Beta" }).click();
@@ -178,7 +179,7 @@ try {
   dialog = await launcher();
   await dialog.getByRole("button", { name: "All", exact: true }).click();
   await page.screenshot({
-    path: "/private/tmp/navigation-launcher-desktop.png",
+    path: artifactPath("navigation-launcher-desktop.png"),
     animations: "disabled",
   });
   await page.keyboard.press("Escape");
@@ -189,7 +190,7 @@ try {
 } catch (error) {
   if (page) console.error(await page.locator("body").textContent());
   if (page)
-    await page.screenshot({ path: "/private/tmp/navigation-browser-failure.png", fullPage: true });
+    await page.screenshot({ path: artifactPath("navigation-browser-failure.png"), fullPage: true });
   throw error;
 } finally {
   await browser?.close();

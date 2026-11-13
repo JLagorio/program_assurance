@@ -1,3 +1,4 @@
+import { idleLayer } from "@/lib/baseline-stack";
 import type { LibraryComponentItem } from "@/lib/library-items";
 import { productItemFor, type ProductConfigurationItem } from "@/lib/product-items";
 import {
@@ -343,7 +344,7 @@ export function wizardIssues({
           prefix,
         );
       for (const layer of layers)
-        if (!layer.added && !layer.removed)
+        if (idleLayer(layer))
           catalogStep(
             field,
             `${layer.title} changes nothing where it is in the stack. Remove it, or move it earlier.`,

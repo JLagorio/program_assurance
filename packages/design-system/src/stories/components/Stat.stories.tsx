@@ -15,7 +15,7 @@ import * as typeStyle from "../_lib/type-style";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
 const { Matrix, Specimens } = storyLayout;
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 const { typeOf, ramp } = typeStyle;
 
 const meta = {
@@ -445,6 +445,44 @@ export const Dont: Story = {
       />
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    const tiles = (half: HTMLElement) =>
+      Array.from(half.querySelectorAll<HTMLElement>('[data-slot="stat-tile"]'));
+    // A tile is its label, its number and an optional note, in that order.
+    const label = (tile: HTMLElement) => tile.children[0] as HTMLElement;
+    const figure = (tile: HTMLElement) => tile.children[1] as HTMLElement;
+    const note = (tile: HTMLElement) => tile.children[2];
+    // One number carries a tone; when every one does, the overdue count stands out from none.
+    // Forced colours paint every number one system colour, so the tones show outside them.
+    const toned = halves(canvasElement, 0);
+    if (!window.matchMedia("(forced-colors: active)").matches) {
+      const colours = (half: HTMLElement) =>
+        tiles(half).map((tile) => getComputedStyle(figure(tile)).color);
+      const [controls, verified, overdue] = colours(toned.do);
+      await expect(controls).toBe(verified);
+      await expect(overdue).not.toBe(controls);
+      await expect(new Set(colours(toned.dont)).size).toBe(3);
+    }
+    // Zero is the number, with a note that says what it means; the Don't drops the notes and
+    // writes a word in the number's place.
+    const zero = halves(canvasElement, 1);
+    for (const tile of tiles(zero.do)) {
+      await expect(figure(tile)).toHaveTextContent(/^0$/);
+      await expect(note(tile)).toBeDefined();
+    }
+    for (const tile of tiles(zero.dont)) await expect(note(tile)).toBeUndefined();
+    await expect(figure(tiles(zero.dont)[1]!)).toHaveTextContent(/^None$/);
+    // The label is a noun and the value a number; a sentence and a phrase crowd the number out.
+    const words = halves(canvasElement, 2);
+    for (const tile of tiles(words.do)) {
+      await expect(figure(tile)).toHaveTextContent(/^\d+$/);
+      await expect(label(tile).textContent!.split(" ").length).toBeLessThanOrEqual(3);
+    }
+    const [sentence, phrase] = tiles(words.dont);
+    await expect(label(sentence!).textContent!.split(" ").length).toBeGreaterThan(3);
+    await expect(figure(sentence!)).not.toHaveTextContent(/^\d+$/);
+    await expect(figure(phrase!)).not.toHaveTextContent(/^\d+$/);
+  },
 };
 
 /** A count that opens the register it counts: `link` fills the tile with the link, so the whole tile is one target, the tile stays the grid's child, and the focus ring is drawn inside its edge where the card frame cannot clip it. The link's name is the label, the number and the note. */

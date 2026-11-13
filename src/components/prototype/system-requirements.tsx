@@ -15,15 +15,22 @@ import { useMemo, useRef, useState } from "react";
 import {
   Absent,
   Button,
+  ButtonGroup,
+  ButtonGroupSeparator,
   DataTable,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
   FilterChip,
+  IconButton,
   PickerSheet,
   defineColumns,
   toast,
   useDataTable,
   useLedgerLocale,
 } from "@ledger/design-system";
-import { Plus } from "lucide-react";
+import { ChevronDown, Plus } from "lucide-react";
 import { useConfirmation } from "@/components/app/confirmation";
 import { TextField } from "@/components/app/fields";
 import { useDraftGuard } from "@/components/app/use-draft-guard";
@@ -302,7 +309,7 @@ export function SystemRequirements({
     });
   }
   removeRow.current = (row) => void removeAllocation(row);
-  const actions =
+  const allocate =
     canWrite && element ? (
       <Button
         // A removal takes its row and the menu that asked; focus comes back here.
@@ -316,6 +323,32 @@ export function SystemRequirements({
       >
         Allocate requirements
       </Button>
+    ) : undefined;
+  // Adopting a reusable requirement from the library is the tab's second way in: the one create
+  // action, then a labelled menu for the other path.
+  const actions =
+    allocate && canAdopt ? (
+      <ButtonGroup aria-label="Allocate requirements">
+        {allocate}
+        <ButtonGroupSeparator isDecorative />
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <IconButton
+                label="More ways to allocate requirements"
+                icon={<ChevronDown />}
+                size="small"
+                variant="primary"
+              />
+            }
+          />
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={onAddFromLibrary}>Add from library</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </ButtonGroup>
+    ) : allocate ? (
+      allocate
     ) : canAdopt ? (
       <Button size="small" variant="primary" onClick={onAddFromLibrary}>
         Add from library

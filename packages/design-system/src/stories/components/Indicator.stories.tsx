@@ -9,7 +9,7 @@ import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
 const { Matrix: Grid } = storyLayout;
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 const meta = {
   title: "Components/Indicator",
@@ -238,6 +238,65 @@ export const Dont: Story = {
       />
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    const parts = (half: HTMLElement, slot: string) =>
+      half.querySelectorAll<HTMLElement>(`[data-slot="${slot}"]`);
+    // Severity is an Indicator and status the row's one pill; two pills leave rank and state alike.
+    const row = halves(canvasElement, 0);
+    await expect(parts(row.do, "indicator")).toHaveLength(1);
+    await expect(parts(row.do, "badge")).toHaveLength(1);
+    await expect(parts(row.dont, "indicator")).toHaveLength(0);
+    await expect(parts(row.dont, "badge")).toHaveLength(2);
+    // Every reader gets the status as its word; a Dot alone shows a sighted reader colour alone.
+    const word = halves(canvasElement, 1);
+    await expect(parts(word.do, "indicator")[0]).toHaveTextContent("Suspect");
+    await expect(within(word.dont).getByRole("img", { name: "Suspect" })).toBeVisible();
+    await expect(word.dont).toHaveTextContent(/^$/);
+    // A record's state is a Badge; an Indicator's Dot ranks and does not name a stage.
+    const state = halves(canvasElement, 2);
+    await expect(parts(state.do, "badge")[0]).toHaveTextContent("Verified");
+    await expect(parts(state.do, "indicator")).toHaveLength(0);
+    await expect(parts(state.dont, "indicator")[0]).toHaveTextContent("Verified");
+    // The lowest rung is neutral, so the scale reads loud to quiet; Low in green reads as good.
+    const scale = halves(canvasElement, 3);
+    const low = (half: HTMLElement) =>
+      within(half).getByText("Low").closest<HTMLElement>('[data-slot="indicator"]')!;
+    await expect(low(scale.do)).toHaveAttribute("data-tone", "neutral");
+    await expect(low(scale.dont)).toHaveAttribute("data-tone", "success");
+  },
+};
+
+/** `emphasis="bold"` for the one level that must not read as its neighbour: Critical beside High, both danger. The word takes the tone's colour at semibold beside the same Dot, and it is still never a pill. Neutral stays muted whatever is asked. */
+export const Emphasis: Story = {
+  render: () => (
+    <Stack space="space.100">
+      <Indicator tone="danger" emphasis="bold" data-testid="critical">
+        Critical
+      </Indicator>
+      <Indicator tone="danger" data-testid="high">
+        High
+      </Indicator>
+      <Indicator tone="warning">Moderate</Indicator>
+      <Indicator tone="neutral" emphasis="bold" data-testid="low">
+        Low
+      </Indicator>
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const critical = canvas.getByTestId("critical");
+    const high = canvas.getByTestId("high");
+    await expect(critical).toHaveAttribute("data-emphasis", "bold");
+    await expect(high).not.toHaveAttribute("data-emphasis");
+    // Critical's word is heavier than High's, so the two danger rungs never read alike.
+    const weight = (element: HTMLElement) => Number(getComputedStyle(element).fontWeight);
+    await expect(weight(critical)).toBeGreaterThan(weight(high));
+    // Its colour is the danger text, where forced colours leave every word the system's.
+    if (!window.matchMedia("(forced-colors: active)").matches)
+      await expect(getComputedStyle(critical).color).not.toBe(getComputedStyle(high).color);
+    // The lowest rung never shouts: a bold neutral is the muted word as before.
+    await expect(canvas.getByTestId("low")).not.toHaveAttribute("data-emphasis");
+  },
 };
 
 export const Playground: Story = {};

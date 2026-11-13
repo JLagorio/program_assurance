@@ -22,7 +22,9 @@ import {
 } from "./status";
 
 const migrations = fileURLToPath(new URL("../../supabase/migrations", import.meta.url));
-const STATUS_LIKE = /(status|state|severity|impact|priority|determination|decision|likelihood)$/;
+// An overlay decision's `action` (Adds, Removes) is a decision's word too.
+const STATUS_LIKE =
+  /(status|state|severity|impact|priority|determination|decision|likelihood|(?:^|_)action)$/;
 const TONES = new Set(["neutral", "information", "success", "warning", "danger"]);
 
 /** Each status-like column's allowed values, as the last migration that constrains it leaves them. */

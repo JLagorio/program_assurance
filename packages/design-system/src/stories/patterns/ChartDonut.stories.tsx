@@ -11,7 +11,7 @@ import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
 const { Specimens } = storyLayout;
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 const coverage = [
   { key: "s", label: "Satisfied", value: 298, tone: "success" as const },
@@ -647,6 +647,38 @@ export const Dont: Story = {
       />
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    // The ring's slices, the track under them left out.
+    const slices = (half: HTMLElement, count: number) =>
+      waitFor(() => {
+        const fills = Array.from(half.querySelectorAll(".recharts-pie-sector path"), (sector) =>
+          sector.getAttribute("fill"),
+        );
+        expect(fills.filter((fill) => !fill?.includes("track"))).toHaveLength(count);
+      });
+    // One number is a Stat, and the number is the chart; a ring of two slices adds a comparison
+    // nobody asked for.
+    const one = halves(canvasElement, 0);
+    await expect(one.do.querySelector('[data-slot="stat-tile"]')).toHaveTextContent("5");
+    await expect(one.do.querySelector(".recharts-surface")).toBeNull();
+    await slices(one.dont, 2);
+    // Five sources compared are bars, read by length; as slices they are five hues the legend
+    // has to name.
+    const compared = halves(canvasElement, 1);
+    await waitFor(() =>
+      expect(compared.do.querySelectorAll(".recharts-bar-rectangle")).toHaveLength(5),
+    );
+    await slices(compared.dont, 5);
+    await expect(compared.dont.querySelectorAll('[data-slot="chart-legend"] li')).toHaveLength(5);
+    // A score against its scale is a meter, heard as 72 of 100; a remainder slice is a second
+    // datum that is not one.
+    const score = halves(canvasElement, 2);
+    const meter = within(score.do).getByRole("meter", { name: "Risk posture" });
+    await expect(meter).toHaveAttribute("aria-valuenow", "72");
+    await expect(meter).toHaveAttribute("aria-valuemax", "100");
+    await expect(within(score.dont).queryByRole("meter")).toBeNull();
+    await slices(score.dont, 2);
+  },
 };
 
 export const Playground: Story = {

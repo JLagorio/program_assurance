@@ -33,7 +33,6 @@ import { causeText } from "@/components/app/sentence";
 import { StatusBadge } from "@/components/app/status";
 import { useDraftGuard } from "@/components/app/use-draft-guard";
 import {
-  overlayActionLabels,
   resiliencyDecisions,
   useSetOverlayDecisions,
   type ControlOverlay,
@@ -48,19 +47,13 @@ import {
 } from "@/lib/frameworks";
 import { idSet, useRows, type Row } from "@/lib/models";
 import { serverRead, useServerCounts, useServerResult, type ServerRow } from "@/lib/server-table";
-import { controlPublicationStatuses, type StatusVocabulary } from "@/lib/status";
+import { controlPublicationStatuses, overlayDecisionActions } from "@/lib/status";
 import { useCollectionTable, useServerCollection } from "./collection-question";
 import { ProductCollection } from "./product-collection";
 import { RecordLink, useRemovalFocus } from "./record-preview";
 import { QueryState, ReportFailures } from "./work-common";
 
 type Action = OverlayDecision["action"];
-
-/** A decision's action as its badge: what the overlay does to a baseline, in the command's words. */
-export const overlayDecisionActions: StatusVocabulary<Action> = {
-  include: { label: overlayActionLabels.include, tone: "success", rank: 0 },
-  exclude: { label: overlayActionLabels.exclude, tone: "warning", rank: 1 },
-};
 
 /** The decisions an overlay holds, as its record page and the picker read them. */
 export function useOverlayDecisions(overlayId: string) {
@@ -234,7 +227,7 @@ export function OverlayDecisions({
         focus.target.current = node;
       }}
       size="small"
-      variant="primary"
+      variant="secondary"
       iconBefore={<Plus />}
       onClick={() => setAdding(true)}
     >
@@ -309,8 +302,8 @@ const candidateRead = (edition: string, controlIds?: readonly string[] | undefin
   });
 
 const decisionChoices = [
-  { value: "include", label: "Adds to the baseline" },
-  { value: "exclude", label: "Removes from the baseline" },
+  { value: "include", label: `${overlayDecisionActions.include.label} to the baseline` },
+  { value: "exclude", label: `${overlayDecisionActions.exclude.label} from the baseline` },
 ] satisfies { value: Action; label: string }[];
 
 /** Where an added control's rationale comes from: the reader writes one for all, or Table E-1 gives each its own. */

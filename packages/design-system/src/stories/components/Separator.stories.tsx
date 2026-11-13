@@ -10,7 +10,7 @@ import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
 const { Specimens } = storyLayout;
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 const meta = {
   title: "Components/Separator",
@@ -157,6 +157,31 @@ export const Dont: Story = {
       />
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    // Rows that draw their own hairlines are a list; a separator between hand-made rows is not.
+    const rows = halves(canvasElement, 0);
+    const list = within(rows.do).getByRole("list");
+    await expect(within(list).getAllByRole("listitem")).toHaveLength(3);
+    await expect(within(rows.do).queryByRole("separator")).toBeNull();
+    await expect(within(rows.dont).queryByRole("list")).toBeNull();
+    await expect(within(rows.dont).getAllByRole("separator")).toHaveLength(2);
+    // A separator sits between two things; at the top or the bottom it has nothing on one side.
+    const between = halves(canvasElement, 1);
+    for (const rule of within(between.do).getAllByRole("separator")) {
+      await expect(rule.previousElementSibling).not.toBeNull();
+      await expect(rule.nextElementSibling).not.toBeNull();
+    }
+    const column = between.dont.firstElementChild!;
+    await expect(column.firstElementChild).toHaveAttribute("role", "separator");
+    await expect(column.lastElementChild).toHaveAttribute("role", "separator");
+    // A vertical rule stretches to its row; in a column it has nothing to stretch to and draws
+    // nothing.
+    const vertical = halves(canvasElement, 2);
+    const drawn = (half: HTMLElement) =>
+      within(half).getByRole("separator").getBoundingClientRect().height;
+    await expect(drawn(vertical.do)).toBeGreaterThan(0);
+    await expect(drawn(vertical.dont)).toBe(0);
+  },
 };
 
 const nativeRef = createRef<HTMLDivElement>();

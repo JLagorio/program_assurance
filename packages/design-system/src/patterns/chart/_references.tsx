@@ -10,7 +10,7 @@ import {
 
 import { token } from "../../generated/tokens";
 import { spreadLabels, type TopLabel } from "./_labels";
-import { labelWidth } from "./_marks";
+import { labelWidth, useFontLoads } from "./_marks";
 import { toMs } from "./_time";
 import { chartColor, surface } from "./_tones";
 import type { ChartBand, ChartReference } from "./_types";
@@ -51,6 +51,8 @@ export function ReferenceLabels({
   horizontal?: boolean | undefined;
   time?: boolean | undefined;
 }) {
+  // Spread again once the page's font has loaded: the labels are measured in the render.
+  useFontLoads();
   const xScale = useXAxisScale();
   const yScale = useYAxisScale();
   const plot = usePlotArea();

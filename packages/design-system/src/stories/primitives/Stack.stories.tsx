@@ -1,10 +1,11 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { expect, within } from "storybook/test";
 
 import { Box, Inline, Stack, Text } from "../../primitives";
 import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 const meta = {
   title: "Primitives/Stack",
@@ -239,6 +240,34 @@ export const Dont: Story = {
       />
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    const block = (half: HTMLElement, label: string) =>
+      within(half).getByText(label).parentElement!;
+    // One token between every child; a margin per child is a number each.
+    const rhythm = halves(canvasElement, 0);
+    const gaps = (half: HTMLElement) => {
+      const [scope, schedule, owners] = ["Scope", "Schedule", "Owners"].map((label) =>
+        block(half, label).getBoundingClientRect(),
+      );
+      return [
+        Math.round(schedule!.top - scope!.bottom),
+        Math.round(owners!.top - schedule!.bottom),
+      ];
+    };
+    await expect(gaps(rhythm.do)).toEqual([8, 8]);
+    await expect(gaps(rhythm.dont)).toEqual([8, 12]);
+    // Steps are a list a screen reader counts; two paragraphs say nothing of belonging together.
+    const steps = halves(canvasElement, 1);
+    const list = within(steps.do).getByRole("list");
+    await expect(within(list).getAllByRole("listitem")).toHaveLength(2);
+    await expect(within(steps.dont).queryByRole("list")).toBeNull();
+    // One child needs no Stack; around one child it spaces nothing and adds a wrapper.
+    const single = halves(canvasElement, 2);
+    await expect(block(single.do, "Scope").parentElement).toBe(single.do);
+    const wrapper = block(single.dont, "Scope").parentElement!;
+    await expect(wrapper).not.toBe(single.dont);
+    await expect(wrapper.children).toHaveLength(1);
+  },
 };
 
 export const Playground: Story = {

@@ -105,8 +105,11 @@ test("the variant grammar has Ledger's breakpoints and container sizes, and no 2
     assert.deepEqual(functional[root].values, Object.keys(breakpoints));
   for (const root of ["@", "@min", "@max"])
     assert.deepEqual(functional[root].values, Object.keys(containers));
-  for (const name of ["sm", "md", "lg", "aside", "panel", "wide", "xl"])
+  for (const name of ["sm", "md", "lg", "panel", "xl"])
     assert.ok(name in breakpoints, `no ${name} breakpoint`);
+  // The shell's aside area took its breakpoints with it.
+  for (const name of ["aside", "wide"])
+    assert.ok(!(name in breakpoints), `the ${name} breakpoint survives its area`);
   // Decision 5: xl stays, the alias of panel behind Grid's xl column count; 2xl is reset away.
   assert.equal(breakpoints.xl, breakpoints.panel);
   assert.ok(!("2xl" in breakpoints), "Tailwind's 2xl breakpoint survives the reset");

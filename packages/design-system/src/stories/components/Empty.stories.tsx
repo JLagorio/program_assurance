@@ -41,7 +41,7 @@ import { Grid, Stack, Text } from "../../primitives";
 import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 const meta = {
   title: "Components/Empty",
@@ -251,6 +251,16 @@ const kinds: { kind: EmptyIllustrationKind; title: string; description: string }
   },
 ];
 
+/** Each scene's front surface at the picture's 128px, its border included: a record's 128 by 54 unless named here. */
+const frontSizes: Record<string, [number, number]> = {
+  document: [68, 84],
+  tasks: [116, 84],
+  people: [48, 48],
+  tree: [36, 22],
+  chart: [116, 84],
+  calendar: [116, 84],
+};
+
 export const Illustrations: Story = {
   render: () => (
     <Grid templateColumns="repeat(auto-fit, minmax(min(100%, 280px), 1fr))" gap="space.200">
@@ -286,6 +296,11 @@ export const Illustrations: Story = {
       // is the front surface or something drawn on it, never the page behind.
       const front = scene.querySelector<HTMLElement>('[data-part="front"]');
       await expect(front, `${kind} marks its front surface`).not.toBeNull();
+      // Drawn in its 64 by 42 unit box, a unit 2px at this width: the front surface keeps the
+      // size it had when the scene was counted in 2px steps.
+      const [width, height] = frontSizes[kind ?? ""] ?? [128, 54];
+      await expect(front!.getBoundingClientRect().width).toBeCloseTo(width, 0);
+      await expect(front!.getBoundingClientRect().height).toBeCloseTo(height, 0);
       front!.scrollIntoView({ block: "center" });
       const box = front!.getBoundingClientRect();
       const hit = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
@@ -647,4 +662,31 @@ export const Dont: Story = {
       />
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    const empty = (half: HTMLElement) => half.querySelector<HTMLElement>('[data-slot="empty"]');
+    // A filtered table says what emptied it and offers the way out; a grey line says neither.
+    const filtered = halves(canvasElement, 0);
+    await expect(empty(filtered.do)).toHaveTextContent("Clear the search or a filter");
+    await expect(within(filtered.do).getByRole("button", { name: "Clear filters" })).toBeVisible();
+    await expect(empty(filtered.dont)).toBeNull();
+    await expect(within(filtered.dont).queryByRole("button")).toBeNull();
+    // One primary action, the page's verb; advice with no action points at a control elsewhere.
+    const action = halves(canvasElement, 1);
+    await expect(within(action.do).getByRole("button", { name: "New program" })).toHaveAttribute(
+      "data-button-variant",
+      "primary",
+    );
+    await expect(within(action.dont).queryByRole("button")).toBeNull();
+    // Under a Section whose header creates, a compact Empty and one action; the Don't repeats the
+    // action a tab stop away, over a full scene.
+    const section = halves(canvasElement, 2);
+    await expect(
+      within(section.do).getAllByRole("button", { name: "Create comment" }),
+    ).toHaveLength(1);
+    await expect(empty(section.do)).toHaveAttribute("data-size", "compact");
+    await expect(within(section.dont).getAllByRole("button", { name: "Create note" })).toHaveLength(
+      2,
+    );
+    await expect(section.dont.querySelector('[data-slot="empty-illustration"]')).not.toBeNull();
+  },
 };

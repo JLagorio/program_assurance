@@ -37,6 +37,17 @@ const pixels = (part, written, to) => ({
   messageId: "pixels",
   data: { part, prop: "labelWidth", written, to, detail: 'or labelWidth="auto" in a page body' },
 });
+/** An Item id width written in pixels, with the step that replaces it. */
+const idPixels = (written, to) => ({
+  messageId: "pixels",
+  data: {
+    part: "Item",
+    prop: "idWidth",
+    written,
+    to,
+    detail: "the nearest of narrow (48px), default (72px) and wide (104px)",
+  },
+});
 const smallHeading =
   'a page or record title is size="page" (20/26 semibold, with as="h2" to stay an h2), a section\'s title size="section" (13/18 semibold)';
 const actionBar = {
@@ -68,11 +79,15 @@ export default {
     {
       code: `${keyValue} <><KeyValue label="Owner" labelWidth="wide">x</KeyValue><KeyValue.Group labelWidth="auto" /><KeyValueGroup labelWidth={width} /></>`,
     },
+    // Item's named id widths, and one the rule cannot read.
+    {
+      code: `${parts} <><Item id="SYS-01" idWidth="wide" title="Ground segment" /><Item id="EV-2201" idWidth={width} title="Approval matrix" /></>`,
+    },
     { code: `${kitImport("Inspector")} <Inspector label="Details" footer={null} />` },
     // Local components that share a kit name keep their own props.
     { code: '<Switch size="sm" />' },
     { code: "function ActionBar() { return null; } const A = () => <ActionBar />;" },
-    { code: '<><KeyValue labelWidth={88} /><Heading size="small" /></>' },
+    { code: '<><KeyValue labelWidth={88} /><Heading size="small" /><Item idWidth={104} /></>' },
     { code: "function Panel() { return null; } const A = () => <Panel />;" },
     // A parameter that shadows the import is no part at all.
     { code: `${shell} export function Nav(Shell) { return <Shell.Sidebar />; }` },
@@ -517,6 +532,18 @@ export default {
       output: `${keyValue} <KeyValue label="Owner" labelWidth="narrow">x</KeyValue>`,
       only: "ts",
       errors: [pixels("KeyValue", "{96 as const}", "narrow")],
+    },
+    {
+      // An id width in pixels is the nearest named step: up to 60 narrow, under 88 the default,
+      // from 88 wide; a number under a condition is fixed where it is written.
+      code: `${parts} <><Item id="MS-A" idWidth={48} title="Kickoff" /><Item id="EV-2201" idWidth={72} title="Approval matrix" /><Item id="SYS-01" idWidth={104} title="Ground segment" /><Item id="ac-01_odp.01" idWidth={long ? 120 : undefined} title="personnel or roles" /></>`,
+      output: `${parts} <><Item id="MS-A" idWidth="narrow" title="Kickoff" /><Item id="EV-2201" idWidth="default" title="Approval matrix" /><Item id="SYS-01" idWidth="wide" title="Ground segment" /><Item id="ac-01_odp.01" idWidth={long ? "wide" : undefined} title="personnel or roles" /></>`,
+      errors: [
+        idPixels("{48}", "narrow"),
+        idPixels("{72}", "default"),
+        idPixels("{104}", "wide"),
+        idPixels("{long ? 120 : undefined}", "wide"),
+      ],
     },
     {
       // Inspector's groups prop is composition now.

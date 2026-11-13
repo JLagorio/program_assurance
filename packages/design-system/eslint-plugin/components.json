@@ -847,7 +847,7 @@
     "Heading": ["size", "color"],
     "Icon": ["size", "color"],
     "IconButton": ["variant", "size", "isSelected"],
-    "Indicator": ["tone"],
+    "Indicator": ["tone", "emphasis"],
     "Inline": ["space", "rowSpace", "alignBlock", "alignInline", "grow", "display"],
     "Input": ["size"],
     "InputGroupAddon": ["align"],

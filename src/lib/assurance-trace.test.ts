@@ -2,8 +2,15 @@ import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@/components/app/workspace", () => ({ useWorkspace: () => ({}) }));
 
-const { controlPrograms, readAssuranceTrace, traceKey, traceLinks, traceReach, traceTreatment } =
-  await import("./assurance-trace");
+const {
+  controlPrograms,
+  readAssuranceTrace,
+  shortOfSatisfied,
+  traceKey,
+  traceLinks,
+  traceReach,
+  traceTreatment,
+} = await import("./assurance-trace");
 type AssuranceTrace = import("./assurance-trace").AssuranceTrace;
 
 type Answer = { data: unknown; error: { message: string } | null };
@@ -41,8 +48,13 @@ const [evd1, evd2] = [uuid(30), uuid(31)];
 const [issue1, issue2] = [uuid(40), uuid(41)];
 const risk1 = uuid(50);
 const [item1, item2] = [uuid(60), uuid(61)];
+const finding1 = uuid(90);
 
-/** A risk resting on one issue; a second issue with remediation and no risk. */
+/**
+ * A risk resting on one issue; a second issue with remediation and no risk. An assessor's finding
+ * on the second control cites the second evidence, became the second issue and raised the risk,
+ * and the second item's commitment cites the risk too.
+ */
 const trace: AssuranceTrace = {
   focus: { kind: "risk", id: risk1 },
   clipped: false,
@@ -98,6 +110,16 @@ const trace: AssuranceTrace = {
       collected_at: null,
       review: "not_reviewed",
       expires_at: null,
+    },
+  ],
+  findings: [
+    {
+      id: finding1,
+      title: "AU-6(3) Correlate",
+      determination: "other_than_satisfied",
+      determined_at: "2026-10-20T10:00:00Z",
+      results_state: "published",
+      program_id: program,
     },
   ],
   issues: [
@@ -200,11 +222,18 @@ const trace: AssuranceTrace = {
       [evd1, issue1],
       [evd2, issue2],
     ],
+    // The second issue names the requirement that has no evidence.
+    requirement_issue: [[req2, issue2]],
+    control_finding: [[au6, finding1]],
+    evidence_finding: [[evd2, finding1]],
+    finding_issue: [[finding1, issue2]],
     issue_risk: [[issue1, risk1]],
+    finding_risk: [[finding1, risk1]],
     issue_remediation: [
       [issue1, item1],
       [issue2, item2],
     ],
+    risk_remediation: [[risk1, item2]],
   },
 };
 
@@ -262,9 +291,32 @@ describe("traceLinks", () => {
     expect(has(traceKey("issue", issue1), traceKey("risk", risk1))).toBe(true);
   });
 
+  it("draws an issue that names a requirement straight from the requirement, across the evidence", () => {
+    expect(has(traceKey("requirement", req2), traceKey("issue", issue2))).toBe(true);
+    // Nothing else is implied: the requirement's evidence and the issue's are not linked.
+    expect(has(traceKey("requirement", req2), traceKey("evidence", evd2))).toBe(false);
+    expect(has(traceKey("requirement", req1), traceKey("issue", issue2))).toBe(false);
+  });
+
   it("links an item from the risk of its issue, and from the issue itself when no risk rests on it", () => {
     expect(has(traceKey("risk", risk1), traceKey("remediation", item1))).toBe(true);
     expect(has(traceKey("issue", issue1), traceKey("remediation", item1))).toBe(false);
+    expect(has(traceKey("issue", issue2), traceKey("remediation", item2))).toBe(true);
+  });
+
+  it("draws a finding from the control it judges and the evidence it cites, on to what it led to", () => {
+    // Across the requirements and the evidence: the finding judges a part of the control.
+    expect(has(traceKey("control", au6), traceKey("finding", finding1))).toBe(true);
+    expect(has(traceKey("evidence", evd2), traceKey("finding", finding1))).toBe(true);
+    // The issue it became, and the risk it raised across the issues.
+    expect(has(traceKey("finding", finding1), traceKey("issue", issue2))).toBe(true);
+    expect(has(traceKey("finding", finding1), traceKey("risk", risk1))).toBe(true);
+    // Nothing else is implied: the finding's control is not linked to the evidence it cites.
+    expect(has(traceKey("control", au6), traceKey("evidence", evd2))).toBe(false);
+  });
+
+  it("links an item from a risk its commitment cites, beside the issues it answers", () => {
+    expect(has(traceKey("risk", risk1), traceKey("remediation", item2))).toBe(true);
     expect(has(traceKey("issue", issue2), traceKey("remediation", item2))).toBe(true);
   });
 
@@ -289,6 +341,16 @@ describe("traceLinks", () => {
           link.from === traceKey("risk", risk1) && link.to === traceKey("remediation", item1),
       ),
     ).toHaveLength(1);
+  });
+});
+
+describe("shortOfSatisfied", () => {
+  it("is a determination a finding raises: partially or other than satisfied", () => {
+    expect(
+      ["satisfied", "partially_satisfied", "other_than_satisfied", "not_assessed"].filter(
+        shortOfSatisfied,
+      ),
+    ).toEqual(["partially_satisfied", "other_than_satisfied"]);
   });
 });
 

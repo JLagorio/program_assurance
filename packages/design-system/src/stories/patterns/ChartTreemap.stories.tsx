@@ -11,7 +11,7 @@ import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
 const { Specimens } = storyLayout;
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 const meta = {
   title: "Patterns/Chart/Treemap",
@@ -423,6 +423,22 @@ export const Dont: Story = {
       />
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    const { do: good, dont: bad } = halves(canvasElement);
+    const names = bySource.map((s) => s.source);
+    const texts = (half: HTMLElement, selector: string) =>
+      Array.from(half.querySelectorAll(selector), (text) => text.textContent ?? "");
+    // A flat list of five is bars, and every name fits whole.
+    await waitFor(() =>
+      expect(texts(good, ".recharts-cartesian-axis-tick-value")).toEqual(
+        expect.arrayContaining(names),
+      ),
+    );
+    // As tiles, the small ones lose their names.
+    await waitFor(() => expect(bad.querySelectorAll("svg text").length).toBeGreaterThan(0));
+    const shown = texts(bad, "svg text");
+    await expect(names.filter((name) => shown.includes(name)).length).toBeLessThan(names.length);
+  },
 };
 
 export const Playground: Story = {

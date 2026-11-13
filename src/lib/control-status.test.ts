@@ -42,10 +42,15 @@ function client(answer: Answer) {
 const context = { tenantId: "tenant", token: "token" };
 const program = "00000000-0000-4000-8000-000000000001";
 
+const DETERMINATIONS = ["other_than_satisfied", "partially_satisfied", "satisfied"];
+
 const line = (
   code: string,
   status: string,
-  more: Partial<Record<"parent_id" | "family" | "family_title", string | null>> = {},
+  more: Partial<
+    Record<"parent_id" | "family" | "family_title" | "determined_by", string | null> &
+      Record<"requirements" | "evidenced", number> & { product_assessments: unknown[] }
+  > = {},
 ) => ({
   id: code.toLowerCase(),
   code,
@@ -56,12 +61,19 @@ const line = (
   status,
   requirements: status === "no_requirement" ? 0 : 1,
   evidenced: status === "no_requirement" || status === "no_evidence" ? 0 : 1,
+  determined_by: DETERMINATIONS.includes(status) ? "program" : null,
+  product_assessments: [],
   ...more,
 });
 
+const assessment = {
+  id: "00000000-0000-4000-8000-000000000070",
+  title: "X800 Missile version 1 product assessment",
+};
+
 const totals = {
-  controls: 4,
-  satisfied: 1,
+  controls: 5,
+  satisfied: 2,
   partially_satisfied: 0,
   other_than_satisfied: 0,
   not_assessed: 1,
@@ -96,6 +108,12 @@ describe("readProgramControlStatus", () => {
           line("AC-2", "not_assessed"),
           line("AC-2(1)", "no_evidence", { parent_id: "ac-2" }),
           line("AU-1", "no_requirement"),
+          line("AU-2", "satisfied", {
+            determined_by: "product",
+            requirements: 0,
+            evidenced: 0,
+            product_assessments: [{ ...assessment, determination: "satisfied" }],
+          }),
         ],
       },
       error: null,
@@ -109,14 +127,14 @@ describe("readProgramControlStatus", () => {
       },
     ]);
     expect(answer.baseline).toBe(true);
-    expect(answer.total).toBe(4);
+    expect(answer.total).toBe(5);
     expect(answer.counts).toEqual({
       no_requirement: 1,
       no_evidence: 1,
       not_assessed: 1,
       other_than_satisfied: 0,
       partially_satisfied: 0,
-      satisfied: 1,
+      satisfied: 2,
     });
     expect(answer.controls[2]).toEqual({
       id: "ac-2(1)",
@@ -128,10 +146,22 @@ describe("readProgramControlStatus", () => {
       status: "no_evidence",
       requirements: 1,
       evidenced: 0,
+      determinedBy: null,
+      productAssessments: [],
+    });
+    // Whose determination each status is: the program's own assessors', or a product assessment
+    // the program's variants inherit the control from, named so a screen can open it.
+    expect(answer.controls[0]).toMatchObject({ determinedBy: "program", productAssessments: [] });
+    expect(answer.controls[3]).toMatchObject({ determinedBy: null, productAssessments: [] });
+    expect(answer.controls[4]).toMatchObject({
+      status: "satisfied",
+      requirements: 0,
+      determinedBy: "product",
+      productAssessments: [{ ...assessment, determination: "satisfied" }],
     });
   });
 
-  it("says the server's refusal, and refuses a status it does not know", async () => {
+  it("says the server's refusal, and refuses a status or a source it does not know", async () => {
     await expect(
       readProgramControlStatus(
         client({ data: null, error: { message: "Program access is required" } }).client,
@@ -139,21 +169,24 @@ describe("readProgramControlStatus", () => {
         program,
       ),
     ).rejects.toThrow("Program access is required");
-    await expect(
-      readProgramControlStatus(
-        client({
-          data: {
-            program_id: program,
-            baseline: true,
-            totals,
-            controls: [line("AC-1", "passing")],
-          },
-          error: null,
-        }).client,
-        context,
-        program,
-      ),
-    ).rejects.toThrow();
+    for (const control of [
+      line("AC-1", "passing"),
+      line("AC-1", "satisfied", { determined_by: "supplier" }),
+      line("AC-1", "satisfied", {
+        determined_by: "product",
+        product_assessments: [{ ...assessment, determination: "not_assessed" }],
+      }),
+    ])
+      await expect(
+        readProgramControlStatus(
+          client({
+            data: { program_id: program, baseline: true, totals, controls: [control] },
+            error: null,
+          }).client,
+          context,
+          program,
+        ),
+      ).rejects.toThrow();
   });
 });
 
@@ -173,6 +206,8 @@ describe("controlStatusFamilies", () => {
     status,
     requirements: 0,
     evidenced: 0,
+    determinedBy: null,
+    productAssessments: [],
   });
 
   it("groups by family in the order given, an enhancement under its control", () => {

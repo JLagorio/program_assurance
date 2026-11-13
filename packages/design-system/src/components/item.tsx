@@ -43,6 +43,20 @@ export function hasRenderedChildren(children: ReactNode): boolean {
 
 export type ItemSize = "default" | "compact";
 
+/** The id column: `narrow` (48px), `default` (72px) or `wide` (104px). */
+export type ItemIdWidth = "narrow" | "default" | "wide";
+
+/* The id column's steps: `narrow` for a short code (MS-A), `default` for most codes (EV-2201,
+   AC-2(1)), `wide` for a long one (a system's code, a parameter id). A deprecated number is CSS
+   pixels, drawn as it was. */
+const ID_STEPS = {
+  narrow: token("dimension.part.itemIdNarrow"),
+  default: token("dimension.part.itemId"),
+  wide: token("dimension.part.itemIdWide"),
+} as const;
+const idColumn = (width: ItemIdWidth | number | undefined) =>
+  typeof width === "number" ? width : ID_STEPS[width ?? "default"];
+
 const GroupContext = createContext<{ size: ItemSize; flush: boolean } | null>(null);
 
 export type ItemProps = Omit<ComponentProps<"li">, "id" | "title" | "onSelect"> & {
@@ -50,8 +64,14 @@ export type ItemProps = Omit<ComponentProps<"li">, "id" | "title" | "onSelect"> 
   leading?: ReactNode;
   /** The record's id, in its own column so a list of ids lines up. */
   id?: ReactNode;
-  /** The id column's width in pixels, 72 by default (`dimension.part.itemId`). */
-  idWidth?: number | undefined;
+  /**
+   * The id column: `narrow` (48px) for a short code (MS-A), `default` (72px) for most codes
+   * (EV-2201, AC-2(1)), `wide` (104px) for a long one (a system's code, a parameter id such as
+   * ac-01_odp.01). A longer id is cut and shows whole on hover. Give every row of a group the same,
+   * so the ids line up. A number of CSS pixels is deprecated: write the nearest step, which
+   * `ledger/no-deprecated-name` writes. @default "default"
+   */
+  idWidth?: ItemIdWidth | number | undefined;
   /** The row's name, one line by default. A name that is cut shows in full in a tooltip on hover and on keyboard focus of the row. The link or button of a row is this element, stretched over the row. */
   title: ReactNode;
   /** How many lines the title keeps before its ellipsis: 1 by default, 2 or 3 for a list of long names. */
@@ -229,7 +249,7 @@ function ItemRoot({
       </span>
       <span className={cn("flex h-250 items-center text-subtle", id && "pe-150")}>
         {id ? (
-          <Truncate id={idId} style={{ width: idWidth ?? token("dimension.part.itemId") }}>
+          <Truncate id={idId} style={{ width: idColumn(idWidth) }}>
             <Id>{id}</Id>
           </Truncate>
         ) : null}

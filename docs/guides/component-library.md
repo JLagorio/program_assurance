@@ -49,7 +49,7 @@ import { Badge, Table, Id, Indicator, PageHeader, Shell, ModeSwitch } from "@led
 ```
 
 The stylesheet is three imports after Tailwind, in this order, and optionally a fourth,
-`fonts.css`, for the self-hosted Geist faces the type tokens name:
+`fonts.css`, for the self-hosted Geist and Geist Mono faces the type tokens name:
 
 ```css
 @import "tailwindcss" source(none);
@@ -316,7 +316,7 @@ ARIA behavior through the public parts. Screens import the package's documented 
   recipes, the lint rules, and testing and review.
 - `docs/guides/ledger-audit-2026-09-24/README.md`: the family-by-family audit of the kit and its
   use in the application, with its decisions.
-- `docs/next.md`: the living list of what is next and what is waiting on a decision.
+- `docs/next.md`: the living list of what is next and what is waiting on a decision. What landed is in `docs/next-archive.md`.
 - `packages/design-system/AGENTS.md`: the entry point for a coding agent working on the package; it points here, at the Storybook's Guidance/Agents page and at the checks. `packages/design-system/llms.txt` is the Storybook as one generated file.
 
 ## Forms

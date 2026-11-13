@@ -169,7 +169,8 @@ export async function importXlsx(
         sheet.frozenRows = Math.min(rows, view.ySplit ?? 0);
         sheet.frozenColumns = Math.min(columns, view.xSplit ?? 0);
       }
-    worksheet.columns.forEach((column, index) => {
+    // A sheet that holds nothing has no columns at all, as the empty Sheet2 of many workbooks.
+    (worksheet.columns ?? []).forEach((column, index) => {
       if (sheet.columns[index] && column.width)
         sheet.columns[index]!.width = Math.max(48, Math.min(640, Math.round(column.width * 7 + 5)));
       if (column.hidden && sheet.columns[index]) sheet.columns[index]!.hidden = true;

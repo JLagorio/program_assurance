@@ -219,7 +219,8 @@ try {
   ).toBeVisible();
   await expect(
     evidencePanel.getByRole("link", { name: "Open full record in new tab", exact: true }),
-  ).toHaveAttribute("href", `/records/evidence_versions/${evidence.id}`);
+    // A version opens its artifact at that version, never the schema inspector.
+  ).toHaveAttribute("href", `/evidence/${artifact.id}?version=${evidence.id}`);
 
   // The exact version's external reference, announced as opening in a new tab; never the latest.
   const reference = evidencePanel.getByRole("link", {

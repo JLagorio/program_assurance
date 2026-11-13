@@ -17,7 +17,7 @@ import { Box, Inline, Stack, Text } from "../../primitives";
 import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 const meta = {
   title: "Patterns/PickerSheet",
@@ -849,6 +849,24 @@ export const Dont: Story = {
       />
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    const primary = (half: HTMLElement) =>
+      half.querySelector<HTMLElement>('[data-button-variant="primary"]')!;
+    // The footer counts what is chosen and names the one thing to do with it, in full; OK with
+    // no count says neither what happens nor to how many.
+    const named = halves(canvasElement, 0);
+    await expect(named.do).toHaveTextContent("12 of 28 selected");
+    await expect(primary(named.do)).toHaveAccessibleName("Allocate 12 to Flight computer");
+    await expect(named.dont).not.toHaveTextContent(/selected/);
+    await expect(primary(named.dont)).toHaveAccessibleName("OK");
+    // With nothing chosen the action waits and the footer says how many there are to choose
+    // from; enabled, it would act on nothing.
+    const none = halves(canvasElement, 1);
+    await expect(none.do).toHaveTextContent("0 of 28 selected");
+    await expect(primary(none.do)).toBeDisabled();
+    await expect(none.dont).not.toHaveTextContent(/ of \d+ selected/);
+    await expect(primary(none.dont)).toBeEnabled();
+  },
 };
 
 function SingleChoicePicker() {

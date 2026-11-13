@@ -65,12 +65,15 @@ A part's own size: a popup's width, a menu's narrowest, a placeholder's size. Ea
 | `dimension.part.skeletonCircle`            | 32px   | Skeleton                              | A circle's size, unless `width` gives another.                                       |
 | `dimension.part.skeletonBlock`             | 96px   | Skeleton                              | A block's height, unless `height` gives another.                                     |
 | `dimension.part.emptyMeasure`              | 400px  | Empty                                 | The measure of its title and description.                                            |
+| `dimension.part.emptyIllustration`         | 128px  | EmptyIllustration                     | Its width; its scene is a box of 64 by 42 units, so its height, 84px, follows.       |
 | `dimension.part.keyValue`                  | 8rem   | KeyValue                              | In an `auto` group, the value's room before its label goes over it.                  |
 | `dimension.part.keyValueLabelNarrow`       | 5.5rem | KeyValue                              | Its label column at `labelWidth="narrow"`, 88px at the default text size.            |
 | `dimension.part.keyValueLabel`             | 6.5rem | KeyValue                              | Its label column at `labelWidth="default"` and without one, 104px.                   |
 | `dimension.part.keyValueLabelWide`         | 10rem  | KeyValue                              | Its label column at `labelWidth="wide"`, 160px, and the most an `auto` column takes. |
 | `dimension.part.codeBlock`                 | 560px  | CodeBlock                             | The tallest it grows before it scrolls, unless `maxHeight` gives another.            |
-| `dimension.part.itemId`                    | 72px   | Item                                  | Its id column, unless `idWidth` gives another.                                       |
+| `dimension.part.itemIdNarrow`              | 48px   | Item                                  | Its id column at `idWidth="narrow"`.                                                 |
+| `dimension.part.itemId`                    | 72px   | Item                                  | Its id column at `idWidth="default"` and without one.                                |
+| `dimension.part.itemIdWide`                | 104px  | Item                                  | Its id column at `idWidth="wide"`.                                                   |
 | `dimension.part.filter`                    | 220px  | DataTable.Filter                      | Its popover's width, unless `width` gives another.                                   |
 | `dimension.part.tableSearch`               | 200px  | DataTable.Search                      | Its field's width, unless `width` gives another.                                     |
 | `dimension.part.previewSheet`              | 720px  | PreviewSheet                          | Its width, unless `width` gives another.                                             |
@@ -104,21 +107,19 @@ A few parts take their size in the kit's stylesheets, which read the token as it
 
 ## Breakpoints
 
-| Token                        | Value  | Variant  | Use                                                                                                                                                                              |
-| ---------------------------- | ------ | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `dimension.breakpoint.sm`    | 40rem  | `sm:`    | Tailwind's sm. Pagination's words, Stat's columns and a two-month Calendar from here.                                                                                            |
-| `dimension.breakpoint.md`    | 48rem  | `md:`    | Tailwind's md. `TopNav.End` shows its `overflow` menu below it.                                                                                                                  |
-| `dimension.breakpoint.lg`    | 64rem  | `lg:`    | Tailwind's lg. The side nav is inline from here and an overlay below.                                                                                                            |
-| `dimension.breakpoint.aside` | 75rem  | `aside:` | The shell's aside area (deprecated: an AsideLayout reads its own width) sits beside Main from here while no panel is open; from `lg` while the side nav leaves Main its minimum. |
-| `dimension.breakpoint.panel` | 80rem  | `panel:` | The panel is a full-height column beside the page; below, it replaces Main.                                                                                                      |
-| `dimension.breakpoint.wide`  | 110rem | `wide:`  | The shell's aside area (deprecated) sits beside Main even while a panel is open.                                                                                                 |
-| `dimension.breakpoint.xl`    | 80rem  | `xl:`    | Tailwind's xl, the panel breakpoint under its Tailwind name for Grid's `xl` count.                                                                                               |
+| Token                        | Value | Variant  | Use                                                                                   |
+| ---------------------------- | ----- | -------- | ------------------------------------------------------------------------------------- |
+| `dimension.breakpoint.sm`    | 40rem | `sm:`    | Tailwind's sm. Pagination's words, Stat's columns and a two-month Calendar from here. |
+| `dimension.breakpoint.md`    | 48rem | `md:`    | Tailwind's md. `TopNav.End` shows its `overflow` menu below it.                       |
+| `dimension.breakpoint.lg`    | 64rem | `lg:`    | Tailwind's lg. The side nav is inline from here and an overlay below.                 |
+| `dimension.breakpoint.panel` | 80rem | `panel:` | The panel is a full-height column beside the page; below, it replaces Main.           |
+| `dimension.breakpoint.xl`    | 80rem | `xl:`    | Tailwind's xl, the panel breakpoint under its Tailwind name for Grid's `xl` count.    |
 
-One source for three readers: `layout.css` writes `@media (width >= theme(--breakpoint-panel))`, the shell reads `tokenValue("dimension.breakpoint.panel")` for `matchMedia`, and a class takes the variant. `sm`, `md`, `lg` and `xl` restate Tailwind's values so a class and a media query cannot drift apart. Where `reset.css` is imported, it clears Tailwind's own breakpoints first, so these seven are the only ones: `2xl:` (Tailwind's 96rem) does not exist.
+One source for three readers: `layout.css` writes `@media (width >= theme(--breakpoint-panel))`, the shell reads `tokenValue("dimension.breakpoint.panel")` for `matchMedia`, and a class takes the variant. `sm`, `md`, `lg` and `xl` restate Tailwind's values so a class and a media query cannot drift apart. Where `reset.css` is imported, it clears Tailwind's own breakpoints first, so these five are the only ones: `2xl:` (Tailwind's 96rem) does not exist. A record's Details do not follow the window: an AsideLayout decides from its own width.
 
 ## Container sizes
 
-A part inside a panel, a rail, a card or a dialog switches on its own width, not the window's, through a container query. These are the sizes it reads: the `--container-*` theme keys, one token each. Tailwind's scale is restated at its own values, so every `@md:` and `@3xl:` class keeps its width and now reads a token, and the kit adds two of its own. Where `reset.css` is imported, it clears Tailwind's own copies first, so a container size the tokens do not name does not exist.
+A part inside a panel, a rail, a card or a dialog switches on its own width, not the window's, through a container query. These are the sizes it reads: the `--container-*` theme keys, one token each. Tailwind's scale is restated at its own values, so every `@md:` and `@3xl:` class keeps its width and now reads a token, and the kit adds two of its own, `@split` and the deprecated `@compact`. Where `reset.css` is imported, it clears Tailwind's own copies first, so a container size the tokens do not name does not exist.
 
 The names are Tailwind's, and they are not the breakpoints: `@md` is 28rem, the width of a container, while `md:` is the 48rem viewport. Name a container on the part (`@container/field-group`) and query it by name (`@md/field-group:`) so a nested container cannot answer instead.
 
@@ -128,7 +129,7 @@ The names are Tailwind's, and they are not the breakpoints: `@md` is 28rem, the 
 | `dimension.container.2xs`          | 18rem                | `@2xs:`            | No part yet.                                                                          |
 | `dimension.container.xs`           | 20rem                | `@xs:`             | A KeyValue.Group with an `auto` label column puts each label over its value below it. |
 | `dimension.container.sm`           | 24rem                | `@sm:`             | Pagination shows its Previous and Next words.                                         |
-| `dimension.container.compact`      | 25rem                | `@compact:`        | No part yet. Below it a region is compact: a header puts its actions under the title. |
+| `dimension.container.compact`      | 25rem                | `@compact:`        | Deprecated: no part reads it. The nearest size is `@sm:` (24rem).                     |
 | `dimension.container.md`           | 28rem                | `@md:`             | A field group sets label and control side by side.                                    |
 | `dimension.container.lg`           | 32rem                | `@lg:`             | No part yet.                                                                          |
 | `dimension.container.xl`           | 36rem                | `@xl:`             | Below it a side-by-side Diff stacks its halves and reads as the inline view.          |

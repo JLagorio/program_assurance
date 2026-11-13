@@ -5,16 +5,19 @@ import { useWorkspace } from "@/components/app/workspace";
 import { database, requireIdentity } from "./database";
 import type { ReadContext, TableName } from "./models";
 import { useStaleOnWrite } from "./server-table";
-import { controlStatuses } from "./status";
+import { controlDeterminers, controlStatuses } from "./status";
 
 /*
  * One status for each control of a program's control baseline: where the program stands on it,
  * the furthest step it has reached. `program_control_status` answers every control in one request,
  * as the reader: no requirement maps it, a requirement maps it and none cites evidence, a
- * requirement cites evidence and no assessor has determined it, or the worst of the latest
- * determinations an assessor published on its parts. The words and their order are
- * `controlStatuses` in status. This module also rolls the controls up by family, for a map of the
- * baseline and its counts.
+ * requirement cites evidence and no assessor has determined it, or a determination. The
+ * determination is the worst of the latest an assessor of the program published on the control's
+ * parts; where there is none and every product variant of the program inherits the control with a
+ * determination (its delta is inherited), it is the worst of the product's, and the control names
+ * the product assessments it was taken from. The words and their order are `controlStatuses` and
+ * `controlDeterminers` in status. This module also rolls the controls up by family, for a map of
+ * the baseline and its counts.
  */
 
 /** A control's status: a key of `controlStatuses`, in the ladder's order. */
@@ -23,7 +26,19 @@ export type ControlStatus = keyof typeof controlStatuses;
 /** The statuses in the ladder's order, from nothing recorded to satisfied. */
 export const CONTROL_STATUS_ORDER = Object.keys(controlStatuses) as ControlStatus[];
 
+/** Whose determination a control's status is: a key of `controlDeterminers`. */
+export type ControlDeterminer = keyof typeof controlDeterminers;
+
+/** The statuses that are a determination, an assessor's or a product assessment's. */
+export type ControlDetermination = Extract<
+  ControlStatus,
+  "other_than_satisfied" | "partially_satisfied" | "satisfied"
+>;
+
 const statusSchema = z.enum(CONTROL_STATUS_ORDER as [ControlStatus, ...ControlStatus[]]);
+const determinerSchema = z.enum(
+  Object.keys(controlDeterminers) as [ControlDeterminer, ...ControlDeterminer[]],
+);
 
 const controlSchema = z.object({
   id: z.string(),
@@ -35,6 +50,14 @@ const controlSchema = z.object({
   status: statusSchema,
   requirements: z.number(),
   evidenced: z.number(),
+  determined_by: determinerSchema.nullable(),
+  product_assessments: z.array(
+    z.object({
+      id: z.string(),
+      title: z.string(),
+      determination: z.enum(["other_than_satisfied", "partially_satisfied", "satisfied"]),
+    }),
+  ),
 });
 
 const answerSchema = z.object({
@@ -52,6 +75,13 @@ const answerSchema = z.object({
   controls: z.array(controlSchema),
 });
 
+/** A product assessment a control's status was taken from, with its determination on the control. */
+export type ControlProductAssessment = {
+  id: string;
+  title: string;
+  determination: ControlDetermination;
+};
+
 /** A control of the baseline with where the program stands on it. */
 export type ControlStanding = {
   id: string;
@@ -67,6 +97,16 @@ export type ControlStanding = {
   requirements: number;
   /** Those of them that cite evidence. */
   evidenced: number;
+  /**
+   * Whose determination the status is: the program's own assessors, or the product assessment
+   * every variant of the program inherits the control from. Null while nobody has determined it.
+   */
+  determinedBy: ControlDeterminer | null;
+  /**
+   * The product assessments the product's determination was taken from, the one that decided it
+   * first. Empty unless the product determined the status.
+   */
+  productAssessments: ControlProductAssessment[];
 };
 
 /** How many controls stand at each status. */
@@ -124,6 +164,8 @@ export async function readProgramControlStatus(
       status: control.status,
       requirements: control.requirements,
       evidenced: control.evidenced,
+      determinedBy: control.determined_by,
+      productAssessments: control.product_assessments,
     })),
   };
 }
@@ -131,7 +173,9 @@ export async function readProgramControlStatus(
 /**
  * Every model the statuses are read from: a write to one reads them again. The baseline is the
  * resolution the program's reference choice names; a requirement's mapping and its evidence, and
- * an assessor's findings and the results revision that publishes them, decide the rest.
+ * an assessor's findings and the results revision that publishes them, decide the rest, with what
+ * the program's variants inherit: their elements, the product versions they stand on and those
+ * versions' product assessments.
  */
 const STATUS_MODELS = [
   "program_reference_choices",
@@ -142,6 +186,14 @@ const STATUS_MODELS = [
   "evidence_versions",
   "assessment_findings",
   "assessment_results_revisions",
+  "systems",
+  "selected_controls",
+  "product_revisions",
+  "product_elements",
+  "product_configuration_elements",
+  "defined_component_implementations",
+  "product_assessments",
+  "product_determinations",
 ] as const satisfies readonly TableName[];
 
 /**

@@ -22,12 +22,12 @@ import {
   useSort,
 } from "../../components";
 import { LedgerProvider, useLedgerLocale } from "../../lib/locale";
-import { Stack, Text } from "../../primitives";
+import { Inline, Stack, Text } from "../../primitives";
 import * as direction from "../_lib/direction";
 import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 const { along, isRtl, towardsEnd } = direction;
 
 const meta = {
@@ -1198,6 +1198,127 @@ export const FrameStory: Story = {
   },
 };
 
+/** A register by hand with its checkbox, id and name pinned, in a frame that narrows as a panel does. */
+function PinsInFrame() {
+  const [width, setWidth] = useState(320);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const some = rows.slice(0, 4);
+  return (
+    <Stack space="space.150">
+      <Inline space="space.100" shouldWrap>
+        <Button onClick={() => setWidth(320)}>Narrow frame</Button>
+        <Button onClick={() => setWidth(960)}>Wide frame</Button>
+      </Inline>
+      <div data-testid="pins-frame" style={{ width, maxWidth: "100%" }}>
+        <Table label="Controls with pinned columns">
+          <thead>
+            <tr>
+              <Table.Selection
+                header
+                checked={selected.size === some.length}
+                indeterminate={selected.size > 0 && selected.size < some.length}
+                onCheckedChange={(next) =>
+                  setSelected(next ? new Set(some.map((r) => r.id)) : new Set())
+                }
+                label="Select all"
+                pinned="start"
+              />
+              <Table.Header pinned="start" offset={32} width={110}>
+                Id
+              </Table.Header>
+              <Table.Header pinned="start" offset={142} edge width={200}>
+                Control
+              </Table.Header>
+              <Table.Header width={180}>Owner</Table.Header>
+              <Table.Header width={140}>Status</Table.Header>
+              <Table.Header width={120}>Due</Table.Header>
+            </tr>
+          </thead>
+          <tbody>
+            {some.map((r) => (
+              <Table.Row key={r.id} isSelected={selected.has(r.id)}>
+                <Table.Selection
+                  checked={selected.has(r.id)}
+                  onCheckedChange={(next) =>
+                    setSelected((s) => {
+                      const n = new Set(s);
+                      if (next) n.add(r.id);
+                      else n.delete(r.id);
+                      return n;
+                    })
+                  }
+                  label={`Select ${r.id}`}
+                  pinned="start"
+                />
+                <Table.Id id={r.id} rowHeader pinned="start" offset={32} />
+                <Table.Cell pinned="start" offset={142} edge>
+                  {r.name}
+                </Table.Cell>
+                <Table.Cell>
+                  <Person name={r.owner} />
+                </Table.Cell>
+                <Table.Cell>
+                  <Badge variant="secondary" tone={r.status.tone}>
+                    {r.status.label}
+                  </Badge>
+                </Table.Cell>
+                <Table.Cell>
+                  <DateTime value={r.due} focusable={false} />
+                </Table.Cell>
+              </Table.Row>
+            ))}
+          </tbody>
+        </Table>
+      </div>
+    </Stack>
+  );
+}
+
+/** A plain table's pins give way as a DataTable's do. While the pinned columns would take more than 60% of the frame (here a checkbox, an id and a 200px name in 320px), they give way from the middle outward, the name first, so the middle keeps room to scroll, and the id now touching the middle draws the edge; the checkbox never gives way. Every cell of the column follows its heading, and the pins return as the frame widens. */
+export const PinsInANarrowFrame: Story = {
+  name: "Pinned columns in a narrow frame",
+  render: () => <PinsInFrame />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const table = canvas.getByRole("table", { name: "Controls with pinned columns" });
+    const frame = table.parentElement!;
+    const heading = (name: string) => canvas.getByRole("columnheader", { name });
+    const nameCell = canvas.getByRole("cell", { name: "Segregation of duties, payables" });
+
+    // Narrow: the name gives way and scrolls; the id stays pinned after the checkbox.
+    await waitFor(() => expect(heading("Control")).not.toHaveAttribute("data-pinned"));
+    await expect(heading("Control").style.insetInlineStart).toBe("");
+    await expect(nameCell).not.toHaveAttribute("data-pinned");
+    await expect(heading("Id")).toHaveAttribute("data-pinned", "start");
+    await expect(heading("Id").style.insetInlineStart).toBe("32px");
+    const band = along(heading("Id")).end - along(frame).start;
+    await expect(band).toBeLessThanOrEqual(frame.clientWidth * 0.6);
+    // The id now touches the middle, so it draws the edge, at rest as the name did.
+    await expect(getComputedStyle(heading("Id"), "::after").borderInlineEndWidth).toBe("1px");
+    const idStart = along(heading("Id")).start;
+    const nameStart = along(heading("Control")).start;
+    frame.scrollLeft = towardsEnd(frame, 120);
+    fireEvent.scroll(frame);
+    await waitFor(() => expect(along(heading("Control")).start).toBeLessThan(nameStart - 100));
+    await expect(Math.round(along(heading("Id")).start)).toBe(Math.round(idStart));
+    frame.scrollLeft = 0;
+    fireEvent.scroll(frame);
+
+    // Wide: the pins return, the name after the id with the edge.
+    await userEvent.click(canvas.getByRole("button", { name: "Wide frame" }));
+    if (canvas.getByTestId("pins-frame").parentElement!.clientWidth >= 700) {
+      await waitFor(() => expect(heading("Control").style.insetInlineStart).toBe("142px"));
+      await expect(nameCell).toHaveAttribute("data-pinned", "start");
+      await expect(getComputedStyle(heading("Id"), "::after").borderInlineEndWidth).toBe("0px");
+      await expect(getComputedStyle(heading("Control"), "::after").borderInlineEndWidth).toBe(
+        "1px",
+      );
+    }
+    await userEvent.click(canvas.getByRole("button", { name: "Narrow frame" }));
+    await waitFor(() => expect(heading("Control")).not.toHaveAttribute("data-pinned"));
+  },
+};
+
 /** Two header rows: the column groups above, the headings under them. Each row sticks below the one above it, so once the rows scroll the group names stay over their columns. */
 export const TwoHeaderRows: Story = {
   name: "Two header rows",
@@ -1304,7 +1425,7 @@ function Resizing() {
   );
 }
 
-/** A heading's resize handle is named after its column (`resize.label`), "Resize Control". The keyboard moves it with the arrow keys, Home and End, and it shows the kit's ring inside its edge with the guide beside it. DataTable wires the handle, and its column menu gives the pointer Wider, Narrower and Reset width. */
+/** A heading's resize handle is named after its column (`resize.label`), "Resize Control". The keyboard moves it with the arrow keys, Home and End, and it shows the kit's ring inside its edge with the guide beside it. On a touch screen the 8px handle takes a 24px hit area inside the heading's end, which the heading keeps clear. DataTable wires the handle, and its column menu gives the pointer Wider, Narrower and Reset width. */
 export const ResizeHandles: Story = {
   name: "Resize handles",
   render: () => <Resizing />,
@@ -1313,6 +1434,25 @@ export const ResizeHandles: Story = {
     const handle = canvas.getByRole("separator", { name: "Resize Control" });
     await expect(canvas.getByRole("separator", { name: "Resize Owner" })).toBeInTheDocument();
     await expect(handle).toHaveAttribute("aria-valuenow", "240");
+    // Each handle stays 8px with its 2px guide. Where any pointer is coarse it takes a 24px hit
+    // area the header's height, from the column's edge into the heading's end, which the
+    // heading's words and controls keep clear of, the last column's included.
+    for (const name of ["Resize Control", "Resize Owner"]) {
+      const each = canvas.getByRole("separator", { name });
+      await expect(each.getBoundingClientRect().width).toBe(8);
+      await expect(getComputedStyle(each, "::after").width).toBe("2px");
+      if (!matchMedia("(any-pointer: coarse)").matches) continue;
+      const area = getComputedStyle(each, "::before");
+      await expect(area.position).toBe("absolute");
+      await expect(parseFloat(area.width)).toBeGreaterThanOrEqual(24);
+      await expect(parseFloat(area.height)).toBeGreaterThanOrEqual(24);
+      const heading = each.closest("th")!;
+      const words = heading.querySelector<HTMLElement>(":scope > span")!;
+      await expect(along(words).end).toBeLessThanOrEqual(
+        along(heading).end - parseFloat(area.width) + 0.5,
+      );
+      await expect(along(each).end).toBeLessThanOrEqual(along(heading).end + 0.5);
+    }
     await userEvent.click(canvas.getByRole("columnheader", { name: "Id" }));
     for (let i = 0; i < 6 && canvasElement.ownerDocument.activeElement !== handle; i++)
       await userEvent.tab();
@@ -1670,6 +1810,46 @@ export const Dont: Story = {
       />
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    const rows = (half: HTMLElement) => within(within(half).getByRole("table")).getAllByRole("row");
+    // Numbers and their header end in one line, so the digits compare down the column; centred,
+    // a short number sits apart from the long ones.
+    const scores = halves(canvasElement, 0);
+    const textEnd = (cell: Element) => {
+      const range = document.createRange();
+      range.selectNodeContents(
+        document
+          .createTreeWalker(cell, NodeFilter.SHOW_TEXT, {
+            acceptNode: (node) =>
+              node.nodeValue?.trim() ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP,
+          })
+          .nextNode()!,
+      );
+      return Math.round(along(cell, range.getBoundingClientRect()).end);
+    };
+    const ends = (half: HTMLElement) =>
+      new Set(rows(half).map((row) => textEnd(row.lastElementChild!)));
+    await expect(ends(scores.do).size).toBe(1);
+    await expect(ends(scores.dont).size).toBeGreaterThan(1);
+    // Selection is a checkbox a screen reader hears checked; a row painted selected says nothing.
+    const selection = halves(canvasElement, 1);
+    await expect(
+      within(selection.do).getByRole("checkbox", { name: "Select all" }),
+    ).toBePartiallyChecked();
+    await expect(within(selection.do).getAllByRole("checkbox", { checked: true })).toHaveLength(1);
+    const painted = selection.dont.querySelector<HTMLElement>("[data-selected]")!;
+    await expect(within(selection.dont).queryAllByRole("checkbox")).toHaveLength(0);
+    await expect(painted).not.toHaveAttribute("aria-selected");
+    // Nothing there is one Absent; a typed dash and an N/A are two spellings of nothing.
+    const owners = halves(canvasElement, 2);
+    await expect(owners.do.querySelectorAll('[data-slot="absent"]')).toHaveLength(2);
+    await expect(owners.dont.querySelectorAll('[data-slot="absent"]')).toHaveLength(0);
+    await expect(
+      rows(owners.dont)
+        .slice(2)
+        .map((row) => row.lastElementChild!.textContent),
+    ).toEqual(["—", "N/A"]);
+  },
 };
 
 /** Selection cells must keep their pinning geometry when composed after another pinned column. */

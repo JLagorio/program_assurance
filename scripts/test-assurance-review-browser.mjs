@@ -5,6 +5,7 @@ import { readFile } from "node:fs/promises";
 import { chromium } from "playwright";
 import { setTimeout as wait } from "node:timers/promises";
 import { localWorkspace } from "./tests/local-workspace.mjs";
+import { artifactPath } from "./tests/artifacts.mjs";
 const origin = process.env.APP_TEST_URL ?? "http://localhost:8080";
 assert.ok(["localhost", "127.0.0.1"].includes(new URL(origin).hostname));
 const workspace = await localWorkspace("assurance-review-browser");
@@ -214,10 +215,10 @@ try {
     await page
       .getByRole("link", { name: "Signed retention report · Version 1", exact: true })
       .getAttribute("href"),
-    `/evidence?version=${version.id}&citation=${citations[0].id}&reader=true`,
+    `/evidence?version=${version.id}&citation=${citations[0].id}`,
   );
-  // Citation names now deep-link to the PDF reader. Its real attached-PDF navigation is
-  // covered by test-evidence-reader-browser; this external source opens its version record.
+  // A citation of a captured file deep-links to the PDF reader (test-evidence-reader-browser
+  // covers it); this external source has nothing to read, so its name opens its version record.
   await page.goto(`${origin}/evidence?version=${version.id}`);
   const versionDialog = page.getByRole("dialog", {
     name: "Signed retention report · Version 1",
@@ -326,7 +327,7 @@ try {
     );
   }
   await page.screenshot({
-    path: "/private/tmp/assurance-review-mobile.png",
+    path: artifactPath("assurance-review-mobile.png"),
     animations: "disabled",
   });
   assert.deepEqual(errors, []);
@@ -336,7 +337,7 @@ try {
 } catch (error) {
   if (page)
     await page
-      .screenshot({ path: "/private/tmp/assurance-review-failure.png", fullPage: true })
+      .screenshot({ path: artifactPath("assurance-review-failure.png"), fullPage: true })
       .catch(() => {});
   throw error;
 } finally {

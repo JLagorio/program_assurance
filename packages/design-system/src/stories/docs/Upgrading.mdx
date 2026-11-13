@@ -22,6 +22,10 @@ A new part is Experimental until a product screen uses it and its page, plays an
 
 What code written for 0.7.0 changes in the next version.
 
+### Breaking
+
+- **The shell's aside area is gone, and the `aside` and `wide` breakpoints with it.** A Shell.Aside is an AsideLayout's `aside`, around the body its Details belong to; one rendered outside an AsideLayout renders in place, always open, and says so in development. `aside:` and `wide:` generate nothing, and `ledger/no-unknown-variant` reports them ([AsideLayout](?path=/docs/guidance-upgrading--docs#asidelayout), [Layout classes](?path=/docs/guidance-upgrading--docs#layout-classes)).
+
 ### Changed
 
 No name changes, so no code changes unless it pins a drawn value.
@@ -34,7 +38,8 @@ No name changes, so no code changes unless it pins a drawn value.
 
 Each still works in the next version and goes in the one after.
 
-- **A Shell.Aside on its own**, which takes the shell's aside area beside Main from the top of the page: the record's Details are an AsideLayout's `aside`, around the body they belong to ([AsideLayout](?path=/docs/guidance-upgrading--docs#asidelayout)).
+- **An Item's `idWidth` in pixels**: `narrow`, `default` or `wide` ([Item](?path=/docs/guidance-upgrading--docs#item)).
+- **`dimension.container.compact`**, the `@compact:` container size (25rem), which no part reads: `@sm:` (24rem) is the nearest size. A Shell.Panel header keeps its own 400px query ([Metrics](?path=/docs/tokens-metrics--docs), Container sizes).
 
 ## 0.7.0
 
@@ -89,7 +94,8 @@ The kit's own layout rules belong to its parts, not to classes product code writ
 | `sticky-bar`                                                                                                                                             | A PageHeader; ActionBar, which pinned itself, is deprecated ([ActionBar](?path=/docs/guidance-upgrading--docs#actionbar))                                    |
 | `grid-cols-main-rail`                                                                                                                                    | An AsideLayout, the body beside its Details                                                                                                                  |
 | `shell-root`, `shell-main`, `shell-banner`, `shell-topnav`, `shell-topnav-start`, `shell-sidenav`, `shell-sidenav-overlay`, `shell-panel`, `shell-scrim` | The Shell's parts, which style themselves; a selector reads their `data-slot` (`[data-slot="shell-scrim"]`)                                                  |
-| `2xl:`                                                                                                                                                   | `wide:` (110rem), the kit's widest breakpoint, `xl:` (80rem), or a container query ([Metrics](?path=/docs/tokens-metrics--docs), Breakpoints)                |
+| `2xl:`                                                                                                                                                   | `panel:` or `xl:` (80rem), the kit's widest breakpoints, `lg:` (64rem), or a container query ([Metrics](?path=/docs/tokens-metrics--docs), Breakpoints)      |
+| `aside:` and `wide:`, the shell's aside area's breakpoints                                                                                               | A record's Details do not follow the window: an AsideLayout decides from its own width; else `panel:`, `xl:` or a container query                            |
 
 ## Messages
 
@@ -140,7 +146,7 @@ A record's Details, a Shell.Aside holding an Inspector, are an [AsideLayout](?pa
 </AsideLayout>
 ```
 
-On a tabbed record the AsideLayout is the Overview panel's content, and the condition that rendered the Aside only while Overview was selected goes: the Details live in the panel and leave with it. The Aside's `label`, `heading` and `summary` keep their meaning. Inside the layout the Details are a region named by `label` in both displays, where the rail beside Main was a complementary landmark, so a check that looked for the landmark looks for the region. A Shell.Aside rendered outside an AsideLayout takes the shell's area for one more version and logs a warning in development.
+On a tabbed record the AsideLayout is the Overview panel's content, and the condition that rendered the Aside only while Overview was selected goes: the Details live in the panel and leave with it. The Aside's `label`, `heading` and `summary` keep their meaning. Inside the layout the Details are a region named by `label` in both displays, where the rail beside Main was a complementary landmark, so a check that looked for the landmark looks for the region. The shell's area beside Main is gone: a Shell.Aside rendered outside an AsideLayout renders in place, always open, with no disclosure on a phone, and logs a warning in development, and the `aside` and `wide` breakpoints that placed the area went with it.
 
 ## Attachment
 
@@ -341,6 +347,14 @@ On InputGroupButton, `size="xs"` is `size="xsmall"`, the default, and `size="sm"
 ## Item
 
 `labelledBy` on Item.Group is `aria-labelledby`, which reaches the list.
+
+`idWidth` on an Item takes a step, not pixels ([Item](?path=/docs/components-item--docs)):
+
+| Written as             | Write                                                                    |
+| ---------------------- | ------------------------------------------------------------------------ |
+| A number up to 60      | `idWidth="narrow"` (48px)                                                |
+| A number from 61 to 87 | `idWidth="default"` (72px), the width without one, so it can be left out |
+| A number from 88       | `idWidth="wide"` (104px)                                                 |
 
 ## Kbd
 

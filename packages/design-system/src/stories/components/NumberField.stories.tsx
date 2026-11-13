@@ -18,7 +18,7 @@ import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
 const { Matrix } = storyLayout;
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 const meta = {
   title: "Components/NumberField",
@@ -361,6 +361,21 @@ export const Dont: Story = {
       dontText="An identifier in a NumberField. The leading zero is gone, a long one takes grouping separators, and the steppers invite a change that means nothing."
     />
   ),
+  play: async ({ canvasElement }) => {
+    const { do: good, dont: bad } = halves(canvasElement);
+    // An amount the reader steps is a NumberField, with steppers.
+    await expect(within(good).getByRole("button", { name: /^Increase.*Reviewers/ })).toBeVisible();
+    // Digits that name something stay as written, in an Input with nothing to step.
+    await expect(within(good).getByRole("textbox", { name: "Build number" })).toHaveValue("0412");
+    await expect(within(good).queryByRole("button", { name: /Build number/ })).toBeNull();
+    // In a NumberField the identifier loses its leading zero and gains steppers.
+    await expect(
+      bad.querySelector<HTMLInputElement>('[data-slot="number-field-input"]'),
+    ).toHaveValue("412");
+    await expect(
+      within(bad).getByRole("button", { name: /^Increase.*Build number/ }),
+    ).toBeVisible();
+  },
 };
 
 /** Compact steppers flank a framed, centered value without changing parsing, focus, or bounds. */

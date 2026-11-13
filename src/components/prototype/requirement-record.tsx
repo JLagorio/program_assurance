@@ -3,7 +3,7 @@ import { AssuranceReviewPanel } from "./assurance-review";
 import { AssuranceCitations } from "./assurance-review-citations";
 import { ProductRecordDialog } from "./product-record-dialog";
 import { MissingRecord, RecordActions, ReportFailures } from "./work-common";
-import { useCallback, useRef, useState, type ComponentProps, type ReactNode } from "react";
+import { useCallback, useMemo, useRef, useState, type ComponentProps, type ReactNode } from "react";
 import { Link, useBlocker } from "@tanstack/react-router";
 import { useConfirmation, discardChanges } from "@/components/app/confirmation";
 import {
@@ -41,7 +41,6 @@ import { StatusBadge } from "@/components/app/status";
 import { useWorkspace } from "@/components/app/workspace";
 import { useAssuranceTrace } from "@/lib/assurance-trace";
 import { idSet, useRow, useRows, type Row } from "@/lib/models";
-import { programRequirementScope } from "@/lib/requirement-reads";
 import { labelFor, type DataRecord } from "@/lib/records";
 import { requirementIdentityLinks } from "@/lib/requirement-tree";
 import { revisionStates } from "@/lib/status";
@@ -258,7 +257,11 @@ export function RequirementRecordContent({
                           {preview ? (
                             <>
                               {body}
-                              <RequirementHierarchy revisionId={active.id} programId={programId} />
+                              <RequirementHierarchy
+                                requirementId={requirementId}
+                                revisionId={active.id}
+                                programId={programId}
+                              />
                             </>
                           ) : (
                             <>
@@ -286,6 +289,7 @@ export function RequirementRecordContent({
                                 <Stack space="space.250" className="min-w-0">
                                   {body}
                                   <RequirementHierarchy
+                                    requirementId={requirementId}
                                     revisionId={active.id}
                                     programId={programId}
                                   />
@@ -579,102 +583,138 @@ function RequirementActivity({
   );
 }
 
+const decompositionColumns = [
+  "id",
+  "parent_requirement_revision_id",
+  "child_requirement_revision_id",
+] as const;
+
+/**
+ * Where a requirement stands in the requirement tree: its parents and its children, each linked
+ * by its code and its latest revision's title. A decomposition links two revisions; the section
+ * reads the ones any revision of this requirement takes part in, as the part and as the whole,
+ * then the requirements at their other ends that this program holds, and never the program's
+ * other revisions.
+ */
 function RequirementHierarchy({
+  requirementId,
   revisionId,
   programId,
 }: {
+  requirementId: string;
   revisionId: string;
   programId: string;
 }) {
-  // The program's revisions, and the decompositions among them, read by their parent: of each, only
-  // what names a requirement and its version, never a revision's authored text.
-  const contents = useRows(
-    "requirement_revisions",
-    programRequirementScope(programId, "requirement_revisions"),
-    { columns: ["id", "engineering_requirement_id", "version_number"] },
-  );
-  const relationships = useRows(
+  // This requirement's revisions: the record reads them, so this asks nothing more.
+  const own = useRows("requirement_revisions", { engineering_requirement_id: requirementId });
+  const ownIds = idSet(own.data?.map((row) => row.id));
+  const asPart = useRows(
     "requirement_decompositions",
-    { parent_requirement_revision_id: idSet(contents.data?.map((row) => row.id)) },
+    { child_requirement_revision_id: ownIds },
+    { columns: decompositionColumns, enabled: own.isSuccess },
+  );
+  const asWhole = useRows(
+    "requirement_decompositions",
+    { parent_requirement_revision_id: ownIds },
+    { columns: decompositionColumns, enabled: own.isSuccess },
+  );
+  // One list of the links, in the order one read of them gives.
+  const links = useMemo(
+    () =>
+      [...new Map([...(asPart.data ?? []), ...(asWhole.data ?? [])].map((row) => [row.id, row]))]
+        .map(([, row]) => row)
+        .sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)),
+    [asPart.data, asWhole.data],
+  );
+  // The revisions at the links' other ends that are revisions of this program's requirements.
+  const named = useRows(
+    "requirement_revisions",
     {
-      columns: ["id", "parent_requirement_revision_id", "child_requirement_revision_id"],
-      enabled: contents.isSuccess,
+      id: idSet(
+        links
+          .flatMap((link) => [
+            link.parent_requirement_revision_id,
+            link.child_requirement_revision_id,
+          ])
+          .filter((id) => !ownIds.includes(id)),
+      ),
+      "engineering_requirements.program_id": programId,
+    },
+    {
+      columns: ["id", "engineering_requirement_id"],
+      enabled: asPart.isSuccess && asWhole.isSuccess,
     },
   );
+  const relatedIds = idSet(named.data?.map((row) => row.engineering_requirement_id));
+  // Those requirements' revisions, which name each by its latest, and their codes.
+  const relatedRevisions = useRows(
+    "requirement_revisions",
+    { engineering_requirement_id: relatedIds },
+    {
+      columns: ["id", "engineering_requirement_id", "version_number", "title"],
+      enabled: named.isSuccess,
+    },
+  );
+  const related = useRows(
+    "engineering_requirements",
+    { id: relatedIds, program_id: programId },
+    { columns: ["id", "code"], enabled: named.isSuccess },
+  );
+  const queries = [own, asPart, asWhole, named, relatedRevisions, related];
   // Only a load with nothing to show replaces the section: a failed refresh keeps the links the
   // reader has, under QueryState's alert.
-  if (relationships.data === undefined || contents.data === undefined)
-    return <ProgramQueryState queries={[relationships, contents]} />;
-  const links = requirementIdentityLinks(relationships.data, contents.data);
-  const currentParents = links.filter((link) => link.child_requirement_revision_id === revisionId);
-  const currentChildren = links.filter(
+  if (
+    own.data === undefined ||
+    asPart.data === undefined ||
+    asWhole.data === undefined ||
+    named.data === undefined ||
+    relatedRevisions.data === undefined ||
+    related.data === undefined
+  )
+    return <ProgramQueryState queries={queries} />;
+  const pairs = requirementIdentityLinks(links, [...own.data, ...relatedRevisions.data]);
+  const currentParents = pairs.filter((link) => link.child_requirement_revision_id === revisionId);
+  const currentChildren = pairs.filter(
     (link) => link.parent_requirement_revision_id === revisionId,
   );
   if (!currentParents.length && !currentChildren.length)
-    return <ProgramQueryState queries={[relationships, contents]} />;
+    return <ProgramQueryState queries={queries} />;
+  const titles = new Map(relatedRevisions.data.map((row) => [row.id, row.title]));
+  const codes = new Map(related.data.map((row) => [row.id, row.code]));
+  /** A related requirement by its code and its latest revision's title, linked to its record. */
+  const link = (requirement: string, revision: string) => {
+    const code = codes.get(requirement);
+    if (code === undefined) return <Absent label="Not available" />;
+    return (
+      <TextLink
+        render={
+          <Link
+            to="/programs/$programId/requirements/$requirementId"
+            params={{ programId, requirementId: requirement }}
+          />
+        }
+      >
+        {code} · {titles.get(revision)}
+      </TextLink>
+    );
+  };
   return (
     <Section title="Requirement hierarchy">
-      <ProgramQueryState queries={[relationships, contents]} />
+      <ProgramQueryState queries={queries} />
       {/* One label column for every link, as wide as its longest label. */}
       <KeyValue.Group labelWidth="auto">
         {currentParents.map((parent) => (
           <KeyValue key={parent.parentRequirementId} label="Parent requirement" wrap>
-            <RequirementRevisionLink
-              programId={programId}
-              revisionId={parent.parent_requirement_revision_id}
-            />
+            {link(parent.parentRequirementId, parent.parent_requirement_revision_id)}
           </KeyValue>
         ))}
         {currentChildren.map((child) => (
           <KeyValue key={child.childRequirementId} label="Child requirement" wrap>
-            <RequirementRevisionLink
-              programId={programId}
-              revisionId={child.child_requirement_revision_id}
-            />
+            {link(child.childRequirementId, child.child_requirement_revision_id)}
           </KeyValue>
         ))}
       </KeyValue.Group>
     </Section>
-  );
-}
-
-function RequirementRevisionLink({
-  programId,
-  revisionId,
-}: {
-  programId: string;
-  revisionId: string;
-}) {
-  const revision = useRow("requirement_revisions", revisionId);
-  const requirement = useRow("engineering_requirements", revision.data?.engineering_requirement_id);
-  // Three outcomes, as RelationName: a line while it loads, "Could not load" when the lookup
-  // fails, and a missing value read as "Not available" when the requirement is missing or outside
-  // this program.
-  if (
-    (revision.data === undefined && revision.isError) ||
-    (revision.data && requirement.data === undefined && requirement.isError)
-  )
-    return <Text color="color.text.subtle">Could not load</Text>;
-  if (revision.data === undefined || (revision.data && requirement.data === undefined))
-    return (
-      <>
-        <Skeleton shape="line" width={160} />
-        <VisuallyHidden>Loading requirement</VisuallyHidden>
-      </>
-    );
-  if (!revision.data || !requirement.data || requirement.data.program_id !== programId)
-    return <Absent label="Not available" />;
-  return (
-    <TextLink
-      render={
-        <Link
-          to="/programs/$programId/requirements/$requirementId"
-          params={{ programId, requirementId: requirement.data.id }}
-        />
-      }
-    >
-      {requirement.data.code} · {revision.data.title}
-    </TextLink>
   );
 }
 

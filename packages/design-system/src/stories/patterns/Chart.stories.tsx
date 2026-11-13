@@ -47,7 +47,7 @@ import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
 const { Specimens } = storyLayout;
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 const meta = {
   title: "Patterns/Chart/Overview",
@@ -1321,6 +1321,52 @@ export const Dont: Story = {
       />
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    // The value axis's top tick, the largest number it can show, once the axis has drawn it.
+    // The category axis prints names, so the numbers are the value axis's.
+    const top = async (plot: Element) => {
+      let largest = -Infinity;
+      await waitFor(() => {
+        const ticks = Array.from(
+          plot.querySelectorAll(".recharts-cartesian-axis-tick-value"),
+          (tick) => Number(tick.textContent!.replace(/,/g, "")),
+        ).filter(Number.isFinite);
+        expect(ticks.length).toBeGreaterThan(0);
+        largest = Math.max(...ticks);
+      });
+      return largest;
+    };
+    // Two measures of different scale are two charts, each on its own axis; on one plot the
+    // findings in the tens lie flat under an axis made for the controls' hundreds.
+    const scale = halves(canvasElement, 0);
+    const figure = (half: HTMLElement, name: string) => within(half).getByRole("figure", { name });
+    await expect(await top(figure(scale.do, "Open findings"))).toBeLessThan(50);
+    await expect(await top(figure(scale.do, "Controls assessed"))).toBeGreaterThan(300);
+    const together = figure(scale.dont, "Findings and controls");
+    await expect(together.querySelectorAll(".recharts-yAxis")).toHaveLength(1);
+    await expect(await top(together)).toBeGreaterThan(300);
+    // A chart sits in its Frame, named, with its period and its table a toggle away; a bare plot
+    // is unnamed, so it is decoration, and has no table.
+    const frame = halves(canvasElement, 1);
+    const framed = figure(frame.do, "Findings by source");
+    await expect(framed).toHaveAccessibleDescription(/Opened this year/);
+    await expect(within(framed).getByRole("button", { name: "Table" })).toBeVisible();
+    await expect(within(frame.dont).queryByRole("figure")).toBeNull();
+    await expect(frame.dont.querySelector("[data-chart-plot]")).toHaveAttribute(
+      "aria-hidden",
+      "true",
+    );
+    await expect(within(frame.dont).queryByRole("button", { name: "Table" })).toBeNull();
+    // Loading holds the plot's height with its silhouette; a spinner holds a line a fraction of
+    // it, and everything under it moves when the data lands.
+    const loading = halves(canvasElement, 2);
+    const plot = frame.do.querySelector("[data-chart-plot]")!.getBoundingClientRect().height;
+    const silhouette = loading.do.querySelector('[aria-busy="true"]')!;
+    await expect(silhouette.getBoundingClientRect().height).toBe(plot);
+    const waiting = loading.dont.firstElementChild!.lastElementChild!;
+    await expect(within(loading.dont).getByRole("status")).toBeVisible();
+    await expect(waiting.getBoundingClientRect().height).toBeLessThan(plot / 4);
+  },
 };
 
 /** A line, a bar and a stacked bar on a small phone: the frame shrinks to its container, the axes thin out, the legend wraps, and nothing leaves the window. */

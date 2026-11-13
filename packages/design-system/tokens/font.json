@@ -26,6 +26,7 @@
       },
       "code": {
         "$value": [
+          "Geist Mono Variable",
           "Geist Mono",
           "JetBrains Mono",
           "ui-monospace",
@@ -35,7 +36,7 @@
           "Liberation Mono",
           "monospace"
         ],
-        "$description": "Code blocks and data previews only. Never UI text. The package ships no mono face, so the stack names faces the machine has: Geist Mono or JetBrains Mono where installed, else the system monospace."
+        "$description": "Code blocks and data previews only. Never UI text. Geist Mono Variable is the face fonts.css loads; Geist Mono and JetBrains Mono are faces the machine may have, then the system monospace."
       }
     },
     "weight": {

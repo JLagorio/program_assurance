@@ -67,8 +67,12 @@ export function LevelIndicator({
 }: LevelIndicatorProps) {
   if (isNothing(value) && !mixed)
     return <Absent label={absentLabel ?? (name ? `${name} not recorded` : "Not recorded")} />;
+  const entry = mixed ? undefined : statusEntry(levels, value);
   return (
-    <Indicator tone={mixed ? "warning" : (statusEntry(levels, value)?.tone ?? "neutral")}>
+    <Indicator
+      tone={mixed ? "warning" : (entry?.tone ?? "neutral")}
+      {...(entry?.emphasis ? { emphasis: entry.emphasis } : {})}
+    >
       {name && <VisuallyHidden>{`${name}: `}</VisuallyHidden>}
       {mixed ? "Mixed" : statusLabel(levels, value)}
     </Indicator>

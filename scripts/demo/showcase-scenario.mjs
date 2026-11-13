@@ -2,17 +2,20 @@
  * The showcase scenario: authored, illustrative records that carry the demo past what the archived
  * prototype recorded, so every screen has something to show. Nothing here comes from the archived
  * fixture or claims to: it is written for this repository, and `npm run seed:demo-showcase` writes
- * it under its own provenance dataset (`showcase-v1`), apart from the legacy import.
+ * it under its own provenance dataset (`showcase-v1`), apart from the legacy import. The one thing
+ * the seed reads from the archive is what WS-X90's assessors recorded (`assessments` below), which
+ * the import kept only as findings, so the determinations it publishes are the archive's own.
  *
  * It names records the demo import created by their codes and titles (programs, systems, people,
  * campaigns, risks) and reference data by its codes (controls, framework items). The seed refuses a
  * name it cannot find rather than guessing.
  *
  * History is fixed in time, as the import's is: WS-X90's initial authorization assessment ran
- * 2026-08-03 to 2026-08-21, so its SSP, plan, results and decision sit around those days. What is
- * still moving (the continuous-monitoring schedule, scanner imports, the fiscal year) is laid out
- * in days from the run's as-of date, so overdue, due soon and in progress read true on the day it
- * is seeded.
+ * 2026-08-03 to 2026-08-21, so its SSP, plan, results and decision sit around those days, and the
+ * expanded assessment's results keep the days the archive gives them. What is still moving (the
+ * continuous-monitoring schedule, scanner imports, the fiscal year, the expanded assessment's draft
+ * increment) is laid out from the run's as-of date, so overdue, due soon and in progress read true
+ * on the day it is seeded.
  */
 
 export const datasetId = "showcase-v1";
@@ -353,43 +356,91 @@ export const ssp = {
   },
 };
 
-/** The initial authorization assessment's plan and results, and the expanded assessment's. */
+/**
+ * WS-X90's two assessments as the archived prototype recorded them: `assessments` and the 420
+ * `assessment_results` of its platform seed, each a requirement judged on its components by one
+ * method, with the evidence examined and an outcome. The import kept their findings as operational
+ * issues and could not pin the results to a plan or a results revision; the scenario writes those
+ * documents and records each archived result as a determination on its control's statement.
+ *
+ * The initial authorization assessment judged the original 74-control scope in August and is
+ * published. The expanded control set assessment judges the controls the widened scope added, in
+ * increments: the first, through `through`, is published; what came after it, up to the as-of day,
+ * is the second increment's draft, which decides nothing.
+ */
 export const assessments = {
   initial: {
+    source: "ASM-2026-001",
     campaign: "WS-X90 Initial Authorization Security Assessment",
     plan: "Security assessment plan — initial authorization",
     planDescription:
-      "Assess every control of the tailored baseline against SSP 2 and the Block 1 configuration.",
+      "Assess the 74 controls of the original authorization scope against SSP 2 and the Block 1 configuration.",
     planPublishedAt: "2026-07-28T15:00:00Z",
     results: "Security assessment report — initial authorization",
     resultsDescription:
-      "Determinations on the tailored baseline from the 2026-08-03 to 2026-08-21 assessment.",
+      "Determinations on the 74 controls of the original authorization scope, from the 2026-08-03 to 2026-08-21 assessment.",
     resultSet: "Initial authorization assessment, 2026-08-03 to 2026-08-21",
     startsAt: "2026-08-03T13:00:00Z",
     endsAt: "2026-08-21T21:00:00Z",
     resultsPublishedAt: "2026-08-28T15:00:00Z",
   },
   expanded: {
+    source: "ASM-2026-002",
     campaign: "WS-X90 Expanded Control Set Assessment",
     plan: "Security assessment plan — expanded control set",
     planDescription:
-      "Assess the tailored-in cyber resiliency controls and re-test the controls the initial assessment found short.",
+      "Assess the controls the widened authorization scope added, then the tailored-in cyber resiliency controls, in increments.",
     planPublishedAt: "2026-09-08T15:00:00Z",
-    results: "Interim results — expanded control set",
-    resultsDescription:
-      "Determinations recorded so far; the results are a draft until the assessment closes.",
-    resultSet: "Expanded control set assessment, in progress",
     startsAt: "2026-09-14T13:00:00Z",
+    increments: [
+      {
+        through: "2026-11-10",
+        results: "Security assessment report — expanded control set, increment 1",
+        resultsDescription:
+          "Determinations from 2026-09-14 to 2026-11-10, roughly half the widened scope. The rest follow in later increments.",
+        resultSet: "Expanded control set assessment, increment 1, 2026-09-14 to 2026-11-10",
+        publishedAt: "2026-11-12T15:00:00Z",
+      },
+      {
+        results: "Interim results — expanded control set, increment 2",
+        resultsDescription:
+          "Determinations recorded since increment 1; the results are a draft until the increment closes.",
+        resultSet: "Expanded control set assessment, increment 2, in progress",
+      },
+    ],
   },
-  /** What an assessor wrote for each determination. */
+  /**
+   * An archived outcome as a determination. A failed result raised a finding: where it is high or
+   * critical the control is other than satisfied, otherwise partially satisfied. An inconclusive
+   * result, and one the assessor did not carry out, is recorded as not assessed, which decides
+   * nothing.
+   */
+  outcomes: {
+    pass: "satisfied",
+    fail: {
+      critical: "other_than_satisfied",
+      high: "other_than_satisfied",
+      moderate: "partially_satisfied",
+      low: "partially_satisfied",
+    },
+    inconclusive: "not_assessed",
+    "not-assessed": "not_assessed",
+  },
+  /** How each method reads in a determination's words. */
+  methods: { examine: "examination", interview: "interview", test: "test" },
+  /**
+   * What a determination says where the archived result has no narrative of its own (the initial
+   * assessment's): `{requirement}`, `{method}` and `{components}` from the result, `{finding}` the
+   * finding a failed result raised. The expanded assessment's results carry the assessor's own words.
+   */
   narrative: {
     satisfied:
-      "Examined the implementation narrative and its cited evidence, interviewed the responsible engineer and tested a sample; the statement is met as written.",
-    partially_satisfied:
-      "Part of the statement is met. The assessor recorded a gap against at least one of its items, carried forward for remediation.",
-    other_than_satisfied:
-      "The assessor could not confirm the implementation: the statement is not met, or the evidence offered does not show it.",
+      "{requirement}, assessed by {method} on {components}: the statement is met as written.",
+    short: "{finding} Assessed by {method} on {components}.",
+    not_assessed: "{requirement} was planned for {method} on {components} and not assessed.",
   },
+  /** What a finding's evidence citation says the assessor did with it. */
+  claim: "Examined for this determination.",
 };
 
 /** Continuous monitoring: a campaign for the fiscal year and its schedule, in days from as-of. */
@@ -744,11 +795,209 @@ export const riskTechniques = {
   "Unlisted hardware was announced onto the internal segment and then carried": ["T1200", "T1557"],
 };
 
-/** What a reviewer wrote for each evidence decision. */
+/* ——— Issue requirements: begin (issue_requirements, migration operational_issue_requirements) ——— */
+/**
+ * The requirement each named WS-X90 operational issue is about, by the issue's title and the
+ * requirement's code. The import restored sixteen "Unmet requirement" findings as operational
+ * issues; ten cite the evidence of their requirement and stand on it already, and these six cite
+ * no evidence, so until they name their requirement they stand nowhere on the program's Posture.
+ */
+export const issueRequirements = {
+  "Unmet requirement REQ-008": "REQ-008",
+  "Unmet requirement REQ-024": "REQ-024",
+  "Unmet requirement REQ-032": "REQ-032",
+  "Unmet requirement REQ-068": "REQ-068",
+  "Unmet requirement REQ-092": "REQ-092",
+  "Unmet requirement REQ-100": "REQ-100",
+};
+/* ——— Issue requirements: end ——— */
+
+/**
+ * What the assessor wrote reviewing each evidence version, as the archived results examined it: a
+ * version a passed result examined is accepted, one a failed or inconclusive result examined needs
+ * revision, each on the day of that result. A version no result has examined by the as-of day is
+ * pending.
+ */
 export const evidenceReview = {
-  reviewedFrom: "2026-08-04T14:00:00Z",
   accepted: "Matches the requirement's acceptance criteria and the Block 1 configuration.",
-  needs_revision:
-    "The report does not name the configuration it was run against; resubmit against Block 1.",
-  rejected: "The artifact describes a different build than the one under assessment.",
+  short:
+    "Shows the requirement not met on at least one of its components; resubmit once the finding is closed.",
+  inconclusive: "Does not settle the determination; the assessor asked for more before closing it.",
+};
+
+/**
+ * What each WS-X90 risk says of the threat and the weakness behind it, and why it carries its
+ * likelihood and impact (Josef, 2026-11-13). The import restored the 40 risks with a likelihood, an
+ * impact and a severity and nothing else. A risk the archive tells a story for is
+ * [threat, vulnerability, rationale] by its title, in words that fit the ATT&CK techniques
+ * `riskTechniques` links to it; a risk the import made from a failed requirement ("Risk arising
+ * from REQ-008") takes `fromRequirement`, written from the requirement's kind (the second word of
+ * its title), its code, the controls it maps and the elements it is allocated to. Only an empty field
+ * is written, on a draft revision.
+ *
+ * `due` is how many days after the risk's trouble was first found (the earliest issue it rests on
+ * was opened) its response is due, by the response and the risk's severity: sooner the more severe.
+ * A response's due is a moment, at `dueAt`.
+ */
+export const riskAssessments = {
+  risks: {
+    "A disallowed session survives at the boundary while field procedures go unsigned": [
+      "An outside party who holds a tunnel open through the Protected Network Gateway after inspection has refused it, to come back in or ride a remote session.",
+      "The gateway drops a disallowed flow's packets one at a time instead of tearing the session down, and field technicians work from procedures nobody has signed.",
+      "Moderate likelihood: the tunnel needs a sender patient enough to hold it, and nothing crosses the boundary through either gap alone. Moderate impact: together they leave an intrusion attempt resisted but never closed or reported.",
+    ],
+    "A hand-kept bay list leaves standing physical access to key and recovery material": [
+      "A person removed from the program who still badges into the protected bay and attaches hardware to, or lifts credentials from, the Mission Computer, the Cryptographic Services Module or the Secure Storage Module.",
+      "The bay reader list is copied by hand from the facility roster and its log is never exported, so a removal does not reach the bay.",
+      "Moderate likelihood: it needs someone both removed and willing, inside a guarded facility. High impact: physical access to those three units defeats every boundary the platform mediates.",
+    ],
+    "A partition that has failed its own integrity check keeps flying the mission": [
+      "A modified image in a mission partition, or tampering below its operating system, that fails the partition's own integrity check in flight and keeps producing mission output.",
+      "Only failures the Secure Boot Controller observes drive the platform to its known secure state; a partition's own failed check leaves the other partitions running.",
+      "Moderate likelihood: it needs an integrity failure in flight, which the boot chain makes rare. High impact: suspect mission data reaches the tactical link with full provenance and nobody at the article to stop it.",
+    ],
+    "A password on its own reaches WS-X90 at the flightline": [
+      "Anyone holding the Maintenance Laptop on a dispersed flightline who guesses or replays its local password and opens a privileged maintenance session.",
+      "Away from the ground support network the Maintenance Laptop still accepts a password alone, and the Internal Ethernet Switch admits a port on a one-sided exchange.",
+      "Moderate likelihood: it needs the laptop in hand, but the flightline is where it is used most and watched least. High impact: one secret stands between an outsider and privileged maintenance on a platform categorized high for confidentiality.",
+    ],
+    "A publicly known password is still a valid WS-X90 credential": [
+      "An attacker replaying passwords from public breach collections against the provisioning path.",
+      "The compromised-credential list passwords are screened against was last refreshed well outside its interval, so a breached password of the right shape is accepted.",
+      "Moderate likelihood: harvested credentials are plentiful, though each must also pass the composition rules. Moderate impact: a looked-up password opens one account, not the cryptographic module behind it.",
+    ],
+    "A scan on a stale signature set reports clean and the program acts on it": [
+      "Exploitation of a newly published vulnerability in the WS-X90 build during the window in which the program's own scanning cannot see it.",
+      "The Provisioning Workstation runs baseline scans on a signature set thirty hours old without checking its freshness, and the report omits the signature identifier.",
+      "Moderate likelihood: the window opens each time the signatures lag, though an exploit must land inside it. Moderate impact: the program acts on a clean report that covered less than it claims.",
+    ],
+    "An unsealed service connector leaves a physical route into the maintenance path": [
+      "A visitor on the flightline who seats a cable or a device at the Maintenance Access Gateway's service connector between inspections to reach the mission computing chain.",
+      "The service connector is locked but not sealed, so a connection made and removed leaves nothing for an inspector to find.",
+      "Moderate likelihood: it needs time at a dispersed aircraft's connector. High impact: the path reaches the mission computing chain directly, on a platform categorized high for integrity.",
+    ],
+    "Insider threat and spillage have an escalation path and no named owner": [
+      "An insider who copies data from a WS-X90 system and carries it off on removable media, or a classified spillage that spreads while the response is organized.",
+      "The two incident classes have an escalation path in the control set and no named owner in the direction people follow.",
+      "Moderate likelihood: either case is rare, and the gap is there for every one that happens. Moderate impact: the first hours, when containment is decided, go to finding an owner.",
+    ],
+    "Low-rate exhaustion and unattributable egress at the WS-X90 external boundary": [
+      "A patient adversary who drains the Protected Network Gateway's session state below the profiled rate and pushes data out through a maintenance session.",
+      "No counter the Security Log Collector evaluates moves under low-rate exhaustion, and denials of maintenance-session egress name an appliance instead of the technician.",
+      "Moderate likelihood: it needs patience and a foothold in a maintenance session. High impact: it costs the tactical path its capacity and leaves no name against an exfiltration attempt on a confidentiality-high system.",
+    ],
+    "Out-of-window privileged maintenance was recorded rather than refused": [
+      "A privileged account used for maintenance outside its window through a remote service on the Maintenance Access Gateway.",
+      "The window check was advisory, so out-of-window commands were logged and then run; it now blocks, and the risk stays open until monitoring confirms it holds.",
+      "Low likelihood: the window test now refuses such commands, as the retest saw. Low impact: what remains is the interval until the next monitoring cycle confirms the fix.",
+    ],
+    "Out-of-work-order privileged tool use was recorded and never surfaced": [
+      "An insider who uses privileged maintenance tools with no work order behind them and clears what traces they can.",
+      "Privileged tool use was logged in the Security Log Collector and never alerted on; the alert rule now runs and raised the seeded use on retest.",
+      "Low likelihood: the alert now raises such use, as the retest showed. Low impact: the exposure closed inside the assessment window.",
+    ],
+    "Payload arm and release records become unverifiable as signing keys rotate": [
+      "Someone who alters or disowns an arm or release command once its signing key has rotated, knowing the record can no longer be checked.",
+      "The retired-key list is not published to the collector, so commands signed under a rotated key verify as unknown-key.",
+      "Moderate likelihood: it needs a disputed payload event, but every key rotation widens what can no longer be verified. High impact: the highest-consequence commands the platform carries can no longer be tied to an operator.",
+    ],
+    "Payload telemetry maintenance happens outside the work-order gate": [
+      "Someone with access to the payload telemetry equipment who does unsanctioned work on it remotely and files the paperwork afterwards.",
+      "Maintenance on that subsystem is recorded after the fact rather than authorized through the work-order gate on the Update & Recovery Controller.",
+      "Moderate likelihood: the seam is narrow, but it is the one an insider would find first. Moderate impact: the program cannot say whether a given change to payload telemetry was sanctioned.",
+    ],
+    "Platform telemetry crosses to a party nobody has signed a responsibility split with": [
+      "A ground-support partner whose own compromise or mishandling turns the telemetry exchange into a channel out of WS-X90.",
+      "The exchange is enabled in the gateway's policy under an interim approval, with no signed agreement dividing the control responsibilities.",
+      "Moderate likelihood: the exchange is listed openly and time-limited, but carries live traffic. Moderate impact: a partner's incident becomes the program's, with no agreed duties to point to.",
+    ],
+    "Primary and alternate bearers converge on one switch port group": [
+      "A fault in, or a denial of service against, the one Internal Ethernet Switch port group both bearers cross.",
+      "The primary and alternate paths share a port group on the platform, so one failure takes both down.",
+      "Low likelihood: it needs a failure in one port group, already accepted as a single point of failure. Low impact: availability is categorized moderate, so what is lost is redundancy rather than the mission.",
+    ],
+    "Privilege that survived its own review still reaches platform management": [
+      "An attacker who compromises one of the two holders whose privilege the review revoked on paper, or who adjusts the account to keep it.",
+      "The privileged assignment review on the Platform Management Controller flags excess privilege and stops before removing it.",
+      "Moderate likelihood: it needs one of two credentials, but their activity reads as ordinary. Moderate impact: a compromise starts from platform management, a position the program has decided nobody should hold.",
+    ],
+    "Relayed audit records carried a second ordering inside the platform trail": [
+      "Someone who reorders or blurs the platform trail during congestion to hide cause and effect.",
+      "Records relayed through the Internal Ethernet Switch were ordered on arrival; a source time stamp now travels with them.",
+      "Low likelihood: the source time stamp is in place and the retest reproduced the seeded sequence. Low impact: what remains is a window already shut.",
+    ],
+    "The four-hour recovery objective has never been measured on a whole article": [
+      "An attack or failure that destroys data or disables recovery and forces a real restore of partitions nobody has exercised.",
+      "WS-X90 has never been restored end to end, and platform management and payload interface were left out of the exercise.",
+      "Moderate likelihood: a full recovery is rare, and it will be needed. Moderate impact: availability is categorized moderate, and the four-hour objective is unproven for the partitions an operator needs back first.",
+    ],
+    "The mission link is unmonitored and three firmware domains cannot force the restricted state":
+      [
+        "A compromised navigation, timing or payload component that keeps producing mission output over the Tactical Data Radio, whose traffic nobody inspects.",
+        "Nothing inspects the Tactical Data Radio path, and firmware integrity violations in three domains raise an alert without driving the restricted state.",
+        "Moderate likelihood: it needs a firmware compromise, which the boot chain makes harder. High impact: the busiest link and three mission domains are where monitoring and the hold do not reach.",
+      ],
+    "The payload interlock's trust basis is asserted and six units identify themselves from paperwork":
+      [
+        "A substituted or counterfeit part in the Payload Safety Interlock, or in one of six units that identify themselves from paperwork.",
+        "The interlock's trustworthiness is asserted rather than evidenced, and six units fall back to a maintenance record for hardware identity.",
+        "Moderate likelihood: substitution needs a way into the supply chain, and the acquisition procedures have expired. High impact: the interlock stands between a payload command and the payload.",
+      ],
+    "The personnel procedure and the provisioning gate no longer agree": [
+      "An account created to the looser written procedure once the gate is relaxed to match it.",
+      "The Provisioning Workstation enforces stricter eligibility than the published personnel procedure, and the change was never recorded.",
+      "Low likelihood: the divergence runs the safe way today. Low impact: nothing is under-protected until someone loosens the gate to match the document.",
+    ],
+    "The widest configuration divergence WS-X90 produces has no review behind it": [
+      "An unapproved change, or a modified image, slipped in during a change campaign while the configuration is furthest from the approved one.",
+      "Nothing in the Configuration Repository opens a reconciliation when a campaign closes, and the procedures for automated change prohibition and response are unsigned.",
+      "Moderate likelihood: campaigns run on a schedule, and each one is a window. Moderate impact: such a change is found, if at all, in the monthly cycle among ordinary drift.",
+    ],
+    "Unlisted hardware was announced onto the internal segment and then carried": [
+      "An unlisted device attached to the internal segment to listen to or relay its traffic.",
+      "Four switch ports logged an unlisted device and carried its traffic anyway; all twelve now refuse one.",
+      "Low likelihood: the enforcement build refused an unlisted device on every port at retest. Low impact: it stands as the record of what a lagging firmware baseline costs.",
+    ],
+    "Weakness reports reach their second recipient after the reporting bound": [
+      "Another program on the same baseline, exploited through a weakness WS-X90 reported to it late.",
+      "One of the two reporting routes is walked by hand, so half the weakness reports reached their second recipient after the bound.",
+      "Moderate likelihood: half the reports so far have been late. Moderate impact: the cost falls on a recipient who does not know it is waiting.",
+    ],
+  },
+  /** A risk the import made from a failed requirement, by the requirement's kind. */
+  fromRequirement: {
+    Monitoring: [
+      "Activity under {controls} on the {elements} that goes unwatched until its consequences show.",
+      "{requirement} is not met: the telemetry needed to monitor the behavior under {controls} is not produced on the {elements}.",
+    ],
+    Configuration: [
+      "An unauthorized change to the {elements}, by a technician or an attacker with access, that nothing rejects.",
+      "{requirement} is not met: the approved configuration under {controls} is not held on the {elements}, and unauthorized changes to it are not rejected.",
+    ],
+    Enforcement: [
+      "Use of the {elements} that the policy under {controls} forbids, going ahead unchecked.",
+      "{requirement} is not met: the policy under {controls} is not enforced on the {elements}, and no verifiable status is recorded.",
+    ],
+    Verification: [
+      "A weakness in {controls} on the {elements} that stays hidden because nobody can verify the implementation.",
+      "{requirement} is not met: the evidence an assessor needs to verify {controls} is not exposed on the {elements}.",
+    ],
+    rationale:
+      "{likelihood} likelihood: the initial assessment found {requirement} not met, and no assessment has judged it since. {impact} impact: without it, the protection selected under {controls} is missing on the {elements}.",
+  },
+  /** The words a likelihood or an impact takes at the start of a rationale. */
+  levels: {
+    very_low: "Very low",
+    low: "Low",
+    moderate: "Moderate",
+    high: "High",
+    very_high: "Very high",
+  },
+  due: {
+    mitigate: { critical: 30, high: 60, moderate: 120, low: 180 },
+    avoid: { critical: 30, high: 60, moderate: 90, low: 120 },
+    transfer: { critical: 60, high: 90, moderate: 120, low: 180 },
+    accept: { critical: 90, high: 180, moderate: 270, low: 365 },
+  },
+  dueAt: "17:00:00Z",
 };

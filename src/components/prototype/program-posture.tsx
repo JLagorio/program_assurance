@@ -167,16 +167,17 @@ function leftOutWords(
     return sentences.join(" ") || undefined;
   }
   if (left.unplaced <= 0) return undefined;
-  // By technique, a requirement its evidence supports must also stand under one.
+  // An issue stands where the requirements it names and those its evidence supports stand; by
+  // technique, such a requirement must also stand under one.
   const requirement = byTechnique ? "no requirement under a technique" : "no requirement";
   return left.records === "issues"
     ? formatPlural(left.unplaced, {
-        one: `{count} open issue is not placed: its evidence supports ${requirement}.`,
-        other: `{count} open issues are not placed: their evidence supports ${requirement}.`,
+        one: `{count} open issue is not placed: it names ${requirement}, and its evidence supports none.`,
+        other: `{count} open issues are not placed: they name ${requirement}, and their evidence supports none.`,
       })
     : formatPlural(left.unplaced, {
-        one: `{count} open risk is not placed: its issues' evidence supports ${requirement}.`,
-        other: `{count} open risks are not placed: their issues' evidence supports ${requirement}.`,
+        one: `{count} open risk is not placed: its issues name ${requirement}, and their evidence supports none.`,
+        other: `{count} open risks are not placed: their issues name ${requirement}, and their evidence supports none.`,
       });
 }
 

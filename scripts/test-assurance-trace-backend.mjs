@@ -1,7 +1,7 @@
 /**
- * The assurance chain reads: `assurance_trace` from every kind of record, the walk that never
- * goes back, a program's posture with an element's totals, one cell's records, and the tenant
- * boundary. Runs against the local stack in a disposable workspace.
+ * The assurance chain reads: `assurance_trace` from every kind of record, an assessor's finding
+ * among them, the walk that never goes back, a program's posture with an element's totals, one
+ * cell's records, and the tenant boundary. Runs against the local stack in a disposable workspace.
  */
 import assert from "node:assert/strict";
 import { localWorkspace } from "./tests/local-workspace.mjs";
@@ -329,6 +329,319 @@ try {
   assert.deepEqual(ids(inCell.controls), [control.id]);
   console.log("PASS the posture counts each record once, and an element totals what it holds");
 
+  // An issue names the requirement it is about: the bare requirement, which no evidence supports.
+  // The trace reaches the requirement from the issue and the issue from the requirement, and the
+  // posture places the issue on it, once, beside the issue its evidence already placed.
+  const unmetIssue = await insert("operational_issues", {
+    program_id: program.id,
+    title: "Unmet requirement REQ-BARE",
+    severity: "high",
+    status: "open",
+  });
+  const nameBare = () =>
+    data(
+      client
+        .from("issue_requirements")
+        .upsert(
+          {
+            tenant_id: tenantId,
+            program_id: program.id,
+            issue_id: unmetIssue.id,
+            engineering_requirement_id: bare.record.id,
+          },
+          { onConflict: "tenant_id,issue_id,engineering_requirement_id", ignoreDuplicates: true },
+        )
+        .select("id"),
+    );
+  assert.equal((await nameBare()).length, 1);
+  assert.equal((await nameBare()).length, 0, "the same link sent again is passed over");
+  const fromUnmet = await trace("issue", unmetIssue.id);
+  assert.deepEqual(ids(fromUnmet.requirements), [bare.record.id]);
+  assert.deepEqual(ids(fromUnmet.controls), [control.id]);
+  assert.deepEqual(ids(fromUnmet.elements), [element.id]);
+  assert.deepEqual(fromUnmet.evidence, [], "the requirement's evidence is not walked back to");
+  assert.deepEqual(fromUnmet.links.requirement_issue, [[bare.record.id, unmetIssue.id]]);
+  const fromBare = await trace("requirement", bare.record.id);
+  assert.deepEqual(ids(fromBare.issues), [unmetIssue.id]);
+  const withUnmet = await trace("control", control.id, program.id);
+  assert.deepEqual(ids(withUnmet.issues), ids([cited, observed, unmetIssue]));
+  const named = await data(
+    client.rpc("program_posture", { p_tenant_id: tenantId, p_program_id: program.id }),
+  );
+  assert.equal(named.totals.issues, 2);
+  assert.equal(named.totals.issues_placed, 2, "the issue that names a requirement is placed");
+  for (const holder of [element.id, root.id]) {
+    const at = named.cells.find(
+      (row) => row.element_id === holder && row.family_id === control.group_id,
+    );
+    assert.equal(at.issues, 2, "each issue counts once in a cell");
+    assert.equal(at.issue_severity, 4);
+  }
+  const namedCell = await data(
+    client.rpc("program_posture_cell", {
+      p_tenant_id: tenantId,
+      p_program_id: program.id,
+      p_element_id: element.id,
+      p_family_id: control.group_id,
+    }),
+  );
+  assert.deepEqual(ids(namedCell.issues), ids([cited, unmetIssue]));
+  // An issue of another program cannot name this program's requirement.
+  const otherIssue = await insert("operational_issues", {
+    program_id: other.id,
+    title: "Another program's issue",
+    status: "open",
+  });
+  const crossed = await client.from("issue_requirements").insert({
+    tenant_id: tenantId,
+    program_id: program.id,
+    issue_id: otherIssue.id,
+    engineering_requirement_id: bare.record.id,
+  });
+  assert.equal(crossed.error?.code, "23503", JSON.stringify(crossed));
+  console.log(
+    "PASS an issue that names a requirement reaches it in the trace both ways and stands on it once in the posture",
+  );
+
+  // An assessor's finding on the control: it cites the signature report, rests on an observation
+  // an issue rests on too (the issue it became), and raised a risk whose remediation item's
+  // commitment cites it. A second finding, satisfied, judges the control's next part; a third, in
+  // results still in draft, and a fourth, of another program's campaign, judge the first part.
+  const publish = (table, row) =>
+    data(
+      client
+        .from(table)
+        .update({
+          state: "published",
+          published_at: new Date().toISOString(),
+          revision: row.revision + 1,
+        })
+        .eq("id", row.id)
+        .select()
+        .single(),
+    );
+  const [resolution] = await data(
+    client
+      .from("profile_resolutions")
+      .select("id")
+      .is("tenant_id", null)
+      .eq("state", "published")
+      .limit(1),
+  );
+  const parts = await data(
+    client
+      .from("control_parts")
+      .select("id")
+      .eq("control_id", control.id)
+      .order("ordinal")
+      .order("id")
+      .limit(2),
+  );
+  assert.ok(resolution && parts.length === 2, "The reference catalog holds a baseline and parts");
+  // The assessment plan stands on a published security plan, which implements a control.
+  const draftPlan = await insert("ssp_revisions", {
+    system_id: root.id,
+    profile_resolution_id: resolution.id,
+    version_number: 1,
+  });
+  const [selected] = await data(
+    client
+      .from("selected_controls")
+      .select("id")
+      .eq("profile_resolution_id", resolution.id)
+      .limit(1),
+  );
+  await insert("implemented_requirements", {
+    ssp_revision_id: draftPlan.id,
+    selected_control_id: selected.id,
+  });
+  const ssp = await publish("ssp_revisions", draftPlan);
+  async function results(programId, title, published) {
+    const campaign = await insert("assessment_campaigns", { program_id: programId, title });
+    const plannedRevision = await publish(
+      "assessment_plan_revisions",
+      await insert("assessment_plan_revisions", {
+        campaign_id: campaign.id,
+        ssp_revision_id: ssp.id,
+        version_number: 1,
+        title: `${title} plan`,
+      }),
+    );
+    const revision = await insert("assessment_results_revisions", {
+      assessment_plan_revision_id: plannedRevision.id,
+      version_number: 1,
+      title: `${title} results`,
+    });
+    const set = await insert("result_sets", {
+      assessment_results_revision_id: revision.id,
+      title: `${title} set`,
+    });
+    return { revision, set, published };
+  }
+  const judge = (on, part, title, determination) =>
+    insert("assessment_findings", {
+      assessment_results_revision_id: on.revision.id,
+      result_set_id: on.set.id,
+      target_control_part_id: part.id,
+      title,
+      determination,
+      determined_at: new Date().toISOString(),
+    });
+  const assessed = await results(program.id, "Trace assessment", true);
+  const finding = await judge(
+    assessed,
+    parts[0],
+    "Rotation is not evidenced",
+    "other_than_satisfied",
+  );
+  const satisfied = await judge(assessed, parts[1], "Records are signed", "satisfied");
+  await insert("finding_evidence", {
+    finding_id: finding.id,
+    evidence_version_id: report.version.id,
+    claim: "Examined for this determination.",
+  });
+  const sharedObservation = await insert("observations", {
+    program_id: program.id,
+    title: "No rotation record for the signing key",
+    method: "examine",
+  });
+  await insert("finding_observations", {
+    finding_id: finding.id,
+    observation_id: sharedObservation.id,
+    assessment_results_revision_id: assessed.revision.id,
+  });
+  const became = await insert("operational_issues", {
+    program_id: program.id,
+    title: "Signing key rotation is unrecorded",
+    severity: "high",
+    status: "open",
+  });
+  await insert("issue_observations", {
+    issue_id: became.id,
+    observation_id: sharedObservation.id,
+  });
+  const raised = await insert("risks", {
+    program_id: program.id,
+    title: "Rotations cannot be proven",
+  });
+  const raisedAssessment = await publish(
+    "risk_revisions",
+    await insert("risk_revisions", { risk_id: raised.id, version_number: 1, severity: "high" }),
+  );
+  await insert("finding_risks", {
+    finding_id: finding.id,
+    risk_revision_id: raisedAssessment.id,
+    assessment_results_revision_id: assessed.revision.id,
+  });
+  await publish("assessment_results_revisions", assessed.revision);
+  const answer = await insert("poam_items", {
+    poam_document_id: plan.id,
+    title: "Record every key rotation",
+  });
+  const answerCommitment = await insert("poam_item_revisions", {
+    poam_document_id: plan.id,
+    poam_item_id: answer.id,
+    version_number: 1,
+    planned_completion_date: "2027-01-15",
+  });
+  await insert("poam_item_risks", {
+    poam_item_revision_id: answerCommitment.id,
+    risk_revision_id: raisedAssessment.id,
+  });
+  const drafted = await results(program.id, "Trace reassessment", false);
+  const draftFinding = await judge(
+    drafted,
+    parts[0],
+    "Rotation, judged again",
+    "partially_satisfied",
+  );
+  const elsewhereResults = await results(other.id, "Another program's assessment", true);
+  const elsewhereFinding = await judge(
+    elsewhereResults,
+    parts[0],
+    "Another program's verdict",
+    "partially_satisfied",
+  );
+  await publish("assessment_results_revisions", elsewhereResults.revision);
+
+  // From the finding: the control it judges, the evidence it cites, the requirement that evidence
+  // supports, the issue it became, the risk it raised and the item whose commitment cites it.
+  const fromFinding = await trace("finding", finding.id);
+  assert.deepEqual(ids(fromFinding.findings), [finding.id]);
+  assert.deepEqual(ids(fromFinding.controls), [control.id]);
+  assert.deepEqual(ids(fromFinding.evidence), [report.artifact.id]);
+  assert.deepEqual(ids(fromFinding.requirements), [supported.record.id]);
+  assert.deepEqual(ids(fromFinding.issues), [became.id]);
+  assert.deepEqual(ids(fromFinding.risks), [raised.id]);
+  assert.deepEqual(ids(fromFinding.remediation), [answer.id]);
+  assert.deepEqual(fromFinding.links.control_finding, [[control.id, finding.id]]);
+  assert.deepEqual(fromFinding.links.evidence_finding, [[report.artifact.id, finding.id]]);
+  assert.deepEqual(fromFinding.links.finding_issue, [[finding.id, became.id]]);
+  assert.deepEqual(fromFinding.links.finding_risk, [[finding.id, raised.id]]);
+  assert.deepEqual(fromFinding.links.risk_remediation, [[raised.id, answer.id]]);
+  assert.deepEqual(
+    {
+      determination: fromFinding.findings[0].determination,
+      results_state: fromFinding.findings[0].results_state,
+      program_id: fromFinding.findings[0].program_id,
+    },
+    { determination: "other_than_satisfied", results_state: "published", program_id: program.id },
+  );
+  console.log(
+    "PASS a finding's trace walks to its control, evidence, issue, risk and the remediation answering the risk",
+  );
+
+  // From the control, kept to the program: the findings on it, short of satisfied first. Not the
+  // one in draft results, nor another program's, which a trace without a program reaches.
+  const judged = await trace("control", control.id, program.id);
+  assert.deepEqual(
+    judged.findings.map((row) => row.id),
+    [finding.id, satisfied.id],
+  );
+  for (const [stage, record] of [
+    ["issues", became],
+    ["risks", raised],
+    ["remediation", answer],
+  ])
+    assert.ok(ids(judged[stage]).includes(record.id), `the control reaches ${record.title}`);
+  const judgedEverywhere = await trace("control", control.id);
+  assert.deepEqual(ids(judgedEverywhere.findings), ids([finding, satisfied, elsewhereFinding]));
+  assert.ok(!ids(judgedEverywhere.findings).includes(draftFinding.id), "a draft decides nothing");
+  console.log("PASS a control reaches the published findings on it, in one program or all");
+
+  // From the risk it raised: the finding, its control and evidence, and the item answering the
+  // risk; not the issue the finding became, which lies the other way from the finding.
+  const fromRaised = await trace("risk", raised.id);
+  assert.deepEqual(ids(fromRaised.findings), [finding.id]);
+  assert.deepEqual(ids(fromRaised.controls), [control.id]);
+  assert.deepEqual(ids(fromRaised.evidence), [report.artifact.id]);
+  assert.deepEqual(ids(fromRaised.remediation), [answer.id]);
+  assert.deepEqual(fromRaised.issues, [], "the finding's issue is not walked back to");
+  // From the item: the risk its commitment cites, and the finding that raised it.
+  const fromAnswer = await trace("remediation", answer.id);
+  assert.deepEqual(ids(fromAnswer.risks), [raised.id]);
+  assert.deepEqual(ids(fromAnswer.findings), [finding.id]);
+  assert.deepEqual(ids(fromAnswer.controls), [control.id]);
+  // From the issue it became: the finding, and the control and evidence behind it.
+  const fromBecame = await trace("issue", became.id);
+  assert.deepEqual(ids(fromBecame.findings), [finding.id]);
+  assert.deepEqual(ids(fromBecame.controls), [control.id]);
+  assert.deepEqual(ids(fromBecame.evidence), [report.artifact.id]);
+  assert.deepEqual(fromBecame.risks, [], "the risk the finding raised lies the other way");
+  // From the evidence it cites, and from the requirement that evidence supports: the finding.
+  const fromReport = await trace("evidence", report.artifact.id);
+  assert.deepEqual(ids(fromReport.findings), [finding.id]);
+  const fromSupported = await trace("requirement", supported.record.id);
+  assert.deepEqual(ids(fromSupported.findings), [finding.id]);
+  // A finding of draft results is in its own trace, and says so.
+  const fromDraft = await trace("finding", draftFinding.id);
+  assert.deepEqual(ids(fromDraft.findings), [draftFinding.id]);
+  assert.equal(fromDraft.findings[0].results_state, "draft");
+  assert.deepEqual(ids(fromDraft.controls), [control.id]);
+  console.log(
+    "PASS risks, remediation, issues, evidence and requirements reach a finding outward only",
+  );
+
   // Another workspace reads none of it, and may not ask in this one's name.
   outsider = await localWorkspace("assurance-trace-outsider");
   const refused = await outsider.client.rpc("assurance_trace", {
@@ -353,7 +666,7 @@ try {
   assert.equal(refusedPosture.error?.code, "42501", JSON.stringify(refusedPosture));
   const unknown = await client.rpc("assurance_trace", {
     p_tenant_id: tenantId,
-    p_kind: "finding",
+    p_kind: "observation",
     p_id: risk.id,
   });
   assert.equal(unknown.error?.code, "22023", JSON.stringify(unknown));

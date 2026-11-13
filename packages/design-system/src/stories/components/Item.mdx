@@ -32,7 +32,11 @@ The title is one line by default. A title, an id or a meta that is cut shows in 
 
 `children` display below the row; add `isCollapsible` to fold them. Use `defaultOpen` or controlled `open` with Base UI's `onOpenChange(open, details)`. Call `details.cancel()` to reject a change.
 
-Group `size="compact"` reduces vertical padding. `flush` extends separators and hover backgrounds to the card edges, and draws a row's focus ring inside its edge, so the card's clipping cannot cut its sides. `idWidth` defaults to 72px (`dimension.part.itemId`); align it across related rows.
+Group `size="compact"` reduces vertical padding. `flush` extends separators and hover backgrounds to the card edges, and draws a row's focus ring inside its edge, so the card's clipping cannot cut its sides.
+
+`idWidth` is the id column, a named step: `narrow` (48px, `dimension.part.itemIdNarrow`) for a short code such as MS-A, `default` (72px, `dimension.part.itemId`, the width without one) for most codes such as EV-2201 or AC-2(1), and `wide` (104px, `dimension.part.itemIdWide`) for a long one, such as a system's code or a parameter id. Give every row of a group the same, so the ids line up; a longer id is cut and shows whole on hover. A number of pixels is deprecated and still draws for one version; `ledger/no-deprecated-name` writes its step ([Upgrading](?path=/docs/guidance-upgrading--docs#item)).
+
+<Canvas of={Stories.IdWidths} />
 
 A group shows its `empty` when its children render nothing: empty arrays, `false` and empty fragments count as nothing, so a list fed from several mapped sources that are all empty shows its empty state.
 

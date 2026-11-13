@@ -10,7 +10,7 @@ import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
 const { Matrix } = storyLayout;
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 const meta = {
   title: "Patterns/Gates",
@@ -281,6 +281,41 @@ export const Dont: Story = {
       />
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    // Each gate as it is heard (Met: or Not met:, then its label) and the reason under it.
+    const read = (half: HTMLElement) =>
+      within(half)
+        .getAllByRole("listitem")
+        .map((gate) => ({
+          met: gate.textContent!.startsWith("Met:"),
+          reason: gate.children[1]!.children[1]?.textContent ?? null,
+        }));
+    // The reason sits under the unmet gate alone; under every gate it is buried.
+    const reasons = halves(canvasElement, 0);
+    const reasoned = (half: HTMLElement) => read(half).filter((gate) => gate.reason);
+    await expect(reasoned(reasons.do).map((gate) => gate.met)).toEqual([false]);
+    await expect(reasoned(reasons.dont).filter((gate) => gate.met)).toHaveLength(2);
+    // A list says which gates are unmet, and why; a score says how many and nothing else.
+    const which = halves(canvasElement, 1);
+    const unmet = read(which.do).filter((gate) => !gate.met);
+    await expect(unmet).toHaveLength(2);
+    for (const gate of unmet) await expect(gate.reason).toBeTruthy();
+    await expect(within(which.dont).queryByRole("list")).toBeNull();
+    await expect(
+      within(which.dont).getByRole("progressbar", { name: "Gates met" }),
+    ).toHaveAttribute("aria-valuetext", "2 of 4 met");
+    // One link action named for its gate; a primary on every gate makes the status a toolbar.
+    const actions = halves(canvasElement, 2);
+    const variants = (half: HTMLElement) =>
+      within(half)
+        .getAllByRole("button")
+        .map((button) => button.getAttribute("data-button-variant"));
+    await expect(variants(actions.do)).toEqual(["link"]);
+    await expect(within(actions.do).getByRole("button")).toHaveAccessibleName(
+      "Add success criterion",
+    );
+    await expect(variants(actions.dont)).toEqual(["primary", "primary"]);
+  },
 };
 
 export const Playground: Story = {};

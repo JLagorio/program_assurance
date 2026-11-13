@@ -18,6 +18,7 @@ import {
   type Preset,
 } from "@ledger/design-system";
 import { ListTodo, Plus } from "lucide-react";
+import { programTasksView } from "@/lib/register-views";
 import { useRows } from "@/lib/models";
 import { serverRead, type ServerRow } from "@/lib/server-table";
 import { useWorkspace } from "@/components/app/workspace";
@@ -248,7 +249,11 @@ export function WorkTable({
     rowLabel: (row) => row.title,
     preview: tablePreview,
     label: "Tasks",
-    view: `tasks-${workstreamId ?? programId ?? "my-work"}`,
+    view: workstreamId
+      ? `tasks-${workstreamId}`
+      : programId
+        ? programTasksView(programId)
+        : "tasks-my-work",
     resizable: true,
     reorderable: true,
     initialState: { columnFilters: mineOnly ? mineFilter : [] },

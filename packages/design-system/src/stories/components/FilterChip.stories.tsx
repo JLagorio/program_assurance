@@ -22,7 +22,7 @@ import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
 const { Matrix: Grid } = storyLayout;
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 const meta = {
   title: "Components/FilterChip",
@@ -409,4 +409,33 @@ export const Dont: Story = {
       />
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    // A ToggleGroup is one named choice: choosing a value lets go of the last. The chips are
+    // separate toggles, and no group says only one can be pressed.
+    const exclusive = halves(canvasElement, 0);
+    const group = within(exclusive.do).getByRole("group", { name: "Severity" });
+    const option = (name: RegExp) => within(group).getByRole("button", { name });
+    await expect(option(/^High/)).toHaveAttribute("aria-pressed", "true");
+    await userEvent.click(option(/^Medium/));
+    await expect(option(/^Medium/)).toHaveAttribute("aria-pressed", "true");
+    await expect(option(/^High/)).toHaveAttribute("aria-pressed", "false");
+    await expect(within(exclusive.dont).queryByRole("group")).toBeNull();
+    for (const chip of within(exclusive.dont).getAllByRole("button"))
+      await expect(chip).toHaveAttribute("aria-pressed");
+    // The value is what was chosen; a count as the value says six of nothing.
+    const value = halves(canvasElement, 1);
+    await expect(within(value.do).getByRole("button")).toHaveAccessibleName("Owner Dana Whitfield");
+    await expect(value.dont.querySelector('[data-slot="filter-chip-value"]')!.textContent).toMatch(
+      /^\d+$/,
+    );
+    // A thing to do is a Button; as a chip it says it is a filter, pressed or not.
+    const action = halves(canvasElement, 2);
+    await expect(within(action.do).getByRole("button", { name: "Export" })).not.toHaveAttribute(
+      "aria-pressed",
+    );
+    await expect(within(action.dont).getByRole("button", { name: "Export" })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    );
+  },
 };

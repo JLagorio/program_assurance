@@ -51,6 +51,12 @@ import { Page } from "@/components/app/shell";
 import { LevelIndicator } from "@/components/app/status";
 import { labelFor } from "@/lib/records";
 import { registerViews } from "@/lib/register-views";
+import {
+  serverRead,
+  useServerCountQueries,
+  useServerRows,
+  type ServerRow,
+} from "@/lib/server-table";
 
 export const Route = createFileRoute("/")({
   head: () => ({ meta: [{ title: "Portfolio — Program Assurance" }] }),
@@ -66,11 +72,12 @@ const FEED = 8;
 const isLoading = (query: QueryStatus) =>
   query.isPending && query.data === undefined && query.fetchStatus !== "idle";
 const hasFailed = (query: QueryStatus) => query.isError && query.data === undefined;
+/** A tile's count, read on the server: its loading and its failure too, never a zero. */
+type CountQuery = ReturnType<typeof useServerCountQueries>[number];
 
 /** A severity's place in the order, highest first; an unassessed risk sorts last. */
 const severityRank = (value: string | null | undefined) =>
   statusEntry(severityLevels, value)?.rank ?? -1;
-const isSevere = (value: string | null | undefined) => value === "high" || value === "critical";
 
 const openRisk = (status: string) => status !== "closed";
 const openIssue = (status: string) => !["closed", "resolved", "cancelled"].includes(status);
@@ -85,11 +92,63 @@ const openRiskStatuses = Object.keys(riskStatuses).filter(openRisk);
 const openIssueStatuses = Object.keys(operationalIssueStatuses).filter(openIssue);
 const unsatisfiedDeterminations = Object.keys(determinations).filter(unsatisfied);
 const openRisksQuestion: TableQuery = { filters: [{ id: "status", value: openRiskStatuses }] };
+const openIssuesQuestion: TableQuery = { filters: [{ id: "status", value: openIssueStatuses }] };
+const unsatisfiedQuestion: TableQuery = {
+  filters: [{ id: "determination", value: unsatisfiedDeterminations }],
+};
+/** A tile's question narrowed to its high and critical records: the tile's note. */
+const severeOf = (question: TableQuery): TableQuery => ({
+  filters: [...(question.filters ?? []), { id: "severity", value: ["high", "critical"] }],
+});
 /**
  * Every record, as the register opens unasked: a View all link opens this rather than the question
  * the register last asked in this tab, which may be a tile's or a cell's.
  */
 const everyRecord: TableQuery = { filters: [] };
+
+/*
+ * The tiles count on the server what the registers they open hold: each asks its register's view
+ * the tile's question, and reads the count alone (a HEAD request), never the rows.
+ */
+const riskCounts = serverRead({
+  source: "risk_rows",
+  model: "risks",
+  // A risk's severity is its latest assessment's.
+  models: ["risk_revisions"],
+  columns: ["id", "status", "severity"],
+});
+const issueCounts = serverRead({
+  source: "operational_issue_rows",
+  model: "operational_issues",
+  columns: ["id", "status", "severity"],
+});
+const findingCounts = serverRead({
+  source: "assessment_finding_rows",
+  model: "assessment_findings",
+  columns: ["id", "determination"],
+});
+
+/**
+ * The programs that last saw activity, latest first: anything recorded or changed in the program
+ * (its activity events, its published assessment results, a change to its requirements, issues,
+ * risks, tasks or evidence), else its own last edit, which `program_activity` answers on the server.
+ */
+const recentProgramsRead = serverRead({
+  source: "program_activity",
+  model: "programs",
+  models: [
+    "activity_events",
+    "assessment_results_revisions",
+    "requirement_revisions",
+    "operational_issues",
+    "risks",
+    "risk_revisions",
+    "tasks",
+    "evidence_artifacts",
+  ],
+  columns: ["id", "code", "name", "status", "last_activity_at"],
+  order: [{ column: "last_activity_at", ascending: false }],
+});
 
 /** The risk matrix's axes: likelihood rows likeliest first, impact columns least first. */
 const levelsByRank = Object.entries(riskLevels).map(([value, entry]) => ({ value, ...entry }));
@@ -268,7 +327,12 @@ type RiskRow = {
   program_id: string;
   updated_at: string;
 };
-type ProgramRow = Pick<Row<"programs">, "id" | "code" | "name" | "status" | "updated_at">;
+/** A program the widget lists: its own fields, and the moment it last saw activity. */
+type ProgramRow = ServerRow<
+  "program_activity",
+  "id" | "code" | "name" | "status" | "last_activity_at",
+  "code" | "name" | "status" | "last_activity_at"
+>;
 
 /**
  * Where a program stands on its control baseline, in one line: the share an assessor found
@@ -349,7 +413,7 @@ function Portfolio() {
   const formatList = (items: string[]) =>
     new Intl.ListFormat(locale, { style: "long", type: "conjunction" }).format(items);
   const programs = useRows("programs", undefined, {
-    columns: ["id", "code", "name", "status", "updated_at"] as const,
+    columns: ["id", "name", "status"] as const,
   });
   const risks = useRows("risks", undefined, {
     columns: ["id", "title", "status", "program_id", "owner_party_id", "updated_at"] as const,
@@ -357,11 +421,22 @@ function Portfolio() {
   const riskVersions = useRows("risk_revisions", undefined, {
     columns: ["id", "risk_id", "version_number", "severity", "likelihood", "impact"] as const,
   });
-  const issues = useRows("operational_issues", undefined, {
-    columns: ["id", "status", "severity"] as const,
-  });
-  const findings = useRows("assessment_findings", undefined, {
-    columns: ["id", "determination"] as const,
+  // Each tile's count and note: the server counts its register's question, rows unread.
+  const [openRiskCount, severeRiskCount] = useServerCountQueries(riskCounts, [
+    openRisksQuestion,
+    severeOf(openRisksQuestion),
+  ]) as [CountQuery, CountQuery];
+  const [openIssueCount, severeIssueCount] = useServerCountQueries(issueCounts, [
+    openIssuesQuestion,
+    severeOf(openIssuesQuestion),
+  ]) as [CountQuery, CountQuery];
+  const [unsatisfiedCount] = useServerCountQueries(findingCounts, [unsatisfiedQuestion]) as [
+    CountQuery,
+  ];
+  // The programs that last saw activity: the widget's rows, ordered on the server.
+  const recentPrograms = useServerRows<ProgramRow>(recentProgramsRead, {
+    pageIndex: 0,
+    pageSize: TOP,
   });
   const parties = useRows("parties", undefined, { columns: ["id", "name"] as const });
   const activity = useRows("activity_events", undefined, {
@@ -409,8 +484,9 @@ function Portfolio() {
     return latest;
   }, [riskVersions.data]);
 
-  const openRisks = risks.data?.filter((row) => openRisk(row.status));
-  const openIssues = issues.data?.filter((row) => openIssue(row.status));
+  /** A note that counts the tile's high and critical records, once its count has loaded. */
+  const severeNote = (count: CountQuery) =>
+    count.data === undefined ? undefined : `${formatNumber(count.data)} high or critical`;
   const metrics: {
     label: string;
     query: QueryStatus[];
@@ -432,35 +508,29 @@ function Portfolio() {
     },
     {
       label: "Open risks",
-      query: [risks, riskVersions],
-      value: riskVersions.data ? openRisks?.length : undefined,
-      note:
-        openRisks &&
-        `${formatNumber(openRisks.filter((row) => isSevere(latestAssessment.get(row.id)?.severity)).length)} high or critical`,
+      query: [openRiskCount, severeRiskCount],
+      value: openRiskCount.data,
+      note: severeNote(severeRiskCount),
       zero: "No open risks",
       link: <Link to="/risks" search={questionSearch(registerViews.risks, openRisksQuestion)} />,
     },
     {
       label: "Open operational issues",
-      query: [issues],
-      value: openIssues?.length,
-      note:
-        openIssues &&
-        `${formatNumber(openIssues.filter((row) => isSevere(row.severity)).length)} high or critical`,
+      query: [openIssueCount, severeIssueCount],
+      value: openIssueCount.data,
+      note: severeNote(severeIssueCount),
       zero: "No open operational issues",
       link: (
         <Link
           to="/findings"
-          search={questionSearch(registerViews.operationalIssues, {
-            filters: [{ id: "status", value: openIssueStatuses }],
-          })}
+          search={questionSearch(registerViews.operationalIssues, openIssuesQuestion)}
         />
       ),
     },
     {
       label: "Unsatisfied assessment findings",
-      query: [findings],
-      value: findings.data?.filter((row) => unsatisfied(row.determination)).length,
+      query: [unsatisfiedCount],
+      value: unsatisfiedCount.data,
       note: "Partially or other than satisfied",
       zero: "No findings short of satisfied",
       link: (
@@ -468,15 +538,20 @@ function Portfolio() {
           to="/findings"
           search={{
             tab: "findings",
-            ...questionSearch(registerViews.assessmentFindings, {
-              filters: [{ id: "determination", value: unsatisfiedDeterminations }],
-            }),
+            ...questionSearch(registerViews.assessmentFindings, unsatisfiedQuestion),
           }}
         />
       ),
     },
   ];
-  const metricQueries = [programs, risks, riskVersions, issues, findings];
+  const metricQueries = [
+    programs,
+    openRiskCount,
+    severeRiskCount,
+    openIssueCount,
+    severeIssueCount,
+    unsatisfiedCount,
+  ];
 
   // The matrix: each open risk at its latest assessment's likelihood and impact.
   const matrix = useMemo(() => {
@@ -565,12 +640,8 @@ function Portfolio() {
   });
 
   const programRows = useMemo<ProgramRow[]>(
-    () =>
-      (programs.data ?? [])
-        .slice()
-        .sort((a, b) => b.updated_at.localeCompare(a.updated_at))
-        .slice(0, TOP),
-    [programs.data],
+    () => recentPrograms.data?.rows ?? [],
+    [recentPrograms.data],
   );
   const programColumns = useMemo(
     () =>
@@ -608,7 +679,8 @@ function Portfolio() {
           sortable: false,
           cell: (row) => <Id>{row.code}</Id>,
         }),
-        c.date("updated_at", { header: "Updated", priority: 4, sortable: false }),
+        // When anything in the program last changed: the order the widget lists them in.
+        c.date("last_activity_at", { header: "Updated", priority: 4, sortable: false }),
       ]),
     [],
   );
@@ -796,7 +868,7 @@ function Portfolio() {
                   </TextLink>
                 }
                 table={programTable}
-                queries={[programs]}
+                queries={[recentPrograms]}
                 values={[...programControls.values()]}
                 retryLabel="Retry loading programs"
                 empty={{

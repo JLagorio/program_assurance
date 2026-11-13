@@ -47,6 +47,7 @@ export const ALLOW_LISTS = [
   `${KIT}/test/layout-allow.json`,
   `${KIT}/test/lint-redteam-escapes.json`,
   `${KIT}/test/css-token-allow.json`,
+  `${KIT}/test/dont-play-allow.json`,
   "scripts/app-a11y-allow.json",
   "scripts/docs-render-allow.json",
 ];

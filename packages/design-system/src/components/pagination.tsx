@@ -36,12 +36,16 @@ export function Pagination({ className, style, ...props }: PaginationProps) {
   );
 }
 export type PaginationContentProps = ComponentProps<"ul">;
+/** The list of links. On one line it is as wide as its links and the region places it (centred
+    by default). Too long for the region, it wraps, and every line ends where the region ends, so
+    Next always ends the last line, under the end of the line before, rather than sitting alone in
+    the middle of a line of its own. */
 export function PaginationContent({ className, ...props }: PaginationContentProps) {
   return (
     <ul
       {...props}
       data-slot="pagination-content"
-      className={cn("flex list-none flex-wrap items-center justify-center gap-025 p-0", className)}
+      className={cn("flex list-none flex-wrap items-center justify-end gap-025 p-0", className)}
     />
   );
 }

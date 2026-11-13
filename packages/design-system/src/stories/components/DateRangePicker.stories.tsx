@@ -11,7 +11,7 @@ import {
 import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 const presets: DateRangePreset[] = [
   { label: "September 2026", value: { start: "2026-09-01", end: "2026-09-30" } },
@@ -198,4 +198,14 @@ export const Dont: Story = {
       dontText="A range picker for one day. A single day is a DatePicker; a start and an end that stand apart are two DatePickers with min and max."
     />
   ),
+  play: async ({ canvasElement }) => {
+    const { do: good, dont: bad } = halves(canvasElement);
+    const trigger = (half: HTMLElement) =>
+      half.querySelector<HTMLElement>('[data-slot="date-range-picker"]')!;
+    // One field for one range: its trigger reads the whole range, both ends.
+    await expect(trigger(good)).toHaveTextContent(/2026.*–.*2027/);
+    // The Don't is a range picker holding one day, which its trigger reads as that day alone.
+    await expect(trigger(bad)).toHaveTextContent("2026");
+    await expect(trigger(bad)).not.toHaveTextContent("–");
+  },
 };

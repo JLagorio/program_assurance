@@ -8,7 +8,7 @@ import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
 const { Specimens } = storyLayout;
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 const meta = {
   title: "Components/CopyButton",
@@ -215,6 +215,20 @@ export const Dont: Story = {
       />
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    const copy = (half: HTMLElement) =>
+      half.querySelector<HTMLElement>('[data-slot="copy-button"]')!;
+    // The Do names what it copies; a bare Copy beside every identifier is a list of the same name.
+    const named = halves(canvasElement, 0);
+    await expect(copy(named.do)).toHaveAccessibleName("Copy ID");
+    await expect(copy(named.dont)).toHaveAccessibleName("Copy");
+    // Copying is secondary or subtle; the Don't's primary competes with the page's main action.
+    const weight = halves(canvasElement, 1);
+    await expect(["secondary", "subtle"]).toContain(
+      copy(weight.do).getAttribute("data-button-variant"),
+    );
+    await expect(copy(weight.dont)).toHaveAttribute("data-button-variant", "primary");
+  },
 };
 
 export const Playground: Story = {

@@ -261,13 +261,22 @@ export function EmptyContent({ className, children, ...props }: EmptyContentProp
 /*
  * The kit's pictures, drawn from the surface tokens so they follow the mode. Each is a scene of
  * ghost records, the shape of what the region will hold, sometimes with a badge that says why it
- * is empty. A scene is 128px wide and 84px tall so every empty state sits at one height. Its front
- * surface carries `data-part="front"` and paints over everything behind it. The scenes are drawn on
- * a grid of the spacing scale's first step (`space.025`, 2px): `grid(64)` is 128px.
+ * is empty. Every scene is drawn in its own box of 64 by 42 units, a viewBox: the picture is a
+ * container as wide as `dimension.part.emptyIllustration` (128px, so a unit is 2px and the scene
+ * 84px tall, and every empty state sits at one height), and every length inside it is a number of
+ * units, so the scene scales with that one width and no step of the spacing scale resizes it.
+ * Colours, borders, corners and shadows stay the tokens'. Its front surface carries
+ * `data-part="front"` and paints over everything behind it.
  */
 
-/** A length of `steps` cells on the scenes' 2px grid. */
-const grid = (steps: number) => `calc(${steps} * ${token("space.025")})`;
+/** The scene's box, in units: 64 across and 42 down. */
+const BOX = { width: 64, height: 42 } as const;
+/** A length of `n` units, each a 64th of the picture's width (the picture is the container). */
+const unit = (n: number) => `calc(${n} * 100cqw / ${BOX.width})`;
+/** A square `n` units on a side. */
+const squareOf = (n: number): CSSProperties => ({ width: unit(n), height: unit(n) });
+/** A move of `x` units across and `y` down. */
+const shift = (x: number, y = 0): CSSProperties => ({ translate: `${unit(x)} ${unit(y)}` });
 
 export type EmptyIllustrationKind =
   | "records"
@@ -283,19 +292,48 @@ export type EmptyIllustrationKind =
   | "chart"
   | "calendar";
 
-const SCENE: CSSProperties = { width: grid(64), height: grid(42) };
-const STACK: CSSProperties = { width: grid(64), gridTemplateRows: `${grid(5)} ${grid(5)} auto` };
+/** The picture: the token's width, its height from the box. */
+const PICTURE: CSSProperties = {
+  width: token("dimension.part.emptyIllustration"),
+  aspectRatio: `${BOX.width} / ${BOX.height}`,
+};
+const SCENE: CSSProperties = { width: unit(BOX.width), height: unit(BOX.height) };
+const STACK: CSSProperties = { width: unit(64), gridTemplateRows: `${unit(5)} ${unit(5)} auto` };
 const STACK_BACK: CSSProperties = { width: "76%" };
 const STACK_MIDDLE: CSSProperties = { width: "88%" };
-const THUMB: CSSProperties = { width: grid(14), height: grid(14) };
-const LINE: CSSProperties = { width: "72%" };
-const LINE_SHORT: CSSProperties = { width: "48%" };
-const PAGE: CSSProperties = { width: grid(34), height: grid(42) };
-const PAGE_BACK: CSSProperties = { width: grid(34), height: grid(42) };
-const CARD: CSSProperties = { width: grid(58), height: grid(42) };
-const NODE: CSSProperties = { width: grid(18), height: grid(11) };
-const BRANCH: CSSProperties = { width: grid(32) };
+const RECORD: CSSProperties = { gap: unit(4), padding: unit(6) };
+const THUMB: CSSProperties = squareOf(14);
+const LINES: CSSProperties = { gap: unit(3) };
+const LINE_HEIGHT: CSSProperties = { height: unit(3) };
+const LINE: CSSProperties = { ...LINE_HEIGHT, width: "72%" };
+const LINE_SHORT: CSSProperties = { ...LINE_HEIGHT, width: "48%" };
+const PAGE: CSSProperties = { width: unit(34), height: unit(42), gap: unit(4), padding: unit(6) };
+const PAGE_BACK: CSSProperties = { width: unit(34), height: unit(42), ...shift(-4, -3) };
+const PAGE_HEADING: CSSProperties = { height: unit(4) };
+const CARD: CSSProperties = { width: unit(58), height: unit(42) };
+const CHECKLIST: CSSProperties = { ...CARD, gap: unit(4), paddingInline: unit(6) };
+const CHECK_ROW: CSSProperties = { gap: unit(4) };
+const CHECKBOX: CSSProperties = squareOf(6);
+const PERSON: CSSProperties = squareOf(24);
+const PERSON_ICON: CSSProperties = squareOf(8);
+const NODE: CSSProperties = { width: unit(18), height: unit(11) };
+const BRANCH: CSSProperties = { width: unit(32) };
+const STEM: CSSProperties = { height: unit(4) };
 const BARS = [36, 58, 44, 76];
+const PLOT: CSSProperties = {
+  ...CARD,
+  gap: unit(6),
+  paddingInline: unit(8),
+  paddingBlockStart: unit(8),
+  paddingBlockEnd: unit(6),
+};
+const MONTH_HEADER: CSSProperties = { height: unit(8), gap: unit(2), paddingInline: unit(4) };
+const MONTH_DAYS: CSSProperties = { paddingInline: unit(4), paddingBlock: unit(2) };
+const DOT: CSSProperties = squareOf(3);
+const BADGE: CSSProperties = squareOf(16);
+const BADGE_ICON: CSSProperties = squareOf(7);
+/** A badge at the front record's trailing corner, half out of it. */
+const BADGE_CORNER: CSSProperties = { ...BADGE, ...shift(4, 4) };
 const SURFACE = "rounded-medium border border-default bg-surface-raised";
 const GHOST = "rounded-full bg-skeleton";
 
@@ -314,12 +352,13 @@ function BadgeMark({ badge, className }: { badge: Badge; className?: string | un
   return (
     <div
       className={cn(
-        "flex size-400 items-center justify-center rounded-full shadow-raised [&_svg]:size-icon-small",
+        "flex items-center justify-center rounded-full shadow-raised",
         badge.className,
         className,
       )}
+      style={BADGE_CORNER}
     >
-      <badge.Icon />
+      <badge.Icon style={BADGE_ICON} />
     </div>
   );
 }
@@ -335,22 +374,17 @@ function Stack({ badge }: { badge?: Badge | undefined }) {
       <div className={cn("col-start-1 row-start-2 row-end-4", SURFACE)} style={STACK_MIDDLE} />
       <div
         data-part="front"
-        className={cn(
-          "col-start-1 row-start-3 flex w-full items-center gap-100 px-150 py-150 shadow-raised",
-          SURFACE,
-        )}
+        className={cn("col-start-1 row-start-3 flex w-full items-center shadow-raised", SURFACE)}
+        style={RECORD}
       >
         <div className="shrink-0 rounded-small bg-neutral" style={THUMB} />
-        <div className="flex grow flex-col gap-075">
-          <div className={cn("h-075", GHOST)} style={LINE} />
-          <div className="h-075 rounded-full bg-skeleton-subtle" style={LINE_SHORT} />
+        <div className="flex grow flex-col" style={LINES}>
+          <div className={GHOST} style={LINE} />
+          <div className="rounded-full bg-skeleton-subtle" style={LINE_SHORT} />
         </div>
       </div>
       {badge ? (
-        <BadgeMark
-          badge={badge}
-          className="col-start-1 row-start-3 translate-x-100 translate-y-100 self-end justify-self-end"
-        />
+        <BadgeMark badge={badge} className="col-start-1 row-start-3 self-end justify-self-end" />
       ) : null}
     </div>
   );
@@ -362,27 +396,21 @@ function Document({ badge }: { badge?: Badge | undefined }) {
   return (
     <div className="grid items-center justify-items-center" style={SCENE}>
       <div
-        className="col-start-1 row-start-1 -translate-x-100 -translate-y-075 rounded-medium border border-default bg-surface-sunken"
+        className="col-start-1 row-start-1 rounded-medium border border-default bg-surface-sunken"
         style={PAGE_BACK}
       />
       <div
         data-part="front"
-        className={cn(
-          "relative col-start-1 row-start-1 flex flex-col gap-100 px-150 py-150 shadow-raised",
-          SURFACE,
-        )}
+        className={cn("relative col-start-1 row-start-1 flex flex-col shadow-raised", SURFACE)}
         style={PAGE}
       >
-        <div className="h-100 w-1/2 rounded-small bg-neutral" />
-        <div className={cn("h-075 w-full", GHOST)} />
-        <div className={cn("h-075 w-full", GHOST)} />
-        <div className="h-075 w-2/3 rounded-full bg-skeleton-subtle" />
+        <div className="w-1/2 rounded-small bg-neutral" style={PAGE_HEADING} />
+        <div className={cn("w-full", GHOST)} style={LINE_HEIGHT} />
+        <div className={cn("w-full", GHOST)} style={LINE_HEIGHT} />
+        <div className="w-2/3 rounded-full bg-skeleton-subtle" style={LINE_HEIGHT} />
       </div>
       {badge ? (
-        <BadgeMark
-          badge={badge}
-          className="col-start-1 row-start-1 translate-x-100 translate-y-100 self-end justify-self-end"
-        />
+        <BadgeMark badge={badge} className="col-start-1 row-start-1 self-end justify-self-end" />
       ) : null}
     </div>
   );
@@ -394,13 +422,16 @@ function Checklist() {
     <div className="grid items-center justify-items-center" style={SCENE}>
       <div
         data-part="front"
-        className={cn("flex flex-col justify-center gap-100 px-150 shadow-raised", SURFACE)}
-        style={CARD}
+        className={cn("flex flex-col justify-center shadow-raised", SURFACE)}
+        style={CHECKLIST}
       >
-        {[LINE, LINE_SHORT, LINE].map((width, i) => (
-          <div key={i} className="flex items-center gap-100">
-            <div className="size-150 shrink-0 rounded-xsmall border border-bold bg-surface" />
-            <div className={cn("h-075", GHOST)} style={width} />
+        {[LINE, LINE_SHORT, LINE].map((line, i) => (
+          <div key={i} className="flex items-center" style={CHECK_ROW}>
+            <div
+              className="shrink-0 rounded-xsmall border border-bold bg-surface"
+              style={CHECKBOX}
+            />
+            <div className={GHOST} style={line} />
           </div>
         ))}
       </div>
@@ -412,14 +443,18 @@ function Checklist() {
 function People() {
   return (
     <div className="grid items-center justify-items-center" style={SCENE}>
-      <div className="col-start-1 row-start-1 flex size-600 -translate-x-200 items-center justify-center rounded-full bg-neutral icon-subtle [&_svg]:size-icon-medium">
-        <User />
+      <div
+        className="col-start-1 row-start-1 flex items-center justify-center rounded-full bg-neutral icon-subtle"
+        style={{ ...PERSON, ...shift(-8) }}
+      >
+        <User style={PERSON_ICON} />
       </div>
       <div
         data-part="front"
-        className="col-start-1 row-start-1 flex size-600 translate-x-200 items-center justify-center rounded-full border border-default bg-surface-raised icon-subtle shadow-raised [&_svg]:size-icon-medium"
+        className="col-start-1 row-start-1 flex items-center justify-center rounded-full border border-default bg-surface-raised icon-subtle shadow-raised"
+        style={{ ...PERSON, ...shift(8) }}
       >
-        <User />
+        <User style={PERSON_ICON} />
       </div>
     </div>
   );
@@ -430,8 +465,11 @@ function Tree() {
   return (
     <div className="flex flex-col items-center justify-center" style={SCENE}>
       <div data-part="front" className={cn("shadow-raised", SURFACE)} style={NODE} />
-      <div className="h-100 border-s border-bold" />
-      <div className="h-100 border-t border-x border-bold rounded-t-small" style={BRANCH} />
+      <div className="border-s border-bold" style={STEM} />
+      <div
+        className="border-t border-x border-bold rounded-t-small"
+        style={{ ...BRANCH, ...STEM }}
+      />
       <div className="flex justify-between" style={BRANCH}>
         <div className={cn("-translate-x-1/2", SURFACE)} style={NODE} />
         <div className={cn("translate-x-1/2", SURFACE)} style={NODE} />
@@ -444,11 +482,7 @@ function Tree() {
 function Chart() {
   return (
     <div className="grid items-center justify-items-center" style={SCENE}>
-      <div
-        data-part="front"
-        className={cn("flex items-end gap-150 px-200 pt-200 pb-150 shadow-raised", SURFACE)}
-        style={CARD}
-      >
+      <div data-part="front" className={cn("flex items-end shadow-raised", SURFACE)} style={PLOT}>
         {BARS.map((height, i) => (
           <div
             key={i}
@@ -473,18 +507,16 @@ function Calendar() {
         className={cn("flex flex-col overflow-hidden shadow-raised", SURFACE)}
         style={CARD}
       >
-        <div className="flex h-200 shrink-0 items-center gap-050 bg-neutral px-100">
-          <div className="size-075 rounded-full bg-neutral-bold" />
-          <div className="size-075 rounded-full bg-neutral-bold" />
+        <div className="flex shrink-0 items-center bg-neutral" style={MONTH_HEADER}>
+          <div className="rounded-full bg-neutral-bold" style={DOT} />
+          <div className="rounded-full bg-neutral-bold" style={DOT} />
         </div>
-        <div className="grid grow grid-cols-7 place-items-center px-100 py-050">
+        <div className="grid grow grid-cols-7 place-items-center" style={MONTH_DAYS}>
           {Array.from({ length: 21 }, (_, i) => (
             <div
               key={i}
-              className={cn(
-                "size-075 rounded-full",
-                i % 5 === 3 ? "bg-skeleton" : "bg-skeleton-subtle",
-              )}
+              className={cn("rounded-full", i % 5 === 3 ? "bg-skeleton" : "bg-skeleton-subtle")}
+              style={DOT}
             />
           ))}
         </div>
@@ -532,8 +564,8 @@ export function EmptyIllustration({
       data-slot="empty-illustration"
       data-kind={kind}
       aria-hidden
-      className={cn("flex shrink-0 items-end justify-center select-none", className)}
-      style={{ ...SCENE, ...style }}
+      className={cn("@container flex shrink-0 items-end justify-center select-none", className)}
+      style={{ ...PICTURE, ...style }}
     >
       {scene}
     </div>

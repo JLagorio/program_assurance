@@ -229,7 +229,7 @@ variant: "selected:bg-selected" uses "selected", which is not a variant Tailwind
 respell: "hovr:bg-surface" uses "hovr", which is not a variant Tailwind knows, so it generates no CSS. Spell the variant "hover".
 modifier: "not-hover/row:flex" uses "not-hover/row", but a /name follows only a group-, peer- or container variant, so it generates no CSS. Write "not-hover".
 groupModifier: "hover/row:flex" uses "hover/row", but a /name follows only a group-, peer- or container variant, so it generates no CSS. Write "hover", or "group-hover/row" for the group of that name.
-breakpoint: "tablet:flex" uses "tablet", which is not a breakpoint, so it generates no CSS. In Main or a panel, use a container size: @3xs 16rem to @7xl 80rem, @compact 25rem and @split 50rem. Window breakpoints: sm 40rem, md 48rem, lg 64rem, aside 75rem, panel or xl 80rem and wide 110rem.
+breakpoint: "tablet:flex" uses "tablet", which is not a breakpoint, so it generates no CSS. In Main or a panel, use a container size: @3xs 16rem to @7xl 80rem, @compact 25rem and @split 50rem. Window breakpoints: sm 40rem, md 48rem, lg 64rem and panel or xl 80rem.
 container: "@8xl:flex" uses "@8xl", which is not a container size, so it generates no CSS. The sizes are @3xs 16rem to @7xl 80rem, @compact 25rem and @split 50rem.
 aria: "aria-foo:flex" names aria-foo, which is not an ARIA attribute, so it never matches. Name an attribute the element sets, or key a state of its own to data-.
 variable: "nth-(--n):bg-surface" uses "nth-(--n)", whose value is a CSS variable, which no selector or feature query reads, so it never matches. Write the value itself, such as nth-3 or supports-[display:grid].
@@ -513,6 +513,9 @@ valueRemoved: InputGroupButton size="icon-sm" is deprecated: an icon-only button
 propAndValue: AlertDialogContent size="sm" is deprecated; use width="xsmall".
 propAndValue: AlertDialogContent size="default" is deprecated; use width="small".
 propValue: DropdownMenuItem variant="destructive" is deprecated; use variant="danger".
+pixels: Item idWidth={48} is a pixel width, which is deprecated; use idWidth="narrow", the nearest of narrow (48px), default (72px) and wide (104px).
+pixels: Item idWidth={72} is a pixel width, which is deprecated; use idWidth="default", the nearest of narrow (48px), default (72px) and wide (104px).
+pixels: Item idWidth={104} is a pixel width, which is deprecated; use idWidth="wide", the nearest of narrow (48px), default (72px) and wide (104px).
 prop: Item.Group labelledBy is deprecated; use aria-labelledby.
 prop: Chart.Donut name is deprecated; use label.
 propMoved: Chart.Donut label here is the words in the middle, which is centerLabel now; label names the ring.

@@ -17,7 +17,7 @@ Verification for this correction:
 - 40 Shell and six PreviewSheet browser stories pass across light/dark themes. 52 application unit tests and seven boundary checks pass. A new source boundary prevents application panels from bypassing the shared adapter.
 - Application/package typechecks, public API snapshot check (zero changes), and production build pass. Lint has zero errors; the application retains 44 semantic-layout/Fast Refresh warnings and package lint is clean.
 
-The older totals below remain historical evidence for the earlier passes; they do not replace these header-specific checks. Completion is recorded in [What's next](../next.md).
+The older totals below remain historical evidence for the earlier passes; they do not replace these header-specific checks. Completion is recorded in [What landed](../next-archive.md).
 
 **Follow-up correction — 17 September 2026**
 

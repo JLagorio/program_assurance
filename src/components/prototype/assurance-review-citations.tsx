@@ -36,7 +36,7 @@ import { useDraftGuard } from "@/components/app/use-draft-guard";
 import { useFormFeedback } from "@/components/app/form-feedback";
 import {
   citationSourceLink,
-  citationReaderHref,
+  citationHref,
   reviewCommandSchema,
   reviewTargetHref,
   useAssuranceCitations,
@@ -94,7 +94,7 @@ export function AssuranceCitations({
               passageLabel="Quoted passage"
               source={<CitationSource citation={citation} />}
               title={`${citation.evidence_title} · Version ${citation.version_number}`}
-              link={<a href={citationReaderHref(citation)} />}
+              link={<a href={citationHref(citation)} />}
               meta={`${citation.author_name}${citation.page ? ` · Page ${citation.page}` : ""}${citation.anchor ? ` · ${citation.anchor}` : ""}`}
               properties={[
                 {
@@ -462,7 +462,7 @@ function CitationSource({ citation }: { citation: AssuranceCitation }) {
           <AlertDescription>{download.error.message}</AlertDescription>
         </Alert>
       )}
-      <TextLink href={citationReaderHref(citation)}>Read cited passage</TextLink>
+      <TextLink href={citationHref(citation)}>Read cited passage</TextLink>
     </Stack>
   );
 }

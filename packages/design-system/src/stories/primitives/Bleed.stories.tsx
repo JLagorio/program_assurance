@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { expect, within } from "storybook/test";
 
 import { Table, CardHeader, CardTitle, CardContent, Card } from "../../components";
 
@@ -6,7 +7,7 @@ import { Bleed, Box, Inline, Stack, Text } from "../../primitives";
 import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 const meta = {
   title: "Primitives/Bleed",
@@ -262,6 +263,40 @@ export const Dont: Story = {
       />
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    const card = (half: HTMLElement) => half.firstElementChild as HTMLElement;
+    // How far the strip sits inside the card's start and end edges.
+    const inset = (half: HTMLElement, label: string) => {
+      const outer = card(half).getBoundingClientRect();
+      const inner = within(half).getByText(label).parentElement!.getBoundingClientRect();
+      return [Math.round(inner.left - outer.left), Math.round(outer.right - inner.right)];
+    };
+    // The strip escapes by the card's own padding token, so it meets the card's edges, and still
+    // does when the inset changes; a negative margin writes the number twice and stays put. The
+    // play widens space.200 under each card for a moment, its negative with it, as a change to the
+    // space scale would.
+    const escape = halves(canvasElement, 0);
+    const past = "Two findings are past due.";
+    const widened = (half: HTMLElement) => {
+      const { style } = card(half);
+      style.setProperty("--ds-space-200", "24px");
+      style.setProperty("--ds-space-negative-200", "-24px");
+      try {
+        return inset(half, past);
+      } finally {
+        style.removeProperty("--ds-space-200");
+        style.removeProperty("--ds-space-negative-200");
+      }
+    };
+    await expect(inset(escape.do, past)).toEqual([0, 0]);
+    await expect(inset(escape.dont, past)).toEqual([0, 0]);
+    await expect(widened(escape.do)).toEqual([0, 0]);
+    await expect(widened(escape.dont)).toEqual([8, 8]);
+    // The bleed equals the padding, so the strip meets the edge; a larger one hangs past it.
+    const edge = halves(canvasElement, 1);
+    await expect(inset(edge.do, "To the edge, not past it.")).toEqual([0, 0]);
+    await expect(inset(edge.dont, "Past the edge.")).toEqual([-8, -8]);
+  },
 };
 
 export const Playground: Story = {

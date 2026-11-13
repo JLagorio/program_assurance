@@ -30,9 +30,8 @@ export const OVERLAY_CHANGED_ELSEWHERE =
   "This overlay changed in another session. Your entries are kept; reload the overlay, then save again.";
 export const OVERLAY_CODE_TAKEN =
   "Another overlay already uses this code. Enter a code no other overlay has.";
-
-/** The words a decision's action is shown and chosen by. */
-export const overlayActionLabels = { include: "Adds", exclude: "Removes" } as const;
+export const OVERLAY_CHANGED_BEFORE_DELETE =
+  "This overlay changed in another session. Reload it, then delete it again.";
 
 /** The table a rationale taken from it cites, as the publication is named. */
 export const RESILIENCY_TABLE = "NIST SP 800-160 Vol. 2 Rev. 1, Table E-1";
@@ -142,6 +141,44 @@ export async function setOverlayDecisions(
   return data as ControlOverlay;
 }
 
+/** The values an overlay gives one parameter, in order, and why. */
+export type OverlayParameterValue = {
+  parameterId: string;
+  values: readonly string[];
+  rationale: string;
+};
+
+/**
+ * Record or replace a draft overlay's values for the named parameters, and remove the values of
+ * others. A save that already landed returns the overlay; a published overlay is refused.
+ */
+export async function setOverlayParameters(
+  client: Client,
+  { tenantId, token }: ReadContext,
+  request: {
+    overlayId: string;
+    expectedRevision: number;
+    parameters: readonly OverlayParameterValue[];
+    removedParameterIds?: readonly string[] | undefined;
+  },
+): Promise<ControlOverlay> {
+  const { data, error } = await client
+    .rpc("set_control_overlay_parameters", {
+      p_tenant_id: tenantId,
+      p_overlay_id: request.overlayId,
+      p_expected_revision: request.expectedRevision,
+      p_parameters: request.parameters.map((parameter) => ({
+        parameterId: parameter.parameterId,
+        values: parameter.values.map((value) => value.trim()),
+        rationale: parameter.rationale.trim(),
+      })),
+      p_removed: [...(request.removedParameterIds ?? [])],
+    })
+    .setHeader("Authorization", `Bearer ${token}`);
+  if (error) throw failure(error);
+  return data as ControlOverlay;
+}
+
 /** Freeze a draft overlay so programs can apply it. */
 export async function publishControlOverlay(
   client: Client,
@@ -157,6 +194,28 @@ export async function publishControlOverlay(
     .setHeader("Authorization", `Bearer ${token}`);
   if (error) throw failure(error);
   return data as ControlOverlay;
+}
+
+/**
+ * Delete a draft overlay and its decisions, at the revision the reader saw. A published overlay,
+ * or one a program's control baseline applies, is refused with the command's words. An overlay
+ * already gone answers false, so sending the request again changes nothing.
+ */
+export async function deleteControlOverlay(
+  client: Client,
+  { tenantId, token }: ReadContext,
+  request: { overlayId: string; expectedRevision: number },
+): Promise<boolean> {
+  const { data, error } = await client
+    .rpc("delete_control_overlay", {
+      p_tenant_id: tenantId,
+      p_overlay_id: request.overlayId,
+      p_expected_revision: request.expectedRevision,
+    })
+    .setHeader("Authorization", `Bearer ${token}`);
+  if (error)
+    throw new Error(error.code === "PT409" ? OVERLAY_CHANGED_BEFORE_DELETE : error.message);
+  return data === true;
 }
 
 /** Each command as a mutation; every overlay reader refreshes once Postgres confirms. */
@@ -182,4 +241,29 @@ function useOverlayCommand<Request>(
 }
 export const useSaveControlOverlay = () => useOverlayCommand(saveControlOverlay);
 export const useSetOverlayDecisions = () => useOverlayCommand(setOverlayDecisions);
+export const useSetOverlayParameters = () => useOverlayCommand(setOverlayParameters);
 export const usePublishControlOverlay = () => useOverlayCommand(publishControlOverlay);
+
+/**
+ * Delete overlay as a mutation. The collections refresh once Postgres confirms; the deleted
+ * overlay's own record read is left as it was, so the page it is shown on can leave for the
+ * register without first saying the overlay is gone.
+ */
+export function useDeleteControlOverlay() {
+  const workspace = useWorkspace();
+  const cache = useQueryClient();
+  return useMutation<boolean, Error, { overlayId: string; expectedRevision: number }>({
+    mutationFn: async (request) =>
+      deleteControlOverlay(
+        database(),
+        { tenantId: workspace.tenantId, token: await requireIdentity(workspace) },
+        request,
+      ),
+    onSuccess: () =>
+      void Promise.all(
+        ["models", "records", "record", "reference-options"].map((prefix) =>
+          cache.invalidateQueries({ queryKey: [prefix, workspace.tenantId] }),
+        ),
+      ),
+  });
+}

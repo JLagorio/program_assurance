@@ -351,12 +351,18 @@ export const PART_TOKENS = Object.freeze({
   "dimension.part.skeletonCircle": { part: "Skeleton", files: ["components/skeleton.tsx"] },
   "dimension.part.skeletonBlock": { part: "Skeleton", files: ["components/skeleton.tsx"] },
   "dimension.part.emptyMeasure": { part: "Empty", files: ["components/empty.tsx"] },
+  "dimension.part.emptyIllustration": {
+    part: "EmptyIllustration",
+    files: ["components/empty.tsx"],
+  },
   "dimension.part.keyValue": { part: "KeyValue", files: ["components/key-value.tsx"] },
   "dimension.part.keyValueLabelNarrow": { part: "KeyValue", files: ["components/key-value.tsx"] },
   "dimension.part.keyValueLabel": { part: "KeyValue", files: ["components/key-value.tsx"] },
   "dimension.part.keyValueLabelWide": { part: "KeyValue", files: ["components/key-value.tsx"] },
   "dimension.part.codeBlock": { part: "CodeBlock", files: ["components/code-block.tsx"] },
+  "dimension.part.itemIdNarrow": { part: "Item", files: ["components/item.tsx"] },
   "dimension.part.itemId": { part: "Item", files: ["components/item.tsx"] },
+  "dimension.part.itemIdWide": { part: "Item", files: ["components/item.tsx"] },
   "dimension.part.filter": { part: "DataTable.Filter", files: ["patterns/data-table/filter.tsx"] },
   "dimension.part.tableSearch": {
     part: "DataTable.Search",

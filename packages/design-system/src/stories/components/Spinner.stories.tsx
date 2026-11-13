@@ -6,7 +6,7 @@ import { Stack } from "../../primitives";
 import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 const meta = {
   title: "Components/Spinner",
@@ -188,4 +188,26 @@ export const Dont: Story = {
       />
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    // The button that started the work keeps its label and the keyboard's focus, and says it is
+    // busy; a disabled one with a new label lets focus drop to the page.
+    const action = halves(canvasElement, 0);
+    const busy = within(action.do).getByRole("button", { name: "Upload evidence" });
+    await expect(busy).toHaveAttribute("aria-busy", "true");
+    busy.focus();
+    await expect(busy).toHaveFocus();
+    const disabled = within(action.dont).getByRole("button", { name: "Uploading…" });
+    await expect(disabled).toBeDisabled();
+    disabled.focus();
+    await expect(disabled).not.toHaveFocus();
+    // Content on its way holds its shape and says what is coming; a spinner in its place says
+    // only that something loads.
+    const content = halves(canvasElement, 1);
+    await expect(content.do.querySelector('[aria-busy="true"]')).toHaveTextContent(
+      "Loading the section",
+    );
+    await expect(content.do.querySelector('[data-slot="skeleton"]')).not.toBeNull();
+    await expect(content.dont.querySelector('[data-slot="skeleton"]')).toBeNull();
+    await expect(within(content.dont).getByRole("status")).toHaveAccessibleName("Loading");
+  },
 };

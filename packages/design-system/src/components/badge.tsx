@@ -388,19 +388,34 @@ export type IndicatorProps = Omit<ComponentProps<"span">, "children" | "classNam
   tone?: Tone | undefined;
   /** The word beside the Dot: "High", "Healthy", "Obligation not stated". It truncates when the row is narrower than it, and shows whole on hover while it is cut. */
   children: ReactNode;
+  /**
+   * `bold` draws the word in the tone's text colour at semibold, for the one level that must not
+   * read as its neighbour (Critical beside High, both danger). It stays a Dot and a word, never a
+   * pill. No effect on `neutral`.
+   */
+  emphasis?: "subtle" | "bold" | undefined;
   className?: string | undefined;
 };
 
 /** Severity or health as a Dot plus text. Never a pill, so the status column stays the only pill in a row. Native span props and the ref reach the outer span. */
-export function Indicator({ tone = "neutral", className, children, ...rest }: IndicatorProps) {
+export function Indicator({
+  tone = "neutral",
+  emphasis = "subtle",
+  className,
+  children,
+  ...rest
+}: IndicatorProps) {
+  const bold = emphasis === "bold" && tone !== "neutral";
   return (
     <span
       {...rest}
       data-slot="indicator"
       data-tone={tone}
+      data-emphasis={bold ? "bold" : undefined}
       className={cn(
         "inline-flex max-w-full items-center gap-075 whitespace-nowrap font-body",
-        tone === "neutral" ? "text-subtle" : "text-default",
+        tone === "neutral" ? "text-subtle" : bold ? toneClasses[tone].text : "text-default",
+        bold && "font-semibold",
         className,
       )}
     >

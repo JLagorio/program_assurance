@@ -13,6 +13,7 @@ const {
   riskThreatsKey,
   techniqueChoices,
   techniqueDefence,
+  techniquesByRisk,
   unlinkRiskTechnique,
 } = await import("./risk-threats");
 type FrameworkItem = import("./frameworks").FrameworkItem;
@@ -407,6 +408,45 @@ function tacticLink(technique: string, tactic: string, title: string): Framework
     target_framework_code: "nist-sp800-160v2r1-attack",
   };
 }
+
+describe("techniquesByRisk", () => {
+  it("lists each risk's techniques once, by identifier, through any reading of the appendix", () => {
+    const items = [
+      { id: "item-t1190", code: "T1190", title: "Exploit Public-Facing Application" },
+      { id: "item-t1078", code: "T1078", title: "Valid Accounts" },
+      // The same technique in an earlier reading: another item, the same code.
+      { id: "item-t1078-old", code: "T1078", title: "Valid Accounts" },
+      { id: "item-t1557.002", code: "T1557.002", title: "ARP Cache Poisoning" },
+      { id: "item-t1557", code: "T1557", title: "Man-in-the-Middle" },
+    ];
+    const named = techniquesByRisk(
+      [
+        { risk_id: "risk-a", framework_item_id: "item-t1190" },
+        { risk_id: "risk-a", framework_item_id: "item-t1078" },
+        { risk_id: "risk-a", framework_item_id: "item-t1078-old" },
+        { risk_id: "risk-b", framework_item_id: "item-t1557.002" },
+        { risk_id: "risk-b", framework_item_id: "item-t1557" },
+        // An item the reader could not read names nothing.
+        { risk_id: "risk-c", framework_item_id: "item-unknown" },
+      ],
+      items,
+    );
+    expect(Object.fromEntries(named)).toEqual({
+      "risk-a": [
+        { code: "T1078", title: "Valid Accounts" },
+        { code: "T1190", title: "Exploit Public-Facing Application" },
+      ],
+      "risk-b": [
+        { code: "T1557", title: "Man-in-the-Middle" },
+        { code: "T1557.002", title: "ARP Cache Poisoning" },
+      ],
+    });
+    expect(named.get("risk-a")?.map(codedName)).toEqual([
+      "T1078 Valid Accounts",
+      "T1190 Exploit Public-Facing Application",
+    ]);
+  });
+});
 
 describe("techniqueChoices", () => {
   const tactics = [

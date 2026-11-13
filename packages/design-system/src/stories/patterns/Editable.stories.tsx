@@ -36,7 +36,7 @@ import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
 const { Specimens } = storyLayout;
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 const meta = {
   title: "Patterns/Editable",
@@ -812,6 +812,26 @@ export const Dont: Story = {
       <Dashes />
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    // A record that does not exist yet is a form: required fields and one primary that creates
+    // it. Built from Editables, it has no fields to check together and nothing that creates it.
+    const create = halves(canvasElement, 0);
+    for (const field of within(create.do).getAllByRole("textbox"))
+      await expect(field).toBeRequired();
+    await expect(within(create.do).getByRole("button", { name: "Create finding" })).toBeVisible();
+    await expect(within(create.dont).queryAllByRole("textbox")).toHaveLength(0);
+    await expect(within(create.dont).queryByRole("button", { name: /Create/ })).toBeNull();
+    // One of a fixed set is a Select drawn as the record's Badge; typed as text, the Badge is gone.
+    const status = halves(canvasElement, 1);
+    await expect(status.do.querySelector('[data-slot="badge"]')).toHaveTextContent("In review");
+    await expect(status.dont.querySelector('[data-slot="badge"]')).toBeNull();
+    await expect(status.dont).toHaveTextContent("In review");
+    // Empty says what is missing; an instruction repeats what the row's control already says.
+    const empty = halves(canvasElement, 2);
+    await expect(empty.do).toHaveTextContent("Unassigned");
+    await expect(empty.dont).toHaveTextContent("Click to edit");
+    await expect(within(empty.dont).getAllByRole("button").length).toBeGreaterThan(0);
+  },
 };
 
 type PlaygroundArgs = Pick<EditableTextProps, "label" | "placeholder"> & { value: string };

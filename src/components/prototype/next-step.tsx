@@ -13,9 +13,11 @@ const shortOfSatisfied = Object.keys(determinations).filter(
 
 /**
  * A next step as the link that leads to where it is done: the requirement's Evidence or Control
- * mappings tab, the program's Requirements or Assessment campaigns tab, or the assessment findings
- * an assessor published short of satisfied. `programId` is the program the step is read in. A step
- * that names its own page (`own`) says the step alone, without the record's code.
+ * mappings tab, the program's Requirements or Assessment campaigns tab, the assessment findings
+ * an assessor published short of satisfied, the product assessment that found a control the
+ * program inherits short of satisfied or decided it, or an operational issue's Link requirement,
+ * which its address opens. `programId` is the program the step is read in. A step that names its
+ * own page (`own`) says the step alone, without the record's code.
  */
 export function NextStepLink({
   step,
@@ -78,6 +80,26 @@ export function NextStepLink({
                 filters: [{ id: "determination", value: shortOfSatisfied }],
               }),
             }}
+          />
+        );
+      case "review_product_assessment":
+      case "decided_by_product":
+        return (
+          <Link
+            to="/library/product-assessments/$assessmentId"
+            params={{ assessmentId: step.assessment.id }}
+          />
+        );
+      case "link_requirement":
+        // The issue's own page, asked to open its Link requirement: the address is taken back
+        // once the browser opens, and the step replaces the entry, so Back leaves the issue.
+        return (
+          <Link
+            to="/issues/$issueId"
+            params={{ issueId: step.issue.id }}
+            search={{ link: "requirement" }}
+            replace
+            resetScroll={false}
           />
         );
     }

@@ -11,8 +11,30 @@ export const registerViews = {
   operationalIssues: "operational-issues",
   assessmentFindings: "assessment-findings",
   systemAssets: "system-assets",
+  /** The Review queue: everything in the workspace waiting on a reviewer. */
+  reviewQueue: "review-queue",
   /** The List of a program's Control status view: its controls by where the program stands. */
   controlStatus: "program-control-status",
+  /** The List of a program's Product delta view: a variant's controls against its product. */
+  productDelta: "program-product-delta",
+  /** A program's Compliance matrix: a customer's requirements with the program's answers. */
+  compliance: "program-compliance",
+  /** The List of a product's Assessment tab: its controls by configuration. */
+  productAssessment: "product-assessment",
+  /** A program's Findings tab: its operational issues (ProgramCollection's `program-<table>`). */
+  programOperationalIssues: "program-operational_issues",
+  /** A program's POA&M & risk tab: its risks. */
+  programRisks: "program-risks",
 } as const;
+
+/**
+ * The ATT&CK techniques column of a program's risks (`programRisks`), which a filter's question
+ * names: a control's Risks count opens the register on the technique it counts, by the technique's
+ * identifier and name together ("T1078 Valid Accounts"). Renaming it breaks those links.
+ */
+export const programRiskTechniquesColumn = "attack_techniques";
+
+/** The task register a program's Schedule draws (WorkTable), one view a program. */
+export const programTasksView = (programId: string) => `tasks-${programId}`;
 
 export type RegisterView = (typeof registerViews)[keyof typeof registerViews];

@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import type { UseQueryResult } from "@tanstack/react-query";
 import { deriveSavedBaseline, type BaselineDerivation } from "./baseline-stack";
-import { useRows, type Row } from "./models";
+import { idSet, useRows, type Row } from "./models";
 import { resolutionChain, type ChainHop } from "./profile-chain";
 import type { DraftOverlay } from "./program-wizard-reference";
 
@@ -21,6 +21,8 @@ export type BaselineControl = Pick<
 /** One control baseline a program adopted, read as a stack. */
 export type ProgramBaseline = {
   choiceId: string;
+  /** The program profile's revision: a change to its stack is made at it. */
+  revision: number;
   /** The adopted resolution: the top of the stack. */
   resolutionId: string;
   catalog: { id: string; title: string; version: string } | null;
@@ -28,6 +30,8 @@ export type ProgramBaseline = {
   reference: ChainHop | null;
   adopted: ChainHop | null;
   derivation: BaselineDerivation;
+  /** The profile chain the stack is read from: the adopted resolution first, the reference last. */
+  hops: readonly ChainHop[];
   /** Why each overlay in the stack exists, by the overlay's id: its own description. */
   overlayDescriptions: ReadonlyMap<string, string | null>;
   /** The catalog's controls by id, for the codes and titles the stack names. */
@@ -50,7 +54,7 @@ export function useProgramBaselines(programId: string): {
   const choices = useRows(
     "program_reference_choices",
     { program_id: programId },
-    { columns: ["id", "catalog_revision_id", "profile_resolution_id", "created_at"] },
+    { columns: ["id", "catalog_revision_id", "profile_resolution_id", "created_at", "revision"] },
   );
   const resolutions = useRows("profile_resolutions", undefined, {
     columns: ["id", "profile_revision_id", "state", "base_profile_resolution_id"],
@@ -126,6 +130,12 @@ export function useProgramBaselines(programId: string): {
       enabled: scope.layerRevisions.length > 0,
     },
   );
+  // How many parameters each layer sets values for: an overlay's values, the tailoring's overrides.
+  const settings = useRows(
+    "profile_parameter_settings",
+    { profile_revision_id: scope.layerRevisions },
+    { columns: ["profile_revision_id"], enabled: scope.layerRevisions.length > 0 },
+  );
   const applications = useRows(
     "profile_overlay_applications",
     { profile_resolution_id: scope.layerResolutions },
@@ -167,7 +177,10 @@ export function useProgramBaselines(programId: string): {
   const ready =
     chains !== null &&
     overlays.data !== undefined &&
-    (!hasLayers || (rules.data !== undefined && applications.data !== undefined)) &&
+    (!hasLayers ||
+      (rules.data !== undefined &&
+        applications.data !== undefined &&
+        settings.data !== undefined)) &&
     (!hasChoices || (referenceControls.data !== undefined && controls.data !== undefined));
   const baselines = useMemo((): ProgramBaseline[] => {
     if (!ready || !chains) return [];
@@ -185,6 +198,7 @@ export function useProgramBaselines(programId: string): {
       const catalogControls = byCatalog.get(choice.catalog_revision_id) ?? new Map();
       return {
         choiceId: choice.id,
+        revision: choice.revision,
         resolutionId: choice.profile_resolution_id,
         catalog: catalogRevision
           ? {
@@ -207,7 +221,9 @@ export function useProgramBaselines(programId: string): {
           applications: applications.data ?? [],
           overlays: overlays.data ?? [],
           tailoringTitle: "Program tailoring",
+          settings: settings.data ?? [],
         }),
+        hops: chain.hops,
         overlayDescriptions: new Map((overlays.data ?? []).map((row) => [row.id, row.description])),
         controls: catalogControls,
         errors: chain.errors,
@@ -223,6 +239,7 @@ export function useProgramBaselines(programId: string): {
     referenceControls.data,
     applications.data,
     overlays.data,
+    settings.data,
   ]);
   return {
     baselines,
@@ -236,7 +253,7 @@ export function useProgramBaselines(programId: string): {
       catalogRevisions,
       catalogs,
       overlays,
-      ...(hasLayers ? [rules, applications] : []),
+      ...(hasLayers ? [rules, applications, settings] : []),
       ...(hasChoices ? [referenceControls, controls] : []),
     ],
   };
@@ -264,22 +281,54 @@ export type PublishedOverlay = DraftOverlay & {
   catalogRevisionId: string;
 };
 
-/** The published overlays a program can stack, each with its decisions. */
-export function usePublishedOverlays(): { overlays: PublishedOverlay[]; queries: Query[] } {
+/**
+ * The published overlays a program can stack, each with its decisions. `enabled: false` reads
+ * nothing, for a screen that only offers them to a reader who may stack them.
+ */
+export function usePublishedOverlays({ enabled = true }: { enabled?: boolean | undefined } = {}): {
+  overlays: PublishedOverlay[];
+  queries: Query[];
+} {
   const records = useRows(
     "control_overlays",
     { state: "published" },
-    { columns: ["id", "code", "title", "description", "catalog_revision_id"] },
+    { columns: ["id", "code", "title", "description", "catalog_revision_id"], enabled },
   );
   const ids = useMemo(() => (records.data ?? []).map((row) => row.id).sort(), [records.data]);
   const decisions = useRows(
     "control_overlay_decisions",
     { overlay_id: ids },
-    { columns: ["overlay_id", "control_id", "action", "rationale"], enabled: ids.length > 0 },
+    {
+      columns: ["overlay_id", "control_id", "action", "rationale"],
+      enabled: enabled && ids.length > 0,
+    },
   );
+  // Their parameter values, and the control each parameter belongs to: a value counts where the
+  // stack selects its control.
+  const values = useRows(
+    "control_overlay_parameters",
+    { overlay_id: ids },
+    {
+      columns: ["overlay_id", "parameter_id", "parameter_values", "rationale"],
+      enabled: enabled && ids.length > 0,
+    },
+  );
+  const parameterIds = useMemo(
+    () => idSet(values.data?.map((row) => row.parameter_id)),
+    [values.data],
+  );
+  const parameters = useRows(
+    "parameters",
+    { id: parameterIds },
+    { columns: ["id", "control_id"], enabled: enabled && parameterIds.length > 0 },
+  );
+  const read =
+    !!records.data &&
+    (!ids.length ||
+      (!!decisions.data && !!values.data && (!parameterIds.length || !!parameters.data)));
   const overlays = useMemo(
     (): PublishedOverlay[] =>
-      records.data && (decisions.data || !ids.length)
+      read && records.data
         ? records.data
             .map((row) => ({
               id: row.id,
@@ -294,10 +343,25 @@ export function usePublishedOverlays(): { overlays: PublishedOverlay[]; queries:
                   action: decision.action as "include" | "exclude",
                   rationale: decision.rationale,
                 })),
+              parameters: (values.data ?? [])
+                .filter((value) => value.overlay_id === row.id)
+                .map((value) => ({
+                  parameterId: value.parameter_id,
+                  controlId:
+                    parameters.data?.find((parameter) => parameter.id === value.parameter_id)
+                      ?.control_id ?? null,
+                  values: value.parameter_values,
+                  rationale: value.rationale,
+                })),
             }))
             .sort((a, b) => a.title.localeCompare(b.title))
         : [],
-    [records.data, decisions.data, ids.length],
+    [read, records.data, decisions.data, values.data, parameters.data],
   );
-  return { overlays, queries: ids.length ? [records, decisions] : [records] };
+  return {
+    overlays,
+    queries: ids.length
+      ? [records, decisions, values, ...(parameterIds.length ? [parameters] : [])]
+      : [records],
+  };
 }

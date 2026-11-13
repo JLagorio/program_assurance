@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import lateFontUrl from "@fontsource-variable/geist-mono/files/geist-mono-latin-wght-normal.woff2?url";
 import { expect, userEvent, waitFor, within } from "storybook/test";
 
 import { Chart } from "../..";
@@ -24,7 +25,7 @@ import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
 const { Specimens } = storyLayout;
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 const meta = {
   title: "Patterns/Chart/Bar",
@@ -538,6 +539,60 @@ export const EveryCategory: Story = {
   },
 };
 
+/** Each category label's lines, as the browser draws them, and the room its column gives them: the distance between two ticks, less the 4px a label keeps from the next. */
+const tickLines = (figure: HTMLElement) => {
+  const ticks = [...figure.querySelectorAll<SVGTextElement>(".recharts-xAxis-tick-labels text")];
+  const at = ticks.map((tick) => Number(tick.getAttribute("x")));
+  const room = (at[1] ?? 0) - (at[0] ?? 0) - 4;
+  const lines = ticks.flatMap((tick) => {
+    const spans = [...tick.querySelectorAll("tspan")];
+    return (spans.length ? spans : [tick]).map((line) => line.getComputedTextLength());
+  });
+  return { room, lines };
+};
+
+/** The labels are fitted in the face they are drawn in, also when the page's font arrives after the chart has drawn, as on a cold start: the chart measures them again once the font has loaded. The play draws the chart, then gives the page a body font that loads late and wider (Geist Mono under another name), and every label still keeps to its column, on two lines where one no longer fits. */
+export const LabelsAfterAFontLoads: Story = {
+  name: "Labels after a font loads",
+  render: () => (
+    <Box style={{ width: "100%", maxWidth: 560 }}>
+      <Chart title="Findings by source" data={bySource} x="source" series={sourceSeries}>
+        <Chart.Bar />
+      </Chart>
+    </Box>
+  ),
+  play: async ({ canvasElement }) => {
+    const figure = within(canvasElement).getByRole("figure", { name: "Findings by source" });
+    await waitFor(() =>
+      expect(figure.querySelectorAll(".recharts-xAxis-tick-labels text")).toHaveLength(
+        bySource.length,
+      ),
+    );
+    const fits = () => {
+      const { room, lines } = tickLines(figure);
+      for (const line of lines) expect(line).toBeLessThanOrEqual(room + 1);
+    };
+    fits();
+    // A body font that has not loaded when the labels were measured, first in the stack: the
+    // page draws in it once it arrives, as it draws in Geist once Geist arrives on a cold start.
+    const doc = canvasElement.ownerDocument;
+    const root = doc.documentElement;
+    const before = root.style.getPropertyValue("--ds-font-family-body");
+    const stack = getComputedStyle(root).getPropertyValue("--ds-font-family-body");
+    const late = new FontFace("Ledger Late Face", `url(${lateFontUrl})`);
+    doc.fonts.add(late);
+    root.style.setProperty("--ds-font-family-body", `"Ledger Late Face", ${stack}`);
+    try {
+      await late.load();
+      await waitFor(fits);
+    } finally {
+      if (before) root.style.setProperty("--ds-font-family-body", before);
+      else root.style.removeProperty("--ds-font-family-body");
+      doc.fonts.delete(late);
+    }
+  },
+};
+
 /** A series' own `format`: the close rate is stored as a fraction and printed as a percentage on the axis, the labels, the tooltip, the card and the table, while the Frame keeps the kit's format for anything else. */
 export const Rates: Story = {
   render: () => (
@@ -687,6 +742,27 @@ export const Dont: Story = {
       />
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    // A status is painted in its status tone; the Don't paints the same statuses in the
+    // categorical hues, which name nothing.
+    const tones = halves(canvasElement, 0);
+    const fills = (half: HTMLElement) =>
+      Array.from(half.querySelectorAll(".recharts-bar-rectangle path"), (bar) =>
+        bar.getAttribute("fill"),
+      );
+    for (const fill of fills(tones.do))
+      await expect(fill).toMatch(/success|warning|danger|neutral/);
+    for (const fill of fills(tones.dont)) await expect(fill).toMatch(/categorical/);
+    // Long names go down the side, whole; under narrow columns they are cut to a few letters.
+    const names = halves(canvasElement, 1);
+    const labels = (half: HTMLElement) =>
+      Array.from(
+        half.querySelectorAll(".recharts-cartesian-axis-tick-value"),
+        (tick) => tick.textContent ?? "",
+      );
+    await expect(labels(names.do)).toEqual(expect.arrayContaining(bySource.map((s) => s.source)));
+    await expect(labels(names.dont).some((label) => label.includes("…"))).toBe(true);
+  },
 };
 
 export const Playground: Story = {

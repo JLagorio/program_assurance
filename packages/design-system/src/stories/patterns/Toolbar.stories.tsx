@@ -37,7 +37,7 @@ import * as direction from "../_lib/direction";
 import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 const { along, arrows } = direction;
 
 const meta = {
@@ -344,6 +344,32 @@ export const Dont: Story = {
       />
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    const primary = (half: HTMLElement) =>
+      within(half).getByRole("button", { name: "New control" });
+    const height = (element: Element) => element.getBoundingClientRect().height;
+    // Every control in the row is the small size, so the row is one height; a default-size
+    // Button is taller than the search beside it.
+    const size = halves(canvasElement, 0);
+    const search = (half: HTMLElement) => half.querySelector('[data-slot="search-field"]')!;
+    await expect(height(primary(size.do))).toBe(height(search(size.do)));
+    await expect(height(primary(size.dont))).toBeGreaterThan(height(search(size.dont)));
+    // Two actions at the end, the primary last; seven bury the primary among them.
+    const count = halves(canvasElement, 1);
+    const actions = (half: HTMLElement) =>
+      within(half.querySelector<HTMLElement>('[data-slot="toolbar-actions"]')!).getAllByRole(
+        "button",
+      );
+    await expect(actions(count.do)).toHaveLength(2);
+    await expect(actions(count.do).at(-1)).toBe(primary(count.do));
+    await expect(actions(count.dont)).toHaveLength(7);
+    // The action sits at the end of the row; as a child it sits among the filters by the search.
+    const place = halves(canvasElement, 2);
+    const slot = (half: HTMLElement) =>
+      primary(half).closest("[data-slot^='toolbar-']")?.getAttribute("data-slot");
+    await expect(slot(place.do)).toBe("toolbar-actions");
+    await expect(slot(place.dont)).toBe("toolbar-filters");
+  },
 };
 
 /** The search is the toolbar's own here (`onSearch` without `search`), so typing shows in the field and Escape empties it. A caller that owns the query passes `search` as well. */
@@ -934,7 +960,7 @@ export const NarrowestFrame: Story = {
   },
 };
 
-/** The register with the longest primary in a 208px frame: the body of a Shell.Panel at its narrowest (240px, less its padding). More and "Create operational issue" cannot share the second row, so the primary takes a line of its own under More, at the end, its label whole. Nothing overlaps and nothing scrolls sideways; the order and Tab sequence stay the same. */
+/** The register with the longest primary in a 208px frame: the body of a Shell.Panel at its narrowest (240px, less its padding). Beside the search the saved views would keep one letter of their label, or none, so the search takes the first row alone and the saved views lead the second, beside More, their label shortened with an ellipsis but readable and their count and chevron whole. More and "Create operational issue" cannot share that row, so the primary takes a line of its own under More, at the end, its label whole. Nothing overlaps and nothing scrolls sideways; the order and Tab sequence stay the same. */
 export const PanelMinimum: Story = {
   name: "In a panel at its narrowest",
   render: () => (
@@ -951,7 +977,25 @@ export const PanelMinimum: Story = {
     const savedViews = viewsTrigger(toolbar);
     const more = canvas.getByRole("button", { name: "More filters and display options" });
     const primary = canvas.getByRole("button", { name: "Create operational issue" });
-    await expect(sameRow(search, savedViews)).toBe(true);
+    // The search has the first row to itself; the saved views lead the second, beside More.
+    await waitFor(() =>
+      expect(savedViews.getBoundingClientRect().top).toBeGreaterThanOrEqual(
+        search.getBoundingClientRect().bottom,
+      ),
+    );
+    await expect(sameRow(savedViews, more)).toBe(true);
+    await apart(savedViews, more);
+    // Their label keeps at least three letters' width before its ellipsis, never one or none.
+    const label = within(savedViews).getByTitle("All records");
+    const letter = label.scrollWidth / (label.textContent ?? "").length;
+    await expect(label.clientWidth).toBeGreaterThanOrEqual(3 * letter);
+    const edge = along(savedViews).end + 0.5;
+    await expect(along(within(savedViews).getByText("4", { exact: true })).end).toBeLessThanOrEqual(
+      edge,
+    );
+    await expect(
+      along(savedViews.querySelector('svg[data-icon="inline-end"]')!).end,
+    ).toBeLessThanOrEqual(edge);
     await primaryWhole(toolbar, primary);
     await apart(more, primary);
     // The primary sits under More, at the end of its own line.

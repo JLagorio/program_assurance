@@ -349,6 +349,112 @@ export const EmptyStageAction: Story = {
   },
 };
 
+/**
+ * A link runs through a stage with nothing in it as it runs through any other: in a gap of its own,
+ * under what the stage says. The requirement the issue names passes the empty Evidence stage, and
+ * the item linked from the issue, named the other way round, passes the empty Risks stage.
+ */
+export const PassingAnEmptyStage: Story = {
+  args: {
+    label:
+      "What the operational issue Retired keys stay usable for a day is about, and what answers it",
+    focus: "issue-21",
+    stages: [
+      {
+        id: "requirements",
+        label: "Requirements",
+        nodes: [
+          {
+            id: "req-118",
+            code: "REQ-118",
+            title: "Retire keys only through the key service",
+            link: <a href="#req-118" />,
+          },
+        ],
+      },
+      { id: "evidence", label: "Evidence", nodes: [], empty: "No evidence cited" },
+      {
+        id: "issues",
+        label: "Operational issues",
+        nodes: [
+          {
+            id: "issue-21",
+            title: "Retired keys stay usable for a day",
+            mark: <Dot tone="danger" />,
+            meta: "High · Open",
+            link: <a href="#issue-21" />,
+          },
+        ],
+      },
+      { id: "risks", label: "Risks", nodes: [], empty: "No risk recorded" },
+      {
+        id: "remediation",
+        label: "Remediation",
+        nodes: [
+          {
+            id: "item-31",
+            title: "Revoke a key the moment it retires",
+            meta: "Due Jan 15",
+            link: <a href="#item-31" />,
+          },
+        ],
+      },
+    ],
+    links: [
+      { from: "req-118", to: "issue-21" },
+      { from: "item-31", to: "issue-21" },
+    ],
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const trace = root(canvasElement);
+    const stage = (name: string) =>
+      [...trace.querySelectorAll<HTMLElement>('[data-slot="trace-stage"]')].find((item) =>
+        item.querySelector('[data-slot="trace-stage-header"]')?.textContent?.startsWith(name),
+      )!;
+    const passed = [
+      [stage("Evidence"), "No evidence cited"],
+      [stage("Risks"), "No risk recorded"],
+    ] as const;
+    // Each empty stage says what is missing, and holds a gap for the link that passes it, which
+    // assistive technology does not hear: the records say what they are linked to instead.
+    for (const [empty, words] of passed) {
+      await expect(within(empty).getByText(words)).toBeVisible();
+      const gaps = empty.querySelectorAll('[data-slot="trace-pass"]');
+      await expect(gaps).toHaveLength(1);
+      await expect(gaps[0]!.closest('[aria-hidden="true"]')).not.toBe(null);
+    }
+    await expect(
+      canvas.getByRole("link", { name: /Retired keys stay usable for a day/ }),
+    ).toHaveAccessibleDescription(
+      "Linked to REQ-118 Retire keys only through the key service and Revoke a key the moment it retires",
+    );
+    // A wire a link, the one named from the later record too, while the columns stand side by side.
+    await waitFor(() =>
+      expect(trace.querySelectorAll('[data-slot="trace-wire"]')).toHaveLength(
+        inColumns(trace) ? 2 : 0,
+      ),
+    );
+    if (!inColumns(trace)) return;
+    const wires = [...trace.querySelectorAll<SVGPathElement>('[data-slot="trace-wire"]')];
+    for (const [empty, words] of passed) {
+      // The wire crosses the empty stage from one side to the other, whichever way the page
+      // reads, and runs under its words, never across them.
+      const column = empty.getBoundingClientRect();
+      await expect(
+        wires.some((wire) => {
+          const box = wire.getBoundingClientRect();
+          return box.left <= column.left + 1 && box.right >= column.right - 1;
+        }),
+      ).toBe(true);
+      const gap = empty.querySelector('[data-slot="trace-pass"]')!.getBoundingClientRect();
+      await expect(gap.top).toBeGreaterThanOrEqual(
+        within(empty).getByText(words).getBoundingClientRect().bottom,
+      );
+    }
+  },
+};
+
 const many: TraceStage[] = [
   {
     id: "controls",

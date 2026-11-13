@@ -15,6 +15,7 @@ import {
 } from "@ledger/design-system";
 import { ClipboardCheck } from "lucide-react";
 import {
+  TRACE_KINDS,
   openIssue,
   openRisk,
   traceKey,
@@ -25,7 +26,9 @@ import {
   type TraceKind,
   type TraceRemediation,
 } from "@/lib/assurance-trace";
+import { useProgramControlStatus } from "@/lib/control-status";
 import {
+  determinations,
   operationalIssueStatuses,
   remediationStatuses,
   riskLevels,
@@ -37,7 +40,8 @@ import {
   type StatusTone,
   type StatusVocabulary,
 } from "@/lib/status";
-import { traceGapFixes } from "@/lib/next-steps";
+import { isReaderFix, traceGapFixes, type StepStanding } from "@/lib/next-steps";
+import { useWorkspace } from "@/components/app/workspace";
 import { NextStepLink } from "./next-step";
 import { ProductCollection } from "./product-collection";
 import { RecordLink, recordLink, useOpenRecord } from "./record-preview";
@@ -45,9 +49,9 @@ import { DueDate, QueryState, type QueryStatus } from "./work-common";
 
 /*
  * A record's story band: what the record reaches, in numbers, then the chain it sits on, drawn.
- * The six records of the chain open with it: a control, a requirement, an evidence artifact, an
- * operational issue, a risk and a remediation item. Each stage's records link to their pages, so
- * the trace is also the way from one record of the chain to the next.
+ * The seven records of the chain open with it: a control, a requirement, an evidence artifact, an
+ * assessment finding, an operational issue, a risk and a remediation item. Each stage's records
+ * link to their pages, so the trace is also the way from one record of the chain to the next.
  */
 
 /** Today in the reader's zone as a calendar day ("2026-11-10"), what a due day is compared with. */
@@ -78,6 +82,7 @@ const emptyStage: Record<TraceKind, string> = {
   control: "No control met",
   requirement: "No requirement supported",
   evidence: "No evidence cited",
+  finding: "No assessment finding",
   issue: "No operational issue",
   risk: "No risk recorded",
   remediation: "No remediation item",
@@ -86,19 +91,44 @@ const stageLabel: Record<TraceKind, string> = {
   control: "Controls",
   requirement: "Requirements",
   evidence: "Evidence",
+  finding: "Assessment findings",
   issue: "Operational issues",
   risk: "Risks",
   remediation: "Remediation",
 };
 
-/** A trace as the kit draws it: its six stages, each record a link to its page, and the links. */
-function useTraceStages(trace: AssuranceTrace | undefined, programId: string | null | undefined) {
+/**
+ * Where a program stands on the control a trace is about, as its control status reads it: `known`
+ * once the read has answered, `value` null where the control is not in the baseline.
+ */
+type TraceStanding = { known: boolean; value: StepStanding | null };
+
+/** A trace as the kit draws it: its seven stages, each record a link to its page, and the links. */
+function useTraceStages(
+  trace: AssuranceTrace | undefined,
+  programId: string | null | undefined,
+  controlStanding: TraceStanding,
+  canWrite: boolean,
+) {
   const { formatDate, formatDay } = useLedgerLocale();
   return useMemo(() => {
     if (!trace) return null;
-    // A control opens inside the program its requirements belong to, when they share one.
+    // A control opens inside the program its requirements belong to, when they share one; with no
+    // requirement, inside the program of the record the trace is about.
     const programs = new Set(trace.requirements.map((requirement) => requirement.program_id));
-    const scope = programId ?? (programs.size === 1 ? [...programs][0] : undefined);
+    const own = <T extends { id: string; program_id: string | null }>(records: readonly T[]) =>
+      records.find((record) => record.id === trace.focus.id)?.program_id ?? undefined;
+    const focusProgram =
+      trace.focus.kind === "finding"
+        ? own(trace.findings)
+        : trace.focus.kind === "issue"
+          ? own(trace.issues)
+          : trace.focus.kind === "risk"
+            ? own(trace.risks)
+            : undefined;
+    const scope =
+      programId ??
+      (programs.size === 1 ? [...programs][0] : programs.size === 0 ? focusProgram : undefined);
     const short = { month: "short", day: "numeric" } as const;
     // A moment reads in the reader's zone; a due day is a calendar day, the same everywhere.
     const moment = (value: string) => formatDate(new Date(value), short);
@@ -127,6 +157,24 @@ function useTraceStages(trace: AssuranceTrace | undefined, programId: string | n
         title: evidence.title,
         ...(evidence.collected_at ? { meta: `Collected ${moment(evidence.collected_at)}` } : {}),
         link: recordLink("evidence_artifacts", { id: evidence.id }),
+      })),
+      // The assessor's verdict in its tone and words, and when it was made; a finding of draft
+      // results, only ever the record traced, says so instead.
+      finding: trace.findings.map((finding) => ({
+        id: traceKey("finding", finding.id),
+        title: finding.title,
+        mark: <Dot tone={statusTone(determinations, finding.determination)} />,
+        meta: [
+          statusLabel(determinations, finding.determination),
+          finding.results_state === "draft"
+            ? "Draft results"
+            : finding.determined_at
+              ? moment(finding.determined_at)
+              : null,
+        ]
+          .filter(Boolean)
+          .join(" · "),
+        link: recordLink("assessment_findings", { id: finding.id }),
       })),
       issue: trace.issues.map((issue) => ({
         id: traceKey("issue", issue.id),
@@ -158,10 +206,24 @@ function useTraceStages(trace: AssuranceTrace | undefined, programId: string | n
         link: recordLink("poam_items", { id: item.id }),
       })),
     };
-    // A gap the reader can close from this record carries its fix: a link to where it is made.
-    const fixes = new Map(traceGapFixes(trace, scope).map((fix) => [fix.stage, fix]));
-    const stages: TraceStage[] = (Object.keys(nodes) as TraceKind[]).map((kind) => {
-      const fix = fixes.get(kind as "control" | "requirement" | "evidence");
+    // A gap the reader can close from this record carries its fix: a link to where it is made, for
+    // a reader who may make it. A control's requirements wait on where the program stands on it,
+    // since one its product decided names the product assessment instead of a fix.
+    const fixes = new Map(
+      traceGapFixes(trace, scope, controlStanding.value)
+        .filter((fix) => !isReaderFix(fix) || canWrite)
+        .filter(
+          (fix) =>
+            !(trace.focus.kind === "control" && fix.stage === "requirement") ||
+            controlStanding.known,
+        )
+        .map((fix) => [fix.stage, fix]),
+    );
+    const stages: TraceStage[] = TRACE_KINDS.map((kind) => {
+      const fix =
+        kind === "control" || kind === "requirement" || kind === "evidence"
+          ? fixes.get(kind)
+          : undefined;
       return {
         id: kind,
         label: stageLabel[kind],
@@ -186,7 +248,7 @@ function useTraceStages(trace: AssuranceTrace | undefined, programId: string | n
       links: traceLinks(trace),
       focus: traceKey(trace.focus.kind, trace.focus.id),
     };
-  }, [trace, programId, formatDate, formatDay]);
+  }, [trace, programId, controlStanding, canWrite, formatDate, formatDay]);
 }
 
 /** The highest severity among records, by the product's order. */
@@ -210,7 +272,7 @@ type Tile = {
 
 /** The band's numbers for a trace: what its focus is, what it rests on or reaches, and how its treatment stands. */
 function useTiles(trace: AssuranceTrace | undefined, today: string): Tile[] {
-  const { formatDay, formatPlural } = useLedgerLocale();
+  const { formatDate, formatDay, formatPlural } = useLedgerLocale();
   return useMemo(() => {
     if (!trace) return [];
     const reach = traceReach(trace);
@@ -331,6 +393,37 @@ function useTiles(trace: AssuranceTrace | undefined, today: string): Tile[] {
           risks("Open risks"),
           milestones,
         ];
+      case "finding": {
+        // The assessor's verdict, the controls it judges, what it led to and how that is treated.
+        const finding = trace.findings.find((item) => item.id === trace.focus.id);
+        const judgedIds = new Set(
+          trace.links.control_finding
+            .filter(([, judging]) => judging === trace.focus.id)
+            .map(([control]) => control),
+        );
+        const judged = trace.controls.filter((control) => judgedIds.has(control.id));
+        const when =
+          finding?.results_state === "draft"
+            ? "Draft results"
+            : finding?.determined_at
+              ? `Determined ${formatDate(new Date(finding.determined_at), { month: "short", day: "numeric", year: "numeric" })}`
+              : undefined;
+        return [
+          {
+            label: "Determination",
+            value: finding ? statusLabel(determinations, finding.determination) : "Not recorded",
+            note: when,
+            ...(finding ? { tone: statusTone(determinations, finding.determination) } : {}),
+          },
+          {
+            label: "Controls judged",
+            value: judged.length,
+            note: judged.map((control) => control.code).join(", ") || undefined,
+          },
+          risks("Open risks"),
+          milestones,
+        ];
+      }
       case "control": {
         const evidenced = trace.requirements.filter(
           (requirement) => requirement.evidence_count > 0,
@@ -374,7 +467,7 @@ function useTiles(trace: AssuranceTrace | undefined, today: string): Tile[] {
         return [own, issues("Open issues it answers"), risks("Open risks"), reached];
       }
     }
-  }, [trace, today, formatDay, formatPlural]);
+  }, [trace, today, formatDate, formatDay, formatPlural]);
 }
 
 /** The band's labels for each kind of record, which hold their place while its trace loads. */
@@ -382,6 +475,7 @@ const tileLabels: Record<TraceKind, readonly string[]> = {
   control: ["Requirements", "Evidence", "Open issues", "Open risks"],
   requirement: ["Controls met", "Evidence", "Open issues", "Open risks"],
   evidence: ["Requirements supported", "Open issues citing it", "Open risks", "Milestones done"],
+  finding: ["Determination", "Controls judged", "Open risks", "Milestones done"],
   issue: ["Severity", "Open risks", "Controls reached", "Milestones done"],
   risk: ["Severity", "Open issues it rests on", "Controls reached", "Milestones done"],
   remediation: ["Milestones done", "Open issues it answers", "Open risks", "Controls reached"],
@@ -408,7 +502,20 @@ export function TraceBand({
 }) {
   const today = useToday();
   const tiles = useTiles(trace.data, today);
-  const drawn = useTraceStages(trace.data, programId);
+  const workspace = useWorkspace();
+  // Where the program stands on a control decides what its empty requirements say: one its
+  // product decided names the product assessment. The read the page's Details already share.
+  const statuses = useProgramControlStatus(kind === "control" ? programId : null);
+  const focusId = trace.data?.focus.id;
+  const controlStanding = useMemo<TraceStanding>(() => {
+    if (kind !== "control" || !programId) return { known: true, value: null };
+    if (!statuses.isSuccess) return { known: false, value: null };
+    return {
+      known: true,
+      value: statuses.data.controls.find((control) => control.id === focusId) ?? null,
+    };
+  }, [kind, programId, statuses.isSuccess, statuses.data, focusId]);
+  const drawn = useTraceStages(trace.data, programId, controlStanding, workspace.role !== "viewer");
   // While another record's trace loads, the numbers wait, and a chain still drawn from the record
   // before is marked busy: nothing of that record stands as this one's.
   const stale = trace.isPlaceholderData;
@@ -542,7 +649,7 @@ export function TraceRemediationSection({
         empty={{
           title: "No remediation item",
           description:
-            "A remediation item appears here once one is linked to an operational issue.",
+            "A remediation item appears here once it answers an operational issue here, or its commitment cites a risk here.",
           icon: <ClipboardCheck />,
         }}
       />

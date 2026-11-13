@@ -10,7 +10,9 @@ import {
   Tray,
   useLedgerLocale,
 } from "@ledger/design-system";
+import { openIssue } from "@/lib/assurance-trace";
 import { controlStatusShare, useProgramControlStatus } from "@/lib/control-status";
+import { programTasksView, registerViews } from "@/lib/register-views";
 import {
   operationalIssueStatuses,
   riskStatuses,
@@ -19,6 +21,7 @@ import {
   type StatusTone,
   type StatusVocabulary,
 } from "@/lib/status";
+import { questionSearch } from "./collection-question";
 import { ControlStatusKey, ControlStatusMap } from "./control-status";
 import { controlStatusLink } from "./control-status-link";
 import { useOpenRecord } from "./record-preview";
@@ -27,7 +30,7 @@ import { QueryState, type QueryStatus } from "./work-common";
 /** The program tabs that hold open work. */
 type WorkTab = "Schedule" | "Findings" | "POA&M & risk";
 
-type Line = { label: string; value: number; tone: StatusTone };
+type Line = { key: string; label: string; value: number; tone: StatusTone };
 
 /** One line a value of the vocabulary, in the order given, counting the rows that hold it. */
 function lines<Row>(
@@ -37,6 +40,7 @@ function lines<Row>(
   values: readonly string[],
 ): Line[] {
   return values.map((value) => ({
+    key: value,
     label: vocabulary[value]?.label ?? value,
     value: rows.filter((row) => read(row) === value).length,
     // A line is toned only where the value itself is a problem; the rest stay in the text colour.
@@ -46,22 +50,32 @@ function lines<Row>(
 
 type Work<Row> = QueryStatus & { data?: readonly Row[] | undefined };
 
+/** The open operational issue statuses, which a severity's line asks for beside its severity. */
+const openIssueStatuses = Object.keys(operationalIssueStatuses).filter(openIssue);
+
 /**
  * The program's open work as three counted groups: each a Tray whose heading is the count and
  * opens the tab that holds it, over the parts a reader acts on first, one line each. Tasks and
- * risks break down by status, operational issues by severity, worst first.
+ * risks break down by status, operational issues by severity, worst first. A line that counts
+ * something opens its tab's register asked for exactly those records; a zero opens nothing.
  */
 export function ProgramOpenWork({
+  programId,
   tasks,
   issues,
   risks,
   tabLink,
 }: {
+  programId: string;
   tasks: Work<{ status: string }>;
   issues: Work<{ status: string; severity: string | null }>;
   risks: Work<{ status: string }>;
-  /** A link to one of the program's tabs. */
-  tabLink: (tab: WorkTab) => ReactElement<{ className?: string | undefined; children?: ReactNode }>;
+  /** A link to one of the program's tabs, asking its register a question when one is given. */
+  tabLink: (
+    tab: WorkTab,
+    question?: Record<string, unknown>,
+    section?: string,
+  ) => ReactElement<{ className?: string | undefined; children?: ReactNode }>;
 }) {
   const openTasks = tasks.data?.filter((task) => !["done", "cancelled"].includes(task.status));
   const openIssues = issues.data?.filter(
@@ -74,11 +88,19 @@ export function ProgramOpenWork({
     query: QueryStatus;
     open: number | undefined;
     lines: Line[];
+    /** The question a line asks of the tab's register: its view and the filters for its value. */
+    ask: (value: string) => Record<string, unknown>;
+    /** The id of the Section that holds the register, where the tab draws others above it. */
+    section?: string;
   }[] = [
     {
       title: "open tasks",
       tab: "Schedule",
       query: tasks,
+      ask: (value) =>
+        questionSearch(programTasksView(programId), {
+          filters: [{ id: "status", value: [value] }],
+        }),
       open: openTasks?.length,
       lines: lines(openTasks ?? [], (task) => task.status, taskStatuses, [
         "blocked",
@@ -91,6 +113,13 @@ export function ProgramOpenWork({
       title: "open issues",
       tab: "Findings",
       query: issues,
+      ask: (value) =>
+        questionSearch(registerViews.programOperationalIssues, {
+          filters: [
+            { id: "severity", value: [value] },
+            { id: "status", value: openIssueStatuses },
+          ],
+        }),
       open: openIssues?.length,
       lines: lines(openIssues ?? [], (issue) => issue.severity, severityLevels, [
         "critical",
@@ -103,6 +132,10 @@ export function ProgramOpenWork({
       title: "open risks",
       tab: "POA&M & risk",
       query: risks,
+      ask: (value) =>
+        questionSearch(registerViews.programRisks, { filters: [{ id: "status", value: [value] }] }),
+      // Risks follow the POA&M plans and remediation items on their tab.
+      section: registerViews.programRisks,
       open: openRisks?.length,
       lines: lines(openRisks ?? [], (risk) => risk.status, riskStatuses, [
         "open",
@@ -130,11 +163,14 @@ export function ProgramOpenWork({
               <Stat.List aria-label={`${queue.title}, in parts`}>
                 {queue.lines.map((line) => (
                   <Stat.Row
-                    key={line.label}
+                    key={line.key}
                     label={line.label}
                     value={line.value}
                     tone={line.tone}
                     isLoading={loading}
+                    {...(line.value > 0 && !loading
+                      ? { link: tabLink(queue.tab, queue.ask(line.key), queue.section) }
+                      : {})}
                   />
                 ))}
               </Stat.List>

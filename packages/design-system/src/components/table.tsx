@@ -17,6 +17,8 @@ import {
   useContext,
   useEffect,
   useId,
+  useLayoutEffect,
+  useMemo,
   useRef,
   useState,
   type ComponentProps,
@@ -35,6 +37,7 @@ import { IconButton } from "./button";
 import { Checkbox } from "./checkbox";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "./hover-card";
 import { Id } from "./id";
+import { yieldPins, type PinnedColumn } from "./table-pins";
 import { MatchDirection, Tooltip, TooltipContent, TooltipTrigger } from "./tooltip";
 import { CellRevealsCut, Truncate } from "./truncate";
 import { Absent } from "./typography";
@@ -89,6 +92,105 @@ function keepClearOfStickyParts(
     frame.style[side] = value;
     written[side] = value;
   }
+}
+
+/**
+ * Which of a table's pinned columns give way in its frame, and which column then touches the
+ * middle in their place. A column is known by its band and its offset (`start:32`), which every
+ * cell of it shares.
+ */
+type PinsYield = {
+  released: ReadonlySet<string>;
+  /** The column that touches the middle once a band has given some of its columns way, by band. */
+  edges: Partial<Record<"start" | "end", { key: string; edge: true | "scrolled" }>>;
+};
+const NONE_YIELD: PinsYield = { released: new Set(), edges: {} };
+const PinsYieldContext = createContext<PinsYield>(NONE_YIELD);
+
+/**
+ * Package-only: whether a Table works out for itself which pins give way. DataTable, which works
+ * it out from its own layout (`yieldPins` there too) and draws its cells' pins already given way,
+ * turns it off.
+ */
+export const TablePinsGiveWay = createContext(true);
+
+/** A cell's pin as its column's key: its band and its offset from that edge. */
+const pinKey = (pinned: "start" | "end", offset: number | undefined) => `${pinned}:${offset ?? 0}`;
+
+/** The leading columns the Table draws, which never give way: the checkbox column, and any pinned column as narrow as it (the disclosure's, a handle's), which would give the middle next to nothing. */
+const PIN_CHROME = new Set(["table-selection", "table-disclosure"]);
+
+/**
+ * The pins that give way in this frame, as a key that state compares by value: the pinned columns
+ * of the header's last row (or the first row), each with the band its cells ask for and its width,
+ * through the rule DataTable follows (`yieldPins`): while they would take more than 60% of the
+ * frame they give way from the middle outward, the end band first, the chrome never. Empty when
+ * nothing gives way.
+ */
+function pinsYieldKey(frame: HTMLElement, table: HTMLTableElement): string {
+  const head = table.tHead;
+  const row = head?.rows[head.rows.length - 1] ?? table.tBodies[0]?.rows[0];
+  const columns: PinnedColumn[] = [];
+  for (const cell of row?.cells ?? []) {
+    const key = cell.dataset["pinKey"];
+    if (!key) continue;
+    columns.push({
+      id: key,
+      pin: key.startsWith("end") ? "end" : "start",
+      width: cell.offsetWidth,
+      chrome: PIN_CHROME.has(cell.dataset["slot"] ?? "") || cell.offsetWidth <= NARROW,
+    });
+  }
+  const released = yieldPins(columns, frame.clientWidth);
+  if (released.size === 0) return "";
+  const edges: PinsYield["edges"] = {};
+  for (const band of ["start", "end"] as const) {
+    const kept = columns.filter((column) => column.pin === band && !released.has(column.id));
+    if (kept.length === columns.filter((column) => column.pin === band).length) continue;
+    // The innermost column the band keeps: its last in a row's order, the end band's first.
+    const inner = band === "start" ? kept.at(-1) : kept[0];
+    if (inner) edges[band] = { key: inner.id, edge: inner.chrome ? "scrolled" : true };
+  }
+  return JSON.stringify({ released: [...released], edges });
+}
+
+/**
+ * The scroll padding alone does not bring every control clear. Chromium's focus scrolls a frame
+ * sideways only to a control wholly outside the padded box, and leaves one partly inside it, by as
+ * little as a fraction of a pixel, where it is (on purpose, for menus whose items overflow a
+ * little): a heading's sort button that starts just inside the end edge stays under the pinned
+ * column there, its ring cut by the frame. So a control the keyboard reaches in the scrolling middle
+ * comes the rest of the way in, its ring included, before the browser's own scroll runs. One wholly
+ * outside is the browser's to bring in (it centres it), one in a pinned cell always shows, and a
+ * pointer's focus moves nothing.
+ */
+function revealFocused(frame: HTMLElement, target: EventTarget | null) {
+  if (!(target instanceof HTMLElement) || target === frame || !frame.contains(target)) return;
+  if (target.closest("[data-pinned]") || frame.scrollWidth <= frame.clientWidth) return;
+  try {
+    if (!target.matches(":focus-visible")) return;
+  } catch {
+    return;
+  }
+  const box = frame.getBoundingClientRect();
+  const padding = getComputedStyle(frame);
+  const left = box.left + frame.clientLeft + (parseFloat(padding.scrollPaddingLeft) || 0);
+  const right =
+    box.left + frame.clientLeft + frame.clientWidth - (parseFloat(padding.scrollPaddingRight) || 0);
+  const rect = target.getBoundingClientRect();
+  if (rect.right <= left || rect.left >= right) return;
+  // How far the ring reaches past the box: an outline drawn outside it, none for one inset.
+  const own = getComputedStyle(target);
+  const ring =
+    own.outlineStyle === "none"
+      ? 0
+      : Math.max(0, (parseFloat(own.outlineWidth) || 0) + (parseFloat(own.outlineOffset) || 0));
+  const start = rect.left - ring;
+  const end = rect.right + ring;
+  if (end - start > right - left) return;
+  // scrollLeft grows rightwards in either direction (it runs from 0 to negative right to left).
+  if (start < left) frame.scrollLeft -= Math.ceil(left - start);
+  else if (end > right) frame.scrollLeft += Math.ceil(end - right);
 }
 
 /**
@@ -434,6 +536,44 @@ function TableRoot({
     measure();
     return () => observer.disconnect();
   }, [track]);
+  // Which pins give way in this frame (pinsYieldKey), worked out before the first paint and again
+  // whenever the frame or the table changes size: a resize redraws the cells only when a pin gives
+  // way or returns, never on every pixel. A DataTable works it out itself (TablePinsGiveWay).
+  const givesWay = useContext(TablePinsGiveWay);
+  const [yieldKey, setYieldKey] = useState("");
+  useLayoutEffect(() => {
+    const el = frame.current;
+    const tableEl = table.current;
+    if (!givesWay || !el || !tableEl || typeof ResizeObserver === "undefined") {
+      setYieldKey("");
+      return;
+    }
+    const measure = () => setYieldKey(pinsYieldKey(el, tableEl));
+    const observer = new ResizeObserver(measure);
+    observer.observe(el);
+    observer.observe(tableEl);
+    measure();
+    return () => observer.disconnect();
+  }, [givesWay]);
+  const pinsYield = useMemo<PinsYield>(() => {
+    if (!yieldKey) return NONE_YIELD;
+    const parsed = JSON.parse(yieldKey) as { released: string[]; edges: PinsYield["edges"] };
+    return { released: new Set(parsed.released), edges: parsed.edges };
+  }, [yieldKey]);
+  // The scroll padding follows the columns the frame now holds still.
+  useEffect(() => {
+    if (frame.current && table.current)
+      keepClearOfStickyParts(frame.current, table.current, cover.current);
+  }, [yieldKey]);
+  // Focus the browser leaves partly under a pinned column comes the rest of the way in. A native
+  // listener, so a menu portalled out of the table (a column menu) is no focus of the frame's.
+  useEffect(() => {
+    const el = frame.current;
+    if (!el) return;
+    const onFocusIn = (event: FocusEvent) => revealFocused(el, event.target);
+    el.addEventListener("focusin", onFocusIn);
+    return () => el.removeEventListener("focusin", onFocusIn);
+  }, []);
   const tableElement = useRender({
     defaultTagName: "table",
     ref: table,
@@ -481,7 +621,12 @@ function TableRoot({
     <MatchDirection direction={direction}>
       <RowTipContext.Provider value={rowTip}>
         <ListCardContext.Provider value={listCard}>
-          <RevealsCutContext.Provider value={true}>{frameElement}</RevealsCutContext.Provider>
+          <RevealsCutContext.Provider value={true}>
+            {/* A table nested in a cell works out its own pins, whatever holds this one. */}
+            <PinsYieldContext.Provider value={pinsYield}>
+              <TablePinsGiveWay.Provider value={true}>{frameElement}</TablePinsGiveWay.Provider>
+            </PinsYieldContext.Provider>
+          </RevealsCutContext.Provider>
         </ListCardContext.Provider>
         <Tooltip handle={rowTip}>
           {({ payload }) => <TooltipContent>{payload}</TooltipContent>}
@@ -580,6 +725,23 @@ const pinnedStyle = (
       ? { insetInlineEnd: offset ?? 0 }
       : undefined;
 
+/**
+ * How a cell draws the pin it asks for: in the scrolling middle while its column gives way in a
+ * narrow frame (the Table's `PinsYieldContext`), and with the edge where its column has come to
+ * touch the middle in place of one that gave way. `key` names the column for the Table's measure.
+ */
+function useDrawnPin(
+  requested: PinnedProps["pinned"],
+  offset: number | undefined,
+  edge: PinnedProps["edge"],
+) {
+  const yielded = useContext(PinsYieldContext);
+  const key = requested ? pinKey(requested, offset) : undefined;
+  const pinned = key !== undefined && yielded.released.has(key) ? false : requested;
+  const takes = pinned ? yielded.edges[pinned] : undefined;
+  return { key, pinned, edge: takes && takes.key === key ? takes.edge : edge };
+}
+
 export type ThProps = Omit<ComponentProps<"th">, "align"> &
   PinnedProps & {
     /** Makes the heading a button that reports its direction (aria-sort) and shows the arrow. */
@@ -597,7 +759,7 @@ export type ThProps = Omit<ComponentProps<"th">, "align"> &
     width?: number | undefined;
     /** The least width in pixels the column keeps: in a narrow frame the table scrolls sideways rather than squeezing it. Give the name column one (180 to 220) so it is never the column that gives way. */
     minWidth?: number | undefined;
-    /** A handle on the trailing edge. `onResizeStart` takes the pointer down; `resizeDelta` moves the guide while it drags; double-click resets. */
+    /** A handle on the trailing edge. `onResizeStart` takes the pointer down; `resizeDelta` moves the guide while it drags; double-click resets. Where any pointer is coarse its hit area is 24px wide, from the column's edge into the heading's end, which keeps that room clear (`space.300` of end padding); the handle stays 8px and its guide 2px. */
     resize?:
       | {
           onResizeStart: (event: unknown) => void;
@@ -674,7 +836,8 @@ export function Th({
 }: ThProps) {
   const { direction, t } = useLedgerLocale();
   const sortable = sort !== undefined || onSort !== undefined;
-  const pinned = pinnedProp ?? (sticky ? "start" : false);
+  const drawn = useDrawnPin(pinnedProp ?? (sticky ? "start" : false), offset, edge);
+  const { pinned } = drawn;
   const placed = alignOf(align, className);
   const text = typeof children === "string" ? children : undefined;
   // Which header row the cell sits in; below the first it sticks under the rows above.
@@ -704,12 +867,18 @@ export function Th({
     ref: ref ? [ref, measure] : measure,
     props: {
       "aria-sort": sort === "asc" ? "ascending" : sort === "desc" ? "descending" : undefined,
+      // The pin this column asks for, which the Table measures, and the one it draws.
+      "data-pin-key": drawn.key,
       "data-pinned": pinned || undefined,
       className: cn(
         "group/th sticky top-0 z-10 h-row-header bg-surface-current px-150 font-body-small font-medium text-subtle",
         wrap ? "whitespace-normal" : "whitespace-nowrap",
         hairline && HEADER_RULE,
-        pinnedClass(pinned, edge, "z-20"),
+        // Where any pointer is coarse the resize handle's hit area is 24px wide inside the
+        // heading's end, so the heading keeps that much clear of it: a tap on the heading or its
+        // controls is never taken for a resize.
+        resize && "any-pointer-coarse:pe-300",
+        pinnedClass(pinned, drawn.edge, "z-20"),
         className,
         TEXT_ALIGN[placed],
       ),
@@ -801,6 +970,11 @@ export function Th({
                 // guide shown while the keyboard is on it.
                 "absolute inset-y-0 end-0 z-10 w-100 cursor-col-resize touch-none select-none outline-none focus-visible:outline-field-focused",
                 "after:absolute after:inset-y-0 after:end-0 after:w-025 after:bg-brand-bold after:opacity-0 after:transition-opacity after:duration-fast after:ease-standard hover:after:opacity-100 focus-visible:after:opacity-100 motion-reduce:after:transition-none",
+                // Where any pointer is coarse, a 24px hit area (`space.300`) the height of the
+                // header, drawn by nothing: from the column's edge into the heading's end, which
+                // keeps that much clear (never past the edge, where the next heading covers it and
+                // the last would scroll the frame). The handle and its guide keep their width.
+                "any-pointer-coarse:before:absolute any-pointer-coarse:before:inset-y-0 any-pointer-coarse:before:end-0 any-pointer-coarse:before:w-300",
                 resize.isResizing && "after:opacity-100",
               )}
               style={
@@ -877,7 +1051,8 @@ export function Td({
   onPointerEnter,
   ...props
 }: TdProps) {
-  const pinned = pinnedProp ?? (sticky ? "start" : false);
+  const drawn = useDrawnPin(pinnedProp ?? (sticky ? "start" : false), offset, edge);
+  const { pinned } = drawn;
   const placed = alignOf(align, className);
   const wrap = wrapsOf(wrapProp, className);
   const text = typeof children === "string" ? children : undefined;
@@ -889,6 +1064,8 @@ export function Td({
   const Cell = (rowHeader ? "th" : "td") as "td";
   return (
     <Cell
+      // The pin this column asks for, which the Table measures, and the one it draws.
+      data-pin-key={drawn.key}
       data-pinned={pinned || undefined}
       // A wrapping cell says so, so a part in it that truncates (Table.Name) wraps with it.
       data-wrap={wrap ? "" : undefined}
@@ -902,7 +1079,7 @@ export function Td({
         // link-styled button in it underlines under the pointer, and colour stays with status.
         rowHeader &&
           "font-medium [&_[data-slot=text-link]]:text-default [&_[data-button-variant=link]]:text-default",
-        pinnedClass(pinned, edge, "z-10"),
+        pinnedClass(pinned, drawn.edge, "z-10"),
         pinned && ROW_FILL,
         className,
         TEXT_ALIGN[placed],

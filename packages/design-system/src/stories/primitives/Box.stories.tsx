@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { expect, fn, userEvent, within } from "storybook/test";
 
 import { Button } from "../../components";
 import { spaceTokens } from "../../generated/space";
@@ -6,7 +7,7 @@ import { Box, Heading, Inline, Stack, Text } from "../../primitives";
 import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 const meta = {
   title: "Primitives/Box",
@@ -260,4 +261,41 @@ export const Dont: Story = {
       />
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    // The parent owns the distance between the cards; a margin on the child carries its own.
+    const distance = halves(canvasElement, 0);
+    const column = (half: HTMLElement) => half.firstElementChild as HTMLElement;
+    const first = (half: HTMLElement) => column(half).firstElementChild as HTMLElement;
+    await expect(getComputedStyle(first(distance.do)).marginBottom).toBe("0px");
+    await expect(parseFloat(getComputedStyle(column(distance.do)).rowGap)).toBeGreaterThan(0);
+    await expect(getComputedStyle(first(distance.dont)).marginBottom).toBe("8px");
+    await expect(getComputedStyle(column(distance.dont)).rowGap).toBe("normal");
+    // A Button answers Enter and Space; a Box with a role answers neither.
+    const press = halves(canvasElement, 1);
+    const presses = async (control: HTMLElement) => {
+      const clicked = fn();
+      control.addEventListener("click", clicked);
+      control.focus();
+      await userEvent.keyboard("{Enter}");
+      await userEvent.keyboard(" ");
+      control.removeEventListener("click", clicked);
+      return clicked.mock.calls.length;
+    };
+    const button = within(press.do).getByRole("button", { name: "Edit scope" });
+    await expect(await presses(button)).toBe(2);
+    const imitation = within(press.dont).getByRole("button", { name: "Edit scope" });
+    await expect(await presses(imitation)).toBe(0);
+    // A bold fill on the Box paints its text inverse by itself; as a class it paints the fill
+    // alone, and the text colour was chosen by hand. Forced colours paint both one system
+    // colour, so this shows outside them.
+    if (!window.matchMedia("(forced-colors: active)").matches) {
+      const fill = halves(canvasElement, 2);
+      const colour = (element: Element) => getComputedStyle(element).color;
+      const words = "12 controls selected";
+      const handPicked = colour(within(fill.dont).getByText(words));
+      await expect(colour(fill.do.firstElementChild!)).toBe(handPicked);
+      await expect(colour(within(fill.do).getByText(words))).toBe(handPicked);
+      await expect(colour(fill.dont.firstElementChild!)).not.toBe(handPicked);
+    }
+  },
 };

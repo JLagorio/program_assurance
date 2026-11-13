@@ -37,6 +37,24 @@ export function Pair({
   );
 }
 
+/**
+ * The halves of the story's Pair at `index` (the first by default), in the order they render: the
+ * example in its Do half and the one in its Don't half, for a play that asserts what makes the Do
+ * right and the Don't wrong where both halves use the same words
+ * (`within(halves(canvasElement).dont)`).
+ */
+export function halves(
+  canvasElement: HTMLElement,
+  index = 0,
+): { do: HTMLElement; dont: HTMLElement } {
+  const side = (half: "do" | "dont") =>
+    canvasElement.querySelectorAll<HTMLElement>(`[data-pair="${half}"]`)[index];
+  const doHalf = side("do");
+  const dontHalf = side("dont");
+  if (!doHalf || !dontHalf) throw new Error(`The story renders no Pair at ${index}.`);
+  return { do: doHalf, dont: dontHalf };
+}
+
 function Half({
   tone,
   label,
@@ -51,6 +69,7 @@ function Half({
   return (
     <Stack space="space.100">
       <Box
+        data-pair={tone === "success" ? "do" : "dont"}
         padding="space.300"
         backgroundColor="elevation.surface.sunken"
         className={

@@ -203,6 +203,17 @@ export async function saveRecord(
       );
     if (error.code === "23505")
       throw new Error("A record with this identifier or relationship already exists.");
+    // An issue that names requirements is held in their program by the links' keys: the edit that
+    // moves it is refused for what it still names, not for a record that does not exist.
+    if (
+      error.code === "23503" &&
+      existing &&
+      collection.name === "operational_issues" &&
+      /"issue_requirements"/.test(error.message)
+    )
+      throw new Error(
+        "This issue names requirements of its program. Unlink them from the issue's Requirements to move the issue to another program.",
+      );
     if (error.code === "23503")
       throw new Error("Choose existing related records from the same workspace.");
     throw new Error(error.message);

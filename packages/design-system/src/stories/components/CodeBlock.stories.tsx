@@ -9,7 +9,7 @@ import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
 const { Specimens } = storyLayout;
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 const meta = {
   title: "Components/CodeBlock",
@@ -217,6 +217,29 @@ export const Dont: Story = {
       />
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    const gutter = (root: HTMLElement) =>
+      Array.from(root.querySelectorAll('pre [aria-hidden="true"]'), (n) => n.textContent);
+    // Source shown as source: a block named for its file, its lines numbered in a gutter.
+    const code = halves(canvasElement, 0);
+    const block = within(code.do).getByRole("group", { name: "control.json" });
+    await expect(gutter(block)).toEqual(["1", "2", "3", "4"]);
+    await expect(within(code.do).queryByRole("textbox")).toBeNull();
+    // The Don't is a field the reader cannot use, with no numbers.
+    await expect(within(code.dont).getByRole("textbox", { name: "control.json" })).toHaveAttribute(
+      "readonly",
+    );
+    await expect(gutter(code.dont)).toEqual([]);
+    // Prose is a paragraph; in a code block the gutter numbers it and the code face sets it.
+    const prose = halves(canvasElement, 1);
+    const sentence =
+      "The control requires that no individual can authorise, record and reconcile a payable alone.";
+    const paragraph = within(prose.do).getByText(sentence);
+    await expect(paragraph.tagName).toBe("P");
+    await expect(paragraph.closest("pre")).toBeNull();
+    await expect(within(prose.dont).getByText(sentence).closest("pre")).not.toBeNull();
+    await expect(gutter(prose.dont)).toEqual(["1"]);
+  },
 };
 
 export const Playground: StoryObj<typeof meta> = {

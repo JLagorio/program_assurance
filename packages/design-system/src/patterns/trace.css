@@ -165,6 +165,13 @@ a[data-slot="trace-node-body"][aria-current]:hover {
 [data-slot="trace-pass"] {
   block-size: var(--ds-space-150);
 }
+/* The gaps the links passing a stage with no record take, under what the stage says. */
+[data-slot="trace-passes"] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-100);
+  min-width: 0;
+}
 
 /* ---------- the wires ---------- */
 [data-slot="trace-wires"] {
@@ -213,7 +220,8 @@ a[data-slot="trace-node-body"][aria-current]:hover {
   grid-template-rows: none;
   row-gap: var(--ds-space-075);
 }
-[data-slot="trace"][data-layout="stack"] [data-slot="trace-pass"] {
+[data-slot="trace"][data-layout="stack"] [data-slot="trace-pass"],
+[data-slot="trace"][data-layout="stack"] [data-slot="trace-passes"] {
   display: none;
 }
 

@@ -1,3 +1,4 @@
+import { useSyncExternalStore } from "react";
 import { ReferenceLine, useChartWidth, usePlotArea } from "recharts";
 
 import { token, tokenValue } from "../../generated/tokens";
@@ -29,6 +30,44 @@ export const labelWidth = (text: string) => {
   measureContext.font = tokenValue("font.body.xsmall");
   return measureContext.measureText(text).width;
 };
+
+/* How many times a web font has finished loading since the first chart asked. The canvas measures
+   a label in whatever face it has: on a cold start that is the fallback, until the page's own font
+   arrives and every label drawn in it is wider or narrower than it was fitted. */
+let fontLoads = 0;
+const fontWatchers = new Set<() => void>();
+let fontsFollowed = false;
+const followFonts = () => {
+  if (fontsFollowed || typeof document === "undefined" || !document.fonts) return;
+  fontsFollowed = true;
+  const loaded = () => {
+    fontLoads += 1;
+    for (const watcher of fontWatchers) watcher();
+  };
+  // Each batch of faces that finishes loading; a batch already under way when the first chart
+  // mounts says so through `ready` as well.
+  document.fonts.addEventListener("loadingdone", loaded);
+  if (document.fonts.status === "loading") void document.fonts.ready.then(loaded);
+};
+const watchFonts = (watcher: () => void) => {
+  followFonts();
+  fontWatchers.add(watcher);
+  return () => {
+    fontWatchers.delete(watcher);
+  };
+};
+
+/**
+ * A count that changes each time a web font finishes loading. A part that fits its labels with
+ * `labelWidth` reads it, and keys what it memoizes on it, so labels it measured before the page's
+ * font arrived (a cold start) are measured again in the face they are drawn in.
+ */
+export const useFontLoads = () =>
+  useSyncExternalStore(
+    watchFonts,
+    () => fontLoads,
+    () => 0,
+  );
 
 /** The line height of `font.body.xsmall`, for a tick's second line. */
 const TICK_LINE = 13;

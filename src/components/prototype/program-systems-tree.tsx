@@ -22,6 +22,7 @@ import {
   TabsTrigger,
   Truncate,
   defineColumns,
+  toast,
   useDataTable,
 } from "@ledger/design-system";
 import {
@@ -35,9 +36,11 @@ import {
   Library,
   Network,
   MoreHorizontal,
+  PencilLine,
   Plus,
   Server,
   Shield,
+  Undo2,
   Workflow,
 } from "lucide-react";
 import {
@@ -48,11 +51,14 @@ import {
   useEndOnHide,
 } from "./record-preview";
 import { idSet, useRows } from "@/lib/models";
+import { useConfirmation } from "@/components/app/confirmation";
 import { useWorkspace } from "@/components/app/workspace";
+import { elementChangeText, useDeclareElementChange } from "@/lib/product-assurance";
 import { labelFor } from "@/lib/records";
 import { impactLevels, statusEntry } from "@/lib/status";
 import { baselineSource, type SystemAssuranceRow } from "@/lib/system-assurance";
 import { systemTree, type SystemElement, type SystemTreeNode } from "@/lib/system-tree";
+import { ProductChangeDialog } from "./product-change-dialog";
 import { SystemElementDialog } from "./system-element-dialog";
 import { AddFromLibrary } from "./add-from-library";
 import { AddProductSystem } from "./add-product-system";
@@ -196,6 +202,12 @@ function ElementFrame({
 type TreeRow = SystemTreeNode<SystemAssuranceRow & { typeLabel: string }>;
 type Editor = { existing?: SystemElement; parent?: SystemElement };
 
+/** An element the variant took from its product, which a program may mark as modified. */
+const inheritedElement = (row: {
+  product_element_id: string | null;
+  is_authorization_boundary: boolean;
+}) => !!row.product_element_id && !row.is_authorization_boundary;
+
 export function systemIcon(type: string) {
   if (["information_system", "platform"].includes(type)) return Server;
   if (["industrial_control_system", "hardware"].includes(type)) return Cpu;
@@ -259,6 +271,28 @@ export function ProgramSystemsTree({
   const [libraryTargetId, setLibraryTargetId] = useState<string | null>(null);
   const [libraryOptions, setLibraryOptions] = useState<LibraryOptions>({});
   const [addingProduct, setAddingProduct] = useState(false);
+  // The inherited element being marked as modified, by id, so the dialog reads its latest revision.
+  const [markingId, setMarking] = useState<string | null>(null);
+  const { confirm, confirmation } = useConfirmation();
+  const declare = useDeclareElementChange();
+  /** Withdraw what the program said it changed: the element is as the product delivers it again. */
+  const markInherited = (row: SystemAssuranceRow) =>
+    confirm({
+      title: "Mark as inherited?",
+      description: `${row.code} ${row.name} will stand as the product delivers it. The controls behind it no longer owe a new assessment in this program, and the recorded reason is removed.`,
+      confirmLabel: "Mark as inherited",
+      variant: "primary",
+      failureTitle: "The element was not marked as inherited",
+      action: async () => {
+        await declare.mutateAsync({
+          systemId: row.id,
+          expectedRevision: row.revision,
+          kinds: [],
+          rationale: null,
+        });
+        toast.add({ type: "success", title: `${row.code} marked as inherited` });
+      },
+    });
   // Every member but a viewer creates and edits systems, and row-level security decides each write:
   // the role says it, so the tree does not load the record schema, which is the schema inspector's.
   const writer = !readOnly && workspace.role !== "viewer";
@@ -268,6 +302,7 @@ export function ProgramSystemsTree({
   // A failed refresh keeps the rows the reader has, so the preview stays with them.
   const preview = assuranceRows.find((element) => element.id === previewId);
   const libraryTarget = assuranceRows.find((element) => element.id === libraryTargetId);
+  const marking = assuranceRows.find((element) => element.id === markingId);
   const rows = useMemo(
     () =>
       systemTree(
@@ -341,9 +376,12 @@ export function ProgramSystemsTree({
           priority: 2,
           sort: (row) => row.baselineTitle ?? "",
           text: (row) => `${row.baselineTitle ?? "Not set"} · ${baselineSource(row)}`,
+          // A baseline is named once, on the element that sets it. An element that takes it from
+          // another says only whose it is, so twenty rows do not repeat one name; the name still
+          // sorts, searches and exports with every row.
           cell: (row) => (
             <Stack as="span" space="space.0" className="min-w-0">
-              {row.baselineTitle ? (
+              {row.baselineTitle && !row.inheritedFrom ? (
                 <>
                   <Truncate>{row.baselineTitle}</Truncate>
                   <span className="font-body-xsmall text-subtle">{baselineSource(row)}</span>
@@ -365,11 +403,16 @@ export function ProgramSystemsTree({
         c.custom("source", {
           header: "Source",
           width: 150,
-          priority: 6,
+          // Where an element came from, and whether the program changed it, stays in the row: the
+          // counts fold before it.
+          priority: 2,
           text: (row) =>
             [
               row.is_authorization_boundary && row.product_revision_id ? "Variant" : "",
               row.product_element_id ? "Product" : "",
+              row.product_change_kinds?.length
+                ? `Modified: ${elementChangeText(row.product_change_kinds)}`
+                : "",
               libraryElementIds.has(row.id) ? "Library" : "",
             ]
               .filter(Boolean)
@@ -381,11 +424,18 @@ export function ProgramSystemsTree({
                   Variant
                 </Badge>
               )}
-              {row.product_element_id && (
-                <Badge size="xsmall" variant="secondary" tone="information">
-                  Product
-                </Badge>
-              )}
+              {/* An inherited element reads Product until the program changes it: then Modified,
+                  since the controls behind it owe an assessment in the program. */}
+              {row.product_element_id &&
+                (row.product_change_kinds?.length ? (
+                  <Badge size="xsmall" variant="secondary" tone="warning">
+                    Modified
+                  </Badge>
+                ) : (
+                  <Badge size="xsmall" variant="secondary" tone="information">
+                    Product
+                  </Badge>
+                ))}
               {libraryElementIds.has(row.id) && (
                 <Badge size="xsmall" variant="secondary" tone="information">
                   Library
@@ -406,10 +456,18 @@ export function ProgramSystemsTree({
                 ...(canEdit
                   ? [{ label: "Edit system", onSelect: () => setEditing({ existing: row }) }]
                   : []),
+                ...(canEdit && inheritedElement(row)
+                  ? [{ label: "Mark as modified", onSelect: () => setMarking(row.id) }]
+                  : []),
+                ...(canEdit && row.product_change_kinds?.length
+                  ? [{ label: "Mark as inherited", onSelect: () => void markInherited(row) }]
+                  : []),
               ]),
             ]
           : []),
       ]),
+    // markInherited reads the confirmation and the command, which keep their identity.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [canCreate, canEdit, libraryElementIds],
   );
   // The preview is the table's, so opening or stepping through it never rebuilds the columns.
@@ -519,6 +577,18 @@ export function ProgramSystemsTree({
               <Library />
               Add from library
             </DropdownMenuItem>
+            {inheritedElement(target) && (
+              <DropdownMenuItem onClick={() => setMarking(target.id)}>
+                <PencilLine />
+                Mark as modified
+              </DropdownMenuItem>
+            )}
+            {!!target.product_change_kinds?.length && (
+              <DropdownMenuItem onClick={() => void markInherited(target)}>
+                <Undo2 />
+                Mark as inherited
+              </DropdownMenuItem>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       )}
@@ -571,6 +641,10 @@ export function ProgramSystemsTree({
           />
         </RecordPreviewPanel>
       )}
+      {marking && (
+        <ProductChangeDialog key={marking.id} element={marking} onClose={() => setMarking(null)} />
+      )}
+      {confirmation}
       {addingProduct && (
         <AddProductSystem
           programId={programId}

@@ -17,6 +17,11 @@ export type StatusDefinition = {
   readonly tone: StatusTone;
   /** Where the value sorts: lower first. The map's order. */
   readonly rank: number;
+  /**
+   * `bold` for the one rung of a level that must not read as its neighbour in the same tone
+   * (Critical beside High): its Indicator draws the word in the tone at semibold.
+   */
+  readonly emphasis?: "bold" | undefined;
 };
 export type StatusVocabulary<Value extends string = string> = Readonly<
   Record<Value, StatusDefinition>
@@ -27,16 +32,19 @@ export type VocabularyKind = "status" | "level";
 const levels = new WeakSet<object>();
 
 function vocabulary<const Value extends string>(
-  entries: readonly (readonly [Value, string, StatusTone])[],
+  entries: readonly (readonly [Value, string, StatusTone, "bold"?])[],
 ): StatusVocabulary<Value> {
   return Object.freeze(
     Object.fromEntries(
-      entries.map(([value, label, tone], rank) => [value, Object.freeze({ label, tone, rank })]),
+      entries.map(([value, label, tone, emphasis], rank) => [
+        value,
+        Object.freeze(emphasis ? { label, tone, rank, emphasis } : { label, tone, rank }),
+      ]),
     ),
   ) as StatusVocabulary<Value>;
 }
 function level<const Value extends string>(
-  entries: readonly (readonly [Value, string, StatusTone])[],
+  entries: readonly (readonly [Value, string, StatusTone, "bold"?])[],
 ): StatusVocabulary<Value> {
   const map = vocabulary(entries);
   levels.add(map);
@@ -52,6 +60,20 @@ export const reviewStatuses = vocabulary([
 export const attentionStates = vocabulary([
   ["seen", "Seen", "neutral"],
   ["done", "Done", "success"],
+]);
+/**
+ * What a record in the Review queue waits on a reviewer for (`review_queue_rows.kind`), in the
+ * order the assurance chain reaches it: evidence first, then the determinations made on it, then
+ * the decisions they lead to, and the discussions about any of them. A kind is not a judgment, so
+ * every one is neutral.
+ */
+export const reviewQueueKinds = vocabulary([
+  ["evidence", "Evidence to accept", "neutral"],
+  ["assessment_results", "Assessment results to publish", "neutral"],
+  ["product_assessment", "Product assessment to publish", "neutral"],
+  ["gate", "Gate to decide", "neutral"],
+  ["package", "Package to decide", "neutral"],
+  ["discussion", "Discussion to resolve", "neutral"],
 ]);
 export const taskStatuses = vocabulary([
   ["open", "Open", "neutral"],
@@ -228,6 +250,31 @@ export const applicabilityDecisions = vocabulary([
   ["conditionally_applicable", "Conditionally applicable", "warning"],
   ["not_applicable", "Not applicable", "neutral"],
 ]);
+/** A program's answer to a requirement of its customer's document. */
+export const complianceStatuses = vocabulary([
+  ["compliant", "Compliant", "success"],
+  ["partially_compliant", "Partially compliant", "warning"],
+  ["non_compliant", "Non-compliant", "danger"],
+  ["not_applicable", "Not applicable", "neutral"],
+]);
+/**
+ * A requirement's answer as the compliance matrix reads it: the program's answer, or Unanswered
+ * while nobody has given one, which is never counted as non-compliant.
+ */
+export const complianceAnswers = vocabulary([
+  ["compliant", "Compliant", "success"],
+  ["partially_compliant", "Partially compliant", "warning"],
+  ["non_compliant", "Non-compliant", "danger"],
+  ["not_applicable", "Not applicable", "neutral"],
+  ["unanswered", "Unanswered", "information"],
+]);
+/** How an element behind a control or a requirement stands in a variant against its product. */
+export const elementStandings = vocabulary([
+  ["inherited", "Inherited", "success"],
+  ["modified", "Modified", "warning"],
+  ["removed", "Removed", "neutral"],
+  ["own", "Program's own", "information"],
+]);
 
 /* ——— Systems, components and products ——————————————————————————————————————————————————————— */
 
@@ -287,6 +334,15 @@ export const baselineControlStatuses = vocabulary([
   ["not_selected", "Not selected", "neutral"],
 ]);
 /**
+ * What one decision of an overlay does to the baseline beneath it, as `control_overlay_decisions`
+ * stores it: it adds a control the baseline lacks, or removes one the baseline selects. An
+ * overlay's own State is a revision's (`revisionStates`): a draft, or published and frozen.
+ */
+export const overlayDecisionActions = vocabulary([
+  ["include", "Adds", "success"],
+  ["exclude", "Removes", "warning"],
+]);
+/**
  * Where a program stands on a control of its control baseline: the furthest step it has reached,
  * as `program_control_status` answers it. The first three say what the program records against
  * the control; the last three are an assessor's determination, in RMF's words.
@@ -298,6 +354,58 @@ export const controlStatuses = vocabulary([
   ["other_than_satisfied", "Other than satisfied", "danger"],
   ["partially_satisfied", "Partially satisfied", "warning"],
   ["satisfied", "Satisfied", "success"],
+]);
+/**
+ * Whose determination a program's control status is, as `program_control_status` answers it: an
+ * assessor of the program's own campaigns, or the product assessment every product variant of the
+ * program inherits the control from. Neutral both: the status beside it carries the judgment.
+ */
+export const controlDeterminers = vocabulary([
+  ["program", "Program assessment", "neutral"],
+  ["product", "Product assessment", "neutral"],
+]);
+/**
+ * What a product version gives for a control, for its core or one configuration, as
+ * `product_control_status` answers it: nothing of the product claims the control, an element claims
+ * it and nobody judged it, or the worst determination on the elements in scope.
+ */
+export const productControlStatuses = vocabulary([
+  ["not_covered", "Not covered", "neutral"],
+  ["not_assessed", "Not assessed", "information"],
+  ["other_than_satisfied", "Other than satisfied", "danger"],
+  ["partially_satisfied", "Partially satisfied", "warning"],
+  ["satisfied", "Satisfied", "success"],
+]);
+/**
+ * Where a control of a variant's control baseline stands against the product it was created
+ * from, as `variant_control_delta` answers it, from what the program owes most to what it owes
+ * nothing: the whole control, a new assessment, its own part, or nothing.
+ */
+export const variantDeltas = vocabulary([
+  ["program_only", "Program only", "neutral"],
+  ["changed_here", "Changed here", "warning"],
+  ["shared", "Shared", "information"],
+  ["inherited", "Inherited", "success"],
+]);
+/**
+ * What becomes of an element when a variant takes a newer version of its product, what is new
+ * first: created here, handed to the program, left out, and kept (with the program's change or as
+ * the product delivers it).
+ */
+export const versionOutcomes = vocabulary([
+  ["added", "Added", "information"],
+  ["released", "Program's own", "warning"],
+  ["skipped", "Not added", "neutral"],
+  ["stays_removed", "Stays removed", "neutral"],
+  ["kept_modified", "Kept, still modified", "warning"],
+  ["kept", "Kept", "success"],
+]);
+/** What meets a requirement of a customer's document, read from the elements it is allocated to. */
+export const requirementMetBy = vocabulary([
+  ["product", "Product", "success"],
+  ["variant_change", "Variant change", "warning"],
+  ["program", "Program", "information"],
+  ["unallocated", "Not allocated", "neutral"],
 ]);
 export const referenceResolutionStatuses = vocabulary([
   ["resolved", "Resolved", "success"],
@@ -311,7 +419,8 @@ export const severityLevels = level([
   ["low", "Low", "neutral"],
   ["moderate", "Moderate", "warning"],
   ["high", "High", "danger"],
-  ["critical", "Critical", "danger"],
+  // Critical and High share the danger tone; Critical's word is bold so the two never read alike.
+  ["critical", "Critical", "danger", "bold"],
 ]);
 /** FIPS 199 confidentiality, integrity and availability impact. */
 export const impactLevels = level([
@@ -358,6 +467,7 @@ const revisionTables = [
   "poam_item_revisions",
   "poam_revisions",
   "procedure_revisions",
+  "product_assessments",
   "product_revisions",
   "profile_resolutions",
   "profile_revisions",
@@ -378,10 +488,12 @@ export const fieldVocabularies: Readonly<
   assessment_events: { status: campaignStatuses },
   assessment_findings: { determination: determinations },
   authorization_decisions: { decision: authorizationDecisions },
+  business_lines: { state: recordLifecycleStates },
   cci_items: { status: cciStatuses },
   cci_references: { resolution_status: referenceResolutionStatuses },
   change_requests: { status: changeRequestStatuses },
   component_contributions: { implementation_status: implementationStatuses },
+  control_overlay_decisions: { action: overlayDecisionActions },
   controls: { status: controlPublicationStatuses },
   defined_component_implementations: { implementation_status: implementationStatuses },
   evidence_reviews: { decision: evidenceReviewDecisions },
@@ -398,9 +510,11 @@ export const fieldVocabularies: Readonly<
   poam_items: { status: remediationStatuses },
   poam_milestones: { status: milestoneStatuses },
   product_configurations: { state: recordLifecycleStates },
+  product_determinations: { determination: determinations },
   products: { state: recordLifecycleStates },
   programs: { status: programStatuses },
   requirement_applicability: { decision: applicabilityDecisions },
+  requirement_compliance: { status: complianceStatuses },
   review_decisions: { decision: reviewDecisions },
   risk_revisions: {
     state: revisionStates,
@@ -499,6 +613,7 @@ const byValue: readonly StatusVocabulary[] = [
   changeRequestStatuses,
   stepDeterminations,
   applicabilityDecisions,
+  complianceStatuses,
   evidenceUseDecisions,
   systemLifecycleStatuses,
   componentStatuses,
@@ -508,6 +623,7 @@ const byValue: readonly StatusVocabulary[] = [
   ingestionJobStatuses,
   cciStatuses,
   controlPublicationStatuses,
+  overlayDecisionActions,
   referenceResolutionStatuses,
   severityLevels,
   impactLevels,

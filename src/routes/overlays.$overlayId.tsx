@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import {
   Alert,
   AlertDescription,
@@ -27,6 +27,7 @@ import { QueryValue } from "@/components/prototype/library-shared";
 import { canAuthorLibrary } from "@/components/prototype/library-utils";
 import { OverlayDecisions, useOverlayDecisions } from "@/components/prototype/overlay-decisions";
 import { OverlayDialog, useCatalogEditions } from "@/components/prototype/overlay-dialog";
+import { OverlayParameters, useOverlayParameters } from "@/components/prototype/overlay-parameters";
 import { RecordTrail, TrailLink } from "@/components/prototype/record-trail";
 import {
   DetailFacts,
@@ -35,9 +36,13 @@ import {
   RecordActions,
   ReportFailures,
 } from "@/components/prototype/work-common";
-import { usePublishControlOverlay, type ControlOverlay } from "@/lib/control-overlays";
+import {
+  useDeleteControlOverlay,
+  usePublishControlOverlay,
+  type ControlOverlay,
+} from "@/lib/control-overlays";
 import { useRow } from "@/lib/models";
-import { revisionStates } from "@/lib/status";
+import { overlayDecisionActions, revisionStates } from "@/lib/status";
 
 export const Route = createFileRoute("/overlays/$overlayId")({
   component: OverlayRoute,
@@ -63,8 +68,12 @@ function OverlayRecord({ overlayId }: { overlayId: string }) {
   useRecordTitle("Overlay", overlay?.title);
   // The same read the Control decisions section draws: Details counts it and Publish waits on it.
   const decisions = useOverlayDecisions(overlayId);
+  // And the parameter values the Parameter values section draws: Details counts them too.
+  const parameters = useOverlayParameters(overlayId);
   const editions = useCatalogEditions();
   const publish = usePublishControlOverlay();
+  const remove = useDeleteControlOverlay();
+  const navigate = useNavigate();
   const { confirm, confirmation } = useConfirmation();
   const [editing, setEditing] = useState(false);
   // What this page's last write answered, until the overlay read back carries it: the next write
@@ -80,19 +89,30 @@ function OverlayRecord({ overlayId }: { overlayId: string }) {
   const canAuthor = draft && canAuthorLibrary(workspace.role);
   const count = (action: "include" | "exclude") =>
     formatNumber((decisions.data ?? []).filter((decision) => decision.action === action).length);
-  const publishWaits = decisions.isError
-    ? "The control decisions could not be loaded."
-    : !decisions.data
-      ? "The control decisions are still loading."
-      : decisions.data.length === 0
-        ? "Add a control decision before publishing."
-        : undefined;
+  const publishWaits =
+    decisions.isError || parameters.isError
+      ? "The control decisions or parameter values could not be loaded."
+      : !decisions.data || !parameters.data
+        ? "The control decisions and parameter values are still loading."
+        : decisions.data.length === 0 && parameters.data.length === 0
+          ? "Add a control decision or a parameter value before publishing."
+          : undefined;
+  /** "12 control decisions and 3 parameter values", as a confirmation counts what goes with it. */
+  const contents = () => {
+    const decided = decisions.data?.length ?? 0;
+    const set = parameters.data?.length ?? 0;
+    return [
+      ...(decided
+        ? [`${formatNumber(decided)} control ${decided === 1 ? "decision" : "decisions"}`]
+        : []),
+      ...(set ? [`${formatNumber(set)} parameter ${set === 1 ? "value" : "values"}`] : []),
+    ].join(" and ");
+  };
   async function publishOverlay() {
     if (!overlay || publishWaits) return;
-    const total = decisions.data?.length ?? 0;
     const published = await confirm({
       title: "Publish overlay?",
-      description: `Programs will be able to apply ${overlay.title}. Its ${formatNumber(total)} control ${total === 1 ? "decision" : "decisions"}, code, name and description can no longer change.`,
+      description: `Programs will be able to apply ${overlay.title}. Its ${contents()}, code, name and description can no longer change.`,
       confirmLabel: "Publish overlay",
       variant: "primary",
       failureTitle: "The overlay was not published",
@@ -106,6 +126,27 @@ function OverlayRecord({ overlayId }: { overlayId: string }) {
       title: "Overlay published",
       description: `Programs can now apply ${overlay.title}.`,
     });
+  }
+  /** Delete overlay: a draft no program applies goes, with its decisions, and the register opens. */
+  async function deleteOverlay() {
+    if (!overlay) return;
+    const loaded = decisions.data !== undefined && parameters.data !== undefined;
+    const held = contents();
+    const deleted = await confirm({
+      title: "Delete overlay?",
+      description: `${overlay.title}${!loaded ? " and its control decisions and parameter values" : held ? ` and its ${held}` : ""} will be deleted. A deleted overlay cannot be restored.`,
+      confirmLabel: "Delete overlay",
+      variant: "danger",
+      failureTitle: "The overlay was not deleted",
+      action: () => remove.mutateAsync({ overlayId: overlay.id, expectedRevision: revision() }),
+    });
+    if (!deleted) return;
+    toast.add({
+      type: "success",
+      title: "Overlay deleted",
+      description: `${overlay.code} is no longer in the library.`,
+    });
+    void navigate({ to: "/overlays" });
   }
   return (
     <Page>
@@ -144,6 +185,11 @@ function OverlayRecord({ overlayId }: { overlayId: string }) {
                       Publish overlay
                     </DropdownMenuItem>
                   )}
+                  {canAuthor && (
+                    <DropdownMenuItem variant="danger" onClick={() => void deleteOverlay()}>
+                      Delete overlay
+                    </DropdownMenuItem>
+                  )}
                 </RecordActions>
               </PageHeader.Actions>
             </PageHeader>
@@ -178,12 +224,18 @@ function OverlayRecord({ overlayId }: { overlayId: string }) {
                           </QueryValue>,
                         ],
                         [
-                          "Adds",
+                          overlayDecisionActions.include.label,
                           <QueryValue queries={[decisions]}>{() => count("include")}</QueryValue>,
                         ],
                         [
-                          "Removes",
+                          overlayDecisionActions.exclude.label,
                           <QueryValue queries={[decisions]}>{() => count("exclude")}</QueryValue>,
+                        ],
+                        [
+                          "Parameters",
+                          <QueryValue queries={[parameters]}>
+                            {() => formatNumber(parameters.data?.length ?? 0)}
+                          </QueryValue>,
                         ],
                         ["Updated", <DateTime value={overlay.updated_at} format="date" />],
                       ]}
@@ -209,6 +261,12 @@ function OverlayRecord({ overlayId }: { overlayId: string }) {
                   </Section>
                 ) : null}
                 <OverlayDecisions
+                  overlay={overlay}
+                  revision={revision}
+                  canAuthor={canAuthor}
+                  onSaved={saved}
+                />
+                <OverlayParameters
                   overlay={overlay}
                   revision={revision}
                   canAuthor={canAuthor}

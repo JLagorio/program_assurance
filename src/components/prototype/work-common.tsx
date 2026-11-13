@@ -384,6 +384,7 @@ const missingRecordDestinations = {
   "/packages": "Open authorization packages",
   "/profiles": "Open profiles",
   "/library/components": "Open components",
+  "/library/business-lines": "Open business lines",
   "/library/products": "Open products",
   "/library/requirements": "Open requirements",
 } as const;

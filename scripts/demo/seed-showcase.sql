@@ -10,14 +10,13 @@ create temp table showcase_tracked (
   destination_table text not null, destination_id uuid not null, source_key text not null, section text not null
 ) on commit drop;
 create temp table showcase_ir_map (source_ir uuid, new_ir uuid not null, control_id uuid not null) on commit drop;
+-- The controls of the program whose requirements cite evidence, read as program_control_status
+-- reads them: only these take a determination.
+create temp table showcase_evidenced (control_id uuid primary key) on commit drop;
 
 -- A stable identity for a showcase record: the same workspace and key give the same id.
 create function pg_temp.sid(p_tenant uuid, p_key text) returns uuid language sql immutable as $$
   select md5(p_tenant::text || '/showcase-v1/' || p_key)::uuid
-$$;
--- A stable spread over 0..99, so a control or an artifact lands in the same bucket every time.
-create function pg_temp.bucket(p_key text) returns integer language sql immutable as $$
-  select ('x' || substr(md5(p_key), 1, 7))::bit(28)::integer % 100
 $$;
 create function pg_temp.track(p_table text, p_id uuid, p_key text, p_section text) returns uuid
 language sql as $$
@@ -107,10 +106,65 @@ begin
   select 'component_contributions', c.id, p_key || '/contribution/' || c.id, 'ssp' from public.component_contributions c where c.ssp_revision_id = p_new;
 end $$;
 
+-- One results revision's determinations, as scripts/seed-demo-showcase.mjs reads them from the
+-- archived assessment results: each on its control's statement, citing the evidence the archived
+-- result examined and, for a failure, the observation the import recorded for the finding it
+-- raised. A determination on a control whose requirements cite no evidence is left out, so the
+-- control still reads No evidence; not assessed decides nothing and is kept with its reason.
+create function pg_temp.write_determinations(p jsonb, p_results uuid, p_set uuid, p_list jsonb, p_key text, p_resolution uuid)
+returns integer language plpgsql as $$
+declare
+  t uuid := (p->>'tenantId')::uuid;
+  v_item jsonb; v_control public.controls; v_part uuid; v_finding uuid; v_key text; v_code text;
+  v_version uuid; v_observation uuid; v_written integer := 0;
+begin
+  for v_item in select value from jsonb_array_elements(p_list) loop
+    select k.* into v_control from public.selected_controls sc join public.controls k on k.id = sc.control_id
+      where sc.profile_resolution_id = p_resolution and k.code = v_item->>'control';
+    if v_control.id is null then
+      raise exception 'The archived results judge %, which the program''s control baseline does not select.', v_item->>'control';
+    end if;
+    continue when v_item->>'determination' <> 'not_assessed'
+      and not exists (select 1 from pg_temp.showcase_evidenced e where e.control_id = v_control.id);
+    select cp.id into v_part from public.control_parts cp
+      where cp.control_id = v_control.id and cp.name = 'statement' and cp.parent_part_id is null order by cp.id limit 1;
+    if v_part is null then raise exception '% has no statement to judge.', v_control.code; end if;
+    v_key := 'assessment_findings/' || p_key || '/' || v_control.code;
+    v_finding := pg_temp.sid(t, v_key);
+    insert into public.assessment_findings (id, tenant_id, assessment_results_revision_id, result_set_id, target_control_part_id, title, description, determination, assessor_party_id, determined_at)
+      values (v_finding, t, p_results, p_set, v_part, v_control.code || ' ' || v_control.title, v_item->>'description',
+        v_item->>'determination', pg_temp.person(p, 'assessor'), (v_item->>'determinedAt')::timestamptz);
+    perform pg_temp.track('assessment_findings', v_finding, v_key, 'assessments');
+    for v_code in select jsonb_array_elements_text(v_item->'evidence') loop
+      select r.destination_id into v_version from public.demo_import_records r
+        where r.tenant_id = t and r.dataset_id = p->>'legacyDatasetId' and r.destination_table = 'evidence_versions'
+          and r.source_key = v_code || ':1';
+      if v_version is null then
+        raise exception 'Evidence % that the archived results examine is not in this workspace. Run the demo import first.', v_code;
+      end if;
+      insert into public.finding_evidence (id, tenant_id, finding_id, evidence_version_id, claim)
+        values (pg_temp.sid(t, v_key || '/evidence/' || v_code), t, v_finding, v_version, p->'assessments'->>'claim');
+      perform pg_temp.track('finding_evidence', pg_temp.sid(t, v_key || '/evidence/' || v_code), v_key || '/evidence/' || v_code, 'assessments');
+    end loop;
+    if v_item->>'finding' is not null then
+      select r.destination_id into v_observation from public.demo_import_records r
+        where r.tenant_id = t and r.dataset_id = p->>'legacyDatasetId' and r.destination_table = 'observations'
+          and r.source_key = (v_item->>'finding') || '/assessment';
+      if v_observation is null then
+        raise exception 'The observation of finding % is not in this workspace. Run the demo import first.', v_item->>'finding';
+      end if;
+      insert into public.finding_observations (id, tenant_id, finding_id, observation_id, assessment_results_revision_id)
+        values (pg_temp.sid(t, v_key || '/observation'), t, v_finding, v_observation, p_results);
+      perform pg_temp.track('finding_observations', pg_temp.sid(t, v_key || '/observation'), v_key || '/observation', 'assessments');
+    end if;
+    v_written := v_written + 1;
+  end loop;
+  return v_written;
+end $$;
+
 create function pg_temp.seed_showcase(p jsonb) returns jsonb language plpgsql as $seed$
 declare
   t uuid := (p->>'tenantId')::uuid;
-  v_as_of date := (p->>'asOf')::date;
   v_program uuid; v_boundary uuid; v_catalog uuid; v_choice public.program_reference_choices;
   v_base_code text; v_tailored uuid; v_decisions jsonb; v_params jsonb; v_planned jsonb;
   v_item jsonb; v_entry jsonb; v_name text; v_code text; v_id uuid; v_other uuid; v_ver integer;
@@ -330,10 +384,22 @@ begin
   from jsonb_each(p->'tailoredProgress') g, public.selected_controls sc, public.controls k
   where i.ssp_revision_id = v_ssp3 and sc.id = i.selected_control_id and k.id = sc.control_id and k.code = g.key;
 
+  -- WS-X90's two assessments, as the archived prototype recorded them: each archived result is a
+  -- determination on its control (pg_temp.write_determinations), and only a control whose
+  -- requirements cite evidence takes one.
+  insert into pg_temp.showcase_evidenced
+  select distinct l.control_id
+  from public.requirement_control_links l
+  join public.requirement_revisions v on v.tenant_id = l.tenant_id and v.id = l.requirement_revision_id
+  join public.engineering_requirements q on q.tenant_id = v.tenant_id and q.id = v.engineering_requirement_id
+  join public.requirement_evidence re on re.requirement_revision_id = v.id
+  join public.evidence_versions ev on ev.tenant_id = re.tenant_id and ev.id = re.evidence_version_id
+  where q.tenant_id = t and q.program_id = v_program
+    and v.version_number = (select max(x.version_number) from public.requirement_revisions x
+      where x.tenant_id = v.tenant_id and x.engineering_requirement_id = v.engineering_requirement_id);
+
   -- The initial authorization assessment: its plan pins SSP 2, its published results judge the
-  -- tailored baseline. A control the program's requirements meet with evidence is mostly
-  -- satisfied; one they meet without evidence is sometimes found short; one no requirement meets
-  -- is left unjudged. The spread is a stable hash of the control's code.
+  -- original 74-control scope.
   select id into v_campaign from public.assessment_campaigns
     where tenant_id = t and program_id = v_program and title = p->'assessments'->'initial'->>'campaign';
   if v_campaign is null then
@@ -357,51 +423,14 @@ begin
   insert into public.result_sets (id, tenant_id, assessment_results_revision_id, title, starts_at, ends_at)
     values (v_set, t, v_initial_results, p->'assessments'->'initial'->>'resultSet',
       (p->'assessments'->'initial'->>'startsAt')::timestamptz, (p->'assessments'->'initial'->>'endsAt')::timestamptz);
-  with standing as (
-    select k.id as control_id, k.code, k.title, pg_temp.bucket(k.code || '/initial') as b,
-      exists (
-        select 1 from public.requirement_control_links l
-        join public.requirement_revisions v on v.id = l.requirement_revision_id
-        join public.engineering_requirements q on q.id = v.engineering_requirement_id
-        where q.tenant_id = t and q.program_id = v_program and l.control_id = k.id
-          and v.version_number = (select max(x.version_number) from public.requirement_revisions x
-            where x.engineering_requirement_id = v.engineering_requirement_id)
-      ) as met,
-      exists (
-        select 1 from public.requirement_control_links l
-        join public.requirement_revisions v on v.id = l.requirement_revision_id
-        join public.engineering_requirements q on q.id = v.engineering_requirement_id
-        join public.requirement_evidence re on re.requirement_revision_id = v.id
-        where q.tenant_id = t and q.program_id = v_program and l.control_id = k.id
-          and v.version_number = (select max(x.version_number) from public.requirement_revisions x
-            where x.engineering_requirement_id = v.engineering_requirement_id)
-      ) as evidenced
-    from public.selected_controls sc join public.controls k on k.id = sc.control_id
-    where sc.profile_resolution_id = v_tailored
-  ), judged as (
-    select s.*, case
-      when s.evidenced then case when s.b < 65 then 'satisfied' when s.b < 80 then 'partially_satisfied' when s.b < 86 then 'other_than_satisfied' end
-      when s.met then case when s.b < 15 then 'other_than_satisfied' when s.b < 25 then 'partially_satisfied' end
-    end as determination
-    from standing s
-  )
-  insert into public.assessment_findings (id, tenant_id, assessment_results_revision_id, result_set_id, target_control_part_id, title, description, determination, assessor_party_id, determined_at)
-  select pg_temp.sid(t, 'assessment_findings/initial/' || j.code), t, v_initial_results, v_set, part.id, j.code || ' ' || j.title,
-    p->'assessments'->'narrative'->>j.determination, j.determination, pg_temp.person(p, 'assessor'),
-    (p->'assessments'->'initial'->>'startsAt')::timestamptz + make_interval(days => j.b % 19, hours => j.b % 7)
-  from judged j
-  join lateral (select cp.id from public.control_parts cp where cp.control_id = j.control_id and cp.name = 'statement'
-    and cp.parent_part_id is null order by cp.id limit 1) part on true
-  where j.determination is not null;
-  insert into pg_temp.showcase_tracked
-    select 'assessment_findings', id, 'assessment_findings/' || id, 'assessments' from public.assessment_findings where assessment_results_revision_id = v_initial_results;
+  perform pg_temp.write_determinations(p, v_initial_results, v_set, p->'assessments'->'initial'->'determinations', 'initial', v_tailored);
   update public.assessment_results_revisions set state = 'published', revision = revision + 1, published_by_party_id = pg_temp.person(p, 'controlAssessor'),
     published_at = (p->'assessments'->'initial'->>'resultsPublishedAt')::timestamptz where id = v_initial_results;
   perform pg_temp.track('assessment_results_revisions', v_initial_results, 'assessment_results_revisions/initial', 'assessments');
   perform pg_temp.track('result_sets', v_set, 'result_sets/initial', 'assessments');
 
-  -- The expanded control set assessment, under way: a published plan and draft interim results,
-  -- which decide nothing until they are published.
+  -- The expanded control set assessment, under way: a published plan, its first increment's
+  -- results published and the second's a draft, which decides nothing until it is published.
   select id into v_campaign from public.assessment_campaigns
     where tenant_id = t and program_id = v_program and title = p->'assessments'->'expanded'->>'campaign';
   if v_campaign is not null then
@@ -416,26 +445,21 @@ begin
     update public.assessment_plan_revisions set state = 'published', revision = revision + 1, published_by_party_id = pg_temp.person(p, 'controlAssessor'),
       published_at = (p->'assessments'->'expanded'->>'planPublishedAt')::timestamptz where id = v_plan;
     perform pg_temp.track('assessment_plan_revisions', v_plan, 'assessment_plan_revisions/expanded', 'assessments');
-    v_results := pg_temp.sid(t, 'assessment_results_revisions/expanded');
-    insert into public.assessment_results_revisions (id, tenant_id, version_number, state, assessment_plan_revision_id, title, description)
-      values (v_results, t, 1, 'draft', v_plan, p->'assessments'->'expanded'->>'results', p->'assessments'->'expanded'->>'resultsDescription');
-    perform pg_temp.track('assessment_results_revisions', v_results, 'assessment_results_revisions/expanded', 'assessments');
-    v_set := pg_temp.sid(t, 'result_sets/expanded');
-    insert into public.result_sets (id, tenant_id, assessment_results_revision_id, title, starts_at)
-      values (v_set, t, v_results, p->'assessments'->'expanded'->>'resultSet', (p->'assessments'->'expanded'->>'startsAt')::timestamptz);
-    perform pg_temp.track('result_sets', v_set, 'result_sets/expanded', 'assessments');
-    -- Re-tests of what the initial assessment found short, so far.
-    insert into public.assessment_findings (id, tenant_id, assessment_results_revision_id, result_set_id, target_control_part_id, title, description, determination, assessor_party_id, determined_at)
-    select pg_temp.sid(t, 'assessment_findings/expanded/' || f.id), t, v_results, v_set, f.target_control_part_id, f.title,
-      p->'assessments'->'narrative'->>x.determination, x.determination, pg_temp.person(p, 'assessor'),
-      (p->'assessments'->'expanded'->>'startsAt')::timestamptz
-        + make_interval(days => pg_temp.bucket(f.title || '/expanded') % greatest(1, v_as_of - ((p->'assessments'->'expanded'->>'startsAt')::date)))
-    from public.assessment_findings f
-    cross join lateral (select case when pg_temp.bucket(f.title || '/expanded') < 60 then 'satisfied' else 'partially_satisfied' end as determination) x
-    where f.assessment_results_revision_id = v_initial_results and f.determination <> 'satisfied'
-      and pg_temp.bucket(f.title || '/retested') < 50;
-    insert into pg_temp.showcase_tracked
-      select 'assessment_findings', id, 'assessment_findings/' || id, 'assessments' from public.assessment_findings where assessment_results_revision_id = v_results;
+    for v_entry, v_ordinal in select value, n from jsonb_array_elements(p->'assessments'->'expanded'->'increments') with ordinality x(value, n) loop
+      v_results := pg_temp.sid(t, 'assessment_results_revisions/expanded/' || v_ordinal);
+      insert into public.assessment_results_revisions (id, tenant_id, version_number, state, assessment_plan_revision_id, title, description)
+        values (v_results, t, v_ordinal, 'draft', v_plan, v_entry->>'results', v_entry->>'resultsDescription');
+      v_set := pg_temp.sid(t, 'result_sets/expanded/' || v_ordinal);
+      insert into public.result_sets (id, tenant_id, assessment_results_revision_id, title, starts_at, ends_at)
+        values (v_set, t, v_results, v_entry->>'resultSet', (v_entry->>'startsAt')::timestamptz, (v_entry->>'endsAt')::timestamptz);
+      perform pg_temp.write_determinations(p, v_results, v_set, v_entry->'determinations', 'expanded/' || v_ordinal, v_tailored);
+      if v_entry ? 'publishedAt' then
+        update public.assessment_results_revisions set state = 'published', revision = revision + 1, published_by_party_id = pg_temp.person(p, 'controlAssessor'),
+          published_at = (v_entry->>'publishedAt')::timestamptz where id = v_results;
+      end if;
+      perform pg_temp.track('assessment_results_revisions', v_results, 'assessment_results_revisions/expanded/' || v_ordinal, 'assessments');
+      perform pg_temp.track('result_sets', v_set, 'result_sets/expanded/' || v_ordinal, 'assessments');
+    end loop;
   else
     v_skipped := v_skipped || jsonb_build_object('campaign', p->'assessments'->'expanded'->>'campaign', 'reason', 'not in this workspace');
   end if;
@@ -584,21 +608,44 @@ begin
     end loop;
   end loop;
 
-  -- An assessor's review of each published WS-X90 evidence version that has none.
+  -- ——— Issue requirements: begin (issue_requirements, migration operational_issue_requirements) ———
+  -- The requirement each named WS-X90 operational issue is about: six "Unmet requirement" issues
+  -- that cite no evidence, and so stand nowhere on the program's Posture until they name it.
+  for v_name, v_code in select key, value from jsonb_each_text(p->'issueRequirements') loop
+    select id into v_other from public.operational_issues
+      where tenant_id = t and program_id = v_program and title = v_name order by id limit 1;
+    if v_other is null then
+      v_skipped := v_skipped || jsonb_build_object('issue', v_name, 'reason', 'not in this workspace');
+      continue;
+    end if;
+    select id into v_cap from public.engineering_requirements
+      where tenant_id = t and program_id = v_program and code = v_code;
+    if v_cap is null then
+      raise exception 'Requirement % is not in %. Run the demo import (npm run seed:demo) first.', v_code, p->>'programCode';
+    end if;
+    continue when exists (select 1 from public.issue_requirements
+      where tenant_id = t and issue_id = v_other and engineering_requirement_id = v_cap);
+    v_id := pg_temp.sid(t, 'issue_requirements/' || v_other || '/' || v_code);
+    insert into public.issue_requirements (id, tenant_id, program_id, issue_id, engineering_requirement_id)
+      values (v_id, t, v_program, v_other, v_cap);
+    perform pg_temp.track('issue_requirements', v_id, 'issue_requirements/' || v_other || '/' || v_code, 'issueRequirements');
+  end loop;
+  -- ——— Issue requirements: end ———
+
+  -- An assessor's review of each published WS-X90 evidence version that has none, as the archived
+  -- results examined it: accepted, needs revision, or pending where no result has examined it yet.
   insert into public.evidence_reviews (id, tenant_id, evidence_version_id, reviewer_party_id, decision, rationale, reviewed_at)
-  select pg_temp.sid(t, 'evidence_reviews/' || ev.id), t, ev.id, pg_temp.person(p, 'assessor'), x.decision,
-    case when x.decision = 'pending' then null else p->'evidenceReview'->>x.decision end,
-    case when x.decision = 'pending' then null
-      else (p->'evidenceReview'->>'reviewedFrom')::timestamptz + make_interval(days => pg_temp.bucket(a.title) % 17) end
+  select pg_temp.sid(t, 'evidence_reviews/' || ev.id), t, ev.id, pg_temp.person(p, 'assessor'),
+    coalesce(x.value->>'decision', 'pending'), x.value->>'rationale', (x.value->>'reviewedAt')::timestamptz
   from public.evidence_versions ev
   join public.evidence_artifacts a on a.id = ev.artifact_id
-  cross join lateral (select case when pg_temp.bucket(a.title || '/' || ev.version_number) < 78 then 'accepted'
-    when pg_temp.bucket(a.title || '/' || ev.version_number) < 87 then 'needs_revision'
-    when pg_temp.bucket(a.title || '/' || ev.version_number) < 90 then 'rejected' else 'pending' end as decision) x
+  left join public.demo_import_records r on r.tenant_id = t and r.dataset_id = p->>'legacyDatasetId'
+    and r.destination_table = 'evidence_versions' and r.destination_id = ev.id
+  left join jsonb_each(p->'evidenceReviews') x on x.key = split_part(r.source_key, ':', 1)
   where ev.tenant_id = t and a.program_id = v_program and ev.state = 'published'
-    and not exists (select 1 from public.evidence_reviews r where r.evidence_version_id = ev.id);
+    and not exists (select 1 from public.evidence_reviews rv where rv.evidence_version_id = ev.id);
   insert into pg_temp.showcase_tracked
-    select 'evidence_reviews', r.id, 'evidence_reviews/' || r.id, 'evidenceReview' from public.evidence_reviews r
+    select 'evidence_reviews', r.id, 'evidence_reviews/' || r.id, 'evidenceReviews' from public.evidence_reviews r
     where r.tenant_id = t and r.id = pg_temp.sid(t, 'evidence_reviews/' || r.evidence_version_id);
 
   -- What the program's Overview will count, read as the account the seed names.
@@ -638,3 +685,105 @@ begin
   );
 end;
 $seed$;
+
+-- What WS-X90's risks say of the threat and the weakness behind each, why each carries its
+-- likelihood and impact, and when each response is due (showcase-scenario.mjs, riskAssessments).
+-- Written into each risk's latest revision while it is a draft, and only where a field is empty,
+-- so a second run changes nothing. It runs after pg_temp.seed_showcase, on the showcase's first run
+-- and on a workspace that already holds the showcase, and records what it changed under the
+-- showcase's batch: the section it read, and how many revisions and responses it filled.
+create function pg_temp.showcase_list(p_items text[]) returns text language sql immutable as $$
+  select case when cardinality(p_items) < 2 then coalesce(p_items[1], '')
+    else array_to_string(p_items[1:cardinality(p_items) - 1], ', ') || ' and ' || p_items[cardinality(p_items)] end
+$$;
+create function pg_temp.seed_showcase_risk_details(p jsonb) returns jsonb language plpgsql as $details$
+declare
+  t uuid := (p->>'tenantId')::uuid;
+  a jsonb := p->'riskAssessments';
+  v_program uuid; v_batch uuid; v_revisions integer := 0; v_responses integer := 0; v_count integer;
+begin
+  perform pg_advisory_xact_lock(hashtextextended(t::text || '/demo-showcase', 0));
+  select id into v_batch from public.demo_import_batches where tenant_id = t and dataset_id = p->>'datasetId';
+  if v_batch is null then
+    return jsonb_build_object('changed', false, 'reason', 'This workspace does not hold the showcase.');
+  end if;
+  select id into v_program from public.programs where tenant_id = t and code = p->>'programCode';
+
+  -- A risk the archive tells a story for, by its title.
+  update public.risk_revisions v set
+      threat = coalesce(v.threat, x.value->>0),
+      vulnerability = coalesce(v.vulnerability, x.value->>1),
+      assessment_rationale = coalesce(v.assessment_rationale, x.value->>2)
+    from public.risks r, jsonb_each(a->'risks') x
+    where r.tenant_id = t and r.program_id = v_program and r.title = x.key
+      and v.tenant_id = t and v.risk_id = r.id and v.state = 'draft'
+      and v.version_number = (select max(y.version_number) from public.risk_revisions y where y.risk_id = r.id)
+      and (v.threat is null or v.vulnerability is null or v.assessment_rationale is null);
+  get diagnostics v_count = row_count;
+  v_revisions := v_revisions + v_count;
+
+  -- A risk the import made from a failed requirement, written from the requirement: its kind (the
+  -- second word of its title), its code, the controls it maps and the elements it is allocated to.
+  update public.risk_revisions v set
+      threat = coalesce(v.threat, replace(replace(w.words->>0, '{controls}', q.controls), '{elements}', q.elements)),
+      vulnerability = coalesce(v.vulnerability,
+        replace(replace(replace(w.words->>1, '{requirement}', q.code), '{controls}', q.controls), '{elements}', q.elements)),
+      assessment_rationale = coalesce(v.assessment_rationale,
+        replace(replace(replace(replace(replace(a->'fromRequirement'->>'rationale',
+          '{likelihood}', a->'levels'->>v.likelihood), '{impact}', a->'levels'->>v.impact),
+          '{requirement}', q.code), '{controls}', q.controls), '{elements}', q.elements))
+    from public.risks r
+    cross join lateral (
+      select q.code, split_part(qv.title, ' ', 2) as kind,
+        pg_temp.showcase_list(array(select distinct k.code from public.requirement_control_links l
+          join public.controls k on k.id = l.control_id where l.requirement_revision_id = qv.id order by k.code)) as controls,
+        pg_temp.showcase_list(array(select distinct s.name from public.requirement_allocations al
+          join public.systems s on s.id = al.system_id where al.requirement_revision_id = qv.id order by s.name)) as elements
+      from public.engineering_requirements q
+      join public.requirement_revisions qv on qv.engineering_requirement_id = q.id
+        and qv.version_number = (select max(z.version_number) from public.requirement_revisions z where z.engineering_requirement_id = q.id)
+      where q.tenant_id = t and q.program_id = v_program and q.code = substring(r.title from 'REQ-[0-9]+')
+    ) q
+    cross join lateral (select a->'fromRequirement'->q.kind as words) w
+    where r.tenant_id = t and r.program_id = v_program and r.title ~ '^Risk arising from REQ-[0-9]+$' and w.words is not null
+      and v.tenant_id = t and v.risk_id = r.id and v.state = 'draft'
+      and v.version_number = (select max(y.version_number) from public.risk_revisions y where y.risk_id = r.id)
+      and (v.threat is null or v.vulnerability is null or v.assessment_rationale is null);
+  get diagnostics v_count = row_count;
+  v_revisions := v_revisions + v_count;
+
+  -- Each response is due a span after the risk's trouble was first found, by the response and the
+  -- risk's severity: the earliest day an issue it rests on was opened.
+  update public.risk_responses x set
+      due_at = (((f.first_found at time zone 'UTC')::date + (a->'due'->x.response_type->>v.severity)::integer)::text || 'T' || (a->>'dueAt'))::timestamptz
+    from public.risk_revisions v
+    join public.risks r on r.id = v.risk_id
+    cross join lateral (
+      select min(i.opened_at) as first_found
+      from public.risk_observations ro
+      join public.issue_observations io on io.tenant_id = ro.tenant_id and io.observation_id = ro.observation_id
+      join public.operational_issues i on i.tenant_id = io.tenant_id and i.id = io.issue_id
+      where ro.tenant_id = t and ro.risk_revision_id = v.id
+    ) f
+    where x.tenant_id = t and x.risk_revision_id = v.id and x.due_at is null
+      and r.tenant_id = t and r.program_id = v_program and v.state = 'draft'
+      and v.version_number = (select max(y.version_number) from public.risk_revisions y where y.risk_id = r.id)
+      and f.first_found is not null and a->'due'->x.response_type ? v.severity;
+  get diagnostics v_count = row_count;
+  v_responses := v_count;
+
+  -- What the step read and what it changed in the import's records, under the showcase's batch.
+  if v_revisions + v_responses > 0 then
+    insert into public.demo_import_sources (id, tenant_id, import_batch_id, source_pointer, source_sha256, source_record)
+      values (pg_temp.sid(t, 'demo_import_sources/riskAssessments'), t, v_batch, '/riskAssessments',
+        encode(extensions.digest(a::text, 'sha256'), 'hex'), a)
+      on conflict (id) do nothing;
+    update public.demo_import_batches set summary = summary || jsonb_build_object('updated',
+        coalesce(summary->'updated', '{}'::jsonb) || jsonb_build_object(
+          'risk_revisions', coalesce((summary->'updated'->>'risk_revisions')::integer, 0) + v_revisions,
+          'risk_responses', coalesce((summary->'updated'->>'risk_responses')::integer, 0) + v_responses))
+      where id = v_batch;
+  end if;
+  return jsonb_build_object('changed', v_revisions + v_responses > 0, 'riskRevisions', v_revisions, 'riskResponses', v_responses);
+end;
+$details$;

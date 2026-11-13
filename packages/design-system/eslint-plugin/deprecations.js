@@ -143,6 +143,13 @@ const LABEL_WIDTH = {
   detail: 'or labelWidth="auto" in a page body',
   examples: ["labelWidth={88}", "labelWidth={120}", "labelWidth={160}"],
 };
+/** Item's id column for a number of pixels: the nearest named step (narrow 48, the default 72,
+    wide 104), split halfway between them. */
+const ID_WIDTH = {
+  pixels: (px) => (px <= 60 ? "narrow" : px < 88 ? "default" : "wide"),
+  detail: "the nearest of narrow (48px), default (72px) and wide (104px)",
+  examples: ["idWidth={48}", "idWidth={72}", "idWidth={104}"],
+};
 
 /**
  * Props and values a part renamed. `to` renames the attribute and `values` renames a literal value,
@@ -190,6 +197,7 @@ const deprecatedAttributes = {
     __proto__: null,
     variant: { values: { __proto__: null, destructive: "danger" } },
   },
+  Item: { __proto__: null, idWidth: ID_WIDTH },
   "Item.Group": { __proto__: null, labelledBy: { to: "aria-labelledby" } },
   "Chart.Donut": {
     __proto__: null,

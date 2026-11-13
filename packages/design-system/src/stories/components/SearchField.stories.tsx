@@ -26,7 +26,7 @@ import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
 const { Matrix } = storyLayout;
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 const meta = {
   title: "Components/SearchField",
@@ -391,4 +391,19 @@ export const Dont: Story = {
       dontText="A SearchField for a value the record keeps. Escape and the clear button erase it, and a screen reader calls it a search."
     />
   ),
+  play: async ({ canvasElement }) => {
+    const { do: good, dont: bad } = halves(canvasElement);
+    // A SearchField finds records; the record's own name is a text field, which Escape leaves be.
+    await expect(within(good).getByRole("searchbox", { name: "Search suppliers" })).toBeVisible();
+    const name = within(good).getByRole("textbox", { name: "Supplier name" });
+    await userEvent.click(name);
+    await userEvent.keyboard("{Escape}");
+    await expect(name).toHaveValue("Northwind Avionics");
+    // As a SearchField the record's value is called a search, and Escape erases it.
+    const searched = within(bad).getByRole("searchbox", { name: "Supplier name" });
+    await expect(searched).toHaveValue("Northwind Avionics");
+    await userEvent.click(searched);
+    await userEvent.keyboard("{Escape}");
+    await expect(searched).toHaveValue("");
+  },
 };

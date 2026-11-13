@@ -12,8 +12,9 @@ import { tokenValue } from "../../generated/tokens";
 
 /**
  * The navigation system. Shell is the root; its areas are its immediate children in a fixed
- * order: Banner, TopNav, SideNav, Main, Aside, Panel. Routes contribute Aside and Panel through
- * stable portal destinations; their content and state belong to the route.
+ * order: Banner, TopNav, SideNav, Main, Panel. Routes contribute the Panel through a stable portal
+ * destination; its content and state belong to the route. A record's Details are a Shell.Aside in
+ * the page, an AsideLayout's `aside`.
  * The package owns the areas and their behaviour: the side nav collapses, resizes, flies out on
  * hover and overlays the page on a narrow viewport; the panel resizes, runs the height of the
  * window under the banner beside the top nav from the large breakpoint (below the panel
@@ -36,8 +37,6 @@ export const panelCompactQuery = () => `(width < ${tokenValue("dimension.breakpo
 /** From `lg` to below `dimension.breakpoint.panel`, an open panel shows the side nav collapsed (the icon rail, or hidden), so Main keeps room beside the panel; from the panel breakpoint it stays as the reader left it. */
 export const panelNarrowQuery = () =>
   `(width >= ${tokenValue("dimension.breakpoint.lg")}) and (width < ${tokenValue("dimension.breakpoint.panel")})`;
-/** From `dimension.breakpoint.aside` the Aside is the rail, beside Main or following it; below it, the rail only where it sits beside Main, and the Details disclosure where it would follow Main. */
-export const asideQuery = () => `(width >= ${tokenValue("dimension.breakpoint.aside")})`;
 /** Milliseconds the flyout stays open after the pointer leaves it. */
 export const PEEK_CLOSE_DELAY = 200;
 /** The main area, for the focus bookkeeping that returns focus to the page. */
@@ -45,7 +44,7 @@ export const MAIN = '[data-shell-area="main"]';
 /** The panel area, which stands in for Main where it replaces it. */
 export const PANEL = '[data-shell-area="panel"]';
 /** The areas that hold the page, as opposed to the navigation around it. */
-const PAGE_AREAS = '[data-shell-area="main"], [data-shell-area="aside"], [data-shell-area="panel"]';
+const PAGE_AREAS = '[data-shell-area="main"], [data-shell-area="panel"]';
 
 /**
  * The narrowest Main gets while the side nav and the panel are beside it: one list column

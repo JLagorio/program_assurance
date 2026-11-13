@@ -53,6 +53,7 @@ import {
 import {
   Archive,
   Boxes,
+  Briefcase,
   Bug,
   CircleHelp,
   ClipboardList,
@@ -69,6 +70,7 @@ import {
   Settings,
   ShieldAlert,
   ShieldCheck,
+  Stamp,
   Users,
 } from "lucide-react";
 import { labelFor } from "@/lib/records";
@@ -80,6 +82,7 @@ const groups = [
     label: "Work",
     items: [
       { label: "My work", to: "/work", icon: Inbox },
+      { label: "Review queue", to: "/review-queue", icon: Stamp },
       { label: "Programs", to: "/programs", icon: ClipboardList },
       { label: "Assessment campaigns", to: "/campaigns", icon: FlaskConical },
       { label: "Portfolio", to: "/", icon: Gauge },
@@ -102,6 +105,7 @@ const groups = [
       { label: "Profiles", to: "/profiles", icon: ShieldCheck },
       { label: "Overlays", to: "/overlays", icon: Layers },
       { label: "Components", to: "/library/components", icon: Library },
+      { label: "Business lines", to: "/library/business-lines", icon: Briefcase },
       { label: "Products", to: "/library/products", icon: Boxes },
       { label: "Requirements", to: "/library/requirements", icon: ListChecks },
     ],

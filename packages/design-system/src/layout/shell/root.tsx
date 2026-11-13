@@ -14,27 +14,23 @@ import {
 
 import { CollapsibleContent, CollapsibleHeader } from "../../components/collapsible";
 import { TooltipProvider } from "../../components/tooltip";
-import { token, tokenValue } from "../../generated/tokens";
+import { token } from "../../generated/tokens";
 import { announce, Announcer } from "../../lib/announce";
 import { cn } from "../../lib/cn";
 import { useLedgerLocale } from "../../lib/locale";
 import { HeadingLevelProvider } from "../../primitives/heading-level";
 import {
-  AreaPortal,
   AsideDisclosureContext,
   AsideLayoutContext,
   AsideRailContext,
   SlotsContext,
-  type AsideDisplay,
 } from "../slots";
 import { applyShell, readShell, SHELL_STORAGE_KEY, writeShell } from "../storage";
 import {
-  asideQuery,
   desktopQuery,
   focusPage,
   followFocusToPage,
   MAIN,
-  mainMinWidth,
   mergeRefs,
   PANEL_MIN,
   panelNarrowQuery,
@@ -61,19 +57,6 @@ const currentPageTitle = (root: HTMLElement | null) =>
 function useMediaQuery(query: () => string, initial: boolean) {
   const [matches, setMatches] = useState(initial);
   useEffect(() => {
-    const mq = window.matchMedia(query());
-    const sync = () => setMatches(mq.matches);
-    sync();
-    mq.addEventListener("change", sync);
-    return () => mq.removeEventListener("change", sync);
-  }, [query]);
-  return matches;
-}
-
-/** A media query's matches from before the first paint, followed as the window changes; false on the server. */
-function useMediaQueryBeforePaint(query: () => string) {
-  const [matches, setMatches] = useState(false);
-  useLayoutEffect(() => {
     const mq = window.matchMedia(query());
     const sync = () => setMatches(mq.matches);
     sync();
@@ -138,7 +121,6 @@ export function ShellRoot({
   const [hasBanner, setBanner] = useState(false);
   const [bannerHeight, setBannerHeight] = useState<number | null>(null);
   const [skipLinks, setSkipLinks] = useState<SkipLink[]>([]);
-  const [asideSlot, setAsideSlot] = useState<HTMLDivElement | null>(null);
   const [panelSlot, setPanelSlot] = useState<HTMLDivElement | null>(null);
   const listeners = useRef<ShellApi["listeners"]>({});
   const peekTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -445,34 +427,6 @@ export function ShellRoot({
     return () => observer.disconnect();
   }, []);
 
-  // Whether the side nav, at the width it shows, leaves Main its minimum with the aside beside it:
-  // from `lg` below the aside breakpoint, shell.css puts the aside beside Main while it does
-  // (VW2-14). The side nav's width is the one the reader dragged, the browser remembered, a
-  // default or the token, not the capped width the layout draws, which the aside's own column
-  // narrows. A collapsed side nav, the icon rail or hidden, always leaves the room.
-  const [asideFits, setAsideFits] = useState(true);
-  useLayoutEffect(() => {
-    const root = rootRef.current;
-    if (!root) return;
-    const measure = () => {
-      if (!shownExpanded) return setAsideFits(true);
-      const width = root.clientWidth;
-      const preferred = Number.parseFloat(
-        getComputedStyle(root).getPropertyValue("--shell-sidenav-width"),
-      );
-      const sideNav = Math.min(Number.isFinite(preferred) ? preferred : 0, width / 2);
-      const aside =
-        Number.parseFloat(tokenValue("dimension.layout.rail", root)) +
-        Number.parseFloat(tokenValue("space.300", root));
-      setAsideFits(width - sideNav - aside >= mainMinWidth(root));
-    };
-    measure();
-    if (typeof ResizeObserver === "undefined") return;
-    const observer = new ResizeObserver(measure);
-    observer.observe(root);
-    return () => observer.disconnect();
-  }, [shownExpanded, sideNavWidth, sideNavDefault]);
-
   // A new page: close the overlay or the flyout, move focus to the page, then say where the reader is.
   const previousLocation = useRef(locationKey);
   useEffect(() => {
@@ -505,72 +459,8 @@ export function ShellRoot({
     };
   }, [locationKey]);
 
-  // How the Aside shows (VW3-22). From the aside breakpoint it is the rail, beside Main or after
-  // it, as before. Below it, the rail where shell.css puts it beside Main (from `lg`, no panel
-  // open, and the side nav leaving Main its minimum); elsewhere a Details disclosure, folded, where
-  // the route rendered it in the page, so a record's state is one tap from the top. Read before the
-  // first paint, so a phone never shows the rail for a frame.
-  const largeNow = useMediaQueryBeforePaint(desktopQuery);
-  const asideWide = useMediaQueryBeforePaint(asideQuery);
-  const asideDisplay: AsideDisplay =
-    asideWide || (largeNow && !panelOpen && asideFits) ? "rail" : "disclosure";
-  // The Aside's content renders into one node of the kit's own, which moves between the shell's
-  // aside slot and the place the route rendered the Aside (its marker), so a change of display
-  // moves the content instead of mounting it again: a draft in an Editable survives a resize or a
-  // panel opening. Neither container has React children of its own, so React never meets the node.
-  const [asideHost, setAsideHost] = useState<HTMLDivElement | null>(null);
-  const [asideMarker, setAsideMarker] = useState<HTMLElement | null>(null);
-  useLayoutEffect(() => {
-    if (!asideSlot) return;
-    // In the document before the content renders into it, so what measures itself on mount does.
-    const host = document.createElement("div");
-    host.setAttribute("data-shell-aside-host", "");
-    asideSlot.append(host);
-    setAsideHost(host);
-    return () => host.remove();
-  }, [asideSlot]);
-  useLayoutEffect(() => {
-    if (!asideHost || !asideSlot) return;
-    const target = asideDisplay === "disclosure" && asideMarker ? asideMarker : asideSlot;
-    if (asideHost.parentNode === target) return;
-    // Moving the node takes focus from a control inside it; it goes back to that control, which
-    // shows in either display (the Aside opens its disclosure around focus).
-    const active = asideHost.ownerDocument.activeElement;
-    const focused = active instanceof HTMLElement && asideHost.contains(active) ? active : null;
-    target.append(asideHost);
-    if (focused && focused.ownerDocument.activeElement !== focused) {
-      focused.focus({ preventScroll: true });
-    }
-  }, [asideHost, asideSlot, asideMarker, asideDisplay]);
-  // A marker leaving the page (its route unmounting) first hands the node back to the slot, before
-  // React removes the route's elements and the node with them: the node never leaves the document,
-  // so an Aside that mounts in the same commit (the next record's) renders into it in the page and
-  // measures itself there. Stable, so a marker's ref never detaches and attaches again for it.
-  const asideHome = useRef<{ host: HTMLDivElement | null; slot: HTMLDivElement | null }>({
-    host: null,
-    slot: null,
-  });
-  useLayoutEffect(() => {
-    asideHome.current = { host: asideHost, slot: asideSlot };
-  }, [asideHost, asideSlot]);
-  const releaseAsideMarker = useCallback((node: HTMLElement) => {
-    const { host, slot } = asideHome.current;
-    if (host && slot && host.parentNode === node) slot.append(host);
-    setAsideMarker((current) => (current === node ? null : current));
-  }, []);
-
   const opener = useRef<HTMLElement | null>(null);
-  const slots = useMemo(
-    () => ({
-      aside: asideHost,
-      panel: panelSlot,
-      opener,
-      asideDisplay,
-      setAsideMarker,
-      releaseAsideMarker,
-    }),
-    [asideHost, panelSlot, asideDisplay, releaseAsideMarker],
-  );
+  const slots = useMemo(() => ({ panel: panelSlot, opener }), [panelSlot]);
 
   const api = useMemo<ShellApi>(
     () => ({
@@ -653,7 +543,6 @@ export function ShellRoot({
           data-collapsed-sidenav={collapsedSideNav}
           data-sidenav={isDesktop ? (shownExpanded ? "expanded" : "collapsed") : "overlay"}
           data-sidenav-yielded={yielded ? "" : undefined}
-          data-aside-fits={asideFits ? "" : undefined}
           data-sidenav-motion={sideNavMotion ? "" : undefined}
           className={cn("bg-surface text-default", className)}
           style={{ ...vars, ...style }}
@@ -677,12 +566,6 @@ export function ShellRoot({
           <Announcer />
           <SlotsContext.Provider value={slots}>
             {children}
-            <div
-              ref={setAsideSlot}
-              data-shell-slot="aside"
-              className="min-w-0"
-              inert={modal || undefined}
-            />
             <div
               ref={setPanelSlot}
               data-shell-slot="panel"
@@ -834,10 +717,8 @@ function useWarnOnce(when: boolean, message: string) {
  * rail, a heading placed directly inside (an Inspector group, a Section) is an h2; as the
  * disclosure, its heading is the h2 and the content one level below.
  *
- * Rendered outside an AsideLayout, it takes the shell's aside area beside Main instead, from the
- * top of the page (deprecated: the next minor version renders it in place). From the aside
- * breakpoint it is the rail there, beside Main where space permits, else following it; below it,
- * wherever it would not sit beside Main, the disclosure where the route rendered it.
+ * Rendered outside an AsideLayout it renders in place, always open, and inside a Shell says once
+ * in development that it belongs in an AsideLayout.
  */
 export function Aside({
   children,
@@ -851,18 +732,16 @@ export function Aside({
   ...props
 }: ShellAsideProps) {
   const { t } = useLedgerLocale();
-  const slots = useContext(SlotsContext);
-  // Inside an AsideLayout the layout decides the display from its own width and the Aside renders
-  // in place; outside one, the shell's area and its marker (deprecated).
+  const inShell = useContext(SlotsContext) !== null;
+  // Inside an AsideLayout the layout decides the display from its own width; outside one the Aside
+  // is the rail where it is rendered, always open.
   const layout = useContext(AsideLayoutContext);
   const inLayout = layout !== null;
   useWarnOnce(
-    !inLayout && slots !== null,
-    "Ledger: a Shell.Aside outside an AsideLayout takes the shell's aside area beside Main, which is deprecated. Give it to an AsideLayout as its `aside`, around the body it belongs to: the Overview tab's panel on a tabbed record, everything under the PageHeader on a record without tabs.",
+    !inLayout && inShell,
+    "Ledger: a Shell.Aside outside an AsideLayout renders in place, always open. Give it to an AsideLayout as its `aside`, around the body it belongs to: the Overview tab's panel on a tabbed record, everything under the PageHeader on a record without tabs.",
   );
-  const setMarker = slots?.setAsideMarker;
-  const releaseMarker = slots?.releaseAsideMarker;
-  const disclosure = inLayout ? layout === "disclosure" : slots?.asideDisplay === "disclosure";
+  const disclosure = layout === "disclosure";
   const [open, setOpen] = useState(false);
   // The content folds and unfolds on the kit's motion only when the reader toggles the disclosure.
   // At first paint and when the display changes (a resize, a panel opening) it is shown as it is at
@@ -893,15 +772,6 @@ export function Aside({
     if (active && aside.contains(active)) return;
     aside.querySelector<HTMLElement>(FOCUSABLE)?.focus({ preventScroll: true });
   }, [motion]);
-  // Where the route rendered the Aside: its disclosure shows here.
-  const marker = useCallback(
-    (node: HTMLDivElement | null) => {
-      if (!node || !setMarker || !releaseMarker) return;
-      setMarker(node);
-      return () => releaseMarker(node);
-    },
-    [setMarker, releaseMarker],
-  );
   if (children === null || children === undefined || children === false) return null;
   const name = heading ?? t("details");
   const hasSummary = summary !== null && summary !== undefined && summary !== false;
@@ -919,19 +789,15 @@ export function Aside({
           {...props}
           ref={asideRef}
           // Inside Main it is a region: a complementary landmark belongs at the top level.
-          role={inLayout || disclosure ? "region" : props.role}
-          data-shell-area={inLayout ? undefined : "aside"}
+          role={inLayout || inShell ? "region" : props.role}
           data-slot="shell-aside"
           data-display={disclosure ? "disclosure" : "rail"}
           data-instant={instant ? "" : undefined}
           aria-label={label ?? t("pageContext")}
-          // The rail pads its bottom only (and its top in the shell's area): its Inspector groups
-          // run its full width, each with the gutter inside its own row (AsideRailContext). In an
-          // AsideLayout the column's own offset starts its first group level with the body's.
-          className={cn(
-            disclosure ? "min-w-0" : inLayout ? "min-w-0 pb-200" : "min-w-0 pt-100 pb-200",
-            className,
-          )}
+          // The rail pads its bottom only: its Inspector groups run its full width, each with the
+          // gutter inside its own row (AsideRailContext). In an AsideLayout the column's own offset
+          // starts its first group level with the body's.
+          className={cn(disclosure ? "min-w-0" : "min-w-0 pb-200", className)}
           onFocus={(event) => {
             onFocus?.(event);
             setFocusWithin(true);
@@ -970,11 +836,5 @@ export function Aside({
       </CollapsibleContent>
     </CollapsiblePrimitive.Root>
   );
-  if (inLayout) return tree;
-  return (
-    <>
-      {slots ? <div ref={marker} data-slot="shell-aside-marker" className="contents" /> : null}
-      <AreaPortal name="aside">{tree}</AreaPortal>
-    </>
-  );
+  return tree;
 }

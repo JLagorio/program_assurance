@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { createRef, useState, type MouseEvent } from "react";
-import { expect, fn, userEvent, within } from "storybook/test";
+import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 import {
   Button,
   Pagination,
@@ -13,10 +13,12 @@ import {
   type PaginationProps,
 } from "../../components";
 import { TablePagination } from "../../patterns";
+import * as direction from "../_lib/direction";
 import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
 const { Pair } = pairLayout;
+const { along } = direction;
 
 const meta = {
   title: "Components/Pagination",
@@ -86,13 +88,18 @@ export const Links: Story = {
 function ResultPages({
   label,
   pages = [1, "gap-start", 4, 5, 6, "gap-end", 12],
+  current = 5,
   ...props
-}: { label: string; pages?: (number | string)[] | undefined } & Omit<PaginationProps, "children">) {
+}: {
+  label: string;
+  pages?: (number | string)[] | undefined;
+  current?: number | undefined;
+} & Omit<PaginationProps, "children">) {
   return (
     <Pagination aria-label={label} {...props}>
       <PaginationContent>
         <PaginationItem>
-          <PaginationPrevious href="?page=4" />
+          <PaginationPrevious href={`?page=${current - 1}`} />
         </PaginationItem>
         {pages.map((page) => (
           <PaginationItem key={page}>
@@ -102,7 +109,7 @@ function ResultPages({
               <PaginationLink
                 href={`?page=${page}`}
                 aria-label={`Page ${page}`}
-                isActive={page === 5}
+                isActive={page === current}
               >
                 {page}
               </PaginationLink>
@@ -110,7 +117,7 @@ function ResultPages({
           </PaginationItem>
         ))}
         <PaginationItem>
-          <PaginationNext href="?page=6" />
+          <PaginationNext href={`?page=${current + 1}`} />
         </PaginationItem>
       </PaginationContent>
     </Pagination>
@@ -216,6 +223,45 @@ export const AtTheEndOfARow: Story = {
         const tops = new Set(items.map((item) => Math.round(item.getBoundingClientRect().top)));
         await expect(tops.size).toBe(1);
       }
+    }
+    const doc = canvasElement.ownerDocument.documentElement;
+    await expect(doc.scrollWidth).toBeLessThanOrEqual(doc.clientWidth);
+  },
+};
+
+/** Too long for a 320px phone, the list wraps, and every line ends where the region ends: Next ends the last line, under the end of the line before, rather than sitting alone in the middle of a line of its own. */
+export const WrappedOnAPhone: Story = {
+  name: "Wrapped on a phone",
+  globals: { viewport: { value: "ledgerNarrow", isRotated: false } },
+  render: () => (
+    <ResultPages
+      label="Activity pages"
+      pages={[1, "gap-start", 118, 119, 120, "gap-end", 240]}
+      current={119}
+    />
+  ),
+  play: async ({ canvasElement }) => {
+    await waitFor(() => expect(window.innerWidth).toBe(320));
+    const nav = within(canvasElement).getByRole("navigation", { name: "Activity pages" });
+    const list = nav.querySelector<HTMLElement>('[data-slot="pagination-content"]')!;
+    const items = [...list.children] as HTMLElement[];
+    const top = (item: HTMLElement) => Math.round(item.getBoundingClientRect().top);
+    // The lines the items sit on, from the first: the phone cannot hold them on one.
+    const lines = [...new Set(items.map(top))].sort((a, b) => a - b);
+    await expect(lines.length).toBeGreaterThan(1);
+    const next = within(nav).getByRole("link", { name: "Next page" });
+    await expect(top(next.closest("li")!)).toBe(lines.at(-1));
+    // Each line ends where the region ends, so Next ends the last one.
+    const end = along(list).end;
+    for (const line of lines) {
+      const last = Math.max(...items.filter((item) => top(item) === line).map((i) => along(i).end));
+      await expect(Math.abs(last - end)).toBeLessThanOrEqual(1);
+    }
+    await expect(Math.abs(along(next).end - end)).toBeLessThanOrEqual(1);
+    for (const link of within(nav).getAllByRole("link")) {
+      const box = link.getBoundingClientRect();
+      await expect(box.width).toBeGreaterThanOrEqual(24);
+      await expect(box.height).toBeGreaterThanOrEqual(24);
     }
     const doc = canvasElement.ownerDocument.documentElement;
     await expect(doc.scrollWidth).toBeLessThanOrEqual(doc.clientWidth);

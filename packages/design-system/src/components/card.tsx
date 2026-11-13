@@ -61,12 +61,13 @@ const TITLE_MEASURE_REM = 12;
 
 /**
  * Whether the action cannot sit beside the title without cutting into the title's readable
- * measure. The widths it compares do not depend on where the action sits (the title's width on one
- * line, the action's controls side by side), so the answer holds in both arrangements and the
- * header never flips back and forth.
+ * measure: null until the header has measured itself (a server render, a first frame without a
+ * ResizeObserver). The widths it compares do not depend on where the action sits (the title's width
+ * on one line, the action's controls side by side), so the answer holds in both arrangements and
+ * the header never flips back and forth.
  */
 function useActionBelow(ref: RefObject<HTMLDivElement | null>) {
-  const [below, setBelow] = useState(false);
+  const [below, setBelow] = useState<boolean | null>(null);
   useLayoutEffect(() => {
     const header = ref.current;
     if (!header || typeof ResizeObserver === "undefined") return;
@@ -105,7 +106,7 @@ function useActionBelow(ref: RefObject<HTMLDivElement | null>) {
 }
 
 export type CardHeaderProps = ComponentProps<"div">;
-/** The title, then the description, with a CardAction at the end of the title's row. The header reads its own width, not the window's, and keeps the title's readable measure beside the action, as Section.Header does: 12rem, or the title's own width when that is shorter. The action sits beside the title while the header holds that measure and the action side by side, and has 16rem inside its inset, that is while the card is about 18rem wide or more (about 17.5rem at `size="small"`), as a full-width card on a 340px phone is. Otherwise, in a rail, in a full-width card on a 320px phone, or beside a wide action, the action takes its own row after the description, at the end, so the title never breaks mid-word beside it. */
+/** The title, then the description, with a CardAction at the end of the title's row. The header reads its own width, not the window's, and keeps the title's readable measure beside the action, as Section.Header does: 12rem, or the title's own width when that is shorter. The action sits beside the title while the header holds that measure and the action side by side, whatever the card's width, as in a full-width card on a 320px phone. Otherwise, in a rail or beside a wide action, the action takes its own row after the description, at the end, so the title never breaks mid-word beside it. Until the header has measured itself (a server render), the action sits beside the title from 16rem inside the header's inset. */
 export function CardHeader({ className, ref, ...props }: CardHeaderProps) {
   const headerRef = useRef<HTMLDivElement | null>(null);
   const actionBelow = useActionBelow(headerRef);
@@ -114,13 +115,16 @@ export function CardHeader({ className, ref, ...props }: CardHeaderProps) {
     ref: ref ? [ref, headerRef] : headerRef,
     props: mergeProps<"div">(props, {
       ...{ "data-slot": "card-header" },
+      // What the measure decided, which the parts read: beside the title or after the description.
+      ...(actionBelow === null ? {} : { "data-action": actionBelow ? "below" : "beside" }),
       className: cn(
-        // Structural tracks keep a long title shrinkable beside an intrinsic-width action. Only a
-        // header with an action is a container, so a header without one keeps its intrinsic width;
-        // one whose action cannot sit beside the title's measure is not one either, so its parts
-        // take the narrow arrangement.
-        "grid auto-rows-min items-start gap-x-200 gap-y-025 border-default px-200 [&.border-b]:pb-200 has-data-[slot=card-action]:grid-cols-[minmax(0,1fr)_auto] group-data-[size=small]/card:px-150 group-data-[size=small]/card:[&.border-b]:pb-150",
-        !actionBelow && "has-data-[slot=card-action]:@container/card-header",
+        // Structural tracks keep a long title shrinkable beside an intrinsic-width action. Until
+        // the header has measured itself, a header with an action is a container and its parts
+        // take the arrangement its width allows, from 16rem; a header without one keeps its
+        // intrinsic width. Once measured, the parts follow `data-action` alone, so a header the
+        // measure says can hold the title's measure beside the action holds it at any width.
+        "group/card-header grid auto-rows-min items-start gap-x-200 gap-y-025 border-default px-200 [&.border-b]:pb-200 has-data-[slot=card-action]:grid-cols-[minmax(0,1fr)_auto] group-data-[size=small]/card:px-150 group-data-[size=small]/card:[&.border-b]:pb-150",
+        actionBelow === null && "has-data-[slot=card-action]:@container/card-header",
         className,
       ),
     }),
@@ -158,7 +162,7 @@ export function CardTitle({ className, render, ref, link, children, ...props }: 
     props: mergeProps<"div">(props, {
       ...{ "data-slot": "card-title" },
       className: cn(
-        "col-span-full min-w-0 break-words font-heading-overlay text-default @3xs/card-header:col-auto",
+        "col-span-full min-w-0 break-words font-heading-overlay text-default @3xs/card-header:col-auto group-data-[action=beside]/card-header:col-auto",
         className,
       ),
       children: link ? linked : children,
@@ -173,7 +177,7 @@ export function CardDescription({ className, ...props }: CardDescriptionProps) {
       {...props}
       data-slot="card-description"
       className={cn(
-        "col-span-full min-w-0 font-body text-subtle @3xs/card-header:col-auto",
+        "col-span-full min-w-0 font-body text-subtle @3xs/card-header:col-auto group-data-[action=beside]/card-header:col-auto",
         className,
       )}
     />
@@ -181,14 +185,14 @@ export function CardDescription({ className, ...props }: CardDescriptionProps) {
 }
 
 export type CardActionProps = ComponentProps<"div">;
-/** At the end of the title's row while the card is about 18rem wide or more (about 17.5rem at `size="small"`) and the title keeps its readable measure beside it; in a narrower card, such as one in a rail, or when the action is too wide for that measure, its own row after the description, at the end. Several controls wrap rather than overflow. */
+/** At the end of the title's row while the title keeps its readable measure beside it, whatever the card's width; where it cannot, such as in a rail or when the action is too wide for that measure, its own row after the description, at the end. Several controls wrap rather than overflow. */
 export function CardAction({ className, ...props }: CardActionProps) {
   return (
     <div
       {...props}
       data-slot="card-action"
       className={cn(
-        "col-span-full flex max-w-full flex-wrap items-center justify-end justify-self-end gap-100 pt-100 @3xs/card-header:col-start-2 @3xs/card-header:row-span-2 @3xs/card-header:row-start-1 @3xs/card-header:pt-0",
+        "col-span-full flex max-w-full flex-wrap items-center justify-end justify-self-end gap-100 pt-100 @3xs/card-header:col-start-2 @3xs/card-header:row-span-2 @3xs/card-header:row-start-1 @3xs/card-header:pt-0 group-data-[action=beside]/card-header:col-start-2 group-data-[action=beside]/card-header:row-span-2 group-data-[action=beside]/card-header:row-start-1 group-data-[action=beside]/card-header:pt-0",
         className,
       )}
     />

@@ -21,7 +21,7 @@ import { Inline, Stack, Text } from "../../primitives";
 import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 const meta = {
   title: "Components/DropZone",
@@ -615,4 +615,13 @@ export const DoDont: Story = {
       dontText="A primary disabled until a file is chosen: the reader cannot learn what it waits for."
     />
   ),
+  play: async ({ canvasElement }) => {
+    const { do: good, dont: bad } = halves(canvasElement);
+    // The primary stays enabled, so pressing it can name what is missing.
+    await expect(within(good).getByRole("button", { name: "Attach report" })).toBeEnabled();
+    // Disabled until a file is chosen, it cannot be pressed and says nothing of what it waits for.
+    const waiting = within(bad).getByRole("button", { name: "Attach report" });
+    await expect(waiting).toBeDisabled();
+    await expect(waiting).not.toHaveAccessibleDescription();
+  },
 };

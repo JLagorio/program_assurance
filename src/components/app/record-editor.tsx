@@ -31,6 +31,7 @@ import {
   toast,
 } from "@ledger/design-system";
 import { listRecords, saveRecord } from "@/lib/database";
+import { useHeldFields } from "@/lib/held-fields";
 import {
   defaultValue,
   isDerivedRecordField,
@@ -175,6 +176,7 @@ function ReferencePicker({
   description,
   error,
   controlRef,
+  readOnly = false,
 }: {
   collection: Collection;
   value: string;
@@ -186,6 +188,8 @@ function ReferencePicker({
   description?: string | null | undefined;
   error?: string | undefined;
   controlRef: (node: HTMLElement | null) => void;
+  /** The record's own links hold it: it keeps its place and its Tab stop, and takes no change. */
+  readOnly?: boolean | undefined;
 }) {
   const workspace = useWorkspace();
   const selected = useRecordName(collection, value || null);
@@ -229,6 +233,7 @@ function ReferencePicker({
       noun={parties ? "people and organizations" : productCollectionNoun(collection.name)}
       required={required}
       clearable={clearable}
+      readOnly={readOnly}
       placeholder={referencePlaceholder(label, collection)}
       description={hint || undefined}
       error={error}
@@ -324,6 +329,9 @@ export function RecordEditor({
     ),
   );
   const noun = productRecordNoun(collection.name, fields);
+  // A field the record's own links hold (an issue's program, while it names requirements) is shown
+  // where it stands with the words that say what frees it, not offered as a change that fails.
+  const held = useHeldFields(collection.name, baseline);
   // The product's words for a field: "Owner", not "Owner party"; "Contact email" for a party.
   const fieldLabel = (column: Column) => productFieldLabel(collection.name, column.name, fields);
   const [dirty, setDirty] = useState(false);
@@ -541,7 +549,8 @@ export function RecordEditor({
     const required = isRequired(column);
     const error = errors.get(column.name);
     const ref = feedback.ref(column.name);
-    const description = column.description ?? undefined;
+    const heldBy = held.get(column.name);
+    const description = heldBy ?? column.description ?? undefined;
     if (kind === "reference" && target)
       return (
         <ReferencePicker
@@ -552,6 +561,7 @@ export function RecordEditor({
           label={label}
           required={required}
           clearable={!column.required}
+          readOnly={!!heldBy}
           description={description}
           error={error}
           controlRef={ref}

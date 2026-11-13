@@ -58,6 +58,7 @@ import {
   tickValue,
   useChartSurface,
   useDescribePoint,
+  useFontLoads,
   useFrame,
   useFrameData,
   useFrameReport,
@@ -350,6 +351,9 @@ function useCartesian({
   describedBy,
   stacked,
 }: Shared) {
+  // The line or area draws again once the page's font has loaded, so its end labels and its
+  // category ticks, measured in the render, are fitted in the face they are drawn in.
+  useFontLoads();
   const { picked, pick, clear } = usePicked<ChartSelection>();
   const active = useRef<Active | null>(null);
   const locate = useRef<Locate | null>(null);

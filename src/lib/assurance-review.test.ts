@@ -91,10 +91,16 @@ describe("dependent review views", () => {
     const attention = ["attention", tenant, uuid(3), "open", 0];
     const search = ["workspace-search", tenant, uuid(3), "retention"];
     const outsider = ["attention", other, uuid(4), "open", 0];
-    for (const key of [review, attention, search, outsider]) cache.setQueryData(key, { rows: [] });
+    // The Review queue's pages watch the discussions' model: a resolved one leaves the queue.
+    const queue = ["models", tenant, "assurance_review_threads", "server-page-watch"];
+    for (const key of [review, attention, search, outsider, queue])
+      cache.setQueryData(key, { rows: [] });
+    await invalidateReviewQueries(cache, tenant, "reply");
+    expect(cache.getQueryState(queue)?.isInvalidated).toBe(false);
     await invalidateReviewQueries(cache, tenant, "set-status");
     expect(cache.getQueryState(review)?.isInvalidated).toBe(true);
     expect(cache.getQueryState(attention)?.isInvalidated).toBe(true);
+    expect(cache.getQueryState(queue)?.isInvalidated).toBe(true);
     expect(cache.getQueryState(search)?.isInvalidated).toBe(false);
     expect(cache.getQueryState(outsider)?.isInvalidated).toBe(false);
     await invalidateReviewQueries(cache, tenant, "create-citation");

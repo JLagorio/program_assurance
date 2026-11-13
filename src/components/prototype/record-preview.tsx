@@ -541,8 +541,15 @@ export function recordDestination(table: TableName, record: PreviewRecord) {
       return linkOptions({ to: "/packages/$pkgId", params: { pkgId: id } });
     case "component_definitions":
       return linkOptions({ to: "/library/components/$componentKey", params: { componentKey: id } });
+    case "business_lines":
+      return linkOptions({ to: "/library/business-lines/$lineId", params: { lineId: id } });
     case "products":
       return linkOptions({ to: "/library/products/$productKey", params: { productKey: id } });
+    case "product_assessments":
+      return linkOptions({
+        to: "/library/product-assessments/$assessmentId",
+        params: { assessmentId: id },
+      });
     case "requirement_definitions":
       return linkOptions({
         to: "/library/requirements/$definitionKey",

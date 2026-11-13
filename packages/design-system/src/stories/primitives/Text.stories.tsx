@@ -6,7 +6,7 @@ import { Box, Grid, Heading, Inline, Stack, Text } from "../../primitives";
 import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 const meta = {
   title: "Primitives/Text",
@@ -268,6 +268,31 @@ export const Dont: Story = {
       />
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    const style = (half: HTMLElement, text: string) =>
+      getComputedStyle(within(half).getByText(text));
+    // Running text is neutral and the tone is on the fact; colour as decoration says the wrong
+    // thing. Forced colours paint every word one system colour, so this shows outside them.
+    if (!window.matchMedia("(forced-colors: active)").matches) {
+      const colour = halves(canvasElement, 0);
+      const overdue = "Two findings are past their due date.";
+      await expect(style(colour.do, sample).color).not.toBe(style(colour.do, overdue).color);
+      await expect(style(colour.dont, sample).color).not.toBe(style(colour.do, sample).color);
+      await expect(style(colour.dont, overdue).color).not.toBe(style(colour.do, overdue).color);
+    }
+    // Body copy is the UI size; a paragraph in xsmall is eleven pixels.
+    const size = halves(canvasElement, 1);
+    const px = (half: HTMLElement) => parseFloat(style(half, sample).fontSize);
+    await expect(px(size.do)).toBeGreaterThan(px(size.dont));
+    await expect(px(size.dont)).toBeLessThanOrEqual(11);
+    // A title is a Heading in the outline; a Text made to look like one is not in it.
+    const title = halves(canvasElement, 2);
+    await expect(
+      within(title.do).getByRole("heading", { name: "Assessment results" }),
+    ).toBeVisible();
+    await expect(within(title.dont).getByText("Assessment results")).toBeVisible();
+    await expect(within(title.dont).queryByRole("heading")).toBeNull();
+  },
 };
 
 export const LabelAssociation: Story = {

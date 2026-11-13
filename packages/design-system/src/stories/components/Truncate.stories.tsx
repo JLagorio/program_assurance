@@ -18,7 +18,7 @@ import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
 const { Specimens } = storyLayout;
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 const meta = {
   title: "Components/Truncate",
@@ -310,6 +310,32 @@ export const Dont: Story = {
       />
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    const isCut = (element: HTMLElement) => element.scrollWidth > element.clientWidth + 1;
+    // A cut name shows whole on hover; a bare truncate cuts it with nothing to show the rest.
+    const name = halves(canvasElement, 0);
+    const revealed = within(name.do).getByText(longName);
+    await expect(isCut(revealed)).toBe(true);
+    await userEvent.hover(revealed);
+    await waitFor(() =>
+      expect(document.querySelector('[data-slot="truncate-full-text"]')).toHaveTextContent(
+        longName,
+      ),
+    );
+    await userEvent.unhover(revealed);
+    const bare = within(name.dont).getByText(longName);
+    await expect(isCut(bare)).toBe(true);
+    await expect(bare).not.toHaveAttribute("title");
+    await expect(bare).not.toHaveAttribute("data-slot", "truncate");
+    // A statement wraps and is read whole; cut to a line, it is a tooltip's paragraph.
+    const prose = halves(canvasElement, 1);
+    const read = within(prose.do).getByText(statement);
+    await expect(isCut(read)).toBe(false);
+    await expect(read.getBoundingClientRect().height).toBeGreaterThan(
+      1.5 * parseFloat(getComputedStyle(read).lineHeight),
+    );
+    await expect(isCut(within(prose.dont).getByText(statement))).toBe(true);
+  },
 };
 
 export const Playground: Story = {};

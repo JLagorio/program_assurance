@@ -2,6 +2,7 @@
 import assert from "node:assert/strict";
 import { chromium } from "playwright";
 import { localWorkspace } from "./tests/local-workspace.mjs";
+import { artifactPath } from "./tests/artifacts.mjs";
 const origin = process.env.APP_TEST_URL ?? "http://localhost:8080";
 assert.ok(["localhost", "127.0.0.1"].includes(new URL(origin).hostname));
 const workspace = await localWorkspace("record-comparison-browser");
@@ -47,6 +48,8 @@ try {
     });
     records.push(requirement);
   }
+  // A record whose preview names another record that has a page of its own: where a peek is offered.
+  await insert("risks", { program_id: program.id, title: "Comparison risk" });
   browser = await chromium.launch({ headless: true });
   page = await browser.newPage({ viewport: { width: 1680, height: 1000 } });
   page.setDefaultTimeout(30000);
@@ -77,7 +80,7 @@ try {
   });
   const position = await referencePane.evaluate((node) => node.scrollTop);
   await page.screenshot({
-    path: "/private/tmp/record-comparison-desktop.png",
+    path: artifactPath("record-comparison-desktop.png"),
     animations: "disabled",
   });
   await page.setViewportSize({ width: 390, height: 844 });
@@ -92,7 +95,7 @@ try {
   );
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
   await page.screenshot({
-    path: "/private/tmp/record-comparison-mobile.png",
+    path: artifactPath("record-comparison-mobile.png"),
     animations: "disabled",
   });
   await page.setViewportSize({ width: 1680, height: 1000 });
@@ -126,7 +129,7 @@ try {
   await page.getByRole("grid").first().waitFor();
   await reference.getByRole("heading", { name: "Alpha reference", exact: true }).waitFor();
   await page.screenshot({
-    path: "/private/tmp/record-comparison-workbook.png",
+    path: artifactPath("record-comparison-workbook.png"),
     animations: "disabled",
   });
   console.log("PASS: pinned source remains beside the workbook.");
@@ -140,15 +143,20 @@ try {
     0,
     "No comparison rail remains after unpinning",
   );
-  await page.goto(`${origin}/programs/${program.id}`);
-  const peek = page.getByRole("button", { name: "Preview Comparison sponsor", exact: true });
+  // A linked record with a page of its own keeps its peek. The program's sponsor, a person with no
+  // page, opens its preview instead, so the peek is read on the program a risk's preview names.
+  await page.goto(`${origin}/risks`);
+  await page.getByRole("button", { name: "Preview Comparison risk", exact: true }).click();
+  const peek = page
+    .locator('[data-shell-area="panel"]')
+    .getByRole("button", { name: "Preview Comparison validation", exact: true });
   await peek.click();
-  const popup = page.getByRole("dialog", { name: "Preview Comparison sponsor", exact: true });
+  const popup = page.getByRole("dialog", { name: "Preview Comparison validation", exact: true });
   await popup.getByRole("link", { name: "Open record", exact: true }).waitFor();
   await popup.getByRole("button", { name: "Compare", exact: true }).click();
   await page
     .locator("[data-record-reference]")
-    .getByRole("heading", { name: "Comparison sponsor", exact: true })
+    .getByRole("heading", { name: "Comparison validation", exact: true })
     .waitFor();
   assert.deepEqual(errors, []);
   console.log(
@@ -170,7 +178,7 @@ try {
       ),
     );
     console.error((await page.locator("body").innerText()).slice(0, 11000));
-    await page.screenshot({ path: "/private/tmp/record-comparison-failure.png" }).catch(() => {});
+    await page.screenshot({ path: artifactPath("record-comparison-failure.png") }).catch(() => {});
   }
   throw error;
 } finally {

@@ -24,6 +24,8 @@ export type StackLayerInput = {
   /** The layered profile's record, once the layer is saved. */
   profileId?: string | null | undefined;
   decisions: readonly StackDecision[];
+  /** How many parameters the layer sets values for: an overlay's values, a tailoring's overrides. */
+  parameters?: number | undefined;
 };
 export type BaselineLayer = {
   key: string;
@@ -40,6 +42,8 @@ export type BaselineLayer = {
   notApplicable: number;
   /** Controls selected once this layer is applied. */
   total: number;
+  /** How many parameters the layer sets values for. */
+  parameters: number;
 };
 /** Where a control in the final baseline came from. */
 export type ControlOrigin = {
@@ -110,6 +114,7 @@ export function deriveStack(
       reaffirmed: count("reaffirmed"),
       notApplicable: count("not-applicable"),
       total: selected.size,
+      parameters: layer.parameters ?? 0,
     };
   });
   return { baselineCount, layers: result, selected, origins, removed: [...removed.values()] };
@@ -170,6 +175,101 @@ export function controlStanding(step: StackStep, controlId: string): ControlStan
     : { status: "not_selected", layerKey: null };
 }
 
+/** A layer's decisions, read back from what each one did where it was applied. */
+const decisionsOf = (layer: Pick<BaselineLayer, "effects">): StackDecision[] =>
+  layer.effects.map((row) => ({
+    controlId: row.controlId,
+    action: row.effect === "added" || row.effect === "reaffirmed" ? "include" : "exclude",
+    rationale: row.rationale,
+  }));
+
+/**
+ * The stack read as if some of its layers were switched off (a what-if): a layer switched off keeps
+ * its place and changes nothing, and every layer after it is applied again to what is beneath it,
+ * so an add a missing layer made moot adds again, and a removal of a control it added finds
+ * nothing to remove. The reference baseline stays. Nothing is saved: it reads the derivation.
+ */
+export function stackWithout(
+  derivation: Pick<BaselineDerivation, "layers" | "selected">,
+  off: ReadonlySet<string>,
+): BaselineDerivation {
+  return deriveStack(
+    stackAt(derivation, 0).selected,
+    derivation.layers.map((layer): StackLayerInput => ({
+      key: layer.key,
+      kind: layer.kind,
+      title: layer.title,
+      overlayId: layer.overlayId,
+      profileId: layer.profileId,
+      decisions: off.has(layer.key) ? [] : decisionsOf(layer),
+      parameters: off.has(layer.key) ? 0 : layer.parameters,
+    })),
+  );
+}
+
+/**
+ * How many parameter values each layer sets where it sits, for a stack read before it is saved: a
+ * value for a control the layer's result selects is set, any other sets nothing, as
+ * `apply_control_overlay` authors and records it. `valuesOf` names a layer's values by its key.
+ */
+export function withParameters(
+  derivation: BaselineDerivation,
+  valuesOf: (layerKey: string) => readonly { controlId: string | null }[] | undefined,
+): BaselineDerivation {
+  return {
+    ...derivation,
+    layers: derivation.layers.map((layer, index) => {
+      const values = valuesOf(layer.key);
+      if (!values?.length) return layer;
+      const selected = stackAt(derivation, index + 1).selected;
+      return {
+        ...layer,
+        parameters: values.filter((value) => !!value.controlId && selected.has(value.controlId))
+          .length,
+      };
+    }),
+  };
+}
+
+/** A layer that changes nothing where it sits: no control added or removed, and no value set. */
+export const idleLayer = (layer: Pick<BaselineLayer, "added" | "removed" | "parameters">) =>
+  !layer.added && !layer.removed && !layer.parameters;
+
+/** A layer switched off, as the address names it: the start of its key, the layer's resolution id. */
+export const layerParamKey = (key: string) => key.slice(0, 8).toLowerCase();
+
+/**
+ * The layers switched off as the address writes them: their short keys, comma-separated, each
+ * once; anything else is no layer switched off. A key of digits alone may arrive as a number.
+ */
+export function layersOffParam(value: unknown): string | undefined {
+  const text = typeof value === "number" && Number.isInteger(value) ? String(value) : value;
+  if (typeof text !== "string") return undefined;
+  const keys = [
+    ...new Set(
+      text
+        .toLowerCase()
+        .split(",")
+        .map((key) => key.trim()),
+    ),
+  ];
+  return keys.length <= 16 && keys.every((key) => /^[0-9a-f]{8}$/.test(key))
+    ? keys.join(",")
+    : undefined;
+}
+
+/** How a what-if's result differs from the saved one: the controls it has more, and fewer. */
+export function whatIfChange(
+  saved: ReadonlySet<string>,
+  whatIf: ReadonlySet<string>,
+): { more: number; fewer: number } {
+  let more = 0;
+  let fewer = 0;
+  for (const id of whatIf) if (!saved.has(id)) more += 1;
+  for (const id of saved) if (!whatIf.has(id)) fewer += 1;
+  return { more, fewer };
+}
+
 /** Later layers that undo an earlier one: a control one layer adds and a later one removes, or the reverse. */
 export function stackReversals(
   derivation: Pick<BaselineDerivation, "layers">,
@@ -216,6 +316,8 @@ export type SavedChainRows = {
   overlays: readonly Pick<Row<"control_overlays">, "id" | "title">[];
   /** What a layer no overlay accounts for is called: the program's or the system's own tailoring. */
   tailoringTitle: string;
+  /** The layers' parameter settings, one a parameter a layer sets values for. */
+  settings?: readonly Pick<Row<"profile_parameter_settings">, "profile_revision_id">[] | undefined;
 };
 
 /** Read a saved profile chain as a stack: the reference baseline, then each layer on it. */
@@ -261,16 +363,27 @@ export function deriveSavedBaseline(rows: SavedChainRows): BaselineDerivation {
         overlayId: application?.overlay_id ?? null,
         profileId: hop.profileId,
         decisions,
+        parameters: (rows.settings ?? []).filter(
+          (setting) => setting.profile_revision_id === hop.profileRevisionId,
+        ).length,
       };
     });
   return deriveStack(rows.baselineControlIds, layers);
 }
 
-/** A layer's change in the words the stack shows: "+201 −17", or "No change". */
-export function layerChange(layer: Pick<BaselineLayer, "added" | "removed">): string {
-  const parts = [
+/**
+ * A layer's change in the words the stack shows: "+201 −17", with the parameters it sets values
+ * for ("+3 −8 · 2 parameters", "1 parameter"), or "No change".
+ */
+export function layerChange(
+  layer: Pick<BaselineLayer, "added" | "removed"> & { parameters?: number | undefined },
+): string {
+  const controls = [
     ...(layer.added ? [`+${layer.added}`] : []),
     ...(layer.removed ? [`−${layer.removed}`] : []),
-  ];
-  return parts.length ? parts.join(" ") : "No change";
+  ].join(" ");
+  const parameters = layer.parameters
+    ? `${layer.parameters} ${layer.parameters === 1 ? "parameter" : "parameters"}`
+    : "";
+  return [controls, parameters].filter(Boolean).join(" · ") || "No change";
 }

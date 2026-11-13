@@ -20,7 +20,7 @@ import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
 const { Matrix: Grid, Specimens } = storyLayout;
-const { Pair } = pairLayout;
+const { Pair, halves } = pairLayout;
 
 const meta = {
   title: "Components/Badge",
@@ -426,6 +426,18 @@ export const Dont: Story = {
       dontText="A span with a click handler has no native link or keyboard behavior."
     />
   ),
+  play: async ({ canvasElement }) => {
+    const { do: good, dont: bad } = halves(canvasElement);
+    // The destination is a real anchor: a link by its name, which Tab reaches.
+    await expect(within(good).getByRole("link", { name: "Evidence" })).toHaveAttribute(
+      "href",
+      "#evidence",
+    );
+    // The span with a click handler is neither a link nor a button, and Tab passes it by.
+    await expect(within(bad).queryByRole("link")).toBeNull();
+    await expect(within(bad).queryByRole("button")).toBeNull();
+    await expect(badgeWith(bad, "Evidence").tabIndex).toBe(-1);
+  },
 };
 
 const labels = {
@@ -867,4 +879,31 @@ export const StatusGuidance: Story = {
       />
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    const badges = (half: HTMLElement) =>
+      Array.from(half.querySelectorAll<HTMLElement>('[data-slot="badge"]'));
+    const words = (badge: HTMLElement) => badge.textContent!.trim().split(/\s+/).length;
+    // A status is one or two words; the Don't puts a sentence in the pill.
+    const status = halves(canvasElement, 0);
+    await expect(words(badges(status.do)[0]!)).toBeLessThanOrEqual(2);
+    await expect(words(badges(status.dont)[0]!)).toBeGreaterThan(2);
+    // One bold status wins the view; in the Don't every one is bold and none wins.
+    const emphasis = halves(canvasElement, 1);
+    const bold = (half: HTMLElement) =>
+      badges(half).filter((badge) => badge.getAttribute("data-appearance") === "bold");
+    await expect(bold(emphasis.do).map((badge) => badge.textContent)).toEqual(["Overdue"]);
+    await expect(bold(emphasis.dont)).toHaveLength(3);
+    // Categories are neutral and the word tells them apart; the Don't gives each a status tone.
+    const categories = halves(canvasElement, 2);
+    const tonesIn = (half: HTMLElement) =>
+      badges(half).map((badge) => badge.getAttribute("data-tone"));
+    await expect(tonesIn(categories.do)).toEqual(["neutral", "neutral", "neutral"]);
+    await expect(tonesIn(categories.dont)).not.toContain("neutral");
+    // Something that takes the reader somewhere is a link; the clickable pill is not, and Tab
+    // passes it by.
+    const destination = halves(canvasElement, 3);
+    await expect(within(destination.do).getByRole("link", { name: "SVC-PAY-01" })).toBeVisible();
+    await expect(within(destination.dont).queryByRole("link")).toBeNull();
+    await expect(badgeWith(destination.dont, "SVC-PAY-01").tabIndex).toBe(-1);
+  },
 };
