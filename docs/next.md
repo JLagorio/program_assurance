@@ -4,7 +4,7 @@ A living list for the design system and the prototype. Josef owns the decisions;
 
 Completed entries record what landed on their date. For screen composition, [the product pattern contract](guides/product-patterns.md) is current; later corrections supersede earlier notes.
 
-Updated 2026-11-11.
+Updated 2026-11-12.
 
 ## Current design-system work
 
@@ -292,6 +292,8 @@ The identified shadcn/Base UI component migrations are complete. Current contrac
 
 ## Prototype
 
+- [x] **The showcase seed** (2026-11-12; Josef asked for seeded data for the control baseline, cyber resiliency, inheritance, authorization, continuous monitoring and scanner ingestion "so I can see it come to life"). `npm run seed:demo-showcase` after `seed:demo` and `seed:demo-baseline`: an authored scenario under its own provenance dataset (`showcase-v1`), see "Showcase scenario" in `docs/demo-seed-mapping.md`. WS-X90 gets its own tailoring with SA-24 and its parameters, SSP 2 published and SSP 3 drafted, inheritance from the corporate identity provider, published assessment results, packages and decisions, a monitoring schedule, scanner imports, configuration baselines, gates with security outcomes, ATT&CK links and evidence reviews; the other programs get reference baselines. Checked against the migrations on a scratch Postgres and by the reads behind each screen, not yet in the running app.
+- [ ] **Inheritance resolution shows only what a program provides.** WS-X90 inherits 15 controls in the showcase and its view is empty; whether the view also lists what the program inherits is Josef's call.
 - [ ] **Registers still on `Table`.** After 2026-09-04 the risk and program registers, the system tree, the coverage view, the requirement and allocation tables, the top risks and the four ConMon tables are on `DataTable`; the control board stays a board; the rest move when touched.
 - [ ] **The `ia` driver scenario** (scratchpad `drive.mjs`) fails at the persona switch: `select[aria-label="Role"]` is not found after the top-bar work. Unowned; the other four scenarios pass.
 
