@@ -109,9 +109,10 @@ const stageLabel: Record<TraceKind, string> = {
  * Where a program stands on the control a trace is about, as its control status reads it: `known`
  * once the reads its step waits on have answered, `value` null where the control is not in the
  * baseline. `plans` is what the program's open campaigns hold of a control whose evidence waits on
- * an assessor, once read: its Assessment findings stage waits on it. `step` is the control's next
- * step as its Details read it, which the Requirements stage carries while its requirements map it
- * in part.
+ * an assessor, once read: its Assessment findings stage waits on it, and carries the step that
+ * assesses what is left beside the findings of a control judged in part. `step` is the control's
+ * next step as its Details read it, which the Requirements stage carries while its requirements map
+ * it in part.
  */
 type TraceStanding = {
   known: boolean;
@@ -228,7 +229,8 @@ function useTraceStages(
     // over the page. A control's requirements wait on where the program stands on it, since one its
     // product decided names the product assessment instead of a fix, and one they map in part is
     // given its next step, which Ledger's Trace draws under the requirements; its assessment
-    // findings wait on what the program's open campaigns hold of it too.
+    // findings wait on what the program's open campaigns hold of it too, and a control its
+    // assessors have judged in part is given the step that assesses the rest under its findings.
     const fixes = new Map(
       traceGapFixes(
         trace,

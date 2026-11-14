@@ -40,7 +40,7 @@ function client(answer: Answer) {
 
 const uuid = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
 const none = {
-  requirements: 0,
+  objectives: 0,
   evidenced: 0,
   issues: 0,
   issue_severity: null,
@@ -59,14 +59,13 @@ const element = (
   type: "subsystem",
   parent_id: parent === null ? null : uuid(parent),
   boundary: parent === null,
-  own_requirements: 0,
   ...none,
   ...counted,
 });
 
 const elements = [
-  element(1, "Mission system", null, { requirements: 9, evidenced: 4 }),
-  element(2, "Space segment", 1, { requirements: 5, evidenced: 4 }),
+  element(1, "Mission system", null, { objectives: 9, evidenced: 4 }),
+  element(2, "Space segment", 1, { objectives: 5, evidenced: 4 }),
   element(3, "Flight computer", 2),
   element(4, "Ground segment", 1),
   element(5, "Flight computer", 4),
@@ -115,7 +114,7 @@ describe("postureRows", () => {
 
 describe("what a cell reads as", () => {
   const counted = {
-    requirements: 9,
+    objectives: 9,
     evidenced: 4,
     issues: 3,
     issue_severity: 4,
@@ -123,16 +122,17 @@ describe("what a cell reads as", () => {
     risk_severity: 2,
   };
 
-  it("counts requirements, the ones with no evidence, open issues and open risks", () => {
-    expect(postureValue("requirements", counted)).toBe(9);
+  it("counts objectives mapped, the ones with no evidence, open issues and open risks", () => {
+    expect(postureValue("objectives", counted)).toBe(9);
     expect(postureValue("gaps", counted)).toBe(5);
     expect(postureValue("issues", counted)).toBe(3);
     expect(postureValue("risks", counted)).toBe(2);
   });
 
-  it("names the worst severity of the issues or the risks, and none for a count of requirements", () => {
+  it("names the worst severity of the issues or the risks, and none for a count of objectives", () => {
     expect(postureSeverity("issues", counted)).toBe("critical");
     expect(postureSeverity("risks", counted)).toBe("moderate");
+    expect(postureSeverity("objectives", counted)).toBeNull();
     expect(postureSeverity("gaps", counted)).toBeNull();
     expect(severityOfRank(null)).toBeNull();
     expect(severityOfRank(1)).toBe("low");
@@ -142,12 +142,14 @@ describe("what a cell reads as", () => {
 const posture: ProgramPosture = {
   elements,
   families: [{ id: uuid(20), code: "AU", title: "Audit and Accountability", ...none }],
-  cells: [{ element_id: uuid(2), family_id: uuid(20), ...none, requirements: 5, evidenced: 4 }],
+  cells: [{ element_id: uuid(2), family_id: uuid(20), ...none, objectives: 5, evidenced: 4 }],
   totals: {
     requirements: 9,
-    allocated: 9,
-    allocated_elements: 2,
+    unplaced: 0,
+    objectives: 40,
+    mapped: 9,
     evidenced: 4,
+    placed: 9,
     issues: 3,
     issues_severe: 1,
     issues_placed: 2,
@@ -165,18 +167,28 @@ describe("reads", () => {
       name: "program_posture",
       args: { p_tenant_id: "t", p_program_id: uuid(9) },
     });
-    expect(postureCells(answer).get(`${uuid(2)}:${uuid(20)}`)?.requirements).toBe(5);
+    expect(postureCells(answer).get(`${uuid(2)}:${uuid(20)}`)?.objectives).toBe(5);
     expect(postureCells(answer).get(`${uuid(3)}:${uuid(20)}`)).toBeUndefined();
   });
 
   it("reads one cell, or a whole line when an end is left out", async () => {
     const detail = {
-      requirements: 5,
+      objectives: 5,
       evidenced: 4,
       issues: [],
       risks: [],
-      unevidenced: [],
-      controls: [],
+      unevidenced: [{ id: uuid(30), code: "REQ-7", title: "Sign every record", objectives: 1 }],
+      unevidenced_count: 1,
+      controls: [
+        {
+          id: uuid(40),
+          code: "AU-10",
+          title: "Non-repudiation",
+          objectives: 5,
+          evidenced: 4,
+          total: 6,
+        },
+      ],
     };
     const { client: rpc, calls } = client({ data: detail, error: null });
     await readProgramPostureCell(
@@ -189,6 +201,16 @@ describe("reads", () => {
       p_program_id: uuid(9),
       p_element_id: uuid(2),
     });
+  });
+
+  it("refuses a cell that does not say how many requirements there are to evidence", async () => {
+    const { client: rpc } = client({
+      data: { objectives: 0, evidenced: 0, issues: [], risks: [], unevidenced: [], controls: [] },
+      error: null,
+    });
+    await expect(
+      readProgramPostureCell(rpc, { tenantId: "t", token: "k" }, { programId: uuid(9) }),
+    ).rejects.toThrow();
   });
 
   it("fails on the server's refusal", async () => {
@@ -211,27 +233,27 @@ const technique = (slug: string, title: string, counted: Partial<typeof none> = 
 const resiliency: ProgramResiliencyPosture = {
   elements,
   techniques: [
-    technique("adaptive-response", "Adaptive Response", { requirements: 3, evidenced: 1 }),
+    technique("adaptive-response", "Adaptive Response", { objectives: 3, evidenced: 1 }),
     technique("deception", "Deception"),
-    technique("segmentation", "Segmentation", { requirements: 2, evidenced: 2 }),
+    technique("segmentation", "Segmentation", { objectives: 2, evidenced: 2 }),
   ],
   cells: [
     {
       element_id: uuid(2),
       technique_code: "technique.adaptive-response",
       ...none,
-      requirements: 3,
+      objectives: 3,
       evidenced: 1,
     },
     {
       element_id: uuid(2),
       technique_code: "technique.segmentation",
       ...none,
-      requirements: 2,
+      objectives: 2,
       evidenced: 2,
     },
   ],
-  totals: { ...posture.totals, placed: 4, issues_placed: 1, risks_placed: 0 },
+  totals: { ...posture.totals, placed: 4, unsupported: 5, issues_placed: 1, risks_placed: 0 },
 };
 
 describe("the grid's columns", () => {
@@ -279,7 +301,7 @@ describe("the grid's columns", () => {
 
   it("finds a technique's cell by its element and the technique's code", () => {
     const cells = postureCells(resiliency);
-    expect(cells.get(`${uuid(2)}:technique.adaptive-response`)?.requirements).toBe(3);
+    expect(cells.get(`${uuid(2)}:technique.adaptive-response`)?.objectives).toBe(3);
     expect(cells.get(`${uuid(2)}:technique.deception`)).toBeUndefined();
   });
 });
@@ -291,20 +313,22 @@ describe("what a grid does not place", () => {
     expect(postureLeftOut("issues", resiliency.totals)).toEqual({ records: "issues", unplaced: 2 });
   });
 
-  it("says the requirements allocated to no element, by family", () => {
-    const counted = { ...posture.totals, requirements: 12, allocated: 9 };
-    expect(postureLeftOut("requirements", counted)).toEqual({
+  it("says the requirements that stand on no element, by family, under either count of objectives", () => {
+    const counted = { ...posture.totals, unplaced: 3 };
+    expect(postureLeftOut("objectives", counted)).toEqual({
       records: "requirements",
-      unallocated: 3,
+      unplaced: 3,
       unsupported: 0,
     });
-    expect(postureLeftOut("gaps", counted)).toEqual(postureLeftOut("requirements", counted));
+    expect(postureLeftOut("gaps", counted)).toEqual(postureLeftOut("objectives", counted));
   });
 
-  it("says the allocated requirements whose controls support no technique, by technique", () => {
-    expect(
-      postureLeftOut("requirements", { ...resiliency.totals, requirements: 12, allocated: 9 }),
-    ).toEqual({ records: "requirements", unallocated: 3, unsupported: 5 });
+  it("says the placed requirements whose controls support no technique, by technique", () => {
+    expect(postureLeftOut("objectives", { ...resiliency.totals, unplaced: 3 })).toEqual({
+      records: "requirements",
+      unplaced: 3,
+      unsupported: 5,
+    });
   });
 });
 
@@ -322,9 +346,10 @@ describe("reads by technique", () => {
       "technique.segmentation",
     ]);
     expect(answer.totals.placed).toBe(4);
+    expect(answer.totals.unsupported).toBe(5);
   });
 
-  it("refuses an answer that does not say how many requirements are placed", async () => {
+  it("refuses an answer that does not say how many requirements stand under no technique", async () => {
     const { client: rpc } = client({
       data: { ...resiliency, totals: posture.totals },
       error: null,
@@ -336,11 +361,12 @@ describe("reads by technique", () => {
 
   it("reads one cell by its technique's code, or a whole line when an end is left out", async () => {
     const detail = {
-      requirements: 3,
+      objectives: 3,
       evidenced: 1,
       issues: [],
       risks: [],
       unevidenced: [],
+      unevidenced_count: 0,
       controls: [],
     };
     const { client: rpc, calls } = client({ data: detail, error: null });

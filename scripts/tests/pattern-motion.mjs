@@ -43,6 +43,24 @@ async function sampleNavigation(page, reverseAt = null) {
         reversed = true;
       }
     }
+    // A slow runner can still be moving at 650 ms: read on until nothing has moved for five frames
+    // and no animation runs on the navigation or its scrim, three seconds at most, so the last
+    // sample is where the motion settled.
+    const animating = () =>
+      [nav, document.querySelector('[data-slot="shell-scrim"]')]
+        .filter(Boolean)
+        .some((element) =>
+          element.getAnimations().some((animation) => animation.playState === "running"),
+        );
+    const place = (sample) =>
+      `${sample.visible}|${sample.expanded}|${Math.round(sample.left)}|${Math.round(sample.width)}`;
+    let still = 0;
+    while (performance.now() - started < 3000 && (still < 5 || animating())) {
+      await new Promise(requestAnimationFrame);
+      const sample = read();
+      still = place(sample) === place(samples.at(-1)) ? still + 1 : 0;
+      samples.push(sample);
+    }
     return samples;
   }, reverseAt);
 }

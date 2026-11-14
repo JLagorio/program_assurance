@@ -4,6 +4,7 @@ import {
   Absent,
   Button,
   Count,
+  DataTable,
   DateTime,
   Person,
   Prose,
@@ -16,30 +17,50 @@ import {
   Text,
   TextLink,
   VisuallyHidden,
+  defineColumns,
+  toast,
   useLedgerLocale,
+  type EmptyIllustrationKind,
+  type FilterOption,
 } from "@ledger/design-system";
 import { Plus } from "lucide-react";
 import {
-  compareObjectives,
+  assessmentObjectiveRead,
   objectiveTarget,
-  useAssessmentObjectiveRows,
+  storedObjective,
+  type ObjectiveRegisterRow,
 } from "@/lib/assessment-objectives";
 import { useRows, type Row } from "@/lib/models";
+import { registerViews } from "@/lib/register-views";
+import {
+  useServerCountQueries,
+  useServerResult,
+  type ServerRead,
+  type ServerResultQuestion,
+} from "@/lib/server-table";
 import { useWorkspace } from "@/components/app/workspace";
 import { StatusBadge, LevelIndicator } from "@/components/app/status";
 import { campaignStatuses, impactLevels } from "@/lib/status";
 import { type DataRecord } from "@/lib/records";
-import { productCreateLabel, productRecordNoun } from "@/lib/product-records";
+import {
+  productCollectionNoun,
+  productCreateLabel,
+  productRecordNoun,
+} from "@/lib/product-records";
 import {
   RecordLink,
   RecordPreviewActions,
   RecordPreviewPanel,
+  useDisplayedRecords,
   useEndOnHide,
+  useOpenRecord,
 } from "./record-preview";
 import { AssessmentTable } from "./assessment-table";
 import type { AssessmentKind } from "./assessment-tabs";
+import { useServerCollection } from "./collection-question";
+import { ProductCollection } from "./product-collection";
 import { ProgramCollection } from "./program-shared";
-import { RelationName } from "./record-tools";
+import { RelationName, downloadJson } from "./record-tools";
 import { DetailFacts, ModelForm, QueryState, type FormTarget } from "./work-common";
 
 type AssessmentRecordKind = Exclude<AssessmentKind, "Scopes">;
@@ -76,6 +97,11 @@ const campaignOrder = (a: string | null, b: string | null) =>
 const day = (value: unknown) =>
   typeof value === "string" && value ? <DateTime value={value} format="date" /> : null;
 
+/** No count to read: a register under a Section heading says no count. */
+const NO_QUESTIONS: ServerResultQuestion[] = [];
+/** The whole register, whatever the reader asks of it: a tab's count. */
+const WHOLE_REGISTER: ServerResultQuestion[] = [{}];
+
 /** Campaigns, their events, their objectives and, within a program, its assessment scopes: registers under one tab strip, each on the kit's table with its own search, chips and create action. Choosing a campaign's event count opens its events with the Campaign chip already set. */
 export function AssessmentBrowser({
   programId,
@@ -103,11 +129,24 @@ export function AssessmentBrowser({
   // In a program, its campaigns' plans, events and objectives, joined on the server: never every
   // campaign's in the workspace.
   const inCampaigns = programId ? { "assessment_campaigns.program_id": programId } : {};
-  const plans = useRows("assessment_plan_revisions", inCampaigns);
+  // A plan is named by its title and its version, and placed in its campaign.
+  const plans = useRows("assessment_plan_revisions", inCampaigns, {
+    columns: ["id", "campaign_id", "version_number", "title"] as const,
+  });
   const events = useRows("assessment_events", inCampaigns);
-  // The objectives come with their campaign, their target's words and their place in the catalog's
-  // reading order, from their view.
-  const objectives = useAssessmentObjectiveRows(programId ? { program_id: programId } : {});
+  // The objectives, a page at a time from their view: every campaign's, or the program's. They can
+  // run to thousands (a plan holds one objective an assessment objective of each control it
+  // assesses), so the server pages, sorts, filters, searches and counts them.
+  const objectiveRead = useMemo(
+    () => assessmentObjectiveRead(programId ? { program_id: programId } : {}),
+    [programId],
+  );
+  // The tab counts the whole register, whatever the reader's question; under Section headings
+  // nothing counts it.
+  const [objectiveCount] = useServerCountQueries(
+    objectiveRead,
+    sectioned ? NO_QUESTIONS : WHOLE_REGISTER,
+  );
   const programs = useRows("programs", undefined, { columns: ["id", "name"] as const });
   const parties = useRows("parties", undefined, { columns: ["id", "name"] as const });
   // A program's systems and their scopes, for its Scopes register: the workspace's page has none.
@@ -174,27 +213,15 @@ export function AssessmentBrowser({
       campaign: campaignName(event.campaign_id),
       plan: planOf(event.plan_revision_id)?.version_number ?? null,
     }));
-  // Each campaign's objectives together, by the campaign's title, each plan's together, the newest
-  // first (two plans alike by their id), and each plan's in the catalog's reading order: AC-08a.01
-  // before AC-08a.02, a heading before the objectives under it, AC-2 before AC-10.
-  const objectiveRows = (objectives.data ?? [])
-    .filter((objective) => planRows.some((plan) => plan.id === objective.plan_revision_id))
-    .map((objective) => {
-      const plan = planOf(objective.plan_revision_id);
-      return {
-        ...objective,
-        campaign: campaignName(plan?.campaign_id),
-        plan: plan?.title ?? null,
-        planVersion: plan?.version_number ?? 0,
-      };
-    })
-    .sort(
-      (a, b) =>
-        campaignOrder(a.campaign, b.campaign) ||
-        b.planVersion - a.planVersion ||
-        a.plan_revision_id.localeCompare(b.plan_revision_id) ||
-        compareObjectives(a, b),
-    );
+  // The Objectives' Campaign filter offers every campaign by its title: one page's rows are not
+  // every campaign there is.
+  const campaignOptions = useMemo<FilterOption[]>(
+    () =>
+      [...new Set(campaignRows.map((campaign) => campaign.title))]
+        .sort(campaignOrder)
+        .map((title) => ({ value: title })),
+    [campaignRows],
+  );
   const systemIds = useMemo(
     () => new Set((systems.data ?? []).map((system) => system.id)),
     [systems.data],
@@ -213,14 +240,15 @@ export function AssessmentBrowser({
   const counts: Partial<Record<AssessmentKind, number | undefined>> = {
     Campaigns: campaigns.data && campaignRows.length,
     Events: campaigns.data && events.data && eventRows.length,
-    Objectives: campaigns.data && plans.data && objectives.data && objectiveRows.length,
+    Objectives: objectiveCount?.data,
     Scopes: systems.data && scopes.data && scopeRows.length,
   };
-  // The preview reads the record as the registers have it now, so an edit saved from it shows.
+  // The preview reads the record as the registers have it now, so an edit saved from it shows: an
+  // objective as the register's page holds it.
   const live: Record<AssessmentRecordKind, DataRecord[]> = {
     Campaigns: campaignRows as unknown as DataRecord[],
     Events: eventRows as unknown as DataRecord[],
-    Objectives: objectiveRows as unknown as DataRecord[],
+    Objectives: displayed["assessment_objectives"] ?? [],
   };
   const selectedKind = (Object.keys(tables) as AssessmentRecordKind[]).find(
     (kind) => tables[kind] === selection?.table,
@@ -231,9 +259,11 @@ export function AssessmentBrowser({
       selection.existing);
   /** The record as stored, without the names the registers derive, for the edit form. */
   const stored = (record: DataRecord): DataRecord =>
-    ([campaigns, events, objectives] as const)
-      .flatMap((query) => (query.data ?? []) as unknown as DataRecord[])
-      .find((row) => row.id === record.id) ?? record;
+    selection?.table === "assessment_objectives"
+      ? (storedObjective(record as unknown as ObjectiveRegisterRow) as unknown as DataRecord)
+      : (([campaigns, events] as const)
+          .flatMap((query) => (query.data ?? []) as unknown as DataRecord[])
+          .find((row) => row.id === record.id) ?? record);
   function edit(target: FormTarget) {
     // The preview stays open under the dialog, so closing the dialog returns to its Edit.
     if (form) return;
@@ -265,10 +295,10 @@ export function AssessmentBrowser({
         {productCreateLabel(tables[kind])}
       </Button>
     ) : undefined;
-  const planLink = (id: unknown) =>
+  const planLink = (id: unknown, title?: string | null) =>
     typeof id === "string" && id ? (
       <RecordLink table="assessment_plan_revisions" record={{ id }}>
-        {planOf(id)?.title ?? "Assessment plan revision"}
+        {title ?? planOf(id)?.title ?? "Assessment plan revision"}
       </RecordLink>
     ) : null;
   const campaignLink = (id: unknown) =>
@@ -328,14 +358,15 @@ export function AssessmentBrowser({
           />
         </>
       );
+    const objective = record as unknown as ObjectiveRegisterRow;
     return (
       <>
-        <Described label="Statement" text={record["description"]} />
+        <Described label="Statement" text={objective.description} />
         <DetailFacts
           facts={[
-            ["Acceptance criterion", record["acceptance_criterion"] as string | null],
-            ["Campaign", campaignLink(planOf(record["plan_revision_id"])?.campaign_id)],
-            ["Assessment plan", planLink(record["plan_revision_id"])],
+            ["Acceptance criterion", objective.acceptance_criterion],
+            ["Campaign", campaignLink(objective.campaign_id)],
+            ["Assessment plan", planLink(objective.plan_revision_id, objective.plan_title)],
           ]}
         />
       </>
@@ -487,26 +518,28 @@ export function AssessmentBrowser({
     />
   );
   const objectivesTable = (
-    <AssessmentTable
-      model="assessment_objectives"
+    <ObjectiveRegister
+      key={campaignId ?? "all"}
+      read={objectiveRead}
+      sectioned={sectioned}
+      // Opened from a campaign's event count, the register asks for that campaign's objectives,
+      // under a question of its own.
+      campaignFilter={campaignFilter}
+      keepQuestion={
+        campaignId
+          ? `${registerViews.assessmentObjectives}-${campaignId}`
+          : registerViews.assessmentObjectives
+      }
+      campaignOptions={campaignOptions}
       selectedId={selection?.table === "assessment_objectives" ? selection.existing?.id : undefined}
+      onPreview={inspect("assessment_objectives")}
       onDisplayedRowsChange={(rows) =>
         setDisplayed((previous) => ({
           ...previous,
-          assessment_objectives: rows as DataRecord[],
+          assessment_objectives: rows as unknown as DataRecord[],
         }))
       }
-      key={campaignId ?? "all"}
-      fill={!sectioned}
-      compact={sectioned}
-      label="Objectives"
-      view="assessment-objectives"
-      keepQuestion={`assessment-objectives-${campaignId ?? "all"}`}
-      rows={objectiveRows}
-      queries={[objectives, plans, campaigns]}
-      filters={["campaign"]}
-      initialFilters={campaignFilter}
-      actions={add("Objectives", "small")}
+      action={add("Objectives", "small")}
       empty={{
         illustration: "shield",
         title: "No objectives yet",
@@ -514,39 +547,6 @@ export function AssessmentBrowser({
           "Record what each assessment plan sets out to show, and the control or requirement it targets.",
         action: add("Objectives", "medium"),
       }}
-      columns={[
-        { label: "Objective", key: "title" },
-        { label: "Statement", key: "description" },
-        {
-          label: "Campaign",
-          key: "campaign",
-          value: (row) => row.campaign ?? <Absent label="Not available" />,
-          width: 190,
-        },
-        {
-          label: "Plan",
-          key: "plan",
-          value: (row) => row.plan ?? <Absent label="Not available" />,
-          width: 190,
-        },
-        {
-          label: "Target",
-          // An assessment objective by its label (AC-08a.01), the control's statement as Control
-          // statement, a requirement revision as Requirement revision.
-          value: (row) => {
-            const target = objectiveTarget(row);
-            return target ? (
-              <RecordLink table={target.table} record={{ id: target.id }}>
-                {target.label}
-              </RecordLink>
-            ) : (
-              <Absent />
-            );
-          },
-          width: 170,
-        },
-      ]}
-      onPreview={inspect("assessment_objectives")}
     />
   );
   const scopesTable = (
@@ -673,5 +673,154 @@ export function AssessmentBrowser({
         </RecordPreviewPanel>
       )}
     </Stack>
+  );
+}
+
+/** An objective as its register draws it: its campaign's and its plan's titles under the ids the
+ * columns, the Campaign filter and the address name them by. */
+type ObjectiveRow = ObjectiveRegisterRow & { campaign: string; plan: string };
+
+/** The register's rows from the page's, in the server's order. */
+const objectiveRows = (page: ObjectiveRegisterRow[]): ObjectiveRow[] =>
+  page.map((row) => ({ ...row, campaign: row.campaign_title, plan: row.plan_title }));
+
+/**
+ * The register's columns, built once for its opener: stepping through the preview rebuilds none.
+ * An objective has no page of its own: its name opens its preview.
+ */
+const objectiveColumns = (open: (row: ObjectiveRow) => void) =>
+  defineColumns<ObjectiveRow>((c) => [
+    c.id("title", {
+      header: "Objective",
+      minWidth: 180,
+      priority: 0,
+      hideable: false,
+      cell: (row) => (
+        <RecordLink table="assessment_objectives" record={row} onPreview={() => open(row)}>
+          {row.title}
+        </RecordLink>
+      ),
+    }),
+    c.text("description", {
+      header: "Statement",
+      cell: (row) => (row.description ? row.description : <Absent />),
+    }),
+    c.text("campaign", { header: "Campaign", width: 190 }),
+    c.text("plan", { header: "Plan", width: 190 }),
+    c.custom("target", {
+      header: "Target",
+      width: 170,
+      // An assessment objective by its label (AC-08a.01), the control's statement as Control
+      // statement, a requirement revision as Requirement revision.
+      text: (row) => objectiveTarget(row)?.label ?? "",
+      cell: (row) => {
+        const target = objectiveTarget(row);
+        return target ? (
+          <RecordLink table={target.table} record={{ id: target.id }}>
+            {target.label}
+          </RecordLink>
+        ) : (
+          <Absent />
+        );
+      },
+    }),
+  ]);
+
+const objectiveNoun = {
+  one: productRecordNoun("assessment_objectives"),
+  other: productCollectionNoun("assessment_objectives"),
+};
+
+/**
+ * Every campaign's objectives, or a program's, a page at a time from the server, which pages,
+ * sorts, filters, searches and counts them, in the campaigns' and their plans' order and each
+ * plan's in the catalog's reading order unless the reader sorts. Its question lives in the address
+ * under its view; its preview is its caller's, which steps across the pages; Export writes the
+ * whole result. Under a Section heading (a program's tab) it is compact, with a secondary create.
+ */
+function ObjectiveRegister({
+  read,
+  sectioned,
+  campaignFilter,
+  keepQuestion,
+  campaignOptions,
+  selectedId,
+  onPreview,
+  onDisplayedRowsChange,
+  action,
+  empty,
+}: {
+  read: ServerRead;
+  sectioned: boolean;
+  /** The Campaign filter the register opens on, from a campaign's event count. */
+  campaignFilter?: { id: string; value: unknown }[] | undefined;
+  keepQuestion: string;
+  campaignOptions: FilterOption[];
+  selectedId?: string | undefined;
+  onPreview: (row: ObjectiveRow) => void;
+  onDisplayedRowsChange: (rows: ObjectiveRow[]) => void;
+  action: ReactNode;
+  empty: {
+    illustration: EmptyIllustrationKind;
+    title: string;
+    description: string;
+    action: ReactNode;
+  };
+}) {
+  const openRecord = useOpenRecord();
+  // The columns are built once: the name reaches the latest opener.
+  const open = useRef(onPreview);
+  open.current = onPreview;
+  const columns = useMemo(() => objectiveColumns((row) => open.current(row)), []);
+  const collection = useServerCollection<ObjectiveRow, ObjectiveRegisterRow>(read, {
+    columns,
+    rows: objectiveRows,
+    preview: useMemo(
+      () => ({ onPreview: (row: ObjectiveRow) => open.current(row), activeId: selectedId ?? null }),
+      [selectedId],
+    ),
+    label: "Objectives",
+    view: registerViews.assessmentObjectives,
+    keepQuestion,
+    resizable: true,
+    reorderable: true,
+    ...(campaignFilter ? { initialState: { columnFilters: campaignFilter } } : {}),
+  });
+  const { table } = collection;
+  useDisplayedRecords(table, onDisplayedRowsChange);
+  const readResult = useServerResult(read);
+  const [exporting, setExporting] = useState(false);
+  /** Every objective the question leaves, across its pages, as the register reads them. */
+  const exportObjectives = () => {
+    setExporting(true);
+    readResult({
+      search: String(table.state.globalFilter ?? ""),
+      sorting: table.state.sorting,
+      filters: table.state.columnFilters,
+    })
+      .then((rows) => downloadJson("assessment-objectives.json", rows))
+      .catch((cause: unknown) =>
+        toast.add({
+          type: "error",
+          title: "The objectives were not exported",
+          description: cause instanceof Error ? cause.message : "Try again.",
+        }),
+      )
+      .finally(() => setExporting(false));
+  };
+  return (
+    <ProductCollection
+      {...collection}
+      fill={!sectioned}
+      compact={sectioned}
+      noun={objectiveNoun}
+      // An objective has no page of its own: its row opens its preview, as its name does.
+      onRowClick={(row) => openRecord("assessment_objectives", row, () => open.current(row))}
+      searchLabel="Find objectives"
+      empty={empty}
+      filters={<DataTable.Filter table={table} column="campaign" options={campaignOptions} />}
+      commands={[{ label: "Export objectives", onSelect: exportObjectives, disabled: exporting }]}
+      action={action}
+    />
   );
 }

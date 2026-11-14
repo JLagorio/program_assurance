@@ -1,9 +1,11 @@
 /**
  * The assurance chain reads: `assurance_trace` from every kind of record, an assessor's finding
- * among them, the walk that never goes back, a program's posture with an element's totals, one
- * cell's records, and the tenant boundary. Runs against the local stack in a disposable workspace.
+ * among them, the walk that never goes back, a program's posture in assessment objectives with an
+ * element's totals, one cell's records, and the tenant boundary. Runs against the local stack in a
+ * disposable workspace.
  */
 import assert from "node:assert/strict";
+import { randomUUID } from "node:crypto";
 import { localWorkspace } from "./tests/local-workspace.mjs";
 
 const workspace = await localWorkspace("assurance-trace");
@@ -50,18 +52,73 @@ try {
     parent_system_id: root.id,
     is_authorization_boundary: false,
   });
-  // Two controls from the reference catalog, which every workspace reads: one the requirements
-  // meet, one nothing meets.
+  // The system works from the smallest published reference baseline, adopted as the system
+  // baseline dialog adopts one, so the element inside it holds its controls' objectives.
+  const references = await data(
+    client
+      .from("profile_resolutions")
+      .select("id, profile_revision_id")
+      .is("tenant_id", null)
+      .eq("state", "published")
+      .is("base_profile_resolution_id", null),
+  );
+  const sized = await Promise.all(
+    references.map(async (reference) => {
+      const { count, error } = await client
+        .from("selected_controls")
+        .select("control_id", { count: "exact", head: true })
+        .eq("profile_resolution_id", reference.id);
+      assert.ifError(error);
+      return { ...reference, count: count ?? 0 };
+    }),
+  );
+  const baseline = sized
+    .filter((reference) => reference.count > 0)
+    .sort((a, b) => a.count - b.count || a.id.localeCompare(b.id))[0];
+  assert.ok(baseline, "The reference data holds a published baseline (npm run seed:reference)");
+  const [imported] = await data(
+    client
+      .from("profile_imports")
+      .select("catalog_revision_id")
+      .eq("profile_revision_id", baseline.profile_revision_id)
+      .not("catalog_revision_id", "is", null)
+      .limit(1),
+  );
+  const baselineControls = (
+    await data(
+      client
+        .from("selected_controls")
+        .select("control_id")
+        .eq("profile_resolution_id", baseline.id),
+    )
+  ).map((row) => row.control_id);
+  await data(
+    client.rpc("adopt_system_baseline", {
+      p_tenant_id: tenantId,
+      p_system_id: root.id,
+      p_expected_revision: root.revision,
+      p_request_id: randomUUID(),
+      p_selection: {
+        mode: "adopt",
+        catalogRevisionId: imported.catalog_revision_id,
+        profileResolutionId: baseline.id,
+        controlIds: baselineControls,
+        rationale: "The chain suite works from a published baseline",
+      },
+    }),
+  );
+  // Two controls of that baseline: one the requirements meet, one nothing meets.
   const [control, unmet] = await data(
     client
       .from("controls")
       .select("id, code, group_id")
+      .in("id", baselineControls)
       .is("parent_control_id", null)
       .not("group_id", "is", null)
       .order("code")
       .limit(2),
   );
-  assert.ok(control && unmet, "The reference catalog holds controls");
+  assert.ok(control && unmet, "The reference baseline holds controls");
 
   async function requirement(code, programId, controlId, systemId) {
     const record = await insert("engineering_requirements", { program_id: programId, code });
@@ -270,50 +327,58 @@ try {
   assert.deepEqual(ids(fromItem.controls), [control.id]);
   console.log("PASS evidence, issue, requirement and remediation traces walk outward only");
 
-  // The posture: both requirements stand at the element under the control's family, and the
-  // element that holds it totals them. One open issue and one open risk stand there too.
+  // The posture, in assessment objectives: both requirements' mappings name no system, so they
+  // stand on the element they are allocated to, under the control's family, and cover every
+  // objective the control counts; the element that holds it pools them. REQ-SIGNED cites evidence,
+  // so every objective has evidence there. One open issue and one open risk stand there too.
   const posture = await data(
     client.rpc("program_posture", { p_tenant_id: tenantId, p_program_id: program.id }),
   );
-  assert.deepEqual(
-    posture.families.map((family) => family.id),
-    [control.group_id],
+  const objectives = (
+    await data(
+      client.rpc("program_control_objectives", {
+        p_program_id: program.id,
+        p_control_id: control.id,
+      }),
+    )
+  ).objectives.length;
+  assert.ok(objectives > 0, "The control counts assessment objectives");
+  assert.ok(
+    posture.families.some((family) => family.id === control.group_id),
+    "every family of the baseline is a column",
+  );
+  assert.ok(
+    posture.families.every((family) => family.id === control.group_id || family.objectives === 0),
+    "a family nothing is mapped in holds no objective",
   );
   const cell = (elementId) =>
     posture.cells.find((row) => row.element_id === elementId && row.family_id === control.group_id);
   for (const holder of [element.id, root.id]) {
-    assert.equal(cell(holder).requirements, 2);
-    assert.equal(cell(holder).evidenced, 1);
+    assert.equal(cell(holder).objectives, objectives);
+    assert.equal(cell(holder).evidenced, objectives);
     assert.equal(cell(holder).issues, 1, "a closed issue is not counted");
     assert.equal(cell(holder).issue_severity, 4);
     assert.equal(cell(holder).risks, 1);
   }
   const line = (elementId) => posture.elements.find((row) => row.id === elementId);
-  assert.equal(line(element.id).own_requirements, 2);
-  assert.equal(line(root.id).own_requirements, 0);
-  assert.equal(line(root.id).requirements, 2, "an element counts the elements inside it");
-  assert.deepEqual(
-    {
-      requirements: posture.totals.requirements,
-      allocated: posture.totals.allocated,
-      evidenced: posture.totals.evidenced,
-      issues: posture.totals.issues,
-      issues_severe: posture.totals.issues_severe,
-      issues_placed: posture.totals.issues_placed,
-      risks: posture.totals.risks,
-      risks_placed: posture.totals.risks_placed,
-    },
-    {
-      requirements: 2,
-      allocated: 2,
-      evidenced: 1,
-      issues: 1,
-      issues_severe: 1,
-      issues_placed: 1,
-      risks: 1,
-      risks_placed: 1,
-    },
-  );
+  assert.equal(line(element.id).objectives, objectives);
+  assert.equal(line(root.id).objectives, objectives, "an element counts the elements inside it");
+  // The program has no control baseline of its own (only its system adopted one), so the band,
+  // which reads the program's control baseline as its control status does, holds no objective.
+  assert.deepEqual(posture.totals, {
+    requirements: 2,
+    unplaced: 0,
+    objectives: 0,
+    mapped: 0,
+    evidenced: 0,
+    placed: objectives,
+    issues: 1,
+    issues_severe: 1,
+    issues_placed: 1,
+    risks: 1,
+    risks_severe: 1,
+    risks_placed: 1,
+  });
   const inCell = await data(
     client.rpc("program_posture_cell", {
       p_tenant_id: tenantId,
@@ -322,12 +387,16 @@ try {
       p_family_id: control.group_id,
     }),
   );
-  assert.equal(inCell.requirements, 2);
+  assert.equal(inCell.objectives, objectives);
   assert.deepEqual(ids(inCell.issues), [cited.id]);
   assert.deepEqual(ids(inCell.risks), [risk.id]);
-  assert.deepEqual(ids(inCell.unevidenced), [bare.record.id]);
+  // REQ-BARE cites no evidence, but REQ-SIGNED's covers every objective it covers.
+  assert.deepEqual(inCell.unevidenced, [], "nothing is left to evidence there");
   assert.deepEqual(ids(inCell.controls), [control.id]);
-  console.log("PASS the posture counts each record once, and an element totals what it holds");
+  assert.equal(inCell.controls[0].objectives, objectives);
+  console.log(
+    "PASS the posture counts each objective and record once, and an element pools what it holds",
+  );
 
   // An issue names the requirement it is about: the bare requirement, which no evidence supports.
   // The trace reaches the requirement from the issue and the issue from the requirement, and the

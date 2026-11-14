@@ -20,11 +20,11 @@ import { controlDeterminers, controlStatuses } from "./status";
  * assessment objectives climbs by them: the program's requirements map every one of them before it
  * leaves No requirement, and one that cites evidence covers each before it leaves No evidence; a
  * mapping of the whole control covers them all (control-objectives). The
- * determination is the worst of the latest an assessor of the program published on the control's
- * parts, once they have judged every objective it counts (a determination on an objective judges
- * it and those under it, one on the statement judges them all); a control judged in part has no
- * program determination and reads the ladder. Where there is none and every product variant of the
- * program inherits the control with a
+ * determination is the worst of its objectives' determinations, once the program's assessors have
+ * judged every objective it counts: a determination on an objective judges it and those under it,
+ * one on the statement judges them all, and the latest published of those that judge an objective
+ * decides it. A control judged in part has no program determination and reads the ladder. Where
+ * there is none and every product variant of the program inherits the control with a
  * determination (its delta is inherited), it is the worst of the product's, and the control names
  * the product assessments it was taken from. The words and their order are `controlStatuses` and
  * `controlDeterminers` in status. This module also rolls the controls up by family, for a map of
@@ -120,8 +120,9 @@ export type ControlStanding = {
   objectivesEvidenced: number;
   /**
    * Those an assessor of the program has judged: a published determination on the objective, on an
-   * objective above it, or on the control's statement. The program's assessors decide the control
-   * once every one is judged; until then it reads the ladder below.
+   * objective above it, or on the control's statement, the latest of which decides the objective.
+   * The program's assessors decide the control once every one is judged; until then it reads the
+   * ladder below.
    */
   objectivesAssessed: number;
   /**

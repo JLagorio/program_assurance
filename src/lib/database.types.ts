@@ -15459,11 +15459,16 @@ export type Database = {
         Row: {
           acceptance_criterion: string | null;
           campaign_id: string | null;
+          campaign_order: string | null;
+          campaign_title: string | null;
           created_at: string | null;
           created_by: string | null;
           description: string | null;
           id: string | null;
+          plan_order: string | null;
           plan_revision_id: string | null;
+          plan_title: string | null;
+          plan_version: number | null;
           program_id: string | null;
           reading_order: string | null;
           requirement_revision_id: string | null;
@@ -15473,6 +15478,7 @@ export type Database = {
           target_label: string | null;
           tenant_id: string | null;
           title: string | null;
+          title_order: string | null;
           updated_at: string | null;
           updated_by: string | null;
         };
@@ -17487,6 +17493,17 @@ export type Database = {
           title: string;
         }[];
       };
+      program_objective_placement: {
+        Args: { p_program_id: string };
+        Returns: {
+          control_id: string;
+          control_objectives: number;
+          evidenced: boolean;
+          objective_id: string;
+          requirement_id: string;
+          system_id: string;
+        }[];
+      };
       program_posture: {
         Args: { p_program_id: string; p_tenant_id: string };
         Returns: Json;
@@ -17818,6 +17835,11 @@ export type Database = {
         };
         Returns: Json;
       };
+      ssp_control_detail: {
+        Args: { p_selected_control_id: string; p_ssp_revision_id: string };
+        Returns: Json;
+      };
+      ssp_control_rows: { Args: { p_ssp_revision_id: string }; Returns: Json };
       take_product_version: {
         Args: {
           p_expected_revision: number;

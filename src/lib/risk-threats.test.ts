@@ -115,6 +115,8 @@ const answer = {
       evidenced: 2,
       objectives: 6,
       objectives_mapped: 6,
+      objectives_evidenced: 4,
+      objectives_assessed: 2,
     },
     {
       id: id(62),
@@ -128,6 +130,8 @@ const answer = {
       evidenced: 0,
       objectives: 4,
       objectives_mapped: 0,
+      objectives_evidenced: 0,
+      objectives_assessed: 0,
     },
   ],
   totals: { techniques: 2, controls: 2, in_baseline: 1, with_requirement: 1, with_evidence: 1 },
@@ -170,6 +174,15 @@ describe("readRiskThreats", () => {
       evidenced: 0,
       objectives: 4,
       objectivesMapped: 0,
+      objectivesEvidenced: 0,
+      objectivesAssessed: 0,
+    });
+    // How much of a control the program holds, objective by objective, as its status counts it.
+    expect(threats.controls[0]).toMatchObject({
+      objectives: 6,
+      objectivesMapped: 6,
+      objectivesEvidenced: 4,
+      objectivesAssessed: 2,
     });
     expect(threats.totals).toEqual({
       techniques: 2,
@@ -211,6 +224,8 @@ describe("readRiskThreats", () => {
           evidenced: null,
           objectives: null,
           objectives_mapped: null,
+          objectives_evidenced: null,
+          objectives_assessed: null,
         },
       ],
     };
@@ -222,12 +237,38 @@ describe("readRiskThreats", () => {
       control.evidenced,
       control.objectives,
       control.objectivesMapped,
-    ]).toEqual([null, null, null, null, null]);
-    // An answer from before the objectives were counted counts none, never a zero.
-    const { objectives: _objectives, objectives_mapped: _mapped, ...older } = answer.controls[0]!;
+      control.objectivesEvidenced,
+      control.objectivesAssessed,
+    ]).toEqual([null, null, null, null, null, null, null]);
+    // An answer from before the objectives were counted counts none, never a zero; and one from
+    // before those with evidence and judged were counted counts those none.
+    const {
+      objectives: _objectives,
+      objectives_mapped: _mapped,
+      objectives_evidenced: _evidenced,
+      objectives_assessed: _assessed,
+      ...older
+    } = answer.controls[0]!;
     const third = fakeClient([{ data: { ...answer, controls: [older] }, error: null }]);
     const counted = (await readRiskThreats(third.client, context, risk)).controls[0]!;
-    expect([counted.objectives, counted.objectivesMapped]).toEqual([null, null]);
+    expect([
+      counted.objectives,
+      counted.objectivesMapped,
+      counted.objectivesEvidenced,
+      counted.objectivesAssessed,
+    ]).toEqual([null, null, null, null]);
+    const mappedOnly = fakeClient([
+      {
+        data: { ...answer, controls: [{ ...older, objectives: 6, objectives_mapped: 6 }] },
+        error: null,
+      },
+    ]);
+    const before = (await readRiskThreats(mappedOnly.client, context, risk)).controls[0]!;
+    expect([
+      before.objectivesMapped,
+      before.objectivesEvidenced,
+      before.objectivesAssessed,
+    ]).toEqual([6, null, null]);
   });
 
   it("fails with the server's words, and refuses an answer of another shape", async () => {
@@ -369,6 +410,7 @@ describe("the order a risk's controls read in", () => {
   ) => ({ code, inBaseline, requirements, evidenced });
 
   it("ranks what the program holds: baseline, then a requirement, then evidence", () => {
+    // A control the catalog gives no objective climbs by its requirements.
     expect(controlHolding(control("a", false, 0, 0))).toBe(0);
     expect(controlHolding(control("b", false, 2, 0))).toBe(2);
     expect(controlHolding(control("c", true, 0, 0))).toBe(4);
@@ -376,14 +418,33 @@ describe("the order a risk's controls read in", () => {
     expect(controlHolding(control("e", true, 3, 2))).toBe(7);
     // No standing holds nothing.
     expect(controlHolding(control("f", null, null, null))).toBe(0);
-    // Requirements that cover only some of the control's objectives hold no requirement yet, as
-    // the control status says, evidence or not; every objective covered holds it.
-    const partly = { ...control("g", true, 1, 1), objectives: 6, objectivesMapped: 3 };
-    expect(controlHolding(partly)).toBe(4);
-    expect(controlHolding({ ...partly, objectivesMapped: 6 })).toBe(7);
     expect(
       controlHolding({ ...control("h", true, 1, 0), objectives: 0, objectivesMapped: 0 }),
     ).toBe(6);
+  });
+
+  it("ranks a control with objectives by them, as its control status counts them", () => {
+    const counted = (mapped: number, evidenced: number, inBaseline = true) => ({
+      ...control("g", inBaseline, 1, 1),
+      objectives: 6,
+      objectivesMapped: mapped,
+      objectivesEvidenced: evidenced,
+    });
+    // Not every objective mapped holds no requirement yet, whatever its requirements cite.
+    expect(controlHolding(counted(3, 3))).toBe(4);
+    // Every objective mapped and not every one evidenced holds no evidence yet, though a
+    // requirement that maps it cites some.
+    expect(controlHolding(counted(6, 0))).toBe(6);
+    expect(controlHolding(counted(6, 5))).toBe(6);
+    // Every objective evidenced.
+    expect(controlHolding(counted(6, 6))).toBe(7);
+    // Outside the baseline, the same steps below every control in it.
+    expect(
+      [counted(0, 0, false), counted(6, 3, false), counted(6, 6, false)].map(controlHolding),
+    ).toEqual([0, 2, 3]);
+    // An answer that does not count the objectives with evidence holds none of them evidenced.
+    const { objectivesEvidenced: _evidenced, ...unknown } = counted(6, 6);
+    expect(controlHolding(unknown)).toBe(6);
   });
 
   it("puts what the program does not hold first, in the catalog's order among equals", () => {
@@ -405,6 +466,28 @@ describe("the order a risk's controls read in", () => {
     ]);
     // The list given is left as it was.
     expect(controls[0]!.code).toBe("AC-6(2)");
+  });
+
+  it("puts a control evidenced in part before one evidenced whole, by its objectives", () => {
+    const counted = (code: string, mapped: number, evidenced: number) => ({
+      ...control(code, true, 2, 1),
+      objectives: 4,
+      objectivesMapped: mapped,
+      objectivesEvidenced: evidenced,
+    });
+    // In the catalog's order: each requirement count says it is mapped and cites evidence alike.
+    const controls = [
+      counted("AC-2", 4, 4),
+      counted("AU-6", 4, 2),
+      counted("CA-7", 2, 2),
+      control("IA-2", false, 0, 0),
+    ];
+    expect(leastHeldFirst(controls).map((entry) => entry.code)).toEqual([
+      "IA-2",
+      "CA-7",
+      "AU-6",
+      "AC-2",
+    ]);
   });
 });
 

@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import type { Row, TableName } from "./models";
-import { assembleSsp, sspSelectionGaps, type SspAssemblyInput } from "./ssp-assembly";
+import { args, fakeClient, uuid } from "./testing/fake-client";
+
+const { assembleSsp, assembleSspControl, readSspControlDetail, readSspControlRows } =
+  await import("./ssp-assembly");
+type SspAssemblyInput = import("./ssp-assembly").SspAssemblyInput;
 
 const record = <T extends TableName>(value: Partial<Row<T>>) => value as Row<T>;
 function fixture(): SspAssemblyInput {
@@ -97,6 +101,7 @@ function fixture(): SspAssemblyInput {
     versions: [],
     acceptances: [],
     offerings: [],
+    offeredContributions: [],
   };
 }
 
@@ -135,15 +140,9 @@ describe("SSP assembly", () => {
     expect(support?.descriptions.join()).toContain("Earlier system baseline; review mapping");
   });
 
-  it("shows child additions outside the plan without merging them into the SSP selection", () => {
-    const input = fixture();
-    expect(
-      sspSelectionGaps(input).map((gap) => [
-        gap.system.id,
-        gap.controls.map((control) => control.code),
-      ]),
-    ).toEqual([["child", ["AC-3"]]]);
-    expect(assembleSsp(input).map((row) => row.code)).not.toContain("AC-3");
+  it("leaves a child's additions out of the SSP's own selection", () => {
+    // What the child's baseline adds is said by the register's read (ssp_control_rows' gaps).
+    expect(assembleSsp(fixture()).map((row) => row.code)).not.toContain("AC-3");
   });
 
   it("requires a boundary allocation for unscoped catalog mappings and validates statement ancestry", () => {
@@ -331,5 +330,262 @@ describe("SSP assembly", () => {
       path: "System element unresolved",
     });
     expect(row.gaps).toContain("Contributing system needs review");
+  });
+});
+
+const context = { tenantId: uuid(900), token: "token" };
+
+/** A detail answer as ssp_control_detail sends it: one control's records and nothing more. */
+function detailAnswer() {
+  const selection = {
+    id: uuid(1),
+    control_id: uuid(2),
+    profile_resolution_id: uuid(3),
+    ordinal: 0,
+  };
+  return {
+    ssp_revision_id: uuid(10),
+    selection,
+    control: { id: uuid(2), code: "AC-2", title: "Account Management" },
+    implementation: {
+      id: uuid(20),
+      tenant_id: uuid(900),
+      ssp_revision_id: uuid(10),
+      selected_control_id: uuid(1),
+      implementation_status: "implemented",
+      description: "Accounts are reviewed every quarter.",
+      not_applicable_rationale: null,
+      responsible_party_id: null,
+      revision: 3,
+    },
+    statements: [],
+    contributions: [
+      {
+        id: uuid(30),
+        tenant_id: uuid(900),
+        ssp_revision_id: uuid(10),
+        implemented_requirement_id: uuid(20),
+        implementation_statement_id: null,
+        system_component_id: uuid(40),
+        description: "The directory enforces it.",
+        implementation_status: "implemented",
+        responsible_party_id: null,
+        library_implementation_id: null,
+        revision: 1,
+      },
+    ],
+    offered_contributions: [],
+    components: [{ id: uuid(40), name: "Directory" }],
+    component_elements: [{ id: uuid(40), system_element_id: uuid(51), link_source: "explicit" }],
+    parts: [],
+    requirement_links: [
+      {
+        id: uuid(60),
+        requirement_revision_id: uuid(70),
+        implemented_requirement_id: null,
+        component_contribution_id: uuid(30),
+        rationale: "The directory meets it.",
+      },
+    ],
+    control_mappings: [
+      // Inside the boundary, on its element.
+      {
+        id: uuid(61),
+        requirement_revision_id: uuid(71),
+        control_id: uuid(2),
+        control_part_id: null,
+        system_id: uuid(51),
+        selected_control_id: uuid(1),
+        rationale: null,
+      },
+      // On a system of another boundary: not behind this SSP's control.
+      {
+        id: uuid(62),
+        requirement_revision_id: uuid(72),
+        control_id: uuid(2),
+        control_part_id: null,
+        system_id: uuid(99),
+        selected_control_id: uuid(5),
+        rationale: null,
+      },
+    ],
+    allocations: [],
+    revisions: [70, 71, 72].map((n) => ({
+      id: uuid(n),
+      engineering_requirement_id: uuid(n + 10),
+      title: `Requirement ${n}`,
+      statement: "Shall.",
+      acceptance_criteria: "Shown.",
+      state: "published",
+    })),
+    requirements: [70, 71, 72].map((n) => ({
+      id: uuid(n + 10),
+      code: `REQ-${n}`,
+      program_id: uuid(100),
+    })),
+    implementation_evidence: [],
+    requirement_evidence: [
+      {
+        id: uuid(90),
+        requirement_revision_id: uuid(71),
+        evidence_version_id: uuid(91),
+        claim: "Quarterly review record",
+        applicability_rationale: null,
+      },
+    ],
+    versions: [
+      {
+        id: uuid(91),
+        artifact_id: uuid(92),
+        version_number: 2,
+        state: "published",
+        collected_at: null,
+        published_at: null,
+        expires_at: null,
+        external_uri: null,
+        media_type: null,
+        byte_size: null,
+        sha256: null,
+        provenance: null,
+        storage_object_name: null,
+        storage_object_id: null,
+      },
+    ],
+    artifacts: [
+      {
+        id: uuid(92),
+        title: "Account review",
+        description: null,
+        artifact_kind: "record",
+        owner_party_id: null,
+      },
+    ],
+    acceptances: [],
+    offerings: [],
+    source_selections: [
+      // The plan's own selection, and the plan's selection of another control that a mapping on
+      // the same baseline recorded: neither makes another row.
+      selection,
+      { id: uuid(5), control_id: uuid(6), profile_resolution_id: uuid(3), ordinal: 1 },
+    ],
+    effective_baselines: [{ system_id: uuid(51), profile_resolution_id: uuid(3) }],
+  };
+}
+
+describe("the SSP assembly's reads", () => {
+  it("reads one SSP revision's register in one request", async () => {
+    const { client, calls } = fakeClient(() => ({
+      data: {
+        ssp_revision_id: uuid(10),
+        rows: [
+          {
+            id: uuid(1),
+            control_id: uuid(2),
+            code: "AC-2",
+            title: "Account Management",
+            implementation_id: uuid(20),
+            implementation_status: "implemented",
+            narrative: true,
+            contributions: 1,
+            requirements: 2,
+            evidence: 1,
+          },
+          {
+            id: uuid(5),
+            control_id: uuid(6),
+            code: null,
+            title: null,
+            implementation_id: null,
+            implementation_status: null,
+            narrative: false,
+            contributions: 0,
+            requirements: 0,
+            evidence: 0,
+          },
+        ],
+        requirements: 2,
+        evidence: 1,
+        boundary_differs: true,
+        gaps: [{ system_id: uuid(51), name: "Element", codes: ["AC-3"] }],
+        baseline_title: "High baseline",
+        imported_demo: false,
+      },
+      error: null,
+    }));
+    const answer = await readSspControlRows(client, context, uuid(10));
+    expect(calls[0]?.table).toBe("rpc:ssp_control_rows");
+    expect(args(calls[0], "rpc")).toEqual([[{ p_ssp_revision_id: uuid(10) }]]);
+    expect(args(calls[0], "setHeader")).toEqual([["Authorization", "Bearer token"]]);
+    expect(answer.rows.map((row) => [row.code, row.implementationId, row.requirements])).toEqual([
+      ["AC-2", uuid(20), 2],
+      [null, null, 0],
+    ]);
+    expect(answer).toMatchObject({
+      requirements: 2,
+      evidence: 1,
+      boundaryDiffers: true,
+      gaps: [{ systemId: uuid(51), name: "Element", codes: ["AC-3"] }],
+      baselineTitle: "High baseline",
+      importedDemo: false,
+    });
+  });
+
+  it("says a refusal, and refuses an answer it cannot read", async () => {
+    const refused = fakeClient(() => ({
+      data: null,
+      error: { message: "SSP access is required" },
+    }));
+    await expect(readSspControlRows(refused.client, context, uuid(10))).rejects.toThrow(
+      "SSP access is required",
+    );
+    const malformed = fakeClient(() => ({ data: { rows: "none" }, error: null }));
+    await expect(readSspControlRows(malformed.client, context, uuid(10))).rejects.toThrow();
+  });
+
+  it("reads one control's records as its preview opens, and assembles them by the register's rules", async () => {
+    const { client, calls } = fakeClient(() => ({ data: detailAnswer(), error: null }));
+    const detail = await readSspControlDetail(client, context, uuid(10), uuid(1));
+    expect(calls[0]?.table).toBe("rpc:ssp_control_detail");
+    expect(args(calls[0], "rpc")).toEqual([
+      [{ p_ssp_revision_id: uuid(10), p_selected_control_id: uuid(1) }],
+    ]);
+    // The records the preview edits keep every column the server sent: the form starts from them,
+    // and offers an edit only of a record of the reader's workspace.
+    expect(detail.implementations[0]).toMatchObject({
+      id: uuid(20),
+      revision: 3,
+      tenant_id: uuid(900),
+    });
+    expect(detail.contributions[0]).toMatchObject({ library_implementation_id: null, revision: 1 });
+    const control = assembleSspControl(detail, {
+      plan: { id: uuid(10), system_id: uuid(50), profile_resolution_id: uuid(3) },
+      systems: [
+        { id: uuid(50), name: "Boundary", boundary_system_id: uuid(50), parent_system_id: null },
+        { id: uuid(51), name: "Element", boundary_system_id: uuid(50), parent_system_id: uuid(50) },
+        { id: uuid(99), name: "Elsewhere", boundary_system_id: uuid(99), parent_system_id: null },
+      ],
+    });
+    expect(control?.id).toBe(uuid(1));
+    expect(control?.code).toBe("AC-2");
+    // The contribution's requirement and the boundary's mapping; not the other boundary's.
+    expect(control?.requirements.map((row) => [row.requirement.code, row.explicit])).toEqual([
+      ["REQ-70", true],
+      ["REQ-71", false],
+    ]);
+    expect(control?.requirements[0]?.descriptions).toEqual(["Linked to Directory"]);
+    expect(control?.evidence.map((row) => [row.artifact?.title, row.origins[0]?.label])).toEqual([
+      ["Account review", "REQ-71 · mapped requirement"],
+    ]);
+    expect(control?.contributions[0]?.path).toBe("Boundary / Element");
+    expect(control?.gaps).toEqual([]);
+    expect([control?.requirementCount, control?.evidenceCount, control?.contributionCount]).toEqual(
+      [2, 1, 1],
+    );
+  });
+
+  it("refuses a detail it cannot read", async () => {
+    const answer = { ...detailAnswer(), versions: [{ id: uuid(91) }] };
+    const { client } = fakeClient(() => ({ data: answer, error: null }));
+    await expect(readSspControlDetail(client, context, uuid(10), uuid(1))).rejects.toThrow();
   });
 });

@@ -8,26 +8,31 @@ import type { ReadContext, TableName } from "./models";
 import { useStaleOnWrite } from "./server-table";
 
 /*
- * A program's posture: its system elements by the control families its requirements meet. A
- * requirement stands at every element it is allocated to and under every family of a control it
- * maps; an open issue stands where the requirements it names and those its evidence supports
- * stand, and an open risk where its issues stand.
- * `program_posture` counts each cell on the server, each element with the elements inside it,
- * every record once. This module names the rows and says what a cell reads as.
+ * A program's posture: its system elements by control family, counted in assessment objectives. A
+ * requirement's mapping stands on the element it names, where that element's control baseline
+ * selects the control, and covers the objective it names and every one under it (all of the
+ * control's where it names none); a cell counts the family's objectives the mappings on the element
+ * and the elements inside it cover, each once, and those no requirement that cites evidence covers
+ * there. An open issue stands where the requirements it names and those its evidence supports stand
+ * (a requirement where its mappings stand), and an open risk where its issues stand.
+ * `program_posture` counts each cell on the server; its totals are the program's control baseline
+ * as its control status counts it, so the band and the Control status view agree. This module names
+ * the rows and says what a cell reads as.
  *
  * The same grid is read by cyber resiliency technique: `program_resiliency_posture` puts the 14
- * techniques of NIST SP 800-160 Vol. 2 where the families are. A requirement stands under every
- * technique a control it meets supports in Table E-1, so one requirement may stand under several
- * and counts once on a line; one whose controls support none is not placed. A technique is named
- * by its code, as the framework's items are (frameworks): an id changes when the publication is
- * read again.
+ * techniques of NIST SP 800-160 Vol. 2 where the families are. An objective stands under every
+ * technique its control supports in Table E-1, so it may stand under several and counts once on a
+ * line. A technique is named by its code, as the framework's items are (frameworks): an id changes
+ * when the publication is read again.
  */
 
 const id = z.string().uuid();
 /** A severity's place in the product's order as the server counts it: 1 (low) to 4 (critical). */
 const rank = z.number().int().min(1).max(4).nullable();
 const counts = {
-  requirements: z.number(),
+  /** The objectives the mappings there cover, each once. */
+  objectives: z.number(),
+  /** Of those, the ones a requirement that cites evidence covers there. */
   evidenced: z.number(),
   issues: z.number(),
   issue_severity: rank,
@@ -42,17 +47,24 @@ const elementSchema = z.object({
   type: z.string(),
   parent_id: id.nullable(),
   boundary: z.boolean(),
-  own_requirements: z.number(),
   ...counts,
 });
 const familySchema = z.object({ id, code: z.string(), title: z.string().nullable(), ...counts });
 const cellSchema = z.object({ element_id: id, family_id: id, ...counts });
-/** What both postures total alike; `issues_placed` and `risks_placed` are each grid's own. */
+/**
+ * What both postures total alike: `objectives`, `mapped` and `evidenced` are the program's control
+ * baseline as its control status counts it (an objective mapped once covered on every system that
+ * selects it). `placed`, `issues_placed` and `risks_placed` are each grid's own.
+ */
 const totals = {
   requirements: z.number(),
-  allocated: z.number(),
-  allocated_elements: z.number(),
+  /** Requirements that map a control and stand on no element. */
+  unplaced: z.number(),
+  objectives: z.number(),
+  mapped: z.number(),
   evidenced: z.number(),
+  /** Objectives the grid places, each once. */
+  placed: z.number(),
   issues: z.number(),
   issues_severe: z.number(),
   issues_placed: z.number(),
@@ -74,8 +86,8 @@ const resiliencyPostureSchema = z.object({
   /** Every technique of the framework, in the publication's order, also one nothing stands under. */
   techniques: z.array(techniqueSchema),
   cells: z.array(techniqueCellSchema),
-  /** `placed` is how many requirements stand under a technique at an element. */
-  totals: z.object({ ...totals, placed: z.number() }),
+  /** `unsupported` is how many requirements stand on an element under no technique. */
+  totals: z.object({ ...totals, unsupported: z.number() }),
 });
 
 export type ProgramPosture = z.infer<typeof postureSchema>;
@@ -83,12 +95,12 @@ export type ProgramResiliencyPosture = z.infer<typeof resiliencyPostureSchema>;
 export type PostureElement = z.infer<typeof elementSchema>;
 export type PostureFamily = z.infer<typeof familySchema>;
 export type PostureTechnique = z.infer<typeof techniqueSchema>;
-/** What a posture totals, whatever its columns: `placed` is the posture by technique's alone. */
-export type PostureTotals = ProgramPosture["totals"] & { placed?: number | undefined };
+/** What a posture totals, whatever its columns: `unsupported` is the posture by technique's alone. */
+export type PostureTotals = ProgramPosture["totals"] & { unsupported?: number | undefined };
 /** The numbers a cell, an element's line or a family's or a technique's line holds. */
 export type PostureCounts = Pick<
   PostureElement,
-  "requirements" | "evidenced" | "issues" | "issue_severity" | "risks" | "risk_severity"
+  "objectives" | "evidenced" | "issues" | "issue_severity" | "risks" | "risk_severity"
 >;
 
 const listed = z.object({
@@ -98,13 +110,29 @@ const listed = z.object({
   status: z.string(),
 });
 const cellDetailSchema = z.object({
-  requirements: z.number(),
+  objectives: z.number(),
   evidenced: z.number(),
   issues: z.array(listed),
   risks: z.array(listed),
-  unevidenced: z.array(z.object({ id, code: z.string(), title: z.string() })),
+  /**
+   * Up to 50 requirements to evidence: each cites none and covers objectives there that no
+   * requirement with evidence covers (`objectives` of them), most first.
+   */
+  unevidenced: z.array(
+    z.object({ id, code: z.string(), title: z.string(), objectives: z.number() }),
+  ),
+  /** How many requirements there are to evidence. */
+  unevidenced_count: z.number(),
+  /** The controls whose objectives stand there: how many, how many with evidence, and of all it counts. */
   controls: z.array(
-    z.object({ id, code: z.string(), title: z.string(), requirements: z.number() }),
+    z.object({
+      id,
+      code: z.string(),
+      title: z.string(),
+      objectives: z.number(),
+      evidenced: z.number(),
+      total: z.number(),
+    }),
   ),
 });
 export type PostureCellDetail = z.infer<typeof cellDetailSchema>;
@@ -304,8 +332,8 @@ export function useProgramResiliencyPostureCell(
   });
 }
 
-/** What the grid counts in each cell. */
-export const POSTURE_READINGS = ["requirements", "gaps", "issues", "risks"] as const;
+/** What the grid counts in each cell: objectives mapped, those without evidence, open issues, open risks. */
+export const POSTURE_READINGS = ["objectives", "gaps", "issues", "risks"] as const;
 export type PostureReading = (typeof POSTURE_READINGS)[number];
 
 /** A severity by its rank, lowest first, as the server counts it from 1. */
@@ -316,10 +344,10 @@ export const severityOfRank = (value: number | null | undefined) =>
 /** What a cell or a line reads as under a reading: a count. */
 export function postureValue(reading: PostureReading, counted: PostureCounts): number {
   switch (reading) {
-    case "requirements":
-      return counted.requirements;
+    case "objectives":
+      return counted.objectives;
     case "gaps":
-      return counted.requirements - counted.evidenced;
+      return counted.objectives - counted.evidenced;
     case "issues":
       return counted.issues;
     case "risks":
@@ -327,7 +355,7 @@ export function postureValue(reading: PostureReading, counted: PostureCounts): n
   }
 }
 
-/** The worst severity among what a cell counts under a reading of issues or risks. */
+/** The worst severity among what a cell counts under a reading of issues or risks; none for objectives. */
 export const postureSeverity = (reading: PostureReading, counted: PostureCounts) =>
   severityOfRank(
     reading === "issues"
@@ -462,12 +490,14 @@ export type PostureLeftOut =
    */
   | { records: "issues" | "risks"; unplaced: number }
   /**
-   * Requirements: allocated to no element, or (by technique) allocated and meeting no control that
-   * supports a technique. The two never count the same requirement.
+   * Under objectives, the requirements whose coverage stands in no cell: those that map a control
+   * and stand on no element (none of their mappings is on an element whose control baseline selects
+   * the control), and (by technique) those that stand on an element under no technique. The two
+   * never count the same requirement.
    */
-  | { records: "requirements"; unallocated: number; unsupported: number };
+  | { records: "requirements"; unplaced: number; unsupported: number };
 
-/** How many of the records a reading counts stand in no cell of the grid. */
+/** How many of the records a reading counts, or whose coverage it counts, stand in no cell. */
 export function postureLeftOut(reading: PostureReading, counted: PostureTotals): PostureLeftOut {
   if (reading === "issues")
     return { records: "issues", unplaced: counted.issues - counted.issues_placed };
@@ -475,7 +505,7 @@ export function postureLeftOut(reading: PostureReading, counted: PostureTotals):
     return { records: "risks", unplaced: counted.risks - counted.risks_placed };
   return {
     records: "requirements",
-    unallocated: counted.requirements - counted.allocated,
-    unsupported: counted.placed === undefined ? 0 : counted.allocated - counted.placed,
+    unplaced: counted.unplaced,
+    unsupported: counted.unsupported ?? 0,
   };
 }

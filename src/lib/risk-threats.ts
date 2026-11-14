@@ -25,10 +25,11 @@ import { useStaleOnWrite } from "./server-table";
  * names the techniques it concerns, from either, one link a technique, and `risk_threats` reads
  * them in one request, as the reader, with the controls the appendices print against them and
  * where the risk's program stands on each: in its control baseline or not, its requirements, its
- * requirements with evidence, and how many of its assessment objectives they cover. This module is
- * that read, the link and unlink commands, and what the screens derive from the appendices: the
- * order a risk's controls read in, the techniques a picker offers, and one technique's mitigations
- * and controls.
+ * requirements with evidence, and how many of its assessment objectives they cover, cover with
+ * evidence and the program's assessors have judged, as its control status counts them. This
+ * module is that read, the link and unlink commands, and what the screens derive from the
+ * appendices: the order a risk's controls read in, the techniques a picker offers, and one
+ * technique's mitigations and controls.
  */
 
 /** The link between a risk and a technique: the model its writes are announced under. */
@@ -83,6 +84,10 @@ export type CounteringControl = {
   objectives: number | null;
   /** Those the program's requirements cover, as its control status counts them. */
   objectivesMapped: number | null;
+  /** Those covered by a requirement that cites evidence, as its control status counts them. */
+  objectivesEvidenced: number | null;
+  /** Those an assessor of the program has judged, as its control status counts them. */
+  objectivesAssessed: number | null;
 };
 
 /** What a risk concerns and what counters it. */
@@ -142,9 +147,12 @@ const answerSchema = z.object({
       in_baseline: z.boolean().nullable(),
       requirements: count.nullable(),
       evidenced: count.nullable(),
-      // Every answer counts them since 20261114051138_objective_counts_on_screens.
+      // Every answer counts them since 20261114051138_objective_counts_on_screens, and those with
+      // evidence and judged since 20261114165512_latest_per_objective.
       objectives: count.nullable().default(null),
       objectives_mapped: count.nullable().default(null),
+      objectives_evidenced: count.nullable().default(null),
+      objectives_assessed: count.nullable().default(null),
     }),
   ),
   totals: z.object({
@@ -202,6 +210,8 @@ export async function readRiskThreats(
       evidenced: control.evidenced,
       objectives: control.objectives,
       objectivesMapped: control.objectives_mapped,
+      objectivesEvidenced: control.objectives_evidenced,
+      objectivesAssessed: control.objectives_assessed,
     })),
     totals: {
       techniques: answer.totals.techniques,
@@ -216,8 +226,9 @@ export async function readRiskThreats(
 /**
  * Every model the standing is counted from, beside the link itself: a write to one reads the
  * answer again. The program is the risk's, its baseline the resolution its reference choice names,
- * and a requirement counts at its latest revision with that revision's control mappings and
- * evidence.
+ * a requirement counts at its latest revision with that revision's control mappings and evidence,
+ * on each system whose control baseline selects the control, and an objective is judged by the
+ * findings published on it.
  */
 const STANDING_MODELS = [
   "risks",
@@ -225,6 +236,10 @@ const STANDING_MODELS = [
   "requirement_control_links",
   "requirement_revisions",
   "requirement_evidence",
+  "systems",
+  "ssp_revisions",
+  "assessment_findings",
+  "assessment_results_revisions",
 ] as const satisfies readonly TableName[];
 
 const RECORD_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -465,19 +480,28 @@ export const codedName = (record: { code: string; title: string }) =>
 
 /** What the order of a risk's controls reads of each: its standing, and its objectives where counted. */
 type Holding = Pick<CounteringControl, "inBaseline" | "requirements" | "evidenced"> &
-  Partial<Pick<CounteringControl, "objectives" | "objectivesMapped">>;
+  Partial<Pick<CounteringControl, "objectives" | "objectivesMapped" | "objectivesEvidenced">>;
 
 /**
- * How much of a control the program holds, least first: not in its baseline, then in it with no
- * requirement, then with a requirement and no evidence, then with evidence. A control whose
- * requirements cover only some of its objectives holds no requirement yet, as its control status
- * says, whatever they cite. A control outside the baseline that a requirement maps all the same
- * stands after the ones nothing maps.
+ * How much of a control the program holds, least first, by its objectives as its control status
+ * counts them: not in its baseline, then in it with not every objective mapped, then with every
+ * objective mapped and not every one evidenced, then with every one evidenced. A control the
+ * catalog gives no objective climbs by its requirements: one maps it, then one that maps it cites
+ * evidence. A control outside the baseline that requirements map all the same stands after the
+ * ones they map less of.
  */
 export function controlHolding(control: Holding): number {
-  const partly = !!control.objectives && (control.objectivesMapped ?? 0) < control.objectives;
-  const mapped = (control.requirements ?? 0) > 0 && !partly;
-  return (control.inBaseline ? 4 : 0) + (mapped ? 2 + ((control.evidenced ?? 0) > 0 ? 1 : 0) : 0);
+  const objectives = control.objectives ?? 0;
+  const mapped =
+    objectives > 0
+      ? (control.objectivesMapped ?? 0) >= objectives
+      : (control.requirements ?? 0) > 0;
+  const evidenced =
+    mapped &&
+    (objectives > 0
+      ? (control.objectivesEvidenced ?? 0) >= objectives
+      : (control.evidenced ?? 0) > 0);
+  return (control.inBaseline ? 4 : 0) + (mapped ? 2 : 0) + (evidenced ? 1 : 0);
 }
 
 /**

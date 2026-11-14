@@ -243,7 +243,8 @@ begin
   if (answer->>'baseline')::boolean or answer->'totals'->'in_baseline' <> 'null'::jsonb
     or exists (select 1 from jsonb_array_elements(answer->'controls') c
       where c->'in_baseline' <> 'null'::jsonb or c->'requirements' <> '0'::jsonb or c->'evidenced' <> '0'::jsonb
-        or c->'objectives_mapped' <> '0'::jsonb or jsonb_typeof(c->'objectives') <> 'number')
+        or c->'objectives_mapped' <> '0'::jsonb or c->'objectives_evidenced' <> '0'::jsonb
+        or c->'objectives_assessed' <> '0'::jsonb or jsonb_typeof(c->'objectives') <> 'number')
     or answer->'totals'->'with_requirement' <> '0'::jsonb or answer->'totals'->'with_evidence' <> '0'::jsonb then
     raise exception 'risk_threats invents a standing for a program with no baseline and no requirement: %', answer->'totals';
   end if;
@@ -353,7 +354,8 @@ begin
     raise exception 'risk_threats counts a requirement on a control it does not map: %', answer->'totals';
   end if;
   -- Each control's assessment objectives, counted as the program's control status counts them: the
-  -- control its requirements map as a whole has every objective covered, every other control none.
+  -- control its requirements map as a whole has every objective covered, and every one covered by a
+  -- requirement that cites evidence; every other control none. Nobody has judged any.
   if exists (
     select 1 from jsonb_array_elements(answer->'controls') c
     where (c->>'objectives')::integer is distinct from (
@@ -361,6 +363,9 @@ begin
           'd7100000-0000-0000-0000-000000000001', array[(c->>'id')::uuid]) o)
       or (c->>'objectives_mapped')::integer is distinct from
         case when c->>'id' = current_setting('test.control') then (c->>'objectives')::integer else 0 end
+      or (c->>'objectives_evidenced')::integer is distinct from
+        case when c->>'id' = current_setting('test.control') then (c->>'objectives')::integer else 0 end
+      or c->'objectives_assessed' <> '0'::jsonb
   ) or (select (c->>'objectives')::integer from jsonb_array_elements(answer->'controls') c
       where c->>'id' = current_setting('test.control')) is not distinct from 0 then
     raise exception 'risk_threats does not count each control''s objectives as the control status does: %', answer->'controls';
@@ -392,6 +397,68 @@ begin
       and sc.control_id in (select (c->>'id')::uuid from jsonb_array_elements(answer->'controls') c);
   if (answer->'totals'->>'in_baseline')::integer <> held then
     raise exception 'risk_threats does not total the controls in the baseline: % of %', answer->'totals'->'in_baseline', held;
+  end if;
+end $$;
+
+-- The program's assessors judge one objective of a control the baseline selects, in results of a
+-- campaign on a published security plan of a system of the program: each countering control in the
+-- baseline reads its objectives mapped, with evidence and judged as the program's control status
+-- reads them, the one judged among them.
+do $$
+declare
+  v_tenant uuid := current_setting('test.tenant')::uuid;
+  v_program uuid := 'd7100000-0000-0000-0000-000000000001';
+  answer jsonb; status jsonb; v_control uuid; v_objective uuid; v_set uuid;
+begin
+  answer := public.risk_threats(v_tenant, 'd7200000-0000-0000-0000-000000000001');
+  select (c->>'id')::uuid into v_control from jsonb_array_elements(answer->'controls') c
+  where (c->>'in_baseline')::boolean and (c->>'objectives')::integer >= 2
+  order by c->>'code' limit 1;
+  if v_control is null then
+    raise exception 'The pinned baseline selects no countering control with two objectives or more';
+  end if;
+  select (o->>'id')::uuid into v_objective
+  from jsonb_array_elements(public.program_control_objectives(v_program, v_control)->'objectives') with ordinality x(o, n)
+  order by n limit 1;
+  insert into public.systems(id, tenant_id, program_id, code, name, system_type) values
+    ('d7800000-0000-0000-0000-000000000001', v_tenant, v_program, 'THREAT-SYS', 'Rollback threat system', 'information_system');
+  insert into public.ssp_revisions(id, tenant_id, system_id, profile_resolution_id, version_number) values
+    ('d7810000-0000-0000-0000-000000000001', v_tenant, 'd7800000-0000-0000-0000-000000000001', current_setting('test.resolution')::uuid, 1);
+  insert into public.implemented_requirements(tenant_id, ssp_revision_id, selected_control_id, description)
+  select v_tenant, 'd7810000-0000-0000-0000-000000000001', sc.id, 'The system holds the control.'
+  from public.selected_controls sc
+  where sc.profile_resolution_id = current_setting('test.resolution')::uuid and sc.control_id = v_control;
+  update public.ssp_revisions set state = 'published', published_at = now(), revision = revision + 1
+    where id = 'd7810000-0000-0000-0000-000000000001';
+  insert into public.assessment_campaigns(id, tenant_id, title, program_id) values
+    ('d7820000-0000-0000-0000-000000000001', v_tenant, 'Rollback threat campaign', v_program);
+  insert into public.assessment_plan_revisions(id, tenant_id, version_number, campaign_id, ssp_revision_id, title) values
+    ('d7830000-0000-0000-0000-000000000001', v_tenant, 1, 'd7820000-0000-0000-0000-000000000001', 'd7810000-0000-0000-0000-000000000001', 'Rollback threat plan');
+  update public.assessment_plan_revisions set state = 'published', published_at = now(), revision = revision + 1
+    where id = 'd7830000-0000-0000-0000-000000000001';
+  insert into public.assessment_results_revisions(id, tenant_id, version_number, assessment_plan_revision_id, title) values
+    ('d7840000-0000-0000-0000-000000000001', v_tenant, 1, 'd7830000-0000-0000-0000-000000000001', 'Rollback threat results');
+  insert into public.result_sets(tenant_id, assessment_results_revision_id, title) values
+    (v_tenant, 'd7840000-0000-0000-0000-000000000001', 'Rollback threat set') returning id into v_set;
+  insert into public.assessment_findings(tenant_id, assessment_results_revision_id, result_set_id, target_control_part_id, title, determination, determined_at) values
+    (v_tenant, 'd7840000-0000-0000-0000-000000000001', v_set, v_objective, 'One objective judged', 'satisfied', now());
+  update public.assessment_results_revisions set state = 'published', published_at = now(), revision = revision + 1
+    where id = 'd7840000-0000-0000-0000-000000000001';
+  answer := public.risk_threats(v_tenant, 'd7200000-0000-0000-0000-000000000001');
+  status := public.program_control_status(v_program);
+  if exists (
+    select 1 from jsonb_array_elements(answer->'controls') c
+    join jsonb_array_elements(status->'controls') s on s->>'id' = c->>'id'
+    where c->'objectives' <> s->'objectives' or c->'objectives_mapped' <> s->'objectives_mapped'
+      or c->'objectives_evidenced' <> s->'objectives_evidenced' or c->'objectives_assessed' <> s->'objectives_assessed'
+  ) or (select count(*) from jsonb_array_elements(answer->'controls') c
+      join jsonb_array_elements(status->'controls') s on s->>'id' = c->>'id')
+    <> (answer->'totals'->>'in_baseline')::integer
+  or (select (c->>'objectives_assessed')::integer from jsonb_array_elements(answer->'controls') c
+      where c->>'id' = v_control::text) <> 1
+  or exists (select 1 from jsonb_array_elements(answer->'controls') c
+      where c->>'id' <> v_control::text and c->'objectives_assessed' <> '0'::jsonb) then
+    raise exception 'risk_threats does not count each control''s objectives as the control status does: %', answer->'controls';
   end if;
 end $$;
 
@@ -451,4 +518,4 @@ do $$ begin
   end if;
 end $$;
 rollback;
-select 'Risk technique links, what they may name, tenant isolation and the risk_threats standing passed.' as result;
+select 'Risk technique links, what they may name, tenant isolation and the risk_threats standing, objectives mapped, with evidence and judged included, passed.' as result;

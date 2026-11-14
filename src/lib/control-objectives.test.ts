@@ -177,8 +177,20 @@ describe("readControlObjectiveCounts", () => {
       data: {
         control_id: control,
         programs: [
-          { program_id: program, objectives: 9, objectives_mapped: 3, objectives_evidenced: 1 },
-          { program_id: second, objectives: 9, objectives_mapped: 0, objectives_evidenced: 0 },
+          {
+            program_id: program,
+            objectives: 9,
+            objectives_mapped: 3,
+            objectives_evidenced: 1,
+            objectives_assessed: 4,
+          },
+          {
+            program_id: second,
+            objectives: 9,
+            objectives_mapped: 0,
+            objectives_evidenced: 0,
+            objectives_assessed: 0,
+          },
         ],
       },
       error: null,
@@ -194,13 +206,31 @@ describe("readControlObjectiveCounts", () => {
         headers: { Authorization: "Bearer token" },
       },
     ]);
+    // Judged is its own count: an assessor can judge an objective nothing maps yet.
     expect(answer.programs.get(program)).toEqual({
       programId: program,
       objectives: 9,
       mapped: 3,
       evidenced: 1,
+      assessed: 4,
     });
     expect(answer.programs.get(second)?.mapped).toBe(0);
+  });
+
+  it("refuses an answer that does not say how many objectives are judged", async () => {
+    const older = client({
+      data: {
+        control_id: control,
+        programs: [
+          { program_id: program, objectives: 9, objectives_mapped: 3, objectives_evidenced: 1 },
+        ],
+      },
+      error: null,
+    });
+    // A count the server did not give is never read as zero.
+    await expect(
+      readControlObjectiveCounts(older.client, context, control, [program]),
+    ).rejects.toThrow();
   });
 
   it("asks nothing for no program, and says the server's refusal", async () => {

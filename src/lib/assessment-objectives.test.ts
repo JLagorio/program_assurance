@@ -1,8 +1,16 @@
 import { describe, expect, it } from "vitest";
 import { args, fakeClient, filter, uuid } from "./testing/fake-client";
 
-const { OBJECTIVE_COLUMNS, compareObjectives, objectiveTarget, readAssessmentObjectiveRows } =
-  await import("./assessment-objectives");
+const {
+  OBJECTIVE_COLUMNS,
+  OBJECTIVE_REGISTER_COLUMNS,
+  assessmentObjectiveRead,
+  compareObjectives,
+  objectiveTarget,
+  readAssessmentObjectiveRows,
+  storedObjective,
+} = await import("./assessment-objectives");
+const { readServerPage } = await import("./server-table");
 
 const tenantId = uuid(900);
 const context = { tenantId, token: "token" };
@@ -153,5 +161,73 @@ describe("a campaign's objectives", () => {
       label: "Requirement revision",
     });
     expect(objectiveTarget(objective(6, "", null))).toBeNull();
+  });
+
+  it("pages the register on the server in the order the screen always gave it", async () => {
+    const read = assessmentObjectiveRead({ program_id: uuid(5) });
+    expect(read).toMatchObject({
+      source: "assessment_objective_rows",
+      model: "assessment_objectives",
+      // A campaign's and a plan's titles are in the rows: a write to either reads the pages again.
+      models: ["assessment_campaigns", "assessment_plan_revisions"],
+      scope: { program_id: uuid(5) },
+      search: ["title", "description", "campaign_title", "plan_title"],
+    });
+    // Every column the objective's form edits, since a preview's Edit starts the form from the row,
+    // and its campaign and plan by name.
+    expect(read.columns).toEqual([...OBJECTIVE_REGISTER_COLUMNS]);
+    for (const column of OBJECTIVE_COLUMNS) expect(read.columns).toContain(column);
+    // The workspace's register is scoped by nothing but the workspace.
+    expect(assessmentObjectiveRead({}).scope).toBeUndefined();
+    const { client, calls } = fakeClient(() => ({ data: [], error: null, count: 1232 }));
+    const page = await readServerPage(client, context, read, { pageIndex: 1, pageSize: 25 });
+    expect(page.count).toBe(1232);
+    expect(calls[0]?.table).toBe("assessment_objective_rows");
+    expect(String(args(calls[0], "select")[0]?.[0]).split(",")).toEqual([
+      ...OBJECTIVE_REGISTER_COLUMNS,
+    ]);
+    expect(args(calls[0], "select")[0]?.[1]).toEqual({ count: "exact", head: false });
+    expect(filter(calls[0], "eq", "program_id")).toBe(uuid(5));
+    // Each campaign's objectives together by its title, the newest plan first, each plan's in the
+    // catalog's reading order, then by title and by id: one place for every objective.
+    expect(args(calls[0], "order")).toEqual([
+      ["campaign_order", { ascending: true, nullsFirst: false }],
+      ["plan_version", { ascending: false, nullsFirst: false }],
+      ["plan_revision_id", { ascending: true, nullsFirst: false }],
+      ["reading_order", { ascending: true, nullsFirst: false }],
+      ["title_order", { ascending: true, nullsFirst: false }],
+      ["id"],
+    ]);
+    expect(args(calls[0], "range")).toEqual([[25, 49]]);
+    // The reader's sort on Campaign reads the title's sort key, and the Campaign filter the title.
+    await readServerPage(client, context, read, {
+      pageIndex: 0,
+      pageSize: 25,
+      sorting: [{ id: "campaign", desc: true }],
+      filters: [{ id: "campaign", value: ["Customer A delta assessment"] }],
+    });
+    expect(args(calls[1], "order")[0]).toEqual([
+      "campaign_order",
+      { ascending: false, nullsFirst: true },
+    ]);
+    expect(args(calls[1], "in")).toEqual([["campaign_title", ["Customer A delta assessment"]]]);
+  });
+
+  it("gives the edit form the objective as stored, without the names a register derives", () => {
+    const stored = storedObjective({
+      id: uuid(1),
+      plan_revision_id: uuid(2),
+      title: "AC-02a.[01] account types are defined",
+      description: null,
+      target_control_part_id: uuid(3),
+      requirement_revision_id: null,
+      acceptance_criterion: "Shown",
+      revision: 4,
+      target_kind: "assessment-objective",
+      target_label: "AC-02a.[01]",
+      reading_order: "ac-000000000002 000002.000000.000000",
+    });
+    expect(Object.keys(stored)).toEqual([...OBJECTIVE_COLUMNS]);
+    expect(stored).toMatchObject({ id: uuid(1), revision: 4, description: null });
   });
 });

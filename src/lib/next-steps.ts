@@ -101,13 +101,30 @@ export type ControlNextStep =
 
 /**
  * Where a program stands on a control, as its next step reads it: the status, whose determination
- * it is with the product assessments behind one the product made, and how many of its assessment
- * objectives the program's requirements map.
+ * it is with the product assessments behind one the product made, how many of its assessment
+ * objectives the program's requirements map and how many its assessors have judged.
  */
 export type StepStanding = Pick<ControlStanding, "status"> &
   Partial<
-    Pick<ControlStanding, "determinedBy" | "productAssessments" | "objectives" | "objectivesMapped">
+    Pick<
+      ControlStanding,
+      | "determinedBy"
+      | "productAssessments"
+      | "objectives"
+      | "objectivesMapped"
+      | "objectivesAssessed"
+    >
   >;
+
+/**
+ * Whether the program's assessors have judged some of a control's objectives and not all: a
+ * control at Not assessed whose findings decide nothing yet, since the program decides a control
+ * once every objective it counts is judged.
+ */
+export function judgedInPart(standing: StepStanding): boolean {
+  const { objectives = 0, objectivesAssessed = 0 } = standing;
+  return objectivesAssessed > 0 && objectivesAssessed < objectives;
+}
 
 /**
  * The objectives no requirement maps yet, where the requirements map some of a control's and not
@@ -276,7 +293,8 @@ export type StepIssue = { id: string };
 
 /**
  * The fix for a trace's gap: the stage that holds no record, and what fills it; or, for a control
- * its requirements map in part, the step its Details carry, in the stage that holds them.
+ * its requirements map in part or its assessors have judged in part, the step its Details carry,
+ * in the stage that holds them.
  */
 export type TraceGapFix =
   /**
@@ -303,13 +321,17 @@ export type TraceGapFix =
   | { stage: "evidence"; kind: "link_evidence"; requirement: StepRequirement }
   /** A requirement that maps no control. */
   | { stage: "control"; kind: "map_control"; requirement: StepRequirement }
-  /** A control whose evidence no assessor has determined and no open campaign's plan holds. */
+  /**
+   * A control whose evidence no assessor has determined, or has judged on only some of its
+   * objectives, and no open campaign's plan holds what is left.
+   */
   | { stage: "finding"; kind: "assess" }
   /** The same, where no open campaign has a draft plan to add it to. */
   | { stage: "finding"; kind: "plan_assessment" }
   /**
-   * A control whose evidence an open campaign's plan holds and no assessor has determined yet:
-   * nothing the reader can close, and the campaign where it is assessed is named instead.
+   * A control whose evidence an open campaign's plan holds (what is left to judge of it, for one
+   * judged in part) and no assessor has determined yet: nothing the reader can close, and the
+   * campaign where it is assessed is named instead.
    */
   | { stage: "finding"; kind: "open_campaign"; campaign: StepCampaign };
 
@@ -321,7 +343,8 @@ export const isReaderFix = (fix: TraceGapFix) =>
  * The gaps of a trace that its record's reader can close, each with the stage it fills. A control
  * read inside a program offers a requirement where none maps it, where its requirements cite no
  * evidence, evidence for the first of them, and, where no assessor has determined that evidence,
- * an assessment that holds the control; a requirement offers a control and evidence of its own;
+ * an assessment that holds the control (beside the findings of one judged in part, an assessment
+ * of the rest); a requirement offers a control and evidence of its own;
  * and an operational issue that names no requirement offers one, since the link is the issue's
  * own, made on its page. A stage with nothing wrong in it (no operational issue, no risk) is not a
  * gap, and otherwise a record further down the chain closes nothing upstream from its own page:
@@ -338,7 +361,10 @@ export const isReaderFix = (fix: TraceGapFix) =>
  * its Evidence stage still offers evidence for the first that cites none. Its
  * Assessment findings stage waits on `plans`, what the program's open campaigns hold of it: the
  * campaign whose plan holds it already is named, else the control is added to a draft plan or an
- * assessment is planned around it.
+ * assessment is planned around it. A control its assessors have judged in part (some objectives,
+ * not all: `judgedInPart`) stands at Not assessed with findings in the stage: the stage carries the
+ * same step beside them, the one its Details carry, which assesses what is left (the campaign whose
+ * plan holds the rest, a draft plan, or a new plan).
  */
 export function traceGapFixes(
   trace: Pick<AssuranceTrace, "focus" | "controls" | "requirements" | "evidence" | "findings">,
@@ -377,7 +403,13 @@ export function traceGapFixes(
             kind: "link_evidence",
             requirement: stepRequirement(bare),
           });
-      } else if (standing?.status === "not_assessed" && trace.findings.length === 0 && plans) {
+      } else if (
+        standing?.status === "not_assessed" &&
+        plans &&
+        // An empty stage, or one that holds the findings of a control judged in part, which decide
+        // nothing until the rest is judged: the step assesses what is left.
+        (trace.findings.length === 0 || judgedInPart(standing))
+      ) {
         fixes.push({ stage: "finding", ...assessStep(plans) });
       }
     }

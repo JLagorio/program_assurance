@@ -1,8 +1,9 @@
 -- Run with psql -v ON_ERROR_STOP=1 after migrations. Every test row rolls back.
 -- One status for each control of a program's control baseline: who may ask, what a program with no
 -- baseline answers and, with the pinned references installed (a catalog and a reference baseline),
--- how a control climbs the ladder: no requirement, no evidence, not assessed, and the worst of the
--- latest determinations an assessor published on its parts. What does not count is checked beside
+-- how a control climbs the ladder: no requirement, no evidence, not assessed, and the worst of its
+-- objectives' determinations, each the latest an assessor published on it, on an objective above it
+-- or on its statement. What does not count is checked beside
 -- it: another program's requirement, another program's campaign and a draft result. Then a program
 -- that takes two products: a control every variant inherits with a determination takes the
 -- product's, the worst of the two, and names the product assessments it was taken from; the
@@ -25,7 +26,10 @@
 -- Last, not assessed until all: the program's assessors decide a control once they have judged
 -- every objective it counts, a determination on an objective judging it and every objective under
 -- it and one on the statement judging them all; a control judged in part reads the ladder, with no
--- one's determination, and says how many of its objectives are judged.
+-- one's determination, and says how many of its objectives are judged. Last, latest per objective:
+-- the newest of the determinations that judge an objective decides it, a newer objective's over an
+-- older statement's and a newer statement's over older objectives', a heading's over the older ones
+-- under it, at one moment the nearer part's, and not assessed or a draft nothing.
 begin;
 create function pg_temp.expect_error(statement text, expected_state text) returns void language plpgsql as $$
 begin
@@ -322,8 +326,9 @@ begin
     raise exception 'Published results answered B % and A %', pg_temp.line(v_answer, v_b)->>'status', pg_temp.line(v_answer, v_a)->>'status';
   end if;
 
-  -- Second results, later: B's root objective partially satisfied, so the worst of B's parts
-  -- decides; A other than satisfied, whatever it holds; and C satisfied in a result left in draft.
+  -- Second results, later: B's root objective partially satisfied, newer than its statement's
+  -- determination, so it decides every objective of B; A other than satisfied, whatever it holds;
+  -- and C satisfied in a result left in draft.
   insert into public.assessment_results_revisions(id, tenant_id, version_number, assessment_plan_revision_id, title)
     values (v_second, v_tenant, 2, v_plan, 'Second results');
   insert into public.result_sets(tenant_id, assessment_results_revision_id, title) values (v_tenant, v_second, 'Second set') returning id into v_set;
@@ -1057,12 +1062,14 @@ begin
     end if;
   end if;
 
-  -- The catalog control's table counts each program as the program's control status does; a
-  -- program the reader cannot read is refused, and none named answers none.
+  -- The catalog control's table counts each program as the program's control status does (mapped,
+  -- with evidence and judged); a program the reader cannot read is refused, and none named answers
+  -- none.
   v_counts := public.control_objective_counts(v_control, array[v_program]);
   if v_counts->'programs' <> jsonb_build_array(jsonb_build_object('program_id', v_program,
       'objectives', v_line->'objectives', 'objectives_mapped', v_line->'objectives_mapped',
-      'objectives_evidenced', v_line->'objectives_evidenced')) then
+      'objectives_evidenced', v_line->'objectives_evidenced',
+      'objectives_assessed', v_line->'objectives_assessed')) then
     raise exception 'The catalog control''s table reads % where the control status reads %', v_counts, v_line;
   end if;
   perform pg_temp.expect_error(format('select public.control_objective_counts(%L, array[%L, %L]::uuid[])',
@@ -1499,6 +1506,182 @@ begin
   raise notice 'The checks of a control judged in part ran against the pinned references';
 end $$;
 
+-- ---------------------------------------------------------------------------------------------
+-- Latest per objective (20261114165512_latest_per_objective): the newest of the determinations
+-- that judge an objective decides it (its own, one on an objective above it, one on the control's
+-- statement), and the control reads the worst of its objectives. A newer objective's determination
+-- stands over an older statement's, a newer statement's over older objectives', a heading's over
+-- the older ones under it; two made at one moment fall to the nearer part; not assessed and a
+-- result left in draft decide nothing.
+-- ---------------------------------------------------------------------------------------------
+do $$
+declare
+  v_tenant uuid := current_setting('test.tenant')::uuid;
+  v_catalog uuid; v_base uuid; v_program uuid; v_system uuid; v_ssp uuid;
+  v_control uuid; v_heading uuid; v_statement uuid; v_under uuid[]; v_counted uuid[]; v_outside uuid;
+  v_campaign uuid := gen_random_uuid(); v_plan uuid := gen_random_uuid();
+  v_results uuid; v_set uuid; v_version integer := 0; v_line jsonb; v_answer jsonb;
+  v_read text;
+begin
+  select r.id, i.catalog_revision_id into v_base, v_catalog
+  from public.profile_resolutions r
+  join public.profile_imports i on i.profile_revision_id = r.profile_revision_id
+  join public.catalog_revisions k on k.id = i.catalog_revision_id and k.state = 'published'
+  where r.tenant_id is null and r.state = 'published' and r.base_profile_resolution_id is null
+    and (select count(*) from public.selected_controls sc where sc.profile_resolution_id = r.id) >= 3
+  order by (select count(*) from public.selected_controls sc where sc.profile_resolution_id = r.id), r.id limit 1;
+  if v_base is null then
+    raise notice 'The pinned references are not installed: the checks of the latest determination were skipped';
+    return;
+  end if;
+  v_program := pg_temp.program('CS-LATEST', v_catalog, v_base);
+
+  -- A control whose objectives nest, picked as the checks of a control judged in part pick one: a
+  -- heading over two leaves or more, a leaf of the control outside it, and a statement.
+  select x.control_id, x.heading into v_control, v_heading
+  from (
+    select sc.control_id, h.id as heading, k.code_order, h.source_pointer
+    from public.program_reference_choices c
+    join public.selected_controls sc on sc.profile_resolution_id = c.profile_resolution_id
+    join public.catalog_control_rows k on k.id = sc.control_id
+    join public.control_parts h on h.control_id = sc.control_id and h.name = 'assessment-objective'
+      and h.parent_part_id is not null
+    where c.program_id = v_program
+      and (select count(*) from public.control_parts u where u.parent_part_id = h.id and u.name = 'assessment-objective'
+        and not exists (select 1 from public.control_parts g where g.parent_part_id = u.id and g.name = 'assessment-objective')) >= 2
+      and not exists (select 1 from public.control_parts u join public.control_parts g on g.parent_part_id = u.id
+        where u.parent_part_id = h.id and g.name = 'assessment-objective')
+      and not exists (select 1 from public.control_parts s
+        where s.control_id = sc.control_id and s.name = 'assessment-objective'
+          and exists (select 1 from public.control_parts u where u.parent_part_id = s.id and u.name = 'assessment-objective')
+          and public.objective_prints_own_sentence(s.prose))
+      and exists (select 1 from public.control_parts st
+        where st.control_id = sc.control_id and st.parent_part_id is null and st.name = 'statement')
+  ) x
+  order by x.code_order, x.source_pointer limit 1;
+  if v_control is null then
+    raise notice 'The baseline has no control whose objectives nest: the checks of the latest determination were skipped';
+    return;
+  end if;
+  select st.id into v_statement from public.control_parts st
+  where st.control_id = v_control and st.parent_part_id is null and st.name = 'statement'
+  order by st.ordinal, st.id limit 1;
+  select array_agg(u.id order by u.source_pointer) into v_under
+  from public.control_parts u where u.parent_part_id = v_heading and u.name = 'assessment-objective';
+  select array_agg((o->>'id')::uuid order by n) into v_counted
+  from jsonb_array_elements(public.program_control_objectives(v_program, v_control)->'objectives') with ordinality as x(o, n);
+  select l into v_outside from unnest(v_counted) with ordinality as x(l, n) where l <> all(v_under) order by n limit 1;
+  if v_outside is null then
+    raise notice 'The control has no objective outside its heading: the checks of the latest determination were skipped';
+    return;
+  end if;
+
+  -- One requirement that cites evidence maps the control whole: it waits on its assessors.
+  insert into public.engineering_requirements(id, tenant_id, program_id, code) values
+    ('c5720000-0000-0000-0000-000000000061', v_tenant, v_program, 'REQ-LATEST');
+  insert into public.requirement_revisions(id, tenant_id, engineering_requirement_id, version_number, title, statement, acceptance_criteria, requirement_type) values
+    ('c5730000-0000-0000-0000-000000000061', v_tenant, 'c5720000-0000-0000-0000-000000000061', 1, 'Meets it', 'The system does the thing.', 'It is recorded.', 'functional');
+  insert into public.requirement_control_links(tenant_id, requirement_revision_id, control_id, relationship_type) values
+    (v_tenant, 'c5730000-0000-0000-0000-000000000061', v_control, 'satisfies');
+  insert into public.evidence_artifacts(id, tenant_id, title, artifact_kind, program_id) values
+    ('c5740000-0000-0000-0000-000000000061', v_tenant, 'Rollback latest report', 'document', v_program);
+  insert into public.evidence_versions(id, tenant_id, artifact_id, version_number, state, external_uri) values
+    ('c5750000-0000-0000-0000-000000000061', v_tenant, 'c5740000-0000-0000-0000-000000000061', 1, 'published', 'https://example.test/evidence/latest');
+  insert into public.requirement_evidence(tenant_id, requirement_revision_id, evidence_version_id) values
+    (v_tenant, 'c5730000-0000-0000-0000-000000000061', 'c5750000-0000-0000-0000-000000000061');
+  select s.id into v_system from public.systems s where s.program_id = v_program order by s.created_at, s.id limit 1;
+  select r.id into v_ssp from public.ssp_revisions r where r.system_id = v_system order by r.version_number limit 1;
+  update public.ssp_revisions set state = 'published', published_at = now(), revision = revision + 1 where id = v_ssp and state <> 'published';
+  insert into public.assessment_campaigns(id, tenant_id, title, program_id) values (v_campaign, v_tenant, 'Latest determination campaign', v_program);
+  insert into public.assessment_plan_revisions(id, tenant_id, version_number, campaign_id, ssp_revision_id, title)
+    values (v_plan, v_tenant, 1, v_campaign, v_ssp, 'Latest determination plan');
+  update public.assessment_plan_revisions set state = 'published', published_at = now(), revision = revision + 1 where id = v_plan;
+
+  -- Each step publishes one results revision of the plan: its findings, a part and a determination
+  -- each, made the given number of days ago. What every objective, and the control, then reads:
+  -- read is the determination each objective counted reads (s, p, o for satisfied, partially and
+  -- other than satisfied), in the order the control's objectives are read.
+  create temporary table latest_step(part uuid, determination text, days integer) on commit drop;
+  -- 1. The statement other than satisfied: every objective is judged by it.
+  insert into latest_step values (v_statement, 'other_than_satisfied', 6);
+  -- 2. Every objective satisfied, later: each one's own is the newest, and the older statement no
+  --    longer holds the control down, as the worst of the two did.
+  insert into latest_step select l, 'satisfied', 5 from unnest(v_counted) l;
+  -- 3. The heading partially satisfied, later still: the objectives under it read it.
+  insert into latest_step values (v_heading, 'partially_satisfied', 4);
+  -- 4. One objective under the heading satisfied again: newer than the heading, it reads its own.
+  insert into latest_step values (v_under[1], 'satisfied', 3);
+  -- 5. The statement satisfied: newer than everything, every objective reads it.
+  insert into latest_step values (v_statement, 'satisfied', 2);
+  -- 6. At one moment, the statement other than satisfied and the objective outside the heading
+  --    satisfied: that objective reads its own, the nearer part; every other the statement's.
+  insert into latest_step values (v_statement, 'other_than_satisfied', 1), (v_outside, 'satisfied', 1);
+  -- 7. Not assessed on the statement, today, decides nothing: step 6 stands.
+  insert into latest_step values (v_statement, 'not_assessed', 0);
+
+  for v_version in 1..7 loop
+    v_results := gen_random_uuid();
+    insert into public.assessment_results_revisions(id, tenant_id, version_number, assessment_plan_revision_id, title)
+      values (v_results, v_tenant, v_version, v_plan, 'Results ' || v_version);
+    insert into public.result_sets(tenant_id, assessment_results_revision_id, title)
+      values (v_tenant, v_results, 'Set ' || v_version) returning id into v_set;
+    insert into public.assessment_findings(tenant_id, assessment_results_revision_id, result_set_id, target_control_part_id, title, determination, determined_at)
+    select v_tenant, v_results, v_set, s.part, 'Step ' || v_version, s.determination, now() - make_interval(days => s.days)
+    from latest_step s
+    where s.days = case v_version when 1 then 6 when 2 then 5 when 3 then 4 when 4 then 3 when 5 then 2 when 6 then 1 else 0 end;
+    update public.assessment_results_revisions set state = 'published', published_at = now(), revision = revision + 1 where id = v_results;
+
+    v_line := pg_temp.line(public.program_control_status(v_program), v_control);
+    select string_agg(coalesce(left(j.determination, 1), '-'), '' order by n) into v_read
+    from unnest(v_counted) with ordinality as x(l, n)
+    left join public.program_control_objective_judgments(v_program, array[v_control]) j on j.objective_id = x.l;
+    if v_read is distinct from (case v_version
+        when 1 then repeat('o', cardinality(v_counted))
+        when 2 then repeat('s', cardinality(v_counted))
+        when 5 then repeat('s', cardinality(v_counted))
+        else (select string_agg(case
+            when v_version in (3, 4) and l = any(v_under) and not (v_version = 4 and l = v_under[1]) then 'p'
+            when v_version in (3, 4) then 's'
+            when l = v_outside then 's'
+            else 'o' end, '' order by n)
+          from unnest(v_counted) with ordinality as x(l, n))
+      end)
+      or v_line->>'status' <> (case v_version when 1 then 'other_than_satisfied' when 2 then 'satisfied'
+        when 3 then 'partially_satisfied' when 4 then 'partially_satisfied' when 5 then 'satisfied'
+        else 'other_than_satisfied' end)
+      or v_line->>'determined_by' <> 'program'
+      or v_line->'objectives_assessed' <> v_line->'objectives' then
+      raise exception 'After step %, the objectives read % and the control %', v_version, v_read, v_line;
+    end if;
+  end loop;
+
+  -- A result left in draft, newer and satisfied everywhere, decides nothing.
+  v_results := gen_random_uuid();
+  insert into public.assessment_results_revisions(id, tenant_id, version_number, assessment_plan_revision_id, title)
+    values (v_results, v_tenant, 8, v_plan, 'Results in draft');
+  insert into public.result_sets(tenant_id, assessment_results_revision_id, title)
+    values (v_tenant, v_results, 'Draft set') returning id into v_set;
+  insert into public.assessment_findings(tenant_id, assessment_results_revision_id, result_set_id, target_control_part_id, title, determination, determined_at)
+  select v_tenant, v_results, v_set, l, 'Not yet published', 'satisfied', now() from unnest(v_counted || v_statement) l;
+  v_answer := public.program_control_status(v_program);
+  if pg_temp.line(v_answer, v_control)->>'status' <> 'other_than_satisfied' then
+    raise exception 'A result left in draft decided the control: %', pg_temp.line(v_answer, v_control);
+  end if;
+
+  -- The internal lines the snapshots count are the read's, and a viewer reads the same answer.
+  if exists (select 1 from public.program_control_status_lines(v_program) l
+      where l.status is distinct from pg_temp.line(v_answer, l.id)->>'status'
+        or l.objectives_assessed <> (pg_temp.line(v_answer, l.id)->>'objectives_assessed')::bigint) then
+    raise exception 'The internal lines do not read the latest determination as the read does';
+  end if;
+  perform set_config('request.jwt.claim.sub', 'c5700000-0000-0000-0000-000000000002', true);
+  if public.program_control_status(v_program) is distinct from v_answer then
+    raise exception 'A viewer read another answer of the latest determinations';
+  end if;
+  perform set_config('request.jwt.claim.sub', 'c5700000-0000-0000-0000-000000000001', true);
+  raise notice 'The checks of the latest determination ran against the pinned references';
+end $$;
+
 reset role;
 rollback;
-select 'Program control status: privileges, refusal, a program with no baseline, the ladder a control climbs, the determinations a program takes from its products, the objectives a control''s requirements cover, the headings that count on their own, every system that selects a control and a control judged in part passed.' as result;
+select 'Program control status: privileges, refusal, a program with no baseline, the ladder a control climbs, the determinations a program takes from its products, the objectives a control''s requirements cover, the headings that count on their own, every system that selects a control, a control judged in part and the latest determination on each objective passed.' as result;

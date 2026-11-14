@@ -145,7 +145,28 @@ try {
   await expect(name).toHaveValue("Retained variant draft");
   for (const label of ["Confidentiality", "Integrity", "Availability"]) {
     await variant.getByRole("combobox", { name: label, exact: true }).click();
-    await page.getByRole("option", { name: "Low", exact: true }).click();
+    const low = page.getByRole("option", { name: "Low", exact: true });
+    // Choose once the list has stopped moving: an option clicked while the list still opens makes
+    // Playwright scroll to it, and on a slow runner the list closes under that scroll.
+    await low.evaluate(
+      (option) =>
+        new Promise((resolve) => {
+          let last = "";
+          let still = 0;
+          let frames = 0;
+          const tick = () => {
+            const box = option.getBoundingClientRect();
+            const now = `${box.x},${box.y},${box.width},${box.height}`;
+            still = now === last && box.width > 0 ? still + 1 : 0;
+            last = now;
+            frames += 1;
+            if (still >= 3 || frames >= 120) resolve();
+            else requestAnimationFrame(tick);
+          };
+          requestAnimationFrame(tick);
+        }),
+    );
+    await low.click();
     // The list fades out after a choice; the next Select opens once it has gone.
     await page.getByRole("listbox").waitFor({ state: "hidden" });
   }

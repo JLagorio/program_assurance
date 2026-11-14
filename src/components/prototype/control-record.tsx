@@ -304,19 +304,32 @@ type ProgramLine = {
   id: string;
   name: string;
   code: string;
-  /** The objectives the control counts, and those the program's requirements cover. */
+  /**
+   * The objectives the control counts, those the program's requirements cover, cover with evidence
+   * and its assessors have judged, as its control status counts them.
+   */
   objectives: number | null;
   objectivesMapped: number | null;
+  objectivesEvidenced: number | null;
+  objectivesAssessed: number | null;
   requirements: number;
   evidenced: number;
   issues: number;
   risks: number;
 };
 
+/** A count of the control's objectives in a program's row: "12 of 26", Absent until it is read. */
+const objectiveCell = (count: number | null, objectives: number | null) =>
+  objectives === null || count === null ? (
+    <Absent label="Not available" />
+  ) : (
+    <ObjectiveCount count={count} objectives={objectives} />
+  );
+
 /**
  * Where the workspace's programs stand on a control: one row a program that has a requirement
- * meeting it, with how many of the control's objectives its requirements cover ("12 of 26"), read
- * for every row in one request.
+ * meeting it, with how many of the control's objectives its requirements cover, cover with evidence
+ * and its assessors have judged ("12 of 26"), read for every row in one request.
  */
 function ControlPrograms({ control }: { control: Control }) {
   const open = useOpenRecord();
@@ -346,6 +359,8 @@ function ControlPrograms({ control }: { control: Control }) {
                 code: program.code,
                 objectives: counted?.objectives ?? null,
                 objectivesMapped: counted?.mapped ?? null,
+                objectivesEvidenced: counted?.evidenced ?? null,
+                objectivesAssessed: counted?.assessed ?? null,
               },
             ]
           : [];
@@ -366,23 +381,30 @@ function ControlPrograms({ control }: { control: Control }) {
             </RecordLink>
           ),
         }),
-        // How much of the control the program's requirements cover, objective by objective, as
-        // its control status counts them.
+        // How much of the control the program's requirements cover, cover with evidence and its
+        // assessors have judged, objective by objective, as its control status counts them.
         c.number("objectivesMapped", {
           header: objectiveWords.mapped,
           width: 170,
           priority: 1,
-          cell: (row) =>
-            row.objectives === null || row.objectivesMapped === null ? (
-              <Absent label="Not available" />
-            ) : (
-              <ObjectiveCount count={row.objectivesMapped} objectives={row.objectives} />
-            ),
+          cell: (row) => objectiveCell(row.objectivesMapped, row.objectives),
         }),
-        c.number("requirements", { header: "Requirements", width: 130, priority: 2 }),
-        c.number("evidenced", { header: "With evidence", width: 130, priority: 3 }),
-        c.number("issues", { header: "Open issues", width: 120, priority: 4 }),
-        c.number("risks", { header: "Open risks", width: 120, priority: 5 }),
+        c.number("objectivesEvidenced", {
+          header: objectiveWords.evidenced,
+          width: 200,
+          priority: 2,
+          cell: (row) => objectiveCell(row.objectivesEvidenced, row.objectives),
+        }),
+        c.number("objectivesAssessed", {
+          header: objectiveWords.assessed,
+          width: 180,
+          priority: 3,
+          cell: (row) => objectiveCell(row.objectivesAssessed, row.objectives),
+        }),
+        c.number("requirements", { header: "Requirements", width: 130, priority: 4 }),
+        c.number("evidenced", { header: "With evidence", width: 130, priority: 5 }),
+        c.number("issues", { header: "Open issues", width: 120, priority: 6 }),
+        c.number("risks", { header: "Open risks", width: 120, priority: 7 }),
       ]),
     [control.id],
   );

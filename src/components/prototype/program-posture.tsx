@@ -41,6 +41,7 @@ import {
   type PostureRow,
   type PostureTotals,
 } from "@/lib/program-posture";
+import { objectiveWords, objectivesOf } from "@/lib/product-records";
 import { useProgramResiliencyChoice } from "@/lib/resiliency-choice";
 import { severityLevels, statusLabel } from "@/lib/status";
 import { RecordLink } from "./record-preview";
@@ -48,15 +49,16 @@ import { QueryState, ReportFailures } from "./work-common";
 
 /*
  * A program's posture: its system elements down the side and, across the top, the control families
- * its requirements meet or the cyber resiliency techniques their controls support, read four ways.
- * The grid is a Chart.Heatmap: an element that holds others is a row of totals, a cell opens what
- * stands in it, and the same numbers are a table one toggle away.
+ * of their control baselines or the cyber resiliency techniques, read four ways: the assessment
+ * objectives the requirements' mappings cover there, those no requirement with evidence covers,
+ * open issues and open risks. The grid is a Chart.Heatmap: an element that holds others is a row of
+ * totals, a cell opens what stands in it, and the same numbers are a table one toggle away.
  */
 
 /** What a reading counts, as its toggle says it and as the frame's title does. */
 const readings: Record<PostureReading, { label: string; counts: string }> = {
-  requirements: { label: "Requirements", counts: "Requirements" },
-  gaps: { label: "Without evidence", counts: "Requirements without evidence" },
+  objectives: { label: objectiveWords.mapped, counts: objectiveWords.mapped },
+  gaps: { label: "Without evidence", counts: "Objectives without evidence" },
   issues: { label: "Open issues", counts: "Open operational issues" },
   risks: { label: "Open risks", counts: "Open risks" },
 };
@@ -139,8 +141,8 @@ function Choices<Value extends string>({
 }
 
 /**
- * What the frame's description says: the records the reading counts that stand in no cell, each
- * kind with why. Nothing where every one is placed.
+ * What the frame's description says: the records the reading counts, or whose coverage it counts,
+ * that stand in no cell, each kind with why. Nothing where every one is placed.
  */
 function leftOutWords(
   left: PostureLeftOut,
@@ -157,27 +159,28 @@ function leftOutWords(
             "{count} requirements are not placed: their controls support no resiliency technique.",
         }),
       );
-    if (left.unallocated > 0)
+    if (left.unplaced > 0)
       sentences.push(
-        formatPlural(left.unallocated, {
-          one: "{count} requirement is allocated to no element.",
-          other: "{count} requirements are allocated to no element.",
+        formatPlural(left.unplaced, {
+          one: "{count} requirement is not placed: none of its mappings is on an element whose control baseline selects the control.",
+          other:
+            "{count} requirements are not placed: none of their mappings is on an element whose control baseline selects the control.",
         }),
       );
     return sentences.join(" ") || undefined;
   }
   if (left.unplaced <= 0) return undefined;
-  // An issue stands where the requirements it names and those its evidence supports stand; by
-  // technique, such a requirement must also stand under one.
-  const requirement = byTechnique ? "no requirement under a technique" : "no requirement";
+  // An issue stands where the requirements it names and those its evidence supports stand, and a
+  // requirement where its mappings stand; by technique, under a technique its controls support.
+  const where = byTechnique ? "under a resiliency technique" : "on a system element";
   return left.records === "issues"
     ? formatPlural(left.unplaced, {
-        one: `{count} open issue is not placed: it names ${requirement}, and its evidence supports none.`,
-        other: `{count} open issues are not placed: they name ${requirement}, and their evidence supports none.`,
+        one: `{count} open issue is not placed: no requirement it names or its evidence supports stands ${where}.`,
+        other: `{count} open issues are not placed: no requirement they name or their evidence supports stands ${where}.`,
       })
     : formatPlural(left.unplaced, {
-        one: `{count} open risk is not placed: its issues name ${requirement}, and their evidence supports none.`,
-        other: `{count} open risks are not placed: their issues name ${requirement}, and their evidence supports none.`,
+        one: `{count} open risk is not placed: no requirement its issues name or their evidence supports stands ${where}.`,
+        other: `{count} open risks are not placed: no requirement their issues name or their evidence supports stands ${where}.`,
       });
 }
 
@@ -190,7 +193,12 @@ type Grid = {
   totals: PostureTotals;
 };
 
-/** What stands in a chosen cell: the records the reading counts there, each a link to its page. */
+/**
+ * What stands in a chosen cell: under objectives, the controls whose objectives stand there, each
+ * with how many of all it counts; without evidence, the requirements to evidence, each with how many
+ * of those objectives it covers; under issues or risks, the records. Each is a link to its page:
+ * an objective has none of its own, and its control's record lists it with its coverage.
+ */
 function CellRecords({
   programId,
   kind,
@@ -224,7 +232,7 @@ function CellRecords({
     ) : null;
   return (
     <Stack space="space.150">
-      <KeyValue.Group>
+      <KeyValue.Group labelWidth="wide">
         <KeyValue label="Element" wrap>
           <RecordLink table="systems" record={{ id: row.element.id, program_id: programId }}>
             {row.element.name}
@@ -233,10 +241,10 @@ function CellRecords({
         <KeyValue label={columnWords[kind].fact} wrap>
           {column.title}
         </KeyValue>
-        <KeyValue label="Requirements">
-          {data ? formatNumber(data.requirements) : <Skeleton shape="line" width={32} />}
+        <KeyValue label={objectiveWords.mapped}>
+          {data ? formatNumber(data.objectives) : <Skeleton shape="line" width={32} />}
         </KeyValue>
-        <KeyValue label="With evidence">
+        <KeyValue label={objectiveWords.evidenced}>
           {data ? formatNumber(data.evidenced) : <Skeleton shape="line" width={32} />}
         </KeyValue>
       </KeyValue.Group>
@@ -281,24 +289,30 @@ function CellRecords({
                   record={{ id: requirement.id, program_id: programId }}
                 >
                   {requirement.code} · {requirement.title}
-                </RecordLink>
+                </RecordLink>{" "}
+                <Text size="small" color="color.text.subtle">
+                  · {formatNumber(requirement.objectives)} without evidence
+                </Text>
               </List.Item>
             ))}
           </List>
         )}
-        {data && reading === "gaps" && more(data.requirements - data.evidenced)}
-        {data && reading === "requirements" && (
+        {data && reading === "gaps" && more(data.unevidenced_count)}
+        {data && reading === "objectives" && (
           <List>
             {data.controls.slice(0, SHOWN).map((control) => (
               <List.Item key={control.id}>
                 <RecordLink table="controls" record={{ id: control.id, program_id: programId }}>
                   {control.code} · {control.title}
-                </RecordLink>
+                </RecordLink>{" "}
+                <Text size="small" color="color.text.subtle">
+                  · {objectivesOf(formatNumber(control.objectives), formatNumber(control.total))}
+                </Text>
               </List.Item>
             ))}
           </List>
         )}
-        {data && reading === "requirements" && more(data.controls.length)}
+        {data && reading === "objectives" && more(data.controls.length)}
       </QueryState>
     </Stack>
   );
@@ -466,10 +480,11 @@ function PostureGrid({
 const route = getRouteApi("/programs/$programId_/posture");
 
 /**
- * The program's Posture view: four numbers that say where the program stands, then the grid they
- * are counted from, by control family or by resiliency technique, read as requirements,
- * requirements without evidence, open issues or open risks. The reading and the columns are the
- * address's, so a shared link opens the same grid.
+ * The program's Posture view: four numbers that say where the program stands (its control
+ * baseline's objectives as its control status counts them, then open issues and open risks), then
+ * the grid, by control family or by resiliency technique, read as objectives mapped, objectives
+ * without evidence, open issues or open risks. The reading and the columns are the address's, so a
+ * shared link opens the same grid.
  */
 export function ProgramPosture({
   programId,
@@ -552,21 +567,29 @@ export function ProgramPosture({
   return (
     <Stack space="space.300" className="min-w-0">
       <Stat.Grid frame="band" cols={4} aria-label="Where the program stands">
+        {/* The control baseline's objectives as the Control status view counts them: one is
+            mapped once covered on every system that selects its control. */}
         <Stat.Tile
-          label="Requirements allocated"
-          value={count(totals?.allocated)}
-          note={totals ? `${formatNumber(totals.allocated_elements)} system elements` : unread}
+          label={objectiveWords.mapped}
+          value={count(totals?.mapped)}
+          note={
+            totals
+              ? totals.objectives > 0
+                ? `of ${formatNumber(totals.objectives)} in the control baseline`
+                : "No control baseline"
+              : unread
+          }
           isLoading={loading}
         />
         <Stat.Tile
           label="Without evidence"
-          value={count(totals && totals.allocated - totals.evidenced)}
+          value={count(totals && totals.mapped - totals.evidenced)}
           note={
             totals
-              ? `${formatNumber(totals.evidenced)} of ${formatNumber(totals.allocated)} have evidence`
+              ? `${formatNumber(totals.evidenced)} of ${formatNumber(totals.mapped)} have evidence`
               : unread
           }
-          tone={totals && totals.allocated > totals.evidenced ? "warning" : "neutral"}
+          tone={totals && totals.mapped > totals.evidenced ? "warning" : "neutral"}
           isLoading={loading}
         />
         <Stat.Tile

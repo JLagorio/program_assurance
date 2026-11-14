@@ -1,6 +1,25 @@
-import type { Row } from "./models";
+import { useQuery, type UseQueryResult } from "@tanstack/react-query";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { z } from "zod";
+import { useWorkspace } from "./workspace-context";
+import { database, requireIdentity } from "./database";
+import type { Json } from "./database.types";
+import type { ReadContext, Row, TableName } from "./models";
 import { objectiveWords } from "./product-records";
 import { isMappingTarget, objectiveLabel } from "./requirement-control-mappings";
+import { useStaleOnWrite } from "./server-table";
+
+/*
+ * The program's Controls tab: one authorization boundary's SSP revision, every control its stored
+ * baseline selects. The register is one read, `ssp_control_rows`: each control in the baseline's
+ * order with its recorded implementation and how many contributions, requirements and evidence
+ * versions stand behind it, and the SSP's totals, derived on the server. A control's preview reads
+ * what stands behind that one control as it opens, `ssp_control_detail`, and `assembleSsp` puts it
+ * together here, under the same rules the server counts by: a requirement stands behind a control
+ * when it is linked to its narrative or a contribution, or maps the control (or a part of it) inside
+ * the boundary; evidence when it is linked to the narrative, a statement, a contribution or such a
+ * requirement.
+ */
 
 const conjunction = new Intl.ListFormat("en", { type: "conjunction" });
 const byLabel = new Intl.Collator("en", { numeric: true }).compare;
@@ -14,81 +33,183 @@ export function mappedObjectives(labels: readonly string[]): string {
   return `Mapped to ${sorted.length === 1 ? "objective" : "objectives"} ${conjunction.format(sorted)}`;
 }
 
-type RequirementLink = Omit<Row<"requirement_implementations">, "component_contribution_id"> & {
-  component_contribution_id: string | null;
-  implemented_requirement_id?: string | null;
-};
-type EvidenceLink = Omit<Row<"implementation_evidence">, "implementation_statement_id"> & {
-  implementation_statement_id: string | null;
-  implemented_requirement_id?: string | null;
-  component_contribution_id?: string | null;
-};
-type Mapping = Omit<Row<"requirement_control_links">, "control_part_id"> & {
-  control_part_id: string | null;
-  control_id?: string | null;
-  system_id?: string | null;
-  selected_control_id?: string | null;
-};
+/** The columns an edit form leaves alone: the lifecycle stamps. */
+type Stamps = "created_at" | "updated_at" | "created_by" | "updated_by";
+/**
+ * A record the preview edits: every column its form edits, with its id, its revision and its
+ * workspace, which the form checks before it offers an edit.
+ */
+type Edited<T extends TableName> = Omit<Row<T>, Stamps>;
+
+/** The SSP revision a register shows: what the assembly scopes and checks by. */
+export type SspPlan = Pick<Row<"ssp_revisions">, "id" | "system_id" | "profile_resolution_id">;
+/** A system of the program, for the boundary checks and an element's path. */
+export type SspSystem = Pick<
+  Row<"systems">,
+  "id" | "name" | "boundary_system_id" | "parent_system_id"
+>;
+type Selection = Pick<
+  Row<"selected_controls">,
+  "id" | "control_id" | "profile_resolution_id" | "ordinal"
+>;
+type Control = Pick<Row<"controls">, "id" | "code" | "title">;
+type Part = Pick<
+  Row<"control_parts">,
+  "id" | "control_id" | "parent_part_id" | "name" | "prose" | "props" | "source_id" | "title"
+>;
+export type SspImplementation = Edited<"implemented_requirements">;
+export type SspStatement = Edited<"implementation_statements">;
+export type SspContribution = Edited<"component_contributions">;
+/** A provider's contribution behind an offering the SSP accepted. */
+type OfferedContribution = Pick<
+  Row<"component_contributions">,
+  "id" | "implemented_requirement_id" | "system_component_id" | "description"
+>;
+type Component = Pick<Row<"system_components">, "id" | "name">;
+type ComponentElement = Pick<
+  Row<"system_component_element_links">,
+  "id" | "system_element_id" | "link_source"
+>;
+type Requirement = Pick<Row<"engineering_requirements">, "id" | "code" | "program_id">;
+type Revision = Pick<
+  Row<"requirement_revisions">,
+  "id" | "engineering_requirement_id" | "title" | "statement" | "acceptance_criteria" | "state"
+>;
+type RequirementLink = Pick<
+  Row<"requirement_implementations">,
+  | "id"
+  | "requirement_revision_id"
+  | "implemented_requirement_id"
+  | "component_contribution_id"
+  | "rationale"
+>;
+type Mapping = Pick<
+  Row<"requirement_control_links">,
+  | "id"
+  | "requirement_revision_id"
+  | "control_id"
+  | "control_part_id"
+  | "system_id"
+  | "selected_control_id"
+  | "rationale"
+>;
+type Allocation = Pick<
+  Row<"requirement_allocations">,
+  "requirement_revision_id" | "system_id" | "composition_node_id"
+>;
+type RequirementEvidence = Pick<
+  Row<"requirement_evidence">,
+  "id" | "requirement_revision_id" | "evidence_version_id" | "claim" | "applicability_rationale"
+>;
+type ImplementationEvidence = Pick<
+  Row<"implementation_evidence">,
+  | "id"
+  | "implemented_requirement_id"
+  | "implementation_statement_id"
+  | "component_contribution_id"
+  | "evidence_version_id"
+  | "claim"
+  | "applicability_rationale"
+>;
+/** An evidence version as the preview draws it, its file included (EvidenceVersionDetails). */
+export type SspEvidenceVersion = Pick<
+  Row<"evidence_versions">,
+  | "id"
+  | "artifact_id"
+  | "version_number"
+  | "state"
+  | "collected_at"
+  | "published_at"
+  | "expires_at"
+  | "external_uri"
+  | "media_type"
+  | "byte_size"
+  | "sha256"
+  | "provenance"
+  | "storage_object_name"
+  | "storage_object_id"
+>;
+export type SspEvidenceArtifact = Pick<
+  Row<"evidence_artifacts">,
+  "id" | "title" | "description" | "artifact_kind" | "owner_party_id"
+>;
+type Acceptance = Pick<
+  Row<"inheritance_acceptances">,
+  | "id"
+  | "implemented_requirement_id"
+  | "offered_implementation_id"
+  | "accepted_at"
+  | "rationale"
+  | "consumer_responsibility"
+>;
+type Offering = Pick<Row<"offered_implementations">, "id" | "name" | "component_contribution_id">;
+type EffectiveBaseline = Pick<
+  Row<"system_effective_baselines">,
+  "system_id" | "profile_resolution_id"
+>;
+
 export type SspAssemblyInput = {
-  plan: Row<"ssp_revisions">;
-  selections: Row<"selected_controls">[];
-  controls: Row<"controls">[];
-  parts: Row<"control_parts">[];
-  systems: Row<"systems">[];
-  implementations: Row<"implemented_requirements">[];
-  statements: Row<"implementation_statements">[];
-  contributions: Row<"component_contributions">[];
-  components: Row<"system_components">[];
-  componentElements: Row<"system_component_element_links">[];
-  requirements: Row<"engineering_requirements">[];
-  contents: Row<"requirement_revisions">[];
+  plan: SspPlan;
+  selections: Selection[];
+  controls: Control[];
+  parts: Part[];
+  systems: SspSystem[];
+  implementations: SspImplementation[];
+  statements: SspStatement[];
+  contributions: SspContribution[];
+  /** The providers' contributions behind the offerings the SSP accepted. */
+  offeredContributions: OfferedContribution[];
+  components: Component[];
+  componentElements: ComponentElement[];
+  requirements: Requirement[];
+  contents: Revision[];
   requirementLinks: RequirementLink[];
   controlMappings: Mapping[];
-  allocations: Row<"requirement_allocations">[];
-  requirementEvidence: Row<"requirement_evidence">[];
-  implementationEvidence: EvidenceLink[];
-  artifacts: Row<"evidence_artifacts">[];
-  versions: Row<"evidence_versions">[];
-  acceptances: Row<"inheritance_acceptances">[];
-  offerings: Row<"offered_implementations">[];
-  effectiveBaselines: Row<"system_effective_baselines">[];
+  allocations: Allocation[];
+  requirementEvidence: RequirementEvidence[];
+  implementationEvidence: ImplementationEvidence[];
+  artifacts: SspEvidenceArtifact[];
+  versions: SspEvidenceVersion[];
+  acceptances: Acceptance[];
+  offerings: Offering[];
+  effectiveBaselines: EffectiveBaseline[];
 };
 export type SspRequirementSupport = {
-  requirement: Row<"engineering_requirements">;
-  content: Row<"requirement_revisions">;
+  requirement: Requirement;
+  content: Revision;
   explicit: boolean;
   descriptions: string[];
   rationale: string[];
 };
 export type SspEvidenceSupport = {
   id: string;
-  artifact: Row<"evidence_artifacts"> | undefined;
-  version: Row<"evidence_versions"> | undefined;
+  artifact: SspEvidenceArtifact | undefined;
+  version: SspEvidenceVersion | undefined;
   origins: { id: string; label: string; claim: string | null; rationale: string | null }[];
 };
 export type SspControlAssembly = {
   id: string;
-  selection: Row<"selected_controls">;
-  control: Row<"controls"> | undefined;
+  selection: Selection;
+  control: Control | undefined;
   code: string;
   title: string;
-  implementation: Row<"implemented_requirements"> | undefined;
+  implementation: SspImplementation | undefined;
   status: string;
   narrative: "Recorded" | "Not recorded";
-  statements: Row<"implementation_statements">[];
+  statements: SspStatement[];
   contributions: {
-    record: Row<"component_contributions">;
-    component: Row<"system_components"> | undefined;
-    element: Row<"systems"> | undefined;
+    record: SspContribution;
+    component: Component | undefined;
+    element: SspSystem | undefined;
     path: string;
     binding: string;
   }[];
   requirements: SspRequirementSupport[];
   evidence: SspEvidenceSupport[];
   inherited: {
-    acceptance: Row<"inheritance_acceptances">;
-    offering: Row<"offered_implementations"> | undefined;
-    contribution: Row<"component_contributions"> | undefined;
+    acceptance: Acceptance;
+    offering: Offering | undefined;
+    contribution: OfferedContribution | undefined;
   }[];
   gaps: string[];
   requirementCount: number;
@@ -96,11 +217,11 @@ export type SspControlAssembly = {
   contributionCount: number;
 };
 
-export function systemPath(element: Row<"systems">, systems: Row<"systems">[]): string {
+export function systemPath(element: SspSystem, systems: readonly SspSystem[]): string {
   const byId = new Map(systems.map((system) => [system.id, system]));
   const path: string[] = [];
   const visited = new Set<string>();
-  let current: Row<"systems"> | undefined = element;
+  let current: SspSystem | undefined = element;
   while (current && !visited.has(current.id)) {
     visited.add(current.id);
     path.unshift(current.name);
@@ -124,7 +245,7 @@ export function assembleSsp(input: SspAssemblyInput): SspControlAssembly[] {
   const versionById = byId(input.versions);
   const artifactById = byId(input.artifacts);
   const offeringById = byId(input.offerings);
-  const contributionById = byId(input.contributions);
+  const offeredById = byId(input.offeredContributions);
   const selectionById = byId(input.selections);
   const effectiveBySystem = new Map(input.effectiveBaselines.map((row) => [row.system_id, row]));
   const implementations = new Map(
@@ -333,7 +454,7 @@ export function assembleSsp(input: SspAssemblyInput): SspControlAssembly[] {
                 acceptance,
                 offering,
                 contribution: offering
-                  ? contributionById.get(offering.component_contribution_id)
+                  ? offeredById.get(offering.component_contribution_id)
                   : undefined,
               };
             })
@@ -368,37 +489,451 @@ export function assembleSsp(input: SspAssemblyInput): SspControlAssembly[] {
     });
 }
 
-/** Child additions remain visible without inserting them into an earlier SSP. */
-export function sspSelectionGaps(
-  input: Pick<
-    SspAssemblyInput,
-    "plan" | "selections" | "controls" | "systems" | "effectiveBaselines"
-  >,
-) {
-  const selected = new Set(
-    input.selections
-      .filter((row) => row.profile_resolution_id === input.plan.profile_resolution_id)
-      .map((row) => row.control_id),
-  );
-  const controls = new Map(input.controls.map((row) => [row.id, row]));
-  return input.effectiveBaselines.flatMap((baseline) => {
-    const system = input.systems.find(
-      (row) => row.id === baseline.system_id && row.boundary_system_id === input.plan.system_id,
-    );
-    if (
-      !system ||
-      !baseline.profile_resolution_id ||
-      baseline.profile_resolution_id === input.plan.profile_resolution_id
-    )
-      return [];
-    const extra = input.selections
-      .filter(
-        (row) =>
-          row.profile_resolution_id === baseline.profile_resolution_id &&
-          !selected.has(row.control_id),
-      )
-      .map((row) => controls.get(row.control_id))
-      .filter((row): row is Row<"controls"> => !!row);
-    return extra.length ? [{ system, baseline, controls: extra }] : [];
+// ---------------------------------------------------------------------------------------------
+// The register: `ssp_control_rows`.
+// ---------------------------------------------------------------------------------------------
+
+type Client = Pick<SupabaseClient, "rpc">;
+
+const id = z.string();
+const text = z.string().nullable();
+
+const controlRowSchema = z.object({
+  id,
+  control_id: id,
+  code: text,
+  title: text,
+  implementation_id: text,
+  implementation_status: text,
+  narrative: z.boolean(),
+  contributions: z.number(),
+  requirements: z.number(),
+  evidence: z.number(),
+});
+
+const controlRowsSchema = z.object({
+  ssp_revision_id: id,
+  rows: z.array(controlRowSchema),
+  requirements: z.number(),
+  evidence: z.number(),
+  boundary_differs: z.boolean(),
+  gaps: z.array(z.object({ system_id: id, name: z.string(), codes: z.array(z.string()) })),
+  baseline_title: text,
+  imported_demo: z.boolean(),
+});
+
+/** A control of an SSP revision as its register reads it, under the same rules as `assembleSsp`. */
+export type SspControlRow = {
+  /** The baseline's selection of the control: the row's identity. */
+  id: string;
+  controlId: string;
+  /** The control's code and title; none where the reader cannot read the control. */
+  code: string | null;
+  title: string | null;
+  /** The control's recorded implementation in this SSP, if any, and its status. */
+  implementationId: string | null;
+  implementationStatus: string | null;
+  /** Whether the implementation's narrative is written. */
+  narrative: boolean;
+  contributions: number;
+  requirements: number;
+  evidence: number;
+};
+
+/** One SSP revision's register and what the tab says of the SSP as a whole. */
+export type SspControlRows = {
+  sspRevisionId: string;
+  /** Every control the stored baseline selects, in the baseline's order. */
+  rows: SspControlRow[];
+  /** The requirements behind any control, and the evidence versions, each counted once. */
+  requirements: number;
+  evidence: number;
+  /** The boundary resolves to another baseline than the one this SSP stored. */
+  boundaryDiffers: boolean;
+  /** Each system inside the boundary whose own baseline selects controls this SSP does not. */
+  gaps: { systemId: string; name: string; codes: string[] }[];
+  /** The stored baseline's profile, by title; none where the reader cannot read it. */
+  baselineTitle: string | null;
+  /** The stored selection is an imported demo selection. */
+  importedDemo: boolean;
+};
+
+/** An SSP revision's controls, as the server reads them; an SSP the reader cannot read is refused. */
+export async function readSspControlRows(
+  client: Client,
+  context: ReadContext,
+  sspRevisionId: string,
+  signal?: AbortSignal,
+): Promise<SspControlRows> {
+  let request = client
+    .rpc("ssp_control_rows", { p_ssp_revision_id: sspRevisionId })
+    .setHeader("Authorization", `Bearer ${context.token}`);
+  if (signal) request = request.abortSignal(signal);
+  const { data, error } = await request;
+  if (error) throw new Error(error.message);
+  const answer = controlRowsSchema.parse(data);
+  return {
+    sspRevisionId: answer.ssp_revision_id,
+    rows: answer.rows.map((row) => ({
+      id: row.id,
+      controlId: row.control_id,
+      code: row.code,
+      title: row.title,
+      implementationId: row.implementation_id,
+      implementationStatus: row.implementation_status,
+      narrative: row.narrative,
+      contributions: row.contributions,
+      requirements: row.requirements,
+      evidence: row.evidence,
+    })),
+    requirements: answer.requirements,
+    evidence: answer.evidence,
+    boundaryDiffers: answer.boundary_differs,
+    gaps: answer.gaps.map((gap) => ({ systemId: gap.system_id, name: gap.name, codes: gap.codes })),
+    baselineTitle: answer.baseline_title,
+    importedDemo: answer.imported_demo,
+  };
+}
+
+/**
+ * Every model the register and a control's preview are read from: a write to one reads them again.
+ * The stored baseline and its selections, the implementations, statements and contributions the
+ * SSP records, the systems and components behind them, the program's requirements and what links
+ * and maps them, the evidence and what links it, and the accepted provider offerings.
+ */
+export const SSP_ASSEMBLY_MODELS = [
+  "ssp_revisions",
+  "profile_resolutions",
+  "profiles",
+  "selected_controls",
+  "implemented_requirements",
+  "implementation_statements",
+  "component_contributions",
+  "systems",
+  "system_components",
+  "inventory_components",
+  "inventory_items",
+  "engineering_requirements",
+  "requirement_revisions",
+  "requirement_implementations",
+  "requirement_control_links",
+  "requirement_allocations",
+  "requirement_evidence",
+  "implementation_evidence",
+  "evidence_versions",
+  "evidence_artifacts",
+  "inheritance_acceptances",
+  "offered_implementations",
+] as const satisfies readonly TableName[];
+
+/** One SSP revision's register. Another revision's never stands in for it while it loads. */
+export function useSspControlRows(
+  sspRevisionId: string | null | undefined,
+): UseQueryResult<SspControlRows, Error> {
+  const workspace = useWorkspace();
+  useStaleOnWrite(workspace.tenantId, SSP_ASSEMBLY_MODELS, [
+    "models",
+    workspace.tenantId,
+    "ssp_control_rows",
+  ]);
+  return useQuery<SspControlRows, Error>({
+    queryKey: ["models", workspace.tenantId, "ssp_control_rows", sspRevisionId ?? null],
+    enabled: !!sspRevisionId,
+    retry: false,
+    queryFn: async ({ signal }) =>
+      readSspControlRows(
+        database(),
+        { tenantId: workspace.tenantId, token: await requireIdentity(workspace) },
+        sspRevisionId!,
+        signal,
+      ),
   });
+}
+
+// ---------------------------------------------------------------------------------------------
+// A control's preview: `ssp_control_detail`.
+// ---------------------------------------------------------------------------------------------
+
+const json = z.custom<Json>(() => true);
+const count = z.number();
+
+const selectionSchema = z.object({
+  id,
+  control_id: id,
+  profile_resolution_id: id,
+  ordinal: count,
+});
+/** A record the preview edits: what the assembly reads of it checked, every other column kept. */
+const implementationSchema = z
+  .object({
+    id,
+    tenant_id: id,
+    ssp_revision_id: id,
+    selected_control_id: id,
+    implementation_status: z.string(),
+    description: text,
+    not_applicable_rationale: text,
+    responsible_party_id: text,
+    revision: count,
+  })
+  .passthrough();
+const statementSchema = z
+  .object({
+    id,
+    tenant_id: id,
+    ssp_revision_id: id,
+    implemented_requirement_id: id,
+    control_part_id: id,
+    description: z.string(),
+    revision: count,
+  })
+  .passthrough();
+const contributionSchema = z
+  .object({
+    id,
+    tenant_id: id,
+    ssp_revision_id: id,
+    implemented_requirement_id: id,
+    implementation_statement_id: text,
+    system_component_id: id,
+    description: z.string(),
+    implementation_status: z.string(),
+    responsible_party_id: text,
+    library_implementation_id: text,
+    revision: count,
+  })
+  .passthrough();
+
+const detailSchema = z.object({
+  ssp_revision_id: id,
+  selection: selectionSchema,
+  control: z.object({ id, code: z.string(), title: z.string() }).nullable(),
+  implementation: implementationSchema.nullable(),
+  statements: z.array(statementSchema),
+  contributions: z.array(contributionSchema),
+  offered_contributions: z.array(
+    z.object({
+      id,
+      implemented_requirement_id: id,
+      system_component_id: id,
+      description: z.string(),
+    }),
+  ),
+  components: z.array(z.object({ id, name: z.string() })),
+  component_elements: z.array(z.object({ id, system_element_id: text, link_source: z.string() })),
+  parts: z.array(
+    z.object({
+      id,
+      control_id: text,
+      parent_part_id: text,
+      name: z.string(),
+      prose: text,
+      props: json,
+      source_id: text,
+      title: text,
+    }),
+  ),
+  requirement_links: z.array(
+    z.object({
+      id,
+      requirement_revision_id: id,
+      implemented_requirement_id: text,
+      component_contribution_id: text,
+      rationale: text,
+    }),
+  ),
+  control_mappings: z.array(
+    z.object({
+      id,
+      requirement_revision_id: id,
+      control_id: id,
+      control_part_id: text,
+      system_id: text,
+      selected_control_id: text,
+      rationale: text,
+    }),
+  ),
+  allocations: z.array(
+    z.object({ requirement_revision_id: id, system_id: text, composition_node_id: text }),
+  ),
+  revisions: z.array(
+    z.object({
+      id,
+      engineering_requirement_id: id,
+      title: z.string(),
+      statement: z.string(),
+      acceptance_criteria: z.string(),
+      state: z.string(),
+    }),
+  ),
+  requirements: z.array(z.object({ id, code: z.string(), program_id: id })),
+  implementation_evidence: z.array(
+    z.object({
+      id,
+      implemented_requirement_id: text,
+      implementation_statement_id: text,
+      component_contribution_id: text,
+      evidence_version_id: id,
+      claim: text,
+      applicability_rationale: text,
+    }),
+  ),
+  requirement_evidence: z.array(
+    z.object({
+      id,
+      requirement_revision_id: id,
+      evidence_version_id: id,
+      claim: text,
+      applicability_rationale: text,
+    }),
+  ),
+  versions: z.array(
+    z.object({
+      id,
+      artifact_id: id,
+      version_number: count,
+      state: z.string(),
+      collected_at: text,
+      published_at: text,
+      expires_at: text,
+      external_uri: text,
+      media_type: text,
+      byte_size: count.nullable(),
+      sha256: text,
+      provenance: text,
+      storage_object_name: text,
+      storage_object_id: text,
+    }),
+  ),
+  artifacts: z.array(
+    z.object({
+      id,
+      title: z.string(),
+      description: text,
+      artifact_kind: z.string(),
+      owner_party_id: text,
+    }),
+  ),
+  acceptances: z.array(
+    z.object({
+      id,
+      implemented_requirement_id: id,
+      offered_implementation_id: id,
+      accepted_at: z.string(),
+      rationale: z.string(),
+      consumer_responsibility: text,
+    }),
+  ),
+  offerings: z.array(z.object({ id, name: z.string(), component_contribution_id: id })),
+  source_selections: z.array(selectionSchema),
+  effective_baselines: z.array(z.object({ system_id: id, profile_resolution_id: text })),
+});
+
+/** What stands behind one control of an SSP revision: the records its preview is assembled from. */
+export type SspControlDetail = Omit<
+  SspAssemblyInput,
+  "plan" | "systems" | "selections" | "controls"
+> & {
+  sspRevisionId: string;
+  selection: Selection;
+  control: Control | null;
+  /** The selections the control's mappings recorded, which may be another baseline's. */
+  sourceSelections: Selection[];
+};
+
+/** One control's records, as the server reads them; a control the SSP does not select is refused. */
+export async function readSspControlDetail(
+  client: Client,
+  context: ReadContext,
+  sspRevisionId: string,
+  selectionId: string,
+  signal?: AbortSignal,
+): Promise<SspControlDetail> {
+  let request = client
+    .rpc("ssp_control_detail", {
+      p_ssp_revision_id: sspRevisionId,
+      p_selected_control_id: selectionId,
+    })
+    .setHeader("Authorization", `Bearer ${context.token}`);
+  if (signal) request = request.abortSignal(signal);
+  const { data, error } = await request;
+  if (error) throw new Error(error.message);
+  const answer = detailSchema.parse(data);
+  return {
+    sspRevisionId: answer.ssp_revision_id,
+    selection: answer.selection,
+    control: answer.control,
+    // The records the preview edits keep every column the server sent.
+    implementations: answer.implementation ? [answer.implementation as SspImplementation] : [],
+    statements: answer.statements as SspStatement[],
+    contributions: answer.contributions as SspContribution[],
+    offeredContributions: answer.offered_contributions,
+    components: answer.components,
+    componentElements: answer.component_elements,
+    parts: answer.parts,
+    requirements: answer.requirements,
+    contents: answer.revisions,
+    requirementLinks: answer.requirement_links,
+    controlMappings: answer.control_mappings,
+    allocations: answer.allocations,
+    requirementEvidence: answer.requirement_evidence,
+    implementationEvidence: answer.implementation_evidence,
+    versions: answer.versions,
+    artifacts: answer.artifacts,
+    acceptances: answer.acceptances,
+    offerings: answer.offerings,
+    sourceSelections: answer.source_selections,
+    effectiveBaselines: answer.effective_baselines,
+  };
+}
+
+/** One control's records, read as its preview opens; another control's never stand in for them. */
+export function useSspControlDetail(
+  sspRevisionId: string | null | undefined,
+  selectionId: string | null | undefined,
+): UseQueryResult<SspControlDetail, Error> {
+  const workspace = useWorkspace();
+  useStaleOnWrite(workspace.tenantId, SSP_ASSEMBLY_MODELS, [
+    "models",
+    workspace.tenantId,
+    "ssp_control_detail",
+  ]);
+  return useQuery<SspControlDetail, Error>({
+    queryKey: [
+      "models",
+      workspace.tenantId,
+      "ssp_control_detail",
+      sspRevisionId ?? null,
+      selectionId ?? null,
+    ],
+    enabled: !!sspRevisionId && !!selectionId,
+    retry: false,
+    queryFn: async ({ signal }) =>
+      readSspControlDetail(
+        database(),
+        { tenantId: workspace.tenantId, token: await requireIdentity(workspace) },
+        sspRevisionId!,
+        selectionId!,
+        signal,
+      ),
+  });
+}
+
+/**
+ * One control of the SSP, assembled from its records and the program's systems as the register's
+ * rules read it: its implementation, statements and contributions, the requirements and evidence
+ * behind it with what each says, its accepted provider offerings and its recorded gaps.
+ */
+export function assembleSspControl(
+  detail: SspControlDetail,
+  { plan, systems }: { plan: SspPlan; systems: readonly SspSystem[] },
+): SspControlAssembly | undefined {
+  const { selection, control, sourceSelections } = detail;
+  return assembleSsp({
+    ...detail,
+    plan,
+    systems: [...systems],
+    selections: [selection, ...sourceSelections.filter((row) => row.id !== selection.id)],
+    controls: control ? [control] : [],
+  }).find((row) => row.id === selection.id);
 }

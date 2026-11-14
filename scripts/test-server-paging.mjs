@@ -2,7 +2,7 @@
 /**
  * Server-paged registers: the catalog's CCIs and Controls, a program's Requirements tab, the risk
  * register, operational issues, observations, assessment findings, system assets, unrolled
- * findings, evidence and My work read one page at a time
+ * findings, evidence, My work and the Assessment campaigns page's Objectives read one page at a time
  * from the server, which pages, sorts (a derived column too), filters, searches and counts the whole
  * result; the question lives in the address, where the Portfolio's tiles ask it; saved views count
  * the whole register; and a preview counts the whole result and steps across a page edge. Every
@@ -371,7 +371,39 @@ try {
     version_number: 1,
     title: "Paging plan",
   });
+  // Thirty objectives in the paging plan, aimed at nothing, so they read by title (Paging objective
+  // 2 before Paging objective 10); and a second campaign, whose title reads first, with three.
+  const pagingObjectives = await insert(
+    "assessment_objectives",
+    Array.from({ length: 30 }, (_, index) => ({
+      plan_revision_id: plan.id,
+      title: `Paging objective ${index + 1}`,
+    })),
+  );
   await publish("assessment_plan_revisions", plan);
+  const [otherCampaign] = await insert("assessment_campaigns", {
+    program_id: program.id,
+    title: "Another paging campaign",
+  });
+  const [otherPlan] = await insert("assessment_plan_revisions", {
+    campaign_id: otherCampaign.id,
+    ssp_revision_id: ssp.id,
+    version_number: 1,
+    title: "Another paging plan",
+  });
+  const otherObjectives = await insert(
+    "assessment_objectives",
+    ["Witness the first", "Witness the second", "Witness the third"].map((title) => ({
+      plan_revision_id: otherPlan.id,
+      title,
+    })),
+  );
+  // The register's own order: each campaign's objectives together by its title, then by theirs.
+  const byNumber = new Intl.Collator("en", { numeric: true });
+  const objectiveOrder = [
+    ...[...otherObjectives].sort((a, b) => byNumber.compare(a.title, b.title)),
+    ...[...pagingObjectives].sort((a, b) => byNumber.compare(a.title, b.title)),
+  ];
   const [results] = await insert("assessment_results_revisions", {
     assessment_plan_revision_id: plan.id,
     version_number: 1,
@@ -1434,6 +1466,94 @@ try {
   await expect(eye(evidenceTable, byReview[PAGE].id)).toHaveAttribute("aria-pressed", "true");
   await escapePreview();
   console.log("PASS Evidence sorts by its latest review on the server, and its preview pages");
+
+  // ——— Assessment campaigns' Objectives: every campaign's, a page at a time ——————————————————
+  const objectiveLabel = "Objectives";
+  const objectiveTable = page.getByRole("table", { name: objectiveLabel, exact: true });
+  reads.length = 0;
+  counts.length = 0;
+  await fresh("/campaigns?assessmentTab=Objectives");
+  await expect(rows(objectiveTable)).toHaveCount(PAGE);
+  await expect(range(objectiveLabel)).toContainText(`1–${PAGE} of ${objectiveOrder.length}`);
+  expectPagedReads("assessment_objective_rows");
+  expectNoBaseReads(
+    ["assessment_objectives"],
+    "The register reads its view, not the objectives behind it",
+  );
+  // The tab counts the whole register on the server, with no rows.
+  await expect(page.getByRole("tab", { name: /^Objectives/ })).toContainText(
+    String(objectiveOrder.length),
+  );
+  assert.ok(
+    counts.some((url) => url.pathname.endsWith("/rest/v1/assessment_objective_rows")),
+    "The tab's count is the server's",
+  );
+  // Each campaign's together by its title, and each plan's by title: Paging objective 2 before 10.
+  assert.deepEqual(
+    await rowIds(objectiveTable),
+    objectiveOrder.slice(0, PAGE).map((row) => row.id),
+  );
+  console.log(
+    `PASS Objectives read one page of ${PAGE} with the whole count (${objectiveOrder.length}), in the campaigns' order`,
+  );
+
+  // The preview counts the whole result and steps across the page edge both ways.
+  await eye(objectiveTable, objectiveOrder[PAGE - 1].id).click();
+  await expect(status()).toHaveText(
+    `${objectiveOrder[PAGE - 1].title}, ${PAGE} of ${objectiveOrder.length} records`,
+  );
+  await step("Next record").click();
+  await expect(status()).toHaveText(
+    `${objectiveOrder[PAGE].title}, ${PAGE + 1} of ${objectiveOrder.length} records`,
+  );
+  await expect.poll(() => question().get("assessment-objectives.page")).toBe("2");
+  await expect(eye(objectiveTable, objectiveOrder[PAGE].id)).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  await expect(step("Next record")).toBeFocused();
+  await step("Previous record").click();
+  await expect(status()).toHaveText(
+    `${objectiveOrder[PAGE - 1].title}, ${PAGE} of ${objectiveOrder.length} records`,
+  );
+  await escapePreview();
+  console.log("PASS Objective preview counts the whole register and steps across the page edge");
+
+  // A sort is the server's: Campaign descending puts the paging campaign's objectives first.
+  await fresh("/campaigns?assessmentTab=Objectives&assessment-objectives.sort=-campaign");
+  await expect(rows(objectiveTable)).toHaveCount(PAGE);
+  await expect
+    .poll(async () => (await rowIds(objectiveTable))[0])
+    .toBe(pagingObjectives.map((row) => row.id).sort()[0]);
+  assert.ok(
+    (await rowIds(objectiveTable)).every((id) => pagingObjectives.some((row) => row.id === id)),
+    "The first page holds the paging campaign's objectives",
+  );
+  console.log("PASS Objectives sort by campaign on the server across every page");
+
+  // A filter is the server's: the other campaign's three.
+  await fresh("/campaigns?assessmentTab=Objectives");
+  await expect(rows(objectiveTable)).toHaveCount(PAGE);
+  await openFilter("Campaign");
+  await page.getByRole("checkbox", { name: "Another paging campaign", exact: true }).click();
+  await page.keyboard.press("Escape");
+  await expect(rows(objectiveTable)).toHaveCount(otherObjectives.length);
+  assert.deepEqual(
+    (await rowIds(objectiveTable)).sort(),
+    otherObjectives.map((row) => row.id).sort(),
+  );
+  await expect
+    .poll(() => question().get("assessment-objectives.filters"))
+    .toContain("Another paging campaign");
+  // Export writes the whole result the question leaves.
+  const objectiveDownload = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Collection actions", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Export objectives", exact: true }).click();
+  const exportedObjectives = JSON.parse(
+    await readFile(await (await objectiveDownload).path(), "utf8"),
+  );
+  assert.equal(exportedObjectives.length, otherObjectives.length, "The export holds the result");
+  console.log("PASS Objectives filter by campaign on the server, and Export writes the result");
 
   // ——— My work: the reader's tasks, everyone's, nobody's and Avery's, from the server ————————
   const taskLabel = "Tasks";

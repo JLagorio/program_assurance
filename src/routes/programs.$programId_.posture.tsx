@@ -9,7 +9,9 @@ export const Route = createFileRoute("/programs/$programId_/posture")({
   // shared link keep them. An address that names no columns shows the control families, and one
   // that names the techniques shows the program's chosen ones unless it asks for all. Every key is
   // answered, also with nothing: the router lays this answer over the address as it was typed, so
-  // a value left unanswered would reach the screen as written.
+  // a value left unanswered would reach the screen as written. The grid counted requirements
+  // before it counted objectives, so an address saved then (`reading=requirements`) opens the
+  // reading that took its place.
   validateSearch: (
     search: Record<string, unknown>,
   ): {
@@ -17,7 +19,8 @@ export const Route = createFileRoute("/programs/$programId_/posture")({
     columns?: "techniques" | undefined;
     techniques?: "all" | undefined;
   } => {
-    const reading = POSTURE_READINGS.find((name) => name === search["reading"]);
+    const asked = search["reading"] === "requirements" ? "objectives" : search["reading"];
+    const reading = POSTURE_READINGS.find((name) => name === asked);
     const byTechnique = search["columns"] === "techniques";
     return {
       reading: reading && reading !== "issues" ? reading : undefined,

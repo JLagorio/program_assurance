@@ -25,7 +25,8 @@ import { useStaleOnWrite } from "./server-table";
  * covered on every one by a requirement that cites evidence (`program_control_status`).
  * `program_control_objectives` answers one control's objectives and systems in one request, as the
  * reader, for its Map a requirement and its next step; `control_objective_counts` counts one
- * control's objectives in several programs at once, for the catalog control's table; what a set of
+ * control's objectives in several programs at once (mapped, with evidence and judged by the
+ * program's assessors, as the status counts them), for the catalog control's table; what a set of
  * mappings covers, which the Map dialogs ask of the mappings a requirement holds, is `coverageOf`
  * in requirement-control-mappings.
  */
@@ -224,7 +225,10 @@ export {
 
 /* ——— One control in several programs ——————————————————————————————————————————————————————— */
 
-/** How many of a control's objectives a program counts, and how many its requirements cover. */
+/**
+ * How many of a control's objectives a program counts, how many its requirements cover and how
+ * many its assessors have judged.
+ */
 export type ProgramObjectiveCount = {
   programId: string;
   /** The objectives the control counts; none for a control the catalog gives none. */
@@ -233,6 +237,11 @@ export type ProgramObjectiveCount = {
   mapped: number;
   /** Those covered by one that cites evidence. */
   evidenced: number;
+  /**
+   * Those an assessor of the program has judged in published results, as its control status
+   * counts them (`objectivesAssessed`): the program decides the control once every one is.
+   */
+  assessed: number;
 };
 
 /** One control's objectives counted in each program asked for, by program. */
@@ -249,6 +258,7 @@ const countsSchema = z.object({
       objectives: z.number(),
       objectives_mapped: z.number(),
       objectives_evidenced: z.number(),
+      objectives_assessed: z.number(),
     }),
   ),
 });
@@ -283,11 +293,22 @@ export async function readControlObjectiveCounts(
           objectives: program.objectives,
           mapped: program.objectives_mapped,
           evidenced: program.objectives_evidenced,
+          assessed: program.objectives_assessed,
         },
       ]),
     ),
   };
 }
+
+/**
+ * What the counts are read from: the coverage's models, and the findings published on the control,
+ * which decide how many of its objectives are judged.
+ */
+const COUNT_MODELS = [
+  ...OBJECTIVE_MODELS,
+  "assessment_findings",
+  "assessment_results_revisions",
+] as const satisfies readonly TableName[];
 
 /**
  * One control's objectives counted in each program asked for, once the control and the programs
@@ -301,7 +322,7 @@ export function useControlObjectiveCounts(
 ): UseQueryResult<ControlObjectiveCounts, Error> {
   const workspace = useWorkspace();
   const ids = useMemo(() => [...new Set(programIds)].sort(), [programIds]);
-  useStaleOnWrite(workspace.tenantId, OBJECTIVE_MODELS, [
+  useStaleOnWrite(workspace.tenantId, COUNT_MODELS, [
     "models",
     workspace.tenantId,
     "control_objective_counts",

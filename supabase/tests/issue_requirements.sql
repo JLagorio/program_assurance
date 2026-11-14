@@ -23,7 +23,8 @@ grant execute on function pg_temp.ids(jsonb) to authenticated;
 
 -- ---------------------------------------------------------------------------------------------
 -- The reference data the test reads: a catalog control in a family that Table E-1 of NIST SP
--- 800-160 Vol. 2 prints under a resiliency technique, and that technique.
+-- 800-160 Vol. 2 prints under a resiliency technique and a reference baseline selects, that
+-- technique, and the smallest such baseline.
 -- ---------------------------------------------------------------------------------------------
 do $$
 declare v_control uuid; v_technique text;
@@ -35,6 +36,11 @@ begin
     and t.kind = 'technique' and t.code = coalesce(s.technique_code, case when s.item_kind = 'technique' then s.item_code end)
   where s.tenant_id is null and s.framework_code = 'nist-sp800-160v2r1-cref' and s.relation = 'supports'
     and c.group_id is not null
+    -- A control a reference baseline selects, so the program's system can hold it.
+    and exists (select 1 from public.selected_controls sc
+      join public.profile_resolutions r on r.id = sc.profile_resolution_id
+      where sc.control_id = s.control_id and r.tenant_id is null and r.state = 'published'
+        and r.base_profile_resolution_id is null)
   order by s.control_order, s.control_id, t.code
   limit 1;
   if v_control is null then
@@ -43,6 +49,16 @@ begin
   perform set_config('test.control', v_control::text, true);
   perform set_config('test.family', (select group_id::text from public.controls where id = v_control), true);
   perform set_config('test.technique', v_technique, true);
+  -- The smallest published reference baseline that selects the control, which the system adopts.
+  perform set_config('test.baseline', (
+    select r.id::text from public.profile_resolutions r
+    where r.tenant_id is null and r.state = 'published' and r.base_profile_resolution_id is null
+      and exists (select 1 from public.selected_controls sc where sc.profile_resolution_id = r.id and sc.control_id = v_control)
+    order by (select count(*) from public.selected_controls sc where sc.profile_resolution_id = r.id), r.id
+    limit 1), true);
+  if current_setting('test.baseline') = '' then
+    raise exception 'No reference baseline selects the control. Run npm run seed:reference first.';
+  end if;
 end $$;
 
 -- ---------------------------------------------------------------------------------------------
@@ -61,7 +77,9 @@ insert into public.tenant_memberships(tenant_id, user_id, role) values
   (current_setting('test.tenant')::uuid, 'c8000000-0000-0000-0000-000000000003', 'viewer');
 
 -- ---------------------------------------------------------------------------------------------
--- The program: a system that holds one element, and three requirements that meet the control.
+-- The program: a system that holds one element, on a reference baseline that selects the control,
+-- and three requirements that meet the control, their mappings naming no system (so each stands on
+-- the elements its requirement is allocated to).
 --   REQ-NAMED  allocated to the element, without evidence
 --   REQ-BOTH   allocated to the element, with the evidence report
 --   REQ-LOOSE  allocated to no element
@@ -79,6 +97,12 @@ insert into public.systems(id, tenant_id, program_id, code, name, system_type) v
   ('c8200000-0000-0000-0000-000000000001', current_setting('test.tenant')::uuid, 'c8100000-0000-0000-0000-000000000001', 'SYS-ROOT', 'Mission system', 'information_system');
 insert into public.systems(id, tenant_id, program_id, code, name, system_type, parent_system_id, is_authorization_boundary) values
   ('c8200000-0000-0000-0000-00000000000a', current_setting('test.tenant')::uuid, 'c8100000-0000-0000-0000-000000000001', 'SYS-A', 'Flight computer', 'software', 'c8200000-0000-0000-0000-000000000001', false);
+-- The system adopts the baseline as the system baseline dialog would; a guard keeps the column to
+-- that command, so the test sets it as the database's owner.
+reset role;
+update public.systems set adopted_profile_resolution_id = current_setting('test.baseline')::uuid, revision = revision + 1
+  where id = 'c8200000-0000-0000-0000-000000000001';
+set local role authenticated;
 insert into public.engineering_requirements(id, tenant_id, program_id, code) values
   ('c8300000-0000-0000-0000-000000000001', current_setting('test.tenant')::uuid, 'c8100000-0000-0000-0000-000000000001', 'REQ-NAMED'),
   ('c8300000-0000-0000-0000-000000000002', current_setting('test.tenant')::uuid, 'c8100000-0000-0000-0000-000000000001', 'REQ-BOTH'),
@@ -243,7 +267,11 @@ end $$;
 -- The Posture places an issue where the requirements it names stand, each record once.
 -- ---------------------------------------------------------------------------------------------
 do $$
-declare answer jsonb; cell jsonb; v_tenant uuid := current_setting('test.tenant')::uuid;
+declare
+  answer jsonb; cell jsonb; v_tenant uuid := current_setting('test.tenant')::uuid;
+  -- The objectives the control counts, as its control status counts them.
+  v_objectives integer := jsonb_array_length(public.program_control_objectives(
+    'c8100000-0000-0000-0000-000000000001', current_setting('test.control')::uuid)->'objectives');
 begin
   answer := public.program_posture(v_tenant, 'c8100000-0000-0000-0000-000000000001');
   -- Three open issues: the one on both requirements once, the one naming a requirement no element
@@ -256,7 +284,9 @@ begin
   for cell in select c from jsonb_array_elements(answer->'cells') c
     where c->>'family_id' = current_setting('test.family')
       and c->>'element_id' in ('c8200000-0000-0000-0000-000000000001', 'c8200000-0000-0000-0000-00000000000a') loop
-    if (cell->>'requirements')::integer <> 2 or (cell->>'issues')::integer <> 2 or (cell->>'issue_severity')::integer <> 3
+    -- REQ-BOTH maps the whole control and cites the report: every objective has evidence there.
+    if v_objectives < 1 or (cell->>'objectives')::integer <> v_objectives or (cell->>'evidenced')::integer <> v_objectives
+      or (cell->>'issues')::integer <> 2 or (cell->>'issue_severity')::integer <> 3
       or (cell->>'risks')::integer <> 1 or (cell->>'risk_severity')::integer <> 3 then
       raise exception 'A cell does not count each issue and risk once: %', cell;
     end if;
@@ -270,13 +300,14 @@ begin
       where f->>'id' = current_setting('test.family') and ((f->>'issues')::integer <> 2 or (f->>'risks')::integer <> 1)) then
     raise exception 'A line does not count each issue and risk once: % %', answer->'elements', answer->'families';
   end if;
-  -- The cell's records: the issues worst first, each once, and the risk.
+  -- The cell's records: the issues worst first, each once, and the risk. REQ-NAMED cites no
+  -- evidence, and REQ-BOTH's covers every objective it covers, so nothing is left to evidence.
   answer := public.program_posture_cell(v_tenant, 'c8100000-0000-0000-0000-000000000001',
     'c8200000-0000-0000-0000-000000000001', current_setting('test.family')::uuid);
   if (select jsonb_agg(i->>'id') from jsonb_array_elements(answer->'issues') i)
       <> '["c8600000-0000-0000-0000-000000000001", "c8600000-0000-0000-0000-000000000004"]'::jsonb
     or pg_temp.ids(answer->'risks') <> array['c8800000-0000-0000-0000-000000000001']::uuid[]
-    or pg_temp.ids(answer->'unevidenced') <> array['c8300000-0000-0000-0000-000000000001']::uuid[] then
+    or answer->'unevidenced' <> '[]'::jsonb or (answer->>'unevidenced_count')::integer <> 0 then
     raise exception 'A cell does not list the issues that name its requirements: %', answer;
   end if;
   -- By resiliency technique: the same issues under the technique the control supports.

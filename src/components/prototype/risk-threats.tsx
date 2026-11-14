@@ -367,16 +367,30 @@ type ControlRow = {
   baseline: Standing | null;
   requirements: number | null;
   evidenced: number | null;
-  /** The assessment objectives the control counts, and those the program's requirements cover. */
+  /**
+   * The assessment objectives the control counts, those the program's requirements cover, cover
+   * with evidence and its assessors have judged, as its control status counts them.
+   */
   objectives: number | null;
   objectivesMapped: number | null;
+  objectivesEvidenced: number | null;
+  objectivesAssessed: number | null;
 };
+
+/** A count of a control's objectives in a cell: "3 of 10", Absent where no standing can be said. */
+const objectiveCell = (count: number | null, objectives: number | null) =>
+  objectives === null || count === null ? (
+    <Absent />
+  ) : (
+    <ObjectiveCount count={count} objectives={objectives} />
+  );
 
 /**
  * The countering controls' columns. A control's name opens the program's control record. The
  * program's standing stays in a narrow row longest (the baseline beside the name on a phone, then
- * how many of its objectives the program's requirements cover, "3 of 10"); the Baseline column
- * sorts by how much of the control the program holds, which is the order the section opens in.
+ * how many of its objectives the program's requirements cover, cover with evidence and its
+ * assessors have judged, "3 of 10"); the Baseline column sorts by how much of the control the
+ * program holds, objective by objective, which is the order the section opens in.
  */
 function controlColumns(
   programId: string | null,
@@ -401,7 +415,7 @@ function controlColumns(
     }),
     c.list("approaches", {
       header: "Approaches",
-      priority: 5,
+      priority: 7,
       searchable: true,
       items: (row) =>
         row.approaches.map((approach) => ({ key: approach.code, label: approach.title })),
@@ -410,7 +424,7 @@ function controlColumns(
     c.list("effects", {
       header: "Effects",
       minWidth: 140,
-      priority: 6,
+      priority: 8,
       searchable: true,
       items: (row) => titleItems(row.effects),
     }),
@@ -427,27 +441,35 @@ function controlColumns(
           <Absent label="No control baseline recorded" />
         ),
     }),
-    // How much of the control the program's requirements cover, objective by objective, as its
-    // control status counts them; no standing reads as the requirements' does.
+    // How much of the control the program's requirements cover, cover with evidence and its
+    // assessors have judged, objective by objective, as its control status counts them; no
+    // standing reads as the requirements' does.
     c.number("objectivesMapped", {
       header: objectiveWords.mapped,
       width: 170,
       priority: 2,
-      cell: (row) =>
-        row.objectives === null || row.objectivesMapped === null ? (
-          <Absent />
-        ) : (
-          <ObjectiveCount count={row.objectivesMapped} objectives={row.objectives} />
-        ),
+      cell: (row) => objectiveCell(row.objectivesMapped, row.objectives),
     }),
-    c.number("requirements", { header: "Requirements", width: 130, priority: 3 }),
-    c.number("evidenced", { header: "With evidence", width: 130, priority: 4 }),
+    c.number("objectivesEvidenced", {
+      header: objectiveWords.evidenced,
+      width: 200,
+      priority: 3,
+      cell: (row) => objectiveCell(row.objectivesEvidenced, row.objectives),
+    }),
+    c.number("objectivesAssessed", {
+      header: objectiveWords.assessed,
+      width: 180,
+      priority: 4,
+      cell: (row) => objectiveCell(row.objectivesAssessed, row.objectives),
+    }),
+    c.number("requirements", { header: "Requirements", width: 130, priority: 5 }),
+    c.number("evidenced", { header: "With evidence", width: 130, priority: 6 }),
     // Which technique a control counters is worth a column once the risk names more than one.
     ...(several
       ? [
           c.list("techniques", {
             header: "Techniques",
-            priority: 7,
+            priority: 9,
             searchable: true,
             items: (row) =>
               row.techniques.map((code) => ({
@@ -520,6 +542,8 @@ export function RiskThreats({
       evidenced: control.evidenced,
       objectives: control.objectives,
       objectivesMapped: control.objectivesMapped,
+      objectivesEvidenced: control.objectivesEvidenced,
+      objectivesAssessed: control.objectivesAssessed,
     }));
   }, [data?.controls]);
 

@@ -4,6 +4,7 @@ import {
   controlNextStep,
   isInPlaceStep,
   isReaderFix,
+  judgedInPart,
   mappingStep,
   nextStepLabel,
   stepNeedsCoverage,
@@ -428,6 +429,65 @@ describe("traceGapFixes", () => {
       expect(fixes).toEqual([{ stage: "finding", kind: "open_campaign", campaign: fy27 }]);
       expect(nextStepLabel(fixes[0]!)).toBe("Open assessment campaign");
       expect(isReaderFix(fixes[0]!)).toBe(false);
+    });
+
+    describe("a control its assessors have judged in part", () => {
+      // Two published findings on three of AC-2's 26 objectives: they decide nothing yet.
+      const findings = [40, 41].map((n) => ({
+        id: id(n),
+        title: `AC-02a.[0${n - 39}] determined`,
+        determination: "satisfied",
+        determined_at: "2026-11-14T09:00:00Z",
+        results_state: "published",
+        program_id: PROGRAM,
+      }));
+      const partly = { status: "not_assessed" as const, objectives: 26, objectivesAssessed: 3 };
+
+      it("carries the step its Details carry beside its findings", () => {
+        for (const [plans, fix] of [
+          // The campaign whose plan holds what is left to judge.
+          [
+            { planned: fy27, drafts: 1 },
+            { kind: "open_campaign", campaign: fy27 },
+          ],
+          // A draft plan the rest is added to, or a new plan around it.
+          [{ planned: null, drafts: 2 }, { kind: "assess" }],
+          [{ planned: null, drafts: 0 }, { kind: "plan_assessment" }],
+        ] as const) {
+          const fixes = traceGapFixes(evidenced(findings), PROGRAM, partly, plans);
+          expect(fixes, fix.kind).toEqual([{ stage: "finding", ...fix }]);
+          // The words its Details say: the same step, from the same reads.
+          expect(nextStepLabel(fixes[0]!)).toBe(
+            nextStepLabel(controlNextStep(partly, undefined, plans)!),
+          );
+        }
+      });
+
+      it("waits on what the campaigns hold, and says nothing once the program decides it", () => {
+        expect(traceGapFixes(evidenced(findings), PROGRAM, partly)).toEqual([]);
+        // Every objective judged: the program's assessors decided it, and the stage holds why.
+        for (const status of ["satisfied", "partially_satisfied", "other_than_satisfied"] as const)
+          expect(
+            traceGapFixes(
+              evidenced(findings),
+              PROGRAM,
+              { status, objectives: 26, objectivesAssessed: 26 },
+              { planned: null, drafts: 1 },
+            ),
+            status,
+          ).toEqual([]);
+      });
+
+      it("is some objectives judged and not all", () => {
+        expect(judgedInPart(partly)).toBe(true);
+        expect(judgedInPart({ ...partly, objectivesAssessed: 0 })).toBe(false);
+        expect(judgedInPart({ ...partly, objectivesAssessed: 26 })).toBe(false);
+        // A control that counts no objective is judged whole or not at all.
+        expect(judgedInPart({ status: "not_assessed", objectives: 0, objectivesAssessed: 0 })).toBe(
+          false,
+        );
+        expect(judgedInPart({ status: "not_assessed" })).toBe(false);
+      });
     });
 
     it("offers nothing where a finding stands, or the status says it is not waiting", () => {
