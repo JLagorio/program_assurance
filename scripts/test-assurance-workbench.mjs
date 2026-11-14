@@ -755,6 +755,9 @@ async function verifyHeaderContextActions() {
   await row.click({ button: "right" });
   await page.getByRole("menuitem", { name: "Hide selected rows", exact: true }).click();
   await row.waitFor({ state: "hidden" });
+  // The row's menu holds Unhide all rows too: open the Columns menu once it has gone, or a menu
+  // still easing out on a busy machine offers the same item twice.
+  await page.waitForFunction(() => !document.querySelector('[role="menu"]'));
   await page.getByRole("button", { name: "Columns", exact: true }).click();
   await page.getByRole("menuitem", { name: "Unhide all rows", exact: true }).click();
   await selectCell("B12");

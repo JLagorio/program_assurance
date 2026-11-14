@@ -5,8 +5,10 @@
 -- objectives it counts (a control that counts none as its statement). What each writes and skips,
 -- what a plan holds of a control (plan_control_holdings), what a request sent again answers, what
 -- they refuse and from whom, that their receipts stay private, and that a finding on an objective
--- they wrote judges the control in its status and its trace. The checks of what they write need the
--- pinned references (a catalog and a reference baseline).
+-- they wrote judges that objective: the control's status takes the program's determination once
+-- every objective it counts is judged, a plan says whether it holds what is left to judge, and the
+-- trace joins the finding and the control. The checks of what they write need the pinned references
+-- (a catalog and a reference baseline).
 begin;
 create function pg_temp.expect_error(statement text, expected_state text) returns void language plpgsql as $$
 begin
@@ -273,7 +275,7 @@ begin
 
   -- Before anything is added: the control counts its objectives and the plan holds none of them.
   if (public.plan_control_holdings(v_tenant, v_a, array[v_plan])->>'objectives')::integer <> cardinality(v_counted_a)
-    or pg_temp.holding(v_a, v_plan) <> jsonb_build_object('plan_revision_id', v_plan, 'objectives_held', 0, 'holds', false) then
+    or pg_temp.holding(v_a, v_plan) <> jsonb_build_object('plan_revision_id', v_plan, 'objectives_held', 0, 'holds', false, 'holds_unjudged', false) then
     raise exception 'An empty plan answered %', public.plan_control_holdings(v_tenant, v_a, array[v_plan]);
   end if;
 
@@ -310,7 +312,7 @@ begin
       and (o.created_by <> 'ca500000-0000-0000-0000-000000000001' or o.description is not null or o.requirement_revision_id is not null)) then
     raise exception 'An objective was not stamped with its author, or says more than its objective';
   end if;
-  if pg_temp.holding(v_a, v_plan) <> jsonb_build_object('plan_revision_id', v_plan, 'objectives_held', cardinality(v_counted_a), 'holds', true) then
+  if pg_temp.holding(v_a, v_plan) <> jsonb_build_object('plan_revision_id', v_plan, 'objectives_held', cardinality(v_counted_a), 'holds', true, 'holds_unjudged', true) then
     raise exception 'The plan does not hold the control it took whole: %', pg_temp.holding(v_a, v_plan);
   end if;
 
@@ -334,7 +336,7 @@ begin
     (v_tenant, v_plan, 'An assessor''s own objective over a heading', current_setting('test.heading')::uuid),
     (v_tenant, v_plan, 'An assessor''s own objective', v_outside);
   v_held := cardinality(v_under) + 1;
-  if pg_temp.holding(v_c, v_plan) <> jsonb_build_object('plan_revision_id', v_plan, 'objectives_held', v_held, 'holds', false) then
+  if pg_temp.holding(v_c, v_plan) <> jsonb_build_object('plan_revision_id', v_plan, 'objectives_held', v_held, 'holds', false, 'holds_unjudged', false) then
     raise exception 'A plan holding part of a control answered %, not % held', pg_temp.holding(v_c, v_plan), v_held;
   end if;
   -- A new request at the plan's new revision: the control it holds whole is skipped, and the one it
@@ -347,7 +349,7 @@ begin
       <> array(select x from unnest(v_counted_c) with ordinality as u(x, n) where x <> all(v_under || v_outside) order by n) then
     raise exception 'A held control was not skipped and the rest of the other added: %', v_answer;
   end if;
-  if pg_temp.holding(v_c, v_plan) <> jsonb_build_object('plan_revision_id', v_plan, 'objectives_held', cardinality(v_counted_c), 'holds', true)
+  if pg_temp.holding(v_c, v_plan) <> jsonb_build_object('plan_revision_id', v_plan, 'objectives_held', cardinality(v_counted_c), 'holds', true, 'holds_unjudged', true)
     or (select count(*) from public.assessment_objectives o where o.plan_revision_id = v_plan)
       <> cardinality(v_counted_a) + cardinality(v_counted_b) + cardinality(v_counted_c) - cardinality(v_under) + 1 then
     raise exception 'The plan does not hold the rest of the control: %', pg_temp.holding(v_c, v_plan);
@@ -355,7 +357,7 @@ begin
 
   -- A plan that holds a control's statement holds the whole control, whatever objectives it counts.
   if pg_temp.holding(v_a, 'ca530000-0000-0000-0000-000000000004')
-      <> jsonb_build_object('plan_revision_id', 'ca530000-0000-0000-0000-000000000004', 'objectives_held', cardinality(v_counted_a), 'holds', true) then
+      <> jsonb_build_object('plan_revision_id', 'ca530000-0000-0000-0000-000000000004', 'objectives_held', cardinality(v_counted_a), 'holds', true, 'holds_unjudged', true) then
     raise exception 'A plan holding the statement answered %', pg_temp.holding(v_a, 'ca530000-0000-0000-0000-000000000004');
   end if;
   v_answer := public.add_controls_to_assessment_plan(v_tenant, 'ca530000-0000-0000-0000-000000000004', 1,
@@ -413,7 +415,7 @@ begin
   if current_setting('test.ready') <> 'true' or current_setting('test.bare') = '' then return; end if;
   v_bare := current_setting('test.bare')::uuid;
   if (public.plan_control_holdings(v_tenant, v_bare, array[v_plan])->>'objectives')::integer <> 0
-    or pg_temp.holding(v_bare, v_plan) <> jsonb_build_object('plan_revision_id', v_plan, 'objectives_held', 0, 'holds', false) then
+    or pg_temp.holding(v_bare, v_plan) <> jsonb_build_object('plan_revision_id', v_plan, 'objectives_held', 0, 'holds', false, 'holds_unjudged', false) then
     raise exception 'A control with no objective answered %', public.plan_control_holdings(v_tenant, v_bare, array[v_plan]);
   end if;
   v_answer := public.add_controls_to_assessment_plan(v_tenant, v_plan, 1, 'ca540000-0000-0000-0000-000000000017', array[v_bare]);
@@ -424,7 +426,7 @@ begin
     or v_objective.title <> (select k.code || ' ' || k.title from public.controls k where k.id = v_bare) then
     raise exception 'A control with no objective was not written as its statement: % %', v_answer, to_jsonb(v_objective);
   end if;
-  if pg_temp.holding(v_bare, v_plan) <> jsonb_build_object('plan_revision_id', v_plan, 'objectives_held', 0, 'holds', true) then
+  if pg_temp.holding(v_bare, v_plan) <> jsonb_build_object('plan_revision_id', v_plan, 'objectives_held', 0, 'holds', true, 'holds_unjudged', true) then
     raise exception 'The plan does not hold the control by its statement: %', pg_temp.holding(v_bare, v_plan);
   end if;
   -- Asked again in a new request, it is held and takes nothing more.
@@ -507,36 +509,86 @@ begin
 end $$;
 
 -- ---------------------------------------------------------------------------------------------
--- A finding on an objective the plan holds judges the control: its status reads the determination
--- once the results are published, and its trace reaches the finding, which reaches the control.
+-- A finding on an objective the plan holds judges that objective (Not assessed until all): the
+-- control's status takes the program's determination only once every objective it counts is
+-- judged, and until then reads the ladder with no one's determination. A plan says whether it holds
+-- what is left to judge, which the control's step follows to its campaign. The trace reaches the
+-- finding, which reaches the control.
 -- ---------------------------------------------------------------------------------------------
 do $$
 declare
   v_tenant uuid := current_setting('test.tenant')::uuid;
-  v_program uuid; v_a uuid; v_plan uuid; v_part uuid; v_results uuid := gen_random_uuid(); v_set uuid;
+  v_program uuid; v_a uuid; v_plan uuid; v_part uuid; v_counted uuid[]; v_ssp uuid;
+  v_results uuid := gen_random_uuid(); v_rest uuid := gen_random_uuid(); v_set uuid;
+  v_judged_only uuid := 'ca530000-0000-0000-0000-000000000005';
+  v_left_only uuid := 'ca530000-0000-0000-0000-000000000006';
   v_finding uuid := gen_random_uuid(); v_line jsonb;
 begin
   if current_setting('test.ready') <> 'true' then return; end if;
   v_program := current_setting('test.program')::uuid; v_a := current_setting('test.a')::uuid;
-  v_plan := current_setting('test.planned_plan')::uuid;
+  v_plan := current_setting('test.planned_plan')::uuid; v_ssp := current_setting('test.ssp')::uuid;
+  v_counted := pg_temp.counted(v_program, v_a);
   select o.target_control_part_id into v_part
     from public.assessment_objectives o join public.control_parts p on p.id = o.target_control_part_id
     where o.plan_revision_id = v_plan and p.control_id = v_a and p.name = 'assessment-objective'
     order by o.title limit 1;
+  -- Two more plans of an open campaign: one that holds the objective judged below and nothing else,
+  -- and one that holds every other objective of the control.
+  insert into public.assessment_campaigns(id, tenant_id, title, program_id, status) values
+    ('ca520000-0000-0000-0000-000000000005', v_tenant, 'Judged in part rollback campaign', v_program, 'active'),
+    ('ca520000-0000-0000-0000-000000000006', v_tenant, 'The rest rollback campaign', v_program, 'planned');
+  insert into public.assessment_plan_revisions(id, tenant_id, version_number, campaign_id, ssp_revision_id, title) values
+    (v_judged_only, v_tenant, 1, 'ca520000-0000-0000-0000-000000000005', v_ssp, 'The judged objective alone'),
+    (v_left_only, v_tenant, 1, 'ca520000-0000-0000-0000-000000000006', v_ssp, 'Every other objective');
+  insert into public.assessment_objectives(tenant_id, plan_revision_id, title, target_control_part_id)
+    select v_tenant, v_judged_only, 'The judged objective', v_part
+    union all
+    select v_tenant, v_left_only, 'One of the rest', l from unnest(v_counted) l where l <> v_part;
+
   update public.assessment_plan_revisions set state = 'published', published_at = now(), revision = revision + 1 where id = v_plan;
   insert into public.assessment_results_revisions(id, tenant_id, version_number, assessment_plan_revision_id, title)
     values (v_results, v_tenant, 1, v_plan, 'Objective results');
   insert into public.result_sets(tenant_id, assessment_results_revision_id, title) values (v_tenant, v_results, 'Objective set') returning id into v_set;
   insert into public.assessment_findings(id, tenant_id, assessment_results_revision_id, result_set_id, target_control_part_id, title, determination, determined_at)
-    values (v_finding, v_tenant, v_results, v_set, v_part, 'One objective judged', 'other_than_satisfied', now());
+    values (v_finding, v_tenant, v_results, v_set, v_part, 'One objective judged', 'other_than_satisfied', now() - interval '1 day');
   select c into v_line from jsonb_array_elements(public.program_control_status(v_program)->'controls') c where c->>'id' = v_a::text;
-  if v_line->>'status' = 'other_than_satisfied' then
-    raise exception 'A finding of draft results decided the control: %', v_line;
+  if v_line->>'status' = 'other_than_satisfied' or v_line->'objectives_assessed' <> '0'::jsonb then
+    raise exception 'A finding of draft results judged the control: %', v_line;
   end if;
   update public.assessment_results_revisions set state = 'published', published_at = now(), revision = revision + 1 where id = v_results;
   select c into v_line from jsonb_array_elements(public.program_control_status(v_program)->'controls') c where c->>'id' = v_a::text;
-  if v_line->>'status' <> 'other_than_satisfied' or v_line->>'determined_by' <> 'program' then
-    raise exception 'A finding on one of the control''s objectives did not judge it: %', v_line;
+  if cardinality(v_counted) > 1 then
+    -- One objective of several judged: no determination yet, the ladder stands.
+    if v_line->>'status' in ('satisfied', 'partially_satisfied', 'other_than_satisfied')
+      or v_line->'determined_by' <> 'null'::jsonb or v_line->'objectives_assessed' <> '1'::jsonb then
+      raise exception 'A finding on one of the control''s objectives decided it: %', v_line;
+    end if;
+    -- What is left to judge: the plan holding the whole control holds it, as does the plan holding
+    -- every other objective; the plan holding the judged objective alone does not.
+    if pg_temp.holding(v_a, v_plan)->>'holds_unjudged' <> 'true'
+      or pg_temp.holding(v_a, v_left_only) <> jsonb_build_object('plan_revision_id', v_left_only,
+        'objectives_held', cardinality(v_counted) - 1, 'holds', false, 'holds_unjudged', true)
+      or pg_temp.holding(v_a, v_judged_only) <> jsonb_build_object('plan_revision_id', v_judged_only,
+        'objectives_held', 1, 'holds', false, 'holds_unjudged', false) then
+      raise exception 'The plans do not say whether they hold what is left: %, %, %', pg_temp.holding(v_a, v_plan),
+        pg_temp.holding(v_a, v_left_only), pg_temp.holding(v_a, v_judged_only);
+    end if;
+    -- Every other objective, satisfied: every one is judged, and the worst decides it.
+    insert into public.assessment_results_revisions(id, tenant_id, version_number, assessment_plan_revision_id, title)
+      values (v_rest, v_tenant, 2, v_plan, 'The rest');
+    insert into public.result_sets(tenant_id, assessment_results_revision_id, title) values (v_tenant, v_rest, 'The rest set') returning id into v_set;
+    insert into public.assessment_findings(tenant_id, assessment_results_revision_id, result_set_id, target_control_part_id, title, determination, determined_at)
+      select v_tenant, v_rest, v_set, l, 'One of the rest judged', 'satisfied', now() from unnest(v_counted) l where l <> v_part;
+    update public.assessment_results_revisions set state = 'published', published_at = now(), revision = revision + 1 where id = v_rest;
+    select c into v_line from jsonb_array_elements(public.program_control_status(v_program)->'controls') c where c->>'id' = v_a::text;
+  end if;
+  if v_line->>'status' <> 'other_than_satisfied' or v_line->>'determined_by' <> 'program'
+    or (v_line->>'objectives_assessed')::integer <> cardinality(v_counted) then
+    raise exception 'A control with every objective judged did not take the worst: %', v_line;
+  end if;
+  -- Nothing is left to judge: every plan holds what is left.
+  if pg_temp.holding(v_a, v_judged_only)->>'holds_unjudged' <> 'true' then
+    raise exception 'A plan of a control judged whole says it does not hold what is left: %', pg_temp.holding(v_a, v_judged_only);
   end if;
   if not exists (select 1 from jsonb_array_elements(public.assurance_trace(v_tenant, 'control', v_a, v_program)->'findings') f
       where f->>'id' = v_finding::text)

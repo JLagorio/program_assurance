@@ -713,3 +713,48 @@ begin
     where id = p_batch returning summary into v_summary;
   return jsonb_build_object('changed', true, 'stacked', true, 'read', v_summary->'read', 'stack', v_stack);
 end $$;
+
+-- ---------------------------------------------------------------------------------------------
+-- The mappings a run writes name their systems once every step has written what it writes (the
+-- requirements step's allocations, the detail step's boundaries, the overlay's place on Customer A's
+-- stack and the flow-down's elements): each placed as Map a requirement places one, on each system
+-- its requirement is allocated to whose control baseline selects the control, by
+-- name_requirement_mapping_systems (migration 20261114150844_mapping_systems), each new mapping
+-- listed under its step's batch from the same source and counted in that batch's summary. A mapping
+-- the run wrote that no system can take stops the run: the scenario maps a control only where one of
+-- the requirement's systems selects it, so a fresh seed's mappings all name their systems.
+-- scripts/seed-demo-products.mjs marks what the workspace holds before the first step and names
+-- what the run wrote after the last.
+-- ---------------------------------------------------------------------------------------------
+create temp table products_mappings_before (id uuid primary key) on commit drop;
+
+create function pg_temp.mark_product_mappings(p jsonb) returns void language sql as $$
+  insert into pg_temp.products_mappings_before
+  select l.id from public.requirement_control_links l where l.tenant_id = (p->>'tenantId')::uuid
+  on conflict do nothing;
+$$;
+
+create function pg_temp.name_product_mapping_systems(p jsonb) returns jsonb language plpgsql as $$
+declare
+  t uuid := (p->>'tenantId')::uuid;
+  v_ids uuid[]; v_answer jsonb; v_unplaced text;
+begin
+  select coalesce(array_agg(l.id), '{}') into v_ids from public.requirement_control_links l
+  where l.tenant_id = t and l.system_id is null
+    and not exists (select 1 from pg_temp.products_mappings_before b where b.id = l.id);
+  -- Written by the seed itself, with no session, as its steps write their mappings.
+  perform set_config('request.jwt.claims', '', true);
+  v_answer := public.name_requirement_mapping_systems(t, v_ids);
+  select string_agg(q.code || ' maps ' || k.code, ', ' order by q.code, k.code) into v_unplaced
+  from public.requirement_control_links l
+  join public.requirement_revisions v on v.tenant_id = l.tenant_id and v.id = l.requirement_revision_id
+  join public.engineering_requirements q on q.tenant_id = v.tenant_id and q.id = v.engineering_requirement_id
+  join public.controls k on k.id = l.control_id
+  where l.tenant_id = t and l.id = any(v_ids) and l.system_id is null;
+  if v_unplaced is not null then
+    raise exception 'No system can take these mappings, since no system their requirement is allocated to has a control baseline that selects the control: %. Map a control only where one of the requirement''s systems selects it.', v_unplaced;
+  end if;
+  return jsonb_build_object('changed', (v_answer->>'named')::integer > 0,
+    'named', (v_answer->>'named')::integer, 'added', (v_answer->>'added')::integer,
+    'records', (v_answer->>'added')::integer);
+end $$;

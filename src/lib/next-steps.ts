@@ -42,8 +42,10 @@ export type StepCampaign = { id: string; title: string };
 
 /**
  * What the program's open assessment campaigns hold of a control, as its next step reads it: the
- * campaign whose latest plan holds it already (`planned`), and how many have a draft plan it could
- * be added to (`drafts`). From `useControlAssessment` in control-assessment.
+ * campaign whose latest plan holds what is left to judge of it (`planned`), the whole control while
+ * the program's assessors have judged none of it and the objectives nobody has judged once they
+ * have judged some; and how many have a draft plan that does not hold that yet, which it could be
+ * added to (`drafts`). From `useControlAssessment` in control-assessment.
  */
 export type StepPlans = { planned: StepCampaign | null; drafts: number };
 
@@ -76,13 +78,18 @@ export type ControlNextStep =
    */
   | { kind: "link_evidence"; requirement: StepRequirement | null }
   /**
-   * Evidence is cited, no assessor has published a determination and no open campaign's plan
-   * holds the control: it is added to the draft plan of one of the program's campaigns.
+   * Evidence is cited, the program's assessors have not judged every objective the control counts
+   * (none of them, or some: the program decides a control once all are judged), and no open
+   * campaign's plan holds what is left: it is added to the draft plan of one of the program's
+   * campaigns, which takes what the plan lacks.
    */
   | { kind: "assess" }
   /** The same, where no open campaign has a draft plan: an assessment is planned around it. */
   | { kind: "plan_assessment" }
-  /** The same, where an open campaign's plan holds the control: its assessment is under way there. */
+  /**
+   * The same, where an open campaign's plan holds what is left to judge (the whole control, while
+   * none of it is judged): its assessment is under way there.
+   */
   | { kind: "open_campaign"; campaign: StepCampaign }
   /** An assessor found the control short of satisfied: the findings say why. */
   | { kind: "review_findings" }
@@ -161,9 +168,10 @@ export function mappingStep(
  * that map the control, as its trace reads them; without them a control with no evidence still
  * says its step, and names no requirement. With `coverage`, the step names the requirement that
  * owes evidence: it cites none and covers an objective on a system where nothing evidences it.
- * Evidence no assessor has determined goes into an assessment: the campaign whose plan holds the
- * control already, else the draft plan of one of the program's open campaigns, else a new one
- * planned around it; without `plans` the step is to add it to a campaign. A determination short of
+ * Evidence no assessor has determined, or has determined on only some of the control's objectives,
+ * goes into an assessment of what is left: the campaign whose plan holds it already, else the draft
+ * plan of one of the program's open campaigns, else a new one planned around it; without `plans`
+ * the step is to add it to a campaign. A determination short of
  * satisfied leads to what decided it: the program's assessment findings, or the product assessment
  * the program inherits it from.
  */

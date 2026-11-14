@@ -68,14 +68,14 @@ const listColumns = (programId: string) =>
     }),
     c.status("status", {
       header: "Control status",
-      width: 200,
+      width: 160,
       priority: 1,
       statuses: controlStatuses,
     }),
     // Whose determination the status is; a control nobody has determined is not determined yet.
     c.status("determinedBy", {
       header: "Determined by",
-      width: 190,
+      width: 160,
       priority: 2,
       statuses: controlDeterminers,
       cell: (row) => (
@@ -87,9 +87,11 @@ const listColumns = (programId: string) =>
         />
       ),
     }),
-    c.text("family", { header: "Control family", width: 260, priority: 7 }),
-    // How much of the control its requirements cover, objective by objective: a control mapped in
-    // part stands at No requirement, and one evidenced in part at No evidence.
+    c.text("family", { header: "Control family", width: 260, priority: 8 }),
+    // How much of the control its requirements cover, objective by objective, and its assessors
+    // have judged: a control mapped in part stands at No requirement, one evidenced in part at No
+    // evidence, and one judged in part has no determination until every objective is judged. The
+    // three stand side by side beside the name at a desktop width.
     c.number("objectivesMapped", {
       header: objectiveWords.mapped,
       width: 170,
@@ -102,16 +104,22 @@ const listColumns = (programId: string) =>
       priority: 4,
       cell: (row) => <ObjectiveCount count={row.objectivesEvidenced} objectives={row.objectives} />,
     }),
-    c.number("requirements", { header: "Requirements", width: 130, priority: 5 }),
-    c.number("evidenced", { header: "With evidence", width: 130, priority: 6 }),
+    c.number("objectivesAssessed", {
+      header: objectiveWords.assessed,
+      width: 180,
+      priority: 5,
+      cell: (row) => <ObjectiveCount count={row.objectivesAssessed} objectives={row.objectives} />,
+    }),
+    c.number("requirements", { header: "Requirements", width: 130, priority: 6 }),
+    c.number("evidenced", { header: "With evidence", width: 130, priority: 7 }),
   ]);
 
 /**
  * The baseline's controls as a register: each with where the program stands on it and whose
  * determination that is, the family it belongs to, how many of its assessment objectives the
- * program's requirements map and how many with evidence ("12 of 26"), and the requirements that
- * map it and how many of them cite evidence. Its question lives in the address, so a count that
- * links here opens what it counts.
+ * program's requirements map, how many with evidence and how many its assessors have judged ("12
+ * of 26"), and the requirements that map it and how many of them cite evidence. Its question lives
+ * in the address, so a count that links here opens what it counts.
  */
 function ControlStatusList({
   programId,

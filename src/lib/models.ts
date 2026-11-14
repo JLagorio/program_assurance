@@ -79,6 +79,23 @@ type Schema = Omit<Tables, "composition_nodes" | "composition_nodes_archive_2026
     Insert: never;
     Update: never;
   };
+  /** A campaign's objectives as its Objectives collections read them (`assessment-objectives.ts`). */
+  assessment_objective_rows: {
+    Row: Tables["assessment_objectives"]["Row"] & {
+      /** The campaign the objective's plan belongs to. */
+      campaign_id: string;
+      /** That campaign's program. */
+      program_id: string;
+      /** The kind of control part it is aimed at (`assessment-objective`, `statement`), if any. */
+      target_kind: string | null;
+      /** An assessment objective's label as SP 800-53A prints it (AC-08a.01); none for any other target. */
+      target_label: string | null;
+      /** The target's place in the catalog's reading order, compared character by character; none without a control part. */
+      reading_order: string | null;
+    };
+    Insert: never;
+    Update: never;
+  };
   program_control_requirement_counts: {
     Row: {
       id: string;

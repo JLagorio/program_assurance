@@ -10,6 +10,7 @@ const {
   declareElementChange,
   importCustomerRequirements,
   planDeltaAssessment,
+  readDeltaAssessmentObjectives,
   readProductControlStatus,
   readRequirementSourceCompliance,
   readVariantControlDelta,
@@ -273,12 +274,37 @@ describe("declaring a change", () => {
 });
 
 describe("planning a delta assessment", () => {
+  it("counts the objectives the plan will hold before it is planned", async () => {
+    const fake = client({
+      data: { system_id: "sys", controls: 230, objectives: 641 },
+      error: null,
+    });
+    expect(await readDeltaAssessmentObjectives(fake.client, context, "sys")).toEqual({
+      systemId: "sys",
+      controls: 230,
+      objectives: 641,
+    });
+    expect(fake.calls[0]).toMatchObject({
+      name: "delta_assessment_objectives",
+      args: { p_tenant_id: "tenant", p_system_id: "sys" },
+      headers: { Authorization: "Bearer token" },
+    });
+    const refused = client({ data: null, error: { message: "Workspace access is required" } });
+    await expect(readDeltaAssessmentObjectives(refused.client, context, "sys")).rejects.toThrow(
+      "Workspace access is required",
+    );
+    // An answer that is not a count is not read as one.
+    const malformed = client({ data: { system_id: "sys", controls: 230 }, error: null });
+    await expect(readDeltaAssessmentObjectives(malformed.client, context, "sys")).rejects.toThrow();
+  });
+
   it("sends the request's id, which becomes the campaign's, and passes a refusal on", async () => {
     const planned = {
       campaignId: "req",
       created: true,
       planRevisionId: "plan",
-      objectives: 230,
+      objectives: 641,
+      controls: 230,
       changedHere: 83,
       programOnly: 147,
     };

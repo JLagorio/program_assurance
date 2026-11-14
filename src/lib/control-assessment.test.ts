@@ -10,13 +10,22 @@ const {
   planControlAssessment,
   readPlanControlHoldings,
 } = await import("./control-assessment");
+const { controlNextStep, nextStepLabel } = await import("./next-steps");
 
 const context = { tenantId: uuid(1), token: "token" };
 
-/** What the plans hold of a control that counts 26 objectives: by plan, how many and whether whole. */
-const holdings = (plans: [number, number, boolean][] = [], objectives = 26) => ({
+/**
+ * What the plans hold of a control that counts 26 objectives: by plan, how many, whether whole and
+ * whether it holds what the program has not judged yet (the whole control while none is judged).
+ */
+const holdings = (plans: [number, number, boolean, boolean?][] = [], objectives = 26) => ({
   objectives,
-  plans: new Map(plans.map(([n, held, holds]) => [uuid(n), { held, holds }])),
+  plans: new Map(
+    plans.map(([n, held, holds, holdsUnjudged = holds]) => [
+      uuid(n),
+      { held, holds, holdsUnjudged },
+    ]),
+  ),
 });
 
 const campaign = (n: number, status: string, title: string, startsAt: string | null = null) => ({
@@ -148,10 +157,58 @@ describe("what the program's campaigns hold of a control", () => {
     expect(answer.drafts).toBe(1);
   });
 
+  it("follows a control judged in part to the campaign whose plan holds what is left", () => {
+    // Continuous monitoring's published plan holds the 23 objectives nobody has judged, not the 3
+    // its first results judged; the expanded set's draft holds 3 of the 26, and none of the rest.
+    const answer = controlAssessment(
+      campaigns,
+      [plan(21, 10, 2, "draft"), plan(22, 11, 1, "published"), plan(24, 13, 1, "draft")],
+      holdings([
+        [22, 23, false, true],
+        [24, 3, false, false],
+      ]),
+    );
+    expect(answer.planned).toEqual({ id: uuid(11), title: "Continuous monitoring" });
+    expect(answer.campaigns.find((item) => item.id === uuid(11))).toMatchObject({
+      holds: false,
+      holdsUnjudged: true,
+      objectivesHeld: 23,
+    });
+    // The two drafts hold none of what is left: either takes the control.
+    expect(answer.drafts).toBe(2);
+    // Not assessed until all: the control's step opens the campaign where the rest is judged.
+    const step = controlNextStep({ status: "not_assessed" }, [], answer);
+    expect(step).toEqual({ kind: "open_campaign", campaign: answer.planned });
+    expect(nextStepLabel(step!)).toBe("Open assessment campaign");
+    // A plan that holds only what was judged leaves the rest to a draft, or to a new plan.
+    const drafted = controlAssessment(
+      campaigns,
+      [plan(22, 11, 1, "published"), plan(24, 13, 1, "draft")],
+      holdings([
+        [22, 3, false, false],
+        [24, 3, false, false],
+      ]),
+    );
+    expect(drafted).toMatchObject({ planned: null, drafts: 1 });
+    expect(nextStepLabel(controlNextStep({ status: "not_assessed" }, [], drafted)!)).toBe(
+      "Add to assessment campaign",
+    );
+    const judged = controlAssessment(
+      campaigns,
+      [plan(22, 11, 1, "published")],
+      holdings([[22, 3, false, false]]),
+    );
+    expect(judged).toMatchObject({ planned: null, drafts: 0 });
+    expect(nextStepLabel(controlNextStep({ status: "not_assessed" }, [], judged)!)).toBe(
+      "Plan an assessment",
+    );
+  });
+
   it("reads a plan the answer leaves out as holding nothing", () => {
     const answer = controlAssessment(campaigns, [plan(24, 13, 1, "draft")], holdings());
     expect(answer.campaigns.find((item) => item.id === uuid(13))).toMatchObject({
       holds: false,
+      holdsUnjudged: false,
       objectivesHeld: 0,
     });
     expect(answer.drafts).toBe(1);
@@ -164,7 +221,12 @@ describe("what the program's campaigns hold of a control", () => {
       holdings(),
     );
     expect(answer).toMatchObject({ planned: null, drafts: 0 });
-    expect(answer.campaigns[0]).toMatchObject({ plan: null, holds: false, objectivesHeld: 0 });
+    expect(answer.campaigns[0]).toMatchObject({
+      plan: null,
+      holds: false,
+      holdsUnjudged: false,
+      objectivesHeld: 0,
+    });
   });
 });
 
@@ -175,8 +237,10 @@ describe("what the plans hold of a control", () => {
         control_id: uuid(40),
         objectives: 26,
         plans: [
-          { plan_revision_id: uuid(21), objectives_held: 12, holds: false },
-          { plan_revision_id: uuid(24), objectives_held: 26, holds: true },
+          { plan_revision_id: uuid(21), objectives_held: 12, holds: false, holds_unjudged: false },
+          { plan_revision_id: uuid(24), objectives_held: 26, holds: true, holds_unjudged: true },
+          // Holds the objectives its program has not judged, not those it has.
+          { plan_revision_id: uuid(25), objectives_held: 20, holds: false, holds_unjudged: true },
         ],
       },
       error: null,
@@ -188,8 +252,9 @@ describe("what the plans hold of a control", () => {
       { p_tenant_id: uuid(1), p_control_id: uuid(40), p_plan_revision_ids: [uuid(21), uuid(24)] },
     ]);
     expect(answer.objectives).toBe(26);
-    expect(answer.plans.get(uuid(21))).toEqual({ held: 12, holds: false });
-    expect(answer.plans.get(uuid(24))).toEqual({ held: 26, holds: true });
+    expect(answer.plans.get(uuid(21))).toEqual({ held: 12, holds: false, holdsUnjudged: false });
+    expect(answer.plans.get(uuid(24))).toEqual({ held: 26, holds: true, holdsUnjudged: true });
+    expect(answer.plans.get(uuid(25))).toEqual({ held: 20, holds: false, holdsUnjudged: true });
   });
 
   it("fails rather than read an answer it cannot parse as holding nothing", async () => {

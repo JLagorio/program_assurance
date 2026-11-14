@@ -404,9 +404,10 @@ export function buildPlan({ target, asOf = new Date().toISOString().slice(0, 10)
 }
 
 /**
- * The showcase, then what its risks still lack, an owner for each artifact waiting on a review and
- * the objective mappings: on a workspace that already holds the showcase the first changes nothing
- * and the rest write only what is missing, recording it under its batch.
+ * The showcase, then what its risks still lack, an owner for each artifact waiting on a review, the
+ * objective mappings and the seeded mappings carried to the baseline the showcase pins: on a
+ * workspace that already holds the showcase the first changes nothing and the rest write only what
+ * is missing, recording it under its batch.
  */
 export function applyShowcase(transaction, payload, { commit = false } = {}) {
   const result = sql(
@@ -417,24 +418,27 @@ export function applyShowcase(transaction, payload, { commit = false } = {}) {
       `select pg_temp.seed_showcase_risk_details(${json(payload)});`,
       `select pg_temp.seed_showcase_evidence_owners(${json(payload)});`,
       `select pg_temp.seed_showcase_objective_mappings(${json(payload)});`,
+      `select pg_temp.seed_showcase_carried_mappings(${json(payload)});`,
       commit ? "commit;" : "rollback;",
     ].join("\n"),
   );
-  const [showcase, riskDetails, evidenceOwners, objectiveMappings] = result
+  const [showcase, riskDetails, evidenceOwners, objectiveMappings, carriedMappings] = result
     .split("\n")
     .filter((line) => line.startsWith("{"))
-    .slice(-4)
+    .slice(-5)
     .map((line) => JSON.parse(line));
   return {
     ...showcase,
     riskDetails,
     evidenceOwners,
     objectiveMappings,
+    carriedMappings,
     changed: Boolean(
       showcase.changed ||
       riskDetails.changed ||
       evidenceOwners.changed ||
-      objectiveMappings.changed,
+      objectiveMappings.changed ||
+      carriedMappings.changed,
     ),
     showcaseChanged: Boolean(showcase.changed),
     committed: commit,

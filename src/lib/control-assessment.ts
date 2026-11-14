@@ -27,7 +27,9 @@ import { useStaleOnWrite } from "./server-table";
  * holds a control once it holds every objective the control counts, or its statement, as every
  * plan written before plans took objectives does; one that holds some takes only the rest. What
  * the campaigns hold of a control is read here (`plan_control_holdings`), for its next step and
- * for the pickers that do it.
+ * for the pickers that do it. The program's assessors decide a control once they have judged every
+ * objective it counts, so a control judged in part is still waiting on them: its step opens the
+ * campaign whose plan holds what is left to judge, which a plan holding the whole control does.
  */
 
 /** The campaign statuses whose plan can still take a control. */
@@ -68,6 +70,11 @@ export type AssessmentCampaignPlan = {
   plan: CampaignPlanRevision | null;
   /** Whether that plan holds the control: every objective it counts, or its statement. */
   holds: boolean;
+  /**
+   * Whether that plan holds what is left to judge of the control: every objective it counts that
+   * the program's assessors have not judged yet (the whole control while none is judged).
+   */
+  holdsUnjudged: boolean;
   /** How many of the control's objectives that plan holds; none while it has no plan. */
   objectivesHeld: number;
 };
@@ -88,6 +95,11 @@ export type PlanHolding = {
   held: number;
   /** It holds every one, or the control's statement: the control takes nothing more. */
   holds: boolean;
+  /**
+   * It holds every objective the plan's program has not judged yet: the whole control while none
+   * is judged, the rest once some are.
+   */
+  holdsUnjudged: boolean;
 };
 
 /** What the named plans hold of one control, as the server reads them. */
@@ -99,7 +111,7 @@ export type PlanHoldings = {
   plans: ReadonlyMap<string, PlanHolding>;
 };
 
-const NOT_HELD: PlanHolding = { held: 0, holds: false };
+const NOT_HELD: PlanHolding = { held: 0, holds: false, holdsUnjudged: false };
 
 /** Each campaign's latest plan revision, by its campaign. */
 export function latestPlans(plans: readonly PlanRow[]): Map<string, PlanRow> {
@@ -121,11 +133,12 @@ const campaignOrder = (a: AssessmentCampaignPlan, b: AssessmentCampaignPlan) =>
 
 /**
  * The program's open campaigns (planned or active) with their latest plan and what it holds of the
- * control, in the order a reader looks for one; the campaign whose plan holds it whole, first of
- * them; and how many have a draft plan that does not hold it whole yet, which a plan holding some
- * of its objectives still is, since it takes the rest. A completed or cancelled campaign takes no
- * control, so a control only such a campaign planned is not under way anywhere. `holdings` is what
- * those plans hold of the control (`plan_control_holdings`).
+ * control, in the order a reader looks for one; the campaign whose plan holds what is left to judge
+ * of it (the whole control while the program's assessors have judged none of it), first of them;
+ * and how many have a draft plan that does not hold that yet, which a plan holding some of its
+ * objectives still is, since it takes the rest. A completed or cancelled campaign takes no control,
+ * so a control only such a campaign planned is not under way anywhere. `holdings` is what those
+ * plans hold of the control (`plan_control_holdings`).
  */
 export function controlAssessment(
   campaigns: readonly CampaignRow[],
@@ -155,16 +168,20 @@ export function controlAssessment(
             }
           : null,
         holds: !!plan && holding.holds,
+        holdsUnjudged: !!plan && holding.holdsUnjudged,
         objectivesHeld: plan ? holding.held : 0,
       };
     })
     .sort(campaignOrder);
-  const planned = open.find((campaign) => campaign.holds);
+  // Where the assessment of what is left goes on: a control judged in part is under way in the
+  // campaign whose plan holds the objectives nobody has judged yet.
+  const planned = open.find((campaign) => campaign.holdsUnjudged);
   return {
     campaigns: open,
     objectives: holdings.objectives,
     planned: planned ? { id: planned.id, title: planned.title } : null,
-    drafts: open.filter((campaign) => campaign.plan?.state === "draft" && !campaign.holds).length,
+    drafts: open.filter((campaign) => campaign.plan?.state === "draft" && !campaign.holdsUnjudged)
+      .length,
   };
 }
 
@@ -176,6 +193,7 @@ const holdingsSchema = z.object({
       plan_revision_id: z.string(),
       objectives_held: z.number().int().nonnegative(),
       holds: z.boolean(),
+      holds_unjudged: z.boolean(),
     }),
   ),
 });
@@ -184,8 +202,9 @@ type Client = Pick<SupabaseClient, "rpc">;
 
 /**
  * What the named plans hold of one control, in one request, as the reader: how many assessment
- * objectives the control counts and, for each plan the reader reads, how many of them it holds and
- * whether it holds the control. A plan left out of the answer holds nothing.
+ * objectives the control counts and, for each plan the reader reads, how many of them it holds,
+ * whether it holds the control, and whether it holds what its program has not judged yet. A plan
+ * left out of the answer holds nothing.
  */
 export async function readPlanControlHoldings(
   client: Client,
@@ -212,14 +231,21 @@ export async function readPlanControlHoldings(
     plans: new Map(
       answer.plans.map((plan) => [
         plan.plan_revision_id,
-        { held: plan.objectives_held, holds: plan.holds },
+        { held: plan.objectives_held, holds: plan.holds, holdsUnjudged: plan.holds_unjudged },
       ]),
     ),
   };
 }
 
-/** What a plan holds of a control is read from its objectives: a write to one reads it again. */
-const HOLDING_MODELS = ["assessment_objectives"] as const satisfies readonly TableName[];
+/**
+ * What a plan holds of a control is read from its objectives, and what is left to judge of it from
+ * the findings published on it: a write to one reads it again.
+ */
+const HOLDING_MODELS = [
+  "assessment_objectives",
+  "assessment_findings",
+  "assessment_results_revisions",
+] as const satisfies readonly TableName[];
 
 /**
  * What the program's open assessment campaigns hold of one control, read while `enabled`: the

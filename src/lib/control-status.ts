@@ -21,7 +21,10 @@ import { controlDeterminers, controlStatuses } from "./status";
  * leaves No requirement, and one that cites evidence covers each before it leaves No evidence; a
  * mapping of the whole control covers them all (control-objectives). The
  * determination is the worst of the latest an assessor of the program published on the control's
- * parts; where there is none and every product variant of the program inherits the control with a
+ * parts, once they have judged every objective it counts (a determination on an objective judges
+ * it and those under it, one on the statement judges them all); a control judged in part has no
+ * program determination and reads the ladder. Where there is none and every product variant of the
+ * program inherits the control with a
  * determination (its delta is inherited), it is the worst of the product's, and the control names
  * the product assessments it was taken from. The words and their order are `controlStatuses` and
  * `controlDeterminers` in status. This module also rolls the controls up by family, for a map of
@@ -61,6 +64,7 @@ const controlSchema = z.object({
   objectives: z.number(),
   objectives_mapped: z.number(),
   objectives_evidenced: z.number(),
+  objectives_assessed: z.number(),
   determined_by: determinerSchema.nullable(),
   product_assessments: z.array(
     z.object({
@@ -115,8 +119,15 @@ export type ControlStanding = {
   /** Those mapped by a requirement that cites evidence. */
   objectivesEvidenced: number;
   /**
-   * Whose determination the status is: the program's own assessors, or the product assessment
-   * every variant of the program inherits the control from. Null while nobody has determined it.
+   * Those an assessor of the program has judged: a published determination on the objective, on an
+   * objective above it, or on the control's statement. The program's assessors decide the control
+   * once every one is judged; until then it reads the ladder below.
+   */
+  objectivesAssessed: number;
+  /**
+   * Whose determination the status is: the program's own assessors, once they have judged every
+   * objective the control counts, or the product assessment every variant of the program inherits
+   * the control from. Null while nobody has determined it.
    */
   determinedBy: ControlDeterminer | null;
   /**
@@ -184,6 +195,7 @@ export async function readProgramControlStatus(
       objectives: control.objectives,
       objectivesMapped: control.objectives_mapped,
       objectivesEvidenced: control.objectives_evidenced,
+      objectivesAssessed: control.objectives_assessed,
       determinedBy: control.determined_by,
       productAssessments: control.product_assessments,
     })),

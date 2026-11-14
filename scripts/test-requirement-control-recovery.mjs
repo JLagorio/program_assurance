@@ -36,7 +36,8 @@ try {
   applyPlan(fixture, manifest, { commit: true });
   const sourceLink = ctx.entries.find(
     (entry) =>
-      entry.table === "requirement_control_links" && entry.key === "REQ-0042:SI-7:derived_from",
+      entry.table === "requirement_control_links" &&
+      entry.key === "REQ-0042.1:SI-7(1):derived_from",
   );
   const authored = await data(
     client
@@ -67,12 +68,14 @@ try {
   const activityBefore = snapshot("activity_events");
   const importsBefore = snapshot("demo_import_records");
   const first = await buildRecoveryPlan({ tenantId, refs });
-  assert.equal(first.report.exactSourceMappings, 665);
-  assert.equal(first.report.plannedInserts, 664);
+  // REQ-0042 and REQ-0042.5 derive from SI-7 and SC-12 but are allocated to no system element,
+  // so the plan holds no mapping of theirs (map-assurance: requirement_derivation_unplaced).
+  assert.equal(first.report.exactSourceMappings, 663);
+  assert.equal(first.report.plannedInserts, 662);
   assert.equal(first.report.skipped.length, 1);
   assert.equal(first.report.skipped[0].existingId, authored.id);
   const checked = applyPlan(first.ctx, first.manifest);
-  assert.equal(checked.inserted, 664);
+  assert.equal(checked.inserted, 662);
   assert.equal(checked.committed, false);
   assert.equal(snapshot("requirement_control_links").length, 1);
   assert.deepEqual(
@@ -82,8 +85,11 @@ try {
   );
   assert.deepEqual(snapshot("import_issues"), issuesBefore);
   const applied = applyPlan(first.ctx, first.manifest, { commit: true });
-  assert.equal(applied.inserted, 664);
-  assert.equal(snapshot("requirement_control_links").length, 665);
+  assert.equal(applied.inserted, 662);
+  // Allocated to no system in this workspace, the recovered references keep no system.
+  assert.equal(applied.systemsNamed.named, 0);
+  assert.equal(applied.systemsNamed.unallocated, 662);
+  assert.equal(snapshot("requirement_control_links").length, 663);
   assert.deepEqual(
     snapshot("requirement_revisions"),
     contentsBefore,
@@ -113,10 +119,10 @@ try {
   const linksBeforeRetry = snapshot("requirement_control_links");
   const retry = await buildRecoveryPlan({ tenantId, refs });
   assert.equal(retry.report.plannedInserts, 0);
-  assert.equal(retry.report.preservedImports, 664);
+  assert.equal(retry.report.preservedImports, 662);
   const reapplied = applyPlan(retry.ctx, retry.manifest, { commit: true });
   assert.equal(reapplied.inserted, 0);
-  assert.equal(reapplied.preserved, 664);
+  assert.equal(reapplied.preserved, 662);
   assert.deepEqual(
     snapshot("requirement_control_links"),
     linksBeforeRetry,
@@ -124,7 +130,7 @@ try {
   );
   assert.deepEqual(snapshot("import_issues"), issuesBefore);
   console.log(
-    "PASS665exactsource references; dry-run rollback;664targeted inserts +1authored conflict preserved; idempotency; requirement edits/import issues/activity unchanged",
+    "PASS 663 exact source references; dry-run rollback; 662 targeted inserts + 1 authored conflict preserved; idempotency; requirement edits/import issues/activity unchanged",
   );
 } finally {
   await workspace.cleanup();

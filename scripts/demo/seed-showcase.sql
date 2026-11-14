@@ -958,3 +958,54 @@ begin
 end;
 $objectives$;
 -- ——— Objective mappings: end ———
+
+-- ——— Carried mappings: begin (requirement_control_links.selected_control_id) ———
+-- WS-X90's seeded mappings carry to the control baseline their systems hold now. The demo import
+-- names each mapping's system by the selection of the baseline the boundary's SSP was pinned to then
+-- (scripts/demo/database.mjs, name_requirement_mapping_systems); the showcase pins the boundary's
+-- next SSPs to the program's tailoring, so every element's baseline becomes the tailoring and a
+-- mapping that still records the import's selection would read as made on an earlier baseline
+-- ("Earlier profile selection"). Each mapping a demo seed wrote (demo_import_records) whose control
+-- its system's baseline still selects takes that baseline's selection, as Map a requirement would
+-- record it now; one whose control the baseline no longer selects keeps the selection it was mapped
+-- by. It runs after pg_temp.seed_showcase, on the showcase's first run and on a workspace that holds
+-- it, and counts what it carries in the batch's summary (`carried`), so a further run changes nothing.
+create function pg_temp.seed_showcase_carried_mappings(p jsonb) returns jsonb language plpgsql as $carried$
+declare
+  t uuid := (p->>'tenantId')::uuid;
+  v_program uuid; v_batch uuid; v_carried integer;
+begin
+  perform pg_advisory_xact_lock(hashtextextended(t::text || '/demo-showcase', 0));
+  select id into v_batch from public.demo_import_batches where tenant_id = t and dataset_id = p->>'datasetId';
+  if v_batch is null then
+    return jsonb_build_object('changed', false, 'reason', 'This workspace does not hold the showcase.');
+  end if;
+  select id into v_program from public.programs where tenant_id = t and code = p->>'programCode';
+  -- Written by the seed itself, with no session, as the import named them.
+  perform set_config('request.jwt.claims', '', true);
+  with carried as (
+    update public.requirement_control_links l
+      set selected_control_id = current_selection.id, revision = l.revision + 1
+    from public.systems s, public.system_effective_baselines b,
+      public.selected_controls earlier_selection, public.selected_controls current_selection
+    where l.tenant_id = t and s.tenant_id = t and s.id = l.system_id and s.program_id = v_program
+      and b.tenant_id = t and b.system_id = s.id
+      and earlier_selection.id = l.selected_control_id
+      and earlier_selection.profile_resolution_id is distinct from b.profile_resolution_id
+      and current_selection.profile_resolution_id = b.profile_resolution_id
+      and current_selection.control_id = l.control_id
+      and exists (select 1 from public.demo_import_records r where r.tenant_id = t
+        and r.destination_table = 'requirement_control_links' and r.destination_id = l.id)
+    returning l.id
+  )
+  select count(*) into v_carried from carried;
+  if v_carried > 0 then
+    update public.demo_import_batches set summary = summary || jsonb_build_object('carried',
+        coalesce(summary->'carried', '{}'::jsonb) || jsonb_build_object(
+          'requirement_control_links', coalesce((summary->'carried'->>'requirement_control_links')::integer, 0) + v_carried))
+      where id = v_batch;
+  end if;
+  return jsonb_build_object('changed', v_carried > 0, 'carried', v_carried);
+end;
+$carried$;
+-- ——— Carried mappings: end ———

@@ -1045,15 +1045,19 @@ begin
       select pg_temp.did(t, v_section || '/retest_plan/subject'), t, v_plan_rev, s.description, s.system_id
       from public.assessment_subjects s where s.plan_revision_id = v_other order by s.id limit 1;
     perform pg_temp.dtrack('assessment_subjects', pg_temp.did(t, v_section || '/retest_plan/subject'), v_section || '/retest_plan/subject', v_section);
+    -- One retest an objective the delta assessment found short, by the finding the work step wrote on
+    -- it (its control's code and the objective, 20261114144406_plan_delta_by_objective).
     insert into public.assessment_objectives (id, tenant_id, plan_revision_id, title, description, target_control_part_id, acceptance_criterion)
       select pg_temp.did(t, v_section || '/retest_plan/objectives/' || o.id), t, v_plan_rev, 'Retest ' || o.title,
         'Found ' || replace(f.determination, '_', ' ') || ' in revision 1''s results.', o.target_control_part_id,
-        'The control is met when retested on the changed element.'
+        'The objective is met when retested on the changed element.'
       from public.assessment_findings f
       join public.assessment_results_revisions rr on rr.id = f.assessment_results_revision_id
       join public.assessment_objectives o on o.plan_revision_id = v_other and o.target_control_part_id = f.target_control_part_id
+      join public.control_parts cp on cp.id = o.target_control_part_id
+      join public.controls k on k.id = cp.control_id
       where rr.assessment_plan_revision_id = v_other and f.determination in ('other_than_satisfied', 'partially_satisfied')
-        and f.id = pg_temp.w4(t, 'work/' || v_code || '/assessment_findings/delta/' || split_part(o.title, ' ', 1));
+        and f.id = pg_temp.w4(t, 'work/' || v_code || '/assessment_findings/delta/' || k.code || '/' || o.target_control_part_id);
     insert into pg_temp.product_detail_tracked
       select 'assessment_objectives', o.id, 'assessment_objectives/' || o.id, v_section from public.assessment_objectives o where o.plan_revision_id = v_plan_rev;
     for v_item, v_n in select value, n from jsonb_array_elements(v_entry->'retests'->'schedule') with ordinality x(value, n) loop

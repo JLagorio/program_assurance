@@ -500,6 +500,7 @@ export function applyProducts(transaction, payload, { commit = false } = {}) {
     [
       "begin;",
       transaction,
+      `select pg_temp.mark_product_mappings(${json(payload)});`,
       `select pg_temp.seed_products(${json(payload)});`,
       `select pg_temp.seed_product_requirements(${json(payload)});`,
       `select pg_temp.seed_product_delta_assessments(${json(payload)});`,
@@ -507,15 +508,27 @@ export function applyProducts(transaction, payload, { commit = false } = {}) {
       `select pg_temp.seed_product_detail(${json(payload)});`,
       `select pg_temp.seed_product_overlay(${json(payload)});`,
       `select pg_temp.seed_product_flowdown(${json(payload)});`,
+      // Last, once every allocation and baseline is in: the run's mappings name their systems.
+      `select pg_temp.name_product_mapping_systems(${json(payload)});`,
       commit ? "commit;" : "rollback;",
     ].join("\n"),
   );
-  const [products, requirements, assessments, work, detail, overlay, flowDown] = result
-    .split("\n")
-    .filter((line) => line.startsWith("{"))
-    .slice(-7)
-    .map((line) => JSON.parse(line));
-  const steps = [products, requirements, assessments, work, detail, overlay, flowDown];
+  const [products, requirements, assessments, work, detail, overlay, flowDown, systemsNamed] =
+    result
+      .split("\n")
+      .filter((line) => line.startsWith("{"))
+      .slice(-8)
+      .map((line) => JSON.parse(line));
+  const steps = [
+    products,
+    requirements,
+    assessments,
+    work,
+    detail,
+    overlay,
+    flowDown,
+    systemsNamed,
+  ];
   return {
     products,
     requirements,
@@ -524,6 +537,7 @@ export function applyProducts(transaction, payload, { commit = false } = {}) {
     detail,
     overlay,
     flowDown,
+    systemsNamed,
     changed: steps.some((step) => step.changed),
     records: steps.reduce((sum, step) => sum + (step.records ?? 0), 0),
     committed: commit,

@@ -350,6 +350,125 @@ export function requirementCellPatch(field: RequirementWorkbookField, value: str
   return requirementPatchSchema.parse({ [descriptor.patch]: next });
 }
 
+/** A system a staged mapping names, by the selection its control baseline records. */
+export type WorkbookMappingTarget = { systemId: string; selectedControlId: string };
+
+/**
+ * Where Stage control mapping puts a requirement's mapping of a whole control, or why it puts none,
+ * as a control's Map a requirement does:
+ * - `targets`: one mapping on each system the requirement is allocated to whose control baseline
+ *   selects the control and holds no mapping of the whole control yet, in any relationship (a
+ *   staged one counts), in code order; `mapped` of the `eligible` systems hold it already.
+ * - `mapped`: every such system holds it already.
+ * - `no_details`: the requirement has no details to record a mapping on.
+ * - `unallocated`: it is allocated to no system, so no mapping can name one.
+ * - `not_selected`: none of its systems' control baselines selects the control.
+ */
+export type WorkbookMappingPlacement =
+  | { kind: "targets"; targets: WorkbookMappingTarget[]; mapped: number; eligible: number }
+  | { kind: "mapped"; eligible: number }
+  | { kind: "no_details" }
+  | { kind: "unallocated" }
+  | { kind: "not_selected" };
+
+type PlacementSnapshot = Pick<
+  AssuranceWorkbookSnapshot,
+  "requirements" | "allocations" | "systems" | "selectedControls" | "mappings"
+>;
+
+/** A mapping of the control's text (its statement or an item of it) covers the whole control. */
+const wholeControlParts = new Set(["statement", "item"]);
+const byCodepoint = (left: string, right: string) => (left < right ? -1 : left > right ? 1 : 0);
+
+/** The systems a requirement's current details are allocated to, once each, or none. */
+function allocatedSystems(snapshot: PlacementSnapshot, requirementId: string) {
+  const contentId = snapshot.requirements.find((row) => row.id === requirementId)?.content_id;
+  if (!contentId) return undefined;
+  const ids = new Set(
+    snapshot.allocations.flatMap((row) =>
+      row.content_id === contentId && row.system_id ? [row.system_id] : [],
+    ),
+  );
+  return {
+    contentId,
+    systems: snapshot.systems
+      .filter((system) => ids.has(system.id))
+      .sort((left, right) => byCodepoint(left.code, right.code) || byCodepoint(left.id, right.id)),
+  };
+}
+
+/**
+ * The controls Stage control mapping offers for a requirement: the ones the control baselines of
+ * the systems it is allocated to select, once each, in code order.
+ */
+export function workbookMappingControls(
+  snapshot: PlacementSnapshot,
+  requirementId: string,
+): AssuranceSelectedControl[] {
+  const resolutions = new Set(
+    (allocatedSystems(snapshot, requirementId)?.systems ?? []).flatMap((system) =>
+      system.profile_resolution_id ? [system.profile_resolution_id] : [],
+    ),
+  );
+  const controls = new Map<string, AssuranceSelectedControl>();
+  for (const selection of snapshot.selectedControls)
+    if (resolutions.has(selection.profile_resolution_id) && !controls.has(selection.control_id))
+      controls.set(selection.control_id, selection);
+  return [...controls.values()].sort((left, right) =>
+    left.control_code.localeCompare(right.control_code, "en", { numeric: true }),
+  );
+}
+
+/** Where Stage control mapping puts a requirement's mapping of a control (see WorkbookMappingPlacement). */
+export function workbookMappingPlacement(
+  snapshot: PlacementSnapshot,
+  requirementId: string,
+  controlId: string,
+  staged: readonly MappingWorkbookChange[] = [],
+): WorkbookMappingPlacement {
+  const allocated = allocatedSystems(snapshot, requirementId);
+  if (!allocated) return { kind: "no_details" };
+  if (!allocated.systems.length) return { kind: "unallocated" };
+  const eligible = allocated.systems.flatMap((system) => {
+    const selection = system.profile_resolution_id
+      ? snapshot.selectedControls.find(
+          (row) =>
+            row.profile_resolution_id === system.profile_resolution_id &&
+            row.control_id === controlId,
+        )
+      : undefined;
+    return selection ? [{ systemId: system.id, selectedControlId: selection.id }] : [];
+  });
+  if (!eligible.length) return { kind: "not_selected" };
+  const held = new Set([
+    ...snapshot.mappings.flatMap((row) =>
+      row.content_id === allocated.contentId &&
+      row.control_id === controlId &&
+      row.system_id &&
+      (!row.control_part_id || wholeControlParts.has(row.part_name ?? ""))
+        ? [row.system_id]
+        : [],
+    ),
+    ...staged.flatMap((change) =>
+      change.operation === "create" &&
+      change.contentId === allocated.contentId &&
+      change.controlId === controlId &&
+      !change.controlPartId
+        ? [change.systemId]
+        : [],
+    ),
+  ]);
+  const targets = eligible.filter((target) => !held.has(target.systemId));
+  return targets.length
+    ? {
+        kind: "targets",
+        targets,
+        mapped: eligible.length - targets.length,
+        eligible: eligible.length,
+      }
+    : { kind: "mapped", eligible: eligible.length };
+}
+
 /** One SQL read, one database snapshot, or a refusal. No array in the result is a partial page. */
 export async function readAssuranceWorkbook(
   client: Client,

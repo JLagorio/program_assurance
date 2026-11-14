@@ -43,6 +43,7 @@ import {
   MoreHorizontal,
   Target,
 } from "lucide-react";
+import { compareObjectives, useAssessmentObjectiveRows } from "@/lib/assessment-objectives";
 import { idSet, useModelSave, useRow, useRows, type Row, type TableName } from "@/lib/models";
 import { labelFor, type DataRecord } from "@/lib/records";
 import { useWorkspace } from "@/components/app/workspace";
@@ -111,7 +112,8 @@ export function AssessmentCampaign({
   // A plan's content is read through the campaign's plans, joined on the server: never every
   // plan's objectives, activities and scheduled tasks in the workspace.
   const inCampaign = { "assessment_plan_revisions.campaign_id": campaign.id };
-  const objectives = useRows("assessment_objectives", inCampaign);
+  // The objectives come with their place in the catalog's reading order, from their view.
+  const objectives = useAssessmentObjectiveRows({ campaign_id: campaign.id });
   const activities = useRows("assessment_activities", inCampaign);
   const scheduled = useRows("scheduled_assessment_tasks", inCampaign);
   const procedures = useRows("procedures");
@@ -128,8 +130,16 @@ export function AssessmentCampaign({
   const planTitle = (id: string | null | undefined) =>
     planRows.find((plan) => plan.id === id)?.title ?? null;
   const inPlans = (id: string | null | undefined) => planRows.some((plan) => plan.id === id);
+  // Each plan's objectives together, the newest plan first as the plans are listed, and each
+  // plan's in the catalog's reading order: AC-08a.01 before AC-08a.02, AC-2 before AC-10.
+  const planOrder = new Map(planRows.map((plan, index) => [plan.id, index]));
   const objectiveRows = (objectives.data ?? [])
     .filter((row) => inPlans(row.plan_revision_id))
+    .sort(
+      (a, b) =>
+        (planOrder.get(a.plan_revision_id) ?? 0) - (planOrder.get(b.plan_revision_id) ?? 0) ||
+        compareObjectives(a, b),
+    )
     .map((row) => ({ ...row, plan: planTitle(row.plan_revision_id) }));
   const activityRows = (activities.data ?? [])
     .filter((row) => inPlans(row.plan_revision_id))

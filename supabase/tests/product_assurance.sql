@@ -4,7 +4,8 @@
 -- and the two reads. With the pinned references installed (a catalog and a reference baseline), a
 -- product with two configurations is assessed and read by configuration, and two variants of it
 -- are read for their delta: inherited, shared, changed here and program only, an element modified,
--- withdrawn and removed, and a newer product version: offered, read for what taking it would
+-- withdrawn and removed, the delta assessment planned by objective and its objectives read in the
+-- catalog's reading order, and a newer product version: offered, read for what taking it would
 -- change, and taken.
 begin;
 create function pg_temp.expect_error(statement text, expected_state text) returns void language plpgsql as $$
@@ -30,6 +31,7 @@ begin
     'public.product_control_status(uuid, uuid)', 'public.variant_control_delta(uuid, uuid)',
     'public.declare_product_element_change(uuid, uuid, bigint, text[], text)',
     'public.plan_delta_assessment(uuid, uuid, uuid, text)',
+    'public.delta_assessment_objectives(uuid, uuid)',
     'public.variant_version_changes(uuid, uuid, uuid)',
     'public.take_product_version(uuid, uuid, bigint, uuid, uuid)',
     'public.product_assessment_sheet(uuid, uuid)',
@@ -43,13 +45,21 @@ begin
   end loop;
   if (select p.prosecdef from pg_catalog.pg_proc p where p.oid = 'public.product_control_status(uuid, uuid)'::regprocedure)
     or (select p.prosecdef from pg_catalog.pg_proc p where p.oid = 'public.variant_control_delta(uuid, uuid)'::regprocedure)
-    or (select p.prosecdef from pg_catalog.pg_proc p where p.oid = 'public.variant_version_changes(uuid, uuid, uuid)'::regprocedure) then
+    or (select p.prosecdef from pg_catalog.pg_proc p where p.oid = 'public.variant_version_changes(uuid, uuid, uuid)'::regprocedure)
+    or (select p.prosecdef from pg_catalog.pg_proc p where p.oid = 'public.delta_assessment_objectives(uuid, uuid)'::regprocedure) then
     raise exception 'A product assurance read does not run as its caller';
   end if;
   if has_table_privilege('anon', 'public.business_lines', 'select')
     or has_table_privilege('anon', 'public.product_assessments', 'select')
-    or has_table_privilege('anon', 'public.product_determinations', 'select') then
+    or has_table_privilege('anon', 'public.product_determinations', 'select')
+    or has_table_privilege('anon', 'public.assessment_objective_rows', 'select') then
     raise exception 'An anonymous session may read product assurance records';
+  end if;
+  -- A campaign's objectives are read as the reader: the view runs as its caller.
+  if not exists (select 1 from pg_catalog.pg_class c where c.oid = 'public.assessment_objective_rows'::regclass
+      and c.reloptions @> array['security_invoker=true'])
+    or not has_table_privilege('authenticated', 'public.assessment_objective_rows', 'select') then
+    raise exception 'assessment_objective_rows does not read as a signed-in caller';
   end if;
 end $$;
 
@@ -130,6 +140,7 @@ declare
   v_pin_core jsonb; v_pin_kit jsonb; v_lineage jsonb;
   v_variant uuid; v_pruned uuid; v_plain_system uuid; v_core_system public.systems; v_added_system uuid;
   v_next uuid; v_request uuid := gen_random_uuid(); v_plan jsonb; v_owed integer;
+  v_objectives integer; v_program_only integer; v_plan_revision uuid; v_order_parts uuid[];
   v_third uuid; v_new uuid := gen_random_uuid(); v_new_sub uuid := gen_random_uuid(); v_kit_ext uuid := gen_random_uuid();
   v_core3 uuid; v_kit3 uuid; v_other_product uuid := gen_random_uuid(); v_other_revision uuid := gen_random_uuid();
   v_boundary public.systems; v_take uuid := gen_random_uuid(); v_count integer; v_new_system uuid;
@@ -442,8 +453,9 @@ begin
     raise exception 'A newer product version read %', v_answer->'update_available';
   end if;
 
-  -- The delta assessment: a campaign whose draft plan holds one objective a control the program
-  -- owes an assessment on, pinned to the variant's published SSP.
+  -- The delta assessment: a campaign whose draft plan holds each control the program owes an
+  -- assessment on as the assessment objectives it counts (one objective a control that counts none),
+  -- pinned to the variant's published SSP.
   select * into v_core_system from public.systems where id = v_core_system.id;
   perform public.declare_product_element_change(v_tenant, v_core_system.id, v_core_system.revision, array['software'], 'Customer keys are built in.');
   v_answer := public.variant_control_delta(v_tenant, v_variant);
@@ -451,35 +463,139 @@ begin
   if (v_answer->'totals'->>'changed_here')::integer <> 2 then
     raise exception 'The variant should owe two changed controls, read %', v_answer->'totals';
   end if;
+  -- What the plan should hold, by the list Add to assessment campaign writes through: each objective
+  -- an owed control counts, else one objective for the control.
+  select coalesce(sum(greatest((select count(*) from public.control_assessment_parts(array[(c->>'id')::uuid]) a where a.objective), 1)), 0),
+    coalesce(sum(greatest((select count(*) from public.control_assessment_parts(array[(c->>'id')::uuid]) a where a.objective), 1))
+      filter (where c->>'delta' = 'program_only'), 0)
+    into v_objectives, v_program_only
+    from jsonb_array_elements(v_answer->'controls') c
+    where c->>'delta' in ('changed_here', 'program_only');
+  if v_objectives <= v_owed
+    or not exists (select 1 from public.control_assessment_parts(array[v_a]) a where a.objective) then
+    raise exception 'The test controls count no assessment objectives (% objectives over % controls)', v_objectives, v_owed;
+  end if;
+  -- The Dialog's count, before anything is planned.
+  v_result := public.delta_assessment_objectives(v_tenant, v_variant);
+  if (v_result->>'controls')::integer <> v_owed or (v_result->>'objectives')::integer <> v_objectives
+    or (v_result->>'system_id')::uuid <> v_variant then
+    raise exception 'The objectives a delta assessment would hold read %, expected % over % controls', v_result, v_objectives, v_owed;
+  end if;
+  if public.delta_assessment_objectives(v_tenant, v_plain_system) - 'system_id' <> '{"controls": 0, "objectives": 0}'::jsonb then
+    raise exception 'An element was counted a delta assessment of its own: %', public.delta_assessment_objectives(v_tenant, v_plain_system);
+  end if;
   perform pg_temp.expect_error(format($q$select public.plan_delta_assessment(%L, %L, %L)$q$, v_tenant, v_variant, v_request), '23514');
   update public.ssp_revisions set state = 'published', revision = revision + 1 where tenant_id = v_tenant and system_id = v_variant;
   v_plan := public.plan_delta_assessment(v_tenant, v_variant, v_request);
   if not (v_plan->>'created')::boolean or (v_plan->>'campaignId')::uuid <> v_request
-    or (v_plan->>'objectives')::integer <> v_owed or (v_plan->>'changedHere')::integer <> 2
-    or (v_plan->>'programOnly')::integer <> v_owed - 2 then
-    raise exception 'Planning a delta assessment answered %, with % controls owed', v_plan, v_owed;
+    or (v_plan->>'objectives')::integer <> v_objectives or (v_plan->>'controls')::integer <> v_owed
+    or (v_plan->>'changedHere')::integer <> 2 or (v_plan->>'programOnly')::integer <> v_owed - 2 then
+    raise exception 'Planning a delta assessment answered %, with % objectives over % controls owed', v_plan, v_objectives, v_owed;
   end if;
+  v_plan_revision := (v_plan->>'planRevisionId')::uuid;
   if not exists (select 1 from public.assessment_campaigns g where g.id = v_request and g.status = 'planned'
       and g.title = 'PA-V1 variant delta assessment' and g.program_id = (select program_id from public.systems where id = v_variant)
       -- The campaign names the variant it assesses.
       and g.variant_system_id = v_variant)
     or not exists (select 1 from public.assessment_plan_revisions pr join public.ssp_revisions ssp on ssp.id = pr.ssp_revision_id
-      where pr.id = (v_plan->>'planRevisionId')::uuid and pr.state = 'draft' and pr.campaign_id = v_request and ssp.system_id = v_variant)
-    or not exists (select 1 from public.assessment_objectives o where o.plan_revision_id = (v_plan->>'planRevisionId')::uuid
-      and o.description = 'Changed here: Core element (software).'
-      and o.title = (select k.code || ' ' || k.title from public.controls k where k.id = v_a))
-    or (select count(*) from public.assessment_objectives o where o.plan_revision_id = (v_plan->>'planRevisionId')::uuid
-      and o.description like 'Program only:%') <> v_owed - 2
+      where pr.id = v_plan_revision and pr.state = 'draft' and pr.campaign_id = v_request and ssp.system_id = v_variant)
+    or (select count(*) from public.assessment_objectives o where o.plan_revision_id = v_plan_revision) <> v_objectives
+    -- A changed control: one objective an objective it counts, each aimed at its part, titled by its
+    -- label and text, and saying why the control is owed.
+    or exists (select 1 from public.control_assessment_parts(array[v_a]) a where a.objective and not exists (
+      select 1 from public.assessment_objectives o where o.plan_revision_id = v_plan_revision and o.target_control_part_id = a.part_id
+        and o.description = 'Changed here: Core element (software).'
+        and o.title like (select x->>'value' from public.control_parts cp, jsonb_array_elements(cp.props) x
+          where cp.id = a.part_id and x->>'name' = 'label' limit 1) || ' %'))
+    or (select count(*) from public.assessment_objectives o join public.control_parts cp on cp.id = o.target_control_part_id
+      where o.plan_revision_id = v_plan_revision and cp.control_id = v_a)
+      <> (select count(*) from public.control_assessment_parts(array[v_a]) a where a.objective)
+    -- No control that counts objectives is written as its statement, and no part is written twice.
+    or exists (select 1 from public.assessment_objectives o join public.control_parts cp on cp.id = o.target_control_part_id
+      where o.plan_revision_id = v_plan_revision and cp.name <> 'assessment-objective'
+        and exists (select 1 from public.control_assessment_parts(array[cp.control_id]) a where a.objective))
+    or exists (select 1 from public.assessment_objectives o where o.plan_revision_id = v_plan_revision
+      group by o.target_control_part_id having count(*) > 1)
+    or (select count(*) from public.assessment_objectives o where o.plan_revision_id = v_plan_revision
+      and o.description like 'Program only:%') <> v_program_only
     -- What the variant inherits or shares is not assessed again.
-    or exists (select 1 from public.assessment_objectives o where o.plan_revision_id = (v_plan->>'planRevisionId')::uuid
-      and o.title = (select k.code || ' ' || k.title from public.controls k where k.id = v_c)) then
-    raise exception 'The planned delta assessment is not the controls the variant owes';
+    or exists (select 1 from public.assessment_objectives o join public.control_parts cp on cp.id = o.target_control_part_id
+      where o.plan_revision_id = v_plan_revision and cp.control_id = v_c) then
+    raise exception 'The planned delta assessment is not the objectives of the controls the variant owes';
+  end if;
+  -- The campaign's objectives as its screens read them: with the campaign and the program, aimed at
+  -- an assessment objective by its label, and in the catalog's reading order (the controls in code
+  -- order, each control's objectives in the order control_assessment_parts lists them).
+  if (select count(*) from public.assessment_objective_rows r where r.campaign_id = v_request
+      and r.program_id = (select program_id from public.systems where id = v_variant)
+      and r.target_kind = 'assessment-objective' and r.reading_order is not null
+      and r.target_label = (select x->>'value' from public.control_parts cp, jsonb_array_elements(cp.props) x
+        where cp.id = r.target_control_part_id and x->>'name' = 'label' limit 1)) <> v_objectives
+    or (select array_agg(r.target_control_part_id order by r.reading_order, r.id) from public.assessment_objective_rows r
+        where r.campaign_id = v_request)
+      <> (select array_agg(a.part_id order by public.natural_sort_key(k.code) collate "C", a.place, a.part_id)
+        from public.assessment_objectives o
+        join public.control_assessment_parts(array(select distinct cp.control_id from public.assessment_objectives o2
+          join public.control_parts cp on cp.id = o2.target_control_part_id where o2.plan_revision_id = v_plan_revision)) a
+          on a.part_id = o.target_control_part_id
+        join public.controls k on k.id = a.control_id
+        where o.plan_revision_id = v_plan_revision) then
+    raise exception 'The planned delta assessment''s objectives are not read in the catalog''s reading order';
   end if;
   -- The same request again answers the campaign it made and writes nothing.
   v_plan := public.plan_delta_assessment(v_tenant, v_variant, v_request, 'Another title');
-  if (v_plan->>'created')::boolean or (v_plan->>'objectives')::integer <> v_owed
+  if (v_plan->>'created')::boolean or (v_plan->>'objectives')::integer <> v_objectives
+    or (v_plan->>'controls')::integer <> v_owed or (v_plan->>'planRevisionId')::uuid <> v_plan_revision
+    or (select count(*) from public.assessment_objectives o where o.plan_revision_id = v_plan_revision) <> v_objectives
     or (select count(*) from public.assessment_campaigns g where g.program_id = (select program_id from public.systems where id = v_variant)) <> 1 then
     raise exception 'The same request again answered %', v_plan;
+  end if;
+  perform set_config('test.delta_campaign', v_request::text, true);
+  -- The reading order on parts chosen for it, entered into the draft plan backwards: AC-2's first
+  -- objective, AC-8's statement, its heading AC-08a. and the two objectives under it, then AC-10's
+  -- statement. AC-2 comes before AC-10, a statement before its control's objectives, and a heading
+  -- before the objectives under it.
+  select array_agg(x.part order by x.n) into v_order_parts from (
+    select 1 as n, (select cp.id from public.control_parts cp join public.controls k on k.id = cp.control_id
+      where k.catalog_revision_id = v_catalog and k.code = 'AC-2' and cp.name = 'assessment-objective'
+        and cp.props @> '[{"name": "label", "value": "AC-02a.[01]"}]' limit 1) as part
+    union all select 2, (select cp.id from public.control_parts cp join public.controls k on k.id = cp.control_id
+      where k.catalog_revision_id = v_catalog and k.code = 'AC-8' and cp.name = 'statement' and cp.parent_part_id is null limit 1)
+    union all select 3, (select cp.id from public.control_parts cp join public.controls k on k.id = cp.control_id
+      where k.catalog_revision_id = v_catalog and k.code = 'AC-8' and cp.name = 'assessment-objective'
+        and cp.props @> '[{"name": "label", "value": "AC-08a."}]' limit 1)
+    union all select 4, (select cp.id from public.control_parts cp join public.controls k on k.id = cp.control_id
+      where k.catalog_revision_id = v_catalog and k.code = 'AC-8' and cp.name = 'assessment-objective'
+        and cp.props @> '[{"name": "label", "value": "AC-08a.01"}]' limit 1)
+    union all select 5, (select cp.id from public.control_parts cp join public.controls k on k.id = cp.control_id
+      where k.catalog_revision_id = v_catalog and k.code = 'AC-8' and cp.name = 'assessment-objective'
+        and cp.props @> '[{"name": "label", "value": "AC-08a.02"}]' limit 1)
+    union all select 6, (select cp.id from public.control_parts cp join public.controls k on k.id = cp.control_id
+      where k.catalog_revision_id = v_catalog and k.code = 'AC-10' and cp.name = 'statement' and cp.parent_part_id is null limit 1)
+  ) x;
+  if array_position(v_order_parts, null) is not null then
+    raise notice 'The catalog does not print AC-2, AC-8 and AC-10 as SP 800-53 Rev 5 does: the reading order checks were skipped';
+  else
+    insert into public.assessment_objectives (tenant_id, plan_revision_id, title, target_control_part_id)
+    select v_tenant, v_plan_revision, 'Reading order check ' || u.n, u.part
+    from unnest(v_order_parts) with ordinality u(part, n) order by u.n desc;
+    if (select array_agg(r.target_control_part_id order by r.reading_order, r.id) from public.assessment_objective_rows r
+        where r.plan_revision_id = v_plan_revision and r.title like 'Reading order check %') <> v_order_parts
+      or (select array_agg(coalesce(r.target_label, r.target_kind) order by r.reading_order, r.id) from public.assessment_objective_rows r
+        where r.plan_revision_id = v_plan_revision and r.title like 'Reading order check %')
+        <> array['AC-02a.[01]', 'statement', 'AC-08a.', 'AC-08a.01', 'AC-08a.02', 'statement'] then
+      raise exception 'Objectives read out of the catalog''s order: %', (select array_agg(coalesce(r.target_label, r.target_kind) || ' ' || r.reading_order
+        order by r.reading_order, r.id) from public.assessment_objective_rows r
+        where r.plan_revision_id = v_plan_revision and r.title like 'Reading order check %');
+    end if;
+    -- An objective aimed at no control part has no kind, no label and no place.
+    insert into public.assessment_objectives (tenant_id, plan_revision_id, title) values (v_tenant, v_plan_revision, 'Reading order check, aimed at nothing');
+    if exists (select 1 from public.assessment_objective_rows r where r.plan_revision_id = v_plan_revision
+        and r.title = 'Reading order check, aimed at nothing'
+        and (r.target_kind is not null or r.target_label is not null or r.reading_order is not null or r.campaign_id <> v_request)) then
+      raise exception 'An objective aimed at nothing was read with a target or a place';
+    end if;
+    delete from public.assessment_objectives where plan_revision_id = v_plan_revision and title like 'Reading order check%';
   end if;
   -- Only the command says which variant a campaign assesses: a direct write of it is refused.
   perform pg_temp.expect_error(format(
@@ -635,6 +751,12 @@ begin
   perform pg_temp.expect_error(format($q$select public.product_control_status(%L, %L)$q$, current_setting('test.other_tenant'), current_setting('test.revision')), '42501');
   perform pg_temp.expect_error(format($q$select public.declare_product_element_change(%L, %L, 1, array['software'], 'Not mine')$q$, current_setting('test.tenant'), current_setting('test.variant')), '42501');
   perform pg_temp.expect_error(format($q$select public.plan_delta_assessment(%L, %L, %L)$q$, current_setting('test.tenant'), current_setting('test.variant'), gen_random_uuid()), '42501');
+  perform pg_temp.expect_error(format($q$select public.delta_assessment_objectives(%L, %L)$q$, current_setting('test.tenant'), current_setting('test.variant')), '42501');
+  perform pg_temp.expect_error(format($q$select public.delta_assessment_objectives(%L, %L)$q$, current_setting('test.other_tenant'), current_setting('test.variant')), '42501');
+  -- Nor are the delta assessment's objectives read in another workspace.
+  if exists (select 1 from public.assessment_objective_rows r where r.campaign_id = current_setting('test.delta_campaign')::uuid) then
+    raise exception 'Another workspace reads a delta assessment''s objectives';
+  end if;
   perform pg_temp.expect_error(format($q$select public.variant_version_changes(%L, %L, %L)$q$, current_setting('test.tenant'), current_setting('test.variant'), current_setting('test.third')), '42501');
   perform pg_temp.expect_error(format($q$select public.take_product_version(%L, %L, 1, %L, %L)$q$, current_setting('test.tenant'), current_setting('test.variant'), current_setting('test.third'), gen_random_uuid()), '42501');
   perform pg_temp.expect_error(format($q$select public.product_assessment_sheet(%L, %L)$q$, current_setting('test.tenant'), current_setting('test.assessment')), '42501');

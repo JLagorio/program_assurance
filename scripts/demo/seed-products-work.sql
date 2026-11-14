@@ -998,10 +998,12 @@ begin
     perform pg_temp.wtrack('assessment_events', v_id, v_key, s);
   end loop;
   -- The assessor's results, as the program's story has them: the controls the scenario names, with
-  -- what it says of each; then, of the plan's other objectives, the share judged so far (a stable
-  -- hash of each control's code) among those the variant's SSP narrates, since an assessor examines
-  -- what the SSP says. A control in an area of the program's trouble falls short in that area's
-  -- words, and every other is met.
+  -- what it says of each; then, of the plan's other controls, the share judged so far (a stable hash
+  -- of each control's code) among those the variant's SSP narrates, since an assessor examines what
+  -- the SSP says. A control in an area of the program's trouble falls short in that area's words, and
+  -- every other is met. The plan holds a control as the assessment objectives it counts (one plan
+  -- objective each, 20261114144406_plan_delta_by_objective), and a control judged is judged on every
+  -- one of them, one finding an objective, so its status takes the determination.
   v_entry := w->'assessment'->'results';
   if exists (select 1 from jsonb_array_elements(v_entry->'named') nm where not exists (
       select 1 from public.assessment_objectives o
@@ -1019,7 +1021,8 @@ begin
   perform pg_temp.wtrack('assessment_results_revisions', v_results, s || '/assessment_results_revisions/delta/1', s);
   perform pg_temp.wtrack('result_sets', v_set, s || '/result_sets/delta/1', s);
   insert into public.assessment_findings (id, tenant_id, assessment_results_revision_id, result_set_id, target_control_part_id, title, description, determination, assessor_party_id, determined_at)
-  select pg_temp.wid(t, s || '/assessment_findings/delta/' || d.code), t, v_results, v_set, o.target_control_part_id, o.title,
+  select pg_temp.wid(t, s || '/assessment_findings/delta/' || d.code || '/' || o.target_control_part_id), t, v_results, v_set,
+    o.target_control_part_id, o.title,
     coalesce(nm.value->>'narrative', ar.area->>'narrative', p->'findingNarratives'->'satisfied'->>d.delta),
     coalesce(nm.value->>'determination', ar.area->>'determination', 'satisfied'), pg_temp.who(v_entry->>'assessor'),
     pg_temp.wtime(p, (v_entry->>'starts')::integer + b.b % ((v_entry->>'ends')::integer - (v_entry->>'starts')::integer + 1), 10 + b.b % 7)
@@ -1038,18 +1041,18 @@ begin
   insert into pg_temp.product_work_tracked
     select 'assessment_findings', f.id, 'assessment_findings/' || f.id, s from public.assessment_findings f
     where f.tenant_id = t and f.assessment_results_revision_id = v_results;
-  -- A named result, and one in an area of the program's trouble, cites what it rests on.
+  -- A named result, and one in an area of the program's trouble, cites what it rests on: each of the
+  -- control's findings, one an objective, rests on the same risk, observation and evidence.
   for v_item, v_key in
-    select nm.value, s || '/assessment_findings/delta/' || (nm.value->>'control')
-    from jsonb_array_elements(v_entry->'named') nm
-    union all
-    select ar.area, s || '/assessment_findings/delta/' || d.code
+    select coalesce(nm.value, ar.area), s || '/assessment_findings/delta/' || d.code || '/' || f.target_control_part_id
     from public.assessment_findings f
     join public.control_parts cp on cp.id = f.target_control_part_id
     join pg_temp.product_work_delta d on d.control_id = cp.control_id
-    cross join lateral (select pg_temp.work_trouble_area(v_entry->'areas', d.delta, d.family, d.changed_codes) as area) ar
-    where f.tenant_id = t and f.assessment_results_revision_id = v_results and ar.area is not null
-      and not exists (select 1 from jsonb_array_elements(v_entry->'named') nm where nm.value->>'control' = d.code)
+    left join jsonb_array_elements(v_entry->'named') nm on nm.value->>'control' = d.code
+    cross join lateral (select case when nm.value is null
+      then pg_temp.work_trouble_area(v_entry->'areas', d.delta, d.family, d.changed_codes) end as area) ar
+    where f.tenant_id = t and f.assessment_results_revision_id = v_results
+      and (nm.value is not null or ar.area is not null)
   loop
     v_id := pg_temp.wid(t, v_key);
     if v_item->>'risk' is not null then

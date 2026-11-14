@@ -47,6 +47,9 @@ export async function buildDemoPlan({ tenantId, refs, importedAt = new Date().to
       for (const [name, rows] of Object.entries(value))
         if (Array.isArray(rows)) auditList(rows, `/${key}/${name}`);
   }
+  // What the mappers report last (a control derivation no mapping could place on a system), after
+  // every issue an earlier import recorded: issue ids are positional, so theirs stay as they were.
+  for (const issue of ctx.lateIssues ?? []) ctx.report(issue.pointer, issue.code, issue.message);
   return { ctx, manifest };
 }
 export function reportFor(ctx) {

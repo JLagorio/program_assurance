@@ -597,12 +597,70 @@ export function useDeclareElementChange() {
   });
 }
 
+/**
+ * What a delta assessment of a variant planned now would hold: how many controls the variant owes
+ * and how many objectives they make, each control as the assessment objectives it counts and one
+ * for a control that counts none.
+ */
+const deltaObjectivesAnswer = z.object({
+  system_id: z.string(),
+  controls: z.number(),
+  objectives: z.number(),
+});
+export type DeltaAssessmentObjectives = { systemId: string; controls: number; objectives: number };
+
+/** How many objectives a delta assessment of the variant would hold, and over how many controls. */
+export async function readDeltaAssessmentObjectives(
+  client: Client,
+  context: ReadContext,
+  systemId: string,
+  signal?: AbortSignal,
+): Promise<DeltaAssessmentObjectives> {
+  const answer = deltaObjectivesAnswer.parse(
+    await ask(
+      client,
+      context,
+      "delta_assessment_objectives",
+      { p_tenant_id: context.tenantId, p_system_id: systemId },
+      signal,
+    ),
+  );
+  return { systemId: answer.system_id, controls: answer.controls, objectives: answer.objectives };
+}
+
+/**
+ * What Plan delta assessment's Dialog says before the command runs: the objectives the plan will
+ * hold. Read again when anything the variant's delta is read from changes.
+ */
+export function useDeltaAssessmentObjectives(
+  systemId: string | null | undefined,
+): UseQueryResult<DeltaAssessmentObjectives, Error> {
+  const workspace = useWorkspace();
+  const key = ["models", workspace.tenantId, "delta_assessment_objectives"];
+  useStaleOnWrite(workspace.tenantId, DELTA_MODELS, key);
+  return useQuery<DeltaAssessmentObjectives, Error>({
+    queryKey: [...key, systemId ?? null],
+    enabled: !!systemId,
+    retry: false,
+    queryFn: async ({ signal }) =>
+      readDeltaAssessmentObjectives(
+        database(),
+        { tenantId: workspace.tenantId, token: await requireIdentity(workspace) },
+        systemId!,
+        signal,
+      ),
+  });
+}
+
 /** A variant's planned delta assessment: the campaign, its draft plan and how much it holds. */
 const plannedSchema = z.object({
   campaignId: z.string(),
   created: z.boolean(),
   planRevisionId: z.string().nullable(),
+  /** The plan's objectives: each owed control's assessment objectives, one for a control that counts none. */
   objectives: z.number(),
+  /** The controls they are of. */
+  controls: z.number(),
   changedHere: z.number().optional(),
   programOnly: z.number().optional(),
 });
@@ -616,9 +674,9 @@ export type DeltaAssessmentPlan = {
 };
 
 /**
- * Plan a variant's delta assessment: an assessment campaign with one objective a control that is
- * changed here or the program's only, on the variant's published SSP. The command refuses a
- * variant whose SSP is still a draft, and says so.
+ * Plan a variant's delta assessment: an assessment campaign on the variant's published SSP whose
+ * plan holds each control that is changed here or the program's only as the assessment objectives
+ * it counts. The command refuses a variant whose SSP is still a draft, and says so.
  */
 export async function planDeltaAssessment(
   client: Client,
@@ -649,6 +707,7 @@ export function usePlanDeltaAssessment() {
     onSettled: () => {
       void invalidateModel(cache, workspace.tenantId, "assessment_campaigns");
       void invalidateModel(cache, workspace.tenantId, "assessment_plan_revisions");
+      void invalidateModel(cache, workspace.tenantId, "assessment_objectives");
     },
   });
 }

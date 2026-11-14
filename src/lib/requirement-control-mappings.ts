@@ -253,19 +253,36 @@ export type RequirementMappingStanding =
 const NOTHING_COVERED: ReadonlySet<string> = new Set();
 
 /**
+ * What a requirement's mappings of a control cover on one system: those that name it, and those
+ * that name no system (`null` in `mappedOn`), which count on every system.
+ */
+function coverageOn(
+  mappedOn: ReadonlyMap<string | null, ReadonlySet<string>>,
+  systemId: string,
+): ReadonlySet<string> {
+  const named = mappedOn.get(systemId);
+  const everywhere = mappedOn.get(null);
+  if (!everywhere?.size) return named ?? NOTHING_COVERED;
+  if (!named?.size) return everywhere;
+  return new Set([...named, ...everywhere]);
+}
+
+/**
  * A requirement's standing for mapping one control. `systemIds` are the systems its latest
  * revision is allocated to, in the order the register lists them; `carriers` the program's systems
  * whose control baseline selects the control, each with that selection; `mappedOn` what its latest
  * revision's mappings of the control cover on each system, in any relationship (control-objectives'
- * `coverageOf`). `chosen` is what the reader maps: the whole control (`null`, unsaid) or objectives
- * by id, of the control's `objectives`. A mapping that names no system (a catalog reference)
- * carries no system, so it leaves every system to map; a system whose mappings cover every
- * objective holds the whole control, as a mapping of the whole control does.
+ * `coverageOf`), and under `null` what those that name no system cover (a catalog reference, a
+ * mapping recorded before mappings named their systems). `chosen` is what the reader maps: the
+ * whole control (`null`, unsaid) or objectives by id, of the control's `objectives`. A mapping that
+ * names no system counts on every system, as the control's status counts it, so what it covers is
+ * not offered again on any of them; a system whose mappings cover every objective holds the whole
+ * control, as a mapping of the whole control does.
  */
 export function requirementMappingStanding(
   requirement: { revisionId: string | null; systemIds: readonly string[] },
   carriers: ReadonlyMap<string, string>,
-  mappedOn: ReadonlyMap<string, ReadonlySet<string>>,
+  mappedOn: ReadonlyMap<string | null, ReadonlySet<string>>,
   chosen: readonly (string | null)[] = WHOLE_CONTROL_CHOICE,
   objectives: readonly ObjectiveNode[] = [],
 ): RequirementMappingStanding {
@@ -277,7 +294,7 @@ export function requirementMappingStanding(
   const wanted = chosen.length ? [...new Set(chosen)] : WHOLE_CONTROL_CHOICE;
   let mapped = 0;
   const targets = eligible.flatMap((systemId) => {
-    const coverage = mappedOn.get(systemId) ?? NOTHING_COVERED;
+    const coverage = coverageOn(mappedOn, systemId);
     const missing = wanted.filter((target) => !coversTarget(coverage, target, objectives));
     if (missing.length === 0) mapped += 1;
     return missing.map((objectiveId) => ({

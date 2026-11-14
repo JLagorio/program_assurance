@@ -163,7 +163,13 @@ export function applyPlan(ctx, manifest, { commit = false, migration = null } = 
     );
   body.push(
     `update public.ingestion_jobs set status='completed',completed_at=clock_timestamp() where id in(select id from demo_new_job);`,
-    `select jsonb_build_object('inserted',(select count(*) from demo_inserted),'preserved',${ctx.entries.length}-(select count(*) from demo_inserted),'issues',${ctx.issues.length},'committed',${commit});`,
+    // The control mappings this run wrote name their systems, as Map a requirement places them: one
+    // on each element the requirement is allocated to whose control baseline selects the control,
+    // each new mapping listed under this batch from the derivation's source (supabase migration
+    // 20261114150844_mapping_systems). A mapping that could name none was never planned.
+    `create temporary table demo_named(answer jsonb) on commit drop;`,
+    `insert into demo_named select public.name_requirement_mapping_systems(${quote(ctx.tenantId)}::uuid,array(select id from demo_inserted where table_name='requirement_control_links'));`,
+    `select jsonb_build_object('inserted',(select count(*) from demo_inserted),'preserved',${ctx.entries.length}-(select count(*) from demo_inserted),'issues',${ctx.issues.length},'systemsNamed',(select answer from demo_named),'committed',${commit});`,
     commit ? "commit;" : "rollback;",
   );
   const result = sql(body.join("\n"));

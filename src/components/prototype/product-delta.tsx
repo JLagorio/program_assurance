@@ -67,6 +67,7 @@ import {
   controlFamilies,
   controlsCarried,
   controlsOwed,
+  useDeltaAssessmentObjectives,
   useDeltaAssessments,
   usePlanDeltaAssessment,
   useProgramVariants,
@@ -521,9 +522,10 @@ const elementChanges = {
 } as const;
 
 /**
- * Plan delta assessment: one assessment campaign over the controls the variant owes, one objective
- * a control. The command needs the variant's published SSP and says so when it is a draft; a
- * request sent again answers the campaign it made.
+ * Plan delta assessment: one assessment campaign over the controls the variant owes, each as the
+ * assessment objectives it counts, as Add to assessment campaign writes a control. The Dialog says
+ * how many objectives the plan will hold before the command runs. The command needs the variant's
+ * published SSP and says so when it is a draft; a request sent again answers the campaign it made.
  */
 function PlanDeltaAssessmentDialog({
   delta,
@@ -534,7 +536,7 @@ function PlanDeltaAssessmentDialog({
   systemName: string;
   onClose: () => void;
 }) {
-  const { formatNumber } = useLedgerLocale();
+  const { formatNumber, formatPlural } = useLedgerLocale();
   const navigate = useNavigate();
   const formId = useId();
   const [requestId] = useState(() => crypto.randomUUID());
@@ -546,6 +548,8 @@ function PlanDeltaAssessmentDialog({
   const submitRef = useRef<HTMLButtonElement>(null);
   const titleRef = useRef<HTMLElement | null>(null);
   const plan = usePlanDeltaAssessment();
+  // What the plan will hold: each owed control's objectives, one for a control that counts none.
+  const holds = useDeltaAssessmentObjectives(delta.systemId);
   const guard = useDraftGuard({
     dirty: title !== initialTitle,
     onClose: () => setOpen(false),
@@ -555,7 +559,7 @@ function PlanDeltaAssessmentDialog({
   const [submitted, setSubmitted] = useState(false);
   async function submit(event: FormEvent) {
     event.preventDefault();
-    if (guard.busy) return;
+    if (guard.busy || !holds.data) return;
     setFailure(null);
     setSubmitted(true);
     if (missing) {
@@ -567,10 +571,18 @@ function PlanDeltaAssessmentDialog({
     try {
       const result = await plan.mutateAsync({ systemId: delta.systemId, requestId, title });
       planned.current = result.campaignId;
+      const objectives = formatPlural(result.objectives, {
+        one: "{count} objective",
+        other: "{count} objectives",
+      });
+      const controls = formatPlural(result.controls, {
+        one: "{count} control",
+        other: "{count} controls",
+      });
       toast.add({
         type: "success",
         title: "Delta assessment planned",
-        description: `${formatNumber(result.objectives)} objectives, one a control.`,
+        description: `${objectives} over ${controls}.`,
       });
       guard.finish();
       guard.complete();
@@ -601,8 +613,8 @@ function PlanDeltaAssessmentDialog({
         <DialogHeader>
           <DialogTitle>Plan delta assessment</DialogTitle>
           <DialogDescription>
-            An assessment campaign over the controls {systemName} owes, one objective a control, on
-            its published SSP.
+            An assessment campaign over the controls {systemName} owes, each as the assessment
+            objectives it counts, on its published SSP.
           </DialogDescription>
         </DialogHeader>
         <DialogBody>
@@ -615,14 +627,24 @@ function PlanDeltaAssessmentDialog({
                   <AlertDescription>{failure}</AlertDescription>
                 </Alert>
               ) : null}
-              <KeyValue.Group labelWidth="wide">
-                <KeyValue label="Objectives">{formatNumber(controlsOwed(delta))}</KeyValue>
-                <KeyValue label="Changed here">{formatNumber(delta.counts.changed_here)}</KeyValue>
-                <KeyValue label="Program only">{formatNumber(delta.counts.program_only)}</KeyValue>
-                <KeyValue label="Not assessed again">
-                  {formatNumber(controlsCarried(delta))}
-                </KeyValue>
-              </KeyValue.Group>
+              {/* The objectives the plan will hold, then the controls they are of and those it
+                  leaves to the product. */}
+              <QueryState queries={[holds]}>
+                {holds.data && (
+                  <KeyValue.Group labelWidth="wide">
+                    <KeyValue label="Objectives">{formatNumber(holds.data.objectives)}</KeyValue>
+                    <KeyValue label="Changed here">
+                      {formatNumber(delta.counts.changed_here)}
+                    </KeyValue>
+                    <KeyValue label="Program only">
+                      {formatNumber(delta.counts.program_only)}
+                    </KeyValue>
+                    <KeyValue label="Not assessed again">
+                      {formatNumber(controlsCarried(delta))}
+                    </KeyValue>
+                  </KeyValue.Group>
+                )}
+              </QueryState>
               <FieldSet disabled={guard.busy}>
                 <TextField
                   label="Campaign title"
@@ -644,6 +666,13 @@ function PlanDeltaAssessmentDialog({
             form={formId}
             variant="primary"
             isLoading={guard.busy}
+            disabledReason={
+              holds.data
+                ? undefined
+                : holds.isError
+                  ? "The objectives the plan will hold could not be counted."
+                  : "The objectives the plan will hold are still being counted."
+            }
           >
             Plan delta assessment
           </Button>

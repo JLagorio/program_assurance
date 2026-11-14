@@ -32,8 +32,14 @@ export function mapAssurance(ctx) {
     "provider",
     "libraryRevision",
     "definedComponent",
+    "sspSelected",
   ])
     m[name] ??= new Map();
+  // The archived control derivations, mapped once every system and its baseline is known.
+  const derivations = [];
+  // Reported after every other issue of the plan (seed-demo.mjs): issue ids are positional, so a
+  // rerun keeps the ids of the issues an earlier import reported.
+  ctx.lateIssues ??= [];
   const person = (name, path) => {
     if (!text(name)) return null;
     const id = m.party.get(name);
@@ -456,20 +462,13 @@ export function mapAssurance(ctx) {
       if (derivation.sourceType === "Control statement") {
         const control = refControl(derivation.sourceId, `${p}/derivations/${d}`);
         if (control) {
-          ctx.add(
-            "requirement_control_links",
-            `${row.id}:${derivation.sourceId}:derived_from`,
-            `${p}/derivations/${d}`,
-            {
-              requirement_revision_id: m.requirement.get(row.id),
-              control_id: control.id,
-              control_part_id: null,
-              system_id: null,
-              selected_control_id: null,
-              relationship_type: "derived_from",
-              rationale: text(derivation.rationale),
-            },
-          );
+          // Mapped once the program's systems and their baselines are known, below.
+          derivations.push({
+            requirement: row,
+            path: `${p}/derivations/${d}`,
+            derivation,
+            control,
+          });
           continue;
         }
       }
@@ -710,6 +709,7 @@ export function mapAssurance(ctx) {
       description: text(program.summary),
     });
     m.ssp.set(program.id, sspId);
+    m.sspSelected.set(program.id, baseline.selectedMap);
     if (rawPlatform) {
       s.platform.control_implementations.forEach((row, n) => {
         const p = `/platform/control_implementations/${n}`;
@@ -832,4 +832,45 @@ export function mapAssurance(ctx) {
         "This original starting value identifies a control and prose PV references, not an exact OSCAL parameter ID. It is retained in provenance without inventing a parameter assignment.",
       );
   });
+  // Each archived derivation of a control is mapped only where Map a requirement could place it:
+  // the requirement allocated to an element of its program's system, whose control baseline (the
+  // program's SSP selection, which every element inherits) selects the control. The import's
+  // transaction then names those systems, one mapping each (name_requirement_mapping_systems, in
+  // database.mjs's applyPlan). A derivation it cannot place stays in provenance, never a mapping on
+  // no system.
+  for (const { requirement, path, derivation, control } of derivations) {
+    const elements = s.allocations.filter(
+      (row) =>
+        row.requirement === requirement.id && row.targetKind === "node" && m.node.has(row.target),
+    );
+    const selection = m.sspSelected.get(requirement.program);
+    if (elements.length && selection?.has(control.code.toUpperCase())) {
+      ctx.add(
+        "requirement_control_links",
+        `${requirement.id}:${derivation.sourceId}:derived_from`,
+        path,
+        {
+          requirement_revision_id: m.requirement.get(requirement.id),
+          control_id: control.id,
+          control_part_id: null,
+          system_id: null,
+          selected_control_id: null,
+          relationship_type: "derived_from",
+          rationale: text(derivation.rationale),
+        },
+      );
+      continue;
+    }
+    ctx.lateIssues.push({
+      pointer: path,
+      code: "requirement_derivation_unplaced",
+      message: `${requirement.id} derives from ${control.code}, but ${
+        !elements.length
+          ? "it is allocated to no system element"
+          : !selection
+            ? "its program has no control baseline"
+            : `the control baseline of the elements it is allocated to leaves ${control.code} out`
+      }, so a mapping could name no system. The derivation remains in provenance instead of a mapping on no system.`,
+    });
+  }
 }

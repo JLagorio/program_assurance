@@ -18,6 +18,8 @@ const nouns = {
   // The assessment findings register: a finding with its assessor by name.
   assessment_finding_rows: "assessment finding",
   assessment_findings: "assessment finding",
+  // A campaign's objectives as its Objectives collections read them: in the catalog's reading order.
+  assessment_objective_rows: "assessment objective",
   assessment_objectives: "assessment objective",
   assessment_plan_requests: "assessment plan request",
   assessment_plan_revisions: "assessment plan revision",
@@ -330,8 +332,9 @@ export function frameworkItemWords(kind: unknown): FrameworkItemWords | undefine
 /**
  * The words for a control's assessment objectives as a requirement maps them: what the Map dialogs
  * ask (Objectives, Whole control or Chosen objectives, `mappingCoverages` in status), and how much
- * of a control the program's requirements cover, which its Details and the Control status List
- * count ("12 of 26") and the control's picker says beside a requirement that maps some already.
+ * of a control the program's requirements cover and its assessors have judged, which its Details
+ * and the Control status List count ("12 of 26") and the control's picker says beside a
+ * requirement that maps some already.
  */
 export const objectiveWords = {
   /** The Map dialogs' question, answered Whole control or Chosen objectives. */
@@ -348,6 +351,8 @@ export const objectiveWords = {
   /** The facts a control's objectives are counted under. */
   mapped: "Objectives mapped",
   evidenced: "Objectives with evidence",
+  /** Those an assessor of the program has judged: every one, before its assessors decide it. */
+  assessed: "Objectives assessed",
 } as const;
 
 /** A count of a control's objectives out of all of them, as a fact or a cell says it: "12 of 26". */

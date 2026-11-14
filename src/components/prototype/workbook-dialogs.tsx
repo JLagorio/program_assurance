@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import type { CellValidation } from "@ledger/spreadsheet-core";
 import {
   Alert,
@@ -12,6 +12,8 @@ import {
   DialogHeader,
   DialogTitle,
   Field,
+  FieldDescription,
+  FieldError,
   FieldLabel,
   Input,
   Select,
@@ -28,6 +30,8 @@ import {
   type MappingWorkbookChange,
   requirementWorkbookFields,
   type RequirementWorkbookField,
+  workbookMappingControls,
+  workbookMappingPlacement,
 } from "@/lib/assurance-workbook";
 import { labelFor } from "@/lib/records";
 
@@ -89,58 +93,109 @@ export function WorkbookSheetDialog({
   );
 }
 
+/**
+ * Stage a requirement's mapping of a control, as a control's Map a requirement records one: a
+ * mapping of the whole control on each system the requirement is allocated to whose control
+ * baseline selects the control, so every one of those systems' SSPs lists it. A requirement
+ * allocated to no system is refused, never mapped on no system.
+ */
 export function WorkbookMappingDialog({
   snapshot,
+  staged,
   onStage,
   onClose,
 }: {
   snapshot: AssuranceWorkbookSnapshot;
-  onStage: (change: MappingWorkbookChange) => void;
+  /** The mapping changes already staged: a system holding a staged mapping is passed over. */
+  staged: readonly MappingWorkbookChange[];
+  onStage: (changes: readonly MappingWorkbookChange[]) => void;
   onClose: () => void;
 }) {
   const [requirementId, setRequirementId] = useState("");
-  const [systemId, setSystemId] = useState("");
   const [controlId, setControlId] = useState("");
   const [relationship, setRelationship] =
     useState<(typeof mappingRelationships)[number]>("maps_to");
   const [rationale, setRationale] = useState("");
+  const [attempted, setAttempted] = useState(false);
   const [error, setError] = useState("");
-  const resolutionId = snapshot.systems.find(
-    (system) => system.id === systemId,
-  )?.profile_resolution_id;
-  const controls = snapshot.selectedControls.filter(
-    (control) => control.profile_resolution_id === resolutionId,
+  const requirementRef = useRef<HTMLButtonElement>(null);
+  const controlRef = useRef<HTMLButtonElement>(null);
+  const requirements = useMemo(
+    () =>
+      snapshot.requirements.flatMap((record) =>
+        record.content_id
+          ? [{ value: record.id, label: `${record.code} · ${record.title ?? record.code}` }]
+          : [],
+      ),
+    [snapshot.requirements],
   );
+  const requirement = snapshot.requirements.find((item) => item.id === requirementId);
+  const controls = useMemo(
+    () => (requirementId ? workbookMappingControls(snapshot, requirementId) : []),
+    [snapshot, requirementId],
+  );
+  const control = controls.find((item) => item.control_id === controlId);
+  const reach = requirementId
+    ? workbookMappingPlacement(snapshot, requirementId, control?.control_id ?? "", staged)
+    : undefined;
+  const placement = control ? reach : undefined;
+  const code = requirement?.code ?? "The requirement";
+  const systemCode = (id: string) =>
+    snapshot.systems.find((system) => system.id === id)?.code ?? id;
+  // What stops the requirement: it names no system a mapping could be recorded on.
+  const requirementError = !requirementId
+    ? attempted
+      ? "Choose a requirement."
+      : undefined
+    : reach?.kind === "unallocated"
+      ? `${code} is allocated to no system, so a mapping could name none. Allocate it to a system before mapping its controls.`
+      : !controls.length
+        ? `No system ${code} is allocated to has a control baseline that selects a control.`
+        : undefined;
+  const controlError =
+    requirementError || !requirementId
+      ? undefined
+      : !control
+        ? attempted
+          ? "Choose a control."
+          : undefined
+        : placement?.kind === "mapped"
+          ? `${code} maps ${control.control_code} on each of its systems whose control baseline selects it already.`
+          : undefined;
+  const controlDescription = !requirementId
+    ? "Choose a requirement first. Its systems' control baselines say which controls it can map."
+    : placement?.kind === "targets"
+      ? `A mapping on ${placement.targets.map((target) => systemCode(target.systemId)).join(", ")}${
+          placement.mapped
+            ? `; ${placement.mapped} of its ${placement.eligible} systems map it already`
+            : ""
+        }.`
+      : undefined;
   function stage() {
-    const requirement = snapshot.requirements.find((item) => item.id === requirementId);
-    const selected = controls.find((item) => item.id === controlId);
-    if (!requirement?.content_id || !selected) {
-      setError("Choose a requirement, system and selected control.");
+    setAttempted(true);
+    setError("");
+    if (!requirement?.content_id || requirementError) {
+      requirementRef.current?.focus();
       return;
     }
-    if (
-      snapshot.mappings.some(
-        (mapping) =>
-          mapping.content_id === requirement.content_id &&
-          mapping.control_id === selected.control_id &&
-          mapping.system_id === systemId &&
-          !mapping.control_part_id,
-      )
-    ) {
-      setError("That requirement is already mapped to this system’s control.");
+    if (!control || placement?.kind !== "targets") {
+      controlRef.current?.focus();
       return;
     }
+    const contentId = requirement.content_id;
     try {
-      onStage({
-        operation: "create",
-        id: crypto.randomUUID(),
-        contentId: requirement.content_id,
-        controlId: selected.control_id,
-        systemId,
-        selectedControlId: selected.id,
-        relationshipType: relationship,
-        rationale: rationale.trim() || null,
-      });
+      onStage(
+        placement.targets.map((target) => ({
+          operation: "create" as const,
+          id: crypto.randomUUID(),
+          contentId,
+          controlId: control.control_id,
+          systemId: target.systemId,
+          selectedControlId: target.selectedControlId,
+          relationshipType: relationship,
+          rationale: rationale.trim() || null,
+        })),
+      );
       onClose();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Could not stage the mapping.");
@@ -150,6 +205,7 @@ export function WorkbookMappingDialog({
     <Dialog open onOpenChange={(open) => !open && onClose()}>
       <DialogContent>
         <form
+          noValidate
           onSubmit={(event) => {
             event.preventDefault();
             stage();
@@ -158,86 +214,71 @@ export function WorkbookMappingDialog({
           <DialogHeader>
             <DialogTitle>Stage control mapping</DialogTitle>
             <DialogDescription>
-              The control must belong to the system’s resolved baseline. Review and apply the
-              proposal to record it.
+              One mapping of the whole control on each system the requirement is allocated to whose
+              control baseline selects it. Review and apply the proposal to record them.
             </DialogDescription>
           </DialogHeader>
           <DialogBody>
             <Stack space="space.200">
               {error && (
-                <Alert tone="danger">
+                <Alert tone="danger" role="alert">
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
               )}
-              <Field required>
+              <Field required invalid={requirementError ? true : undefined}>
                 <FieldLabel>Requirement</FieldLabel>
-                <Select
-                  value={requirementId}
-                  onValueChange={(value) => setRequirementId(value ?? "")}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Choose requirement" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {snapshot.requirements
-                      .filter((record) => record.content_id)
-                      .map((record) => (
-                        <SelectItem key={record.id} value={record.id}>
-                          {record.code} · {record.title}
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
-              </Field>
-              <Field required>
-                <FieldLabel>System</FieldLabel>
-                <Select
-                  value={systemId}
+                <Select<string>
+                  items={requirements}
+                  value={requirementId || null}
                   onValueChange={(value) => {
-                    setSystemId(value ?? "");
+                    setRequirementId(value ?? "");
                     setControlId("");
                   }}
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Choose system" />
+                  <SelectTrigger ref={requirementRef}>
+                    <SelectValue placeholder="Choose requirement" />
                   </SelectTrigger>
                   <SelectContent>
-                    {snapshot.systems.map((record) => (
-                      <SelectItem key={record.id} value={record.id}>
-                        {record.code} · {record.name}
+                    {requirements.map((record) => (
+                      <SelectItem key={record.value} value={record.value}>
+                        {record.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+                {requirementError ? <FieldError>{requirementError}</FieldError> : null}
               </Field>
-              <Field required>
-                <FieldLabel>Selected control</FieldLabel>
-                <Select
-                  value={controlId}
+              <Field required invalid={controlError ? true : undefined}>
+                <FieldLabel>Control</FieldLabel>
+                <Select<string>
+                  items={controls.map((record) => ({
+                    value: record.control_id,
+                    label: `${record.control_code} · ${record.control_title}`,
+                  }))}
+                  value={controlId || null}
                   onValueChange={(value) => setControlId(value ?? "")}
-                  disabled={!controls.length}
+                  readOnly={!controls.length}
                 >
-                  <SelectTrigger>
-                    <SelectValue
-                      placeholder={
-                        systemId && !controls.length
-                          ? "No controls in this baseline"
-                          : "Choose control"
-                      }
-                    />
+                  <SelectTrigger ref={controlRef}>
+                    <SelectValue placeholder="Choose control" />
                   </SelectTrigger>
                   <SelectContent>
                     {controls.map((record) => (
-                      <SelectItem key={record.id} value={record.id}>
+                      <SelectItem key={record.control_id} value={record.control_id}>
                         {record.control_code} · {record.control_title}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+                {controlDescription ? (
+                  <FieldDescription>{controlDescription}</FieldDescription>
+                ) : null}
+                {controlError ? <FieldError>{controlError}</FieldError> : null}
               </Field>
               <Field required>
                 <FieldLabel>Relationship</FieldLabel>
                 <Select
+                  items={mappingRelationships.map((value) => ({ value, label: labelFor(value) }))}
                   value={relationship}
                   onValueChange={(value) => value && setRelationship(value)}
                 >

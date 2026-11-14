@@ -48,7 +48,12 @@ const line = (
   more: Partial<
     Record<"parent_id" | "family" | "family_title" | "determined_by", string | null> &
       Record<
-        "requirements" | "evidenced" | "objectives" | "objectives_mapped" | "objectives_evidenced",
+        | "requirements"
+        | "evidenced"
+        | "objectives"
+        | "objectives_mapped"
+        | "objectives_evidenced"
+        | "objectives_assessed",
         number
       > & { product_assessments: unknown[] }
   > = {},
@@ -65,6 +70,7 @@ const line = (
   objectives: 4,
   objectives_mapped: status === "no_requirement" ? 0 : 4,
   objectives_evidenced: status === "no_requirement" || status === "no_evidence" ? 0 : 4,
+  objectives_assessed: DETERMINATIONS.includes(status) ? 4 : 0,
   determined_by: DETERMINATIONS.includes(status) ? "program" : null,
   product_assessments: [],
   ...more,
@@ -109,7 +115,8 @@ describe("readProgramControlStatus", () => {
         totals,
         controls: [
           line("AC-1", "satisfied"),
-          line("AC-2", "not_assessed"),
+          // Judged on one of its four objectives: no determination yet, the ladder stands.
+          line("AC-2", "not_assessed", { objectives_assessed: 1 }),
           line("AC-2(1)", "no_evidence", { parent_id: "ac-2" }),
           // A control whose requirements map some of its objectives stands where none maps it.
           line("AU-1", "no_requirement", {
@@ -158,9 +165,18 @@ describe("readProgramControlStatus", () => {
       objectives: 4,
       objectivesMapped: 4,
       objectivesEvidenced: 0,
+      objectivesAssessed: 0,
       determinedBy: null,
       productAssessments: [],
     });
+    // How many of its assessment objectives an assessor judged: some of them decide nothing yet.
+    expect(answer.controls[1]).toMatchObject({
+      status: "not_assessed",
+      objectives: 4,
+      objectivesAssessed: 1,
+      determinedBy: null,
+    });
+    expect(answer.controls[0]).toMatchObject({ objectives: 4, objectivesAssessed: 4 });
     // How many of its assessment objectives the program's requirements map, as numbers.
     expect(answer.controls[3]).toMatchObject({
       status: "no_requirement",
@@ -229,6 +245,7 @@ describe("controlStatusFamilies", () => {
     objectives: 0,
     objectivesMapped: 0,
     objectivesEvidenced: 0,
+    objectivesAssessed: 0,
     determinedBy: null,
     productAssessments: [],
   });

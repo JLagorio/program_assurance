@@ -327,6 +327,13 @@ export type Database = {
             foreignKeyName: "assessment_activities_tenant_id_plan_revision_id_objective_fkey";
             columns: ["tenant_id", "plan_revision_id", "objective_id"];
             isOneToOne: false;
+            referencedRelation: "assessment_objective_rows";
+            referencedColumns: ["tenant_id", "plan_revision_id", "id"];
+          },
+          {
+            foreignKeyName: "assessment_activities_tenant_id_plan_revision_id_objective_fkey";
+            columns: ["tenant_id", "plan_revision_id", "objective_id"];
+            isOneToOne: false;
             referencedRelation: "assessment_objectives";
             referencedColumns: ["tenant_id", "plan_revision_id", "id"];
           },
@@ -15448,6 +15455,58 @@ export type Database = {
           },
         ];
       };
+      assessment_objective_rows: {
+        Row: {
+          acceptance_criterion: string | null;
+          campaign_id: string | null;
+          created_at: string | null;
+          created_by: string | null;
+          description: string | null;
+          id: string | null;
+          plan_revision_id: string | null;
+          program_id: string | null;
+          reading_order: string | null;
+          requirement_revision_id: string | null;
+          revision: number | null;
+          target_control_part_id: string | null;
+          target_kind: string | null;
+          target_label: string | null;
+          tenant_id: string | null;
+          title: string | null;
+          updated_at: string | null;
+          updated_by: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "assessment_objectives_target_control_part_id_fkey";
+            columns: ["target_control_part_id"];
+            isOneToOne: false;
+            referencedRelation: "control_parts";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "assessment_objectives_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "assessment_objectives_tenant_id_plan_revision_id_fkey";
+            columns: ["tenant_id", "plan_revision_id"];
+            isOneToOne: false;
+            referencedRelation: "assessment_plan_revisions";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "assessment_objectives_tenant_id_requirement_revision_id_fkey";
+            columns: ["tenant_id", "requirement_revision_id"];
+            isOneToOne: false;
+            referencedRelation: "requirement_revisions";
+            referencedColumns: ["tenant_id", "id"];
+          },
+        ];
+      };
       assurance_attention_sources: {
         Row: {
           item_key: string | null;
@@ -17241,6 +17300,23 @@ export type Database = {
         };
         Returns: boolean;
       };
+      delta_assessment_objectives: {
+        Args: { p_system_id: string; p_tenant_id: string };
+        Returns: Json;
+      };
+      delta_assessment_parts: {
+        Args: { p_delta: Json };
+        Returns: {
+          changed_elements: Json;
+          code: string;
+          control_id: string;
+          delta: string;
+          objective: boolean;
+          part_id: string;
+          place: number[];
+          title: string;
+        }[];
+      };
       edit_requirement: {
         Args: {
           p_content_id: string;
@@ -17291,6 +17367,10 @@ export type Database = {
           p_requirement_revision_id: string;
           p_tenant_id: string;
         };
+        Returns: Json;
+      };
+      name_requirement_mapping_systems: {
+        Args: { p_mapping_ids?: string[]; p_tenant_id?: string };
         Returns: Json;
       };
       natural_sort_key: { Args: { value: string }; Returns: string };
@@ -17369,6 +17449,14 @@ export type Database = {
           system_id: string;
         }[];
       };
+      program_control_objective_judgments: {
+        Args: { p_control_ids: string[]; p_program_id: string };
+        Returns: {
+          control_id: string;
+          determination: string;
+          objective_id: string;
+        }[];
+      };
       program_control_objectives: {
         Args: { p_control_id: string; p_program_id: string };
         Returns: Json;
@@ -17389,6 +17477,7 @@ export type Database = {
           family_title: string;
           id: string;
           objectives: number;
+          objectives_assessed: number;
           objectives_evidenced: number;
           objectives_mapped: number;
           parent_control_id: string;

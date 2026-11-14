@@ -19,6 +19,11 @@ import {
   useLedgerLocale,
 } from "@ledger/design-system";
 import { Plus } from "lucide-react";
+import {
+  compareObjectives,
+  objectiveTarget,
+  useAssessmentObjectiveRows,
+} from "@/lib/assessment-objectives";
 import { useRows, type Row } from "@/lib/models";
 import { useWorkspace } from "@/components/app/workspace";
 import { StatusBadge, LevelIndicator } from "@/components/app/status";
@@ -62,6 +67,11 @@ function Described({ label, text }: { label: string; text: unknown }) {
 
 const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
 
+/** Campaigns by title as a reader orders them, numbers by their value; one the reader cannot see last. */
+const campaignTitles = new Intl.Collator(undefined, { numeric: true });
+const campaignOrder = (a: string | null, b: string | null) =>
+  a === b ? 0 : a === null ? 1 : b === null ? -1 : campaignTitles.compare(a, b);
+
 /** A campaign's or event's window reads in days, as the registers show it. */
 const day = (value: unknown) =>
   typeof value === "string" && value ? <DateTime value={value} format="date" /> : null;
@@ -95,10 +105,9 @@ export function AssessmentBrowser({
   const inCampaigns = programId ? { "assessment_campaigns.program_id": programId } : {};
   const plans = useRows("assessment_plan_revisions", inCampaigns);
   const events = useRows("assessment_events", inCampaigns);
-  const objectives = useRows(
-    "assessment_objectives",
-    programId ? { "assessment_plan_revisions.assessment_campaigns.program_id": programId } : {},
-  );
+  // The objectives come with their campaign, their target's words and their place in the catalog's
+  // reading order, from their view.
+  const objectives = useAssessmentObjectiveRows(programId ? { program_id: programId } : {});
   const programs = useRows("programs", undefined, { columns: ["id", "name"] as const });
   const parties = useRows("parties", undefined, { columns: ["id", "name"] as const });
   // A program's systems and their scopes, for its Scopes register: the workspace's page has none.
@@ -165,6 +174,9 @@ export function AssessmentBrowser({
       campaign: campaignName(event.campaign_id),
       plan: planOf(event.plan_revision_id)?.version_number ?? null,
     }));
+  // Each campaign's objectives together, by the campaign's title, each plan's together, the newest
+  // first (two plans alike by their id), and each plan's in the catalog's reading order: AC-08a.01
+  // before AC-08a.02, a heading before the objectives under it, AC-2 before AC-10.
   const objectiveRows = (objectives.data ?? [])
     .filter((objective) => planRows.some((plan) => plan.id === objective.plan_revision_id))
     .map((objective) => {
@@ -173,8 +185,16 @@ export function AssessmentBrowser({
         ...objective,
         campaign: campaignName(plan?.campaign_id),
         plan: plan?.title ?? null,
+        planVersion: plan?.version_number ?? 0,
       };
-    });
+    })
+    .sort(
+      (a, b) =>
+        campaignOrder(a.campaign, b.campaign) ||
+        b.planVersion - a.planVersion ||
+        a.plan_revision_id.localeCompare(b.plan_revision_id) ||
+        compareObjectives(a, b),
+    );
   const systemIds = useMemo(
     () => new Set((systems.data ?? []).map((system) => system.id)),
     [systems.data],
@@ -511,21 +531,18 @@ export function AssessmentBrowser({
         },
         {
           label: "Target",
-          value: (row) =>
-            row.target_control_part_id ? (
-              <RecordLink table="control_parts" record={{ id: row.target_control_part_id }}>
-                Control statement
-              </RecordLink>
-            ) : row.requirement_revision_id ? (
-              <RecordLink
-                table="requirement_revisions"
-                record={{ id: row.requirement_revision_id }}
-              >
-                Requirement revision
+          // An assessment objective by its label (AC-08a.01), the control's statement as Control
+          // statement, a requirement revision as Requirement revision.
+          value: (row) => {
+            const target = objectiveTarget(row);
+            return target ? (
+              <RecordLink table={target.table} record={{ id: target.id }}>
+                {target.label}
               </RecordLink>
             ) : (
               <Absent />
-            ),
+            );
+          },
           width: 170,
         },
       ]}

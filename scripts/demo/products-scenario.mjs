@@ -692,8 +692,9 @@ export const customerRequirements = {
         "3.6.1",
         "Mission data loading",
         "Mission data shall be loaded only with the customer's loader.",
+        // Not applicable and allocated nowhere, so it maps no control: no system could take one.
         [],
-        ["MP-2"],
+        [],
         "not_applicable",
         null,
         "The product's mission data loader is not delivered in this variant, and the customer's loader is outside the system.",
@@ -746,7 +747,8 @@ export const customerRequirements = {
         "Firmware configuration control",
         "Pallet firmware shall be changed only under the customer's configuration control.",
         ["LC-PFW"],
-        ["CM-3", "CM-14"],
+        // CM-14 would fit too, but Customer B's High baseline leaves it out, so no system could take it.
+        ["CM-3"],
         "non_compliant",
         "inspection",
         "The rewritten firmware is not yet under the customer's configuration control.",
@@ -904,7 +906,10 @@ export function requirementIssues() {
       for (const element of elements)
         if (!held(element))
           say(`${code} ${reference} is allocated to ${element}, which the variant does not hold.`);
-      if (!controls.length) say(`${code} ${reference} maps no control.`);
+      // A requirement maps the controls that meet it, unless it does not apply: one not applicable
+      // is allocated nowhere, so no system could take a mapping of it.
+      if (!controls.length && status !== "not_applicable")
+        say(`${code} ${reference} maps no control.`);
       if (status === null) {
         if (method !== null || answer !== null)
           say(`${code} ${reference} has an answer and no status.`);

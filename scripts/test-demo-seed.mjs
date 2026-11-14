@@ -29,11 +29,48 @@ try {
   const first = applyPlan(ctx, manifest, { commit: true });
   assert.equal(first.inserted, ctx.entries.length);
   assert.equal(first.preserved, 0);
+  // Every archived derivation the plan maps names its systems: one mapping on each element the
+  // requirement is allocated to whose control baseline selects the control, each new one listed
+  // under the import's batch.
+  const planned = ctx.entries.filter((entry) => entry.table === "requirement_control_links").length;
+  assert.equal(planned, 663);
+  const { named, added, ...left } = first.systemsNamed;
+  assert.equal(named, planned);
+  assert.ok(added > 0, "Requirements allocated to several elements map on each of them");
+  assert.deepEqual(left, {
+    held: 0,
+    historical: 0,
+    notATarget: 0,
+    notSelected: 0,
+    processOnly: 0,
+    unallocated: 0,
+  });
   assert.equal(count("programs"), 7);
-  assert.equal(count("demo_import_records"), ctx.entries.length);
+  assert.equal(count("demo_import_records"), ctx.entries.length + added);
   assert.equal(count("evidence_artifacts"), 390);
   assert.equal(count("engineering_requirements"), 646);
-  assert.equal(count("requirement_control_links"), 665);
+  assert.equal(count("requirement_control_links"), planned + added);
+  assert.equal(
+    queryJson(`select count(*)::integer from public.requirement_control_links l
+      where l.tenant_id=${quote(workspace.tenantId)} and (l.system_id is null
+        or not exists (select 1 from public.requirement_allocations a
+          where a.requirement_revision_id=l.requirement_revision_id and a.system_id=l.system_id)
+        or not exists (select 1 from public.system_effective_baselines b
+          join public.selected_controls sc on sc.profile_resolution_id=b.profile_resolution_id
+          where b.system_id=l.system_id and sc.id=l.selected_control_id and sc.control_id=l.control_id));`),
+    0,
+    "Each mapping names an allocated element by the selection its baseline records",
+  );
+  assert.deepEqual(
+    queryJson(`select jsonb_build_object('listed',(summary->'tables'->>'requirement_control_links')::integer,
+        'named',summary->'systemsNamed',
+        'records',(select count(*)::integer from public.demo_import_records r
+          join public.requirement_control_links l on l.id=r.destination_id and l.tenant_id=r.tenant_id
+          where r.import_batch_id=b.id and r.destination_table='requirement_control_links'))
+      from public.demo_import_batches b where b.tenant_id=${quote(workspace.tenantId)};`),
+    { listed: planned + added, named: { named: planned, added }, records: planned + added },
+    "The batch lists and counts each mapping it holds",
+  );
   const compositionCount = ctx.entries.filter(
     (entry) => entry.table === "composition_nodes",
   ).length;
@@ -128,7 +165,7 @@ try {
     beforeIssues = count("import_issues");
   const recovery = await buildRecoveryPlan({ tenantId: workspace.tenantId, refs });
   assert.equal(recovery.report.plannedInserts, 0);
-  assert.equal(recovery.report.preservedImports, 665);
+  assert.equal(recovery.report.preservedImports, 663);
   const recovered = applyPlan(recovery.ctx, recovery.manifest, { commit: true });
   assert.equal(
     recovered.inserted,
@@ -141,6 +178,8 @@ try {
   const second = applyPlan(repeated.ctx, repeated.manifest, { commit: true });
   assert.equal(second.inserted, 0);
   assert.equal(second.preserved, ctx.entries.length);
+  assert.equal(second.systemsNamed.named + second.systemsNamed.added, 0);
+  assert.equal(count("requirement_control_links"), planned + added);
   assert.equal(count("demo_import_records"), beforeRecords);
   assert.equal(count("import_issues"), beforeIssues);
   assert.equal(

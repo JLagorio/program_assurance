@@ -178,8 +178,11 @@ const NO_OBJECTIVES: readonly ObjectiveNode[] = [];
 const NO_SYSTEMS: readonly ControlSystem[] = [];
 const NONE_CHOSEN: readonly string[] = [];
 
-/** What a requirement's latest revision maps of the control: every mapping, and those on each system. */
-type HeldMappings = { parts: (string | null)[]; bySystem: Map<string, (string | null)[]> };
+/**
+ * What a requirement's latest revision maps of the control: every mapping, and those on each
+ * system, with those that name no system under `null`, which count on every system.
+ */
+type HeldMappings = { parts: (string | null)[]; bySystem: Map<string | null, (string | null)[]> };
 
 /**
  * What a requirement's row says of its standing: why it cannot be chosen; where its mappings cover
@@ -221,7 +224,8 @@ function standingNote(
  * control baseline selects the control, so each of their SSPs lists it under the control. A
  * requirement whose mappings cover some of the control's objectives already says how many (Maps 12
  * of 26 objectives), and one mapped on some of those systems already says on how many (Mapped on 1
- * of 2 systems); choosing it maps only what is missing. One that cannot take a mapping (its
+ * of 2 systems); choosing it maps only what is missing. A mapping that names no system counts on
+ * every one of them, as the control's status counts it. One that cannot take a mapping (its
  * mappings cover what is chosen on all of them, it has no details, is allocated to no system, or to
  * none that selects the control) is marked with why and cannot be chosen.
  *
@@ -336,21 +340,19 @@ function MapRequirementPicker({
     { control_id: control.id, ...programRequirementScope(programId, "requirement_control_links") },
     { columns: ["id", "requirement_revision_id", "system_id", "control_part_id"] },
   );
-  // What each revision maps of the control: what it names, and on which system.
+  // What each revision maps of the control: what it names, and on which system; a mapping that
+  // names no system counts on every one, as the control's status counts it.
   const mapped = useMemo(() => {
     if (!existing.data) return undefined;
     const byRevision = new Map<string, HeldMappings>();
     for (const link of existing.data) {
       const held = byRevision.get(link.requirement_revision_id) ?? {
         parts: [],
-        bySystem: new Map<string, (string | null)[]>(),
+        bySystem: new Map<string | null, (string | null)[]>(),
       };
       held.parts.push(link.control_part_id);
-      if (link.system_id)
-        held.bySystem.set(link.system_id, [
-          ...(held.bySystem.get(link.system_id) ?? []),
-          link.control_part_id,
-        ]);
+      const system = link.system_id ?? null;
+      held.bySystem.set(system, [...(held.bySystem.get(system) ?? []), link.control_part_id]);
       byRevision.set(link.requirement_revision_id, held);
     }
     return byRevision;

@@ -2059,6 +2059,7 @@ export function AssuranceWorkbench({
       {mappingDialog && (
         <WorkbookMappingDialog
           snapshot={work.baseline}
+          staged={work.mappingChanges}
           onStage={work.stageMapping}
           onClose={() => setMappingDialog(false)}
         />

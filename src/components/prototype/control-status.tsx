@@ -52,15 +52,19 @@ const marks = {
 const KEY_ORDER = [...CONTROL_STATUS_ORDER].reverse();
 
 /**
- * How much of a control's assessment objectives the program's requirements cover, in a mark's
- * words, where it is part of the story: some mapped and not all, or every one mapped and some
- * without evidence. A control whose objectives are all or none of either says it with its status.
+ * How much of a control's assessment objectives the program's requirements cover and its assessors
+ * have judged, in a mark's words, where it is part of the story: some mapped and not all, every one
+ * mapped and some without evidence, or some judged and not all, which decides nothing yet. A
+ * control whose objectives are all or none of each says it with its status.
  */
 function objectiveStanding(
-  control: Pick<ControlStanding, "objectives" | "objectivesMapped" | "objectivesEvidenced">,
+  control: Pick<
+    ControlStanding,
+    "objectives" | "objectivesMapped" | "objectivesEvidenced" | "objectivesAssessed"
+  >,
   format: (value: number) => string,
 ): string | undefined {
-  const { objectives, objectivesMapped, objectivesEvidenced } = control;
+  const { objectives, objectivesMapped, objectivesEvidenced, objectivesAssessed } = control;
   if (objectivesMapped > 0 && objectivesMapped < objectives)
     return `${objectivesOf(format(objectivesMapped), format(objectives))} objectives mapped`;
   if (
@@ -69,6 +73,8 @@ function objectiveStanding(
     objectivesEvidenced < objectives
   )
     return `${objectivesOf(format(objectivesEvidenced), format(objectives))} objectives with evidence`;
+  if (objectivesAssessed > 0 && objectivesAssessed < objectives)
+    return `${objectivesOf(format(objectivesAssessed), format(objectives))} objectives assessed`;
   return undefined;
 }
 
@@ -196,15 +202,17 @@ export function ControlStatusMap({
 
 /**
  * Where a program stands on one control, as the first rows of the control's Details: its control
- * status, how many of its assessment objectives are mapped on every system that selects it and how
- * many with evidence ("12 of 26"), whose determination it is (the program's assessment, or each
- * product assessment the program's variants inherit it from, a link to its record), and the next
- * step that moves it up the ladder: a link to where the step is done, or, for a step done on the
- * control itself, the button that opens it over the page (Map a requirement; Map 14 more
- * objectives for a control mapped in part; Map on R210-STD-CUSA, or Allocate to
- * R210-STD-CUSA, for one short on a system; Add to assessment campaign, Plan an assessment), which
- * a viewer reads as words alone. `requirements` are the requirements that map the control, as its
- * trace reads them: the step names the first that cites no evidence, or the one that owes it.
+ * status, how many of its assessment objectives are mapped on every system that selects it, how
+ * many with evidence and how many an assessor of the program has judged ("12 of 26"; the program's
+ * assessors decide the control once every one is judged), whose determination it is (the
+ * program's assessment, or each product assessment the program's variants inherit it from, a link
+ * to its record), and the next step that moves it up the ladder: a link to where the step is done,
+ * or, for a step done on the control itself, the button that opens it over the page (Map a
+ * requirement; Map 14 more objectives for a control mapped in part; Map on R210-STD-CUSA, or
+ * Allocate to R210-STD-CUSA, for one short on a system; Add to assessment campaign, Plan an
+ * assessment, also for a control judged in part where no open campaign's plan holds the rest),
+ * which a viewer reads as words alone. `requirements` are the requirements that map the control, as
+ * its trace reads them: the step names the first that cites no evidence, or the one that owes it.
  */
 export function ControlStandingFacts({
   programId,
@@ -261,6 +269,14 @@ export function ControlStandingFacts({
             <Text numeric>
               {objectivesOf(
                 formatNumber(standing.objectivesEvidenced),
+                formatNumber(standing.objectives),
+              )}
+            </Text>
+          </KeyValue>
+          <KeyValue label={objectiveWords.assessed}>
+            <Text numeric>
+              {objectivesOf(
+                formatNumber(standing.objectivesAssessed),
                 formatNumber(standing.objectives),
               )}
             </Text>

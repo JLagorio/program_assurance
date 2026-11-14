@@ -144,10 +144,16 @@ test("repeated projection has stable identities and never mutates the extracted 
   assert.equal(new Set(first.entries.map((row) => row.values.id)).size, first.entries.length);
 });
 
-test("archived control derivations use exact whole controls without inventing statement or system context", () => {
+test("archived control derivations use exact whole controls, planned only where a system can take them", () => {
   const ctx = build();
   const links = ctx.entries.filter((entry) => entry.table === "requirement_control_links");
-  assert.equal(links.length, 665);
+  assert.equal(links.length, 663);
+  const of = (table) =>
+    ctx.entries.filter((entry) => entry.table === table).map((entry) => entry.values);
+  const allocations = of("requirement_allocations").filter((row) => row.composition_node_id);
+  const nodes = new Map(of("composition_nodes").map((row) => [row.id, row]));
+  const ssps = of("ssp_revisions");
+  const selected = of("selected_controls");
   for (const link of links) {
     const derivation = ctx.sourceAt(link.pointer);
     const control = refs.controls.find((row) => row.id === link.values.control_id);
@@ -159,23 +165,62 @@ test("archived control derivations use exact whole controls without inventing st
     );
     assert.equal(link.values.rationale, derivation.rationale);
     assert.equal(link.values.relationship_type, "derived_from");
+    // The plan states no statement or system: the import's transaction names each system the
+    // requirement is allocated to whose baseline selects the control (applyPlan).
     for (const key of ["control_part_id", "system_id", "selected_control_id"])
       assert.equal(link.values[key], null);
+    // And there is one: an element the requirement is allocated to, whose program's SSP selects it.
+    const elements = allocations.filter(
+      (row) => row.requirement_revision_id === link.values.requirement_revision_id,
+    );
+    assert.ok(elements.length, `${link.key} is allocated to no element`);
+    for (const element of elements) {
+      const ssp = ssps.find(
+        (row) => row.system_id === nodes.get(element.composition_node_id)?.system_id,
+      );
+      assert.ok(
+        ssp &&
+          selected.some(
+            (row) =>
+              row.profile_resolution_id === ssp.profile_resolution_id &&
+              row.control_id === link.values.control_id,
+          ),
+        `${link.key}'s element's baseline leaves its control out`,
+      );
+    }
   }
   assert.equal(
     ctx.issues.filter((issue) => issue.code === "requirement_derivation_scope").length,
     8,
   );
+  // A derivation no system could take stays in provenance, reported after every other issue.
+  assert.deepEqual(
+    ctx.lateIssues.map((issue) => [issue.code, issue.pointer]),
+    [
+      ["requirement_derivation_unplaced", "/requirements/0/derivations/0"],
+      ["requirement_derivation_unplaced", "/requirements/5/derivations/1"],
+    ],
+  );
+  assert.match(
+    ctx.lateIssues[0].message,
+    /^REQ-0042 derives from SI-7, but it is allocated to no system element/,
+  );
+  assert.match(
+    ctx.lateIssues[1].message,
+    /^REQ-0042\.5 derives from SC-12, but it is allocated to no system element/,
+  );
+  assert.ok(!ctx.issues.some((issue) => issue.code === "requirement_derivation_unplaced"));
 });
 
 test("targeted recovery resolves import identities to current content and preserves authored conflicts", () => {
   const ctx = build();
   const identity = ctx.entries.find(
-    (entry) => entry.table === "engineering_requirements" && entry.key === "REQ-0042",
+    (entry) => entry.table === "engineering_requirements" && entry.key === "REQ-0042.1",
   );
   const link = ctx.entries.find(
     (entry) =>
-      entry.table === "requirement_control_links" && entry.key === "REQ-0042:SI-7:derived_from",
+      entry.table === "requirement_control_links" &&
+      entry.key === "REQ-0042.1:SI-7(1):derived_from",
   );
   const current = {
     id: "current-content",

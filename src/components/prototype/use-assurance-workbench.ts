@@ -626,7 +626,11 @@ export function useAssuranceWorkbench(programId: string) {
     },
     canUndo: history.current?.canUndo ?? false,
     canRedo: history.current?.canRedo ?? false,
-    stageMapping: (change: MappingWorkbookChange) => {
+    /**
+     * Stage mapping changes together: one mapping on each of a requirement's systems is one staging,
+     * validated with the rest of the proposal before any of it is kept.
+     */
+    stageMapping: (change: MappingWorkbookChange | readonly MappingWorkbookChange[]) => {
       if (
         !workbook ||
         !baseline ||
@@ -637,7 +641,9 @@ export function useAssuranceWorkbench(programId: string) {
         recoveryError
       )
         return;
-      const next = [...mappings.filter((item) => item.id !== change.id), change];
+      const changes: readonly MappingWorkbookChange[] = "operation" in change ? [change] : change;
+      const ids = new Set(changes.map((item) => item.id));
+      const next = [...mappings.filter((item) => !ids.has(item.id)), ...changes];
       proposeWorkbookChanges(baseline, workbook, next);
       setMappings(next);
     },

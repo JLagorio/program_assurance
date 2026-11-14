@@ -269,6 +269,52 @@ describe("where a control's Map a requirement puts a requirement's mappings", ()
     ]);
   });
 
+  it("counts a mapping that names no system on every system, as the control's status does", () => {
+    // A catalog reference maps the whole control and names no system: every system carries it.
+    const everywhere = new Map<string | null, Set<string>>([[null, new Set([WHOLE_CONTROL])]]);
+    expect(
+      requirementMappingStanding(requirement(["flight", "ground"]), carriers, everywhere),
+    ).toEqual({ kind: "mapped", eligible: 2 });
+    // One that names heading a. with no system covers a.1 and a.2 on both: only b is left, on each.
+    const heading = new Map<string | null, Set<string>>([[null, coverageOf(objectives, ["a"])]]);
+    expect(
+      requirementMappingStanding(
+        requirement(["flight", "ground"]),
+        carriers,
+        heading,
+        ["a.1", "b"],
+        objectives,
+      ),
+    ).toEqual({
+      kind: "targets",
+      targets: [
+        { systemId: "flight", selectedControlId: "selection-flight", objectiveId: "b" },
+        { systemId: "ground", selectedControlId: "selection-ground", objectiveId: "b" },
+      ],
+      mapped: 0,
+      eligible: 2,
+    });
+    // With b mapped on flight, flight holds every objective: the whole control is left on ground.
+    const both = new Map<string | null, Set<string>>([
+      [null, coverageOf(objectives, ["a"])],
+      ["flight", coverageOf(objectives, ["b"])],
+    ]);
+    expect(
+      requirementMappingStanding(
+        requirement(["flight", "ground"]),
+        carriers,
+        both,
+        WHOLE_CONTROL_CHOICE,
+        objectives,
+      ),
+    ).toEqual({
+      kind: "targets",
+      targets: [{ systemId: "ground", selectedControlId: "selection-ground", objectiveId: null }],
+      mapped: 1,
+      eligible: 2,
+    });
+  });
+
   it("reads nothing chosen as the whole control", () => {
     expect(
       requirementMappingStanding(

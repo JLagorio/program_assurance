@@ -22,6 +22,10 @@
 -- its boundary, a mapping that names no system on every one, evidence system by system, and a
 -- control no system selects by any mapping; the read of one control's objectives says each
 -- system's standing, how many requirements are allocated there and which requirement owes evidence.
+-- Last, not assessed until all: the program's assessors decide a control once they have judged
+-- every objective it counts, a determination on an objective judging it and every objective under
+-- it and one on the statement judging them all; a control judged in part reads the ladder, with no
+-- one's determination, and says how many of its objectives are judged.
 begin;
 create function pg_temp.expect_error(statement text, expected_state text) returns void language plpgsql as $$
 begin
@@ -63,8 +67,15 @@ do $$ begin
   if exists (select 1 from pg_catalog.pg_proc p where p.prosecdef and p.oid in (
       'public.program_control_objectives(uuid, uuid)'::regprocedure,
       'public.program_control_objective_cover(uuid, uuid[])'::regprocedure,
+      'public.program_control_objective_judgments(uuid, uuid[])'::regprocedure,
       'public.program_control_status_lines(uuid)'::regprocedure)) then
     raise exception 'A read of a control''s objectives does not run as its caller';
+  end if;
+  -- What the program's assessors have judged of a control: a member's, as themselves.
+  if has_function_privilege('anon', 'public.program_control_objective_judgments(uuid, uuid[])', 'execute')
+    or has_function_privilege('public', 'public.program_control_objective_judgments(uuid, uuid[])', 'execute')
+    or not has_function_privilege('authenticated', 'public.program_control_objective_judgments(uuid, uuid[])', 'execute') then
+    raise exception 'program_control_objective_judgments is not a signed-in member''s read';
   end if;
 end $$;
 
@@ -106,6 +117,7 @@ select set_config('request.jwt.claim.sub', 'c5700000-0000-0000-0000-000000000001
 select pg_temp.expect_error($$select public.program_control_objectives('c5710000-0000-0000-0000-00000000dead', (select id from public.controls limit 1))$$, '42501');
 select pg_temp.expect_error($$select public.program_control_objectives('c5710000-0000-0000-0000-000000000001', null)$$, '42501');
 select pg_temp.expect_error($$select * from public.program_control_objective_cover('c5710000-0000-0000-0000-00000000dead', array[]::uuid[])$$, '42501');
+select pg_temp.expect_error($$select * from public.program_control_objective_judgments('c5710000-0000-0000-0000-00000000dead', array[]::uuid[])$$, '42501');
 do $$
 declare v_control uuid; v_answer jsonb;
 begin
@@ -128,6 +140,7 @@ set local role authenticated;
 select set_config('request.jwt.claim.sub', 'c5700000-0000-0000-0000-000000000002', true);
 select pg_temp.expect_error($$select public.program_control_objectives('c5710000-0000-0000-0000-000000000001', (select id from public.controls limit 1))$$, '42501');
 select pg_temp.expect_error($$select * from public.program_control_objective_cover('c5710000-0000-0000-0000-000000000001', array[]::uuid[])$$, '42501');
+select pg_temp.expect_error($$select * from public.program_control_objective_judgments('c5710000-0000-0000-0000-000000000001', array[]::uuid[])$$, '42501');
 select set_config('request.jwt.claim.sub', 'c5700000-0000-0000-0000-000000000001', true);
 
 -- ---------------------------------------------------------------------------------------------
@@ -205,7 +218,8 @@ begin
     raise exception 'program_control_status does not name a control as the catalog does';
   end if;
 
-  -- Three controls of the baseline that each have a part an assessor can judge.
+  -- Three controls of the baseline that each have a statement and a root assessment objective: an
+  -- assessor's determination on either judges the whole control, every objective it counts.
   select (array_agg(x.control_id order by x.code_order))[1], (array_agg(x.control_id order by x.code_order))[2],
     (array_agg(x.control_id order by x.code_order))[3]
   into v_a, v_b, v_c
@@ -215,7 +229,10 @@ begin
     join public.selected_controls sc on sc.profile_resolution_id = c.profile_resolution_id
     join public.catalog_control_rows k on k.id = sc.control_id
     where c.program_id = v_program
-      and (select count(*) from public.control_parts p where p.control_id = sc.control_id) >= 2
+      and exists (select 1 from public.control_parts p
+        where p.control_id = sc.control_id and p.parent_part_id is null and p.name = 'statement')
+      and exists (select 1 from public.control_parts p
+        where p.control_id = sc.control_id and p.parent_part_id is null and p.name = 'assessment-objective')
   ) x;
   if v_c is null then
     raise notice 'The baseline has no three controls with parts: the ladder checks were skipped';
@@ -268,12 +285,17 @@ begin
     raise exception 'The other program''s own requirement was not counted on it';
   end if;
 
-  -- An assessor's determinations, on the parts of the controls. The plan stands on a published
-  -- system security plan, and results on a published plan.
-  select p.id into v_part_a from public.control_parts p where p.control_id = v_a order by p.ordinal, p.id limit 1;
-  select p.id into v_part_b from public.control_parts p where p.control_id = v_b order by p.ordinal, p.id limit 1;
-  select p.id into v_part_b2 from public.control_parts p where p.control_id = v_b order by p.ordinal, p.id offset 1 limit 1;
-  select p.id into v_part_c from public.control_parts p where p.control_id = v_c order by p.ordinal, p.id limit 1;
+  -- An assessor's determinations, on parts that judge the whole control: each control's statement,
+  -- and B's root objective, above every objective B counts. The plan stands on a published system
+  -- security plan, and results on a published plan.
+  select p.id into v_part_a from public.control_parts p
+    where p.control_id = v_a and p.parent_part_id is null and p.name = 'statement' order by p.ordinal, p.id limit 1;
+  select p.id into v_part_b from public.control_parts p
+    where p.control_id = v_b and p.parent_part_id is null and p.name = 'statement' order by p.ordinal, p.id limit 1;
+  select p.id into v_part_b2 from public.control_parts p
+    where p.control_id = v_b and p.parent_part_id is null and p.name = 'assessment-objective' order by p.ordinal, p.id limit 1;
+  select p.id into v_part_c from public.control_parts p
+    where p.control_id = v_c and p.parent_part_id is null and p.name = 'statement' order by p.ordinal, p.id limit 1;
   select s.id into v_system from public.systems s where s.program_id = v_program order by s.created_at, s.id limit 1;
   -- Program setup wrote the system's first security plan revision; the plan stands on it once published.
   select r.id into v_ssp from public.ssp_revisions r where r.system_id = v_system order by r.version_number limit 1;
@@ -300,8 +322,8 @@ begin
     raise exception 'Published results answered B % and A %', pg_temp.line(v_answer, v_b)->>'status', pg_temp.line(v_answer, v_a)->>'status';
   end if;
 
-  -- Second results, later: B's second part partially satisfied, so the worst of B's parts decides;
-  -- A other than satisfied, whatever it holds; and C satisfied in a result left in draft.
+  -- Second results, later: B's root objective partially satisfied, so the worst of B's parts
+  -- decides; A other than satisfied, whatever it holds; and C satisfied in a result left in draft.
   insert into public.assessment_results_revisions(id, tenant_id, version_number, assessment_plan_revision_id, title)
     values (v_second, v_tenant, 2, v_plan, 'Second results');
   insert into public.result_sets(tenant_id, assessment_results_revision_id, title) values (v_tenant, v_second, 'Second set') returning id into v_set;
@@ -338,6 +360,13 @@ begin
         or (c->>'determined_by' is not null) <> (c->>'status' in ('satisfied', 'partially_satisfied', 'other_than_satisfied'))) then
     raise exception 'A program with no variant said whose determinations: A %, B %, C %', pg_temp.line(v_answer, v_a),
       pg_temp.line(v_answer, v_b), pg_temp.line(v_answer, v_c);
+  end if;
+  -- A determination on the statement or the root objective judges every objective the control
+  -- counts; a control nobody judged has none judged.
+  if exists (select 1 from jsonb_array_elements(v_answer->'controls') c
+      where (c->>'objectives_assessed')::integer
+        <> case when c->>'id' in (v_a::text, v_b::text) then (c->>'objectives')::integer else 0 end) then
+    raise exception 'The objectives judged read A %, B %', pg_temp.line(v_answer, v_a), pg_temp.line(v_answer, v_b);
   end if;
   -- The other program's campaigns are its own: nothing of this one's results reaches it.
   if pg_temp.line(public.program_control_status(v_other), v_a)->>'status' <> 'no_requirement' then
@@ -379,7 +408,7 @@ declare
   v_config_p uuid := gen_random_uuid(); v_config_q uuid := gen_random_uuid();
   v_assessment_p uuid := gen_random_uuid(); v_assessment_q uuid := gen_random_uuid(); v_later uuid := gen_random_uuid();
   v_profile uuid := gen_random_uuid(); v_created jsonb; v_program uuid; v_variant_p uuid; v_kit_system public.systems;
-  v_ssp uuid; v_part uuid; v_campaign uuid := gen_random_uuid(); v_plan uuid := gen_random_uuid();
+  v_ssp uuid; v_part uuid; v_k1_leaf uuid; v_campaign uuid := gen_random_uuid(); v_plan uuid := gen_random_uuid();
   v_results uuid := gen_random_uuid(); v_set uuid;
   v_answer jsonb; v_totals jsonb; v_line jsonb;
 begin
@@ -395,14 +424,15 @@ begin
     return;
   end if;
   select count(distinct sc.control_id) into v_selected from public.selected_controls sc where sc.profile_resolution_id = v_base;
-  -- Seven controls of the baseline, each with a part an assessor can judge.
+  -- Seven controls of the baseline, each with a statement an assessor can judge it on.
   select array_agg(x.control_id order by x.code_order) into v_k
   from (
     select distinct sc.control_id, k.code_order
     from public.selected_controls sc
     join public.catalog_control_rows k on k.id = sc.control_id
     where sc.profile_resolution_id = v_base
-      and exists (select 1 from public.control_parts p where p.control_id = sc.control_id)
+      and exists (select 1 from public.control_parts p
+        where p.control_id = sc.control_id and p.parent_part_id is null and p.name = 'statement')
     order by k.code_order limit 7
   ) x;
   if coalesce(cardinality(v_k), 0) < 7 then
@@ -552,8 +582,10 @@ begin
     raise exception 'Inherited controls read K4 %, K5 %', pg_temp.line(v_answer, v_k[4]), pg_temp.line(v_answer, v_k[5]);
   end if;
 
-  -- The program's own published determination still wins over the product's.
-  select p.id into v_part from public.control_parts p where p.control_id = v_k[4] order by p.ordinal, p.id limit 1;
+  -- The program's own published determination still wins over the product's, once it judges every
+  -- objective the control counts: one on its statement does.
+  select p.id into v_part from public.control_parts p
+    where p.control_id = v_k[4] and p.parent_part_id is null and p.name = 'statement' order by p.ordinal, p.id limit 1;
   select r.id into v_ssp from public.ssp_revisions r where r.system_id = v_variant_p order by r.version_number limit 1;
   update public.ssp_revisions set state = 'published', published_at = now(), revision = revision + 1 where id = v_ssp and state <> 'published';
   insert into public.assessment_campaigns(id, tenant_id, title, program_id) values (v_campaign, v_tenant, 'Products test campaign', v_program);
@@ -565,6 +597,16 @@ begin
   insert into public.result_sets(tenant_id, assessment_results_revision_id, title) values (v_tenant, v_results, 'Products test set') returning id into v_set;
   insert into public.assessment_findings(tenant_id, assessment_results_revision_id, result_set_id, target_control_part_id, title, determination, determined_at)
     values (v_tenant, v_results, v_set, v_part, 'K4, judged in the program', 'other_than_satisfied', now());
+  -- K1 judged on one of its objectives alone: the program has no determination of it yet, so the
+  -- product's still decides.
+  select o.id into v_k1_leaf from public.control_parts o
+    where o.control_id = v_k[1] and o.name = 'assessment-objective'
+      and not exists (select 1 from public.control_parts g where g.parent_part_id = o.id and g.name = 'assessment-objective')
+    order by o.source_pointer limit 1;
+  if v_k1_leaf is not null then
+    insert into public.assessment_findings(tenant_id, assessment_results_revision_id, result_set_id, target_control_part_id, title, determination, determined_at)
+      values (v_tenant, v_results, v_set, v_k1_leaf, 'K1, one objective judged in the program', 'other_than_satisfied', now());
+  end if;
   update public.assessment_results_revisions set state = 'published', published_at = now(), revision = revision + 1 where id = v_results;
 
   -- A modified element: the control behind it is changed here in P, so the ladder stands under it.
@@ -592,6 +634,17 @@ begin
   if pg_temp.line(v_answer, v_k[1])->>'status' <> 'satisfied'
     or (pg_temp.line(v_answer, v_k[1])->'product_assessments'->0->>'id')::uuid <> v_assessment_p then
     raise exception 'A draft reassessment decided a control: %', pg_temp.line(v_answer, v_k[1]);
+  end if;
+  -- K1, judged by the program on one objective of the several it counts, is still the product's,
+  -- and says the one objective judged; K4, judged on its statement, has every objective judged.
+  v_line := pg_temp.line(v_answer, v_k[1]);
+  if v_k1_leaf is not null and (v_line->>'objectives')::integer > 1
+    and (v_line->>'determined_by' <> 'product' or v_line->>'status' <> 'satisfied'
+      or v_line->'objectives_assessed' <> '1'::jsonb) then
+    raise exception 'A program''s determination on one objective of an inherited control decided it: %', v_line;
+  end if;
+  if pg_temp.line(v_answer, v_k[4])->'objectives_assessed' <> pg_temp.line(v_answer, v_k[4])->'objectives' then
+    raise exception 'A determination on the statement did not judge every objective: %', pg_temp.line(v_answer, v_k[4]);
   end if;
   -- Every control stands at one status, and the totals add up to the baseline.
   if (v_totals->>'controls')::integer <> v_selected or jsonb_array_length(v_answer->'controls') <> v_selected
@@ -1247,6 +1300,205 @@ begin
   raise notice 'The checks of every system ran against the pinned references';
 end $$;
 
+-- ---------------------------------------------------------------------------------------------
+-- Not assessed until all (20261114144036_not_assessed_until_all): the program's assessors decide a
+-- control once they have judged every objective it counts. A determination on an objective judges
+-- it and every objective under it, one on the control's statement judges them all, and not
+-- assessed, or a result left in draft, judges nothing. Until every objective is judged the control
+-- reads the ladder, with no one's determination; once they all are, the worst of the determinations
+-- decides it. Each control says how many of its objectives are judged.
+-- ---------------------------------------------------------------------------------------------
+do $$
+declare
+  v_tenant uuid := current_setting('test.tenant')::uuid;
+  v_catalog uuid; v_base uuid; v_program uuid; v_system uuid; v_ssp uuid;
+  v_control uuid; v_heading uuid; v_under uuid[]; v_counted uuid[]; v_outside uuid; v_last uuid[];
+  v_other uuid; v_other_statement uuid;
+  v_campaign uuid := gen_random_uuid(); v_plan uuid := gen_random_uuid();
+  v_first uuid := gen_random_uuid(); v_second uuid := gen_random_uuid();
+  v_third uuid := gen_random_uuid(); v_draft uuid := gen_random_uuid(); v_whole uuid := gen_random_uuid();
+  v_set uuid; v_line jsonb; v_answer jsonb; v_judged integer;
+begin
+  select r.id, i.catalog_revision_id into v_base, v_catalog
+  from public.profile_resolutions r
+  join public.profile_imports i on i.profile_revision_id = r.profile_revision_id
+  join public.catalog_revisions k on k.id = i.catalog_revision_id and k.state = 'published'
+  where r.tenant_id is null and r.state = 'published' and r.base_profile_resolution_id is null
+    and (select count(*) from public.selected_controls sc where sc.profile_resolution_id = r.id) >= 3
+  order by (select count(*) from public.selected_controls sc where sc.profile_resolution_id = r.id), r.id limit 1;
+  if v_base is null then
+    raise notice 'The pinned references are not installed: the checks of a control judged in part were skipped';
+    return;
+  end if;
+  v_program := pg_temp.program('CS-JUDGED', v_catalog, v_base);
+
+  -- A control whose objectives nest, as the objective checks pick one: a heading over two leaves or
+  -- more, with a leaf of the control outside it, and no heading that prints a sentence of its own.
+  select x.control_id, x.heading into v_control, v_heading
+  from (
+    select sc.control_id, h.id as heading, k.code_order, h.source_pointer
+    from public.program_reference_choices c
+    join public.selected_controls sc on sc.profile_resolution_id = c.profile_resolution_id
+    join public.catalog_control_rows k on k.id = sc.control_id
+    join public.control_parts h on h.control_id = sc.control_id and h.name = 'assessment-objective'
+      and h.parent_part_id is not null
+    where c.program_id = v_program
+      and (select count(*) from public.control_parts u where u.parent_part_id = h.id and u.name = 'assessment-objective'
+        and not exists (select 1 from public.control_parts g where g.parent_part_id = u.id and g.name = 'assessment-objective')) >= 2
+      and not exists (select 1 from public.control_parts u join public.control_parts g on g.parent_part_id = u.id
+        where u.parent_part_id = h.id and g.name = 'assessment-objective')
+      and not exists (select 1 from public.control_parts s
+        where s.control_id = sc.control_id and s.name = 'assessment-objective'
+          and exists (select 1 from public.control_parts u where u.parent_part_id = s.id and u.name = 'assessment-objective')
+          and public.objective_prints_own_sentence(s.prose))
+  ) x
+  order by x.code_order, x.source_pointer limit 1;
+  if v_control is null then
+    raise notice 'The baseline has no control whose objectives nest: the checks of a control judged in part were skipped';
+    return;
+  end if;
+  select array_agg(u.id order by u.source_pointer) into v_under
+  from public.control_parts u where u.parent_part_id = v_heading and u.name = 'assessment-objective';
+  select array_agg((o->>'id')::uuid order by n) into v_counted
+  from jsonb_array_elements(public.program_control_objectives(v_program, v_control)->'objectives') with ordinality as x(o, n);
+  select l into v_outside from unnest(v_counted) with ordinality as x(l, n) where l <> all(v_under) order by n limit 1;
+  -- Another control of the baseline with objectives of its own, judged on its statement alone.
+  select sc.control_id, st.id into v_other, v_other_statement
+  from public.program_reference_choices c
+  join public.selected_controls sc on sc.profile_resolution_id = c.profile_resolution_id
+  join public.catalog_control_rows k on k.id = sc.control_id
+  join public.control_parts st on st.control_id = sc.control_id and st.parent_part_id is null and st.name = 'statement'
+  where c.program_id = v_program and sc.control_id <> v_control
+    and (select count(*) from public.control_parts o where o.control_id = sc.control_id and o.name = 'assessment-objective') >= 2
+  order by k.code_order, st.id limit 1;
+  if v_outside is null or v_other is null then
+    raise notice 'The baseline has no control to judge in part: the checks of a control judged in part were skipped';
+    return;
+  end if;
+
+  -- One requirement that cites evidence maps both controls whole: every objective is evidenced, and
+  -- with nothing judged both read not assessed, with no objective judged.
+  insert into public.engineering_requirements(id, tenant_id, program_id, code) values
+    ('c5720000-0000-0000-0000-000000000051', v_tenant, v_program, 'REQ-JUDGED');
+  insert into public.requirement_revisions(id, tenant_id, engineering_requirement_id, version_number, title, statement, acceptance_criteria, requirement_type) values
+    ('c5730000-0000-0000-0000-000000000051', v_tenant, 'c5720000-0000-0000-0000-000000000051', 1, 'Meets both', 'The system does both things.', 'It is recorded.', 'functional');
+  insert into public.requirement_control_links(tenant_id, requirement_revision_id, control_id, relationship_type) values
+    (v_tenant, 'c5730000-0000-0000-0000-000000000051', v_control, 'satisfies'),
+    (v_tenant, 'c5730000-0000-0000-0000-000000000051', v_other, 'satisfies');
+  insert into public.evidence_artifacts(id, tenant_id, title, artifact_kind, program_id) values
+    ('c5740000-0000-0000-0000-000000000051', v_tenant, 'Rollback judged report', 'document', v_program);
+  insert into public.evidence_versions(id, tenant_id, artifact_id, version_number, state, external_uri) values
+    ('c5750000-0000-0000-0000-000000000051', v_tenant, 'c5740000-0000-0000-0000-000000000051', 1, 'published', 'https://example.test/evidence/judged');
+  insert into public.requirement_evidence(tenant_id, requirement_revision_id, evidence_version_id) values
+    (v_tenant, 'c5730000-0000-0000-0000-000000000051', 'c5750000-0000-0000-0000-000000000051');
+  v_line := pg_temp.line(public.program_control_status(v_program), v_control);
+  if v_line->>'status' <> 'not_assessed' or (v_line->>'objectives')::integer <> cardinality(v_counted)
+    or v_line->'objectives_assessed' <> '0'::jsonb or v_line->'determined_by' <> 'null'::jsonb then
+    raise exception 'A control evidenced and judged by nobody read %', v_line;
+  end if;
+
+  -- A campaign's plan on the system's published security plan.
+  select s.id into v_system from public.systems s where s.program_id = v_program order by s.created_at, s.id limit 1;
+  select r.id into v_ssp from public.ssp_revisions r where r.system_id = v_system order by r.version_number limit 1;
+  update public.ssp_revisions set state = 'published', published_at = now(), revision = revision + 1 where id = v_ssp and state <> 'published';
+  insert into public.assessment_campaigns(id, tenant_id, title, program_id) values (v_campaign, v_tenant, 'Judged in part campaign', v_program);
+  insert into public.assessment_plan_revisions(id, tenant_id, version_number, campaign_id, ssp_revision_id, title)
+    values (v_plan, v_tenant, 1, v_campaign, v_ssp, 'Judged in part plan');
+  update public.assessment_plan_revisions set state = 'published', published_at = now(), revision = revision + 1 where id = v_plan;
+
+  -- First results: one objective outside the heading satisfied, and the heading found not assessed,
+  -- which judges nothing. Published, they decide nothing yet: one objective is judged.
+  insert into public.assessment_results_revisions(id, tenant_id, version_number, assessment_plan_revision_id, title)
+    values (v_first, v_tenant, 1, v_plan, 'First results');
+  insert into public.result_sets(tenant_id, assessment_results_revision_id, title) values (v_tenant, v_first, 'First set') returning id into v_set;
+  insert into public.assessment_findings(tenant_id, assessment_results_revision_id, result_set_id, target_control_part_id, title, determination, determined_at) values
+    (v_tenant, v_first, v_set, v_outside, 'One objective', 'satisfied', now() - interval '3 days'),
+    (v_tenant, v_first, v_set, v_heading, 'The heading, looked at and left', 'not_assessed', now() - interval '3 days');
+  update public.assessment_results_revisions set state = 'published', published_at = now(), revision = revision + 1 where id = v_first;
+  v_line := pg_temp.line(public.program_control_status(v_program), v_control);
+  if v_line->>'status' <> 'not_assessed' or v_line->'objectives_assessed' <> '1'::jsonb
+    or v_line->'determined_by' <> 'null'::jsonb or v_line->'product_assessments' <> '[]'::jsonb then
+    raise exception 'A control judged on one of its objectives read %', v_line;
+  end if;
+  if (select count(*) from public.program_control_objective_judgments(v_program, array[v_control])) <> 1
+    or not exists (select 1 from public.program_control_objective_judgments(v_program, array[v_control]) j
+      where j.objective_id = v_outside and j.determination = 'satisfied') then
+    raise exception 'What the program judged of the control reads %', (select jsonb_agg(to_jsonb(j))
+      from public.program_control_objective_judgments(v_program, array[v_control]) j);
+  end if;
+
+  -- Second results: the heading partially satisfied judges every objective under it. Unless that
+  -- leaves none, the control is still not assessed; a result left in draft judges nothing more.
+  insert into public.assessment_results_revisions(id, tenant_id, version_number, assessment_plan_revision_id, title)
+    values (v_second, v_tenant, 2, v_plan, 'Second results');
+  insert into public.result_sets(tenant_id, assessment_results_revision_id, title) values (v_tenant, v_second, 'Second set') returning id into v_set;
+  insert into public.assessment_findings(tenant_id, assessment_results_revision_id, result_set_id, target_control_part_id, title, determination, determined_at) values
+    (v_tenant, v_second, v_set, v_heading, 'The heading', 'partially_satisfied', now() - interval '2 days');
+  update public.assessment_results_revisions set state = 'published', published_at = now(), revision = revision + 1 where id = v_second;
+  select array_agg(l order by n) into v_last
+  from unnest(v_counted) with ordinality as x(l, n) where l <> v_outside and l <> all(v_under);
+  insert into public.assessment_results_revisions(id, tenant_id, version_number, assessment_plan_revision_id, title)
+    values (v_draft, v_tenant, 3, v_plan, 'Results in draft');
+  insert into public.result_sets(tenant_id, assessment_results_revision_id, title) values (v_tenant, v_draft, 'Draft set') returning id into v_set;
+  insert into public.assessment_findings(tenant_id, assessment_results_revision_id, result_set_id, target_control_part_id, title, determination, determined_at)
+  select v_tenant, v_draft, v_set, l, 'Not yet published', 'satisfied', now() from unnest(coalesce(v_last, '{}')) l;
+  v_judged := 1 + cardinality(v_under);
+  v_line := pg_temp.line(public.program_control_status(v_program), v_control);
+  if (v_line->>'objectives_assessed')::integer <> v_judged
+    or v_line->>'status' <> (case when v_judged = cardinality(v_counted) then 'partially_satisfied' else 'not_assessed' end) then
+    raise exception 'A control judged at a heading read % (% objectives judged of %)', v_line, v_judged, cardinality(v_counted);
+  end if;
+
+  -- Third results: every objective left, satisfied. Every objective is judged: the worst of the
+  -- determinations, the heading's, decides it, and it is the program's.
+  insert into public.assessment_results_revisions(id, tenant_id, version_number, assessment_plan_revision_id, title)
+    values (v_third, v_tenant, 4, v_plan, 'Third results');
+  insert into public.result_sets(tenant_id, assessment_results_revision_id, title) values (v_tenant, v_third, 'Third set') returning id into v_set;
+  insert into public.assessment_findings(tenant_id, assessment_results_revision_id, result_set_id, target_control_part_id, title, determination, determined_at)
+  select v_tenant, v_third, v_set, l, 'The rest', 'satisfied', now() - interval '1 day' from unnest(coalesce(v_last, '{}')) l;
+  update public.assessment_results_revisions set state = 'published', published_at = now(), revision = revision + 1 where id = v_third;
+  v_line := pg_temp.line(public.program_control_status(v_program), v_control);
+  if v_line->>'status' <> 'partially_satisfied' or v_line->>'determined_by' <> 'program'
+    or (v_line->>'objectives_assessed')::integer <> cardinality(v_counted) then
+    raise exception 'A control with every objective judged read %', v_line;
+  end if;
+
+  -- The other control, judged on its statement alone as every plan before took a control: every
+  -- objective it counts is judged, and its determination decides it, as it always did.
+  insert into public.assessment_results_revisions(id, tenant_id, version_number, assessment_plan_revision_id, title)
+    values (v_whole, v_tenant, 5, v_plan, 'Results on the statement');
+  insert into public.result_sets(tenant_id, assessment_results_revision_id, title) values (v_tenant, v_whole, 'Statement set') returning id into v_set;
+  insert into public.assessment_findings(tenant_id, assessment_results_revision_id, result_set_id, target_control_part_id, title, determination, determined_at)
+    values (v_tenant, v_whole, v_set, v_other_statement, 'The other control, whole', 'other_than_satisfied', now());
+  update public.assessment_results_revisions set state = 'published', published_at = now(), revision = revision + 1 where id = v_whole;
+  v_answer := public.program_control_status(v_program);
+  v_line := pg_temp.line(v_answer, v_other);
+  if v_line->>'status' <> 'other_than_satisfied' or v_line->>'determined_by' <> 'program'
+    or v_line->'objectives_assessed' <> v_line->'objectives' or (v_line->>'objectives')::integer < 2 then
+    raise exception 'A control judged on its statement read %', v_line;
+  end if;
+
+  -- Every control stands at one status; a determined control has every objective judged and no
+  -- other has more judged than it counts; the internal lines the snapshots count are the read's;
+  -- and a viewer reads the same answer.
+  if (select sum(value::integer) from jsonb_each_text(v_answer->'totals') where key <> 'controls')
+      <> (v_answer->'totals'->>'controls')::integer
+    or exists (select 1 from jsonb_array_elements(v_answer->'controls') c
+      where (c->>'objectives_assessed')::integer > (c->>'objectives')::integer
+        or (c->>'determined_by' = 'program' and (c->>'objectives_assessed')::integer <> (c->>'objectives')::integer))
+    or exists (select 1 from public.program_control_status_lines(v_program) l
+      where l.status is distinct from pg_temp.line(v_answer, l.id)->>'status'
+        or l.objectives_assessed <> (pg_temp.line(v_answer, l.id)->>'objectives_assessed')::bigint) then
+    raise exception 'The objectives judged do not add up: %', v_answer->'totals';
+  end if;
+  perform set_config('request.jwt.claim.sub', 'c5700000-0000-0000-0000-000000000002', true);
+  if public.program_control_status(v_program) is distinct from v_answer then
+    raise exception 'A viewer read another answer of a control judged in part';
+  end if;
+  perform set_config('request.jwt.claim.sub', 'c5700000-0000-0000-0000-000000000001', true);
+  raise notice 'The checks of a control judged in part ran against the pinned references';
+end $$;
+
 reset role;
 rollback;
-select 'Program control status: privileges, refusal, a program with no baseline, the ladder a control climbs, the determinations a program takes from its products, the objectives a control''s requirements cover, the headings that count on their own and every system that selects a control passed.' as result;
+select 'Program control status: privileges, refusal, a program with no baseline, the ladder a control climbs, the determinations a program takes from its products, the objectives a control''s requirements cover, the headings that count on their own, every system that selects a control and a control judged in part passed.' as result;
