@@ -40,7 +40,17 @@ import {
   useProgramControlStatus,
   useProgramsControlStatus,
 } from "@/lib/control-status";
-import { useRows, type Row, type TableName } from "@/lib/models";
+import {
+  RECENT_ACTIVITY_EVENTS,
+  activityEntries,
+  changedFields,
+  eventRecord,
+  eventWords,
+  recentActivityRead,
+  type ActivityEntry,
+  type ActivityEvent,
+} from "@/lib/activity-entries";
+import { useRows } from "@/lib/models";
 import { useRecentPostureTrend } from "@/lib/posture-trend";
 import {
   determinations,
@@ -54,7 +64,6 @@ import {
 import { useWorkspace } from "@/components/app/workspace";
 import { Page } from "@/components/app/shell";
 import { LevelIndicator } from "@/components/app/status";
-import { labelFor } from "@/lib/records";
 import { noOwnerFilter, ownerField } from "@/lib/owner-assign";
 import { registerViews } from "@/lib/register-views";
 import {
@@ -379,49 +388,6 @@ function ProgramControlStatusCell({ program }: { program: ProgramRow }) {
   );
 }
 
-/** An activity entry: one event, or consecutive edits of one requirement by one person. */
-type FeedEntry = {
-  events: Row<"activity_events">[];
-  actor: string | null;
-  requirement: { id: string; code: string; programId: string } | null;
-};
-
-/** The record an activity event names, when it has a page of its own. */
-function eventRecord(event: Row<"activity_events">): { table: TableName; id: string } | null {
-  const targets: [TableName, string | null][] = [
-    ["tasks", event.task_id],
-    ["risks", event.risk_id],
-    ["operational_issues", event.issue_id],
-    ["poam_items", event.poam_item_id],
-    ["assessment_campaigns", event.assessment_campaign_id],
-    ["authorization_packages", event.package_id],
-    ["evidence_artifacts", event.evidence_artifact_id],
-  ];
-  const found = targets.find(([, id]) => !!id);
-  return found ? { table: found[0], id: found[1]! } : null;
-}
-
-/** A requirement edit's changed fields, in the reader's words. */
-const changeLabels: Record<string, string> = {
-  title: "title",
-  statement: "statement",
-  acceptanceCriteria: "acceptance criteria",
-  rationale: "rationale",
-  requirementType: "requirement type",
-  ownerPartyId: "owner",
-};
-function changedFields(event: Row<"activity_events">) {
-  const changes = event.changes;
-  if (!changes || typeof changes !== "object" || Array.isArray(changes)) return [];
-  return Object.entries(changes)
-    .filter(([, value]) => {
-      if (!value || typeof value !== "object" || Array.isArray(value)) return false;
-      const change = value as Record<string, unknown>;
-      return change["before"] !== change["after"];
-    })
-    .map(([field]) => changeLabels[field] ?? labelFor(field).toLowerCase());
-}
-
 const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
 
 function Portfolio() {
@@ -457,15 +423,36 @@ function Portfolio() {
     pageSize: TOP,
   });
   const parties = useRows("parties", undefined, { columns: ["id", "name"] as const });
-  const activity = useRows("activity_events", undefined, {
-    order: { column: "occurred_at", ascending: false },
+  // The feed reads the workspace's latest events, a page of them with the columns an entry draws,
+  // then names the requirements those events edited: never every event, revision or requirement.
+  const activity = useServerRows<ActivityEvent>(recentActivityRead, {
+    pageIndex: 0,
+    pageSize: RECENT_ACTIVITY_EVENTS,
   });
-  const requirementRevisions = useRows("requirement_revisions", undefined, {
-    columns: ["id", "engineering_requirement_id"] as const,
-  });
-  const requirements = useRows("engineering_requirements", undefined, {
-    columns: ["id", "code", "program_id"] as const,
-  });
+  const events = activity.data?.rows;
+  const revisionIds = useMemo(
+    () => [...new Set((events ?? []).flatMap((e) => e.requirement_revision_id ?? []))],
+    [events],
+  );
+  const requirementRevisions = useRows(
+    "requirement_revisions",
+    { id: revisionIds },
+    { columns: ["id", "engineering_requirement_id"] as const, enabled: events !== undefined },
+  );
+  const requirementIds = useMemo(
+    () => [
+      ...new Set((requirementRevisions.data ?? []).map((row) => row.engineering_requirement_id)),
+    ],
+    [requirementRevisions.data],
+  );
+  const requirements = useRows(
+    "engineering_requirements",
+    { id: requirementIds },
+    {
+      columns: ["id", "code", "program_id"] as const,
+      enabled: requirementRevisions.data !== undefined,
+    },
+  );
   const canCreate = workspace.role !== "viewer";
 
   // One lookup per related table: the widgets and the feed read their names from it.
@@ -736,37 +723,21 @@ function Portfolio() {
       (requirementRevisions.data ?? []).map((row) => [row.id, row.engineering_requirement_id]),
     );
     const requirementById = new Map((requirements.data ?? []).map((row) => [row.id, row]));
-    const entries: FeedEntry[] = [];
-    const events = (activity.data ?? [])
-      .slice()
-      .sort((a, b) => b.occurred_at.localeCompare(a.occurred_at));
-    for (const event of events) {
-      const requirementId = event.requirement_revision_id
-        ? requirementOf.get(event.requirement_revision_id)
-        : undefined;
-      const record = requirementId ? requirementById.get(requirementId) : undefined;
-      const requirement = record
-        ? { id: record.id, code: record.code, programId: record.program_id }
-        : null;
-      const previous = entries.at(-1);
-      // A requirement's creation is its own entry; consecutive edits of it share one.
-      if (
-        requirement &&
-        event.event_type !== "created" &&
-        previous?.requirement?.id === requirement.id &&
-        previous.actor === event.actor_party_id
-      )
-        previous.events.push(event);
-      else if (entries.length < FEED)
-        entries.push({ events: [event], actor: event.actor_party_id, requirement });
-      else break;
-    }
-    return entries;
-  }, [activity.data, requirementRevisions.data, requirements.data]);
+    return activityEntries(
+      events ?? [],
+      (revisionId) => {
+        const record = requirementById.get(requirementOf.get(revisionId) ?? "");
+        return record
+          ? { id: record.id, code: record.code, programId: record.program_id }
+          : undefined;
+      },
+      FEED,
+    );
+  }, [events, requirementRevisions.data, requirements.data]);
 
   /** An entry as the feed reads it: who did what, to which record, and when. */
-  const feedItem = (entry: FeedEntry) => {
-    const [latest] = entry.events as [Row<"activity_events">];
+  const feedItem = (entry: ActivityEntry) => {
+    const [latest] = entry.events as [ActivityEvent];
     const actor = entry.actor ? partyName.get(entry.actor) : undefined;
     const program = latest.program_id ? programName.get(latest.program_id) : undefined;
     if (entry.requirement && latest.event_type === "created")
@@ -798,16 +769,12 @@ function Portfolio() {
         }),
       };
     }
-    // A recorded verb phrase ("assigned …") reads after the person who did it; any other text is
-    // what was said, under the kind of event, so the title still says who did what.
-    const [first = "", ...rest] = (latest.description ?? "").split("\n");
-    const phrase = /^[a-z]/.test(first.trim());
-    const deed = phrase ? first.trim() : labelFor(latest.event_type).toLowerCase();
-    const said = (phrase ? rest : [first, ...rest]).join(" ").trim();
+    // What the person did, and what was said (activity-entries).
+    const { deed, said } = eventWords(latest);
     const record = eventRecord(latest);
     return {
       title: actor ? `${actor} ${deed}` : capitalize(deed),
-      description: said || undefined,
+      description: said,
       meta: program,
       // The record it names, where that record has a page.
       link: record

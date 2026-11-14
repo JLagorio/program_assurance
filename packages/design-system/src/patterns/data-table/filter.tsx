@@ -55,9 +55,6 @@ const FACET_LIMIT = 30;
 /** Above this many values a facet takes a search field over its checkboxes. */
 const FACET_SEARCH_AT = 8;
 
-const asArray = (v: unknown): unknown[] =>
-  Array.isArray(v) ? v : v == null || v === "" ? [] : [v];
-
 /** One value a facet offers. A server-filtered table passes its values, and their counts, as `options`: the rows it holds are one page, so their values are not every value there is. */
 export type FilterOption = {
   /** The stored value the filter matches. */
@@ -93,22 +90,37 @@ function FacetBody({
   const shown = needle
     ? values.filter(([value]) => labelOf(value).toLocaleLowerCase(locale).includes(needle))
     : values;
+  const long = values.length > FACET_SEARCH_AT;
   return (
     <div className="flex min-w-0 flex-col gap-100">
       {/* A long facet takes a search, so a reader finds one person among forty without scrolling. */}
-      {values.length > FACET_SEARCH_AT ? (
-        <SearchField
-          size="small"
-          value={query}
-          onValueChange={(next) => setQuery(next)}
-          aria-label={t("searchFacet", { label: title })}
-          placeholder={t("search")}
-        />
+      {long ? (
+        // Inset as the list under it is, so the field and the rows share their edges.
+        <div className="px-050">
+          <SearchField
+            size="small"
+            value={query}
+            onValueChange={(next) => setQuery(next)}
+            aria-label={t("searchFacet", { label: title })}
+            placeholder={t("search")}
+          />
+        </div>
       ) : null}
       {shown.length === 0 ? (
         <p className="font-body-small text-subtle">{t("noMatchingValues")}</p>
       ) : (
-        <div className="flex flex-col gap-075">
+        <div
+          // A long facet's list scrolls under its search at dimension.part.filterList, so the
+          // popover keeps one height wherever it opens, as the search narrows the list and widens
+          // it again: a popover held to the window's room as its list grew would move and
+          // measure itself again in one frame, a ResizeObserver loop. Its padding is the room
+          // its rows' focus rings take.
+          className={cn(
+            "flex flex-col gap-075",
+            long && "overflow-y-auto overscroll-contain p-050",
+          )}
+          style={long ? { maxHeight: token("dimension.part.filterList") } : undefined}
+        >
           {shown.map(([value, count]) => (
             <label
               key={String(value)}
@@ -288,7 +300,21 @@ function ColumnFilter<TData extends RowData>({
   );
   const labelOf = (value: unknown) =>
     labels.get(String(value)) ?? (status ? status.label(value) : String(value));
-  const chosenKey = JSON.stringify(asArray(raw).map(String));
+  // The question the column is asked: values (the facet's, a link's, a saved view's) or a text.
+  const asked: unknown[] = Array.isArray(raw) ? raw : typeof raw === "string" && raw ? [raw] : [];
+  const contains =
+    raw && typeof raw === "object" && "contains" in raw
+      ? String((raw as { contains: unknown }).contains ?? "")
+      : "";
+  // The chip says the question whichever field the popover offers, so an applied filter never
+  // reads as unapplied, and Clear removes it.
+  const askedWords =
+    asked.length === 1
+      ? labelOf(asked[0])
+      : asked.length > 1
+        ? t("chosenCount", { count: formatNumber(asked.length) })
+        : contains || undefined;
+  const chosenKey = JSON.stringify(asked.map(String));
   const facets = useMemo(() => {
     if (kind === "number" || kind === "date" || kind === "custom" || kind === "actions")
       return null;
@@ -297,7 +323,9 @@ function ColumnFilter<TData extends RowData>({
     else {
       if (!facetValues || (kind === "list" && !multiValued)) return null;
       values = [...facetValues.entries()].filter(([v]) => v != null && v !== "");
-      if ((kind === "text" || kind === "list") && values.length > FACET_LIMIT) return null;
+      // A long text column filters by its text. A list's items are a vocabulary (people, types,
+      // techniques), which its facet lists however many there are, under a search.
+      if (kind === "text" && values.length > FACET_LIMIT) return null;
     }
     // A chosen value stays in the list, at 0, after the search or another filter removes its rows,
     // so it can still be unchecked where it was checked.
@@ -351,27 +379,17 @@ function ColumnFilter<TData extends RowData>({
             ? `≤ ${words(to)}`
             : undefined;
   } else if (facets) {
-    const chosen = asArray(raw);
     body = (
       <FacetBody
         values={facets}
-        chosen={chosen}
+        chosen={asked}
         onChange={(next) => column.setFilterValue(next.length ? next : undefined)}
         labelOf={labelOf}
         title={title}
       />
     );
-    value =
-      chosen.length === 1
-        ? labelOf(chosen[0])
-        : chosen.length > 1
-          ? t("chosenCount", { count: formatNumber(chosen.length) })
-          : undefined;
+    value = askedWords;
   } else {
-    const contains =
-      raw && typeof raw === "object" && "contains" in raw
-        ? String((raw as { contains: unknown }).contains)
-        : "";
     body = (
       <Input
         size="small"
@@ -383,7 +401,7 @@ function ColumnFilter<TData extends RowData>({
         aria-label={t("contains", { label: title })}
       />
     );
-    value = contains || undefined;
+    value = askedWords;
   }
 
   if (inline) {

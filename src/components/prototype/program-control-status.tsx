@@ -1,7 +1,6 @@
 import { useCallback, useMemo } from "react";
 import { Link, getRouteApi, useRouterState } from "@tanstack/react-router";
 import {
-  Absent,
   Card,
   CardContent,
   CardHeader,
@@ -27,12 +26,12 @@ import {
   type ControlStatusFamily,
   type ProgramControlStatus,
 } from "@/lib/control-status";
-import { objectiveWords, objectivesOf } from "@/lib/product-records";
+import { objectiveWords } from "@/lib/product-records";
 import { registerViews } from "@/lib/register-views";
 import { controlDeterminers, controlStatuses } from "@/lib/status";
 import { useCollectionTable } from "./collection-question";
 import { controlStatusLink, controlStatusListSearch } from "./control-status-link";
-import { ControlStatusKey, ControlStatusMap } from "./control-status";
+import { ControlStatusKey, ControlStatusMap, ObjectiveCount } from "./control-status";
 import { ProductCollection } from "./product-collection";
 import { RecordLink, useOpenRecord } from "./record-preview";
 import { EmptyMessage, QueryState } from "./work-common";
@@ -54,15 +53,7 @@ const familyName = (code: string | null, title: string | null) =>
 /** A row of the List: a control with its name and its family as the columns read them. */
 type ControlRow = ControlStanding & { name: string; family: string };
 
-/** A count of a control's objectives out of all of them, "12 of 26"; a control with none has none. */
-const objectiveCount = (count: number, row: ControlRow, format: (value: number) => string) =>
-  row.objectives > 0 ? (
-    objectivesOf(format(count), format(row.objectives))
-  ) : (
-    <Absent label="No assessment objectives" />
-  );
-
-const listColumns = (programId: string, format: (value: number) => string) =>
+const listColumns = (programId: string) =>
   defineColumns<ControlRow>((c) => [
     c.text("name", {
       header: "Control",
@@ -103,13 +94,13 @@ const listColumns = (programId: string, format: (value: number) => string) =>
       header: objectiveWords.mapped,
       width: 170,
       priority: 3,
-      cell: (row) => objectiveCount(row.objectivesMapped, row, format),
+      cell: (row) => <ObjectiveCount count={row.objectivesMapped} objectives={row.objectives} />,
     }),
     c.number("objectivesEvidenced", {
       header: objectiveWords.evidenced,
       width: 200,
       priority: 4,
-      cell: (row) => objectiveCount(row.objectivesEvidenced, row, format),
+      cell: (row) => <ObjectiveCount count={row.objectivesEvidenced} objectives={row.objectives} />,
     }),
     c.number("requirements", { header: "Requirements", width: 130, priority: 5 }),
     c.number("evidenced", { header: "With evidence", width: 130, priority: 6 }),
@@ -138,8 +129,7 @@ function ControlStatusList({
       })),
     [status.controls],
   );
-  const { formatNumber } = useLedgerLocale();
-  const columns = useMemo(() => listColumns(programId, formatNumber), [programId, formatNumber]);
+  const columns = useMemo(() => listColumns(programId), [programId]);
   const table = useCollectionTable({
     columns,
     data: rows,

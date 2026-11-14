@@ -244,7 +244,7 @@ begin
   perform pg_temp.expect_error(format($f$select public.add_controls_to_assessment_plan(%L, %L, 2, 'ca540000-0000-0000-0000-000000000009', array[%L, null]::uuid[])$f$,
     v_tenant, v_plan, v_a), '23514');
   perform pg_temp.expect_error(format($f$select public.add_controls_to_assessment_plan(%L, 'ca530000-0000-0000-0000-00000000dead', 1, 'ca540000-0000-0000-0000-000000000010', array[%L]::uuid[])$f$,
-    v_tenant, v_a), 'P0002');
+    v_tenant, v_a), 'PT404');
   if (select count(*) from public.assessment_objectives o
       join public.assessment_plan_revisions p on p.id = o.plan_revision_id
       join public.assessment_campaigns g on g.id = p.campaign_id
@@ -307,7 +307,7 @@ begin
   perform pg_temp.expect_error(format($f$select public.plan_control_assessment(%L, %L, %L, 'Unselected', 'ca550000-0000-0000-0000-000000000005', array[%L]::uuid[])$f$,
     v_tenant, v_program, v_ssp, current_setting('test.unselected')), '23514');
   perform pg_temp.expect_error(format($f$select public.plan_control_assessment(%L, 'ca560000-0000-0000-0000-00000000dead', %L, 'Nowhere', 'ca550000-0000-0000-0000-000000000006', array[%L]::uuid[])$f$,
-    v_tenant, v_ssp, v_a), 'P0002');
+    v_tenant, v_ssp, v_a), 'PT404');
   if (select count(*) from public.assessment_campaigns where program_id = v_program) <> v_campaigns then
     raise exception 'A refused plan wrote a campaign';
   end if;
@@ -342,9 +342,9 @@ declare v_own uuid := public.ensure_personal_tenant();
 begin
   if current_setting('test.ready') <> 'true' then return; end if;
   perform pg_temp.expect_error(format($f$select public.add_controls_to_assessment_plan(%L, 'ca530000-0000-0000-0000-000000000001', 2, 'ca540000-0000-0000-0000-000000000013', array[%L]::uuid[])$f$,
-    v_own, current_setting('test.c')), 'P0002');
+    v_own, current_setting('test.c')), 'PT404');
   perform pg_temp.expect_error(format($f$select public.plan_control_assessment(%L, %L, %L, 'Outsider plan', 'ca550000-0000-0000-0000-000000000013', array[%L]::uuid[])$f$,
-    v_own, current_setting('test.program'), current_setting('test.ssp'), current_setting('test.a')), 'P0002');
+    v_own, current_setting('test.program'), current_setting('test.ssp'), current_setting('test.a')), 'PT404');
 end $$;
 select set_config('request.jwt.claim.sub', '', true);
 do $$ begin

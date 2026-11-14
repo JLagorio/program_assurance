@@ -242,7 +242,8 @@ begin
   -- the counts are zeros that were counted.
   if (answer->>'baseline')::boolean or answer->'totals'->'in_baseline' <> 'null'::jsonb
     or exists (select 1 from jsonb_array_elements(answer->'controls') c
-      where c->'in_baseline' <> 'null'::jsonb or c->'requirements' <> '0'::jsonb or c->'evidenced' <> '0'::jsonb)
+      where c->'in_baseline' <> 'null'::jsonb or c->'requirements' <> '0'::jsonb or c->'evidenced' <> '0'::jsonb
+        or c->'objectives_mapped' <> '0'::jsonb or jsonb_typeof(c->'objectives') <> 'number')
     or answer->'totals'->'with_requirement' <> '0'::jsonb or answer->'totals'->'with_evidence' <> '0'::jsonb then
     raise exception 'risk_threats invents a standing for a program with no baseline and no requirement: %', answer->'totals';
   end if;
@@ -350,6 +351,19 @@ begin
     or exists (select 1 from jsonb_array_elements(answer->'controls') c
       where c->>'id' <> current_setting('test.control') and (c->'requirements' <> '0'::jsonb or c->'evidenced' <> '0'::jsonb)) then
     raise exception 'risk_threats counts a requirement on a control it does not map: %', answer->'totals';
+  end if;
+  -- Each control's assessment objectives, counted as the program's control status counts them: the
+  -- control its requirements map as a whole has every objective covered, every other control none.
+  if exists (
+    select 1 from jsonb_array_elements(answer->'controls') c
+    where (c->>'objectives')::integer is distinct from (
+        select count(distinct o.objective_id) from public.program_control_objective_cover(
+          'd7100000-0000-0000-0000-000000000001', array[(c->>'id')::uuid]) o)
+      or (c->>'objectives_mapped')::integer is distinct from
+        case when c->>'id' = current_setting('test.control') then (c->>'objectives')::integer else 0 end
+  ) or (select (c->>'objectives')::integer from jsonb_array_elements(answer->'controls') c
+      where c->>'id' = current_setting('test.control')) is not distinct from 0 then
+    raise exception 'risk_threats does not count each control''s objectives as the control status does: %', answer->'controls';
   end if;
 end $$;
 

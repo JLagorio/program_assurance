@@ -101,9 +101,8 @@ export function ProgramControlStatusTrend({ programId }: { programId: string }) 
         columns={columns}
       >
         <Chart.Line
-          // The days are spaced by time once there are any: the kit's time axis cannot measure no
-          // days, which a loading, failed or empty plot has.
-          scale={points.length > 0 ? "time" : "category"}
+          // The days are spaced by time, from the plot's loading, failed or empty state on.
+          scale="time"
           series={SERIES}
           domain={[0, 1]}
           // A marker on each day while there are few of them: a lone day is a point.

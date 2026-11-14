@@ -364,6 +364,10 @@ export const PART_TOKENS = Object.freeze({
   "dimension.part.itemId": { part: "Item", files: ["components/item.tsx"] },
   "dimension.part.itemIdWide": { part: "Item", files: ["components/item.tsx"] },
   "dimension.part.filter": { part: "DataTable.Filter", files: ["patterns/data-table/filter.tsx"] },
+  "dimension.part.filterList": {
+    part: "DataTable.Filter",
+    files: ["patterns/data-table/filter.tsx"],
+  },
   "dimension.part.tableSearch": {
     part: "DataTable.Search",
     files: ["patterns/data-table/filter.tsx"],

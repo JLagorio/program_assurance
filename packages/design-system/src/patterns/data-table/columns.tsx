@@ -594,24 +594,45 @@ export function columnKinds<TData extends RowData>() {
       hideable,
       resizable,
       cell,
-    }: Shared<TData> = {},
-  ) =>
-    helper.accessor(read<TData>(key), {
+      emptyLabel,
+    }: Shared<TData> & {
+      /**
+       * What the filter calls a row with no one, "No owner" or "Unassigned": the filter then lists
+       * it as a value of its own, so those rows can be found, and the default cell says it. The
+       * value the row sorts, searches and exports by stays empty. Unsaid, a row with no one is
+       * under no value and its cell is `Absent`.
+       */
+      emptyLabel?: string | undefined;
+    } = {},
+  ) => {
+    const value = read<TData>(key);
+    return helper.accessor(value, {
       id: key,
       header: header ?? key,
       ...(width === undefined ? {} : { size: width }),
       minSize: minOf(width, minWidth ?? minWidths.person),
       enableSorting: sortable,
       sortFn: sortOf("text", sortBy),
-      filterFn: "matches",
+      // A row with no one is a member of `emptyLabel`, as a list column's row with no items is.
+      ...(emptyLabel === undefined
+        ? { filterFn: "matches" as const }
+        : {
+            filterFn: "members" as const,
+            getUniqueValues: (row: TData) => {
+              const v = value(row);
+              return [isAbsent(v) ? emptyLabel : String(v)];
+            },
+          }),
       ...shared({ pin, hideable, resizable }),
       meta: { priority, pin, kind: "person", align: "start", sized: width !== undefined },
       cell: ({ row, getValue }) => {
         if (cell) return cell(row.original);
         const v = getValue();
-        return isAbsent(v) ? <Absent /> : <Person name={String(v)} />;
+        if (!isAbsent(v)) return <Person name={String(v)} />;
+        return emptyLabel === undefined ? <Absent /> : <Absent label={emptyLabel} />;
       },
     });
+  };
 
   /**
    * Several values in one cell: `items` reads them from the row; the first shows by name, the rest

@@ -10,7 +10,7 @@
 //
 // This module imports only data.js, which imports only node built-ins, so classes.js can import it
 // without a cycle.
-import { lintFacts } from "./data.js";
+import { lintFacts, lintValues } from "./data.js";
 
 /** An arbitrary variant or value: `[&>svg]`, `[400px]`, `[sort=ascending]`. */
 const isBracketed = (text) => /^\[.+\]$/.test(text);
@@ -415,11 +415,19 @@ function listSizes(sizes, prefix) {
 }
 
 let sizeWords;
-/** The container sizes and the window breakpoints, as a finding lists them. */
+/** The container sizes and the window breakpoints, as a finding lists them. A deprecated container
+    size (`@compact`, whose token no part reads) still generates CSS, but a finding never offers
+    it; while lint-values.json is another build's, the sizes are listed whole. */
 export function sizeLists() {
   if (!sizeWords) {
     const { containers, breakpoints } = grammarOf();
-    sizeWords = { containers: listSizes(containers, "@"), breakpoints: listSizes(breakpoints, "") };
+    const tokens = lintValues()?.tokens;
+    const offered = Object.fromEntries(
+      Object.entries(containers).filter(
+        ([name]) => !tokens?.[`dimension.container.${name}`]?.deprecated,
+      ),
+    );
+    sizeWords = { containers: listSizes(offered, "@"), breakpoints: listSizes(breakpoints, "") };
   }
   return sizeWords;
 }

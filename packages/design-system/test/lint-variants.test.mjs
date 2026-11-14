@@ -252,7 +252,9 @@ test("a class's replacement respells every variant at fault and keeps everything
 
 test("a breakpoint's finding lists the container sizes first, then the window breakpoints", () => {
   const { containers, breakpoints } = sizeLists();
-  assert.equal(containers, "@3xs 16rem to @7xl 80rem, @compact 25rem and @split 50rem");
+  // The deprecated @compact still generates CSS but is never offered.
+  assert.equal(containers, "@3xs 16rem to @7xl 80rem and @split 50rem");
+  assert.equal(variantProblem("@compact"), undefined);
   assert.equal(breakpoints, "sm 40rem, md 48rem, lg 64rem and panel or xl 80rem");
   const { cause, data } = problemOf("tablet:flex");
   assert.equal(cause, "breakpoint");

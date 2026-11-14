@@ -301,7 +301,6 @@ export function ReviewQueue() {
     columns,
     rows: reviewRows,
     getRowId: (row) => row.id,
-    rowLabel: (row) => row.name,
     preview: useMemo(
       () => ({ onPreview: setPreview, activeId: preview?.id ?? null }),
       [preview?.id],

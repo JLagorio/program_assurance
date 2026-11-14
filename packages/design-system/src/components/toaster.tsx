@@ -172,11 +172,17 @@ export function Toast({ className, ...props }: ToastPrimitive.Root.Props) {
   );
 }
 
+/**
+ * The toast's words and controls at their own height. Base UI measures a toast by this element, so
+ * it never takes the root's height: a toast behind the front one is as tall as the front one, and a
+ * content that followed it would resize every toast behind whenever the front one changed, a
+ * ResizeObserver loop. Behind, it is hidden and lets the pointer through to the page.
+ */
 export function ToastContent({ className, ...props }: ToastPrimitive.Content.Props) {
   return (
     <ToastPrimitive.Content
       className={classes(
-        "flex h-full items-center gap-100 overflow-hidden p-150 transition-opacity duration-moderate ease-standard data-behind:opacity-0 data-expanded:opacity-100 motion-reduce:transition-none",
+        "flex items-center gap-100 overflow-hidden p-150 transition-opacity duration-moderate ease-standard data-behind:pointer-events-none data-behind:opacity-0 data-expanded:pointer-events-auto data-expanded:opacity-100 motion-reduce:transition-none",
         className,
       )}
       {...props}

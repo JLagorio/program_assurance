@@ -1013,3 +1013,32 @@ export const evidenceOwnerRoles = {
   "Firmware Lead": "antiTamper",
   "Platform Lead": "platform",
 };
+
+/* ——— Objective mappings: begin (requirement_control_links.control_part_id, objective-level derivation) ——— */
+/**
+ * The assessment objectives a WS-X90 requirement maps of a control no requirement maps as a whole,
+ * so a seeded program shows a control mapped in part (Josef, 2026-11-13: "Yes, in the showcase"):
+ * its Details read Objectives mapped 3 of 6 and its next step Map 3 more objectives. The control is
+ * SI-4(13) Analyze Traffic and Event Patterns, which the program's tailoring adds and no archived
+ * requirement maps, so it stands at No requirement; Appendix F prints it against techniques two
+ * WS-X90 risks name, so a risk's Countering controls show it mapped in part too. REQ-262 profiles
+ * outbound traffic per mission phase and raises an anomaly when traffic leaves its envelope, which
+ * is the traffic half of the control: traffic analyzed, its profiles developed and used in tuning
+ * the monitoring (SI-04(13)(a)[01], (b)[01] and (c)[01]). Event patterns, the other half, are left
+ * for another requirement.
+ *
+ * Each objective is mapped as a control's Map a requirement maps it: once on each system the
+ * requirement is allocated to whose control baseline selects the control, in one relationship
+ * with one rationale.
+ */
+export const objectiveMappings = [
+  {
+    requirement: "REQ-262",
+    control: "SI-4(13)",
+    objectives: ["SI-04(13)(a)[01]", "SI-04(13)(b)[01]", "SI-04(13)(c)[01]"],
+    relationship: "maps_to",
+    rationale:
+      "The gateway and the tactical radio profile outbound traffic per mission phase and raise an anomaly when it leaves the profiled envelope: traffic is analyzed, its profiles are developed and they tune the monitoring. Event patterns are the security log collector's, not this requirement's.",
+  },
+];
+/* ——— Objective mappings: end ——— */

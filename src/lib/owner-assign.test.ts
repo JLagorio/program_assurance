@@ -86,7 +86,7 @@ describe("assignOwner", () => {
     const gone = fakeClient(() => ({
       data: null,
       error: {
-        code: "P0002",
+        code: "PT404",
         message: "Some of these records are no longer available; reload and choose again",
       },
     }));

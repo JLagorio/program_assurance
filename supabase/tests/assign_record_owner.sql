@@ -245,16 +245,16 @@ select pg_temp.expect_error($$select public.assign_record_owner('risks', array['
 select pg_temp.expect_error($$select public.assign_record_owner('risks', array['a5530000-0000-0000-0000-000000000004']::uuid[], 'a5520000-0000-0000-0000-00000000dead')$$, '22023');
 select pg_temp.expect_error($$select public.assign_record_owner('risks', array['a5530000-0000-0000-0000-000000000004']::uuid[], 'a5520000-0000-0000-0000-0000000000ff')$$, '22023');
 -- A record that is gone, and another workspace's record: none of the request is applied.
-select pg_temp.expect_error($$select public.assign_record_owner('risks', array['a5530000-0000-0000-0000-000000000004', 'a5530000-0000-0000-0000-00000000dead']::uuid[], 'a5520000-0000-0000-0000-000000000001')$$, 'P0002');
-select pg_temp.expect_error($$select public.assign_record_owner('risks', array['a5530000-0000-0000-0000-000000000004', 'a5530000-0000-0000-0000-0000000000ff']::uuid[], 'a5520000-0000-0000-0000-000000000001')$$, 'P0002');
+select pg_temp.expect_error($$select public.assign_record_owner('risks', array['a5530000-0000-0000-0000-000000000004', 'a5530000-0000-0000-0000-00000000dead']::uuid[], 'a5520000-0000-0000-0000-000000000001')$$, 'PT404');
+select pg_temp.expect_error($$select public.assign_record_owner('risks', array['a5530000-0000-0000-0000-000000000004', 'a5530000-0000-0000-0000-0000000000ff']::uuid[], 'a5520000-0000-0000-0000-000000000001')$$, 'PT404');
 do $$ begin
   if (select r.owner_party_id from public.risks r where r.id = 'a5530000-0000-0000-0000-000000000004') is not null then
     raise exception 'A refused request assigned an owner';
   end if;
 end $$;
 -- A requirement that is gone, and another workspace's requirement.
-select pg_temp.expect_error($$select public.assign_record_owner('engineering_requirements', array['a5580000-0000-0000-0000-000000000004', 'a5580000-0000-0000-0000-00000000dead']::uuid[], 'a5520000-0000-0000-0000-000000000001')$$, 'P0002');
-select pg_temp.expect_error($$select public.assign_record_owner('engineering_requirements', array['a5580000-0000-0000-0000-000000000004', 'a5580000-0000-0000-0000-0000000000ff']::uuid[], 'a5520000-0000-0000-0000-000000000001')$$, 'P0002');
+select pg_temp.expect_error($$select public.assign_record_owner('engineering_requirements', array['a5580000-0000-0000-0000-000000000004', 'a5580000-0000-0000-0000-00000000dead']::uuid[], 'a5520000-0000-0000-0000-000000000001')$$, 'PT404');
+select pg_temp.expect_error($$select public.assign_record_owner('engineering_requirements', array['a5580000-0000-0000-0000-000000000004', 'a5580000-0000-0000-0000-0000000000ff']::uuid[], 'a5520000-0000-0000-0000-000000000001')$$, 'PT404');
 -- A requirement whose details are not recorded has no owner to set: the request stops, and its
 -- refusal names the requirements by code, the first three and how many more.
 do $$
@@ -297,7 +297,7 @@ set local role authenticated;
 select set_config('request.jwt.claim.sub', 'a5500000-0000-0000-0000-000000000002', true);
 select pg_temp.expect_error($$select public.assign_record_owner('risks', array['a5530000-0000-0000-0000-000000000004']::uuid[], 'a5520000-0000-0000-0000-000000000001')$$, '22023');
 -- Their own party owns nothing in a workspace they are no member of.
-select pg_temp.expect_error($$select public.assign_record_owner('risks', array['a5530000-0000-0000-0000-000000000004']::uuid[], 'a5520000-0000-0000-0000-0000000000ff')$$, 'P0002');
+select pg_temp.expect_error($$select public.assign_record_owner('risks', array['a5530000-0000-0000-0000-000000000004']::uuid[], 'a5520000-0000-0000-0000-0000000000ff')$$, 'PT404');
 
 -- A viewer reads the records and the owner, and may not write: nothing is assigned, and the
 -- request says who can. A record that already holds the owner asks nothing of the viewer.

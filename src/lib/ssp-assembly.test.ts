@@ -181,30 +181,71 @@ describe("SSP assembly", () => {
     expect(assembleSsp(input)[0]?.requirements).toHaveLength(0);
   });
 
-  it("takes a mapping of one of the control's assessment objectives as a mapping of the control", () => {
+  it("names, by label, the objectives a requirement's mappings name", () => {
     const input = fixture();
-    input.parts.push(
+    const objective = (id: string, label: string) =>
       record<"control_parts">({
-        id: "objective",
+        id,
         control_id: "control",
         name: "assessment-objective",
-        prose: "Account types are defined",
+        prose: `What ${label} asks`,
         parent_part_id: null,
-      }),
+        props: [{ name: "label", class: "sp800-53a", value: label }],
+      });
+    input.parts.push(
+      objective("objective-10", "AC-01a.10"),
+      objective("objective-2", "AC-01a.02"),
+      objective("objective-1", "AC-01a.01"),
     );
-    input.controlMappings.push(
+    const mapping = (id: string, part: string, system: string | null, rationale: string) =>
       record<"requirement_control_links">({
-        id: "mapping",
+        id,
         requirement_revision_id: "content",
         control_id: "control",
-        control_part_id: "objective",
+        control_part_id: part,
+        system_id: system,
+        selected_control_id: system ? "selected" : null,
+        rationale,
+      });
+    // Two objectives on the boundary and on its element: each named once, in the catalog's order.
+    input.controlMappings.push(
+      mapping("m1", "objective-10", "root", "Meets the tenth"),
+      mapping("m2", "objective-2", "child", "Meets the second"),
+      mapping("m3", "objective-10", "child", "Meets the tenth"),
+    );
+    input.effectiveBaselines.push(
+      record<"system_effective_baselines">({
+        id: "root",
+        system_id: "root",
+        boundary_system_id: "root",
+        profile_resolution_id: "baseline",
+      }),
+    );
+    input.effectiveBaselines[0]!.profile_resolution_id = "baseline";
+    let support = assembleSsp(input)[0]?.requirements[0];
+    expect(support?.descriptions).toEqual([
+      "Mapped to objectives AC-01a.02 and AC-01a.10; no implementation claim implied",
+    ]);
+    expect(support?.rationale).toEqual(["Meets the tenth", "Meets the second"]);
+    // One objective, beside a mapping of the whole control: each said as it is.
+    input.controlMappings.splice(0, 3, mapping("m4", "objective-1", null, "Meets the first"));
+    input.controlMappings.push(
+      record<"requirement_control_links">({
+        id: "whole",
+        requirement_revision_id: "content",
+        control_id: "control",
+        control_part_id: null,
         system_id: null,
         selected_control_id: null,
       }),
     );
-    const descriptions = assembleSsp(input)[0]?.requirements[0]?.descriptions;
-    expect(descriptions).toContain("Mapped to control; no implementation claim implied");
-    expect(descriptions).not.toContain("Control reference needs review");
+    support = assembleSsp(input)[0]?.requirements[0];
+    expect(support?.descriptions).toEqual([
+      "Mapped to control; no implementation claim implied",
+      "Mapped to objective AC-01a.01; no implementation claim implied",
+    ]);
+    expect(support?.descriptions).not.toContain("Control reference needs review");
+    expect(assembleSsp(input)[0]?.requirementCount).toBe(1);
   });
 
   it("deduplicates an exact evidence version while preserving direct and requirement claims", () => {

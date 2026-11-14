@@ -25,6 +25,17 @@ export type LibraryUseRow = {
   updateAvailable: { revisionId: string; version: number } | null;
 };
 
+/** What a library use reads of a contribution: whose it is, where it started and what it says. */
+export const CONTRIBUTION_FACTS = [
+  "id",
+  "system_component_id",
+  "library_implementation_id",
+  "description",
+  "implementation_status",
+] as const;
+/** What a library use reads of the implementation a contribution started from. */
+export const IMPLEMENTATION_FACTS = ["id", "description", "implementation_status"] as const;
+
 export type LibraryUseInput = {
   element: SystemAssuranceRow;
   rows: SystemAssuranceRow[];
@@ -32,8 +43,11 @@ export type LibraryUseInput = {
   definedComponents: Row<"defined_components">[];
   revisions: Row<"component_definition_revisions">[];
   definitions: Row<"component_definitions">[];
-  contributions: Row<"component_contributions">[];
-  implementations: Row<"defined_component_implementations">[];
+  contributions: Pick<Row<"component_contributions">, (typeof CONTRIBUTION_FACTS)[number]>[];
+  implementations: Pick<
+    Row<"defined_component_implementations">,
+    (typeof IMPLEMENTATION_FACTS)[number]
+  >[];
   /** Include the elements inside this one, within its boundary. */
   includeInside?: boolean | undefined;
 };
@@ -86,7 +100,7 @@ export function libraryUses(input: LibraryUseInput): LibraryUseRow[] {
   const revisionById = new Map(input.revisions.map((row) => [row.id, row]));
   const definitionById = new Map(input.definitions.map((row) => [row.id, row]));
   const implementationById = new Map(input.implementations.map((row) => [row.id, row]));
-  const contributionsByComponent = new Map<string, Row<"component_contributions">[]>();
+  const contributionsByComponent = new Map<string, LibraryUseInput["contributions"]>();
   for (const contribution of input.contributions) {
     const current = contributionsByComponent.get(contribution.system_component_id) ?? [];
     current.push(contribution);

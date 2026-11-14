@@ -157,7 +157,7 @@ begin
     v_tenant), '23514', 'already published');
   -- Results the workspace does not hold.
   perform pg_temp.expect_refusal(format($f$select public.publish_assessment_results(%L, 'ae570000-0000-0000-0000-00000000dead', 1, 1, 'ae5a0000-0000-0000-0000-000000000005')$f$,
-    v_tenant), 'P0002', 'no longer available');
+    v_tenant), 'PT404', 'no longer available');
   -- A request missing what it publishes.
   perform pg_temp.expect_error(format($f$select public.publish_assessment_results(%L, 'ae570000-0000-0000-0000-000000000002', null, 2, 'ae5a0000-0000-0000-0000-000000000006')$f$,
     v_tenant), '22023');
@@ -269,7 +269,7 @@ begin
     current_setting('test.tenant')), '42501');
   -- In its own workspace's name, the results are another workspace's.
   perform pg_temp.expect_refusal(format($f$select public.publish_assessment_results(%L, 'ae570000-0000-0000-0000-000000000004', 1, 1, 'ae5a0000-0000-0000-0000-000000000022')$f$,
-    v_own), 'P0002', 'no longer available');
+    v_own), 'PT404', 'no longer available');
 end $$;
 select set_config('request.jwt.claim.sub', '', true);
 do $$ begin

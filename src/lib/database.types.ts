@@ -17115,6 +17115,10 @@ export type Database = {
         Args: { p_command: Json; p_request_id: string; p_tenant_id: string };
         Returns: Json;
       };
+      control_objective_counts: {
+        Args: { p_control_id: string; p_program_ids: string[] };
+        Returns: Json;
+      };
       copy_product_revision: {
         Args: { p_source_revision_id: string; p_tenant_id: string };
         Returns: string;
@@ -17255,6 +17259,10 @@ export type Database = {
         Returns: Json;
       };
       natural_sort_key: { Args: { value: string }; Returns: string };
+      objective_prints_own_sentence: {
+        Args: { p_prose: string };
+        Returns: boolean;
+      };
       overlay_parameter_values: {
         Args: {
           p_parameter: Database["public"]["Tables"]["parameters"]["Row"];

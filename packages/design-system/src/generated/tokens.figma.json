@@ -3109,6 +3109,15 @@
           }
         }
       },
+      "filterList": {
+        "$value": "280px",
+        "$description": "The tallest a DataTable column filter's list of values grows before it scrolls inside itself, under its search, so the popover keeps one height wherever it opens.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.8.0"
+          }
+        }
+      },
       "tableSearch": {
         "$value": "200px",
         "$description": "A DataTable Search field's width, unless its width gives another; it never runs past its row.",

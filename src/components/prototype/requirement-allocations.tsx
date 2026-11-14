@@ -226,7 +226,6 @@ export function RequirementAllocations({
     data: rows,
     getRowId: (row) => row.id,
     preview: tablePreview,
-    rowLabel: (row) => row.name,
     label: "Requirement allocations",
     view: "requirement-allocations",
     resizable: true,

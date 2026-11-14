@@ -22,7 +22,12 @@ import {
 } from "@ledger/design-system";
 import { idSet, useRows } from "@/lib/models";
 import { labelFor } from "@/lib/records";
-import { libraryRollup, type LibraryRollupRow } from "@/lib/library-use";
+import {
+  CONTRIBUTION_FACTS,
+  IMPLEMENTATION_FACTS,
+  libraryRollup,
+  type LibraryRollupRow,
+} from "@/lib/library-use";
 import { useSystemAssurance } from "./use-system-assurance";
 
 type Line = {
@@ -67,15 +72,17 @@ export function ProgramLibrary({
   const definedComponents = useRows("defined_components");
   const revisions = useRows("component_definition_revisions");
   const definitions = useRows("component_definitions");
+  // What each contribution says beside the implementation it started from, and nothing more: the
+  // rollup counts the ones changed here.
   const contributions = useRows(
     "component_contributions",
     { system_component_id: idSet(components.data?.map((row) => row.id)) },
-    { enabled: components.isSuccess },
+    { columns: CONTRIBUTION_FACTS, enabled: components.isSuccess },
   );
   const implementations = useRows(
     "defined_component_implementations",
     { id: idSet(contributions.data?.map((row) => row.library_implementation_id)) },
-    { enabled: contributions.isSuccess },
+    { columns: IMPLEMENTATION_FACTS, enabled: contributions.isSuccess },
   );
   const data = useMemo<Line[]>(() => {
     const boundaries = new Set(rows.map((row) => row.boundary_system_id));
@@ -195,7 +202,6 @@ export function ProgramLibrary({
     data,
     getRowId: (row) => row.id,
     preview,
-    rowLabel: (row) => row.name,
     label: "Library items in this program",
     view: "live-program-library-v1",
     resizable: true,

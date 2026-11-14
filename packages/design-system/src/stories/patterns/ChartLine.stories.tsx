@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { expect, userEvent, waitFor, within } from "storybook/test";
@@ -365,14 +366,32 @@ export const Dates: Story = {
     </Box>
   ),
   play: async ({ canvasElement }) => {
-    const ticks = () =>
-      Array.from(canvasElement.querySelectorAll(".recharts-xAxis-tick-labels text")).map(
-        (t) => t.textContent ?? "",
+    const labels = () =>
+      Array.from(
+        canvasElement.querySelectorAll<SVGTextElement>(".recharts-xAxis-tick-labels text"),
       );
-    // The first tick stays, and carries the year; months follow on their own.
-    await waitFor(() => expect(ticks()[0]).toBe("Apr 2026"));
-    await expect(ticks().length).toBeGreaterThanOrEqual(5);
-    await expect(ticks()[ticks().length - 1]).toMatch(/^Aug$/);
+    // The months the span holds, in the calendar's order; the first carries its year.
+    const months = ["Apr 2026", "May", "Jun", "Jul", "Aug"];
+    // How many ticks fit depends on the font's widths, so the play counts none: whatever the font
+    // leaves room for (at least three at a 320px frame's width), the first tick stays and carries
+    // the year, each later one is a month after the one before it, and no two labels overlap.
+    await waitFor(() => {
+      const ticks = labels().map((t) => t.textContent ?? "");
+      expect(ticks[0]).toBe("Apr 2026");
+      expect(ticks.length).toBeGreaterThanOrEqual(3);
+      const at = ticks.map((t) => months.indexOf(t));
+      for (const [i, index] of at.entries()) {
+        expect(index, `"${ticks[i]}" is a month of the span`).toBeGreaterThanOrEqual(0);
+        if (i > 0)
+          expect(index, `"${ticks[i]}" comes after "${ticks[i - 1]}"`).toBeGreaterThan(at[i - 1]!);
+      }
+      const boxes = labels()
+        .map((t) => t.getBoundingClientRect())
+        .sort((a, b) => a.left - b.left);
+      for (const [i, box] of boxes.entries())
+        if (i > 0)
+          expect(boxes[i - 1]!.right, "tick labels overlap").toBeLessThanOrEqual(box.left + 0.5);
+    });
   },
 };
 
@@ -420,6 +439,108 @@ export const Zones: Story = {
     await expect(german.length).toBeLessThanOrEqual(8);
     await expect(german[0]).toMatch(/2025$/);
     await expect(german.some((t) => /2026$/.test(t))).toBe(true);
+  },
+};
+
+/** Open findings on the first four days of September, as calendar days. */
+const firstDays = [
+  { day: "2026-09-01", open: 14 },
+  { day: "2026-09-02", open: 13 },
+  { day: "2026-09-03", open: 15 },
+  { day: "2026-09-04", open: 12 },
+];
+
+/** A plot that loads until its days arrive, as a screen's does while its read is on its way. */
+function DaysArriving() {
+  const [days, setDays] = useState<typeof firstDays>([]);
+  return (
+    <Stack space="space.200">
+      <Box>
+        <Button size="small" onClick={() => setDays(firstDays)}>
+          Load the days
+        </Button>
+      </Box>
+      <Chart
+        title="Open findings, a point a day"
+        series={open}
+        data={days}
+        x="day"
+        state={days.length > 0 ? "ready" : "loading"}
+      >
+        <Chart.Line scale="time" dots />
+      </Chart>
+    </Stack>
+  );
+}
+
+/** A time axis before its days: `scale="time"` with no data yet, while the plot loads, after it fails and before its first day, stands in the Frame's state as any plot does, so a screen keeps the one axis it will draw. The first plot loads until Load the days gives it four days, which the same plot then spaces by time; a lone day is one point on one tick, and two days two ticks, since calendar days tick by day, never by hour. */
+export const DatesBeforeData: Story = {
+  name: "Dates before data",
+  render: () => (
+    <Stack space="space.400">
+      <Box style={{ maxWidth: 640 }}>
+        <DaysArriving />
+      </Box>
+      <Box style={{ maxWidth: 640 }}>
+        <Chart
+          title="Open findings, failed"
+          series={open}
+          data={[]}
+          x="day"
+          state="error"
+          statusText="The daily counts did not load."
+          onRetry={() => {}}
+        >
+          <Chart.Line scale="time" />
+        </Chart>
+      </Box>
+      <Box style={{ maxWidth: 640 }}>
+        <Chart
+          title="Open findings, no day yet"
+          series={open}
+          data={[]}
+          x="day"
+          statusText="The count is recorded once a day, from the first day it is read."
+        >
+          <Chart.Line scale="time" />
+        </Chart>
+      </Box>
+      <Box style={{ maxWidth: 640 }}>
+        <Chart title="Open findings, one day" series={open} data={firstDays.slice(0, 1)} x="day">
+          <Chart.Line scale="time" dots labels="end" />
+        </Chart>
+      </Box>
+      <Box style={{ maxWidth: 640 }}>
+        <Chart title="Open findings, two days" series={open} data={firstDays.slice(0, 2)} x="day">
+          <Chart.Line scale="time" dots labels="end" />
+        </Chart>
+      </Box>
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const figure = (name: string) => canvas.getByRole("figure", { name });
+    const ticks = (name: string) =>
+      Array.from(figure(name).querySelectorAll(".recharts-xAxis-tick-labels text")).map(
+        (t) => t.textContent ?? "",
+      );
+    // Loading, failed and with no day: each stands in its state, and no axis is drawn.
+    const arriving = "Open findings, a point a day";
+    await expect(figure(arriving)).toHaveAttribute("data-state", "loading");
+    await expect(figure("Open findings, failed")).toHaveAttribute("data-state", "error");
+    await expect(within(figure("Open findings, failed")).getByRole("alert")).toBeVisible();
+    await expect(figure("Open findings, no day yet")).toHaveAttribute("data-state", "empty");
+    for (const name of [arriving, "Open findings, failed", "Open findings, no day yet"])
+      await expect(figure(name).querySelector(".recharts-surface")).toBeNull();
+    // A lone day is one point on one tick, and two days are two ticks: calendar days tick by day,
+    // never by hour, however short their span.
+    await waitFor(() => expect(ticks("Open findings, one day")).toEqual(["Sep 1"]));
+    await waitFor(() => expect(ticks("Open findings, two days")).toEqual(["Sep 1", "Sep 2"]));
+    // The days arrive: the plot that was loading spaces them by time.
+    await userEvent.click(canvas.getByRole("button", { name: "Load the days" }));
+    await waitFor(() => expect(figure(arriving)).toHaveAttribute("data-state", "ready"));
+    await waitFor(() => expect(ticks(arriving)[0]).toBe("Sep 1"));
+    await expect(ticks(arriving).at(-1)).toBe("Sep 4");
   },
 };
 

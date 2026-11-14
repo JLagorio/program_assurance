@@ -71,6 +71,32 @@ test("a June-to-June year keeps at most eight ticks and says both years", () => 
   );
 });
 
+test("a time axis with no instant yet, a plot loading, failed or empty, has no ticks", () => {
+  // The bounds of no data: the least and greatest of nothing.
+  const none = timeTicks(Math.min(), Math.max(), "en-US", "America/New_York");
+  assert.deepEqual(none.ticks, []);
+  assert.equal(none.tick(Number.NaN), "");
+  assert.equal(none.full(Number.NaN), "");
+  assert.equal(none.full(utc(2026, 8, 4, 12)), "Sep 4, 2026");
+  assert.deepEqual(timeTicks(Number.NaN, Number.NaN).ticks, []);
+});
+
+test("calendar days tick by day however short their span, never by hour", () => {
+  const two = timeTicks(utc(2026, 10, 13), utc(2026, 10, 14), "en-US", "UTC", true);
+  assert.deepEqual(
+    two.ticks.map((t) => two.tick(t)),
+    ["Nov 13", "Nov 14"],
+  );
+  const one = timeTicks(utc(2026, 10, 13), utc(2026, 10, 13), "en-US", "UTC", true);
+  assert.deepEqual(
+    one.ticks.map((t) => one.tick(t)),
+    ["Nov 13"],
+  );
+  // Instants over the same span still tick by hour.
+  const instants = timeTicks(utc(2026, 10, 13), utc(2026, 10, 14), "en-US", "UTC");
+  assert.ok(instants.ticks.length > 2);
+});
+
 test("day and hour ticks sit on midnights and hours in the zone", () => {
   const days = timeTicks(utc(2026, 8, 1, 12), utc(2026, 8, 20), "en-US", "America/Los_Angeles");
   for (const t of days.ticks) assert.equal(wallTime(t, "America/Los_Angeles").hour, 0);

@@ -5655,6 +5655,21 @@
     "utility": null
   },
   {
+    "name": "dimension.part.filterList",
+    "cssVar": "--ds-dimension-part-filter-list",
+    "type": "dimension",
+    "group": "dimension",
+    "description": "The tallest a DataTable column filter's list of values grows before it scrolls inside itself, under its search, so the popover keeps one height wherever it opens.",
+    "light": "280px",
+    "dark": null,
+    "lightResolved": "280px",
+    "darkResolved": null,
+    "contrast": null,
+    "introduced": "0.8.0",
+    "deprecated": null,
+    "utility": null
+  },
+  {
     "name": "dimension.part.tableSearch",
     "cssVar": "--ds-dimension-part-table-search",
     "type": "dimension",

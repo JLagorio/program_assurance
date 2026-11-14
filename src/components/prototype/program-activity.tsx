@@ -1,53 +1,17 @@
 import { useMemo } from "react";
 import { Section, Timeline, useLedgerLocale } from "@ledger/design-system";
-import { useRows, type Row, type TableName } from "@/lib/models";
-import { labelFor } from "@/lib/records";
-import { programRequirementScope } from "@/lib/requirement-reads";
+import {
+  ACTIVITY_COLUMNS,
+  activityEntries,
+  changedFields,
+  eventRecord,
+  eventWords,
+  type ActivityEntry,
+  type ActivityEvent,
+} from "@/lib/activity-entries";
+import { useRows } from "@/lib/models";
 import { recordLink } from "./record-preview";
 import { EmptyMessage, QueryState } from "./work-common";
-
-/** An entry: one event, or consecutive edits of one requirement by one person. */
-type ActivityEntry = {
-  events: Row<"activity_events">[];
-  actor: string | null;
-  requirement: { id: string; code: string } | null;
-};
-
-/** The record an event names, when it has a page of its own. */
-function eventRecord(event: Row<"activity_events">): { table: TableName; id: string } | null {
-  const targets: [TableName, string | null][] = [
-    ["tasks", event.task_id],
-    ["risks", event.risk_id],
-    ["operational_issues", event.issue_id],
-    ["poam_items", event.poam_item_id],
-    ["assessment_campaigns", event.assessment_campaign_id],
-    ["authorization_packages", event.package_id],
-    ["evidence_artifacts", event.evidence_artifact_id],
-  ];
-  const found = targets.find(([, id]) => !!id);
-  return found ? { table: found[0], id: found[1]! } : null;
-}
-
-/** A requirement edit's changed fields, in the reader's words. */
-const changeLabels: Record<string, string> = {
-  title: "title",
-  statement: "statement",
-  acceptanceCriteria: "acceptance criteria",
-  rationale: "rationale",
-  requirementType: "requirement type",
-  ownerPartyId: "owner",
-};
-function changedFields(event: Row<"activity_events">) {
-  const changes = event.changes;
-  if (!changes || typeof changes !== "object" || Array.isArray(changes)) return [];
-  return Object.entries(changes)
-    .filter(([, value]) => {
-      if (!value || typeof value !== "object" || Array.isArray(value)) return false;
-      const change = value as Record<string, unknown>;
-      return change["before"] !== change["after"];
-    })
-    .map(([field]) => changeLabels[field] ?? labelFor(field).toLowerCase());
-}
 
 /**
  * The program's activity, the last section of its Overview: a Timeline, newest first, grouped by
@@ -61,58 +25,53 @@ export function ProgramActivity({ programId }: { programId: string }) {
   const activity = useRows(
     "activity_events",
     { program_id: programId },
-    { order: { column: "occurred_at", ascending: false } },
+    { columns: ACTIVITY_COLUMNS, order: { column: "occurred_at", ascending: false } },
   );
   const parties = useRows("parties", undefined, { columns: ["id", "name"] as const });
-  const requirements = useRows(
-    "engineering_requirements",
-    { program_id: programId },
-    { columns: ["id", "code"] as const },
+  // Which requirement each edited revision belongs to, so a revision's edits name their
+  // requirement: the revisions the events name, then their requirements.
+  const revisionIds = useMemo(
+    () => [...new Set((activity.data ?? []).flatMap((e) => e.requirement_revision_id ?? []))],
+    [activity.data],
   );
-  // Which requirement each revision belongs to, so a revision's edits name their requirement.
   const revisions = useRows(
     "requirement_revisions",
-    programRequirementScope(programId, "requirement_revisions"),
-    { columns: ["id", "engineering_requirement_id"] as const },
+    { id: revisionIds },
+    {
+      columns: ["id", "engineering_requirement_id"] as const,
+      enabled: activity.data !== undefined,
+    },
+  );
+  const requirementIds = useMemo(
+    () => [...new Set((revisions.data ?? []).map((row) => row.engineering_requirement_id))],
+    [revisions.data],
+  );
+  const requirements = useRows(
+    "engineering_requirements",
+    { id: requirementIds },
+    { columns: ["id", "code"] as const, enabled: revisions.data !== undefined },
   );
   const partyName = useMemo(
     () => new Map((parties.data ?? []).map((row) => [row.id, row.name])),
     [parties.data],
   );
+  // A requirement's creation is its own entry; consecutive edits of it by one person share one.
   const entries = useMemo(() => {
     const requirementOf = new Map(
       (revisions.data ?? []).map((row) => [row.id, row.engineering_requirement_id]),
     );
     const requirementById = new Map((requirements.data ?? []).map((row) => [row.id, row]));
-    const list: ActivityEntry[] = [];
-    const events = (activity.data ?? [])
-      .slice()
-      .sort((a, b) => b.occurred_at.localeCompare(a.occurred_at));
-    for (const event of events) {
-      const requirementId = event.requirement_revision_id
-        ? requirementOf.get(event.requirement_revision_id)
-        : undefined;
-      const record = requirementId ? requirementById.get(requirementId) : undefined;
-      const requirement = record ? { id: record.id, code: record.code } : null;
-      const previous = list.at(-1);
-      // A requirement's creation is its own entry; consecutive edits of it share one.
-      if (
-        requirement &&
-        event.event_type !== "created" &&
-        previous?.requirement?.id === requirement.id &&
-        previous.actor === event.actor_party_id
-      )
-        previous.events.push(event);
-      else list.push({ events: [event], actor: event.actor_party_id, requirement });
-    }
-    return list;
-  }, [activity.data, revisions.data, requirements.data]);
+    return activityEntries(activity.data ?? [], (revisionId) => {
+      const record = requirementById.get(requirementOf.get(revisionId) ?? "");
+      return record ? { id: record.id, code: record.code, programId } : undefined;
+    });
+  }, [activity.data, revisions.data, requirements.data, programId]);
 
   const formatList = (items: string[]) =>
     new Intl.ListFormat(locale, { style: "long", type: "conjunction" }).format(items);
   /** An entry as the record reads it: who did what, and to which record. */
   const entryItem = (entry: ActivityEntry) => {
-    const [latest] = entry.events as [Row<"activity_events">];
+    const [latest] = entry.events as [ActivityEvent];
     const actor = entry.actor ? partyName.get(entry.actor) : undefined;
     if (entry.requirement && latest.event_type === "created")
       return {
@@ -141,17 +100,13 @@ export function ProgramActivity({ programId }: { programId: string }) {
         }),
       };
     }
-    // A recorded verb phrase ("assigned …") reads after the person who did it; any other text is
-    // what was said, under the kind of event, so the title still says who did what.
-    const [first = "", ...rest] = (latest.description ?? "").split("\n");
-    const phrase = /^[a-z]/.test(first.trim());
-    const deed = phrase ? first.trim() : labelFor(latest.event_type).toLowerCase();
-    const said = (phrase ? rest : [first, ...rest]).join(" ").trim();
+    // What the person did, and what was said (activity-entries).
+    const { deed, said } = eventWords(latest);
     const record = eventRecord(latest);
     return {
       // A person the event does not record, or one the roster does not name, is "Someone".
       title: `${actor ?? "Someone"} ${deed}`,
-      description: said || undefined,
+      description: said,
       // The record it names, where that record has a page.
       link: record ? recordLink(record.table, { id: record.id, program_id: programId }) : undefined,
     };

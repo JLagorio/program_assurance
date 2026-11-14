@@ -674,7 +674,6 @@ function FamilyTable({
     data: rows,
     columns,
     getRowId: (row) => row.id,
-    rowLabel: (row) => row.title,
     label: "Controls by family",
     view: "profile-family-summary",
   });

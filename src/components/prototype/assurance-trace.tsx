@@ -29,6 +29,7 @@ import {
 } from "@/lib/assurance-trace";
 import { useControlAssessment } from "@/lib/control-assessment";
 import { useProgramControlStatus } from "@/lib/control-status";
+import { objectivesOf } from "@/lib/product-records";
 import {
   determinations,
   operationalIssueStatuses,
@@ -291,11 +292,24 @@ type Tile = {
   value: ReactNode;
   note?: string | undefined;
   tone?: StatusTone | undefined;
+  /** The tile holds its place while a read its note says waits. */
+  isLoading?: boolean | undefined;
 };
 
+/**
+ * How many of a control's assessment objectives the program's requirements cover, as its control
+ * status counts them: `undefined` while the status is read, `null` where nothing is counted (not a
+ * control in a program, a control outside its baseline, or a read that failed).
+ */
+type ObjectiveTally = { objectives: number; mapped: number } | null | undefined;
+
 /** The band's numbers for a trace: what its focus is, what it rests on or reaches, and how its treatment stands. */
-function useTiles(trace: AssuranceTrace | undefined, today: string): Tile[] {
-  const { formatDate, formatDay, formatPlural } = useLedgerLocale();
+function useTiles(
+  trace: AssuranceTrace | undefined,
+  today: string,
+  objectives: ObjectiveTally,
+): Tile[] {
+  const { formatDate, formatDay, formatNumber, formatPlural } = useLedgerLocale();
   return useMemo(() => {
     if (!trace) return [];
     const reach = traceReach(trace);
@@ -470,14 +484,24 @@ function useTiles(trace: AssuranceTrace | undefined, today: string): Tile[] {
             : undefined,
           ...(worst ? { tone: statusTone(determinations, worst) } : {}),
         };
+        // How much of the control the requirements cover, objective by objective ("12 of 26
+        // objectives"), where its control status counts objectives; the tile waits on that read.
+        const covered =
+          objectives && objectives.objectives > 0
+            ? `${objectivesOf(formatNumber(objectives.mapped), formatNumber(objectives.objectives))} objectives`
+            : undefined;
         return [
           {
             label: "Requirements",
             value: trace.requirements.length,
-            note: trace.requirements.length ? `${evidenced} with evidence` : undefined,
+            note:
+              [covered, trace.requirements.length ? `${evidenced} with evidence` : undefined]
+                .filter(Boolean)
+                .join(" · ") || undefined,
             ...(trace.requirements.length && evidenced < trace.requirements.length
               ? { tone: "warning" as const }
               : {}),
+            ...(objectives === undefined ? { isLoading: true } : {}),
           },
           findings,
           issues("Open issues"),
@@ -509,7 +533,7 @@ function useTiles(trace: AssuranceTrace | undefined, today: string): Tile[] {
         return [own, issues("Open issues it answers"), risks("Open risks"), reached];
       }
     }
-  }, [trace, today, formatDate, formatDay, formatPlural]);
+  }, [trace, today, objectives, formatDate, formatDay, formatNumber, formatPlural]);
 }
 
 /** The band's labels for each kind of record, which hold their place while its trace loads. */
@@ -543,7 +567,6 @@ export function TraceBand({
   programId?: string | null | undefined;
 }) {
   const today = useToday();
-  const tiles = useTiles(trace.data, today);
   const workspace = useWorkspace();
   // Where the program stands on a control decides what its empty requirements say: one its
   // product decided names the product assessment. The read the page's Details already share.
@@ -553,6 +576,16 @@ export function TraceBand({
     kind === "control" && programId && statuses.isSuccess
       ? (statuses.data.controls.find((control) => control.id === focusId) ?? null)
       : null;
+  // Its objectives, which the Requirements tile counts beside the requirements: the same read, so
+  // the tile waits on it, and a read that fails says nothing of objectives under the page's alert.
+  const objectives = useMemo<ObjectiveTally>(() => {
+    if (kind !== "control" || !programId || statuses.isError) return null;
+    if (!statuses.isSuccess) return undefined;
+    return focusStanding
+      ? { objectives: focusStanding.objectives, mapped: focusStanding.objectivesMapped }
+      : null;
+  }, [kind, programId, statuses.isError, statuses.isSuccess, focusStanding]);
+  const tiles = useTiles(trace.data, today, objectives);
   // Evidence nobody has determined waits on what the program's open campaigns hold of the control,
   // which the Details read too: its fix adds it to a draft plan, or plans an assessment around it.
   const waiting = focusStanding?.status === "not_assessed";
@@ -585,7 +618,7 @@ export function TraceBand({
             value={tile.value}
             note={tile.note}
             tone={tile.tone}
-            isLoading={loading}
+            isLoading={loading || tile.isLoading}
           />
         ))}
       </Stat.Grid>

@@ -271,6 +271,25 @@ async function verify() {
     "PASS: persisted records survive a fresh session; invalid values, stale edits and concurrent overwrites are rejected.",
   );
 
+  // A command refuses a record the reader chose that is gone in words the reader acts on, as a
+  // Not Found, never a server error.
+  const gone = await request("/rest/v1/rpc/assign_record_owner", {
+    token: freshToken,
+    method: "POST",
+    body: {
+      p_collection: "risks",
+      p_record_ids: [randomUUID()],
+      p_owner_party_id: identity[0].id,
+    },
+  });
+  assert.equal(gone.status, 404);
+  assert.equal(gone.data?.code, "PT404");
+  assert.equal(
+    gone.data?.message,
+    "Some of these records are no longer available; reload and choose again",
+  );
+  console.log("PASS: a command's refusal of a record that is gone answers 404 in its words.");
+
   assert.deepEqual(await select("programs", outsider.token, programQuery), []);
   assert.deepEqual(
     succeeded(

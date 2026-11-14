@@ -4391,6 +4391,19 @@
           }
         }
       },
+      "filterList": {
+        "$type": "dimension",
+        "$value": {
+          "value": 280,
+          "unit": "px"
+        },
+        "$description": "The tallest a DataTable column filter's list of values grows before it scrolls inside itself, under its search, so the popover keeps one height wherever it opens.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.8.0"
+          }
+        }
+      },
       "tableSearch": {
         "$type": "dimension",
         "$value": {

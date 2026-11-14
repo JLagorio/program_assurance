@@ -220,7 +220,6 @@ export function SystemLibrary({
     data,
     getRowId: (row) => row.id,
     label: "Applied from the library",
-    rowLabel: (row) => row.name,
     view: "live-system-library-v1",
     resizable: true,
     reorderable: true,

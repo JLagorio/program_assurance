@@ -75,6 +75,20 @@ function objectiveStanding(
   return undefined;
 }
 
+/**
+ * A count of a control's assessment objectives out of all it counts, as a cell says it: "12 of 26",
+ * in the reader's numbers. A control the catalog gives no objective says so. The Control status
+ * List, a risk's Countering controls and the catalog control's table of programs draw it.
+ */
+export function ObjectiveCount({ count, objectives }: { count: number; objectives: number }) {
+  const { formatNumber } = useLedgerLocale();
+  return objectives > 0 ? (
+    objectivesOf(formatNumber(count), formatNumber(objectives))
+  ) : (
+    <Absent label="No assessment objectives" />
+  );
+}
+
 /** A link element a key line or a card's title takes: the part gives it its words. */
 type LinkElement = ReactElement<{ className?: string | undefined; children?: ReactNode }>;
 

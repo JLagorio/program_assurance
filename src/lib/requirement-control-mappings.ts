@@ -41,6 +41,21 @@ export function isMappingTarget(
   return isControlStatement(part, parts) && (controlId == null || part.control_id === controlId);
 }
 
+/** An assessment objective's label as SP 800-53A prints it whole ("AC-02a.[01]"): its `label` prop. */
+export function objectiveLabel(part: Pick<Row<"control_parts">, "props">): string | null {
+  if (!Array.isArray(part.props)) return null;
+  for (const prop of part.props)
+    if (
+      prop &&
+      typeof prop === "object" &&
+      !Array.isArray(prop) &&
+      prop["name"] === "label" &&
+      typeof prop["value"] === "string"
+    )
+      return prop["value"];
+  return null;
+}
+
 type System = Pick<Row<"systems">, "id" | "name" | "code">;
 export type MappingBaseline = {
   systemId: string;
@@ -87,8 +102,10 @@ export function requirementMappingBaselines(input: {
 /* ——— What mappings cover ———————————————————————————————————————————————————————————————— */
 
 /**
- * An assessment objective a control counts (a leaf, with no objective under it), as coverage reads
- * it: itself and the objectives above it, from the control's root down.
+ * An assessment objective a control counts (a leaf, with no objective under it, or a heading that
+ * prints a sentence of its own besides the objectives under it), as coverage reads it: itself and
+ * the objectives above it, from the control's root down. A heading counted is among the ancestors
+ * of the objectives under it, so a mapping of it covers them, and theirs never cover it.
  */
 export type ObjectiveNode = { id: string; ancestors: readonly string[] };
 

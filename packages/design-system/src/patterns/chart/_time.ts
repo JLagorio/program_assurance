@@ -81,10 +81,24 @@ export type TimeTicks = {
  * The ticks of a time axis and their labels: hours, days, months or years by the span, at most
  * eight, each at the start of its unit in `timeZone`. Months step by 1, 2, 3, 6 or 12 and years by
  * 1, 2, 5 or 10, aligned to January and to round years, so a quarter tick is a quarter's start.
+ * A span with no instant in it (a plot with no data yet: loading, failed or empty) has no ticks,
+ * and a label of no instant is empty. Calendar days (`calendarDays`) tick by day however short
+ * their span, never by hour.
  */
-export function timeTicks(min: number, max: number, locale = "en-US", timeZone = "UTC"): TimeTicks {
+export function timeTicks(
+  min: number,
+  max: number,
+  locale = "en-US",
+  timeZone = "UTC",
+  calendarDays = false,
+): TimeTicks {
   const dateFormat = (options: Intl.DateTimeFormatOptions) =>
     new Intl.DateTimeFormat(locale, { timeZone, ...options });
+  if (!Number.isFinite(min) || !Number.isFinite(max)) {
+    const day = dateFormat({ day: "numeric", month: "short", year: "numeric" });
+    const label = (ms: number) => (Number.isFinite(ms) ? day.format(ms) : "");
+    return { ticks: [], tick: label, full: label };
+  }
   const hourFmt = dateFormat({ hour: "numeric", minute: "2-digit" });
   const dayFmt = dateFormat({ day: "numeric", month: "short" });
   const dayYearFmt = dateFormat({ day: "numeric", month: "short", year: "numeric" });
@@ -142,7 +156,7 @@ export function timeTicks(min: number, max: number, locale = "en-US", timeZone =
   };
   const crossesYear = start.year !== wallTime(max, timeZone).year;
 
-  if (days <= 3) {
+  if (days <= 3 && !calendarDays) {
     const ticks = fewest([1, 3, 6, 12], (step) => {
       const first = Math.ceil(start.hour / step) * step;
       return walk((n) => zonedTime(start.year, start.month, start.day, first + n * step, timeZone));

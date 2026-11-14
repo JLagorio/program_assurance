@@ -19,16 +19,18 @@ import { ShieldCheck } from "lucide-react";
 import { Page } from "@/components/app/shell";
 import { StatusBadge } from "@/components/app/status";
 import { controlPrograms, useAssuranceTrace } from "@/lib/assurance-trace";
+import { useControlObjectiveCounts } from "@/lib/control-objectives";
 import { parameterReadings, useProgramControlParameters } from "@/lib/control-parameters";
 import { useProgramControlStatus } from "@/lib/control-status";
 import { idSet, useRow, useRows, type Row } from "@/lib/models";
 import { useParameterChoices } from "@/lib/parameter-reads";
+import { objectiveWords } from "@/lib/product-records";
 import { controlPublicationStatuses, controlStatuses } from "@/lib/status";
 import { TraceBand } from "./assurance-trace";
 import { ControlResiliency } from "./control-resiliency";
 import { ControlThreats } from "./control-threats";
 import { ControlLinks, ControlStatement, ParameterGroup } from "./library-controls";
-import { ControlStandingFacts } from "./control-status";
+import { ControlStandingFacts, ObjectiveCount } from "./control-status";
 import { ProductCollection } from "./product-collection";
 import { RecordLink, useOpenRecord } from "./record-preview";
 import { RecordTrail, TrailLink } from "./record-trail";
@@ -302,31 +304,54 @@ type ProgramLine = {
   id: string;
   name: string;
   code: string;
+  /** The objectives the control counts, and those the program's requirements cover. */
+  objectives: number | null;
+  objectivesMapped: number | null;
   requirements: number;
   evidenced: number;
   issues: number;
   risks: number;
 };
 
-/** Where the workspace's programs stand on a control: one row a program that has a requirement meeting it. */
+/**
+ * Where the workspace's programs stand on a control: one row a program that has a requirement
+ * meeting it, with how many of the control's objectives its requirements cover ("12 of 26"), read
+ * for every row in one request.
+ */
 function ControlPrograms({ control }: { control: Control }) {
   const open = useOpenRecord();
   const trace = useAssuranceTrace({ kind: "control", id: control.id });
   const lines = useMemo(() => (trace.data ? controlPrograms(trace.data) : []), [trace.data]);
+  const programIds = useMemo(() => lines.map((line) => line.programId), [lines]);
   const programs = useRows(
     "programs",
-    { id: idSet(lines.map((line) => line.programId)) },
+    { id: idSet(programIds) },
     { columns: ["id", "code", "name"], enabled: trace.isSuccess },
   );
+  const objectives = useControlObjectiveCounts(control.id, programIds, {
+    enabled: trace.isSuccess,
+  });
   const rows = useMemo<ProgramLine[]>(() => {
     const byId = new Map((programs.data ?? []).map((program) => [program.id, program]));
     return lines
       .flatMap((line) => {
         const program = byId.get(line.programId);
-        return program ? [{ ...line, id: program.id, name: program.name, code: program.code }] : [];
+        const counted = objectives.data?.programs.get(line.programId);
+        return program
+          ? [
+              {
+                ...line,
+                id: program.id,
+                name: program.name,
+                code: program.code,
+                objectives: counted?.objectives ?? null,
+                objectivesMapped: counted?.mapped ?? null,
+              },
+            ]
+          : [];
       })
       .sort((a, b) => a.name.localeCompare(b.name));
-  }, [lines, programs.data]);
+  }, [lines, programs.data, objectives.data]);
   const columns = useMemo(
     () =>
       defineColumns<ProgramLine>((c) => [
@@ -341,10 +366,23 @@ function ControlPrograms({ control }: { control: Control }) {
             </RecordLink>
           ),
         }),
-        c.number("requirements", { header: "Requirements", width: 130, priority: 1 }),
-        c.number("evidenced", { header: "With evidence", width: 130, priority: 2 }),
-        c.number("issues", { header: "Open issues", width: 120, priority: 3 }),
-        c.number("risks", { header: "Open risks", width: 120, priority: 4 }),
+        // How much of the control the program's requirements cover, objective by objective, as
+        // its control status counts them.
+        c.number("objectivesMapped", {
+          header: objectiveWords.mapped,
+          width: 170,
+          priority: 1,
+          cell: (row) =>
+            row.objectives === null || row.objectivesMapped === null ? (
+              <Absent label="Not available" />
+            ) : (
+              <ObjectiveCount count={row.objectivesMapped} objectives={row.objectives} />
+            ),
+        }),
+        c.number("requirements", { header: "Requirements", width: 130, priority: 2 }),
+        c.number("evidenced", { header: "With evidence", width: 130, priority: 3 }),
+        c.number("issues", { header: "Open issues", width: 120, priority: 4 }),
+        c.number("risks", { header: "Open risks", width: 120, priority: 5 }),
       ]),
     [control.id],
   );
@@ -364,7 +402,7 @@ function ControlPrograms({ control }: { control: Control }) {
         keepQuestion={false}
         search={false}
         table={table}
-        queries={[trace, programs]}
+        queries={[trace, programs, objectives]}
         onRowClick={(row) => open("controls", { id: control.id, program_id: row.id })}
         empty={{
           title: "No program meets this control yet",

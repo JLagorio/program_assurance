@@ -2,7 +2,8 @@ import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@/components/app/workspace", () => ({ useWorkspace: () => ({}) }));
 
-const { readProgramControlObjectives, unmappedObjectives } = await import("./control-objectives");
+const { readControlObjectiveCounts, readProgramControlObjectives, unmappedObjectives } =
+  await import("./control-objectives");
 
 type Answer = { data: unknown; error: { message: string } | null };
 
@@ -103,5 +104,54 @@ describe("readProgramControlObjectives", () => {
         control,
       ),
     ).rejects.toThrow();
+  });
+});
+
+describe("readControlObjectiveCounts", () => {
+  const second = "00000000-0000-4000-8000-000000000003";
+  it("counts one control in every program asked for, in one request, as the reader", async () => {
+    const server = client({
+      data: {
+        control_id: control,
+        programs: [
+          { program_id: program, objectives: 9, objectives_mapped: 3, objectives_evidenced: 1 },
+          { program_id: second, objectives: 9, objectives_mapped: 0, objectives_evidenced: 0 },
+        ],
+      },
+      error: null,
+    });
+    const answer = await readControlObjectiveCounts(server.client, context, control, [
+      program,
+      second,
+    ]);
+    expect(server.calls).toEqual([
+      {
+        name: "control_objective_counts",
+        args: { p_control_id: control, p_program_ids: [program, second] },
+        headers: { Authorization: "Bearer token" },
+      },
+    ]);
+    expect(answer.programs.get(program)).toEqual({
+      programId: program,
+      objectives: 9,
+      mapped: 3,
+      evidenced: 1,
+    });
+    expect(answer.programs.get(second)?.mapped).toBe(0);
+  });
+
+  it("asks nothing for no program, and says the server's refusal", async () => {
+    const none = client({ data: null, error: null });
+    const answer = await readControlObjectiveCounts(none.client, context, control, []);
+    expect(none.calls).toEqual([]);
+    expect(answer.programs.size).toBe(0);
+    await expect(
+      readControlObjectiveCounts(
+        client({ data: null, error: { message: "Program access is required" } }).client,
+        context,
+        control,
+        [program],
+      ),
+    ).rejects.toThrow("Program access is required");
   });
 });

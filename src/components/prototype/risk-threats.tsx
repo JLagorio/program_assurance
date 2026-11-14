@@ -50,8 +50,10 @@ import {
   type TechniqueControl,
   type ThreatTactic,
 } from "@/lib/risk-threats";
+import { objectiveWords } from "@/lib/product-records";
 import { baselineControlStatuses } from "@/lib/status";
 import { useCollectionTable } from "./collection-question";
+import { ObjectiveCount } from "./control-status";
 import { ProductCollection } from "./product-collection";
 import {
   RecordLink,
@@ -365,13 +367,16 @@ type ControlRow = {
   baseline: Standing | null;
   requirements: number | null;
   evidenced: number | null;
+  /** The assessment objectives the control counts, and those the program's requirements cover. */
+  objectives: number | null;
+  objectivesMapped: number | null;
 };
 
 /**
  * The countering controls' columns. A control's name opens the program's control record. The
- * program's standing stays in a narrow row longest (the baseline beside the name on a phone); the
- * Baseline column sorts by how much of the control the program holds, which is the order the
- * section opens in.
+ * program's standing stays in a narrow row longest (the baseline beside the name on a phone, then
+ * how many of its objectives the program's requirements cover, "3 of 10"); the Baseline column
+ * sorts by how much of the control the program holds, which is the order the section opens in.
  */
 function controlColumns(
   programId: string | null,
@@ -396,7 +401,7 @@ function controlColumns(
     }),
     c.list("approaches", {
       header: "Approaches",
-      priority: 4,
+      priority: 5,
       searchable: true,
       items: (row) =>
         row.approaches.map((approach) => ({ key: approach.code, label: approach.title })),
@@ -405,7 +410,7 @@ function controlColumns(
     c.list("effects", {
       header: "Effects",
       minWidth: 140,
-      priority: 5,
+      priority: 6,
       searchable: true,
       items: (row) => titleItems(row.effects),
     }),
@@ -422,14 +427,27 @@ function controlColumns(
           <Absent label="No control baseline recorded" />
         ),
     }),
-    c.number("requirements", { header: "Requirements", width: 130, priority: 2 }),
-    c.number("evidenced", { header: "With evidence", width: 130, priority: 3 }),
+    // How much of the control the program's requirements cover, objective by objective, as its
+    // control status counts them; no standing reads as the requirements' does.
+    c.number("objectivesMapped", {
+      header: objectiveWords.mapped,
+      width: 170,
+      priority: 2,
+      cell: (row) =>
+        row.objectives === null || row.objectivesMapped === null ? (
+          <Absent />
+        ) : (
+          <ObjectiveCount count={row.objectivesMapped} objectives={row.objectives} />
+        ),
+    }),
+    c.number("requirements", { header: "Requirements", width: 130, priority: 3 }),
+    c.number("evidenced", { header: "With evidence", width: 130, priority: 4 }),
     // Which technique a control counters is worth a column once the risk names more than one.
     ...(several
       ? [
           c.list("techniques", {
             header: "Techniques",
-            priority: 6,
+            priority: 7,
             searchable: true,
             items: (row) =>
               row.techniques.map((code) => ({
@@ -500,6 +518,8 @@ export function RiskThreats({
         control.inBaseline === null ? null : control.inBaseline ? "in_baseline" : "not_selected",
       requirements: control.requirements,
       evidenced: control.evidenced,
+      objectives: control.objectives,
+      objectivesMapped: control.objectivesMapped,
     }));
   }, [data?.controls]);
 

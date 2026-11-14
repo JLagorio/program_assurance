@@ -310,4 +310,35 @@ describe("what mappings cover", () => {
     expect(coversTarget(coverageOf(objectives, ["a", "b"]), null, objectives)).toBe(true);
     expect(coveredObjectives(coverageOf(objectives, [null]), objectives)).toBe(3);
   });
+
+  it("counts a heading that prints a sentence of its own: its own mapping covers it, its leaves' do not", () => {
+    // AC-08a. prints a sentence of its own over AC-08a.01 and AC-08a.02, so the control counts it.
+    const withHeading = [
+      { id: "a", ancestors: ["root"] },
+      { id: "a.1", ancestors: ["root", "a"] },
+      { id: "a.2", ancestors: ["root", "a"] },
+      { id: "b", ancestors: ["root"] },
+    ];
+    const leaves = coverageOf(withHeading, ["a.1", "a.2", "b"]);
+    expect(coveredObjectives(leaves, withHeading)).toBe(3);
+    expect(coversTarget(leaves, "a", withHeading)).toBe(false);
+    expect(coversTarget(leaves, null, withHeading)).toBe(false);
+    expect([...mappingCoverage(withHeading, "a")]).toEqual(["a", "a.1", "a.2"]);
+    expect(coversTarget(coverageOf(withHeading, ["a", "b"]), null, withHeading)).toBe(true);
+    // What is left to map once the leaves are: the heading alone.
+    expect(
+      requirementMappingStanding(
+        { revisionId: "revision", systemIds: ["system"] },
+        new Map([["system", "selection"]]),
+        new Map([["system", leaves]]),
+        ["a"],
+        withHeading,
+      ),
+    ).toEqual({
+      kind: "targets",
+      targets: [{ systemId: "system", selectedControlId: "selection", objectiveId: "a" }],
+      mapped: 0,
+      eligible: 1,
+    });
+  });
 });

@@ -5,7 +5,8 @@
  * versions and the identity services it inherits, its two assessments' plans and published
  * results, authorization packages and decisions, a continuous-monitoring schedule, scanner imports,
  * configuration baselines, lifecycle gates with their security outcomes, ATT&CK techniques on its
- * risks and evidence reviews. Reference baselines for the other demo programs.
+ * risks, evidence reviews and a control one of its requirements maps in part, by objective.
+ * Reference baselines for the other demo programs.
  *
  * The scenario is authored (scripts/demo/showcase-scenario.mjs), not archived source, and every
  * record it writes is listed under its own provenance dataset. Its determinations and evidence
@@ -289,6 +290,8 @@ export function buildPayload({ tenantId, accountUserId, asOf, scenarioSha256, ar
     evidenceOwners: evidenceOwners(...(archive ? [archive] : [])),
     // Issue requirements: the requirement each named issue is about (issue_requirements).
     issueRequirements: scenario.issueRequirements,
+    // Objective mappings: the objectives a requirement maps of a control mapped in part.
+    objectiveMappings: scenario.objectiveMappings,
   };
 }
 function monthName(date) {
@@ -339,7 +342,7 @@ export function buildPlan({ target, asOf = new Date().toISOString().slice(0, 10)
     issues.push({
       blocks: false,
       message:
-        "This workspace already holds the showcase; a run writes only what its risks still lack (a threat, a vulnerability, a rationale, a response's due moment) and an owner for each artifact that waits on a review with none.",
+        "This workspace already holds the showcase; a run writes only what its risks still lack (a threat, a vulnerability, a rationale, a response's due moment), an owner for each artifact that waits on a review with none, and the objective mappings it does not hold yet.",
     });
   if (!target.program)
     issues.push({
@@ -386,6 +389,10 @@ export function buildPlan({ target, asOf = new Date().toISOString().slice(0, 10)
       scans: scenario.scans.reduce((sum, group) => sum + group.jobs.length, 0),
       riskTechniques: Object.keys(scenario.riskTechniques).length,
       issueRequirements: Object.keys(scenario.issueRequirements).length,
+      objectiveMappings: scenario.objectiveMappings.map(
+        (entry) =>
+          `${entry.requirement} maps ${entry.objectives.join(", ")} of ${entry.control}, on each system it is allocated to whose control baseline selects it`,
+      ),
       riskAssessments: `${Object.keys(scenario.riskAssessments.risks).length} risks in their own words, the rest from the requirement they arise from; each response due by its severity`,
       evidenceOwners: `each WS-X90 artifact waiting on a review with no owner, given the person who holds the role the archive gives its requirement (${Object.entries(
         scenario.evidenceOwnerRoles,
@@ -397,8 +404,9 @@ export function buildPlan({ target, asOf = new Date().toISOString().slice(0, 10)
 }
 
 /**
- * The showcase, then what its risks still lack: on a workspace that already holds the showcase the
- * first changes nothing and the second fills only empty fields, recording them under its batch.
+ * The showcase, then what its risks still lack, an owner for each artifact waiting on a review and
+ * the objective mappings: on a workspace that already holds the showcase the first changes nothing
+ * and the rest write only what is missing, recording it under its batch.
  */
 export function applyShowcase(transaction, payload, { commit = false } = {}) {
   const result = sql(
@@ -408,19 +416,26 @@ export function applyShowcase(transaction, payload, { commit = false } = {}) {
       `select pg_temp.seed_showcase(${json(payload)});`,
       `select pg_temp.seed_showcase_risk_details(${json(payload)});`,
       `select pg_temp.seed_showcase_evidence_owners(${json(payload)});`,
+      `select pg_temp.seed_showcase_objective_mappings(${json(payload)});`,
       commit ? "commit;" : "rollback;",
     ].join("\n"),
   );
-  const [showcase, riskDetails, evidenceOwners] = result
+  const [showcase, riskDetails, evidenceOwners, objectiveMappings] = result
     .split("\n")
     .filter((line) => line.startsWith("{"))
-    .slice(-3)
+    .slice(-4)
     .map((line) => JSON.parse(line));
   return {
     ...showcase,
     riskDetails,
     evidenceOwners,
-    changed: Boolean(showcase.changed || riskDetails.changed || evidenceOwners.changed),
+    objectiveMappings,
+    changed: Boolean(
+      showcase.changed ||
+      riskDetails.changed ||
+      evidenceOwners.changed ||
+      objectiveMappings.changed,
+    ),
     showcaseChanged: Boolean(showcase.changed),
     committed: commit,
   };
@@ -482,7 +497,7 @@ async function main() {
     commit: Boolean(options.apply),
   });
   console.log(JSON.stringify(result, null, 2));
-  const filled = `${result.riskDetails.riskRevisions} risk revision(s) and ${result.riskDetails.riskResponses} response(s) filled, ${result.evidenceOwners.assigned ?? 0} evidence artifact(s) given an owner`;
+  const filled = `${result.riskDetails.riskRevisions} risk revision(s) and ${result.riskDetails.riskResponses} response(s) filled, ${result.evidenceOwners.assigned ?? 0} evidence artifact(s) given an owner, ${result.objectiveMappings.mapped ?? 0} objective mapping(s) written`;
   console.log(
     !result.changed
       ? "Nothing changed: this workspace already holds the showcase and everything its risks need."

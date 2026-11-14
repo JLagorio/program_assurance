@@ -60,7 +60,7 @@ import { resolutionChain } from "@/lib/profile-chain";
 import { ControlInspector } from "./library-controls";
 import { RecordLink, useDisplayedRecords, useEndOnHide } from "./record-preview";
 import { useCollectionTable } from "./collection-question";
-import { EmptyMessage } from "./work-common";
+import { EmptyMessage, ReportFailures } from "./work-common";
 
 export type ProfileChoice = {
   id: string;
@@ -221,31 +221,63 @@ export function SystemControls({
   const profileRecords = useRows("profiles");
   const imports = useRows("profile_imports");
   const catalogs = useRows("catalog_revisions");
-  // What the published profiles select (the choices, and the base a tailoring is measured
-  // against) and what the element's own resolution selects: never every profile's selections.
-  const selections = useSelectedControls(
-    resolutions.isSuccess && effective.isSuccess
-      ? resolutions.data
-          .filter(
-            (row) => row.state === "published" || row.id === effective.data?.profile_resolution_id,
-          )
-          .map((row) => row.id)
-      : undefined,
-    { columns: ["id", "profile_resolution_id", "control_id"] },
+  const currentResolution = resolutions.data?.find(
+    (row) => row.id === effective.data?.profile_resolution_id,
   );
-  const links = useRows("requirement_control_links", { system_id: systemId });
+  const currentProfile = profiles.data?.find(
+    (row) => row.id === currentResolution?.profile_revision_id,
+  );
+  const currentDocument = useRow("oscal_document_revisions", currentProfile?.document_revision_id);
+  const metadataBase = recordedBaseResolution(currentDocument.data?.metadata);
+  const links = useRows(
+    "requirement_control_links",
+    { system_id: systemId },
+    { columns: ["id", "control_id", "requirement_revision_id"] as const },
+  );
   const plans = useRows(
     "ssp_revisions",
     { system_id: system.data?.boundary_system_id ?? NIL },
-    { enabled: !!system.data },
+    {
+      columns: ["id", "version_number", "profile_resolution_id"] as const,
+      enabled: !!system.data,
+    },
   );
   const plan = [...(plans.data ?? [])].sort((a, b) => b.version_number - a.version_number)[0];
+  // What the tab draws from: what the element's own resolution selects, the base a tailoring is
+  // measured against (the base a layered resolution names, or the one its document records), and
+  // the profile the boundary's latest SSP pinned, whose selections its implementations name.
+  // Every published profile's selections are the baseline dialog's choices, read as it opens.
+  const selections = useSelectedControls(
+    resolutions.isSuccess &&
+      effective.isSuccess &&
+      profiles.isSuccess &&
+      plans.isSuccess &&
+      (!currentProfile || currentDocument.isSuccess)
+      ? [
+          effective.data?.profile_resolution_id,
+          currentResolution?.base_profile_resolution_id,
+          metadataBase,
+          plan?.profile_resolution_id,
+        ]
+      : undefined,
+    { columns: ["id", "profile_resolution_id", "control_id"] },
+  );
+  // Each control's implementation status in the boundary's latest SSP, never its narrative.
   const implementations = useRows(
     "implemented_requirements",
     { ssp_revision_id: plan?.id ?? NIL },
-    { enabled: !!plan },
+    { columns: ["id", "selected_control_id", "implementation_status"] as const, enabled: !!plan },
   );
   const [editing, setEditing] = useState(false);
+  // The dialog's choices: what every published profile selects, read when the reader opens it.
+  const publishedIds = useMemo(
+    () => resolutions.data?.filter((row) => row.state === "published").map((row) => row.id),
+    [resolutions.data],
+  );
+  const choiceSelections = useSelectedControls(publishedIds, {
+    columns: ["profile_resolution_id", "control_id"],
+    enabled: editing,
+  });
   const [inspected, setInspected] = useState<ControlRow | null>(null);
   // The preview belongs to the tab: choosing another ends it, and coming back does not reopen it.
   useEndOnHide(() => setInspected(null));
@@ -268,18 +300,32 @@ export function SystemControls({
       selections.data,
     ],
   );
-  const currentResolution = resolutions.data?.find(
-    (row) => row.id === effective.data?.profile_resolution_id,
-  );
-  const currentProfile = profiles.data?.find(
-    (row) => row.id === currentResolution?.profile_revision_id,
+  const dialogChoices = useMemo(
+    () =>
+      choiceSelections.data
+        ? profileChoices({
+            resolutions: resolutions.data ?? [],
+            profiles: profiles.data ?? [],
+            profileRecords: profileRecords.data ?? [],
+            imports: imports.data ?? [],
+            catalogs: catalogs.data ?? [],
+            selections: choiceSelections.data,
+          })
+        : undefined,
+    [
+      resolutions.data,
+      profiles.data,
+      profileRecords.data,
+      imports.data,
+      catalogs.data,
+      choiceSelections.data,
+    ],
   );
   // The effective revision may be a draft overlay absent from `choices`, so name it by its own record.
   const currentTitle = currentProfile
     ? (profileRecords.data?.find((row) => row.id === currentProfile.profile_id)?.title ??
       currentProfile.title)
     : undefined;
-  const currentDocument = useRow("oscal_document_revisions", currentProfile?.document_revision_id);
   const resolutionInputs = useRows(
     "profile_resolution_inputs",
     { profile_resolution_id: currentResolution?.id ?? NIL },
@@ -303,7 +349,6 @@ export function SystemControls({
     };
   }, [selections.data, currentResolutionId]);
   const publishedSource = choices.find((choice) => choice.id === currentResolution?.id);
-  const metadataBase = recordedBaseResolution(currentDocument.data?.metadata);
   const original = currentDocument.data?.original_content;
   const profileBody =
     original && typeof original === "object" && !Array.isArray(original)
@@ -547,7 +592,13 @@ export function SystemControls({
       size="small"
       variant="primary"
       disabledReason={!ready || !system.data ? "The baseline is still loading." : undefined}
-      onClick={() => setEditing(true)}
+      // The dialog opens once its choices are read; a failed read is the tab's alert, and pressing
+      // again asks again.
+      isLoading={editing && !dialogChoices && !choiceSelections.isError}
+      onClick={() => {
+        setEditing(true);
+        if (choiceSelections.isError) void choiceSelections.refetch();
+      }}
     >
       Change control baseline
     </Button>
@@ -609,10 +660,11 @@ export function SystemControls({
           onClose={() => setInspected(null)}
         />
       )}
-      {editing && system.data && (
+      <ReportFailures queries={editing ? [choiceSelections] : []} />
+      {editing && system.data && dialogChoices && (
         <BaselineDialog
           system={system.data}
-          choices={choices}
+          choices={dialogChoices}
           initialMode={initialMode}
           initialProfileId={editorSource?.id ?? null}
           initialControlIds={editorSource ? [...selected] : []}

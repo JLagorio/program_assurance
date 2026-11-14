@@ -4442,15 +4442,17 @@ export const ColumnsWithoutAMenu: Story = {
 /*
  * Facets that hold. A `list` column's facet lists each item once, counted per row that holds it,
  * and a row matches when it holds any item chosen, never the combinations the rows hold; its
- * `emptyLabel` lists the rows with none under a value of their own. A value the reader chose stays
- * in its list, at 0, when the search or another filter removes its rows. The order is the status's
- * or the alphabet's, never the counts', and a facet of more than eight values takes a search.
+ * `emptyLabel` lists the rows with none under a value of their own, as a person column's does the
+ * rows with no one. A value the reader chose stays in its list, at 0, when the search or another
+ * filter removes its rows. The order is the status's or the alphabet's, never the counts', and a
+ * facet of more than eight values takes a search.
  */
 type Assignment = {
   id: string;
   title: string;
   status: "Open" | "Blocked" | "Done";
   assignees: string[];
+  owner: string | null;
 };
 
 const assigneeNames = [
@@ -4469,15 +4471,25 @@ const assigneeNames = [
 ];
 const assignmentStates: Assignment["status"][] = ["Open", "Blocked", "Done"];
 
-/** Twelve tasks, two people each, so every person holds exactly two tasks; a thirteenth has no one. */
+/** Who owns a task: four people, two tasks each, and every third task nobody. */
+const taskOwners = ["Ada Byron", "Grace Hopper", "Ken Thompson", "Radia Perlman"];
+
+/** Twelve tasks, two people each, so every person holds exactly two tasks; a thirteenth has no one. Five have no owner. */
 const assignments: Assignment[] = [
   ...Array.from({ length: 12 }, (_, i) => ({
     id: `TSK-${String(i + 1).padStart(2, "0")}`,
     title: names[i % names.length] ?? "",
     status: assignmentStates[i % 3] ?? "Open",
     assignees: [assigneeNames[i] ?? "", assigneeNames[(i + 5) % 12] ?? ""],
+    owner: i % 3 === 2 ? null : (taskOwners[i % 4] ?? null),
   })),
-  { id: "TSK-13", title: "Rotate the recovery keys", status: "Blocked", assignees: [] },
+  {
+    id: "TSK-13",
+    title: "Rotate the recovery keys",
+    status: "Blocked",
+    assignees: [],
+    owner: null,
+  },
 ];
 
 const assignmentColumns = defineColumns<Assignment>((c) => [
@@ -4496,6 +4508,7 @@ const assignmentColumns = defineColumns<Assignment>((c) => [
     emptyLabel: "Unassigned",
     searchable: true,
   }),
+  c.person("owner", { header: "Owner", width: 160, emptyLabel: "No owner" }),
 ]);
 
 function AssignmentFacets() {
@@ -4514,6 +4527,7 @@ function AssignmentFacets() {
           <DataTable.Search table={table} placeholder="Search tasks" />
           <DataTable.Filter table={table} column="status" />
           <DataTable.Filter table={table} column="assignees" width={260} />
+          <DataTable.Filter table={table} column="owner" />
         </Inline>
       }
     />
@@ -4603,9 +4617,125 @@ export const FacetsStory: Story = {
     await userEvent.click(people.getByRole("checkbox", { name: "Unassigned 1" }));
     await close();
 
+    // A person column's `emptyLabel` lists the tasks nobody owns as a value of its own, in the
+    // alphabet's order among the owners, and their cells say it.
+    const owners = await open("Owner");
+    await expect(listed(owners)).toEqual([
+      "Ada Byron2",
+      "Grace Hopper2",
+      "Ken Thompson2",
+      "No owner5",
+      "Radia Perlman2",
+    ]);
+    await userEvent.click(owners.getByRole("checkbox", { name: "No owner 5" }));
+    await close();
+    await waitFor(() => expect(rows()).toBe(5));
+    await expect(filterChip(canvasElement, "Owner")).toHaveTextContent("No owner");
+    await expect(within(table).getAllByText("No owner")).toHaveLength(5);
+    await userEvent.click((await open("Owner")).getByRole("button", { name: "Clear" }));
+    await close();
+    await waitFor(() => expect(rows()).toBe(13));
+
     // The column is `searchable`: the search finds a task by any of its people.
     await userEvent.type(search, "Knuth");
     await waitFor(() => expect(rows()).toBe(2));
+  },
+};
+
+type Countered = { id: string; control: string; techniques: string[] };
+
+/** Forty controls, each countering two of forty techniques, so every technique is held twice. */
+const countered: Countered[] = Array.from({ length: 40 }, (_, i) => ({
+  id: `CTL-${String(i + 1).padStart(2, "0")}`,
+  control: `Control ${i + 1}`,
+  techniques: [`T${1001 + i}`, `T${1001 + ((i + 1) % 40)}`],
+}));
+
+const counteredColumns = defineColumns<Countered>((c) => [
+  c.id("id"),
+  c.text("control", { header: "Control", minWidth: 160 }),
+  c.list("techniques", {
+    header: "Techniques",
+    width: 200,
+    items: (r) => r.techniques.map((label) => ({ key: label, label })),
+  }),
+]);
+
+function LongFacets() {
+  const table = useDataTable({
+    columns: counteredColumns,
+    data: countered,
+    getRowId: (r) => r.id,
+    label: "Controls by technique",
+    // A link asks for one technique, as a count that opens its records does.
+    initialState: { columnFilters: [{ id: "techniques", value: ["T1033"] }] },
+  });
+  return (
+    <DataTable
+      responsive={false}
+      table={table}
+      toolbar={
+        <Inline space="space.100" alignBlock="center" shouldWrap>
+          <DataTable.Filter table={table} column="techniques" />
+          <DataTable.Filter table={table} column="control" />
+          <Button
+            size="small"
+            variant="secondary"
+            onClick={() => table.getColumn("control")?.setFilterValue(["Control 7"])}
+          >
+            Apply a saved view
+          </Button>
+        </Inline>
+      }
+    />
+  );
+}
+
+/** Long facets. A `list` column's items are a vocabulary, and its facet lists every one, under its search, however many there are: forty techniques here, the one a link asked for checked and read on the chip. A text column of more than thirty values filters by its text instead; a value asked of it by a saved view still reads on its chip, and Clear removes it. */
+export const LongFacetsStory: Story = {
+  name: "Long facets",
+  render: () => <LongFacets />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const body = within(canvasElement.ownerDocument.body);
+    const table = canvas.getByRole("table", { name: "Controls by technique" });
+    const rows = () => table.querySelectorAll("tbody tr[data-row-id]").length;
+    const open = async (label: string) => {
+      await userEvent.click(filterChip(canvasElement, label));
+      const popup = await body.findByRole("dialog", { name: label });
+      await waitFor(() => expect(popup).toBeVisible());
+      return within(popup);
+    };
+    const close = async () => {
+      await userEvent.keyboard("{Escape}");
+      await waitFor(() => expect(body.queryByRole("dialog")).toBeNull());
+    };
+
+    // The technique the link asked for reads on the chip, and its two controls are listed.
+    await waitFor(() => expect(rows()).toBe(2));
+    await expect(filterChip(canvasElement, "Techniques")).toHaveTextContent("T1033");
+    // Forty techniques stay checkboxes under a search, the asked one checked where it is listed.
+    const techniques = await open("Techniques");
+    await expect(techniques.getAllByRole("checkbox")).toHaveLength(40);
+    await expect(techniques.getByRole("checkbox", { name: "T1033 2" })).toBeChecked();
+    await userEvent.type(techniques.getByRole("searchbox", { name: "Search Techniques" }), "T104");
+    await expect(techniques.getAllByRole("checkbox")).toHaveLength(1);
+    await userEvent.keyboard("{Escape}");
+    await userEvent.click(techniques.getByRole("checkbox", { name: "T1033 2" }));
+    await close();
+    await waitFor(() => expect(rows()).toBe(40));
+    await expect(filterChip(canvasElement, "Techniques")).not.toHaveTextContent("T1033");
+
+    // Forty control names filter by their text; a saved view's value still reads on the chip.
+    await userEvent.click(canvas.getByRole("button", { name: "Apply a saved view" }));
+    await waitFor(() => expect(rows()).toBe(1));
+    await expect(filterChip(canvasElement, "Control")).toHaveTextContent("Control 7");
+    const control = await open("Control");
+    await expect(control.getByRole("textbox", { name: "Control contains" })).toHaveValue("");
+    await userEvent.click(control.getByRole("button", { name: "Clear" }));
+    await close();
+    await waitFor(() => expect(rows()).toBe(40));
+    await expect(filterChip(canvasElement, "Control")).not.toHaveTextContent("Control 7");
   },
 };
 

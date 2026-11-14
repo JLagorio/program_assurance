@@ -1,5 +1,18 @@
 import type { Row } from "./models";
-import { isMappingTarget } from "./requirement-control-mappings";
+import { objectiveWords } from "./product-records";
+import { isMappingTarget, objectiveLabel } from "./requirement-control-mappings";
+
+const conjunction = new Intl.ListFormat("en", { type: "conjunction" });
+const byLabel = new Intl.Collator("en", { numeric: true }).compare;
+
+/**
+ * What a requirement's objective mappings of a control say in the SSP: the objectives by label, in
+ * the catalog's order ("Mapped to objectives SA-24a.01, SA-24a.02, and SA-24a.03").
+ */
+export function mappedObjectives(labels: readonly string[]): string {
+  const sorted = [...new Set(labels)].sort(byLabel);
+  return `Mapped to ${sorted.length === 1 ? "objective" : "objectives"} ${conjunction.format(sorted)}`;
+}
 
 type RequirementLink = Omit<Row<"requirement_implementations">, "component_contribution_id"> & {
   component_contribution_id: string | null;
@@ -205,6 +218,12 @@ export function assembleSsp(input: SspAssemblyInput): SspControlAssembly[] {
             );
           }
         }
+      // The objectives a requirement's mappings name, said together once the mappings are read:
+      // by requirement and by what the mappings' baselines say of them.
+      const objectiveMappings = new Map<
+        string,
+        { contentId: string; context: string; labels: Set<string>; rationale: string[] }
+      >();
       for (const mapping of input.controlMappings) {
         const part = mapping.control_part_id ? partById.get(mapping.control_part_id) : undefined;
         const mappedControlId = mapping.control_id ?? part?.control_id;
@@ -217,6 +236,7 @@ export function assembleSsp(input: SspAssemblyInput): SspControlAssembly[] {
         const review =
           mapping.control_part_id &&
           (!part || !isMappingTarget(part, input.parts, mappedControlId));
+        const objective = !review && part?.name === "assessment-objective" ? part : undefined;
         const sourceSelection = mapping.selected_control_id
           ? selectionById.get(mapping.selected_control_id)
           : undefined;
@@ -235,12 +255,32 @@ export function assembleSsp(input: SspAssemblyInput): SspControlAssembly[] {
             : mapping.selected_control_id && !sourceSelection
               ? " · Source selection unavailable; review mapping"
               : "";
+        if (objective) {
+          const key = `${mapping.requirement_revision_id}\u0000${sourceContext}`;
+          const held = objectiveMappings.get(key) ?? {
+            contentId: mapping.requirement_revision_id,
+            context: sourceContext,
+            labels: new Set<string>(),
+            rationale: [],
+          };
+          held.labels.add(objectiveLabel(objective) ?? objectiveWords.unlabelled);
+          if (mapping.rationale && !held.rationale.includes(mapping.rationale))
+            held.rationale.push(mapping.rationale);
+          objectiveMappings.set(key, held);
+          continue;
+        }
         addRequirement(
           mapping.requirement_revision_id,
           false,
           `${review ? "Control reference needs review" : "Mapped to control; no implementation claim implied"}${sourceContext}`,
           mapping.rationale,
         );
+      }
+      for (const held of objectiveMappings.values()) {
+        const description = `${mappedObjectives([...held.labels])}; no implementation claim implied${held.context}`;
+        if (!held.rationale.length) addRequirement(held.contentId, false, description, null);
+        for (const rationale of held.rationale)
+          addRequirement(held.contentId, false, description, rationale);
       }
       const evidence = new Map<string, SspEvidenceSupport>();
       const addEvidence = (id: string, origin: SspEvidenceSupport["origins"][number]) => {

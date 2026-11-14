@@ -24,10 +24,11 @@ import { useStaleOnWrite } from "./server-table";
  * in frameworks), and Appendix G does the same for ATT&CK for ICS (`ATTACK_ICS_FRAMEWORK`). A risk
  * names the techniques it concerns, from either, one link a technique, and `risk_threats` reads
  * them in one request, as the reader, with the controls the appendices print against them and
- * where the risk's program stands on each: in its control baseline or not, its requirements, and
- * its requirements with evidence. This module is that read, the link and unlink commands, and what
- * the screens derive from the appendices: the order a risk's controls read in, the techniques a
- * picker offers, and one technique's mitigations and controls.
+ * where the risk's program stands on each: in its control baseline or not, its requirements, its
+ * requirements with evidence, and how many of its assessment objectives they cover. This module is
+ * that read, the link and unlink commands, and what the screens derive from the appendices: the
+ * order a risk's controls read in, the techniques a picker offers, and one technique's mitigations
+ * and controls.
  */
 
 /** The link between a risk and a technique: the model its writes are announced under. */
@@ -74,6 +75,14 @@ export type CounteringControl = {
   requirements: number | null;
   /** Those of them whose latest revision cites an evidence version. */
   evidenced: number | null;
+  /**
+   * The assessment objectives the control counts (its leaves, and each heading that prints a
+   * sentence of its own); none for a control the catalog gives none. Empty when no standing can be
+   * said.
+   */
+  objectives: number | null;
+  /** Those the program's requirements cover, as its control status counts them. */
+  objectivesMapped: number | null;
 };
 
 /** What a risk concerns and what counters it. */
@@ -133,6 +142,9 @@ const answerSchema = z.object({
       in_baseline: z.boolean().nullable(),
       requirements: count.nullable(),
       evidenced: count.nullable(),
+      // Every answer counts them since 20261114051138_objective_counts_on_screens.
+      objectives: count.nullable().default(null),
+      objectives_mapped: count.nullable().default(null),
     }),
   ),
   totals: z.object({
@@ -188,6 +200,8 @@ export async function readRiskThreats(
       inBaseline: control.in_baseline,
       requirements: control.requirements,
       evidenced: control.evidenced,
+      objectives: control.objectives,
+      objectivesMapped: control.objectives_mapped,
     })),
     totals: {
       techniques: answer.totals.techniques,
@@ -449,28 +463,28 @@ export function useUnlinkRiskTechnique() {
 export const codedName = (record: { code: string; title: string }) =>
   `${record.code} ${record.title}`;
 
+/** What the order of a risk's controls reads of each: its standing, and its objectives where counted. */
+type Holding = Pick<CounteringControl, "inBaseline" | "requirements" | "evidenced"> &
+  Partial<Pick<CounteringControl, "objectives" | "objectivesMapped">>;
+
 /**
  * How much of a control the program holds, least first: not in its baseline, then in it with no
- * requirement, then with a requirement and no evidence, then with evidence. A control outside the
- * baseline that a requirement maps all the same stands after the ones nothing maps.
+ * requirement, then with a requirement and no evidence, then with evidence. A control whose
+ * requirements cover only some of its objectives holds no requirement yet, as its control status
+ * says, whatever they cite. A control outside the baseline that a requirement maps all the same
+ * stands after the ones nothing maps.
  */
-export function controlHolding(
-  control: Pick<CounteringControl, "inBaseline" | "requirements" | "evidenced">,
-): number {
-  return (
-    (control.inBaseline ? 4 : 0) +
-    ((control.requirements ?? 0) > 0 ? 2 : 0) +
-    ((control.evidenced ?? 0) > 0 ? 1 : 0)
-  );
+export function controlHolding(control: Holding): number {
+  const partly = !!control.objectives && (control.objectivesMapped ?? 0) < control.objectives;
+  const mapped = (control.requirements ?? 0) > 0 && !partly;
+  return (control.inBaseline ? 4 : 0) + (mapped ? 2 + ((control.evidenced ?? 0) > 0 ? 1 : 0) : 0);
 }
 
 /**
  * A risk's controls in the order its record reads them: what the program does not hold first
  * (`controlHolding`), and the catalog's order among controls it holds alike.
  */
-export function leastHeldFirst<
-  T extends Pick<CounteringControl, "inBaseline" | "requirements" | "evidenced">,
->(controls: readonly T[]): T[] {
+export function leastHeldFirst<T extends Holding>(controls: readonly T[]): T[] {
   return controls
     .map((control, index) => ({ control, index, held: controlHolding(control) }))
     .sort((a, b) => a.held - b.held || a.index - b.index)

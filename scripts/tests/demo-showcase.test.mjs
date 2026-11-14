@@ -336,3 +336,58 @@ test("an artifact waiting on a review is owned by the person who holds its requi
   );
   assert.deepEqual(payload.evidenceOwners, owners);
 });
+
+// Objective mappings (requirement_control_links.control_part_id): a control mapped in part.
+test("a requirement maps some objectives of a control no archived requirement maps, each one the control counts", () => {
+  const catalog = JSON.parse(
+    gunzipSync(readFileSync(resolve("supabase/reference", "NIST_SP-800-53_rev5_catalog.json.gz"))),
+  );
+  const controls = new Map();
+  const collect = (list = []) => {
+    for (const control of list) {
+      controls.set(control.id, control);
+      collect(control.controls);
+    }
+  };
+  for (const group of catalog.catalog.groups) collect(group.controls);
+  // The objectives a control counts: its leaves, and each heading that prints a sentence of its own
+  // once SP 800-53A's lead-in "Determine if:" is set aside (objective_prints_own_sentence).
+  const counted = (control) => {
+    const labels = [];
+    const walk = (parts = []) => {
+      for (const part of parts.filter((item) => item.name === "assessment-objective")) {
+        const under = (part.parts ?? []).some((item) => item.name === "assessment-objective");
+        const own = /\S/.test((part.prose ?? "").replace(/^\s*determine if:/i, ""));
+        if (!under || own) labels.push(part.props?.find((prop) => prop.name === "label")?.value);
+        walk(part.parts);
+      }
+    };
+    walk(control.parts);
+    return labels;
+  };
+  const archive = readArchive();
+  const tailoredIn = new Set(scenario.tailoring.include.map(([code]) => code));
+  assert.ok(scenario.objectiveMappings.length > 0);
+  for (const entry of scenario.objectiveMappings) {
+    assert.ok(
+      archive.requirements.some((item) => item.id === entry.requirement),
+      `${entry.requirement} is not an archived WS-X90 requirement`,
+    );
+    // In WS-X90's control baseline through its tailoring, and mapped as a whole by no requirement.
+    assert.ok(tailoredIn.has(entry.control), `${entry.control} is not tailored in`);
+    assert.ok(
+      !archive.requirements.some((item) => item.control_ids.includes(entry.control)),
+      `an archived requirement maps ${entry.control} as a whole`,
+    );
+    const control = controls.get(entry.control.toLowerCase().replace(/\((\d+)\)$/, ".$1"));
+    assert.ok(control, `${entry.control} is not in the pinned catalog`);
+    const labels = counted(control);
+    for (const label of entry.objectives)
+      assert.ok(labels.includes(label), `${label} is not an objective ${entry.control} counts`);
+    // Some of its objectives and not all: the control stays mapped in part.
+    assert.ok(entry.objectives.length > 0 && entry.objectives.length < labels.length);
+    assert.ok(["derived_from", "maps_to", "satisfies"].includes(entry.relationship));
+    assert.ok(entry.rationale.trim());
+  }
+  assert.deepEqual(payload.objectiveMappings, scenario.objectiveMappings);
+});

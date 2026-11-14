@@ -246,7 +246,6 @@ export function WorkTable({
     columns: programId ? programColumns : registerColumns,
     rows: taskRows,
     getRowId: (row) => row.id,
-    rowLabel: (row) => row.title,
     preview: tablePreview,
     label: "Tasks",
     view: workstreamId

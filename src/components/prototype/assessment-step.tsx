@@ -162,7 +162,6 @@ function AddToAssessmentPicker({
     getRowId: (row) => row.id,
     selectable: (row) => counted && !reasonOf(row, control.code),
     enableMultiRowSelection: false,
-    rowLabel: (row) => row.title,
     label: "Assessment campaigns to add to",
   });
   const chosenId = Object.keys(table.state.rowSelection).find((id) => table.state.rowSelection[id]);

@@ -229,8 +229,8 @@ variant: "selected:bg-selected" uses "selected", which is not a variant Tailwind
 respell: "hovr:bg-surface" uses "hovr", which is not a variant Tailwind knows, so it generates no CSS. Spell the variant "hover".
 modifier: "not-hover/row:flex" uses "not-hover/row", but a /name follows only a group-, peer- or container variant, so it generates no CSS. Write "not-hover".
 groupModifier: "hover/row:flex" uses "hover/row", but a /name follows only a group-, peer- or container variant, so it generates no CSS. Write "hover", or "group-hover/row" for the group of that name.
-breakpoint: "tablet:flex" uses "tablet", which is not a breakpoint, so it generates no CSS. In Main or a panel, use a container size: @3xs 16rem to @7xl 80rem, @compact 25rem and @split 50rem. Window breakpoints: sm 40rem, md 48rem, lg 64rem and panel or xl 80rem.
-container: "@8xl:flex" uses "@8xl", which is not a container size, so it generates no CSS. The sizes are @3xs 16rem to @7xl 80rem, @compact 25rem and @split 50rem.
+breakpoint: "tablet:flex" uses "tablet", which is not a breakpoint, so it generates no CSS. In Main or a panel, use a container size: @3xs 16rem to @7xl 80rem and @split 50rem. Window breakpoints: sm 40rem, md 48rem, lg 64rem and panel or xl 80rem.
+container: "@8xl:flex" uses "@8xl", which is not a container size, so it generates no CSS. The sizes are @3xs 16rem to @7xl 80rem and @split 50rem.
 aria: "aria-foo:flex" names aria-foo, which is not an ARIA attribute, so it never matches. Name an attribute the element sets, or key a state of its own to data-.
 variable: "nth-(--n):bg-surface" uses "nth-(--n)", whose value is a CSS variable, which no selector or feature query reads, so it never matches. Write the value itself, such as nth-3 or supports-[display:grid].
 ariaRespell: "aria-expaned:flex" names aria-expaned, which is not an ARIA attribute, so it never matches. Spell the variant "aria-expanded".

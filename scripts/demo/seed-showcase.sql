@@ -844,3 +844,117 @@ begin
   return jsonb_build_object('changed', v_assigned > 0, 'assigned', v_assigned, 'byOwner', v_by);
 end;
 $owners$;
+
+-- ——— Objective mappings: begin (requirement_control_links.control_part_id, objective-level derivation) ———
+-- The assessment objectives a WS-X90 requirement maps of a control no requirement maps as a whole
+-- (showcase-scenario.mjs, objectiveMappings), so a seeded program shows a control mapped in part:
+-- each objective once on each system the requirement is allocated to whose control baseline selects
+-- the control, as a control's Map a requirement maps it. It runs after pg_temp.seed_showcase, on the
+-- showcase's first run and on a workspace that already holds the showcase, and lists each mapping
+-- it writes in demo_import_records under the showcase's batch, with the section it read, counted in
+-- the batch's summary (`added`), so a further run changes nothing. A control a requirement of the
+-- program already maps as a whole, or by a statement of its text, is passed over and said in what
+-- the step returns; a requirement, control or objective it cannot find stops the run.
+create function pg_temp.seed_showcase_objective_mappings(p jsonb) returns jsonb language plpgsql as $objectives$
+declare
+  t uuid := (p->>'tenantId')::uuid;
+  v_program uuid; v_batch uuid; v_catalog uuid; v_entry jsonb; v_control uuid; v_revision uuid;
+  v_label text; v_objective uuid; v_carrier record; v_carriers integer; v_id uuid; v_key text;
+  v_source uuid; v_sha text; v_added integer := 0; v_skipped jsonb := '[]';
+begin
+  perform pg_advisory_xact_lock(hashtextextended(t::text || '/demo-showcase', 0));
+  select id into v_batch from public.demo_import_batches where tenant_id = t and dataset_id = p->>'datasetId';
+  if v_batch is null then
+    return jsonb_build_object('changed', false, 'reason', 'This workspace does not hold the showcase.');
+  end if;
+  select id into v_program from public.programs where tenant_id = t and code = p->>'programCode';
+  select c.catalog_revision_id into v_catalog from public.program_reference_choices c
+    where c.tenant_id = t and c.program_id = v_program order by c.created_at, c.id limit 1;
+  v_sha := encode(extensions.digest(coalesce(p->'objectiveMappings', '[]'::jsonb)::text, 'sha256'), 'hex');
+  v_source := pg_temp.sid(t, 'demo_import_sources/objectiveMappings');
+  for v_entry in select jsonb_array_elements(coalesce(p->'objectiveMappings', '[]'::jsonb)) loop
+    select k.id into v_control from public.controls k
+      where k.catalog_revision_id = v_catalog and k.code = v_entry->>'control';
+    if v_control is null then
+      raise exception 'Control % is not in the catalog edition of %''s control baseline. Run npm run seed:demo-baseline first.',
+        v_entry->>'control', p->>'programCode';
+    end if;
+    select v.id into v_revision
+    from public.engineering_requirements q
+    join public.requirement_revisions v on v.tenant_id = q.tenant_id and v.engineering_requirement_id = q.id
+    where q.tenant_id = t and q.program_id = v_program and q.code = v_entry->>'requirement'
+    order by v.version_number desc limit 1;
+    if v_revision is null then
+      raise exception 'Requirement % is not in %. Run the demo import (npm run seed:demo) first.',
+        v_entry->>'requirement', p->>'programCode';
+    end if;
+    -- A requirement of the program that maps the control as a whole, at its latest revision: the
+    -- control is covered already, and nothing is mapped in part.
+    if exists (
+      select 1 from public.requirement_control_links l
+      join public.requirement_revisions v on v.tenant_id = l.tenant_id and v.id = l.requirement_revision_id
+      join public.engineering_requirements q on q.tenant_id = v.tenant_id and q.id = v.engineering_requirement_id
+      left join public.control_parts cp on cp.id = l.control_part_id
+      where l.tenant_id = t and q.program_id = v_program and l.control_id = v_control
+        and (cp.id is null or cp.name <> 'assessment-objective')
+        and v.version_number = (select max(x.version_number) from public.requirement_revisions x
+          where x.tenant_id = v.tenant_id and x.engineering_requirement_id = v.engineering_requirement_id)
+    ) then
+      v_skipped := v_skipped || jsonb_build_object('requirement', v_entry->>'requirement',
+        'control', v_entry->>'control', 'reason', 'a requirement of the program maps the control as a whole');
+      continue;
+    end if;
+    for v_label in select jsonb_array_elements_text(v_entry->'objectives') loop
+      select o.id into v_objective from public.control_parts o
+      where o.control_id = v_control and o.name = 'assessment-objective'
+        and exists (select 1 from jsonb_array_elements(o.props) x where x->>'name' = 'label' and x->>'value' = v_label);
+      if v_objective is null then
+        raise exception 'Control % has no assessment objective %.', v_entry->>'control', v_label;
+      end if;
+      v_carriers := 0;
+      for v_carrier in
+        select a.system_id, s.code, sc.id as selected_control_id
+        from public.requirement_allocations a
+        join public.systems s on s.tenant_id = a.tenant_id and s.id = a.system_id
+        join public.system_effective_baselines b on b.tenant_id = a.tenant_id and b.system_id = a.system_id
+        join public.selected_controls sc on sc.profile_resolution_id = b.profile_resolution_id and sc.control_id = v_control
+        where a.tenant_id = t and a.requirement_revision_id = v_revision
+        order by s.code
+      loop
+        v_carriers := v_carriers + 1;
+        continue when exists (select 1 from public.requirement_control_links l
+          where l.tenant_id = t and l.requirement_revision_id = v_revision and l.control_id = v_control
+            and l.control_part_id = v_objective and l.system_id = v_carrier.system_id
+            and l.relationship_type = v_entry->>'relationship');
+        v_key := 'requirement_control_links/' || (v_entry->>'requirement') || '/' || v_label || '/' || v_carrier.code;
+        v_id := pg_temp.sid(t, v_key);
+        insert into public.requirement_control_links (id, tenant_id, requirement_revision_id, control_id,
+            control_part_id, system_id, selected_control_id, relationship_type, rationale)
+          values (v_id, t, v_revision, v_control, v_objective, v_carrier.system_id, v_carrier.selected_control_id,
+            v_entry->>'relationship', v_entry->>'rationale');
+        insert into public.demo_import_sources (id, tenant_id, import_batch_id, source_pointer, source_sha256, source_record)
+          values (v_source, t, v_batch, '/objectiveMappings', v_sha, p->'objectiveMappings')
+          on conflict (id) do nothing;
+        insert into public.demo_import_records (id, tenant_id, import_batch_id, dataset_id, destination_table,
+            destination_id, source_key, source_pointer, source_sha256, source_record_id, mapped_values)
+          values (pg_temp.sid(t, 'demo_import_records/requirement_control_links/' || v_id), t, v_batch, p->>'datasetId',
+            'requirement_control_links', v_id, v_key, '/objectiveMappings', v_sha, v_source,
+            jsonb_build_object('section', 'objectiveMappings'));
+        v_added := v_added + 1;
+      end loop;
+      if v_carriers = 0 then
+        raise exception 'Requirement % is allocated to no system whose control baseline selects %.',
+          v_entry->>'requirement', v_entry->>'control';
+      end if;
+    end loop;
+  end loop;
+  if v_added > 0 then
+    update public.demo_import_batches set summary = summary || jsonb_build_object('added',
+        coalesce(summary->'added', '{}'::jsonb) || jsonb_build_object(
+          'requirement_control_links', coalesce((summary->'added'->>'requirement_control_links')::integer, 0) + v_added))
+      where id = v_batch;
+  end if;
+  return jsonb_build_object('changed', v_added > 0, 'mapped', v_added, 'skipped', v_skipped);
+end;
+$objectives$;
+-- ——— Objective mappings: end ———

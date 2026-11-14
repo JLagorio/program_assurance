@@ -64,7 +64,7 @@ select pg_temp.expect_error($$select pg_temp.import(gen_random_uuid(), '[{"refer
 select pg_temp.expect_error($$select pg_temp.import(gen_random_uuid(), '[{"reference": "3.1", "statement": "It shall."}, {"reference": "3.1 ", "statement": "It shall again."}]')$$, '22023');
 select pg_temp.expect_error($$select pg_temp.import(gen_random_uuid(), '[{"reference": "3.1", "statement": "It shall.", "type": "wish"}]')$$, '22023');
 select pg_temp.expect_error($$select public.import_customer_requirements(current_setting('test.tenant')::uuid, gen_random_uuid(), gen_random_uuid(),
-  '{"code": "X", "title": "X"}', '[{"reference": "1", "statement": "It shall."}]')$$, 'P0002');
+  '{"code": "X", "title": "X"}', '[{"reference": "1", "statement": "It shall."}]')$$, 'PT404');
 do $$ begin
   if exists (select 1 from public.requirement_sources) or exists (select 1 from public.engineering_requirements) then
     raise exception 'A refused import wrote something';
@@ -253,7 +253,7 @@ do $$ begin
   perform pg_temp.expect_error(format($q$select public.requirement_source_compliance(%L, %L)$q$, current_setting('test.tenant'), current_setting('test.source')), '42501');
   perform pg_temp.expect_error(format($q$select public.requirement_source_compliance(%L, %L)$q$, current_setting('test.other_tenant'), current_setting('test.source')), '42501');
   perform pg_temp.expect_error($q$select pg_temp.import(gen_random_uuid(), '[{"reference": "8.1", "statement": "Not mine."}]')$q$, '42501');
-  perform pg_temp.expect_error(format($q$select public.import_customer_requirements(%L, 'c4e10000-0000-0000-0000-000000000001', gen_random_uuid(), '{"code": "X", "title": "X"}', '[{"reference": "1", "statement": "It shall."}]')$q$, current_setting('test.other_tenant')), 'P0002');
+  perform pg_temp.expect_error(format($q$select public.import_customer_requirements(%L, 'c4e10000-0000-0000-0000-000000000001', gen_random_uuid(), '{"code": "X", "title": "X"}', '[{"reference": "1", "statement": "It shall."}]')$q$, current_setting('test.other_tenant')), 'PT404');
   perform set_config('request.jwt.claim.sub', '', true);
   perform pg_temp.expect_error(format($q$select public.requirement_source_compliance(%L, %L)$q$, current_setting('test.tenant'), current_setting('test.source')), '42501');
 end $$;

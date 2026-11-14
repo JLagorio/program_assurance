@@ -722,7 +722,7 @@ export const Dont: Story = {
             }
           />
         }
-        dontText="A search as the label, and a grey sentence as the detail: the list has no name, and nothing-chosen is not an Empty."
+        dontText="A search as the label, and a grey sentence as the detail: the list is named for its search (Search catalog controls) rather than for what it lists, and nothing-chosen is not an Empty."
       />
     </Stack>
   ),

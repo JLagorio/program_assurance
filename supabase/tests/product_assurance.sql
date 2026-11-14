@@ -266,7 +266,7 @@ begin
     perform pg_temp.expect_error(format($q$select public.record_product_determinations(%L, %L, %L, array[%L, %L]::uuid[], 'satisfied', null)$q$, v_tenant, v_draft, v_core, v_a, v_outside), '23514');
   end if;
   perform pg_temp.expect_error(format($q$select public.record_product_determinations(%L, %L, %L, array[%L]::uuid[], 'satisfied', null)$q$, v_tenant, v_draft, gen_random_uuid(), v_a), '23514');
-  perform pg_temp.expect_error(format($q$select public.record_product_determinations(%L, %L, null, array[%L]::uuid[], 'satisfied', null)$q$, v_tenant, gen_random_uuid(), v_a), 'P0002');
+  perform pg_temp.expect_error(format($q$select public.record_product_determinations(%L, %L, null, array[%L]::uuid[], 'satisfied', null)$q$, v_tenant, gen_random_uuid(), v_a), 'PT404');
   if (select count(*) from public.product_determinations d where d.product_assessment_id = v_draft) <> 2 then
     raise exception 'A refused record wrote something';
   end if;
@@ -366,7 +366,7 @@ begin
   perform pg_temp.expect_error(format($q$select public.declare_product_element_change(%L, %L, %s, array['paint'], 'A new colour')$q$, v_tenant, v_core_system.id, v_core_system.revision), '22023');
   perform pg_temp.expect_error(format($q$select public.declare_product_element_change(%L, %L, 1, array['hardware'], 'It is the program''s own')$q$, v_tenant, v_added_system), '23514');
   perform pg_temp.expect_error(format($q$select public.declare_product_element_change(%L, %L, %s, array['software'], 'Customer keys')$q$, v_tenant, v_core_system.id, v_core_system.revision + 7), 'PT409');
-  perform pg_temp.expect_error(format($q$select public.declare_product_element_change(%L, %L, 1, array['software'], 'Customer keys')$q$, v_tenant, gen_random_uuid()), 'P0002');
+  perform pg_temp.expect_error(format($q$select public.declare_product_element_change(%L, %L, 1, array['software'], 'Customer keys')$q$, v_tenant, gen_random_uuid()), 'PT404');
 
   v_result := public.declare_product_element_change(v_tenant, v_core_system.id, v_core_system.revision, array['software', 'firmware', 'software'], 'Customer keys and mission data are built in.');
   if not (v_result->>'changed')::boolean or v_result->'kinds' <> '["firmware", "software"]'::jsonb
@@ -490,7 +490,7 @@ begin
   -- Refused: a variant whose SSP is a draft, an element, and a system that is gone.
   perform pg_temp.expect_error(format($q$select public.plan_delta_assessment(%L, %L, %L)$q$, v_tenant, v_pruned, gen_random_uuid()), '23514');
   perform pg_temp.expect_error(format($q$select public.plan_delta_assessment(%L, %L, %L)$q$, v_tenant, v_plain_system, gen_random_uuid()), '23514');
-  perform pg_temp.expect_error(format($q$select public.plan_delta_assessment(%L, %L, %L)$q$, v_tenant, gen_random_uuid(), gen_random_uuid()), 'P0002');
+  perform pg_temp.expect_error(format($q$select public.plan_delta_assessment(%L, %L, %L)$q$, v_tenant, gen_random_uuid(), gen_random_uuid()), 'PT404');
 
   -- Taking a newer version. Version 3 of the product adds an element with one inside it and one
   -- inside the kit element, and its configuration A no longer has the plain element.
@@ -514,7 +514,7 @@ begin
   insert into public.products(id, tenant_id, code, name) values (v_other_product, v_tenant, 'PA-Z', 'Another test product');
   insert into public.product_revisions(id, tenant_id, product_id, version_number) values (v_other_revision, v_tenant, v_other_product, 9);
   perform pg_temp.expect_error(format($q$select public.variant_version_changes(%L, %L, %L)$q$, v_tenant, v_variant, v_other_revision), '23514');
-  perform pg_temp.expect_error(format($q$select public.variant_version_changes(%L, %L, %L)$q$, v_tenant, v_variant, gen_random_uuid()), 'P0002');
+  perform pg_temp.expect_error(format($q$select public.variant_version_changes(%L, %L, %L)$q$, v_tenant, v_variant, gen_random_uuid()), 'PT404');
   perform pg_temp.expect_error(format($q$select public.variant_version_changes(%L, %L, %L)$q$, v_tenant, v_plain_system, v_third), '23514');
 
   -- What taking it would do, and that asking changes nothing. The variant holds every element of
@@ -551,7 +551,7 @@ begin
   select * into v_boundary from public.systems where id = v_variant;
   perform pg_temp.expect_error(format($q$select public.take_product_version(%L, %L, %s, %L, null)$q$, v_tenant, v_variant, v_boundary.revision, v_third), '22023');
   perform pg_temp.expect_error(format($q$select public.take_product_version(%L, %L, %s, %L, %L)$q$, v_tenant, v_variant, v_boundary.revision + 3, v_third, v_take), 'PT409');
-  perform pg_temp.expect_error(format($q$select public.take_product_version(%L, %L, 1, %L, %L)$q$, v_tenant, gen_random_uuid(), v_third, v_take), 'P0002');
+  perform pg_temp.expect_error(format($q$select public.take_product_version(%L, %L, 1, %L, %L)$q$, v_tenant, gen_random_uuid(), v_third, v_take), 'PT404');
   -- The version the variant is at already: nothing to take, whatever revision is sent.
   v_result := public.take_product_version(v_tenant, v_variant, v_boundary.revision + 3, v_revision, v_take);
   if (v_result->>'changed')::boolean or (v_result->>'version')::integer <> 1 then

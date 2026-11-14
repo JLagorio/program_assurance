@@ -12,7 +12,11 @@
 -- some of its assessment objectives stays no requirement, a mapped heading covers the objectives
 -- under it, a whole-control mapping covers them all, evidence counts per objective, the read of one
 -- control's objectives answers the same, a mapping naming another control's objective or an
--- assessment method is refused, and so is a reader of another workspace.
+-- assessment method is refused, and so is a reader of another workspace. And a heading that prints
+-- a sentence of its own counts on its own: the rule finds the nine SP 800-53A prints, a control
+-- whose leaves are all mapped without such a heading stays no requirement, the heading covers
+-- itself and every objective under it, the read of the control's objectives lists it before them,
+-- and the catalog control's table (control_objective_counts) counts as the status does.
 begin;
 create function pg_temp.expect_error(statement text, expected_state text) returns void language plpgsql as $$
 begin
@@ -635,7 +639,8 @@ begin
   v_program := pg_temp.program('CS-OBJECTIVES', v_catalog, v_base);
 
   -- A control of the baseline whose objectives nest: a heading over two leaves or more, with a
-  -- leaf of the control outside it.
+  -- leaf of the control outside it, and no heading that prints a sentence of its own (those count
+  -- on their own, checked after this).
   select x.control_id, x.heading into v_control, v_heading
   from (
     select sc.control_id, h.id as heading, k.code_order, h.source_pointer
@@ -649,6 +654,10 @@ begin
         and not exists (select 1 from public.control_parts g where g.parent_part_id = u.id and g.name = 'assessment-objective')) >= 2
       and not exists (select 1 from public.control_parts u join public.control_parts g on g.parent_part_id = u.id
         where u.parent_part_id = h.id and g.name = 'assessment-objective')
+      and not exists (select 1 from public.control_parts s
+        where s.control_id = sc.control_id and s.name = 'assessment-objective'
+          and exists (select 1 from public.control_parts u where u.parent_part_id = s.id and u.name = 'assessment-objective')
+          and public.objective_prints_own_sentence(s.prose))
   ) x
   order by x.code_order, x.source_pointer limit 1;
   if v_control is null then
@@ -822,6 +831,189 @@ begin
   raise notice 'The objective checks ran against the pinned references';
 end $$;
 
+-- ---------------------------------------------------------------------------------------------
+-- A heading that prints a sentence of its own counts on its own (20261114051136): beside its
+-- leaves a control counts each heading whose text says something once SP 800-53A's lead-in
+-- "Determine if:" is set aside. Mapping the heading covers it and every objective under it; mapping
+-- every leaf without it leaves its own sentence uncovered, so the control stays no requirement.
+-- The catalog control's table counts each program as the status does (control_objective_counts).
+-- ---------------------------------------------------------------------------------------------
+do $$ begin
+  -- The rule reads the lead-in apart from what follows it.
+  if public.objective_prints_own_sentence('Determine if:')
+    or public.objective_prints_own_sentence(E'  determine if:\n\n ')
+    or public.objective_prints_own_sentence(null)
+    or public.objective_prints_own_sentence('   ')
+    or not public.objective_prints_own_sentence('a Data Integrity Board is established;')
+    or not public.objective_prints_own_sentence(E'Determine if:\n\nthe developer logs each change.') then
+    raise exception 'objective_prints_own_sentence does not read the lead-in apart from what follows it';
+  end if;
+  -- The catalog control's table: a member's, as themselves.
+  if has_function_privilege('anon', 'public.control_objective_counts(uuid, uuid[])', 'execute')
+    or has_function_privilege('public', 'public.control_objective_counts(uuid, uuid[])', 'execute')
+    or not has_function_privilege('authenticated', 'public.control_objective_counts(uuid, uuid[])', 'execute')
+    or (select p.prosecdef from pg_catalog.pg_proc p
+      where p.oid = 'public.control_objective_counts(uuid, uuid[])'::regprocedure) then
+    raise exception 'control_objective_counts is not a signed-in member''s read, as themselves';
+  end if;
+end $$;
+
+do $$
+declare
+  v_tenant uuid := current_setting('test.tenant')::uuid;
+  v_catalog uuid; v_base uuid; v_program uuid;
+  v_control uuid; v_heading uuid; v_leaves uuid[]; v_under uuid[]; v_counted integer;
+  v_labels text[]; v_root_only uuid; v_root_leaves integer;
+  v_line jsonb; v_read jsonb; v_counts jsonb;
+begin
+  select r.id, i.catalog_revision_id into v_base, v_catalog
+  from public.profile_resolutions r
+  join public.profile_imports i on i.profile_revision_id = r.profile_revision_id
+  join public.catalog_revisions k on k.id = i.catalog_revision_id and k.state = 'published'
+  where r.tenant_id is null and r.state = 'published' and r.base_profile_resolution_id is null
+    and (select count(*) from public.selected_controls sc where sc.profile_resolution_id = r.id) >= 3
+  order by (select count(*) from public.selected_controls sc where sc.profile_resolution_id = r.id), r.id limit 1;
+  if v_base is null then
+    raise notice 'The pinned references are not installed: the heading checks were skipped';
+    return;
+  end if;
+
+  -- The rule finds the nine headings SP 800-53A prints a sentence of their own for, and no other.
+  select array_agg(x.label order by x.label collate "C") into v_labels
+  from (
+    select (select p->>'value' from jsonb_array_elements(h.props) p where p->>'name' = 'label' limit 1) as label
+    from public.control_parts h
+    join public.controls k on k.id = h.control_id and k.catalog_revision_id = v_catalog
+    where h.name = 'assessment-objective'
+      and exists (select 1 from public.control_parts u where u.parent_part_id = h.id and u.name = 'assessment-objective')
+      and public.objective_prints_own_sentence(h.prose)
+  ) x;
+  if v_labels is distinct from array['AC-08a.', 'CA-07(04)', 'CM-07(07)', 'PE-11(02)', 'PM-21a.',
+      'PM-24', 'PM-27a.', 'PM-31', 'RA-05b.'] then
+    raise exception 'The headings that print a sentence of their own read %', v_labels;
+  end if;
+
+  v_program := pg_temp.program('CS-HEADINGS', v_catalog, v_base);
+  -- A control of the baseline with one such heading, below its root, and a leaf of the control
+  -- outside it.
+  select h.control_id, h.id into v_control, v_heading
+  from public.program_reference_choices c
+  join public.selected_controls sc on sc.profile_resolution_id = c.profile_resolution_id
+  join public.catalog_control_rows k on k.id = sc.control_id
+  join public.control_parts h on h.control_id = sc.control_id and h.name = 'assessment-objective'
+    and h.parent_part_id is not null
+  where c.program_id = v_program
+    and public.objective_prints_own_sentence(h.prose)
+    and exists (select 1 from public.control_parts u where u.parent_part_id = h.id and u.name = 'assessment-objective')
+    and (select count(*) from public.control_parts s
+      where s.control_id = sc.control_id and s.name = 'assessment-objective'
+        and exists (select 1 from public.control_parts u where u.parent_part_id = s.id and u.name = 'assessment-objective')
+        and public.objective_prints_own_sentence(s.prose)) = 1
+  order by k.code_order, h.source_pointer limit 1;
+  if v_control is null then
+    raise notice 'The baseline has no control with a heading of its own below its root: the heading checks were skipped';
+    return;
+  end if;
+  select array_agg(o.id order by o.source_pointer) into v_leaves
+  from public.control_parts o
+  where o.control_id = v_control and o.name = 'assessment-objective'
+    and not exists (select 1 from public.control_parts g where g.parent_part_id = o.id and g.name = 'assessment-objective');
+  -- Every objective under the heading, at any depth.
+  with recursive under(id) as (
+    select u.id from public.control_parts u where u.parent_part_id = v_heading and u.name = 'assessment-objective'
+    union all
+    select u.id from public.control_parts u join under on u.parent_part_id = under.id
+    where u.name = 'assessment-objective')
+  select array_agg(id) into v_under from under;
+  v_counted := cardinality(v_leaves) + 1;
+  if cardinality(v_leaves) <= (select count(*) from unnest(v_leaves) l where l = any(v_under)) then
+    raise notice 'The control has no leaf outside its heading: the heading checks were skipped';
+    return;
+  end if;
+
+  insert into public.engineering_requirements(id, tenant_id, program_id, code) values
+    ('c5720000-0000-0000-0000-000000000031', v_tenant, v_program, 'REQ-LEAVES'),
+    ('c5720000-0000-0000-0000-000000000032', v_tenant, v_program, 'REQ-OWN-SENTENCE');
+  insert into public.requirement_revisions(id, tenant_id, engineering_requirement_id, version_number, title, statement, acceptance_criteria, requirement_type) values
+    ('c5730000-0000-0000-0000-000000000031', v_tenant, 'c5720000-0000-0000-0000-000000000031', 1, 'Meets every leaf', 'The system does what each leaf asks.', 'It is recorded.', 'functional'),
+    ('c5730000-0000-0000-0000-000000000032', v_tenant, 'c5720000-0000-0000-0000-000000000032', 1, 'Meets the heading', 'The system does what the heading says.', 'It is recorded.', 'functional');
+
+  -- Every leaf, one mapping each: the heading's own sentence stays uncovered, so the control counts
+  -- it beside its leaves and stays no requirement, one short.
+  insert into public.requirement_control_links(tenant_id, requirement_revision_id, control_id, control_part_id, relationship_type)
+  select v_tenant, 'c5730000-0000-0000-0000-000000000031', v_control, l, 'maps_to' from unnest(v_leaves) l;
+  v_line := pg_temp.line(public.program_control_status(v_program), v_control);
+  if v_line->>'status' <> 'no_requirement' or (v_line->>'objectives')::integer <> v_counted
+    or (v_line->>'objectives_mapped')::integer <> v_counted - 1 or v_line->'objectives_evidenced' <> '0'::jsonb then
+    raise exception 'A control with every leaf mapped and its heading not read % (% leaves and a heading)', v_line, cardinality(v_leaves);
+  end if;
+  -- The read of the control's objectives lists the heading, with its own label and text, before the
+  -- objectives under it, which name it among the objectives above them.
+  v_read := public.program_control_objectives(v_program, v_control);
+  if jsonb_array_length(v_read->'objectives') <> v_counted
+    or not exists (select 1 from jsonb_array_elements(v_read->'objectives') o
+      where (o->>'id')::uuid = v_heading and not (o->>'mapped')::boolean and o->'requirements' = '[]'::jsonb
+        and nullif(o->>'label', '') is not null and nullif(o->>'prose', '') is not null)
+    or exists (select 1 from jsonb_array_elements(v_read->'objectives') o
+      where (o->>'id')::uuid = any(v_under) and not (o->'ancestors' ? v_heading::text))
+    or (select min(t.n) from jsonb_array_elements(v_read->'objectives') with ordinality t(o, n)
+        where (t.o->>'id')::uuid = any(v_under))
+      < (select t.n from jsonb_array_elements(v_read->'objectives') with ordinality t(o, n)
+        where (t.o->>'id')::uuid = v_heading) then
+    raise exception 'The objectives of a control with a heading of its own read %', v_read;
+  end if;
+
+  -- The heading mapped covers its own sentence and the objectives under it: every objective is
+  -- covered, and with no evidence the control reads no evidence.
+  insert into public.requirement_control_links(tenant_id, requirement_revision_id, control_id, control_part_id, relationship_type)
+    values (v_tenant, 'c5730000-0000-0000-0000-000000000032', v_control, v_heading, 'satisfies');
+  v_line := pg_temp.line(public.program_control_status(v_program), v_control);
+  if v_line->>'status' <> 'no_evidence' or (v_line->>'objectives_mapped')::integer <> v_counted then
+    raise exception 'A control whose heading of its own is mapped read %', v_line;
+  end if;
+  -- Without the leaves under it mapped one by one, the heading still covers them.
+  delete from public.requirement_control_links
+    where requirement_revision_id = 'c5730000-0000-0000-0000-000000000031' and control_part_id = any(v_under);
+  v_line := pg_temp.line(public.program_control_status(v_program), v_control);
+  if v_line->>'status' <> 'no_evidence' or (v_line->>'objectives_mapped')::integer <> v_counted then
+    raise exception 'A heading of its own mapped alone does not cover the objectives under it: %', v_line;
+  end if;
+
+  -- A root heading that prints only the lead-in says nothing of its own: SA-24 counts its leaves.
+  select k.id into v_root_only from public.controls k where k.catalog_revision_id = v_catalog and k.code = 'SA-24';
+  if v_root_only is not null then
+    select count(*) into v_root_leaves from public.control_parts o
+    where o.control_id = v_root_only and o.name = 'assessment-objective'
+      and not exists (select 1 from public.control_parts g where g.parent_part_id = o.id and g.name = 'assessment-objective');
+    if (select count(distinct o.objective_id) from public.program_control_objective_cover(v_program, array[v_root_only]) o)
+        <> v_root_leaves then
+      raise exception 'A heading that prints only "Determine if:" is counted as an objective of its own';
+    end if;
+  end if;
+
+  -- The catalog control's table counts each program as the program's control status does; a
+  -- program the reader cannot read is refused, and none named answers none.
+  v_counts := public.control_objective_counts(v_control, array[v_program]);
+  if v_counts->'programs' <> jsonb_build_array(jsonb_build_object('program_id', v_program,
+      'objectives', v_line->'objectives', 'objectives_mapped', v_line->'objectives_mapped',
+      'objectives_evidenced', v_line->'objectives_evidenced')) then
+    raise exception 'The catalog control''s table reads % where the control status reads %', v_counts, v_line;
+  end if;
+  perform pg_temp.expect_error(format('select public.control_objective_counts(%L, array[%L, %L]::uuid[])',
+    v_control, v_program, gen_random_uuid()), '42501');
+  if public.control_objective_counts(v_control, '{}')->'programs' <> '[]'::jsonb then
+    raise exception 'The catalog control''s table answers a program it was not asked for';
+  end if;
+  -- A viewer reads the same answers.
+  perform set_config('request.jwt.claim.sub', 'c5700000-0000-0000-0000-000000000002', true);
+  if public.control_objective_counts(v_control, array[v_program]) is distinct from v_counts
+    or pg_temp.line(public.program_control_status(v_program), v_control) is distinct from v_line then
+    raise exception 'A viewer read another count of a control''s objectives';
+  end if;
+  perform set_config('request.jwt.claim.sub', 'c5700000-0000-0000-0000-000000000001', true);
+  raise notice 'The checks of a heading of its own ran against the pinned references';
+end $$;
+
 reset role;
 rollback;
-select 'Program control status: privileges, refusal, a program with no baseline, the ladder a control climbs, the determinations a program takes from its products and the objectives a control''s requirements cover passed.' as result;
+select 'Program control status: privileges, refusal, a program with no baseline, the ladder a control climbs, the determinations a program takes from its products, the objectives a control''s requirements cover and the headings that count on their own passed.' as result;

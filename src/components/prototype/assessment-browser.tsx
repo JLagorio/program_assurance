@@ -90,13 +90,28 @@ export function AssessmentBrowser({
   const { formatPlural } = useLedgerLocale();
   const sectioned = layout === "sections";
   const campaigns = useRows("assessment_campaigns", programId ? { program_id: programId } : {});
-  const plans = useRows("assessment_plan_revisions");
-  const events = useRows("assessment_events");
-  const objectives = useRows("assessment_objectives");
-  const programs = useRows("programs");
-  const parties = useRows("parties");
-  const systems = useRows("systems", programId ? { program_id: programId } : {});
-  const scopes = useRows("scopes");
+  // In a program, its campaigns' plans, events and objectives, joined on the server: never every
+  // campaign's in the workspace.
+  const inCampaigns = programId ? { "assessment_campaigns.program_id": programId } : {};
+  const plans = useRows("assessment_plan_revisions", inCampaigns);
+  const events = useRows("assessment_events", inCampaigns);
+  const objectives = useRows(
+    "assessment_objectives",
+    programId ? { "assessment_plan_revisions.assessment_campaigns.program_id": programId } : {},
+  );
+  const programs = useRows("programs", undefined, { columns: ["id", "name"] as const });
+  const parties = useRows("parties", undefined, { columns: ["id", "name"] as const });
+  // A program's systems and their scopes, for its Scopes register: the workspace's page has none.
+  const systems = useRows(
+    "systems",
+    { program_id: programId ?? null },
+    { columns: ["id", "is_authorization_boundary"] as const, enabled: !!programId },
+  );
+  const scopes = useRows(
+    "scopes",
+    { system_id: (systems.data ?? []).map((system) => system.id) },
+    { columns: ["id", "system_id"] as const, enabled: !!programId && systems.isSuccess },
+  );
   const [localTab, setLocalTab] = useState<AssessmentKind>("Campaigns");
   // Where the route keeps the tab, the address owns it: each choice is a step in the history, and
   // an address without one is Campaigns. Scopes belongs to a program's browser; elsewhere a stale

@@ -115,6 +115,8 @@ const answer = {
       in_baseline: true,
       requirements: 3,
       evidenced: 2,
+      objectives: 6,
+      objectives_mapped: 6,
     },
     {
       id: id(62),
@@ -126,6 +128,8 @@ const answer = {
       in_baseline: false,
       requirements: 0,
       evidenced: 0,
+      objectives: 4,
+      objectives_mapped: 0,
     },
   ],
   totals: { techniques: 2, controls: 2, in_baseline: 1, with_requirement: 1, with_evidence: 1 },
@@ -166,6 +170,8 @@ describe("readRiskThreats", () => {
       inBaseline: false,
       requirements: 0,
       evidenced: 0,
+      objectives: 4,
+      objectivesMapped: 0,
     });
     expect(threats.totals).toEqual({
       techniques: 2,
@@ -200,16 +206,30 @@ describe("readRiskThreats", () => {
     const unplaced = {
       ...answer,
       controls: [
-        { ...answer.controls[0]!, in_baseline: null, requirements: null, evidenced: null },
+        {
+          ...answer.controls[0]!,
+          in_baseline: null,
+          requirements: null,
+          evidenced: null,
+          objectives: null,
+          objectives_mapped: null,
+        },
       ],
     };
     const second = fakeClient([{ data: unplaced, error: null }]);
     const control = (await readRiskThreats(second.client, context, risk)).controls[0]!;
-    expect([control.inBaseline, control.requirements, control.evidenced]).toEqual([
-      null,
-      null,
-      null,
-    ]);
+    expect([
+      control.inBaseline,
+      control.requirements,
+      control.evidenced,
+      control.objectives,
+      control.objectivesMapped,
+    ]).toEqual([null, null, null, null, null]);
+    // An answer from before the objectives were counted counts none, never a zero.
+    const { objectives: _objectives, objectives_mapped: _mapped, ...older } = answer.controls[0]!;
+    const third = fakeClient([{ data: { ...answer, controls: [older] }, error: null }]);
+    const counted = (await readRiskThreats(third.client, context, risk)).controls[0]!;
+    expect([counted.objectives, counted.objectivesMapped]).toEqual([null, null]);
   });
 
   it("fails with the server's words, and refuses an answer of another shape", async () => {
@@ -358,6 +378,14 @@ describe("the order a risk's controls read in", () => {
     expect(controlHolding(control("e", true, 3, 2))).toBe(7);
     // No standing holds nothing.
     expect(controlHolding(control("f", null, null, null))).toBe(0);
+    // Requirements that cover only some of the control's objectives hold no requirement yet, as
+    // the control status says, evidence or not; every objective covered holds it.
+    const partly = { ...control("g", true, 1, 1), objectives: 6, objectivesMapped: 3 };
+    expect(controlHolding(partly)).toBe(4);
+    expect(controlHolding({ ...partly, objectivesMapped: 6 })).toBe(7);
+    expect(
+      controlHolding({ ...control("h", true, 1, 0), objectives: 0, objectivesMapped: 0 }),
+    ).toBe(6);
   });
 
   it("puts what the program does not hold first, in the catalog's order among equals", () => {

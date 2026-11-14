@@ -425,7 +425,6 @@ export function SystemEvidence({
     data,
     getRowId: (row) => row.id,
     preview: tablePreview,
-    rowLabel: (row) => row.title,
     label: "Evidence at this element",
     // v2: the Element column shows by default with everything inside, and statuses are stored
     // values, so earlier saved filters and layouts do not apply.

@@ -61,14 +61,18 @@ try {
       )
       .order("code"),
   );
-  /** The objectives a control counts: its leaf assessment objectives. */
+  /**
+   * The objectives a control counts: its leaf assessment objectives, and each heading that prints a
+   * sentence of its own besides them (objective_prints_own_sentence).
+   */
   const leafObjectives = (candidateParts) =>
     candidateParts.filter(
       (row) =>
         row.name === "assessment-objective" &&
-        !candidateParts.some(
+        (!candidateParts.some(
           (child) => child.parent_part_id === row.id && child.name === "assessment-objective",
-        ),
+        ) ||
+          /\S/.test((row.prose ?? "").replace(/^\s*determine if:/i, ""))),
     );
   let control, parts, method, statement, objectives;
   for (const candidate of controls) {

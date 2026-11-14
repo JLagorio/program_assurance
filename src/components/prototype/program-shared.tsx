@@ -33,7 +33,6 @@ import {
   TabsContent,
   Text,
   defineColumns,
-  type DataTableColumn,
   type EmptyIllustrationKind,
   type StackProps,
 } from "@ledger/design-system";
@@ -516,20 +515,6 @@ const NUMBER_KEYS = /_number$/;
 
 /** The Owner column of a collection whose records carry an owner. */
 const OWNER_KEY = "owner_party_id";
-/**
- * The Owner column as its filter reads it: each record under its owner's name, and a record nobody
- * owns under No owner. The kit's person column has no value of its own for an empty cell (its list
- * column's `emptyLabel`), so the filter matches the row's members as the list column matches them,
- * and the value the row sorts, searches and exports by stays empty.
- */
-const withNoOwner = (column: DataTableColumn<DataRecord>): DataTableColumn<DataRecord> => ({
-  ...column,
-  filterFn: "members",
-  getUniqueValues: (row: DataRecord) => {
-    const owner = row[OWNER_KEY];
-    return [typeof owner === "string" && owner ? owner : NO_OWNER];
-  },
-});
 
 /** The record a collection belongs to, by the column it is filtered on, in the reader's words. */
 const collectionOwners: Record<string, string> = {
@@ -834,9 +819,12 @@ export function ProgramCollection({
               items: (row: DataRecord) => items(raw(row)),
               empty: () => <Absent label={`No ${header}`} />,
             });
-          if (column.kind === "person") {
-            const person = c.person(column.key, {
+          if (column.kind === "person")
+            return c.person(column.key, {
               header,
+              // The Owner filter lists the records nobody owns under No owner, its last value; the
+              // value the row sorts, searches and exports by stays empty.
+              ...(ownerCollection && column.key === OWNER_KEY ? { emptyLabel: NO_OWNER } : {}),
               cell: (row: DataRecord) => {
                 const person = row[column.key];
                 if (typeof person === "string" && person) return <Person name={person} />;
@@ -844,8 +832,6 @@ export function ProgramCollection({
                 return render ? render(raw(row)) : <Absent label="Not available" />;
               },
             });
-            return ownerCollection && column.key === OWNER_KEY ? withNoOwner(person) : person;
-          }
           // A date takes its kind's width, as every date column does, with a readable minimum
           // where its cell says more than the day.
           if (DATE_KEYS.test(column.key))
@@ -923,17 +909,6 @@ export function ProgramCollection({
       ),
     [people.data, unowned],
   );
-  // A list's filter lists every value its rows hold, each with how many rows hold it under the
-  // other filters, however many there are: past the kit's facet limit a list's filter would be a
-  // text field instead, and a value a link asks for would not read as chosen on its chip.
-  const listKeys = new Set(columns.filter((column) => column.items).map((column) => column.key));
-  const listOptions = (key: string) =>
-    [...(table.getColumn(key)?.getFacetedUniqueValues() ?? new Map<unknown, number>())]
-      .filter(([value]) => typeof value === "string" && value !== "")
-      .map(([value, count]) => ({ value: String(value), count }))
-      .sort((a, b) =>
-        a.value.localeCompare(b.value, undefined, { numeric: true, sensitivity: "base" }),
-      );
   const openCreate = () => {
     if (dialogNavigation)
       dialogNavigation.openRecord({
@@ -1017,14 +992,7 @@ export function ProgramCollection({
       // A collection inside a preview answers the task at hand; its question ends with it.
       keepQuestion={!dialogNavigation}
       filters={[
-        ...chips.map((key) => (
-          <DataTable.Filter
-            key={key}
-            table={table}
-            column={key}
-            options={listKeys.has(key) ? listOptions(key) : undefined}
-          />
-        )),
+        ...chips.map((key) => <DataTable.Filter key={key} table={table} column={key} />),
         // The Owner, last, where the collection assigns owners.
         ...(ownerCollection
           ? [

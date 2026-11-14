@@ -63,7 +63,7 @@ export function useTimeAxis(data: ChartDatum[], x: string, time: boolean) {
     const values = rows.map((r) => r[x] as number).filter((n) => Number.isFinite(n));
     const min = Math.min(...values);
     const max = Math.max(...values);
-    return { rows, min, max, ...timeTicks(min, max, locale, days ? "UTC" : timeZone) };
+    return { rows, min, max, ...timeTicks(min, max, locale, days ? "UTC" : timeZone, days) };
   }, [data, x, time, locale, timeZone]);
 }
 
