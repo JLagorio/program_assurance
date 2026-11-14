@@ -261,9 +261,11 @@ export const NativeComposition: Story = {
     await expect(canvasElement).not.toContainElement(menu);
     await expect(page.getByRole("group", { name: "Record" })).toContainElement(first);
     await waitFor(() => expect(first).toHaveFocus());
+    // Each key's focus is awaited: Base UI moves it in a layout effect after the key, and a step
+    // that wraps from the last item to the first waits a frame for the list first.
     await user.keyboard("{ArrowDown}");
     const disabled = page.getByRole("menuitem", { name: "Reassign" });
-    await expect(disabled).toHaveFocus();
+    await waitFor(() => expect(disabled).toHaveFocus());
     await expect(disabled).toHaveAttribute("aria-disabled", "true");
     await user.keyboard("{Enter}");
     await expect(disabledAction).not.toHaveBeenCalled();
@@ -271,17 +273,17 @@ export const NativeComposition: Story = {
     await user.keyboard("{End}");
     // A disabled danger item fades like any other: the danger colour would say it could run.
     const deleting = page.getByRole("menuitem", { name: "Delete" });
-    await expect(deleting).toHaveFocus();
+    await waitFor(() => expect(deleting).toHaveFocus());
     await expect(getComputedStyle(deleting).color).toBe(getComputedStyle(disabled).color);
     await expect(getComputedStyle(deleting).color).not.toBe(
       getComputedStyle(page.getByRole("menuitem", { name: "Archive" })).color,
     );
     await user.keyboard("{ArrowUp}");
-    await expect(page.getByRole("menuitem", { name: "Archive" })).toHaveFocus();
+    await waitFor(() => expect(page.getByRole("menuitem", { name: "Archive" })).toHaveFocus());
     await user.keyboard("{End}{ArrowDown}");
-    await expect(first).toHaveFocus();
+    await waitFor(() => expect(first).toHaveFocus());
     await user.keyboard("d");
-    await expect(page.getByRole("menuitem", { name: "Duplicate" })).toHaveFocus();
+    await waitFor(() => expect(page.getByRole("menuitem", { name: "Duplicate" })).toHaveFocus());
     await user.keyboard("{Home}{Enter}");
     await expect(edit).toHaveBeenCalledTimes(1);
     await expect(renderedEdit).toHaveBeenCalledTimes(1);

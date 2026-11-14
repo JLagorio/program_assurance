@@ -894,6 +894,8 @@ export const Frame: Story = {
     await expect(canvas.getByText("CSV export started")).toBeVisible();
     await waitFor(() => expect(openMore(canvasElement)).toBeNull());
     await waitFor(() => expect(more).toHaveFocus());
+    // The closing menus hold Import records… too: the next ones open once they have gone.
+    await waitFor(() => expect(body.queryByRole("menu")).toBeNull());
 
     // A command that opens a dialog closes More without taking the dialog's focus, and closing
     // the dialog brings focus back to More.

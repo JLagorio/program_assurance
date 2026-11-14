@@ -21,6 +21,7 @@ const nouns = {
   assessment_objectives: "assessment objective",
   assessment_plan_requests: "assessment plan request",
   assessment_plan_revisions: "assessment plan revision",
+  assessment_results_requests: "assessment results publication request",
   assessment_results_revisions: "assessment results revision",
   assessment_subjects: "assessment subject",
   assessment_task_dependencies: "assessment task dependency",
@@ -325,6 +326,39 @@ export function frameworkItemWords(kind: unknown): FrameworkItemWords | undefine
     text: words.text ?? "Description",
   };
 }
+
+/**
+ * The words for a control's assessment objectives as a requirement maps them: what the Map dialogs
+ * ask (Objectives, Whole control or Chosen objectives, `mappingCoverages` in status), and how much
+ * of a control the program's requirements cover, which its Details and the Control status List
+ * count ("12 of 26") and the control's picker says beside a requirement that maps some already.
+ */
+export const objectiveWords = {
+  /** The Map dialogs' question, answered Whole control or Chosen objectives. */
+  question: "Objectives",
+  /** The list a reader chooses from once they map chosen objectives, several at once. */
+  chooseMany: "Objectives to map",
+  /** The one objective an edited mapping names. */
+  chooseOne: "Objective to map",
+  /** The list's placeholder and what it says when nothing matches. */
+  add: "Add an objective",
+  none: "No objectives found.",
+  /** An objective the catalog prints no label for. */
+  unlabelled: "Unlabelled objective",
+  /** The facts a control's objectives are counted under. */
+  mapped: "Objectives mapped",
+  evidenced: "Objectives with evidence",
+} as const;
+
+/** A count of a control's objectives out of all of them, as a fact or a cell says it: "12 of 26". */
+export const objectivesOf = (count: string, total: string) => `${count} of ${total}`;
+
+/** What the control's picker says of a requirement that maps some of its objectives already. */
+export const mapsObjectives = (count: string, total: string) =>
+  `Maps ${count} of ${total} objectives`;
+
+/** What it says of a requirement whose mappings cover every objective chosen, on every system. */
+export const mapsChosenObjectives = "Maps the chosen objectives";
 
 /** The framework items' table, or the view that reads the current revision's. */
 const isFrameworkItems = (table: string) =>

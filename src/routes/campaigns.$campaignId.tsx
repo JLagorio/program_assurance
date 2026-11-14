@@ -1,12 +1,18 @@
 import { useState } from "react";
 import { ProductRecordDialog } from "@/components/prototype/product-record-dialog";
-import { MissingRecord, QueryState, RecordActions } from "@/components/prototype/work-common";
+import {
+  MissingRecord,
+  QueryState,
+  RecordActions,
+  ReportFailures,
+} from "@/components/prototype/work-common";
 import { campaignTabs, type CampaignTab } from "@/components/prototype/assessment-tabs";
 import {
   Absent,
   AsideLayout,
   Box,
   DateTime,
+  DropdownMenuItem,
   Inspector,
   Shell,
   KeyValue,
@@ -16,11 +22,14 @@ import {
 } from "@ledger/design-system";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AssessmentCampaign } from "@/components/prototype/assessment-campaign";
+import { usePublishResults } from "@/components/prototype/publish-results";
 import { RecordTrail, TrailLink } from "@/components/prototype/record-trail";
 import { RelationName } from "@/components/prototype/record-tools";
 import { useRecordTitle } from "@/components/app/browser-title";
 import { Page, RecordPending } from "@/components/app/shell";
 import { StatusBadge } from "@/components/app/status";
+import { useWorkspace } from "@/components/app/workspace";
+import { useCampaignResultsToPublish } from "@/lib/assessment-results";
 import { campaignStatuses } from "@/lib/status";
 import { useRow } from "@/lib/models";
 
@@ -42,6 +51,10 @@ function CampaignDetail() {
   const query = useRow("assessment_campaigns", campaignId);
   const campaign = query.data;
   useRecordTitle("Assessment campaign", campaign?.title);
+  const workspace = useWorkspace();
+  // The campaign's latest draft results holding a finding, which its Actions menu publishes.
+  const toPublish = useCampaignResultsToPublish(campaignId);
+  const publishResults = usePublishResults();
   return (
     <Page>
       {/* The page is one failure region, and each of its tabs another: an outage reads as one
@@ -49,6 +62,7 @@ function CampaignDetail() {
       <QueryState queries={[query]} region>
         {campaign ? (
           <>
+            <ReportFailures queries={toPublish.queries} />
             <PageHeader>
               <RecordTrail current={campaign.title}>
                 <TrailLink to="/campaigns">Assessment campaigns</TrailLink>
@@ -60,13 +74,26 @@ function CampaignDetail() {
                 <PageHeader.Title>{campaign.title}</PageHeader.Title>
               </PageHeader.Heading>
               <PageHeader.Actions>
-                {/* One Actions menu, as on the other records: the edit, then Inspect record. */}
+                {/* One Actions menu, as on the other records: the edit, Publish assessment results
+                    (which stays in place and says why while there is nothing to publish), then
+                    Inspect record. */}
                 <RecordActions
                   table="assessment_campaigns"
                   id={campaign.id}
                   editLabel="Edit assessment campaign"
                   onEdit={() => setEditing(true)}
-                />
+                >
+                  {workspace.role !== "viewer" && (
+                    <DropdownMenuItem
+                      onClick={() => {
+                        if (toPublish.results) void publishResults.ask(toPublish.results);
+                      }}
+                      {...(toPublish.waits ? { disabledReason: toPublish.waits } : {})}
+                    >
+                      Publish assessment results
+                    </DropdownMenuItem>
+                  )}
+                </RecordActions>
               </PageHeader.Actions>
             </PageHeader>
             {editing && (
@@ -134,6 +161,7 @@ function CampaignDetail() {
           <MissingRecord backTo="/campaigns" kind="Assessment campaign" />
         )}
       </QueryState>
+      {publishResults.confirmation}
     </Page>
   );
 }

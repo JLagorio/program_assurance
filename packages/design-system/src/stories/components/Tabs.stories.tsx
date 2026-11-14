@@ -64,6 +64,39 @@ const inStrip = (viewport: HTMLElement, tab: HTMLElement) => {
   const box = tab.getBoundingClientRect();
   return box.left >= bounds.left - 1 && box.right <= bounds.right + 1;
 };
+const nextFrame = () => new Promise((resolve) => requestAnimationFrame(resolve));
+/** The strip's offset holds still: three frames in a row agree, after the frame a resize is answered in. */
+const comesToRest = async (viewport: HTMLElement) => {
+  const offsets: number[] = [];
+  const still = () => offsets.length > 3 && new Set(offsets.slice(-3)).size === 1;
+  while (offsets.length < 20 && !still()) {
+    await nextFrame();
+    offsets.push(viewport.scrollLeft);
+  }
+  const last = offsets.at(-1);
+  await expect(offsets.slice(-3)).toEqual([last, last, last]);
+};
+/** Every distance from the start the strip scrolls to while `run` goes, read after each scroll. */
+const scrollsDuring = async (viewport: HTMLElement, run: () => Promise<void>) => {
+  const places: number[] = [];
+  const methods = ["scroll", "scrollBy", "scrollTo"] as const;
+  for (const name of methods) {
+    const scroll = viewport[name].bind(viewport) as (...args: unknown[]) => void;
+    Object.defineProperty(viewport, name, {
+      configurable: true,
+      value: (...args: unknown[]) => {
+        scroll(...args);
+        places.push(scrolledFromStart(viewport));
+      },
+    });
+  }
+  try {
+    await run();
+  } finally {
+    for (const name of methods) delete (viewport as unknown as Record<string, unknown>)[name];
+  }
+  return places;
+};
 
 /**
  * The same line strip fills a page, phone, or preview and keeps every tab on one row. A filled
@@ -122,6 +155,27 @@ export const ResponsiveWidths: Story = {
     await waitFor(() => expect(filledTabs.at(-1)).toHaveFocus());
     await waitFor(() => expect(inStrip(filledViewport, filledTabs.at(-1)!)).toBe(true));
     await ringInside(filledTabs.at(-1)!, filledViewport);
+    // Narrowed a few pixels at a time, as a panel easing to its width narrows it, with Evidence
+    // focused and Overview still selected: focus wins. The strip keeps Evidence in view and comes
+    // to rest at each width, and never scrolls back towards Overview on the way, which would
+    // undo the focused tab's reveal on every frame of the resize.
+    await expect(filledTabs[0]).toHaveAttribute("aria-selected", "true");
+    const filledRoot = filled.closest<HTMLElement>('[data-slot="tabs"]')!;
+    const fullWidth = filledRoot.style.width;
+    const revealed = scrolledFromStart(filledViewport);
+    const places = await scrollsDuring(filledViewport, async () => {
+      for (const width of [196, 192, 188, 184, 180]) {
+        filledRoot.style.width = `${width}px`;
+        await expect(filledViewport.clientWidth).toBeLessThanOrEqual(width);
+        await comesToRest(filledViewport);
+        await expect(filledTabs.at(-1)).toHaveFocus();
+        await expect(inStrip(filledViewport, filledTabs.at(-1)!)).toBe(true);
+      }
+    });
+    await expect(Math.min(revealed, ...places)).toBeGreaterThanOrEqual(revealed - 1);
+    await ringInside(filledTabs.at(-1)!, filledViewport);
+    filledRoot.style.width = fullWidth;
+    await comesToRest(filledViewport);
     await userEvent.keyboard("{Home}");
     await waitFor(() =>
       expect(scrolledFromStart(filledViewport)).toBeLessThanOrEqual(startSlack(filledViewport)),
@@ -502,11 +556,14 @@ export const EditingAndMounting: Story = {
     await expect(canvas.getByRole("status")).toHaveTextContent("Selected: Preview");
     await userEvent.click(canvas.getByRole("tab", { name: "Draft" }));
     await expect(draft).toHaveValue("Assessment updated");
-    await expect(canvas.queryByRole("textbox", { name: "Preview note", hidden: true })).toBeNull();
+    // A panel that is not kept mounted leaves once its exit has run, a frame or more later.
+    await waitFor(() =>
+      expect(canvas.queryByRole("textbox", { name: "Preview note", hidden: true })).toBeNull(),
+    );
     await userEvent.click(canvas.getByRole("tab", { name: "Preview" }));
     await expect(canvas.getByRole("textbox", { name: "Preview note" })).toHaveValue("");
     await userEvent.click(canvas.getByRole("button", { name: "Clear selection" }));
-    await expect(canvas.queryByRole("tabpanel")).toBeNull();
+    await waitFor(() => expect(canvas.queryByRole("tabpanel")).toBeNull());
     await expect(canvas.getByRole("status")).toHaveTextContent("Selected: none");
     await userEvent.click(canvas.getByRole("tab", { name: "Draft" }));
   },

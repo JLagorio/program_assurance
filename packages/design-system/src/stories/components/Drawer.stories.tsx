@@ -150,8 +150,12 @@ export const Actions: Story = {
     await waitFor(() =>
       expect(within(popup).getByRole("button", { name: "Mark verified" })).toHaveFocus(),
     );
+    // Shift+Tab from the first action lands on the drawer's focus guard, which hands focus back
+    // inside on the next frame.
     await userEvent.tab({ shift: true });
-    await expect(popup.contains(canvasElement.ownerDocument.activeElement)).toBe(true);
+    await waitFor(() =>
+      expect(popup.contains(canvasElement.ownerDocument.activeElement)).toBe(true),
+    );
     await userEvent.keyboard("{Escape}");
     await waitFor(() => expect(body.queryByRole("dialog")).toBeNull());
     await waitFor(() => expect(trigger).toHaveFocus());

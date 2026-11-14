@@ -8,7 +8,11 @@
 -- product's, the worst of the two, and names the product assessments it was taken from; the
 -- program's own determination still wins; a control one variant does not inherit (program only,
 -- shared, changed here, or claimed and not judged) keeps the program's ladder; and a draft product
--- assessment decides nothing.
+-- assessment decides nothing. Last, objective-level derivation: a control whose requirements map
+-- some of its assessment objectives stays no requirement, a mapped heading covers the objectives
+-- under it, a whole-control mapping covers them all, evidence counts per objective, the read of one
+-- control's objectives answers the same, a mapping naming another control's objective or an
+-- assessment method is refused, and so is a reader of another workspace.
 begin;
 create function pg_temp.expect_error(statement text, expected_state text) returns void language plpgsql as $$
 begin
@@ -36,6 +40,22 @@ do $$ begin
   end if;
   if (select p.prosecdef from pg_catalog.pg_proc p where p.oid = 'public.program_control_status(uuid)'::regprocedure) then
     raise exception 'program_control_status does not run as its caller';
+  end if;
+  -- One control's objectives, and the coverage both reads count from: a member's, as themselves.
+  if has_function_privilege('anon', 'public.program_control_objectives(uuid, uuid)', 'execute')
+    or has_function_privilege('public', 'public.program_control_objectives(uuid, uuid)', 'execute')
+    or has_function_privilege('anon', 'public.program_control_objective_cover(uuid, uuid[])', 'execute')
+    or has_function_privilege('public', 'public.program_control_objective_cover(uuid, uuid[])', 'execute') then
+    raise exception 'An anonymous session may read a control''s objectives';
+  end if;
+  if not has_function_privilege('authenticated', 'public.program_control_objectives(uuid, uuid)', 'execute') then
+    raise exception 'A signed-in session may not execute program_control_objectives';
+  end if;
+  if exists (select 1 from pg_catalog.pg_proc p where p.prosecdef and p.oid in (
+      'public.program_control_objectives(uuid, uuid)'::regprocedure,
+      'public.program_control_objective_cover(uuid, uuid[])'::regprocedure,
+      'public.program_control_status_lines(uuid)'::regprocedure)) then
+    raise exception 'A read of a control''s objectives does not run as its caller';
   end if;
 end $$;
 
@@ -70,6 +90,34 @@ set local role authenticated;
 select set_config('request.jwt.claim.sub', 'c5700000-0000-0000-0000-000000000002', true);
 select set_config('test.other_tenant', public.ensure_personal_tenant()::text, true);
 select pg_temp.expect_error($$select public.program_control_status('c5710000-0000-0000-0000-000000000001')$$, '42501');
+select set_config('request.jwt.claim.sub', 'c5700000-0000-0000-0000-000000000001', true);
+
+-- The read of one control's objectives refuses the same readers, and a control left unnamed. A
+-- program with no control baseline still answers a control's objectives, none of them mapped.
+select pg_temp.expect_error($$select public.program_control_objectives('c5710000-0000-0000-0000-00000000dead', (select id from public.controls limit 1))$$, '42501');
+select pg_temp.expect_error($$select public.program_control_objectives('c5710000-0000-0000-0000-000000000001', null)$$, '42501');
+select pg_temp.expect_error($$select * from public.program_control_objective_cover('c5710000-0000-0000-0000-00000000dead', array[]::uuid[])$$, '42501');
+do $$
+declare v_control uuid; v_answer jsonb;
+begin
+  select cp.control_id into v_control from public.control_parts cp
+  where cp.name = 'assessment-objective' order by cp.control_id limit 1;
+  if v_control is null then return; end if;
+  v_answer := public.program_control_objectives('c5710000-0000-0000-0000-000000000001', v_control);
+  if jsonb_array_length(v_answer->'objectives') = 0
+    or exists (select 1 from jsonb_array_elements(v_answer->'objectives') o
+      where (o->>'mapped')::boolean or (o->>'evidenced')::boolean or o->'requirements' <> '[]'::jsonb) then
+    raise exception 'A program with no requirement answered a control''s objectives as %', v_answer;
+  end if;
+end $$;
+select set_config('request.jwt.claim.sub', '', true);
+select pg_temp.expect_error($$select public.program_control_objectives('c5710000-0000-0000-0000-000000000001', (select id from public.controls limit 1))$$, '42501');
+set local role anon;
+select pg_temp.expect_error($$select public.program_control_objectives('c5710000-0000-0000-0000-000000000001', (select id from public.controls limit 1))$$, '42501');
+set local role authenticated;
+select set_config('request.jwt.claim.sub', 'c5700000-0000-0000-0000-000000000002', true);
+select pg_temp.expect_error($$select public.program_control_objectives('c5710000-0000-0000-0000-000000000001', (select id from public.controls limit 1))$$, '42501');
+select pg_temp.expect_error($$select * from public.program_control_objective_cover('c5710000-0000-0000-0000-000000000001', array[]::uuid[])$$, '42501');
 select set_config('request.jwt.claim.sub', 'c5700000-0000-0000-0000-000000000001', true);
 
 -- ---------------------------------------------------------------------------------------------
@@ -558,6 +606,222 @@ begin
   raise notice 'The checks of a program that takes products ran against the pinned references';
 end $$;
 
+-- ---------------------------------------------------------------------------------------------
+-- Objective-level derivation. A control counts its leaf assessment objectives (no objective under
+-- them); a mapping covers the objective it names and every objective under it, and one that names
+-- no part covers the whole control. A control whose requirements map only some of its objectives
+-- stays no requirement, and it leaves no evidence only once every objective is covered by a
+-- requirement that cites evidence.
+-- ---------------------------------------------------------------------------------------------
+do $$
+declare
+  v_tenant uuid := current_setting('test.tenant')::uuid;
+  v_catalog uuid; v_base uuid; v_program uuid;
+  v_control uuid; v_heading uuid; v_under uuid[]; v_leaves uuid[]; v_rest uuid[];
+  v_other uuid; v_other_objective uuid; v_method uuid; v_leaf uuid;
+  v_answer jsonb; v_line jsonb; v_read jsonb;
+begin
+  select r.id, i.catalog_revision_id into v_base, v_catalog
+  from public.profile_resolutions r
+  join public.profile_imports i on i.profile_revision_id = r.profile_revision_id
+  join public.catalog_revisions k on k.id = i.catalog_revision_id and k.state = 'published'
+  where r.tenant_id is null and r.state = 'published' and r.base_profile_resolution_id is null
+    and (select count(*) from public.selected_controls sc where sc.profile_resolution_id = r.id) >= 3
+  order by (select count(*) from public.selected_controls sc where sc.profile_resolution_id = r.id), r.id limit 1;
+  if v_base is null then
+    raise notice 'The pinned references are not installed: the objective checks were skipped';
+    return;
+  end if;
+  v_program := pg_temp.program('CS-OBJECTIVES', v_catalog, v_base);
+
+  -- A control of the baseline whose objectives nest: a heading over two leaves or more, with a
+  -- leaf of the control outside it.
+  select x.control_id, x.heading into v_control, v_heading
+  from (
+    select sc.control_id, h.id as heading, k.code_order, h.source_pointer
+    from public.program_reference_choices c
+    join public.selected_controls sc on sc.profile_resolution_id = c.profile_resolution_id
+    join public.catalog_control_rows k on k.id = sc.control_id
+    join public.control_parts h on h.control_id = sc.control_id and h.name = 'assessment-objective'
+      and h.parent_part_id is not null
+    where c.program_id = v_program
+      and (select count(*) from public.control_parts u where u.parent_part_id = h.id and u.name = 'assessment-objective'
+        and not exists (select 1 from public.control_parts g where g.parent_part_id = u.id and g.name = 'assessment-objective')) >= 2
+      and not exists (select 1 from public.control_parts u join public.control_parts g on g.parent_part_id = u.id
+        where u.parent_part_id = h.id and g.name = 'assessment-objective')
+  ) x
+  order by x.code_order, x.source_pointer limit 1;
+  if v_control is null then
+    raise notice 'The baseline has no control whose objectives nest: the objective checks were skipped';
+    return;
+  end if;
+  select array_agg(u.id order by u.ordinal, u.id) into v_under
+  from public.control_parts u where u.parent_part_id = v_heading and u.name = 'assessment-objective';
+  select array_agg(o.id order by o.source_pointer) into v_leaves
+  from public.control_parts o
+  where o.control_id = v_control and o.name = 'assessment-objective'
+    and not exists (select 1 from public.control_parts g where g.parent_part_id = o.id and g.name = 'assessment-objective');
+  select array_agg(l order by l) into v_rest from unnest(v_leaves) l where l <> all(v_under);
+  -- Another control of the baseline, with its own objectives, and an assessment method of this one.
+  select sc.control_id into v_other
+  from public.program_reference_choices c
+  join public.selected_controls sc on sc.profile_resolution_id = c.profile_resolution_id
+  where c.program_id = v_program and sc.control_id <> v_control
+    and exists (select 1 from public.control_parts o where o.control_id = sc.control_id and o.name = 'assessment-objective')
+  order by sc.control_id limit 1;
+  select o.id into v_other_objective from public.control_parts o
+  where o.control_id = v_other and o.name = 'assessment-objective' order by o.source_pointer desc limit 1;
+  select p.id into v_method from public.control_parts p where p.control_id = v_control and p.name = 'assessment-method' limit 1;
+  if coalesce(cardinality(v_rest), 0) = 0 or v_other_objective is null then
+    raise notice 'The control has no objective outside its heading: the objective checks were skipped';
+    return;
+  end if;
+
+  insert into public.engineering_requirements(id, tenant_id, program_id, code) values
+    ('c5720000-0000-0000-0000-000000000021', v_tenant, v_program, 'REQ-HEADING'),
+    ('c5720000-0000-0000-0000-000000000022', v_tenant, v_program, 'REQ-REST'),
+    ('c5720000-0000-0000-0000-000000000023', v_tenant, v_program, 'REQ-WHOLE');
+  insert into public.requirement_revisions(id, tenant_id, engineering_requirement_id, version_number, title, statement, acceptance_criteria, requirement_type) values
+    ('c5730000-0000-0000-0000-000000000021', v_tenant, 'c5720000-0000-0000-0000-000000000021', 1, 'Meets a heading', 'The system does what the heading asks.', 'It is recorded.', 'functional'),
+    ('c5730000-0000-0000-0000-000000000022', v_tenant, 'c5720000-0000-0000-0000-000000000022', 1, 'Meets the rest', 'The system does the rest.', 'It is recorded.', 'functional'),
+    ('c5730000-0000-0000-0000-000000000023', v_tenant, 'c5720000-0000-0000-0000-000000000023', 1, 'Meets another control', 'The system does all of it.', 'It is recorded.', 'functional');
+
+  -- A mapping names an objective of the control it maps, never another control's; an assessment
+  -- method is not a target either.
+  perform pg_temp.expect_error(format(
+    $f$insert into public.requirement_control_links(tenant_id, requirement_revision_id, control_id, control_part_id, relationship_type)
+       values (%L, 'c5730000-0000-0000-0000-000000000021', %L, %L, 'maps_to')$f$, v_tenant, v_control, v_other_objective), '23514');
+  if v_method is not null then
+    perform pg_temp.expect_error(format(
+      $f$insert into public.requirement_control_links(tenant_id, requirement_revision_id, control_id, control_part_id, relationship_type)
+         values (%L, 'c5730000-0000-0000-0000-000000000021', %L, %L, 'maps_to')$f$, v_tenant, v_control, v_method), '23514');
+  end if;
+
+  -- The heading alone: it covers the objectives under it, and the control stays no requirement.
+  insert into public.requirement_control_links(tenant_id, requirement_revision_id, control_id, control_part_id, relationship_type)
+    values (v_tenant, 'c5730000-0000-0000-0000-000000000021', v_control, v_heading, 'maps_to');
+  v_answer := public.program_control_status(v_program);
+  v_line := pg_temp.line(v_answer, v_control);
+  if v_line->>'status' <> 'no_requirement' or v_line->'requirements' <> '1'::jsonb
+    or (v_line->>'objectives')::integer <> cardinality(v_leaves)
+    or (v_line->>'objectives_mapped')::integer <> cardinality(v_under)
+    or v_line->'objectives_evidenced' <> '0'::jsonb then
+    raise exception 'A control mapped at one heading read % (% objectives, % under the heading)', v_line, cardinality(v_leaves), cardinality(v_under);
+  end if;
+  -- The read of the control's objectives answers the same, objective by objective, in the
+  -- catalog's reading order, each with its label, its text and the objectives above it.
+  v_read := public.program_control_objectives(v_program, v_control);
+  if jsonb_array_length(v_read->'objectives') <> cardinality(v_leaves)
+    or exists (select 1 from jsonb_array_elements(v_read->'objectives') o
+      where ((o->>'id')::uuid = any(v_under)) <> (o->>'mapped')::boolean
+        or (o->>'evidenced')::boolean
+        or nullif(o->>'label', '') is null or nullif(o->>'prose', '') is null
+        or ((o->>'id')::uuid = any(v_under)) <> (o->'ancestors' ? v_heading::text)
+        or ((o->>'mapped')::boolean and o->'requirements' <> jsonb_build_array(jsonb_build_object(
+          'id', 'c5720000-0000-0000-0000-000000000021', 'code', 'REQ-HEADING', 'evidenced', false)))
+        or (not (o->>'mapped')::boolean and o->'requirements' <> '[]'::jsonb)) then
+    raise exception 'The objectives of a control mapped at one heading read %', v_read;
+  end if;
+  if (select array_agg((o->>'id')::uuid order by n) from jsonb_array_elements(v_read->'objectives') with ordinality t(o, n))
+    is distinct from (
+      with recursive place(id, path) as (
+        select p.id, array[p.ordinal] from public.control_parts p
+        where p.control_id = v_control and p.name = 'assessment-objective' and p.parent_part_id is null
+        union all
+        select p.id, pl.path || p.ordinal from public.control_parts p join place pl on p.parent_part_id = pl.id
+        where p.name = 'assessment-objective')
+      select array_agg(pl.id order by pl.path, pl.id) from place pl where pl.id = any(v_leaves)) then
+    raise exception 'The objectives are not in the catalog''s reading order: %', v_read->'objectives';
+  end if;
+
+  -- Every other objective, one mapping each: the control is covered and leaves no requirement,
+  -- and with no evidence anywhere it reads no evidence.
+  insert into public.requirement_control_links(tenant_id, requirement_revision_id, control_id, control_part_id, relationship_type)
+  select v_tenant, 'c5730000-0000-0000-0000-000000000022', v_control, l, 'satisfies' from unnest(v_rest) l;
+  v_line := pg_temp.line(public.program_control_status(v_program), v_control);
+  if v_line->>'status' <> 'no_evidence' or v_line->'requirements' <> '2'::jsonb
+    or (v_line->>'objectives_mapped')::integer <> cardinality(v_leaves) or v_line->'objectives_evidenced' <> '0'::jsonb then
+    raise exception 'A control whose objectives are all mapped read %', v_line;
+  end if;
+
+  -- Evidence counts per objective: the heading's requirement cites evidence, the rest's does not,
+  -- so the control still reads no evidence, with the objectives under the heading evidenced.
+  insert into public.evidence_artifacts(id, tenant_id, title, artifact_kind, program_id) values
+    ('c5740000-0000-0000-0000-000000000021', v_tenant, 'Rollback objective report', 'document', v_program);
+  insert into public.evidence_versions(id, tenant_id, artifact_id, version_number, state, external_uri) values
+    ('c5750000-0000-0000-0000-000000000021', v_tenant, 'c5740000-0000-0000-0000-000000000021', 1, 'published', 'https://example.test/evidence/objectives');
+  insert into public.requirement_evidence(tenant_id, requirement_revision_id, evidence_version_id) values
+    (v_tenant, 'c5730000-0000-0000-0000-000000000021', 'c5750000-0000-0000-0000-000000000021');
+  v_line := pg_temp.line(public.program_control_status(v_program), v_control);
+  if v_line->>'status' <> 'no_evidence' or v_line->'evidenced' <> '1'::jsonb
+    or (v_line->>'objectives_evidenced')::integer <> cardinality(v_under) then
+    raise exception 'A control with evidence behind some of its objectives read %', v_line;
+  end if;
+  v_read := public.program_control_objectives(v_program, v_control);
+  if exists (select 1 from jsonb_array_elements(v_read->'objectives') o
+      where ((o->>'id')::uuid = any(v_under)) <> (o->>'evidenced')::boolean or not (o->>'mapped')::boolean) then
+    raise exception 'The objectives with evidence read %', v_read;
+  end if;
+  -- Once the rest's requirement cites evidence too, every objective is evidenced: not assessed.
+  insert into public.requirement_evidence(tenant_id, requirement_revision_id, evidence_version_id) values
+    (v_tenant, 'c5730000-0000-0000-0000-000000000022', 'c5750000-0000-0000-0000-000000000021');
+  v_line := pg_temp.line(public.program_control_status(v_program), v_control);
+  if v_line->>'status' <> 'not_assessed' or (v_line->>'objectives_evidenced')::integer <> cardinality(v_leaves) then
+    raise exception 'A control with evidence behind every objective read %', v_line;
+  end if;
+
+  -- A whole-control mapping covers every objective of the other control at once, as it always did.
+  insert into public.requirement_control_links(tenant_id, requirement_revision_id, control_id, relationship_type)
+    values (v_tenant, 'c5730000-0000-0000-0000-000000000023', v_other, 'maps_to');
+  v_line := pg_temp.line(public.program_control_status(v_program), v_other);
+  if v_line->>'status' <> 'no_evidence' or (v_line->>'objectives')::integer = 0
+    or v_line->'objectives_mapped' <> v_line->'objectives' or v_line->'objectives_evidenced' <> '0'::jsonb then
+    raise exception 'A control mapped as a whole read %', v_line;
+  end if;
+  -- The root objective covers every objective of its control, as the whole control does.
+  update public.requirement_control_links set revision = revision + 1, control_part_id = (
+      select o.id from public.control_parts o where o.control_id = v_other and o.name = 'assessment-objective' and o.parent_part_id is null)
+    where requirement_revision_id = 'c5730000-0000-0000-0000-000000000023';
+  v_line := pg_temp.line(public.program_control_status(v_program), v_other);
+  if v_line->>'status' <> 'no_evidence' or v_line->'objectives_mapped' <> v_line->'objectives' then
+    raise exception 'A control mapped at its root objective read %', v_line;
+  end if;
+  -- One leaf of it alone leaves the rest unmapped, unless the control has only that one.
+  select o.id into v_leaf from public.control_parts o
+  where o.control_id = v_other and o.name = 'assessment-objective'
+    and not exists (select 1 from public.control_parts g where g.parent_part_id = o.id and g.name = 'assessment-objective')
+  order by o.source_pointer limit 1;
+  update public.requirement_control_links set revision = revision + 1, control_part_id = v_leaf
+    where requirement_revision_id = 'c5730000-0000-0000-0000-000000000023';
+  v_line := pg_temp.line(public.program_control_status(v_program), v_other);
+  if v_line->'objectives_mapped' <> '1'::jsonb
+    or v_line->>'status' <> (case when v_line->'objectives' = '1'::jsonb then 'no_evidence' else 'no_requirement' end) then
+    raise exception 'A control mapped at one leaf read %', v_line;
+  end if;
+
+  -- Every control still stands at one status, and a viewer reads the same answer.
+  v_answer := public.program_control_status(v_program);
+  if (select sum(value::integer) from jsonb_each_text(v_answer->'totals') where key <> 'controls')
+      <> (v_answer->'totals'->>'controls')::integer
+    or exists (select 1 from jsonb_array_elements(v_answer->'controls') c
+      where (c->>'objectives_mapped')::integer > (c->>'objectives')::integer
+        or (c->>'objectives_evidenced')::integer > (c->>'objectives_mapped')::integer) then
+    raise exception 'The objective counts do not add up: %', v_answer->'totals';
+  end if;
+  v_read := public.program_control_objectives(v_program, v_control);
+  insert into public.tenant_memberships(tenant_id, user_id, role)
+  select v_tenant, 'c5700000-0000-0000-0000-000000000002', 'viewer'
+  where not exists (select 1 from public.tenant_memberships m
+    where m.tenant_id = v_tenant and m.user_id = 'c5700000-0000-0000-0000-000000000002');
+  perform set_config('request.jwt.claim.sub', 'c5700000-0000-0000-0000-000000000002', true);
+  if public.program_control_status(v_program) is distinct from v_answer
+    or public.program_control_objectives(v_program, v_control) is distinct from v_read then
+    raise exception 'A viewer read another answer of a control''s objectives';
+  end if;
+  perform set_config('request.jwt.claim.sub', 'c5700000-0000-0000-0000-000000000001', true);
+  raise notice 'The objective checks ran against the pinned references';
+end $$;
+
 reset role;
 rollback;
-select 'Program control status: privileges, refusal, a program with no baseline, the ladder a control climbs and the determinations a program takes from its products passed.' as result;
+select 'Program control status: privileges, refusal, a program with no baseline, the ladder a control climbs, the determinations a program takes from its products and the objectives a control''s requirements cover passed.' as result;

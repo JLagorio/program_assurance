@@ -11,7 +11,10 @@ import { controlDeterminers, controlStatuses } from "./status";
  * One status for each control of a program's control baseline: where the program stands on it,
  * the furthest step it has reached. `program_control_status` answers every control in one request,
  * as the reader: no requirement maps it, a requirement maps it and none cites evidence, a
- * requirement cites evidence and no assessor has determined it, or a determination. The
+ * requirement cites evidence and no assessor has determined it, or a determination. A control with
+ * assessment objectives climbs by them: the program's requirements map every one of them before it
+ * leaves No requirement, and one that cites evidence covers each before it leaves No evidence; a
+ * mapping of the whole control covers them all (control-objectives). The
  * determination is the worst of the latest an assessor of the program published on the control's
  * parts; where there is none and every product variant of the program inherits the control with a
  * determination (its delta is inherited), it is the worst of the product's, and the control names
@@ -50,6 +53,9 @@ const controlSchema = z.object({
   status: statusSchema,
   requirements: z.number(),
   evidenced: z.number(),
+  objectives: z.number(),
+  objectives_mapped: z.number(),
+  objectives_evidenced: z.number(),
   determined_by: determinerSchema.nullable(),
   product_assessments: z.array(
     z.object({
@@ -97,6 +103,12 @@ export type ControlStanding = {
   requirements: number;
   /** Those of them that cite evidence. */
   evidenced: number;
+  /** The assessment objectives the control counts (its leaves); none for a control without any. */
+  objectives: number;
+  /** Those the program's requirements map, alone or under an objective or the whole control mapped. */
+  objectivesMapped: number;
+  /** Those mapped by a requirement that cites evidence. */
+  objectivesEvidenced: number;
   /**
    * Whose determination the status is: the program's own assessors, or the product assessment
    * every variant of the program inherits the control from. Null while nobody has determined it.
@@ -164,6 +176,9 @@ export async function readProgramControlStatus(
       status: control.status,
       requirements: control.requirements,
       evidenced: control.evidenced,
+      objectives: control.objectives,
+      objectivesMapped: control.objectives_mapped,
+      objectivesEvidenced: control.objectives_evidenced,
       determinedBy: control.determined_by,
       productAssessments: control.product_assessments,
     })),

@@ -10,10 +10,12 @@ import {
   RECORD_NEEDS_CONTROLS,
   WHOLE_PRODUCT,
   newAssessmentIssues,
+  openingElement,
   publishProductAssessment,
   readProductAssessmentSheet,
   recordProductDeterminations,
   sheetRows,
+  type SheetElement,
 } from "./product-assessment";
 
 const context = { tenantId: "tenant-1", token: "token" };
@@ -135,6 +137,41 @@ describe("readProductAssessmentSheet", () => {
       "partially_satisfied",
     ]);
     expect(sheetRows(sheet, "e2").every((row) => !row.claimed && !row.determination)).toBe(true);
+  });
+});
+
+describe("the element a sheet opens on", () => {
+  const element = (id: string, claimed: number, determined: number): SheetElement => ({
+    id,
+    code: id === WHOLE_PRODUCT ? null : id.toUpperCase(),
+    name: id,
+    claimed,
+    determined,
+  });
+
+  it("opens on the first element in the select's order that holds a determination", () => {
+    // The seeded G40 draft: the shelter power unit claims controls and holds none; the relay, the
+    // workstation and the terminal as a whole hold its 9.
+    const g40 = [
+      element(WHOLE_PRODUCT, 0, 3),
+      element("pwr", 12, 0),
+      element("rly", 8, 1),
+      element("sw", 20, 0),
+      element("ws", 30, 5),
+    ];
+    expect(openingElement(g40)?.id).toBe(WHOLE_PRODUCT);
+    expect(openingElement([element(WHOLE_PRODUCT, 0, 0), ...g40.slice(1)])?.id).toBe("rly");
+  });
+
+  it("opens on the first that claims a control where nothing is determined, else the whole product", () => {
+    expect(
+      openingElement([element(WHOLE_PRODUCT, 0, 0), element("hmu", 0, 0), element("ofp", 2, 0)])
+        ?.id,
+    ).toBe("ofp");
+    expect(openingElement([element(WHOLE_PRODUCT, 0, 0), element("hmu", 0, 0)])?.id).toBe(
+      WHOLE_PRODUCT,
+    );
+    expect(openingElement([])).toBeUndefined();
   });
 });
 

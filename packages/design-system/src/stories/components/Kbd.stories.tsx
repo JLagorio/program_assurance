@@ -226,7 +226,8 @@ export const KbdMatrix: Story = {
     const menu = await page.findByRole("menu");
     const edit = within(menu).getByRole("menuitem", { name: /^Edit/ });
     await waitFor(() => expect(edit).toHaveFocus());
-    await expect(edit.querySelector('[data-slot="kbd-group"]')).toBeVisible();
+    // Seen once just after the menu opened, before it had drawn: its keys show once it has.
+    await waitFor(() => expect(edit.querySelector('[data-slot="kbd-group"]')).toBeVisible());
     await expect(edit.querySelectorAll('[data-slot="kbd"]')).toHaveLength(2);
     editAction.mockClear();
     await userEvent.keyboard("{Enter}");

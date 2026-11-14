@@ -19,6 +19,8 @@ type StepSurface = {
   kind: "map_requirement" | "assess" | "plan_assessment";
   programId: string;
   control: StepControl;
+  /** Map a requirement opened for the rest of a control mapped in part: it starts on what is left. */
+  rest: boolean;
   opener: HTMLElement | null;
   slot: HTMLElement | null;
   key: number;
@@ -47,6 +49,7 @@ export function StepSurfaceHost({ children }: { children: ReactNode }) {
             key={surface.key}
             programId={surface.programId}
             control={surface.control}
+            rest={surface.rest}
             opener={surface.opener}
             slot={surface.slot}
             onClose={close}
@@ -90,6 +93,7 @@ function InPlaceStep({
           kind: step.kind,
           programId,
           control,
+          rest: "rest" in step && !!step.rest,
           opener: opener.current,
           slot: stepSlot(opener.current),
         })
@@ -213,7 +217,8 @@ function NextStepLink({
  * A next step or a trace gap's fix, drawn where it is read. A step that leads elsewhere is a link
  * to where it is done. A step done on the control itself is a link-styled button that opens where
  * it is done over the page, so the reader makes the change without leaving the control: Map a
- * requirement, a picker of the program's requirements; Add to assessment campaign, a picker of its
+ * requirement, a picker of the program's requirements (for the rest of a control mapped in part,
+ * Map 14 more objectives, with those objectives chosen); Add to assessment campaign, a picker of its
  * campaigns with a draft plan; Plan an assessment, the form that plans a new campaign around the
  * control. What it opens is held by the nearest `StepSurfaceHost`, or by its own where there is
  * none. For a reader who may not make the change, and while the control is not yet known, such a

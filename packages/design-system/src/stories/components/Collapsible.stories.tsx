@@ -321,24 +321,30 @@ export const NestedMotion: Story = {
     );
     await expect(item).toHaveAttribute("data-collapse-panel", "accordion");
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    // Catch the inner panel's fold as it starts, and hold it there.
-    const started = new Promise<Animation>((resolve) => {
-      canvasElement.addEventListener("animationstart", (event) => {
-        const target = event.target as HTMLElement;
-        if (event.animationName !== "ds-collapse-open" || target.dataset["testid"] !== "nested")
-          return;
-        const fold = target
-          .getAnimations()
-          .find((animation) => (animation as CSSAnimation).animationName === "ds-collapse-open");
-        if (!fold) return;
-        fold.pause();
-        resolve(fold);
-      });
-    });
+    // Catch the inner panel's fold as it starts, and hold it there. Under reduced motion the fold
+    // lasts a hundredth of a millisecond and is left to run: caught and held at its start, it
+    // would keep the panel shut.
+    const started = reduced
+      ? undefined
+      : new Promise<Animation>((resolve) => {
+          canvasElement.addEventListener("animationstart", (event) => {
+            const target = event.target as HTMLElement;
+            if (event.animationName !== "ds-collapse-open" || target.dataset["testid"] !== "nested")
+              return;
+            const fold = target
+              .getAnimations()
+              .find(
+                (animation) => (animation as CSSAnimation).animationName === "ds-collapse-open",
+              );
+            if (!fold) return;
+            fold.pause();
+            resolve(fold);
+          });
+        });
     await userEvent.click(canvas.getByRole("button", { name: "Provenance" }));
     const nested = await canvas.findByTestId("nested");
     await expect(nested).toHaveAttribute("data-collapse-panel", "collapsible");
-    if (!reduced) {
+    if (started) {
       // Halfway through the fold the inner panel is part of the way open: it eases on its own
       // measured height. On the item's `auto` it would be all the way open at once.
       const fold = await started;

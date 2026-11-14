@@ -3,9 +3,21 @@ import { playwright } from "@vitest/browser-playwright";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { defineConfig, mergeConfig } from "vitest/config";
+import type { BrowserCommand } from "vitest/node";
 import viteConfig from "./.storybook/vite.config";
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
+
+/**
+ * Moves the test browser's own pointer off the page, which test/storybook.setup.ts does before
+ * every story. Chromium hovers whatever renders under its resting pointer, the page's top-left
+ * corner until a play hovers for real (Card, Related and the icon rail do) and wherever that
+ * left it after, so a story could start under a pointer it never moved: a Ladder row read right
+ * to left opened its tooltip there, and a Button's reason showed beside the one the play focused.
+ */
+const pointerAway: BrowserCommand<[]> = async ({ page }) => {
+  await page.mouse.move(-1, -1);
+};
 
 const desktop = { value: "ledgerDesktop", isRotated: false };
 const phone = { value: "ledgerPhone", isRotated: false };
@@ -107,6 +119,7 @@ const storybookProject = ({
         },
       }),
       instances: [{ browser: "chromium" as const }],
+      commands: { pointerAway },
     },
   },
 });

@@ -254,6 +254,9 @@ export const PendingAndRetry: Story = {
     await waitFor(() => expect(manager).not.toBeInTheDocument());
     await user.click(canvas.getByRole("button", { name: "Open pending editor" }));
     const editor = await body.findByRole("dialog", { name: "Save current view" });
+    // Open once drawn: the dialog holds its entrance's first keyframe, transparent, until the next
+    // frame, so the check that Escape leaves it open starts from an open dialog.
+    await waitFor(() => expect(editor).toBeVisible());
     await expect(editor).toHaveAttribute("aria-busy", "true");
     await expect(within(editor).getByRole("textbox", { name: "Name" })).toBeDisabled();
     await expect(within(editor).getByRole("button", { name: "Cancel" })).toHaveAttribute(

@@ -96,7 +96,9 @@ export const Vertical: Story = {
     await expect(viewport).toHaveAttribute("data-scroller-arrows");
     await expect(getComputedStyle(viewport).scrollbarWidth).toBe("none");
     await user.hover(arrow(root, "end")!);
-    await waitFor(() => expect(viewport.scrollTop).toBeGreaterThan(0));
+    // Hovering scrolls a little on every frame, the first by as little as a fraction of a pixel;
+    // the list has left its start once it is more than the pixel the Scroller allows at an edge.
+    await waitFor(() => expect(viewport.scrollTop).toBeGreaterThan(1));
     await user.unhover(arrow(root, "end")!);
     await waitFor(() => expect(arrow(root, "start")).toBeVisible());
     viewport.scrollTop = viewport.scrollHeight;

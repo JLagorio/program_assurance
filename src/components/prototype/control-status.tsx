@@ -4,6 +4,7 @@ import {
   KeyValue,
   Stack,
   Tally,
+  Text,
   TileMap,
   TileMapKey,
   useLedgerLocale,
@@ -17,6 +18,7 @@ import { StatusBadge } from "@/components/app/status";
 import { useWorkspace } from "@/components/app/workspace";
 import type { AssuranceTrace } from "@/lib/assurance-trace";
 import { useControlAssessment } from "@/lib/control-assessment";
+import { useProgramControlObjectives } from "@/lib/control-objectives";
 import {
   CONTROL_STATUS_ORDER,
   controlStatusFamilies,
@@ -27,6 +29,7 @@ import {
   type ProgramControlStatus,
 } from "@/lib/control-status";
 import { controlNextStep } from "@/lib/next-steps";
+import { objectiveWords, objectivesOf } from "@/lib/product-records";
 import { controlDeterminers, controlStatuses } from "@/lib/status";
 import { QueryValue } from "./library-shared";
 import { NextStep, StepSurfaceHost } from "./next-step";
@@ -50,6 +53,27 @@ const marks = {
 
 /** The key's order: what an assessor decided first, then what waits. */
 const KEY_ORDER = [...CONTROL_STATUS_ORDER].reverse();
+
+/**
+ * How much of a control's assessment objectives the program's requirements cover, in a mark's
+ * words, where it is part of the story: some mapped and not all, or every one mapped and some
+ * without evidence. A control whose objectives are all or none of either says it with its status.
+ */
+function objectiveStanding(
+  control: Pick<ControlStanding, "objectives" | "objectivesMapped" | "objectivesEvidenced">,
+  format: (value: number) => string,
+): string | undefined {
+  const { objectives, objectivesMapped, objectivesEvidenced } = control;
+  if (objectivesMapped > 0 && objectivesMapped < objectives)
+    return `${objectivesOf(format(objectivesMapped), format(objectives))} objectives mapped`;
+  if (
+    objectivesMapped === objectives &&
+    objectivesEvidenced > 0 &&
+    objectivesEvidenced < objectives
+  )
+    return `${objectivesOf(format(objectivesEvidenced), format(objectives))} objectives with evidence`;
+  return undefined;
+}
 
 /** A link element a key line or a card's title takes: the part gives it its words. */
 type LinkElement = ReactElement<{ className?: string | undefined; children?: ReactNode }>;
@@ -128,16 +152,19 @@ export function ControlStatusMap({
 }) {
   const { formatNumber } = useLedgerLocale();
   const groups = useMemo(() => {
-    const mark = (control: ControlStanding): TileMapMark => ({
-      id: control.id,
-      label: `${control.code} ${control.title}`,
-      description: `${controlStatuses[control.status].label}${
-        control.determinedBy ? ` · ${controlDeterminers[control.determinedBy].label}` : ""
-      } · ${formatNumber(control.requirements)} ${
-        control.requirements === 1 ? "requirement" : "requirements"
-      }, ${formatNumber(control.evidenced)} with evidence`,
-      ...marks[control.status],
-    });
+    const mark = (control: ControlStanding): TileMapMark => {
+      const objectives = objectiveStanding(control, formatNumber);
+      return {
+        id: control.id,
+        label: `${control.code} ${control.title}`,
+        description: `${controlStatuses[control.status].label}${
+          control.determinedBy ? ` · ${controlDeterminers[control.determinedBy].label}` : ""
+        } · ${formatNumber(control.requirements)} ${
+          control.requirements === 1 ? "requirement" : "requirements"
+        }, ${formatNumber(control.evidenced)} with evidence${objectives ? `, ${objectives}` : ""}`,
+        ...marks[control.status],
+      };
+    };
     return controlStatusFamilies(status.controls).map((family): TileMapGroup => ({
       id: family.code,
       label: family.code,
@@ -158,15 +185,18 @@ export function ControlStatusMap({
 
 /**
  * Where a program stands on one control, as the first rows of the control's Details: its control
- * status, whose determination it is (the program's assessment, or each product assessment the
- * program's variants inherit it from, a link to its record), and the next step that moves it up
- * the ladder: a link to where the step is done, or, for a step done on the control itself, the
- * button that opens it over the page (Map a requirement, Add to assessment campaign, Plan an
- * assessment), which a viewer reads as words alone. The status comes from the read the program's
- * Overview and its Control status view share, so the page opens on what the reader came from.
- * `requirements` are the requirements that map the control, as its trace reads them: the step
- * names the first that cites no evidence. Evidence no assessor has determined waits on what the
- * program's open campaigns hold of the control, which decides the step.
+ * status, how many of its assessment objectives the program's requirements map and how many with
+ * evidence ("12 of 26"), whose determination it is (the program's assessment, or each product
+ * assessment the program's variants inherit it from, a link to its record), and the next step that
+ * moves it up the ladder: a link to where the step is done, or, for a step done on the control
+ * itself, the button that opens it over the page (Map a requirement, or Map 14 more
+ * objectives for a control mapped in part; Add to assessment campaign, Plan an assessment), which a
+ * viewer reads as words alone. The status comes from the read the program's Overview and its
+ * Control status view share, so the page opens on what the reader came from. `requirements` are
+ * the requirements that map the control, as its trace reads them: the step names the first that
+ * cites no evidence, and where some objectives are evidenced already, the first that covers one
+ * that is not, which the control's objectives say. Evidence no assessor has determined waits on
+ * what the program's open campaigns hold of the control, which decides the step.
  */
 export function ControlStandingFacts({
   programId,
@@ -179,13 +209,24 @@ export function ControlStandingFacts({
   requirements?: AssuranceTrace["requirements"] | undefined;
 }) {
   const workspace = useWorkspace();
+  const { formatNumber } = useLedgerLocale();
   const statuses = useProgramControlStatus(programId);
   const standing = controlId
     ? statuses.data?.controls.find((control) => control.id === controlId)
     : undefined;
   const waiting = standing?.status === "not_assessed";
   const assessment = useControlAssessment(programId, controlId, { enabled: waiting });
-  const step = standing ? controlNextStep(standing, requirements, assessment.data) : null;
+  // Evidence that covers some objectives and not others: the step names a requirement that
+  // covers one without, which only the control's objectives say.
+  const owing =
+    standing?.status === "no_evidence" &&
+    standing.objectivesEvidenced > 0 &&
+    standing.objectivesEvidenced < standing.objectives;
+  const objectives = useProgramControlObjectives(programId, controlId, { enabled: owing });
+  const step = standing
+    ? controlNextStep(standing, requirements, assessment.data, objectives.data?.objectives)
+    : null;
+  const stepQueries = waiting ? assessment.queries : owing ? [objectives] : [];
   const nextStep = step && standing && (
     <NextStep
       step={step}
@@ -197,7 +238,7 @@ export function ControlStandingFacts({
   // The Details hold what a step opens, so it stays open while the step under it changes.
   return (
     <StepSurfaceHost>
-      <ReportFailures queries={[statuses, ...(waiting ? assessment.queries : [])]} />
+      <ReportFailures queries={[statuses, ...stepQueries]} />
       <KeyValue label="Control status">
         <QueryValue queries={[statuses]}>
           {() =>
@@ -209,6 +250,26 @@ export function ControlStandingFacts({
           }
         </QueryValue>
       </KeyValue>
+      {standing && standing.objectives > 0 && (
+        <>
+          <KeyValue label={objectiveWords.mapped}>
+            <Text numeric>
+              {objectivesOf(
+                formatNumber(standing.objectivesMapped),
+                formatNumber(standing.objectives),
+              )}
+            </Text>
+          </KeyValue>
+          <KeyValue label={objectiveWords.evidenced}>
+            <Text numeric>
+              {objectivesOf(
+                formatNumber(standing.objectivesEvidenced),
+                formatNumber(standing.objectives),
+              )}
+            </Text>
+          </KeyValue>
+        </>
+      )}
       {standing?.determinedBy && (
         <KeyValue label="Determined by" wrap>
           {standing.determinedBy === "product" && standing.productAssessments.length > 0 ? (
@@ -230,8 +291,8 @@ export function ControlStandingFacts({
       )}
       {step && (
         <KeyValue label="Next step" wrap>
-          {waiting ? (
-            <QueryValue queries={assessment.queries}>{() => nextStep}</QueryValue>
+          {stepQueries.length ? (
+            <QueryValue queries={stepQueries}>{() => nextStep}</QueryValue>
           ) : (
             nextStep
           )}

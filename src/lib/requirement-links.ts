@@ -90,9 +90,10 @@ export const mapRequirementsToControlSchema = z
     /** One rationale for every chosen requirement; none unsaid. */
     rationale: z.string().trim().max(10000).nullable(),
     /**
-     * One mapping per chosen requirement and system, each with an id chosen once for every
-     * attempt: the requirement's latest revision, on each system it is allocated to whose control
-     * baseline selects the control, by that baseline's selection.
+     * One mapping per chosen requirement, system and objective, each with an id chosen once for
+     * every attempt: the requirement's latest revision, on each system it is allocated to whose
+     * control baseline selects the control, by that baseline's selection, naming the assessment
+     * objective it covers, or none (`null`) for the whole control.
      */
     targets: z
       .array(
@@ -101,6 +102,7 @@ export const mapRequirementsToControlSchema = z
           requirementRevisionId: uuid,
           systemId: uuid,
           selectedControlId: uuid,
+          controlPartId: uuid.nullable(),
         }),
       )
       .min(1, "Choose a requirement.")
@@ -358,13 +360,14 @@ type RecordedMapping = {
 
 /**
  * Map many requirements to one control in one insert, with one relationship and one rationale
- * for all: the control's Map a requirement. Each row is the mapping the requirement's own Map
- * control records, the whole control on one system the requirement is allocated to (a requirement
- * on two such systems is two rows, so each system's SSP lists it), which the schema checks row by
- * row (`guard_requirement_control_target`); a single insert is one statement,
- * so a refusal writes none of them. A retry (`retry: true`) first reads which of its ids an earlier
- * attempt wrote, inserts only the rest, and refuses when a row with one of those ids now says
- * something else.
+ * for all: the control's Map a requirement, and the requirement's own Map control. Each row is one
+ * mapping on one system the requirement is allocated to (a requirement on two such systems is two
+ * rows, so each system's SSP lists it), of the whole control or of one assessment objective (a
+ * requirement that meets three objectives is three rows), which the schema checks row by row
+ * (`guard_requirement_control_target`: an objective must be the mapped control's); a single insert
+ * is one statement, so a refusal writes none of them. A retry (`retry: true`) first reads which of
+ * its ids an earlier attempt wrote, inserts only the rest, and refuses when a row with one of those
+ * ids now says something else.
  */
 export async function mapRequirementsToControl(
   client: Client,
@@ -395,7 +398,7 @@ export async function mapRequirementsToControl(
       row &&
       (row.requirement_revision_id !== target.requirementRevisionId ||
         row.control_id !== values.controlId ||
-        row.control_part_id !== null ||
+        row.control_part_id !== target.controlPartId ||
         row.system_id !== target.systemId ||
         row.selected_control_id !== target.selectedControlId ||
         row.relationship_type !== values.relationship ||
@@ -415,7 +418,7 @@ export async function mapRequirementsToControl(
           tenant_id: tenantId,
           requirement_revision_id: target.requirementRevisionId,
           control_id: values.controlId,
-          control_part_id: null,
+          control_part_id: target.controlPartId,
           system_id: target.systemId,
           selected_control_id: target.selectedControlId,
           relationship_type: values.relationship,
@@ -425,7 +428,7 @@ export async function mapRequirementsToControl(
       .setHeader("Authorization", `Bearer ${token}`);
     if (error?.code === "23505")
       throw new Error(
-        "One of these requirements was mapped to this control in another session. Close and map again to see what is left.",
+        "One of these mappings was recorded in another session. Close and map again to see what is left.",
       );
     if (error) throw failure(error, "control mapping");
   }

@@ -38,6 +38,9 @@ const openMonths = async (trigger: HTMLElement, name: string) => {
   await userEvent.click(trigger);
   const popup = await within(trigger.ownerDocument.body).findByRole("dialog", { name });
   await waitFor(() => expect(popup.querySelector('[role="grid"]')).not.toBeNull());
+  // Open once drawn: the popup holds its entrance's first keyframe, transparent, until the next
+  // frame, so a check that it stays open after a press starts from an open popup.
+  await waitFor(() => expect(popup).toBeVisible());
   return popup;
 };
 const closed = async (trigger: HTMLElement) => {

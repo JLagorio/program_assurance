@@ -1,4 +1,5 @@
-import { ControlProse, controlProseText, useControlPlaceholders } from "./library-controls";
+import { ControlProse, useControlPlaceholders } from "./library-controls";
+import { ObjectiveCoverage, ObjectivesField, type MappingCoverage } from "./objective-choice";
 import { ProductCollection } from "./product-collection";
 import { RecordLink, useDisplayedRecords, useRemovalFocus, useEndOnHide } from "./record-preview";
 import { RecordSummaryPreview } from "./record-summary-preview";
@@ -38,19 +39,23 @@ import {
   Stack,
   Text,
   toast,
+  useLedgerLocale,
 } from "@ledger/design-system";
 import { useWorkspace } from "@/components/app/workspace";
+import { useProgramControlObjectives } from "@/lib/control-objectives";
 import { requireIdentity } from "@/lib/database";
 import { useMappingParts, useSelectedControls } from "@/lib/control-reads";
 import { idSet, useRow, useRows, type Row } from "@/lib/models";
 import { SaveOnceConflict, useSaveOnce } from "@/lib/save-once";
 import {
-  isControlStatement,
+  WHOLE_CONTROL_CHOICE,
+  isMappingTarget,
   requirementMappingBaselines,
   type MappingBaseline,
 } from "@/lib/requirement-control-mappings";
-import { useRemoveRequirementLink } from "@/lib/requirement-links";
+import { useMapRequirementsToControl, useRemoveRequirementLink } from "@/lib/requirement-links";
 import { labelFor } from "@/lib/records";
+import { mappingCoverages } from "@/lib/status";
 
 const relationships = [
   { value: "maps_to", label: "Maps to" },
@@ -86,32 +91,15 @@ function ancestry(part: Row<"control_parts">, parts: readonly Row<"control_parts
 }
 
 /**
- * A statement part as the catalog numbers it: its labels from the top ("a.", then "a.1."), or its
- * title or kind ("Statement") when it has none. Never the part's source id.
+ * A recorded part as the catalog numbers it: a statement's labels from the top ("a.", then "a.1."),
+ * an assessment objective's own label, which SP 800-53A prints whole ("AC-02a.[01]"), or its title
+ * or kind ("Statement") when it has none. Never the part's source id.
  */
 function partName(part: Row<"control_parts">, parts: readonly Row<"control_parts">[]) {
+  if (part.name === "assessment-objective")
+    return propValue(part.props, "label") ?? part.title ?? labelFor(part.name);
   const labels = ancestry(part, parts).flatMap((item) => propValue(item.props, "label") ?? []);
   return labels.length ? labels.join("") : (part.title ?? labelFor(part.name));
-}
-
-/**
- * The catalog's reading order: each part's position under every part above it, so an item's
- * sub-items follow it ("d.", "d.1.", "d.2.", then "e.") rather than other items' sub-items.
- */
-function byReadingOrder(parts: readonly Row<"control_parts">[]) {
-  const places = new Map(
-    parts.map((part) => [part.id, ancestry(part, parts).map((item) => item.ordinal)]),
-  );
-  return (a: Row<"control_parts">, b: Row<"control_parts">) => {
-    const first = places.get(a.id) ?? [];
-    const second = places.get(b.id) ?? [];
-    for (let index = 0; index < Math.max(first.length, second.length); index++) {
-      // A part comes before the parts under it.
-      const difference = (first[index] ?? -1) - (second[index] ?? -1);
-      if (difference) return difference;
-    }
-    return (a.source_id ?? "").localeCompare(b.source_id ?? "", undefined, { numeric: true });
-  };
 }
 /** What a mapping reads of a selected control: its profile and its control. */
 const selectionColumns = ["id", "profile_resolution_id", "control_id"] as const;
@@ -244,13 +232,15 @@ export function RequirementControlMappings({
           control,
           part,
           coverage: !link.control_part_id
-            ? "Whole control"
+            ? mappingCoverages.whole.label
             : part
               ? partName(part, parts.data ?? [])
               : "Target unavailable",
           systemName: system ? `${system.code} · ${system.name}` : "Catalog reference",
+          // A mapping names the whole control, a statement of its text or one of its objectives.
           needsReview:
-            !!link.control_part_id && (!part || !isControlStatement(part, parts.data ?? [])),
+            !!link.control_part_id &&
+            (!part || !isMappingTarget(part, parts.data ?? [], link.control_id)),
           outdated:
             !!link.system_id &&
             selection?.profile_resolution_id !== baseline?.profile_resolution_id,
@@ -326,8 +316,8 @@ export function RequirementControlMappings({
                     Needs review
                   </Badge>
                   <Text as="p" size="small" color="color.text.subtle">
-                    This mapping points to an unavailable or non-statement target. Review its
-                    control coverage.
+                    This mapping points to an unavailable target, or one that is neither a statement
+                    nor an objective of the control. Review its control coverage.
                   </Text>
                 </>
               )}
@@ -499,6 +489,7 @@ export function RequirementControlMappings({
       {(adding || editing) && (
         <MappingDialog
           key={editing?.link.id ?? "new"}
+          programId={programId}
           contentId={contentId}
           requirementCode={requirementCode}
           choices={choices}
@@ -522,10 +513,21 @@ export function RequirementControlMappings({
 /** The most a mapping's rationale may hold. */
 const RATIONALE_LIMIT = 10000;
 /** The form's fields in the order they appear, which is the order their issues are listed in. */
-const mappingFields = ["system", "control", "statement", "relationship", "rationale"] as const;
+const mappingFields = ["system", "control", "objectives", "relationship", "rationale"] as const;
 type MappingField = (typeof mappingFields)[number];
 
+const OBJECTIVES = { one: "{count} objective", other: "{count} objectives" };
+const NONE_CHOSEN: string[] = [];
+
+/**
+ * Map control and Edit control mapping. A new mapping covers the whole control, the default, or
+ * the objectives chosen, one mapping an objective, all written in one request whose ids are chosen
+ * once per system and objective, so saving again adds only what is missing. An edit changes one
+ * mapping, which covers the whole control or one objective; its recorded target stays until the
+ * reader changes the system, the control or the objective.
+ */
 function MappingDialog({
+  programId,
   contentId,
   requirementCode,
   choices,
@@ -537,6 +539,7 @@ function MappingDialog({
   initial,
   onClose,
 }: {
+  programId: string;
   contentId: string;
   requirementCode: string;
   choices: ControlChoice[];
@@ -549,21 +552,31 @@ function MappingDialog({
   onClose: () => void;
 }) {
   const workspace = useWorkspace();
-  // The mapping's id is chosen once, so saving again after an uncertain answer never duplicates it.
+  const { formatPlural } = useLedgerLocale();
+  // An edited mapping's id is the mapping's; saving again after an uncertain answer never
+  // duplicates it. A new mapping's ids are chosen once per system and objective.
   const save = useSaveOnce("requirement_control_links");
+  const map = useMapRequirementsToControl();
   const formId = useId();
   const feedback = useFormFeedback<MappingField>();
   const [open, setOpen] = useState(true);
-  const [mappingId] = useState(() => initial?.link.id ?? crypto.randomUUID());
+  const mappingId = initial?.link.id;
+  const mappingIds = useRef(new Map<string, string>());
+  const attempted = useRef(false);
   const [controlId, setControlId] = useState(initial?.control?.id ?? "");
-  // The parameters and choices of the chosen control alone, whose statements the form quotes.
-  const placeholders = useControlPlaceholders(
-    useMemo(() => ({ controlIds: controlId ? [controlId] : [] }), [controlId]),
-  );
   const [systemId, setSystemId] = useState(
     initial ? (initial.link.system_id ?? "") : sources.length === 1 ? sources[0]!.systemId : "",
   );
-  const [partId, setPartId] = useState(initial?.link.control_part_id ?? "");
+  // What the mapping covers: an edited one that names an objective starts on it; any other part
+  // it names (a statement of the control's text) covers the whole control.
+  const initialObjective =
+    initial?.part?.name === "assessment-objective" ? initial.part.id : undefined;
+  const [coverage, setCoverage] = useState<MappingCoverage>(
+    initialObjective ? "objectives" : "whole",
+  );
+  const [objectiveIds, setObjectiveIds] = useState<string[]>(
+    initialObjective ? [initialObjective] : NONE_CHOSEN,
+  );
   const [relationship, setRelationship] = useState<Relationship>(
     (initial?.link.relationship_type as Relationship) ?? "maps_to",
   );
@@ -571,7 +584,7 @@ function MappingDialog({
   const [dirty, setDirty] = useState(false);
   const [targetDirty, setTargetDirty] = useState(false);
   const [failure, setFailure] = useState<string | null>(null);
-  const saved = useRef(false);
+  const saved = useRef<{ objectives: number } | null>(null);
   const submitRef = useRef<HTMLButtonElement>(null);
   const failureRef = useRef<HTMLDivElement>(null);
   const guard = useDraftGuard({
@@ -581,15 +594,8 @@ function MappingDialog({
       ? "The changes you made to this control mapping will be lost."
       : "The control mapping you started will be lost.",
   });
-  const parts = useRows("control_parts", { control_id: controlId }, { enabled: !!controlId });
-  const statements = (parts.data ?? [])
-    .filter((part) => isControlStatement(part, parts.data ?? []))
-    .sort(byReadingOrder(parts.data ?? []))
-    .map((part) => ({
-      id: part.id,
-      name: partName(part, parts.data ?? []),
-      part,
-    }));
+  // The chosen control's objectives, each with its label and text, in reading order.
+  const objectives = useProgramControlObjectives(programId, controlId || null);
   const preserveTarget = !!initial && !targetDirty;
   const chosenSystem = sources.find((source) => source.systemId === systemId);
   const selected = selections.filter(
@@ -616,15 +622,33 @@ function MappingDialog({
         ]
       : []),
   ];
-  const chosenPart = statements.find((statement) => statement.id === partId);
-  const duplicate = links.some(
-    (link) =>
-      link.id !== mappingId &&
-      link.control_id === controlId &&
-      link.system_id === (systemId || null) &&
-      link.control_part_id === (partId || null) &&
-      link.relationship_type === relationship,
+  const known = objectives.data?.objectives;
+  // The objectives chosen that are the control's: an edit keeps one, a new mapping any number.
+  const chosenObjectives = useMemo(
+    () =>
+      coverage === "objectives"
+        ? objectiveIds.filter((id) => !known || known.some((objective) => objective.id === id))
+        : NONE_CHOSEN,
+    [coverage, objectiveIds, known],
   );
+  // What this save writes: one mapping of the whole control, or one an objective chosen.
+  const targets: readonly (string | null)[] =
+    coverage === "whole" ? WHOLE_CONTROL_CHOICE : chosenObjectives;
+  const labelOf = (objectiveId: string) =>
+    known?.find((objective) => objective.id === objectiveId)?.label ?? "An objective";
+  // A recorded target the reader has not changed is checked as it is recorded.
+  const checked = preserveTarget ? [initial!.link.control_part_id] : targets;
+  const duplicates = checked.filter((target) =>
+    links.some(
+      (link) =>
+        link.id !== mappingId &&
+        link.control_id === controlId &&
+        link.system_id === (systemId || null) &&
+        link.control_part_id === target &&
+        link.relationship_type === relationship,
+    ),
+  );
+  const recordedStatement = !!initial?.part && !initialObjective;
   // Every issue with the values, in field order. A recorded target that was not changed is kept.
   const issues: FormIssue<MappingField>[] = [
     ...(!preserveTarget && !chosenSystem
@@ -638,20 +662,31 @@ function MappingDialog({
           },
         ]
       : []),
-    ...(!preserveTarget && partId && !chosenPart && !parts.error
+    ...(!preserveTarget && coverage === "objectives" && chosenObjectives.length === 0
       ? [
           {
-            field: "statement" as const,
-            message: "Choose a statement of this control, or clear it to map the whole control.",
+            field: "objectives" as const,
+            message: initial
+              ? "Choose the objective the requirement meets, or map the whole control."
+              : "Choose the objectives the requirement meets, or map the whole control.",
           },
         ]
       : []),
-    ...(duplicate
+    ...(duplicates.length
       ? [
-          {
-            field: "relationship" as const,
-            message: "This control target already has that relationship for this system.",
-          },
+          duplicates[0] === null || preserveTarget
+            ? {
+                field: "relationship" as const,
+                message: "This control target already has that relationship for this system.",
+              }
+            : {
+                field: "objectives" as const,
+                message: `${duplicates.map((target) => labelOf(target!)).join(", ")} already ${
+                  duplicates.length === 1 ? "has" : "have"
+                } that relationship for this system. Remove ${
+                  duplicates.length === 1 ? "it" : "them"
+                } from the chosen objectives.`,
+              },
         ]
       : []),
     ...(rationale.length > RATIONALE_LIMIT
@@ -680,33 +715,64 @@ function MappingDialog({
     if (!feedback.report(issues)) return;
     submitRef.current?.focus();
     if (!guard.start()) return;
-    const authored = {
-      requirement_revision_id: contentId,
-      control_id: preserveTarget ? initial!.link.control_id : controlId,
-      control_part_id: preserveTarget ? initial!.link.control_part_id : partId || null,
-      system_id: preserveTarget ? initial!.link.system_id : systemId,
-      selected_control_id: preserveTarget ? initial!.link.selected_control_id : selectedControl!.id,
-      relationship_type: relationship,
-      rationale: rationale.trim() || null,
-    };
     try {
-      try {
-        await save.mutateAsync({
-          id: mappingId,
-          values: authored,
-          revision: initial?.link.revision,
+      if (initial) {
+        const authored = {
+          requirement_revision_id: contentId,
+          control_id: preserveTarget ? initial.link.control_id : controlId,
+          control_part_id: preserveTarget
+            ? initial.link.control_part_id
+            : coverage === "objectives"
+              ? (chosenObjectives[0] ?? null)
+              : null,
+          system_id: preserveTarget ? initial.link.system_id : systemId,
+          selected_control_id: preserveTarget
+            ? initial.link.selected_control_id
+            : selectedControl!.id,
+          relationship_type: relationship,
+          rationale: rationale.trim() || null,
+        };
+        try {
+          await save.mutateAsync({
+            id: initial.link.id,
+            values: authored,
+            revision: initial.link.revision,
+          });
+        } catch (cause) {
+          if (cause instanceof SaveOnceConflict)
+            throw new Error(
+              cause.reason === "missing"
+                ? "This mapping is no longer available. Your draft is retained."
+                : "This mapping changed in another session. Your draft is retained; reopen the mapping to load its current values.",
+            );
+          throw cause;
+        }
+        saved.current = { objectives: 0 };
+      } else {
+        // One request for the whole control or every chosen objective: all are mapped, or none.
+        const retry = attempted.current;
+        attempted.current = true;
+        await map.mutateAsync({
+          controlId,
+          relationship,
+          rationale: rationale.trim() || null,
+          targets: targets.map((objectiveId) => {
+            const key = `${systemId}/${objectiveId ?? "whole"}`;
+            const id = mappingIds.current.get(key) ?? crypto.randomUUID();
+            mappingIds.current.set(key, id);
+            return {
+              id,
+              requirementRevisionId: contentId,
+              systemId,
+              selectedControlId: selectedControl!.id,
+              controlPartId: objectiveId,
+            };
+          }),
+          retry,
         });
-      } catch (cause) {
-        if (cause instanceof SaveOnceConflict)
-          throw new Error(
-            cause.reason === "missing"
-              ? "This mapping is no longer available. Your draft is retained."
-              : "This mapping changed in another session. Your draft is retained; reopen the mapping to load its current values.",
-          );
-        throw cause;
+        saved.current = { objectives: coverage === "objectives" ? chosenObjectives.length : 0 };
       }
       await requireIdentity(workspace);
-      saved.current = true;
       guard.finish();
       guard.complete();
     } catch (cause) {
@@ -732,7 +798,11 @@ function MappingDialog({
           toast.add({
             type: "success",
             title: initial ? "Control mapping edited" : "Control mapped",
-            description: `${requirementCode} ${relationshipLabel(relationship).toLowerCase()} ${targetName}.`,
+            description: `${requirementCode} ${relationshipLabel(relationship).toLowerCase()} ${
+              saved.current.objectives
+                ? `${formatPlural(saved.current.objectives, OBJECTIVES)} of ${targetName}`
+                : targetName
+            }.`,
           });
         onClose();
       }}
@@ -752,14 +822,14 @@ function MappingDialog({
                   <AlertDescription>{unavailable}</AlertDescription>
                 </Alert>
               ) : null}
-              {parts.error ? (
+              {objectives.error ? (
                 <Alert variant="destructive" role="alert">
                   <AlertCircle aria-hidden />
-                  <AlertTitle>The control's statements could not be loaded</AlertTitle>
-                  <AlertDescription>{parts.error.message}</AlertDescription>
+                  <AlertTitle>The control's objectives could not be loaded</AlertTitle>
+                  <AlertDescription>{objectives.error.message}</AlertDescription>
                   <AlertAction>
-                    <Button size="small" onClick={() => void parts.refetch()}>
-                      Retry loading statements
+                    <Button size="small" onClick={() => void objectives.refetch()}>
+                      Retry loading objectives
                     </Button>
                   </AlertAction>
                 </Alert>
@@ -773,7 +843,7 @@ function MappingDialog({
                   <AlertDescription>{failure}</AlertDescription>
                 </Alert>
               ) : null}
-              {initial && (!chosenControl || (!!partId && !chosenPart)) ? (
+              {initial && (!chosenControl || recordedStatement) ? (
                 <Alert role="note">
                   <AlertDescription>
                     Recorded target: {initial.control?.label ?? "Control unavailable"} —{" "}
@@ -781,8 +851,11 @@ function MappingDialog({
                       ? initial.part
                         ? partName(initial.part, initial.parts ?? [])
                         : "Target unavailable"
-                      : "Whole control"}
-                    . Choose a system and a control from its effective profile to change it.
+                      : mappingCoverages.whole.label}
+                    .{" "}
+                    {!chosenControl
+                      ? "Choose a system and a control from its effective profile to change it."
+                      : "A statement points into the control's text and covers the whole control; choose an objective to map only part of it."}
                   </AlertDescription>
                 </Alert>
               ) : null}
@@ -800,7 +873,7 @@ function MappingDialog({
                       setTargetDirty(true);
                       setSystemId(value ?? "");
                       setControlId("");
-                      setPartId("");
+                      setObjectiveIds(NONE_CHOSEN);
                       changed();
                     }}
                     required
@@ -822,7 +895,7 @@ function MappingDialog({
                     onChange={(value) => {
                       setTargetDirty(true);
                       setControlId(value ?? "");
-                      setPartId("");
+                      setObjectiveIds(NONE_CHOSEN);
                       changed();
                     }}
                     required
@@ -832,46 +905,46 @@ function MappingDialog({
                     error={errors.get("control")}
                     controlRef={feedback.ref("control")}
                   />
-                  <ComboboxField
-                    label="Statement or item"
-                    value={partId || null}
-                    options={statements.map((statement) => ({
-                      value: statement.id,
-                      label: statement.name,
-                      detail: statement.part.prose
-                        ? controlProseText(statement.part.prose, controlId, placeholders)
-                        : statement.part.prose,
-                    }))}
-                    onChange={(value) => {
+                  {/* The objectives wait on a control: the question keeps its Tab stop and says why. */}
+                  <ObjectiveCoverage
+                    coverage={coverage}
+                    onCoverage={(next) => {
                       setTargetDirty(true);
-                      setPartId(value ?? "");
+                      setCoverage(next);
                       changed();
                     }}
-                    readOnly={!chosenControl}
-                    placeholder="Whole control"
-                    noun="statements"
-                    emptyMessage="No matching statement prose for this control."
-                    loading={!!controlId && parts.isPending && parts.fetchStatus !== "idle"}
-                    loadError={parts.error ? parts.error.message : undefined}
-                    onRetry={() => void parts.refetch()}
+                    readOnly={!chosenControl || known?.length === 0}
                     description={
-                      chosenPart ? (
-                        <ControlProse
-                          text={chosenPart.part.prose ?? ""}
-                          controlId={controlId}
-                          placeholders={placeholders}
-                        />
-                      ) : !chosenControl ? (
-                        "Choose a control first. Its statements and items narrow the coverage."
-                      ) : parts.isSuccess && !statements.length ? (
-                        "This control has no recorded statement prose, so the mapping covers the whole control."
-                      ) : (
-                        "Leave it empty to map the whole control, or choose an item to narrow the coverage."
-                      )
+                      !chosenControl
+                        ? "Choose a control first. Its objectives narrow what the mapping covers."
+                        : known?.length === 0
+                          ? "This control has no assessment objectives, so the mapping covers the whole control."
+                          : undefined
                     }
-                    error={errors.get("statement")}
-                    controlRef={feedback.ref("statement")}
                   />
+                  {coverage === "objectives" && chosenControl ? (
+                    <ObjectivesField
+                      multiple={!initial}
+                      controlId={controlId}
+                      objectives={known}
+                      loading={objectives.isPending}
+                      loadError={objectives.error ? objectives.error.message : undefined}
+                      onRetry={() => void objectives.refetch()}
+                      value={chosenObjectives}
+                      onChange={(next) => {
+                        setTargetDirty(true);
+                        setObjectiveIds(next);
+                        changed();
+                      }}
+                      description={
+                        initial
+                          ? "A mapping covers one objective; Map control maps several at once."
+                          : "Each objective you choose is recorded as a mapping of its own."
+                      }
+                      error={errors.get("objectives")}
+                      controlRef={feedback.ref("objectives")}
+                    />
+                  ) : null}
                   <ChoiceField
                     label="Relationship"
                     value={relationship}

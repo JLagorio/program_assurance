@@ -1,4 +1,8 @@
-/** Whole-control mapping creation and optional statement precision in a disposable local workspace. */
+/**
+ * Whole-control mapping creation, objective-level precision (Map control's Objectives: the whole
+ * control or chosen objectives, one mapping each) and a recorded statement in a disposable local
+ * workspace.
+ */
 import assert from "node:assert/strict";
 import { chromium } from "playwright";
 import { localWorkspace } from "./tests/local-workspace.mjs";
@@ -57,7 +61,16 @@ try {
       )
       .order("code"),
   );
-  let control, parts, method, statement;
+  /** The objectives a control counts: its leaf assessment objectives. */
+  const leafObjectives = (candidateParts) =>
+    candidateParts.filter(
+      (row) =>
+        row.name === "assessment-objective" &&
+        !candidateParts.some(
+          (child) => child.parent_part_id === row.id && child.name === "assessment-objective",
+        ),
+    );
+  let control, parts, method, statement, objectives;
   for (const candidate of controls) {
     const candidateParts = await data(
       client.from("control_parts").select().eq("control_id", candidate.id),
@@ -66,18 +79,21 @@ try {
     const candidateStatement = candidateParts.find((row) =>
       isControlStatement(row, candidateParts),
     );
-    if (candidateMethod && candidateStatement) {
+    const candidateObjectives = leafObjectives(candidateParts);
+    if (candidateMethod && candidateStatement && candidateObjectives.length >= 3) {
       control = candidate;
       parts = candidateParts;
       method = candidateMethod;
       statement = candidateStatement;
+      objectives = candidateObjectives;
       break;
     }
   }
   assert.ok(
-    control && parts && method && statement,
-    "A real reference control supplies both statement and assessment method",
+    control && parts && method && statement && objectives,
+    "A real reference control supplies a statement, an assessment method and objectives",
   );
+  const label = (part) => part.props.find((prop) => prop.name === "label")?.value;
   const program = await insert("programs", {
     code: "MAPPING",
     name: "Control mapping walkthrough",
@@ -164,32 +180,36 @@ try {
   await page
     .getByRole("option", { name: `${control.code} · ${control.title}`, exact: true })
     .click();
-  await dialog.getByRole("combobox", { name: "Statement or item", exact: true }).click();
-  const allowed = parts.filter((part) => isControlStatement(part, parts));
+  // What the mapping covers: the whole control, unsaid, or one of the control's objectives.
+  assert.equal(
+    await dialog.getByRole("radio", { name: "Whole control", exact: true }).isChecked(),
+    true,
+  );
+  await dialog.getByRole("radio", { name: "Chosen objectives", exact: true }).click();
+  await dialog.getByRole("combobox", { name: "Objective to map", exact: true }).click();
   const options = page.getByRole("option");
   await options.first().waitFor();
   assert.equal(
     await options.count(),
-    allowed.length,
-    "Only actual statement/item prose is eligible",
+    objectives.length,
+    "Every objective the control counts is offered, and nothing else",
   );
-  // Options read as the catalog numbers them, with the prose under the label; never the source id.
+  // Options read by their SP 800-53A label, with the text under it; never a source id or a method.
   const opening = (part) => (part.prose ?? "").split("{{")[0].trim().slice(0, 50);
-  assert.equal(await options.filter({ hasText: statement.source_id }).count(), 0);
+  assert.equal(await options.filter({ hasText: objectives[0].source_id }).count(), 0);
   if (opening(method)) assert.equal(await options.filter({ hasText: opening(method) }).count(), 0);
-  await options
-    .filter({ hasText: opening(statement) })
-    .first()
-    .click();
+  const objective = objectives.find((part) => label(part)) ?? objectives[0];
+  await page.getByRole("option", { name: label(objective), exact: true }).click();
   await dialog
     .getByLabel("Rationale", { exact: true })
-    .fill("Repaired against the actual statement");
+    .fill("Repaired against the actual objective");
   await dialog.getByRole("button", { name: "Edit control mapping", exact: true }).click();
   await dialog.waitFor({ state: "hidden" });
   const repaired = await data(
     client.from("requirement_control_links").select().eq("id", original.id).single(),
   );
-  assert.equal(repaired.control_part_id, statement.id);
+  assert.equal(repaired.control_part_id, objective.id);
+  await table.getByText(label(objective), { exact: true }).waitFor();
   assert.equal(repaired.revision, original.revision + 2);
   assert.equal(repaired.relationship_type, "derived_from");
   assert.equal(await table.getByText("Needs review", { exact: true }).count(), 0);
@@ -216,6 +236,43 @@ try {
         link.system_id === node.id,
     ),
   );
+  // Chosen objectives: one mapping each, in one write.
+  await page.getByRole("button", { name: "Map control", exact: true }).click();
+  dialog = page.getByRole("dialog", { name: "Map control", exact: true });
+  await dialog.getByRole("combobox", { name: "Control", exact: true }).fill(control.code);
+  await page
+    .getByRole("option", { name: `${control.code} · ${control.title}`, exact: true })
+    .click();
+  await dialog.getByRole("radio", { name: "Chosen objectives", exact: true }).click();
+  await dialog.getByRole("combobox", { name: "Objectives to map", exact: true }).click();
+  const chosen = objectives.filter((part) => label(part)).slice(1, 3);
+  for (const part of chosen)
+    await page.getByRole("option", { name: label(part), exact: true }).click();
+  await page.keyboard.press("Escape");
+  await dialog.getByRole("button", { name: "Map control", exact: true }).click();
+  await dialog.waitFor({ state: "hidden" });
+  links = await data(
+    client.from("requirement_control_links").select().eq("requirement_revision_id", content.id),
+  );
+  assert.equal(links.length, 4);
+  assert.deepEqual(
+    links
+      .filter((link) => chosen.some((part) => part.id === link.control_part_id))
+      .map((link) => [link.system_id, link.relationship_type]),
+    chosen.map(() => [node.id, "maps_to"]),
+  );
+  // A mapping recorded against a statement of the control's text is named by it, not reviewed.
+  await insert("requirement_control_links", {
+    requirement_revision_id: content.id,
+    control_id: control.id,
+    control_part_id: statement.id,
+    relationship_type: "satisfies",
+    rationale: "Recorded against a statement",
+  });
+  await page.reload();
+  await table.waitFor();
+  await table.getByText("Recorded against a statement", { exact: true }).waitFor();
+  assert.equal(await table.getByText("Needs review", { exact: true }).count(), 0);
   await page.getByRole("button", { name: "Map control", exact: true }).click();
   dialog = page.getByRole("dialog", { name: "Map control", exact: true });
   await dialog.getByLabel("Rationale", { exact: true }).fill("Discarded draft");
@@ -229,7 +286,7 @@ try {
   links = await data(
     client.from("requirement_control_links").select().eq("requirement_revision_id", content.id),
   );
-  assert.equal(links.length, 2);
+  assert.equal(links.length, 5);
   otherOwner = await localWorkspace("control-mapping-owner");
   await data(
     client
@@ -261,7 +318,7 @@ try {
   });
   assert.deepEqual(errors, []);
   console.log(
-    "PASS control mappings: inherited profile/control labels, optional authored statements, CAS update, whole-control creation, discard, viewer read-only; disposable workspace cleaned",
+    "PASS control mappings: inherited profile/control labels, objectives (one an edit, several a new mapping), a recorded statement, CAS update, whole-control creation, discard, viewer read-only; disposable workspace cleaned",
   );
 } catch (error) {
   await page.screenshot({

@@ -49,7 +49,10 @@ const line = (
   status: string,
   more: Partial<
     Record<"parent_id" | "family" | "family_title" | "determined_by", string | null> &
-      Record<"requirements" | "evidenced", number> & { product_assessments: unknown[] }
+      Record<
+        "requirements" | "evidenced" | "objectives" | "objectives_mapped" | "objectives_evidenced",
+        number
+      > & { product_assessments: unknown[] }
   > = {},
 ) => ({
   id: code.toLowerCase(),
@@ -61,6 +64,9 @@ const line = (
   status,
   requirements: status === "no_requirement" ? 0 : 1,
   evidenced: status === "no_requirement" || status === "no_evidence" ? 0 : 1,
+  objectives: 4,
+  objectives_mapped: status === "no_requirement" ? 0 : 4,
+  objectives_evidenced: status === "no_requirement" || status === "no_evidence" ? 0 : 4,
   determined_by: DETERMINATIONS.includes(status) ? "program" : null,
   product_assessments: [],
   ...more,
@@ -107,7 +113,12 @@ describe("readProgramControlStatus", () => {
           line("AC-1", "satisfied"),
           line("AC-2", "not_assessed"),
           line("AC-2(1)", "no_evidence", { parent_id: "ac-2" }),
-          line("AU-1", "no_requirement"),
+          // A control whose requirements map some of its objectives stands where none maps it.
+          line("AU-1", "no_requirement", {
+            requirements: 1,
+            objectives: 26,
+            objectives_mapped: 12,
+          }),
           line("AU-2", "satisfied", {
             determined_by: "product",
             requirements: 0,
@@ -146,8 +157,19 @@ describe("readProgramControlStatus", () => {
       status: "no_evidence",
       requirements: 1,
       evidenced: 0,
+      objectives: 4,
+      objectivesMapped: 4,
+      objectivesEvidenced: 0,
       determinedBy: null,
       productAssessments: [],
+    });
+    // How many of its assessment objectives the program's requirements map, as numbers.
+    expect(answer.controls[3]).toMatchObject({
+      status: "no_requirement",
+      requirements: 1,
+      objectives: 26,
+      objectivesMapped: 12,
+      objectivesEvidenced: 0,
     });
     // Whose determination each status is: the program's own assessors', or a product assessment
     // the program's variants inherit the control from, named so a screen can open it.
@@ -206,6 +228,9 @@ describe("controlStatusFamilies", () => {
     status,
     requirements: 0,
     evidenced: 0,
+    objectives: 0,
+    objectivesMapped: 0,
+    objectivesEvidenced: 0,
     determinedBy: null,
     productAssessments: [],
   });

@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from "react";
 import { Link, getRouteApi, useRouterState } from "@tanstack/react-router";
 import {
+  Absent,
   Card,
   CardContent,
   CardHeader,
@@ -26,6 +27,7 @@ import {
   type ControlStatusFamily,
   type ProgramControlStatus,
 } from "@/lib/control-status";
+import { objectiveWords, objectivesOf } from "@/lib/product-records";
 import { registerViews } from "@/lib/register-views";
 import { controlDeterminers, controlStatuses } from "@/lib/status";
 import { useCollectionTable } from "./collection-question";
@@ -52,7 +54,15 @@ const familyName = (code: string | null, title: string | null) =>
 /** A row of the List: a control with its name and its family as the columns read them. */
 type ControlRow = ControlStanding & { name: string; family: string };
 
-const listColumns = (programId: string) =>
+/** A count of a control's objectives out of all of them, "12 of 26"; a control with none has none. */
+const objectiveCount = (count: number, row: ControlRow, format: (value: number) => string) =>
+  row.objectives > 0 ? (
+    objectivesOf(format(count), format(row.objectives))
+  ) : (
+    <Absent label="No assessment objectives" />
+  );
+
+const listColumns = (programId: string, format: (value: number) => string) =>
   defineColumns<ControlRow>((c) => [
     c.text("name", {
       header: "Control",
@@ -86,16 +96,31 @@ const listColumns = (programId: string) =>
         />
       ),
     }),
-    c.text("family", { header: "Control family", width: 260, priority: 5 }),
-    c.number("requirements", { header: "Requirements", width: 130, priority: 3 }),
-    c.number("evidenced", { header: "With evidence", width: 130, priority: 4 }),
+    c.text("family", { header: "Control family", width: 260, priority: 7 }),
+    // How much of the control its requirements cover, objective by objective: a control mapped in
+    // part stands at No requirement, and one evidenced in part at No evidence.
+    c.number("objectivesMapped", {
+      header: objectiveWords.mapped,
+      width: 170,
+      priority: 3,
+      cell: (row) => objectiveCount(row.objectivesMapped, row, format),
+    }),
+    c.number("objectivesEvidenced", {
+      header: objectiveWords.evidenced,
+      width: 200,
+      priority: 4,
+      cell: (row) => objectiveCount(row.objectivesEvidenced, row, format),
+    }),
+    c.number("requirements", { header: "Requirements", width: 130, priority: 5 }),
+    c.number("evidenced", { header: "With evidence", width: 130, priority: 6 }),
   ]);
 
 /**
  * The baseline's controls as a register: each with where the program stands on it and whose
- * determination that is, the family it belongs to, the requirements that map it and how many of
- * them cite evidence. Its question lives in the address, so a count that links here opens what it
- * counts.
+ * determination that is, the family it belongs to, how many of its assessment objectives the
+ * program's requirements map and how many with evidence ("12 of 26"), and the requirements that
+ * map it and how many of them cite evidence. Its question lives in the address, so a count that
+ * links here opens what it counts.
  */
 function ControlStatusList({
   programId,
@@ -113,7 +138,8 @@ function ControlStatusList({
       })),
     [status.controls],
   );
-  const columns = useMemo(() => listColumns(programId), [programId]);
+  const { formatNumber } = useLedgerLocale();
+  const columns = useMemo(() => listColumns(programId, formatNumber), [programId, formatNumber]);
   const table = useCollectionTable({
     columns,
     data: rows,

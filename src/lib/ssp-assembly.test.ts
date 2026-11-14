@@ -181,6 +181,32 @@ describe("SSP assembly", () => {
     expect(assembleSsp(input)[0]?.requirements).toHaveLength(0);
   });
 
+  it("takes a mapping of one of the control's assessment objectives as a mapping of the control", () => {
+    const input = fixture();
+    input.parts.push(
+      record<"control_parts">({
+        id: "objective",
+        control_id: "control",
+        name: "assessment-objective",
+        prose: "Account types are defined",
+        parent_part_id: null,
+      }),
+    );
+    input.controlMappings.push(
+      record<"requirement_control_links">({
+        id: "mapping",
+        requirement_revision_id: "content",
+        control_id: "control",
+        control_part_id: "objective",
+        system_id: null,
+        selected_control_id: null,
+      }),
+    );
+    const descriptions = assembleSsp(input)[0]?.requirements[0]?.descriptions;
+    expect(descriptions).toContain("Mapped to control; no implementation claim implied");
+    expect(descriptions).not.toContain("Control reference needs review");
+  });
+
   it("deduplicates an exact evidence version while preserving direct and requirement claims", () => {
     const input = fixture();
     input.requirementLinks.push(

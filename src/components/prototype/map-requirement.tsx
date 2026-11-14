@@ -7,6 +7,7 @@ import {
   DataTable,
   Grid,
   PickerSheet,
+  Stack,
   defineColumns,
   toast,
   useLedgerLocale,
@@ -15,11 +16,17 @@ import { ChoiceField, TextField } from "@/components/app/fields";
 import { useFormFeedback, type FormIssue } from "@/components/app/form-feedback";
 import { causeText } from "@/components/app/sentence";
 import { useDraftGuard } from "@/components/app/use-draft-guard";
+import { unmappedObjectives, useProgramControlObjectives } from "@/lib/control-objectives";
 import { idSet, useRows } from "@/lib/models";
+import { mapsChosenObjectives, mapsObjectives } from "@/lib/product-records";
 import { labelFor } from "@/lib/records";
 import {
+  WHOLE_CONTROL_CHOICE,
+  coverageOf,
+  coveredObjectives,
   requirementMappingStanding,
-  type MappingCarrier,
+  type MappingTarget,
+  type ObjectiveNode,
   type RequirementMappingStanding,
 } from "@/lib/requirement-control-mappings";
 import {
@@ -36,6 +43,7 @@ import {
   type ServerRow,
 } from "@/lib/server-table";
 import { useServerCollection } from "./collection-question";
+import { ObjectiveCoverage, ObjectivesField, type MappingCoverage } from "./objective-choice";
 import { ProductRecordDialog } from "./product-record-dialog";
 import { focusWhereStepWas } from "./step-focus";
 import { QueryState } from "./work-common";
@@ -133,22 +141,36 @@ const relationshipOptions = mappingRelationships.map((value) => ({
   label: labelFor(value),
 }));
 
-type MappingField = "relationship" | "rationale";
+type MappingField = "relationship" | "objectives" | "rationale";
 const NO_CARRIERS: ReadonlyMap<string, string> = new Map();
-const NO_SYSTEMS: ReadonlySet<string> = new Set();
+const NO_OBJECTIVES: readonly ObjectiveNode[] = [];
+const NONE_CHOSEN: readonly string[] = [];
+
+/** What a requirement's latest revision maps of the control: every mapping, and those on each system. */
+type HeldMappings = { parts: (string | null)[]; bySystem: Map<string, (string | null)[]> };
 
 /**
- * What a requirement's row says of its standing: why it cannot be chosen, or, where some of its
- * systems carry a mapping of the control already, how many, since choosing it maps the rest.
+ * What a requirement's row says of its standing: why it cannot be chosen; where its mappings cover
+ * some of the control's objectives already, how many, since choosing it maps the rest; or where
+ * some of its systems carry all of what is chosen already, how many, since choosing it maps the
+ * others.
  */
-function standingNote(standing: RequirementMappingStanding, code: string) {
+function standingNote(
+  standing: RequirementMappingStanding,
+  code: string,
+  objectives: { mapped: number; total: number },
+  chosenObjectives: boolean,
+  format: (value: number) => string,
+) {
   switch (standing.kind) {
     case "targets":
+      if (objectives.mapped > 0 && objectives.mapped < objectives.total)
+        return mapsObjectives(format(objectives.mapped), format(objectives.total));
       return standing.mapped > 0
         ? `Mapped on ${standing.mapped} of ${standing.eligible} systems`
         : undefined;
     case "mapped":
-      return `Maps ${code}`;
+      return chosenObjectives ? mapsChosenObjectives : `Maps ${code}`;
     case "no_details":
       return "Details not recorded";
     case "unallocated":
@@ -159,19 +181,23 @@ function standingNote(standing: RequirementMappingStanding, code: string) {
 }
 
 /**
- * Map a requirement: choose the program's requirements that meet the control, one relationship
- * and one rationale for all of them, and map them in one request, so all are mapped or none and
- * mapping again after a failure adds only what is missing. Each mapping is the one the
- * requirement's own Map control records: the whole control, on each system the requirement
- * is allocated to whose control baseline selects the control, so each of their SSPs lists it under
- * the control. A requirement mapped on some of those systems already is mapped on the rest, and its
- * row says on how many it is (Mapped on 1 of 2 systems). One that cannot take a mapping (it maps
- * the control on all of them, has no details, is allocated to no system, or to none that selects
- * the control) is marked with why and cannot be chosen.
+ * Map a requirement: choose the program's requirements that meet the control, what they meet of it
+ * (the whole control, or chosen assessment objectives), one relationship and one rationale for all
+ * of them, and map them in one request, so all are mapped or none and mapping again after a failure
+ * adds only what is missing. Each mapping is one the requirement's own Map control records: the
+ * whole control or one chosen objective, on each system the requirement is allocated to whose
+ * control baseline selects the control, so each of their SSPs lists it under the control. A
+ * requirement whose mappings cover some of the control's objectives already says how many (Maps 12
+ * of 26 objectives), and one mapped on some of those systems already says on how many (Mapped on 1
+ * of 2 systems); choosing it maps only what is missing. One that cannot take a mapping (its
+ * mappings cover what is chosen on all of them, it has no details, is allocated to no system, or to
+ * none that selects the control) is marked with why and cannot be chosen. Opened for the rest of a
+ * control mapped in part (`rest`), it starts on the objectives no requirement maps yet.
  */
 function MapRequirementPicker({
   programId,
   control,
+  rest = false,
   onClose,
   onDone,
   onCreate,
@@ -179,6 +205,8 @@ function MapRequirementPicker({
 }: {
   programId: string;
   control: StepControl;
+  /** Start on the control's objectives no requirement of the program maps yet. */
+  rest?: boolean | undefined;
   onClose: () => void;
   /** The requirements were mapped: focus follows the step to what replaced it. */
   onDone: () => void;
@@ -192,6 +220,22 @@ function MapRequirementPicker({
   const [relationship, setRelationship] = useState<MappingRelationship>("maps_to");
   const [rationale, setRationale] = useState("");
   const [error, setError] = useState<string>();
+  // What the requirements meet of the control: the whole control, or chosen objectives, which a
+  // step for the rest starts on the objectives no requirement maps yet until the reader chooses.
+  const objectives = useProgramControlObjectives(programId, control.id);
+  const nodes = objectives.data?.objectives;
+  const initialCoverage: MappingCoverage = rest ? "objectives" : "whole";
+  const [coverage, setCoverage] = useState<MappingCoverage>(initialCoverage);
+  const [picked, setPicked] = useState<string[] | null>(null);
+  const unmapped = useMemo(
+    () => (objectives.data ? unmappedObjectives(objectives.data.objectives) : []).map((o) => o.id),
+    [objectives.data],
+  );
+  const chosenObjectives = picked ?? (rest ? unmapped : NONE_CHOSEN);
+  const choice = useMemo(
+    () => (coverage === "whole" ? WHOLE_CONTROL_CHOICE : chosenObjectives),
+    [coverage, chosenObjectives],
+  );
   // The systems a mapping can name: each of the program's systems whose control baseline selects
   // the control, by the selection it records.
   const systems = useRows("systems", { program_id: programId }, { columns: ["id"] });
@@ -227,30 +271,63 @@ function MapRequirementPicker({
   const existing = useRows(
     "requirement_control_links",
     { control_id: control.id, ...programRequirementScope(programId, "requirement_control_links") },
-    { columns: ["id", "requirement_revision_id", "system_id"] },
+    { columns: ["id", "requirement_revision_id", "system_id", "control_part_id"] },
   );
+  // What each revision maps of the control: what it names, and on which system.
   const mapped = useMemo(() => {
     if (!existing.data) return undefined;
-    const bySystem = new Map<string, Set<string>>();
+    const byRevision = new Map<string, HeldMappings>();
     for (const link of existing.data) {
-      if (!link.system_id) continue;
-      const systems = bySystem.get(link.requirement_revision_id) ?? new Set<string>();
-      systems.add(link.system_id);
-      bySystem.set(link.requirement_revision_id, systems);
+      const held = byRevision.get(link.requirement_revision_id) ?? {
+        parts: [],
+        bySystem: new Map<string, (string | null)[]>(),
+      };
+      held.parts.push(link.control_part_id);
+      if (link.system_id)
+        held.bySystem.set(link.system_id, [
+          ...(held.bySystem.get(link.system_id) ?? []),
+          link.control_part_id,
+        ]);
+      byRevision.set(link.requirement_revision_id, held);
     }
-    return bySystem;
+    return byRevision;
   }, [existing.data]);
-  // Whether a row's standing can be read yet: until both reads answer, no row can be chosen.
-  const standingKnown = !!carriers && !!mapped;
+  // Whether a row's standing can be read yet: until the reads answer, no row can be chosen.
+  const standingKnown = !!carriers && !!mapped && !!nodes;
   const standing = useMemo(
     () =>
-      (candidate: Candidate): RequirementMappingStanding =>
-        requirementMappingStanding(
+      (candidate: Candidate): RequirementMappingStanding => {
+        const held = mapped?.get(candidate.revisionId ?? "");
+        const objectiveNodes = nodes ?? NO_OBJECTIVES;
+        const mappedOn = new Map(
+          [...(held?.bySystem ?? [])].map(([systemId, parts]) => [
+            systemId,
+            coverageOf(objectiveNodes, parts),
+          ]),
+        );
+        return requirementMappingStanding(
           candidate,
           carriers ?? NO_CARRIERS,
-          mapped?.get(candidate.revisionId ?? "") ?? NO_SYSTEMS,
-        ),
-    [carriers, mapped],
+          mappedOn,
+          choice,
+          objectiveNodes,
+        );
+      },
+    [carriers, mapped, nodes, choice],
+  );
+  // How many of the control's objectives a requirement's mappings cover, on any system.
+  const objectivesOf = useMemo(
+    () => (candidate: Candidate) => {
+      const objectiveNodes = nodes ?? NO_OBJECTIVES;
+      const parts = mapped?.get(candidate.revisionId ?? "")?.parts ?? [];
+      return {
+        mapped: parts.length
+          ? coveredObjectives(coverageOf(objectiveNodes, parts), objectiveNodes)
+          : 0,
+        total: objectiveNodes.length,
+      };
+    },
+    [mapped, nodes],
   );
   const columns = useMemo(
     () =>
@@ -261,10 +338,18 @@ function MapRequirementPicker({
           priority: 0,
           minWidth: 200,
           hideable: false,
-          // Why the row cannot be chosen, or on how many of its systems it is mapped already,
-          // once the systems that can take a mapping and the mappings there are known.
+          // Why the row cannot be chosen, or how much of the control it maps already, once the
+          // systems that can take a mapping, the mappings there and the objectives are known.
           badge: (row) => {
-            const note = standingKnown ? standingNote(standing(row), control.code) : undefined;
+            const note = standingKnown
+              ? standingNote(
+                  standing(row),
+                  control.code,
+                  objectivesOf(row),
+                  coverage === "objectives" && chosenObjectives.length > 0,
+                  formatNumber,
+                )
+              : undefined;
             return note ? (
               <Badge size="xsmall" variant="secondary" tone="neutral">
                 {note}
@@ -287,7 +372,7 @@ function MapRequirementPicker({
         // Never drawn: it holds the Allocation filter.
         c.text("allocation", { header: "Allocation", width: 140 }),
       ]),
-    [standing, standingKnown, control.code],
+    [standing, standingKnown, control.code, objectivesOf, coverage, chosenObjectives, formatNumber],
   );
   const read = useMemo(() => candidateRead(programId), [programId]);
   // The picker's question ends with the task: it stays out of the address.
@@ -344,27 +429,54 @@ function MapRequirementPicker({
     }
   }
   const guard = useDraftGuard({
-    dirty: chosen.length > 0 || !!rationale.trim() || relationship !== "maps_to",
+    dirty:
+      chosen.length > 0 ||
+      !!rationale.trim() ||
+      relationship !== "maps_to" ||
+      coverage !== initialCoverage ||
+      picked !== null,
     onClose,
-    description: "The requirements you chose, the relationship and the rationale will be lost.",
+    description:
+      "The requirements and objectives you chose, the relationship and the rationale will be lost.",
   });
-  const issues: FormIssue<MappingField>[] =
-    rationale.length > RATIONALE_LIMIT
-      ? [{ field: "rationale", message: "Shorten the rationale to 10,000 characters or fewer." }]
-      : [];
+  const issues: FormIssue<MappingField>[] = [
+    ...(coverage === "objectives" && chosenObjectives.length === 0
+      ? [
+          {
+            field: "objectives" as const,
+            message: `Choose the objectives of ${control.code} the requirements meet, or map the whole control.`,
+          },
+        ]
+      : []),
+    ...(rationale.length > RATIONALE_LIMIT
+      ? [
+          {
+            field: "rationale" as const,
+            message: "Shorten the rationale to 10,000 characters or fewer.",
+          },
+        ]
+      : []),
+  ];
   const errors = new Map(
     feedback.submitted ? issues.map((issue) => [issue.field, issue.message] as const) : [],
   );
-  // Each mapping's id is chosen once per requirement and system, so a retry after a lost answer
-  // adds only the rest. What an attempt sent for a requirement is sent again with it: a write that
-  // landed before its answer was lost has made those systems mapped since, and the retry finds them.
+  // Each mapping's id is chosen once per requirement, system and objective, so a retry after a lost
+  // answer adds only the rest. What an attempt sent for a requirement is sent again with it while
+  // the choice holds: a write that landed before its answer was lost has made those mappings
+  // recorded since, and the retry finds them. Another choice is another request.
   const mappingIds = useRef(new Map<string, string>());
-  const sent = useRef(new Map<string, readonly MappingCarrier[]>());
+  const sent = useRef(new Map<string, readonly MappingTarget[]>());
+  const sentChoice = useRef<string | null>(null);
   const attempted = useRef(false);
   async function mapChosen() {
     if (guard.busy) return;
     setError(undefined);
     if (!feedback.report(issues)) return;
+    const choiceKey = JSON.stringify(choice);
+    if (sentChoice.current !== choiceKey) {
+      sent.current.clear();
+      sentChoice.current = choiceKey;
+    }
     const requirementIds = new Set<string>();
     const targets = chosen.flatMap((id) => {
       const candidate = known.current.get(id);
@@ -375,15 +487,23 @@ function MapRequirementPicker({
         ...(sent.current.get(id) ?? []),
         ...(now.kind === "targets" ? now.targets : []),
       ];
-      const bySystem = new Map(carried.map((carrier) => [carrier.systemId, carrier]));
-      if (bySystem.size === 0) return [];
-      sent.current.set(id, [...bySystem.values()]);
+      const byKey = new Map(
+        carried.map((target) => [`${target.systemId}/${target.objectiveId ?? "whole"}`, target]),
+      );
+      if (byKey.size === 0) return [];
+      sent.current.set(id, [...byKey.values()]);
       requirementIds.add(id);
-      return [...bySystem.values()].map((carrier) => {
-        const key = `${id}/${carrier.systemId}`;
+      return [...byKey].map(([where, target]) => {
+        const key = `${id}/${where}`;
         const mappingId = mappingIds.current.get(key) ?? crypto.randomUUID();
         mappingIds.current.set(key, mappingId);
-        return { id: mappingId, requirementRevisionId: revisionId, ...carrier };
+        return {
+          id: mappingId,
+          requirementRevisionId: revisionId,
+          systemId: target.systemId,
+          selectedControlId: target.selectedControlId,
+          controlPartId: target.objectiveId,
+        };
       });
     });
     if (targets.length === 0 || !guard.start()) return;
@@ -408,14 +528,15 @@ function MapRequirementPicker({
     } catch (cause) {
       // One write: a refusal mapped none of them, and a retry after a lost answer adds only the rest.
       setError(
-        `${causeText(cause, "The requirements could not be mapped.")} Your choice, relationship and rationale are kept; mapping again will not duplicate them.`,
+        `${causeText(cause, "The requirements could not be mapped.")} The requirements and objectives you chose, the relationship and the rationale are kept; mapping again will not duplicate them.`,
       );
       guard.finish();
     }
   }
   const [query] = collection.queries;
-  // What decides which rows can be chosen: the systems a mapping can name, and the mappings there.
-  const eligibility = [systems, baselines, selections, existing];
+  // What decides which rows can be chosen: the systems a mapping can name, the mappings there and
+  // the control's objectives they cover.
+  const eligibility = [systems, baselines, selections, existing, objectives];
   const state =
     (query?.isError && query.data === undefined) ||
     eligibility.some((each) => each.isError && each.data === undefined)
@@ -448,20 +569,46 @@ function MapRequirementPicker({
       search={{ placeholder: "Find requirements" }}
       filters={<DataTable.Filter table={table} column="allocation" options={allocationOptions} />}
       toolbar={
-        <Grid gap="space.150" templateColumns={CHOICES_SIDE_BY_SIDE}>
-          <ChoiceField
-            label="Relationship"
-            value={relationship}
-            options={relationshipOptions}
-            onChange={(value) => {
-              const offered = mappingRelationships.find((item) => item === value);
-              if (offered) setRelationship(offered);
-            }}
-            required
-            description="It applies to every requirement you choose."
-            error={errors.get("relationship")}
-            controlRef={feedback.ref("relationship")}
-          />
+        <Stack space="space.150">
+          <Grid gap="space.150" templateColumns={CHOICES_SIDE_BY_SIDE}>
+            <ChoiceField
+              label="Relationship"
+              value={relationship}
+              options={relationshipOptions}
+              onChange={(value) => {
+                const offered = mappingRelationships.find((item) => item === value);
+                if (offered) setRelationship(offered);
+              }}
+              required
+              description="It applies to every requirement you choose."
+              error={errors.get("relationship")}
+              controlRef={feedback.ref("relationship")}
+            />
+            {/* What every chosen requirement meets: a control with no objective has none to choose. */}
+            <ObjectiveCoverage
+              coverage={coverage}
+              onCoverage={setCoverage}
+              readOnly={nodes?.length === 0}
+              description={
+                nodes?.length === 0
+                  ? `${control.code} has no assessment objectives: a mapping covers the whole control.`
+                  : undefined
+              }
+            />
+          </Grid>
+          {coverage === "objectives" && (
+            <ObjectivesField
+              multiple
+              controlId={control.id}
+              objectives={nodes}
+              loading={objectives.isPending}
+              value={chosenObjectives}
+              onChange={setPicked}
+              description="Each requirement records one mapping an objective, beside what it maps already."
+              error={errors.get("objectives")}
+              controlRef={feedback.ref("objectives")}
+            />
+          )}
           <TextField
             label="Rationale for every mapping"
             description={`Why these requirements meet ${control.code}. It is recorded on each mapping.`}
@@ -473,7 +620,7 @@ function MapRequirementPicker({
             error={errors.get("rationale")}
             controlRef={feedback.ref("rationale")}
           />
-        </Grid>
+        </Stack>
       }
       finalFocus={finalFocus}
       pending={guard.busy}
@@ -547,7 +694,11 @@ export function MapRequirementSurface({
   opener,
   slot,
   onClose,
-}: StepSurfaceProps) {
+  rest = false,
+}: StepSurfaceProps & {
+  /** Opened for the rest of a control mapped in part: the picker starts on what is left. */
+  rest?: boolean | undefined;
+}) {
   const navigate = useNavigate();
   const [creating, setCreating] = useState(false);
   const backToStep = () => (opener?.isConnected ? opener : true);
@@ -568,6 +719,7 @@ export function MapRequirementSurface({
     <MapRequirementPicker
       programId={programId}
       control={control}
+      rest={rest}
       finalFocus={backToStep}
       onClose={onClose}
       onDone={() => focusWhereStepWas(opener, slot)}

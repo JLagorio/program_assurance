@@ -651,6 +651,8 @@ export const EndItemsFold: Story = {
     await userEvent.click(within(menu).getByRole("menuitem", { name: "Help" }));
     await expect(canvas.getByText("Opened Help.")).toBeVisible();
     await waitFor(() => expect(more).toHaveFocus());
+    // A closing menu stays in the page while it fades: the next one is found once it has gone.
+    await waitFor(() => expect(body.queryByRole("menu")).toBeNull());
 
     // The persistent item is a working trigger at the narrow width.
     await userEvent.click(notifications);

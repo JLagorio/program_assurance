@@ -257,9 +257,11 @@ export const UseIsTruncatedHook: Story = {
 /** Right to left: the ellipsis sits at the logical end. */
 export const RightToLeft: Story = {
   render: () => (
+    // Arabic is drawn in the system's fallback face, whose width varies by platform: a phrase
+    // a third longer than the frame in the narrowest of them is still cut in every other.
     <div dir="rtl" lang="ar">
       <Truncate data-testid="rtl">
-        إدارة الحسابات المؤقتة والطارئة الآلية للمستخدمين ذوي الامتيازات
+        إدارة الحسابات المؤقتة والطارئة الآلية للمستخدمين ذوي الامتيازات في جميع أنظمة البرنامج
       </Truncate>
     </div>
   ),

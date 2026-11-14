@@ -345,7 +345,9 @@ export const overlayDecisionActions = vocabulary([
 /**
  * Where a program stands on a control of its control baseline: the furthest step it has reached,
  * as `program_control_status` answers it. The first three say what the program records against
- * the control; the last three are an assessor's determination, in RMF's words.
+ * the control; the last three are an assessor's determination, in RMF's words. A control with
+ * assessment objectives stays No requirement until the program's requirements map every one of
+ * them, and No evidence until each is mapped by one that cites evidence.
  */
 export const controlStatuses = vocabulary([
   ["no_requirement", "No requirement", "neutral"],
@@ -363,6 +365,14 @@ export const controlStatuses = vocabulary([
 export const controlDeterminers = vocabulary([
   ["program", "Program assessment", "neutral"],
   ["product", "Product assessment", "neutral"],
+]);
+/**
+ * What a control mapping covers, as both Map dialogs ask it: the whole control (every assessment
+ * objective, the default), or the objectives the reader chooses, one mapping an objective.
+ */
+export const mappingCoverages = vocabulary([
+  ["whole", "Whole control", "neutral"],
+  ["objectives", "Chosen objectives", "neutral"],
 ]);
 /**
  * What a product version gives for a control, for its core or one configuration, as

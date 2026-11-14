@@ -392,6 +392,7 @@ describe("mapping many requirements to one control", () => {
     requirementRevisionId: id(6000 + index),
     systemId: id(31),
     selectedControlId: id(41),
+    controlPartId: null as string | null,
   }));
   const request = {
     controlId: id(40),
@@ -455,6 +456,7 @@ describe("mapping many requirements to one control", () => {
       { relationship_type: "satisfies" },
       { rationale: "Another reason" },
       { system_id: id(99) },
+      // A mapping of the whole control found where an objective's was sent, and the reverse.
       { control_part_id: id(98) },
     ]) {
       const { client } = fakeClient([{ data: [recorded(targets[0]!, changes)], error: null }]);
@@ -476,12 +478,14 @@ describe("mapping many requirements to one control", () => {
         requirementRevisionId: id(7000),
         systemId: id(31),
         selectedControlId: id(41),
+        controlPartId: null,
       },
       {
         id: id(3001),
         requirementRevisionId: id(7000),
         systemId: id(32),
         selectedControlId: id(42),
+        controlPartId: null,
       },
     ];
     const first = fakeClient([{ data: null, error: null }]);
@@ -513,13 +517,89 @@ describe("mapping many requirements to one control", () => {
     expect(inserted.map((row) => [row.id, row.system_id])).toEqual([[id(3001), id(32)]]);
   });
 
-  it("says another session mapped one of them when the insert meets a duplicate", async () => {
+  it("maps one row an objective, each naming it, and a retry adds only the objectives left", async () => {
+    // One requirement on two systems, meeting two of the control's objectives: four mappings.
+    const objectives = [id(8001), id(8002)];
+    const each = [id(31), id(32)].flatMap((systemId, system) =>
+      objectives.map((controlPartId, objective) => ({
+        id: id(3100 + system * 10 + objective),
+        requirementRevisionId: id(7100),
+        systemId,
+        selectedControlId: system === 0 ? id(41) : id(42),
+        controlPartId,
+      })),
+    );
+    const first = fakeClient([{ data: null, error: null }]);
+    await expect(
+      mapRequirementsToControl(first.client, context, { ...request, targets: each }),
+    ).resolves.toEqual({ mappingIds: each.map((target) => target.id), created: 4 });
+    const rows = first.calls[0]!.steps.find(([name]) => name === "insert")?.[1][0] as {
+      system_id: string;
+      control_part_id: string | null;
+      control_id: string;
+    }[];
+    expect(rows.map((row) => [row.system_id, row.control_part_id, row.control_id])).toEqual([
+      [id(31), id(8001), id(40)],
+      [id(31), id(8002), id(40)],
+      [id(32), id(8001), id(40)],
+      [id(32), id(8002), id(40)],
+    ]);
+    // Three of them landed before the answer was lost: the retry inserts the fourth alone.
+    const landed = each.slice(0, 3).map((target) => ({
+      ...recorded(target as (typeof targets)[number]),
+      requirement_revision_id: target.requirementRevisionId,
+      system_id: target.systemId,
+      selected_control_id: target.selectedControlId,
+      control_part_id: target.controlPartId,
+    }));
+    const retry = fakeClient([
+      { data: landed, error: null },
+      { data: null, error: null },
+    ]);
+    await expect(
+      mapRequirementsToControl(retry.client, context, { ...request, targets: each, retry: true }),
+    ).resolves.toMatchObject({ created: 1 });
+    const inserted = retry.calls.at(-1)!.steps.find(([name]) => name === "insert")?.[1][0] as {
+      id: string;
+      control_part_id: string;
+    }[];
+    expect(inserted.map((row) => [row.id, row.control_part_id])).toEqual([[id(3111), id(8002)]]);
+    // A row found with the whole control where an objective was sent says something else.
+    const whole = fakeClient([{ data: [{ ...landed[0], control_part_id: null }], error: null }]);
+    await expect(
+      mapRequirementsToControl(whole.client, context, {
+        ...request,
+        targets: each.slice(0, 1),
+        retry: true,
+      }),
+    ).rejects.toThrow("A control mapping changed after this attempt");
+  });
+
+  it("says another session recorded one of them when the insert meets a duplicate", async () => {
     const { client } = fakeClient([
       { data: null, error: { code: "23505", message: "duplicate key value" } },
     ]);
     await expect(mapRequirementsToControl(client, context, request)).rejects.toThrow(
-      "mapped to this control in another session",
+      "One of these mappings was recorded in another session",
     );
+  });
+
+  it("passes on the schema's words when an objective is not the control's", async () => {
+    const { client } = fakeClient([
+      {
+        data: null,
+        error: {
+          code: "23514",
+          message: "The statement or objective must belong to the mapped control",
+        },
+      },
+    ]);
+    await expect(
+      mapRequirementsToControl(client, context, {
+        ...request,
+        targets: [{ ...targets[0]!, controlPartId: id(8009) }],
+      }),
+    ).rejects.toThrow("The statement or objective must belong to the mapped control.");
   });
 
   it("passes on the schema's words when a requirement cannot map the control", async () => {

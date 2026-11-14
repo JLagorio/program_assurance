@@ -41,6 +41,16 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
+/**
+ * No menu left in the page. A menu that closes keeps its items while it fades out, so an item
+ * found by name before it has gone can be the closing menu's: gone, and its press lost, by the
+ * time the next menu has opened. A play that opens another menu waits for this first.
+ */
+const menusGone = (doc: Document) =>
+  waitFor(() =>
+    expect(doc.querySelector('[data-slot="dropdown-menu-content"]')).not.toBeInTheDocument(),
+  );
+
 /** A controlled sheet with typed cells: the host applies a batch and returns new rows. */
 export const Playground: Story = {
   render: (args) => {
@@ -228,40 +238,40 @@ export const ColumnControls: Story = {
     await expect(firstItem()).toHaveTextContent("Beta review");
 
     const columnMenu = canvas.getByRole("button", { name: "Column options for Item" });
+    const columns = () => userEvent.click(within(toolbar).getByRole("button", { name: "Columns" }));
+    // Each choice closes its menu, and the next menu opens once it has gone (menusGone).
+    const choose = async (open: () => Promise<void>, item: string) => {
+      await open();
+      await userEvent.click(await page.findByRole("menuitem", { name: item }));
+      await menusGone(canvasElement.ownerDocument);
+    };
     const width = () => columnMenu.closest('[role="columnheader"]')!.getBoundingClientRect().width;
     const initialWidth = width();
-    await userEvent.click(columnMenu);
-    await userEvent.click(await page.findByRole("menuitem", { name: "Narrow column" }));
+    await choose(() => userEvent.click(columnMenu), "Narrow column");
     await waitFor(() => expect(width()).toBeLessThan(initialWidth));
     await expect(args.onColumnWidthsChange).toHaveBeenCalled();
-    await userEvent.click(columnMenu);
-    await userEvent.click(await page.findByRole("menuitem", { name: "Widen column" }));
+    await choose(() => userEvent.click(columnMenu), "Widen column");
     await waitFor(() => expect(width()).toBe(initialWidth));
-    await userEvent.click(columnMenu);
-    await userEvent.click(await page.findByRole("menuitem", { name: "Autofit column" }));
+    await choose(() => userEvent.click(columnMenu), "Autofit column");
     await waitFor(() => expect(width()).toBeGreaterThan(initialWidth));
-    await userEvent.click(columnMenu);
-    await userEvent.click(await page.findByRole("menuitem", { name: "Reset column width" }));
+    await choose(() => userEvent.click(columnMenu), "Reset column width");
     await waitFor(() => expect(width()).toBe(initialWidth));
 
-    await userEvent.click(within(toolbar).getByRole("button", { name: "Columns" }));
-    await userEvent.click(await page.findByRole("menuitem", { name: "Unfreeze first column" }));
+    await choose(columns, "Unfreeze first column");
     await expect(args.onFreezeFirstColumnChange).toHaveBeenLastCalledWith(false);
-    await userEvent.click(columnMenu);
-    await userEvent.click(await page.findByRole("menuitem", { name: "Freeze first column" }));
+    await choose(() => userEvent.click(columnMenu), "Freeze first column");
     await expect(args.onFreezeFirstColumnChange).toHaveBeenLastCalledWith(true);
-    await userEvent.click(within(toolbar).getByRole("button", { name: "Columns" }));
-    await userEvent.click(await page.findByRole("menuitem", { name: "Autofit all columns" }));
+    await choose(columns, "Autofit all columns");
     await waitFor(() => expect(width()).toBeGreaterThan(initialWidth));
-    await userEvent.click(within(toolbar).getByRole("button", { name: "Columns" }));
-    await userEvent.click(await page.findByRole("menuitem", { name: "Reset column widths" }));
+    await choose(columns, "Reset column widths");
     await waitFor(() => expect(width()).toBe(initialWidth));
 
     await userEvent.click(canvas.getByRole("gridcell", { name: "B1, Hours: 8" }));
     await userEvent.keyboard("{Alt>}{ArrowDown}{/Alt}");
     await page.findByRole("menuitem", { name: "Sort by Hours" });
     await userEvent.keyboard("{Escape}");
-    await expect(canvas.getByRole("grid")).toHaveFocus();
+    await waitFor(() => expect(canvas.getByRole("grid")).toHaveFocus());
+    await menusGone(canvasElement.ownerDocument);
     await userEvent.keyboard("{Alt>}{ArrowDown}{/Alt}");
     await userEvent.click(await page.findByRole("menuitem", { name: "Sort by Hours" }));
     await expect(firstItem()).toHaveTextContent("Alpha inspection");
@@ -297,8 +307,10 @@ export const PhoneColumnControls: Story = {
     await userEvent.click(last);
     await userEvent.click(canvas.getByRole("button", { name: "Column options for Item" }));
     await userEvent.click(await page.findByRole("menuitem", { name: "Autofit column" }));
+    await menusGone(canvasElement.ownerDocument);
     await userEvent.click(canvas.getByRole("button", { name: "Column options for Item" }));
     await userEvent.click(await page.findByRole("menuitem", { name: "Reset column width" }));
+    await menusGone(canvasElement.ownerDocument);
     const address = canvas.getByRole("textbox", { name: "Go to cell" });
     await userEvent.clear(address);
     await userEvent.type(address, "B1{Enter}");
@@ -1051,10 +1063,13 @@ export const LargeSheet: Story = {
   render: (args) => (
     <Spreadsheet
       {...args}
+      // 120px columns: in a 320px frame the frozen first column leaves the sheet the room it keeps
+      // to scroll beside it even where a classic scrollbar takes its gutter (Linux, Windows). At
+      // 160px it would give way there and scroll off with the rest, taking A1 with it.
       columns={Array.from({ length: 60 }, (_, index) => ({
         id: `c${index}`,
         label: `Field ${index + 1}`,
-        width: 160,
+        width: 120,
       }))}
       rows={Array.from({ length: 10000 }, (_, index) => ({
         id: `r${index}`,

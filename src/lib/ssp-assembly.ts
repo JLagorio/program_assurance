@@ -1,5 +1,5 @@
 import type { Row } from "./models";
-import { isControlStatement } from "./requirement-control-mappings";
+import { isMappingTarget } from "./requirement-control-mappings";
 
 type RequirementLink = Omit<Row<"requirement_implementations">, "component_contribution_id"> & {
   component_contribution_id: string | null;
@@ -213,7 +213,10 @@ export function assembleSsp(input: SspAssemblyInput): SspControlAssembly[] {
           ? systemById.get(mapping.system_id)?.boundary_system_id === input.plan.system_id
           : allocationInBoundary.has(mapping.requirement_revision_id);
         if (!inBoundary) continue;
-        const review = mapping.control_part_id && (!part || !isControlStatement(part, input.parts));
+        // A mapping names the whole control, a statement of its text or one of its objectives.
+        const review =
+          mapping.control_part_id &&
+          (!part || !isMappingTarget(part, input.parts, mappedControlId));
         const sourceSelection = mapping.selected_control_id
           ? selectionById.get(mapping.selected_control_id)
           : undefined;

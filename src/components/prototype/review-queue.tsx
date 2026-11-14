@@ -13,7 +13,8 @@ import {
   type RecordDestination,
 } from "./record-preview";
 import { DueDate } from "./work-common";
-import { useMemo, useState, type ReactNode } from "react";
+import { usePublishResults } from "./publish-results";
+import { useMemo, useRef, useState, type ReactNode, type RefObject } from "react";
 import { Link, defaultParseSearch, useNavigate } from "@tanstack/react-router";
 import {
   Absent,
@@ -31,8 +32,10 @@ import {
 } from "@ledger/design-system";
 import { Page } from "@/components/app/shell";
 import { StatusBadge } from "@/components/app/status";
+import { useWorkspace } from "@/components/app/workspace";
+import type { ResultsToPublish } from "@/lib/assessment-results";
 import { reviewTargetHref, reviewTargetSchema, type ReviewTarget } from "@/lib/assurance-review";
-import { useRows, type TableName } from "@/lib/models";
+import { useRow, useRows, type TableName } from "@/lib/models";
 import { registerViews } from "@/lib/register-views";
 import { serverRead, type ServerRow } from "@/lib/server-table";
 import { reviewQueueKinds } from "@/lib/status";
@@ -43,7 +46,7 @@ import { reviewQueueKinds } from "@/lib/status";
  * inbox; this is the workspace's register of what waits. A row's name opens the page where its
  * review is done: the evidence version's review, the product assessment, the package, the record
  * a discussion was started on. A gate and a draft assessment results revision have no page of
- * their own, so their names open the preview.
+ * their own, so their names open the preview, where results to publish are published.
  */
 
 /** A record waiting, as the queue's view gives it. */
@@ -371,10 +374,69 @@ function names(rows: readonly { name: string }[] | undefined): FilterOption[] {
 }
 
 /**
+ * Publish assessment results, the preview's one primary for results waiting to be published. The
+ * results revision is read as the preview opens, for the revision the reader saw; the findings are
+ * the number the preview says. It keeps its place and says why while that read loads, when it
+ * fails, and once the results are published, here or in another session, so focus stays on it.
+ */
+function PublishResultsAction({
+  record,
+  onPublish,
+}: {
+  record: ReviewRow;
+  onPublish: (
+    results: ResultsToPublish,
+    returnFocus: RefObject<HTMLElement | null>,
+  ) => Promise<boolean>;
+}) {
+  const results = useRow("assessment_results_revisions", record.id);
+  const [published, setPublished] = useState(false);
+  const button = useRef<HTMLButtonElement>(null);
+  const row = results.data;
+  const waits =
+    published || row?.state === "published"
+      ? "These assessment results are published."
+      : row === null
+        ? "These assessment results are no longer available."
+        : results.isError
+          ? "The assessment results could not be read."
+          : !row
+            ? "Reading the assessment results…"
+            : undefined;
+  const publish = async () => {
+    if (!row || waits) return;
+    const done = await onPublish(
+      {
+        id: row.id,
+        title: record.name,
+        versionNumber: row.version_number,
+        revision: row.revision,
+        findings: record.determination_count ?? 0,
+      },
+      button,
+    );
+    if (done) setPublished(true);
+  };
+  return (
+    <Button
+      ref={button}
+      size="small"
+      variant="primary"
+      onClick={() => void publish()}
+      {...(waits ? { disabledReason: waits } : {})}
+    >
+      Publish assessment results
+    </Button>
+  );
+}
+
+/**
  * A record of the queue beside the register: what waits and on whom, in the facts its kind holds,
  * with previous and next through the queue and, where the record has a page, the page its review
  * is done on. A discussion opens its thread, where it is resolved; a gate opens its program's
- * Lifecycle gates, where it is decided.
+ * Lifecycle gates, where it is decided; results to publish are published here, by a reader who may
+ * write. Once they are, the record leaves the queue and the preview stays on it, outside the
+ * results.
  */
 function ReviewPreview({
   record,
@@ -387,10 +449,14 @@ function ReviewPreview({
   onSelect: (row: ReviewRow) => void;
   onClose: () => void;
 }) {
+  const workspace = useWorkspace();
+  const publish = usePublishResults();
   const [discussing, setDiscussing] = useState(false);
   const link = discussionLink(record);
   const actions =
-    record.kind === "discussion" ? (
+    record.kind === "assessment_results" && workspace.role !== "viewer" ? (
+      <PublishResultsAction key={record.id} record={record} onPublish={publish.ask} />
+    ) : record.kind === "discussion" ? (
       <Button size="small" variant="primary" onClick={() => setDiscussing(true)}>
         Open discussion
       </Button>
@@ -445,6 +511,7 @@ function ReviewPreview({
       {discussing && (
         <AssuranceReviewThreadDialog threadId={record.id} onClose={() => setDiscussing(false)} />
       )}
+      {publish.confirmation}
     </>
   );
 }

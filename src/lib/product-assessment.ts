@@ -233,6 +233,20 @@ export function useProductAssessmentSheet(
   });
 }
 
+/**
+ * The element a sheet opens on when the reader has chosen none: the first in the Element select's
+ * order (the product as a whole, then the elements by code) that holds a determination, so the work
+ * already recorded is what shows; else the first that claims a control; else the product as a
+ * whole.
+ */
+export function openingElement(elements: readonly SheetElement[]): SheetElement | undefined {
+  return (
+    elements.find((element) => element.determined > 0) ??
+    elements.find((element) => element.claimed > 0) ??
+    elements[0]
+  );
+}
+
 /** One control of the sheet for one element: whether the element claims it, and what is determined. */
 export type SheetRow = SheetControl & {
   claimed: boolean;

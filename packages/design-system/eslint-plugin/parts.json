@@ -13524,7 +13524,7 @@
     "ScrollerArrow": {
       "kind": "component",
       "file": "components/scroller.tsx",
-      "line": 475,
+      "line": 487,
       "root": {
         "align-items": ["items-center"],
         "bg-color": ["bg-surface-current", "bg-surface-overlay", "bg-surface-raised"],
@@ -13573,7 +13573,7 @@
     "ScrollerViewport": {
       "kind": "component",
       "file": "components/scroller.tsx",
-      "line": 411,
+      "line": 423,
       "root": {
         "flex": ["flex-1"],
         "min-h": ["min-h-0"],

@@ -841,6 +841,48 @@ export type Database = {
           },
         ];
       };
+      assessment_results_requests: {
+        Row: {
+          created_at: string;
+          created_by: string;
+          id: string;
+          result: Json;
+          results_revision_id: string;
+          tenant_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          created_by: string;
+          id: string;
+          result: Json;
+          results_revision_id: string;
+          tenant_id: string;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string;
+          id?: string;
+          result?: Json;
+          results_revision_id?: string;
+          tenant_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "assessment_results_requests_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "assessment_results_requests_tenant_id_results_revision_id_fkey";
+            columns: ["tenant_id", "results_revision_id"];
+            isOneToOne: false;
+            referencedRelation: "assessment_results_revisions";
+            referencedColumns: ["tenant_id", "id"];
+          },
+        ];
+      };
       assessment_results_revisions: {
         Row: {
           assessment_plan_revision_id: string;
@@ -17194,6 +17236,10 @@ export type Database = {
         Args: never;
         Returns: boolean;
       };
+      is_control_assessment_objective: {
+        Args: { p_control_id: string; p_part_id: string };
+        Returns: boolean;
+      };
       is_control_statement: { Args: { part: string }; Returns: boolean };
       is_requirement_control_statement: {
         Args: { p_control_id: string; p_part_id: string };
@@ -17262,6 +17308,19 @@ export type Database = {
         Returns: Json;
       };
       product_export_uuid: { Args: { seed: string }; Returns: string };
+      program_control_objective_cover: {
+        Args: { p_control_ids: string[]; p_program_id: string };
+        Returns: {
+          control_id: string;
+          evidenced: boolean;
+          objective_id: string;
+          requirement_id: string;
+        }[];
+      };
+      program_control_objectives: {
+        Args: { p_control_id: string; p_program_id: string };
+        Returns: Json;
+      };
       program_control_parameters: {
         Args: { p_control_id: string; p_program_id: string };
         Returns: Json;
@@ -17277,6 +17336,9 @@ export type Database = {
           family: string;
           family_title: string;
           id: string;
+          objectives: number;
+          objectives_evidenced: number;
+          objectives_mapped: number;
           parent_control_id: string;
           product_assessments: Json;
           requirements: number;
@@ -17333,6 +17395,16 @@ export type Database = {
           p_element_id?: string;
           p_program_id: string;
           p_technique_code?: string;
+        };
+        Returns: Json;
+      };
+      publish_assessment_results: {
+        Args: {
+          p_expected_findings: number;
+          p_expected_revision: number;
+          p_request_id: string;
+          p_results_revision_id: string;
+          p_tenant_id: string;
         };
         Returns: Json;
       };

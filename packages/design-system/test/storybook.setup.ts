@@ -26,6 +26,9 @@ import { type Gate, gateHelp, runGate, watchMotion } from "./story-gates";
  * story `globals` render it at the width they pin, with `frame: "canvas"` taking it out of the
  * 320px frame.
  *
+ * Every story starts with the test browser's own pointer moved off the page (`pointerAway` in
+ * vitest.config.ts), so nothing hovers under a pointer the story never moved.
+ *
  * Every project also fails a story that logs a Base UI or React warning on console.warn (TOO-17).
  * The gate projects add one check each (test/story-gates.ts says what each measures): focus rings
  * in storybook-light, reduced motion in storybook-dark, touch targets in storybook-touch,
@@ -45,6 +48,13 @@ declare module "vitest" {
     "ledger/layout-check": LayoutCheck;
     "ledger/gate": Gate;
     "ledger/gates-record": boolean;
+  }
+}
+
+declare module "vitest/browser" {
+  interface BrowserCommands {
+    /** Moves the test browser's own pointer off the page (vitest.config.ts). */
+    pointerAway: () => Promise<void>;
   }
 }
 
@@ -330,7 +340,11 @@ let errors: unknown[][];
 let warnings: unknown[][];
 let restore: (() => void) | undefined;
 let stopWatching: (() => void) | undefined;
-beforeEach((ctx) => {
+beforeEach(async (ctx) => {
+  // Every story starts with the test browser's own pointer off the page, so nothing hovers
+  // under a pointer the story never moved: one resting at the page's corner, or one a play that
+  // hovered for real left where it was.
+  await commands.pointerAway();
   // A play that needs a mouse (hover, an arrow shown only to a fine pointer) cannot pass on a
   // touch phone, and one that asserts a token colour cannot pass in forced colours: the gate
   // project skips it by its file and name, with the reason.

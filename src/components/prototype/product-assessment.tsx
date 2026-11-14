@@ -53,6 +53,7 @@ import {
   PRODUCT_DETERMINATIONS,
   WHOLE_PRODUCT,
   newAssessmentIssues,
+  openingElement,
   sheetRows,
   useBaselineName,
   useBaselineOptions,
@@ -732,11 +733,17 @@ export function ProductAssessmentRecord({
   const { confirm, confirmation } = useConfirmation();
   const draft = sheet?.assessment.state === "draft";
   const canAuthor = canAuthorLibrary(workspace.role);
-  // The element worked: the one the address names, else the first that claims a control.
+  // The element the page opened on, when the reader has chosen none: the first that holds a
+  // determination, else the first that claims a control. It is kept while the page is open, so
+  // clearing an element's last determination never moves the sheet to another under the reader.
+  const [opened, setOpened] = useState<string | null>(null);
+  const opening = sheet ? openingElement(sheet.elements) : undefined;
+  if (opening && opened === null) setOpened(opening.id);
+  // The element worked: the one the reader chose, which the address names, else the one opened on.
   const element =
     sheet?.elements.find((item) => item.id === askedElement) ??
-    sheet?.elements.find((item) => item.claimed > 0) ??
-    sheet?.elements[0];
+    sheet?.elements.find((item) => item.id === opened) ??
+    opening;
   const publishWaits = !sheet?.determined
     ? "Record at least one determination before publishing."
     : undefined;

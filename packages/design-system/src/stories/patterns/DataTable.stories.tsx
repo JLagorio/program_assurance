@@ -547,6 +547,9 @@ export const PinnedColumns: Story = {
     const body = within(canvasElement.ownerDocument.body);
     await userEvent.click(await body.findByRole("menuitemradio", { name: "Sort ascending" }));
     await waitFor(() => expect(header).toHaveAttribute("aria-sort", "ascending"));
+    // A closing menu keeps its items while it fades: Wider found in it would be gone, its press
+    // lost, once the menu opens again, so it opens again once the first has gone.
+    await waitFor(() => expect(body.queryByRole("menu")).toBeNull());
     const width = parseFloat(header.style.width);
     await userEvent.click(menu);
     await userEvent.click(await body.findByRole("menuitem", { name: "Wider" }));
@@ -1702,6 +1705,7 @@ export const ReorderingRows: Story = {
     await waitFor(() => expect(order().slice(0, 2)).toEqual(["FND-2201", "FND-2200"]));
     await waitFor(() => expect(menu).toHaveFocus());
     await waitFor(() => expect(politeLines(canvasElement)).toContain("FND-2200, 2 of 6"));
+    await waitFor(() => expect(body.queryByRole("menu")).toBeNull());
 
     // By keyboard alone: open the menu, arrow to Move up, Enter.
     await userEvent.keyboard("{Enter}");

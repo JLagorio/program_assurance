@@ -172,6 +172,8 @@ export const HiddenAddresses: Story = {
       expect(canvas.queryByRole("gridcell", { name: "B1, Hours: 2" })).not.toBeInTheDocument(),
     );
     await expect(canvas.getByRole("gridcell", { name: "C1, Stage: Planned" })).toBeInTheDocument();
+    // The closing menu holds an Unhide all columns too: the next menu opens once it has gone.
+    await closeMenus(canvasElement.ownerDocument);
     await userEvent.click(canvas.getByRole("button", { name: "Columns" }));
     await userEvent.click(await page.findByRole("menuitem", { name: "Unhide all columns" }));
     await expect(args.onHiddenColumnIdsChange).toHaveBeenLastCalledWith([]);
@@ -199,6 +201,7 @@ export const HiddenAddresses: Story = {
       expect(canvas.queryByRole("gridcell", { name: "A1, Item: Prepare" })).not.toBeInTheDocument(),
     );
     await expect(canvas.getByRole("gridcell", { name: "C1, Stage: Planned" })).toBeInTheDocument();
+    await closeMenus(canvasElement.ownerDocument);
     await userEvent.click(canvas.getByRole("button", { name: "Columns" }));
     await userEvent.click(await page.findByRole("menuitem", { name: "Unhide all columns" }));
     await expect(args.onHiddenColumnIdsChange).toHaveBeenLastCalledWith([]);
@@ -215,6 +218,7 @@ export const HiddenAddresses: Story = {
       expect(canvas.queryByRole("gridcell", { name: "A2, Item: Review" })).not.toBeInTheDocument(),
     );
     await expect(canvas.getByRole("gridcell", { name: "A3, Item: Publish" })).toBeInTheDocument();
+    await closeMenus(canvasElement.ownerDocument);
     await userEvent.pointer({
       target: canvas.getByRole("button", { name: "Select row 3, Third task" }),
       keys: "[MouseRight]",
@@ -695,12 +699,15 @@ export const AutomaticWrapping: Story = {
     await userEvent.click(within(dialog).getByRole("button", { name: "Apply size" }));
     await waitFor(() => expect(height()).toBe(64));
     await expect(args.onRowHeightsChange).toHaveBeenLastCalledWith({ first: 64 });
+    await closeMenus(canvasElement.ownerDocument);
     await userEvent.pointer({
       target: canvas.getByRole("button", { name: "Select row 1, Narrative" }),
       keys: "[MouseRight]",
     });
     await userEvent.click(await page.findByRole("menuitem", { name: "Fit to data" }));
     await waitFor(() => expect(height()).toBe(Math.min(240, automatic)));
+    // The closing menu holds the same items: the next one opens once it has gone.
+    await closeMenus(canvasElement.ownerDocument);
     await userEvent.pointer({
       target: canvas.getByRole("button", { name: "Select row 1, Narrative" }),
       keys: "[MouseRight]",
@@ -951,9 +958,9 @@ export const HeaderGestures: Story = {
     await expect(a1).toHaveAttribute("aria-selected", "true");
     await expect(b4).not.toHaveAttribute("aria-selected", "true");
     await user.keyboard("{Shift>}{F10}{/Shift}");
-    await expect(
-      await page.findByRole("menu", { name: "Planning workbook cell actions" }),
-    ).toBeVisible();
+    // A menu holds its entrance's first keyframe, transparent, until the next frame draws it.
+    const cellMenu = await page.findByRole("menu", { name: "Planning workbook cell actions" });
+    await waitFor(() => expect(cellMenu).toBeVisible());
     await expect(page.queryByRole("menuitem", { name: "Column width…" })).not.toBeInTheDocument();
     await user.keyboard("{Escape}");
     await closeMenus(canvasElement.ownerDocument);

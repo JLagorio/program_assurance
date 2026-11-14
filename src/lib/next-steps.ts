@@ -1,4 +1,5 @@
 import type { AssuranceTrace } from "./assurance-trace";
+import type { ControlObjective } from "./control-objectives";
 import type { ControlStanding } from "./control-status";
 
 /*
@@ -35,11 +36,16 @@ const stepRequirement = (requirement: TraceRequirement): StepRequirement => ({
 });
 
 export type ControlNextStep =
-  /** No requirement maps the control: one of the program's requirements is mapped to it. */
-  | { kind: "map_requirement" }
   /**
-   * A requirement maps the control and none cites evidence: the first of them, in the order
-   * given. `null` until a read says which requirements map the control.
+   * No requirement maps the control, or the program's requirements map only some of its assessment
+   * objectives: one of the program's requirements is mapped to it. `rest` counts the objectives no
+   * requirement maps yet where some are mapped already; the picker then opens with them chosen.
+   */
+  | { kind: "map_requirement"; rest?: number | undefined }
+  /**
+   * The requirements map every objective and one is not covered by a requirement that cites
+   * evidence: the first requirement that cites none and covers such an objective, else the first
+   * that cites none, in the order given. `null` until a read says which requirements map it.
    */
   | { kind: "link_evidence"; requirement: StepRequirement | null }
   /**
@@ -60,17 +66,34 @@ export type ControlNextStep =
   | { kind: "review_product_assessment"; assessment: StepAssessment };
 
 /**
- * Where a program stands on a control, as its next step reads it: the status, and whose
- * determination it is with the product assessments behind one the product made.
+ * Where a program stands on a control, as its next step reads it: the status, whose determination
+ * it is with the product assessments behind one the product made, and how many of its assessment
+ * objectives the program's requirements map.
  */
 export type StepStanding = Pick<ControlStanding, "status"> &
-  Partial<Pick<ControlStanding, "determinedBy" | "productAssessments">>;
+  Partial<
+    Pick<ControlStanding, "determinedBy" | "productAssessments" | "objectives" | "objectivesMapped">
+  >;
+
+/**
+ * The objectives no requirement maps yet, where the requirements map some of a control's and not
+ * all; none otherwise, the whole control being what is left.
+ */
+export function objectivesLeft(standing: StepStanding): number | undefined {
+  const { objectives = 0, objectivesMapped = 0 } = standing;
+  return objectivesMapped > 0 && objectivesMapped < objectives
+    ? objectives - objectivesMapped
+    : undefined;
+}
 
 /**
  * The next step for a control at a status: the one thing that moves it up the ladder. A satisfied
- * control has none, whoever determined it. `requirements` are the requirements that map the
- * control, as its trace reads them; without them a control with no evidence still says its step,
- * and names no requirement. Evidence no assessor has determined goes into an assessment: the
+ * control has none, whoever determined it. No requirement maps the control, or they map some of its
+ * objectives and the step maps the rest. `requirements` are the requirements that map the control,
+ * as its trace reads them; without them a control with no evidence still says its step, and names
+ * no requirement. Where some of its objectives are covered by evidence already, `objectives` (the
+ * control's, as `program_control_objectives` reads them) name the requirement whose evidence
+ * covers one that is not. Evidence no assessor has determined goes into an assessment: the
  * campaign whose plan holds the control already, else the draft plan of one of the program's open
  * campaigns, else a new one planned around it; without `plans` the step is to add it to a campaign.
  * A determination short of satisfied leads to what decided it: the program's assessment findings,
@@ -80,13 +103,24 @@ export function controlNextStep(
   standing: StepStanding,
   requirements?: readonly TraceRequirement[] | undefined,
   plans?: StepPlans | undefined,
+  objectives?: readonly ControlObjective[] | undefined,
 ): ControlNextStep | null {
   switch (standing.status) {
-    case "no_requirement":
-      return { kind: "map_requirement" };
+    case "no_requirement": {
+      const rest = objectivesLeft(standing);
+      return rest ? { kind: "map_requirement", rest } : { kind: "map_requirement" };
+    }
     case "no_evidence": {
-      const bare = requirements?.find((requirement) => requirement.evidence_count === 0);
-      return { kind: "link_evidence", requirement: bare ? stepRequirement(bare) : null };
+      const bare = requirements?.filter((requirement) => requirement.evidence_count === 0) ?? [];
+      // A requirement that covers an objective nothing evidences, where one does: evidence on a
+      // requirement whose objectives are evidenced already moves nothing.
+      const owed = new Set(
+        (objectives ?? [])
+          .filter((objective) => !objective.evidenced)
+          .flatMap((objective) => objective.requirements.map((requirement) => requirement.id)),
+      );
+      const named = bare.find((requirement) => owed.has(requirement.id)) ?? bare[0];
+      return { kind: "link_evidence", requirement: named ? stepRequirement(named) : null };
     }
     case "not_assessed":
       return assessStep(plans);
@@ -126,7 +160,11 @@ export const isInPlaceStep = (
 export function nextStepLabel(step: ControlNextStep | TraceGapFix): string {
   switch (step.kind) {
     case "map_requirement":
-      return "Map a requirement";
+      return "rest" in step && step.rest
+        ? step.rest === 1
+          ? "Map 1 more objective"
+          : `Map ${step.rest} more objectives`
+        : "Map a requirement";
     case "link_evidence":
       return step.requirement ? `Link evidence to ${step.requirement.code}` : "Link evidence";
     case "map_control":

@@ -252,7 +252,11 @@ export function Scroller({
     // after the first layout cannot push the current tab out; after that, only a strip that
     // narrows (a window resize, a panel opening beside it) brings it back, and a strip that grows
     // stays where the reader put it. A current item that changes (a tab chosen from outside the
-    // strip) always scrolls in. Nothing moves focus.
+    // strip) scrolls in. Nothing moves focus, and focus on another item of the strip wins: while
+    // the reader is on a tab reached with the arrow keys, the selection still where it was,
+    // keepFocusInView reveals that tab, and revealing the current item first would undo it on
+    // every frame of a resize in a strip too narrow for both (a panel easing to its width, a
+    // native scrollbar that comes and goes), scrolling the strip both ways each frame.
     const root = viewport.closest<HTMLElement>('[data-slot="scroller"]') ?? viewport;
     let laidOutWidth = 0;
     let readerMoved = false;
@@ -271,6 +275,14 @@ export function Scroller({
       current = item;
       if (!item || !readEdges(viewport, orientation).overflows) return;
       if (readerMoved && !narrowed && !changed) return;
+      const active = document.activeElement;
+      if (
+        active instanceof HTMLElement &&
+        active !== viewport &&
+        viewport.contains(active) &&
+        !item.contains(active)
+      )
+        return;
       // The arrows may not have claimed their scroll padding yet on the first layout.
       const arrows = window.matchMedia(hoverQuery).matches
         ? parseFloat(getComputedStyle(viewport).getPropertyValue("--ds-space-300")) || 0

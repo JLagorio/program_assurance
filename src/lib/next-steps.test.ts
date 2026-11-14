@@ -112,9 +112,75 @@ describe("controlNextStep", () => {
     );
   });
 
+  it("maps the rest of a control whose requirements map some of its objectives", () => {
+    // 12 of AC-2's 26 objectives mapped: the control stands where none maps it, and its step maps
+    // the 14 left, which the picker opens on.
+    const step = controlNextStep({
+      status: "no_requirement",
+      objectives: 26,
+      objectivesMapped: 12,
+    });
+    expect(step).toEqual({ kind: "map_requirement", rest: 14 });
+    expect(nextStepLabel(step!)).toBe("Map 14 more objectives");
+    expect(isInPlaceStep(step!)).toBe(true);
+    expect(
+      nextStepLabel(
+        controlNextStep({ status: "no_requirement", objectives: 26, objectivesMapped: 25 })!,
+      ),
+    ).toBe("Map 1 more objective");
+    // Nothing mapped, or a control with no objectives: the whole control is what is left.
+    for (const standing of [
+      { status: "no_requirement" as const, objectives: 26, objectivesMapped: 0 },
+      { status: "no_requirement" as const, objectives: 0, objectivesMapped: 0 },
+      { status: "no_requirement" as const },
+    ])
+      expect(controlNextStep(standing)).toEqual({ kind: "map_requirement" });
+  });
+
+  it("names a requirement whose evidence would cover an objective nothing evidences", () => {
+    // REQ-007 covers a.1 and cites none, though REQ-009 evidences a.1; REQ-008 covers b, which
+    // nothing evidences: evidence on REQ-008 moves the control, on REQ-007 it would not.
+    const objectives = [
+      {
+        id: id(601),
+        label: "AC-02a.[01]",
+        prose: "account types are defined;",
+        ancestors: [],
+        mapped: true,
+        evidenced: true,
+        requirements: [
+          { id: id(7), code: "REQ-007", evidenced: false },
+          { id: id(9), code: "REQ-009", evidenced: true },
+        ],
+      },
+      {
+        id: id(602),
+        label: "AC-02b.",
+        prose: "account managers are assigned;",
+        ancestors: [],
+        mapped: true,
+        evidenced: false,
+        requirements: [{ id: id(8), code: "REQ-008", evidenced: false }],
+      },
+    ];
+    const requirements = [requirement(7, 0), requirement(8, 0), requirement(9, 1)];
+    expect(controlNextStep({ status: "no_evidence" }, requirements, undefined, objectives)).toEqual(
+      {
+        kind: "link_evidence",
+        requirement: { id: id(8), code: "REQ-008", programId: PROGRAM },
+      },
+    );
+    // Without the objectives, the first requirement that cites none.
+    expect(controlNextStep({ status: "no_evidence" }, requirements)).toEqual({
+      kind: "link_evidence",
+      requirement: { id: id(7), code: "REQ-007", programId: PROGRAM },
+    });
+  });
+
   it("knows which steps are done on the control itself", () => {
     for (const step of [
       { kind: "map_requirement" },
+      { kind: "map_requirement", rest: 3 },
       { kind: "assess" },
       { kind: "plan_assessment" },
     ] as const)
