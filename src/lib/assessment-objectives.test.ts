@@ -2,12 +2,13 @@ import { describe, expect, it } from "vitest";
 import { args, fakeClient, filter, uuid } from "./testing/fake-client";
 
 const {
+  CAMPAIGN_OBJECTIVE_COLUMNS,
   OBJECTIVE_COLUMNS,
   OBJECTIVE_REGISTER_COLUMNS,
   assessmentObjectiveRead,
+  campaignObjectiveRead,
   compareObjectives,
   objectiveTarget,
-  readAssessmentObjectiveRows,
   storedObjective,
 } = await import("./assessment-objectives");
 const { readServerPage } = await import("./server-table");
@@ -32,17 +33,23 @@ const objective = (
 });
 
 describe("a campaign's objectives", () => {
-  it("reads the view in scope, inside the workspace", async () => {
-    const { client, calls } = fakeClient(() => ({ data: [], error: null, count: 0 }));
-    await readAssessmentObjectiveRows(client, context, { campaign_id: uuid(7) });
-    expect(calls[0]?.table).toBe("assessment_objective_rows");
-    expect(filter(calls[0], "eq", "campaign_id")).toBe(uuid(7));
-    expect(args(calls[0], "or")).toEqual([[`tenant_id.eq.${tenantId},tenant_id.is.null`]]);
+  it("pages a campaign record's objectives on the server, in the order the record gave them", async () => {
+    const read = campaignObjectiveRead(uuid(7));
+    expect(read).toMatchObject({
+      source: "assessment_objective_rows",
+      model: "assessment_objectives",
+      // A plan's title is in the rows: a write to a plan reads the pages again.
+      models: ["assessment_plan_revisions"],
+      scope: { campaign_id: uuid(7) },
+      // What a row shows: the objective's title, its acceptance criterion and its plan's title.
+      search: ["title", "acceptance_criterion", "plan_title"],
+    });
     // Every column the objective's form edits, since a preview's Edit starts the form from the row,
-    // and where it stands; not the lifecycle stamps nor the campaign and program it is scoped by.
-    const asked = String(args(calls[0], "select")[0]?.[0]).split(",");
-    expect(asked).toEqual([...OBJECTIVE_COLUMNS]);
-    for (const edited of [
+    // its workspace, which the form needs to edit it, and where it stands; its plan by name, and not
+    // the campaign it is scoped by nor the lifecycle stamps.
+    expect(read.columns).toEqual([...CAMPAIGN_OBJECTIVE_COLUMNS]);
+    for (const column of [
+      "tenant_id",
       "plan_revision_id",
       "title",
       "description",
@@ -50,12 +57,44 @@ describe("a campaign's objectives", () => {
       "requirement_revision_id",
       "acceptance_criterion",
       "revision",
+      "plan_title",
     ])
-      expect(asked).toContain(edited);
-    expect(asked).not.toContain("created_at");
-    expect(asked).not.toContain("campaign_id");
-    await readAssessmentObjectiveRows(client, context, {});
-    expect(calls[1]?.steps.filter(([step]) => step === "eq")).toEqual([]);
+      expect(read.columns).toContain(column);
+    for (const column of ["created_at", "campaign_id", "campaign_title"])
+      expect(read.columns).not.toContain(column);
+    const { client, calls } = fakeClient(() => ({ data: [], error: null, count: 1791 }));
+    const page = await readServerPage(client, context, read, { pageIndex: 2, pageSize: 25 });
+    expect(page.count).toBe(1791);
+    expect(calls[0]?.table).toBe("assessment_objective_rows");
+    expect(String(args(calls[0], "select")[0]?.[0]).split(",")).toEqual([
+      ...CAMPAIGN_OBJECTIVE_COLUMNS,
+    ]);
+    expect(args(calls[0], "select")[0]?.[1]).toEqual({ count: "exact", head: false });
+    expect(args(calls[0], "or")[0]).toEqual([`tenant_id.eq.${tenantId},tenant_id.is.null`]);
+    expect(filter(calls[0], "eq", "campaign_id")).toBe(uuid(7));
+    // The newest plan first, each plan's in the catalog's reading order, then by title and by id.
+    expect(args(calls[0], "order")).toEqual([
+      ["plan_version", { ascending: false, nullsFirst: false }],
+      ["plan_revision_id", { ascending: true, nullsFirst: false }],
+      ["reading_order", { ascending: true, nullsFirst: false }],
+      ["title_order", { ascending: true, nullsFirst: false }],
+      ["id"],
+    ]);
+    expect(args(calls[0], "range")).toEqual([[50, 74]]);
+    // The reader's sort on Plan reads the plan title's sort key; a search reads what a row shows.
+    await readServerPage(client, context, read, {
+      pageIndex: 0,
+      pageSize: 25,
+      search: "AC-08a",
+      sorting: [{ id: "plan", desc: false }],
+    });
+    expect(args(calls[1], "order")[0]).toEqual([
+      "plan_order",
+      { ascending: true, nullsFirst: false },
+    ]);
+    expect(args(calls[1], "or")[1]).toEqual([
+      'title.ilike."*AC-08a*",acceptance_criterion.ilike."*AC-08a*",plan_title.ilike."*AC-08a*"',
+    ]);
   });
 
   it("orders them as the catalog reads: controls in code order, a heading before its objectives", () => {
@@ -216,6 +255,7 @@ describe("a campaign's objectives", () => {
   it("gives the edit form the objective as stored, without the names a register derives", () => {
     const stored = storedObjective({
       id: uuid(1),
+      tenant_id: tenantId,
       plan_revision_id: uuid(2),
       title: "AC-02a.[01] account types are defined",
       description: null,
@@ -228,6 +268,12 @@ describe("a campaign's objectives", () => {
       reading_order: "ac-000000000002 000002.000000.000000",
     });
     expect(Object.keys(stored)).toEqual([...OBJECTIVE_COLUMNS]);
-    expect(stored).toMatchObject({ id: uuid(1), revision: 4, description: null });
+    // Its workspace too: the form edits only a record of the reader's workspace.
+    expect(stored).toMatchObject({
+      id: uuid(1),
+      tenant_id: tenantId,
+      revision: 4,
+      description: null,
+    });
   });
 });

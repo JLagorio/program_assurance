@@ -2,13 +2,19 @@
 /**
  * Publish assessment results, end to end in the run's own disposable workspace: a campaign whose
  * draft results hold one finding. Its record lists the draft (Draft, 1 finding, not published),
- * and its Actions item offers to publish it. In the Review queue the results' preview publishes
- * them: a first attempt is refused inside the prompt, since the results changed after the reader
- * read them, and nothing is published; the second, confirmed, publishes them, a toast says so,
- * the row leaves the queue and the preview stays on the results, its primary in place saying why
- * it no longer runs. The campaign record then lists the results as Published by the account, and
- * its Actions item says why there is nothing more to publish; the program's Activity and the
- * Portfolio's Recent activity say who published the campaign's results, linked to the campaign.
+ * and its Actions item offers to publish it. The draft's preview, Assessment results preview,
+ * lists the finding it holds (its name a link to its record, its determination, its control a
+ * link to the program's record of it) and edits its title and description from its overflow
+ * menu: a dirty Cancel asks first, a save of results changed since the form opened is refused
+ * inside the Dialog with the draft kept, and the next save writes them at their next revision.
+ * In the Review queue the results' preview lists the same finding and publishes them: a first
+ * attempt is refused inside the prompt, since the results changed after the reader read them, and
+ * nothing is published; the second, confirmed, publishes them, a toast says so, the row leaves the
+ * queue and the preview stays on the results, its primary in place saying why it no longer runs,
+ * and so does its Edit assessment results. The campaign record then lists the results as
+ * Published by the account, and its Actions item says why there is nothing more to publish; the
+ * program's Activity and the Portfolio's Recent activity say who published the campaign's
+ * results, linked to the campaign.
  */
 import assert from "node:assert/strict";
 import { mkdir, mkdtemp } from "node:fs/promises";
@@ -128,6 +134,9 @@ try {
       .limit(1)
       .single(),
   );
+  const control = await data(
+    client.from("controls").select("id,code").eq("id", selection.control_id).single(),
+  );
   const [program] = await insert("programs", { code: "PUBLISH", name: "Publish flow program" });
   const [system] = await insert("systems", {
     program_id: program.id,
@@ -158,7 +167,7 @@ try {
     title: "Publish flow plan",
   });
   await publish("assessment_plan_revisions", plan);
-  const resultsTitle = "Publish flow interim results";
+  let resultsTitle = "Publish flow interim results";
   const [results] = await insert("assessment_results_revisions", {
     assessment_plan_revision_id: plan.id,
     version_number: 1,
@@ -168,19 +177,45 @@ try {
     assessment_results_revision_id: results.id,
     title: "Publish flow result set",
   });
-  await insert("assessment_findings", {
+  const findingTitle = "Publish flow finding";
+  const [finding] = await insert("assessment_findings", {
     assessment_results_revision_id: results.id,
     result_set_id: resultSet.id,
     target_control_part_id: part.id,
-    title: "Publish flow finding",
+    title: findingTitle,
     determination: "satisfied",
   });
   const said = `${publisher} published assessment results of ${campaignTitle}`;
+  /**
+   * The open preview lists the results' one finding: its name a link to its record, its
+   * determination, and its control a link to the program's record of it.
+   */
+  const expectFindingsListed = async () => {
+    const list = panel()
+      .locator('[data-slot="section"]')
+      .filter({ has: page.getByRole("heading", { name: "Assessment findings", exact: true }) });
+    await expect(list.locator('[data-slot="count"]').first()).toHaveText("1");
+    const table = list.getByRole("table", { name: "Assessment findings", exact: true });
+    const row = table.locator(`tbody tr[data-row-id="${finding.id}"]`);
+    await expect(table.locator("tbody tr[data-row-id]")).toHaveCount(1);
+    await expect(row.getByRole("link", { name: findingTitle })).toHaveAttribute(
+      "href",
+      `/findings/${finding.id}`,
+    );
+    // A narrow panel folds the determination and the control into the row's More fields.
+    const more = row.getByRole("button", { name: /^Show \d+ more fields? for / });
+    if (await more.count()) await more.click();
+    await expect(row.locator("xpath=..")).toContainText("Satisfied");
+    await expect(
+      row.locator("xpath=..").getByRole("link", { name: control.code, exact: true }),
+    ).toHaveAttribute("href", `/programs/${program.id}/controls/${control.id}`);
+    if (await more.count()) await more.click();
+  };
   const savedResults = () =>
     data(
       client
         .from("assessment_results_revisions")
-        .select("state,revision,published_by_party_id,published_at")
+        .select("state,revision,title,description,published_by_party_id,published_at")
         .eq("id", results.id)
         .single(),
     );
@@ -216,16 +251,112 @@ try {
   await expect(resultsRow.locator("th")).toContainText(resultsTitle);
   await expect(resultsRow).toContainText("Draft");
   await expect(resultsRow).toContainText("Not published");
-  // A results revision has no page: its name opens its preview, whose primary publishes a draft.
+  // A results revision has no page: its name opens its preview, Assessment results preview, whose
+  // primary publishes a draft and whose overflow menu edits it.
   await resultsRow.getByRole("button", { name: resultsTitle, exact: true }).click();
   await expectPreviewHeader(page, {
     title: resultsTitle,
-    recordActions: ["Publish assessment results"],
+    recordActions: ["Publish assessment results", "More actions"],
     fullRecord: false,
   });
+  await expect(
+    header().getByRole("button", { name: "Close Assessment results preview", exact: true }),
+  ).toBeVisible();
   await expect(fact("Findings")).toHaveText("1");
   await expect(fact("Published by")).toContainText("Not published");
+  await expectFindingsListed();
+  console.log("PASS the draft's Assessment results preview lists the finding the results hold");
+
+  // ——— Edit assessment results: a dirty Cancel asks, a stale save is refused, then it saves ———————
+  const moreActions = recordHeader().getByRole("button", { name: "More actions", exact: true });
+  const editItem = page.getByRole("menuitem", { name: "Edit assessment results", exact: true });
+  const editDialog = page.getByRole("dialog", { name: "Edit assessment results" });
+  const titleField = editDialog.getByRole("textbox", { name: /^Title/ });
+  const descriptionField = editDialog.getByRole("textbox", { name: /^Description/ });
+  const saveEdit = editDialog.getByRole("button", { name: "Edit assessment results", exact: true });
+  const editedTitle = "Publish flow interim results, retitled";
+  await moreActions.click();
+  await editItem.click();
+  await expect(editDialog).toBeVisible();
+  await expect(titleField).toBeFocused();
+  await expect(titleField).toHaveValue(resultsTitle);
+  await expect(descriptionField).toHaveValue("");
+  await titleField.fill(editedTitle);
+  await editDialog.getByRole("button", { name: "Cancel", exact: true }).click();
+  const discard = page.getByRole("alertdialog", { name: "Discard changes?" });
+  await expect(discard).toContainText(
+    "The changes you made to these assessment results will be lost.",
+  );
+  await discard.getByRole("button", { name: "Keep editing", exact: true }).click();
+  await expect(discard).toHaveCount(0);
+  await expect(titleField).toHaveValue(editedTitle);
+  // Someone edits the results while the Dialog is open: the revision the form opened at is behind.
+  const opened = await savedResults();
+  await data(
+    client
+      .from("assessment_results_revisions")
+      .update({ description: "Edited in another session.", revision: opened.revision + 1 })
+      .eq("id", results.id)
+      .eq("revision", opened.revision)
+      .select(),
+  );
+  // The refusal reads the results again (the preview's read of the record, every column); the form
+  // opened next must start from that read.
+  const editReadAgain = page.waitForResponse((response) => {
+    const url = new URL(response.url());
+    return (
+      url.pathname.endsWith("/rest/v1/assessment_results_revisions") &&
+      url.searchParams.get("id") === `eq.${results.id}` &&
+      url.searchParams.get("select") === "*" &&
+      response.request().method() === "GET"
+    );
+  });
+  await saveEdit.click();
+  const editFailure = editDialog.getByRole("alert");
+  await expect(editFailure).toContainText("The assessment results were not saved");
+  await expect(editFailure).toContainText(
+    "These assessment results changed since you opened them: close this dialog and edit them again to start from what is saved. Your changes are kept.",
+  );
+  await expect(titleField).toHaveValue(editedTitle);
+  await expect(saveEdit).toBeFocused();
+  assert.equal((await savedResults()).title, resultsTitle, "A refused edit saves nothing");
+  await editReadAgain;
+  await editDialog.getByRole("button", { name: "Cancel", exact: true }).click();
+  await discard.getByRole("button", { name: "Discard changes", exact: true }).click();
+  await expect(editDialog).toHaveCount(0);
+  await expect(moreActions).toBeFocused();
+  console.log("PASS Edit assessment results asks before a dirty Cancel and refuses a stale save");
+  // Opened again, the form starts from what is saved, and saves at the next revision.
+  await moreActions.click();
+  await editItem.click();
+  await expect(titleField).toHaveValue(resultsTitle);
+  await expect(descriptionField).toHaveValue("Edited in another session.");
+  await titleField.fill(editedTitle);
+  await descriptionField.fill("Interim results of the publish flow, retitled.");
+  const beforeEdit = await savedResults();
+  await saveEdit.click();
+  await expect(editDialog).toHaveCount(0);
+  await expect(
+    page.locator('[data-slot="toast"]').filter({ hasText: "Assessment results saved" }),
+  ).toContainText(editedTitle);
+  await expect(moreActions).toBeFocused();
+  const edited = await savedResults();
+  assert.deepEqual(
+    { title: edited.title, description: edited.description, revision: edited.revision },
+    {
+      title: editedTitle,
+      description: "Interim results of the publish flow, retitled.",
+      revision: beforeEdit.revision + 1,
+    },
+    "The edit saved the title and description at the next revision",
+  );
+  resultsTitle = editedTitle;
+  await expect(
+    recordHeader().getByRole("heading", { level: 2, name: resultsTitle, exact: true }),
+  ).toBeVisible();
+  await expect(resultsRow.locator("th")).toContainText(resultsTitle);
   await escapePreview();
+  console.log("PASS Edit assessment results saves the draft's title and description");
   await page.getByRole("button", { name: "Actions", exact: true }).click();
   const menuItem = page.getByRole("menuitem", { name: "Publish assessment results" });
   await expect(menuItem).toBeVisible();
@@ -243,9 +374,15 @@ try {
   await queueRow.getByRole("button", { name: resultsTitle, exact: true }).click();
   await expectPreviewHeader(page, {
     title: resultsTitle,
-    recordActions: ["Publish assessment results"],
+    recordActions: ["Publish assessment results", "More actions"],
     fullRecord: false,
   });
+  // Its own facts and navigation, and the findings the results hold, as the campaign's preview.
+  await expect(
+    header().getByRole("button", { name: "Close Review preview", exact: true }),
+  ).toBeVisible();
+  await expect(fact("Determinations")).toHaveText("1");
+  await expectFindingsListed();
   const publishButton = recordHeader().getByRole("button", {
     name: "Publish assessment results",
     exact: true,
@@ -312,6 +449,19 @@ try {
   );
   await expect(publishButton).toBeFocused();
   await expect(status()).toHaveText(`${resultsTitle}, outside the current results`);
+  // Published results no longer change: Edit assessment results keeps its place and says why.
+  await recordHeader().getByRole("button", { name: "More actions", exact: true }).click();
+  await expect(page.getByRole("menuitem", { name: "Edit assessment results" })).toHaveAttribute(
+    "aria-disabled",
+    "true",
+  );
+  await expect(
+    page.getByRole("menuitem", { name: "Edit assessment results" }),
+  ).toHaveAccessibleDescription(
+    "These assessment results are published, and published results no longer change.",
+  );
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("menuitem", { name: "Edit assessment results" })).toHaveCount(0);
   const saved = await savedResults();
   assert.equal(saved.state, "published");
   assert.equal(saved.published_by_party_id, account.id, "The account published the results");

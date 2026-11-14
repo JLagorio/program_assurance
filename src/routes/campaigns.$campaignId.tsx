@@ -152,7 +152,7 @@ function CampaignDetail() {
                         <Absent label="No description recorded" />
                       )}
                     </Section>
-                    <CampaignResults campaignId={campaign.id} />
+                    <CampaignResults campaignId={campaign.id} programId={campaign.program_id} />
                   </Stack>
                 </AsideLayout>
               }

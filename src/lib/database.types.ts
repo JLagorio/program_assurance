@@ -15401,6 +15401,8 @@ export type Database = {
           assessment_results_revision_id: string | null;
           assessor_name: string | null;
           assessor_party_id: string | null;
+          control_code: string | null;
+          control_id: string | null;
           created_at: string | null;
           created_by: string | null;
           description: string | null;
@@ -15409,11 +15411,13 @@ export type Database = {
           determined_at: string | null;
           id: string | null;
           linked_to_risk: boolean | null;
+          reading_order: string | null;
           result_set_id: string | null;
           revision: number | null;
           target_control_part_id: string | null;
           tenant_id: string | null;
           title: string | null;
+          title_order: string | null;
           updated_at: string | null;
           updated_by: string | null;
         };
@@ -17406,6 +17410,7 @@ export type Database = {
         Args: {
           p_control_id: string;
           p_plan_revision_ids: string[];
+          p_program_id?: string;
           p_tenant_id: string;
         };
         Returns: Json;
@@ -17445,6 +17450,17 @@ export type Database = {
         Returns: Json;
       };
       product_export_uuid: { Args: { seed: string }; Returns: string };
+      program_control_coverage: {
+        Args: { p_control_ids: string[]; p_program_id: string };
+        Returns: {
+          control_id: string;
+          evidenced: boolean;
+          mapping: boolean;
+          objective_id: string;
+          requirement_id: string;
+          system_id: string;
+        }[];
+      };
       program_control_objective_cover: {
         Args: { p_control_ids: string[]; p_program_id: string };
         Returns: {
@@ -17472,6 +17488,20 @@ export type Database = {
         Returns: Json;
       };
       program_control_status: { Args: { p_program_id: string }; Returns: Json };
+      program_control_status_counts: {
+        Args: { p_program_ids: string[] };
+        Returns: {
+          baseline: boolean;
+          controls: number;
+          no_evidence: number;
+          no_requirement: number;
+          not_assessed: number;
+          other_than_satisfied: number;
+          partially_satisfied: number;
+          program_id: string;
+          satisfied: number;
+        }[];
+      };
       program_control_status_lines: {
         Args: { p_program_id: string };
         Returns: {

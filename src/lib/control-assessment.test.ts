@@ -4,26 +4,35 @@ import { args, fakeClient, uuid } from "./testing/fake-client";
 const {
   CONTROL_ASSESSMENT_ANSWER_UNREADABLE,
   addControlsToAssessmentPlan,
+  assessmentTakes,
+  campaignHolds,
   choiceRequests,
   controlAssessment,
   latestPlans,
   planControlAssessment,
   readPlanControlHoldings,
 } = await import("./control-assessment");
-const { controlNextStep, nextStepLabel } = await import("./next-steps");
+const { controlNextStep, judgedInPart, nextStepLabel } = await import("./next-steps");
 
 const context = { tenantId: uuid(1), token: "token" };
 
 /**
- * What the plans hold of a control that counts 26 objectives: by plan, how many, whether whole and
- * whether it holds what the program has not judged yet (the whole control while none is judged).
+ * What the plans hold of a control that counts 26 objectives, none of them judged unless said: by
+ * plan, how many, whether whole, whether it holds what the program has not judged yet (the whole
+ * control while none is judged) and how many of the objectives nobody has judged it holds (every
+ * one it holds while none is judged).
  */
-const holdings = (plans: [number, number, boolean, boolean?][] = [], objectives = 26) => ({
+const holdings = (
+  plans: [number, number, boolean, boolean?, number?][] = [],
+  objectives = 26,
+  objectivesAssessed = 0,
+) => ({
   objectives,
+  objectivesAssessed,
   plans: new Map(
-    plans.map(([n, held, holds, holdsUnjudged = holds]) => [
+    plans.map(([n, held, holds, holdsUnjudged = holds, unjudgedHeld = held]) => [
       uuid(n),
-      { held, holds, holdsUnjudged },
+      { held, holds, holdsUnjudged, unjudgedHeld },
     ]),
   ),
 });
@@ -163,16 +172,26 @@ describe("what the program's campaigns hold of a control", () => {
     const answer = controlAssessment(
       campaigns,
       [plan(21, 10, 2, "draft"), plan(22, 11, 1, "published"), plan(24, 13, 1, "draft")],
-      holdings([
-        [22, 23, false, true],
-        [24, 3, false, false],
-      ]),
+      holdings(
+        [
+          [22, 23, false, true, 23],
+          [24, 3, false, false, 0],
+        ],
+        26,
+        3,
+      ),
     );
+    expect(answer.objectivesAssessed).toBe(3);
     expect(answer.planned).toEqual({ id: uuid(11), title: "Continuous monitoring" });
     expect(answer.campaigns.find((item) => item.id === uuid(11))).toMatchObject({
       holds: false,
       holdsUnjudged: true,
       objectivesHeld: 23,
+      unjudgedHeld: 23,
+    });
+    expect(answer.campaigns.find((item) => item.id === uuid(13))).toMatchObject({
+      objectivesHeld: 3,
+      unjudgedHeld: 0,
     });
     // The two drafts hold none of what is left: either takes the control.
     expect(answer.drafts).toBe(2);
@@ -184,10 +203,14 @@ describe("what the program's campaigns hold of a control", () => {
     const drafted = controlAssessment(
       campaigns,
       [plan(22, 11, 1, "published"), plan(24, 13, 1, "draft")],
-      holdings([
-        [22, 3, false, false],
-        [24, 3, false, false],
-      ]),
+      holdings(
+        [
+          [22, 3, false, false, 0],
+          [24, 3, false, false, 0],
+        ],
+        26,
+        3,
+      ),
     );
     expect(drafted).toMatchObject({ planned: null, drafts: 1 });
     expect(nextStepLabel(controlNextStep({ status: "not_assessed" }, [], drafted)!)).toBe(
@@ -196,7 +219,7 @@ describe("what the program's campaigns hold of a control", () => {
     const judged = controlAssessment(
       campaigns,
       [plan(22, 11, 1, "published")],
-      holdings([[22, 3, false, false]]),
+      holdings([[22, 3, false, false, 0]], 26, 3),
     );
     expect(judged).toMatchObject({ planned: null, drafts: 0 });
     expect(nextStepLabel(controlNextStep({ status: "not_assessed" }, [], judged)!)).toBe(
@@ -210,6 +233,7 @@ describe("what the program's campaigns hold of a control", () => {
       holds: false,
       holdsUnjudged: false,
       objectivesHeld: 0,
+      unjudgedHeld: 0,
     });
     expect(answer.drafts).toBe(1);
   });
@@ -218,54 +242,174 @@ describe("what the program's campaigns hold of a control", () => {
     const answer = controlAssessment(
       [campaign(10, "planned", "Annual assessment")],
       [],
-      holdings(),
+      holdings([], 26, 3),
     );
-    expect(answer).toMatchObject({ planned: null, drafts: 0 });
+    expect(answer).toMatchObject({ planned: null, drafts: 0, objectivesAssessed: 3 });
     expect(answer.campaigns[0]).toMatchObject({
       plan: null,
       holds: false,
       holdsUnjudged: false,
       objectivesHeld: 0,
+      unjudgedHeld: 0,
     });
   });
 });
 
+describe("what an assessment takes of a control", () => {
+  it("takes every objective of a control nobody has judged, or one judged on every objective", () => {
+    expect(assessmentTakes({ objectives: 26, objectivesAssessed: 0 })).toEqual({
+      objectives: 26,
+      unjudged: false,
+    });
+    // Judged on every objective: the whole control again, a reassessment its step never offers.
+    expect(assessmentTakes({ objectives: 26, objectivesAssessed: 26 })).toEqual({
+      objectives: 26,
+      unjudged: false,
+    });
+    // A control a plan takes as its statement counts none.
+    expect(assessmentTakes({ objectives: 0, objectivesAssessed: 0 })).toEqual({
+      objectives: 0,
+      unjudged: false,
+    });
+  });
+
+  it("takes only the objectives nobody has judged of a control judged in part", () => {
+    expect(assessmentTakes({ objectives: 26, objectivesAssessed: 3 })).toEqual({
+      objectives: 23,
+      unjudged: true,
+    });
+    expect(assessmentTakes({ objectives: 26, objectivesAssessed: 25 })).toEqual({
+      objectives: 1,
+      unjudged: true,
+    });
+    // The same reading as the control's step, which follows it to Add to assessment campaign.
+    expect(judgedInPart({ status: "not_assessed", objectives: 26, objectivesAssessed: 3 })).toBe(
+      true,
+    );
+  });
+
+  it("reads what each campaign's plan holds against what the assessment takes", () => {
+    // AC-2 with 3 of its 26 objectives judged: the annual plan holds 8 of its objectives, 5 of them
+    // nobody has judged; continuous monitoring's holds the 23 nobody has judged, none of the 3.
+    const answer = controlAssessment(
+      [
+        campaign(10, "planned", "Annual assessment"),
+        campaign(11, "active", "Continuous monitoring"),
+      ],
+      [plan(21, 10, 1, "draft"), plan(22, 11, 1, "draft")],
+      holdings(
+        [
+          [21, 8, false, false, 5],
+          [22, 23, false, true, 23],
+        ],
+        26,
+        3,
+      ),
+    );
+    const [monitoring, annual] = answer.campaigns;
+    const left = assessmentTakes(answer);
+    expect(left).toEqual({ objectives: 23, unjudged: true });
+    expect(campaignHolds(annual!, left)).toEqual({ held: 5, holds: false });
+    expect(campaignHolds(monitoring!, left)).toEqual({ held: 23, holds: true });
+    // The plan holding the rest is where its assessment goes on; the other takes what it lacks.
+    expect(answer).toMatchObject({
+      planned: { id: uuid(11), title: "Continuous monitoring" },
+      drafts: 1,
+    });
+    // Read against the whole control, as for one nobody has judged or judged on every objective.
+    const whole = { objectives: 26, unjudged: false };
+    expect(campaignHolds(annual!, whole)).toEqual({ held: 8, holds: false });
+    expect(campaignHolds(monitoring!, whole)).toEqual({ held: 23, holds: false });
+  });
+});
+
 describe("what the plans hold of a control", () => {
-  it("asks for the control and the plans in one request, and reads each plan's holding", async () => {
+  it("asks for the program, the control and the plans in one request, and reads each plan's holding", async () => {
     const { client, calls } = fakeClient(() => ({
       data: {
         control_id: uuid(40),
         objectives: 26,
+        // The program's assessors have judged 3 of the 26.
+        objectives_assessed: 3,
         plans: [
-          { plan_revision_id: uuid(21), objectives_held: 12, holds: false, holds_unjudged: false },
-          { plan_revision_id: uuid(24), objectives_held: 26, holds: true, holds_unjudged: true },
+          {
+            plan_revision_id: uuid(21),
+            objectives_held: 12,
+            holds: false,
+            holds_unjudged: false,
+            unjudged_held: 10,
+          },
+          {
+            plan_revision_id: uuid(24),
+            objectives_held: 26,
+            holds: true,
+            holds_unjudged: true,
+            unjudged_held: 23,
+          },
           // Holds the objectives its program has not judged, not those it has.
-          { plan_revision_id: uuid(25), objectives_held: 20, holds: false, holds_unjudged: true },
+          {
+            plan_revision_id: uuid(25),
+            objectives_held: 23,
+            holds: false,
+            holds_unjudged: true,
+            unjudged_held: 23,
+          },
         ],
       },
       error: null,
     }));
-    const answer = await readPlanControlHoldings(client, context, uuid(40), [uuid(21), uuid(24)]);
+    const answer = await readPlanControlHoldings(client, context, uuid(5), uuid(40), [
+      uuid(21),
+      uuid(24),
+    ]);
     expect(calls).toHaveLength(1);
     expect(calls[0]!.table).toBe("rpc:plan_control_holdings");
     expect(args(calls[0], "rpc")[0]).toEqual([
-      { p_tenant_id: uuid(1), p_control_id: uuid(40), p_plan_revision_ids: [uuid(21), uuid(24)] },
+      {
+        p_tenant_id: uuid(1),
+        p_program_id: uuid(5),
+        p_control_id: uuid(40),
+        p_plan_revision_ids: [uuid(21), uuid(24)],
+      },
     ]);
-    expect(answer.objectives).toBe(26);
-    expect(answer.plans.get(uuid(21))).toEqual({ held: 12, holds: false, holdsUnjudged: false });
-    expect(answer.plans.get(uuid(24))).toEqual({ held: 26, holds: true, holdsUnjudged: true });
-    expect(answer.plans.get(uuid(25))).toEqual({ held: 20, holds: false, holdsUnjudged: true });
+    expect(answer).toMatchObject({ objectives: 26, objectivesAssessed: 3 });
+    expect(answer.plans.get(uuid(21))).toEqual({
+      held: 12,
+      holds: false,
+      holdsUnjudged: false,
+      unjudgedHeld: 10,
+    });
+    expect(answer.plans.get(uuid(24))).toEqual({
+      held: 26,
+      holds: true,
+      holdsUnjudged: true,
+      unjudgedHeld: 23,
+    });
+    expect(answer.plans.get(uuid(25))).toEqual({
+      held: 23,
+      holds: false,
+      holdsUnjudged: true,
+      unjudgedHeld: 23,
+    });
   });
 
   it("fails rather than read an answer it cannot parse as holding nothing", async () => {
     const { client } = fakeClient(() => ({ data: { objectives: "26" }, error: null }));
-    await expect(readPlanControlHoldings(client, context, uuid(40), [])).rejects.toThrow();
+    await expect(readPlanControlHoldings(client, context, uuid(5), uuid(40), [])).rejects.toThrow();
+    // An answer that does not say what the program has judged, as one naming no program.
+    const { client: unscoped } = fakeClient(() => ({
+      data: { control_id: uuid(40), objectives: 26, objectives_assessed: null, plans: [] },
+      error: null,
+    }));
+    await expect(
+      readPlanControlHoldings(unscoped, context, uuid(5), uuid(40), []),
+    ).rejects.toThrow();
     const { client: refused } = fakeClient(() => ({
       data: null,
-      error: { code: "42501", message: "Workspace access is required" },
+      error: { code: "42501", message: "Program access is required" },
     }));
-    await expect(readPlanControlHoldings(refused, context, uuid(40), [])).rejects.toThrow(
-      "Workspace access is required",
+    await expect(readPlanControlHoldings(refused, context, uuid(5), uuid(40), [])).rejects.toThrow(
+      "Program access is required",
     );
   });
 });
@@ -284,6 +428,7 @@ describe("adding controls to a campaign's draft plan", () => {
     added: 23,
     skipped: 0,
     counted: 35,
+    judged: 0,
     objectiveIds: Array.from({ length: 23 }, (_, n) => uuid(200 + n)),
   };
 
@@ -333,9 +478,23 @@ describe("adding controls to a campaign's draft plan", () => {
     );
   });
 
+  it("reads what is left of a control judged in part: the objectives nobody has judged", async () => {
+    // AC-2 with 3 of its 26 objectives judged takes the other 23, the 3 left out as judged.
+    const left = { ...answered, added: 23, counted: 26, judged: 3 };
+    const { client } = fakeClient(() => ({ data: left, error: null }));
+    await expect(
+      addControlsToAssessmentPlan(client, context, { ...request, controlIds: [uuid(40)] }),
+    ).resolves.toEqual(left);
+  });
+
   it("reads an answer first given before plans took objectives as controls written as statements", async () => {
-    // A receipt kept from then answers again as it first did, with no count of objectives.
-    const { counted: _counted, ...earlier } = {
+    // A receipt kept from then answers again as it first did, with no count of objectives and
+    // none left out as judged.
+    const {
+      counted: _counted,
+      judged: _judged,
+      ...earlier
+    } = {
       ...answered,
       added: 2,
       objectiveIds: [uuid(50), uuid(51)],
@@ -344,6 +503,17 @@ describe("adding controls to a campaign's draft plan", () => {
     await expect(addControlsToAssessmentPlan(client, context, request)).resolves.toEqual({
       ...earlier,
       counted: 0,
+      judged: 0,
+    });
+  });
+
+  it("reads an answer first given before it took only what is left as leaving nothing out", async () => {
+    // A receipt kept from then has its count of objectives and none of what was judged.
+    const { judged: _judged, ...earlier } = answered;
+    const { client } = fakeClient(() => ({ data: earlier, error: null }));
+    await expect(addControlsToAssessmentPlan(client, context, request)).resolves.toEqual({
+      ...earlier,
+      judged: 0,
     });
   });
 });
@@ -357,6 +527,7 @@ describe("planning an assessment of a control", () => {
       added: 1,
       skipped: 0,
       counted: 0,
+      judged: 0,
       objectiveIds: [uuid(52)],
     };
     const { client, calls } = fakeClient(() => ({ data: answered, error: null }));

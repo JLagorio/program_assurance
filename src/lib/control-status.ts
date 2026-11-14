@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useQueries, useQuery, type UseQueryResult } from "@tanstack/react-query";
+import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { useWorkspace } from "./workspace-context";
@@ -256,40 +256,89 @@ export function useProgramControlStatus(
   });
 }
 
+/** A program's control status counts without its controls: what a row of a widget draws. */
+export type ControlStatusTotals = Pick<
+  ProgramControlStatus,
+  "programId" | "baseline" | "total" | "counts"
+>;
+
+const countsRowSchema = z.object({
+  program_id: z.string(),
+  baseline: z.boolean(),
+  controls: z.number(),
+  no_requirement: z.number(),
+  no_evidence: z.number(),
+  not_assessed: z.number(),
+  other_than_satisfied: z.number(),
+  partially_satisfied: z.number(),
+  satisfied: z.number(),
+});
+
 /**
- * Where each of a few programs stands on its control baseline, one read a program, for a widget
- * that lists a handful: the Portfolio's recently updated programs. The answers are by program id
- * and share their cache with `useProgramControlStatus`, so a program's Overview opens on the read
- * the widget made. Never a register's every row: that is a column of its view.
+ * Where each of a few programs stands on its control baseline, its counts alone, in one request:
+ * `program_control_status_counts` counts them as `program_control_status` counts its totals. By
+ * program id; a program the reader cannot read is refused.
  */
-export function useProgramsControlStatus(
+export async function readProgramsControlStatusCounts(
+  client: Client,
+  { token }: Pick<ReadContext, "token">,
   programIds: readonly string[],
-): ReadonlyMap<string, UseQueryResult<ProgramControlStatus, Error>> {
+  signal?: AbortSignal,
+): Promise<ReadonlyMap<string, ControlStatusTotals>> {
+  const ids = [...new Set(programIds)];
+  const totals = new Map<string, ControlStatusTotals>();
+  if (!ids.length) return totals;
+  let request = client
+    .rpc("program_control_status_counts", { p_program_ids: ids })
+    .setHeader("Authorization", `Bearer ${token}`);
+  if (signal) request = request.abortSignal(signal);
+  const { data, error } = await request;
+  if (error) throw new Error(error.message);
+  for (const row of z.array(countsRowSchema).parse(data))
+    totals.set(row.program_id, {
+      programId: row.program_id,
+      baseline: row.baseline,
+      total: row.controls,
+      counts: {
+        no_requirement: row.no_requirement,
+        no_evidence: row.no_evidence,
+        not_assessed: row.not_assessed,
+        other_than_satisfied: row.other_than_satisfied,
+        partially_satisfied: row.partially_satisfied,
+        satisfied: row.satisfied,
+      },
+    });
+  return totals;
+}
+
+/**
+ * Where each of a few programs stands on its control baseline, its counts alone, in one request,
+ * for a widget that lists a handful: the Portfolio's recently updated programs. Never a register's
+ * every row: that is a column of its view. A screen that draws the controls themselves reads
+ * `useProgramControlStatus`.
+ */
+export function useProgramsControlStatusCounts(
+  programIds: readonly string[],
+): UseQueryResult<ReadonlyMap<string, ControlStatusTotals>, Error> {
   const workspace = useWorkspace();
   useStaleOnWrite(workspace.tenantId, STATUS_MODELS, [
     "models",
     workspace.tenantId,
-    "program_control_status",
+    "program_control_status_counts",
   ]);
-  const answers = useQueries({
-    queries: programIds.map((programId) => ({
-      queryKey: ["models", workspace.tenantId, "program_control_status", programId],
-      retry: false,
-      queryFn: async ({ signal }: { signal: AbortSignal }) =>
-        readProgramControlStatus(
-          database(),
-          { tenantId: workspace.tenantId, token: await requireIdentity(workspace) },
-          programId,
-          signal,
-        ),
-    })),
+  const ids = [...new Set(programIds)].sort();
+  return useQuery<ReadonlyMap<string, ControlStatusTotals>, Error>({
+    queryKey: ["models", workspace.tenantId, "program_control_status_counts", ids],
+    enabled: ids.length > 0,
+    retry: false,
+    queryFn: async ({ signal }) =>
+      readProgramsControlStatusCounts(
+        database(),
+        { token: await requireIdentity(workspace) },
+        ids,
+        signal,
+      ),
   });
-  return new Map(
-    programIds.map((programId, index) => [
-      programId,
-      answers[index] as UseQueryResult<ProgramControlStatus, Error>,
-    ]),
-  );
 }
 
 /**

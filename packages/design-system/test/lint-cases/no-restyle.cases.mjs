@@ -502,7 +502,8 @@ export default {
       ],
     },
     {
-      // A part's interaction, transforms, text flow and overflow are its own, not its placement.
+      // A part's interaction, transforms, text flow and overflow are its own, not its placement. A
+      // bounded Button's one line comes with its variant: the link variant wraps as text does.
       code: `${kitImport("Badge", "Button", "Text")} <><Button className="select-text whitespace-normal disabled:pointer-events-auto">x</Button><Badge className="overflow-visible">x</Badge><Text className="line-clamp-2 truncate">x</Text></>`,
       errors: [
         {
@@ -517,14 +518,13 @@ export default {
           },
         },
         {
-          messageId: "own",
+          messageId: "propKey",
           data: {
             cls: "whitespace-normal",
             on: "<Button>",
             what: "wrapping",
-            own: "whitespace-nowrap",
-            at: at("Button"),
-            family: "Button",
+            prop: "variant",
+            advice: "Drop it and set variant.",
           },
         },
         {

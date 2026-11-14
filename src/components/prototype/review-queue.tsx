@@ -13,8 +13,10 @@ import {
   type RecordDestination,
 } from "./record-preview";
 import { DueDate } from "./work-common";
+import { ResultsMoreActions } from "./edit-results";
 import { usePublishResults } from "./publish-results";
 import { PublishResultsAction } from "./publish-results-action";
+import { ResultsFindings } from "./results-findings";
 import { useMemo, useState, type ReactNode } from "react";
 import { Link, defaultParseSearch, useNavigate } from "@tanstack/react-router";
 import {
@@ -26,6 +28,7 @@ import {
   LinkButton,
   PageHeader,
   Person,
+  Stack,
   TextLink,
   defineColumns,
   useLedgerLocale,
@@ -377,8 +380,9 @@ function names(rows: readonly { name: string }[] | undefined): FilterOption[] {
  * with previous and next through the queue and, where the record has a page, the page its review
  * is done on. A discussion opens its thread, where it is resolved; a gate opens its program's
  * Lifecycle gates, where it is decided; results to publish are published here, by a reader who may
- * write. Once they are, the record leaves the queue and the preview stays on it, outside the
- * results.
+ * write, who may also edit their title and description from its overflow menu, and the preview
+ * lists the findings they hold, as the campaign's Assessment results preview does. Once they are
+ * published, the record leaves the queue and the preview stays on it, outside the results.
  */
 function ReviewPreview({
   record,
@@ -395,18 +399,22 @@ function ReviewPreview({
   const publish = usePublishResults();
   const [discussing, setDiscussing] = useState(false);
   const link = discussionLink(record);
-  // Results to publish are published here (publish-results): the queue counts their findings.
+  // Results to publish are published here (publish-results): the queue counts their findings. Their
+  // title and description are edited from the overflow menu, as in the campaign's preview.
   const actions =
     record.kind === "assessment_results" && workspace.role !== "viewer" ? (
-      <PublishResultsAction
-        key={record.id}
-        results={{
-          id: record.id,
-          title: record.name,
-          findings: record.determination_count ?? 0,
-        }}
-        onPublish={publish.ask}
-      />
+      <>
+        <PublishResultsAction
+          key={record.id}
+          results={{
+            id: record.id,
+            title: record.name,
+            findings: record.determination_count ?? 0,
+          }}
+          onPublish={publish.ask}
+        />
+        <ResultsMoreActions key={`more-${record.id}`} resultsId={record.id} />
+      </>
     ) : record.kind === "discussion" ? (
       <Button size="small" variant="primary" onClick={() => setDiscussing(true)}>
         Open discussion
@@ -457,7 +465,18 @@ function ReviewPreview({
           />
         }
       >
-        <ReviewFacts key={record.id} record={record} />
+        {record.kind === "assessment_results" ? (
+          <Stack space="space.250">
+            <ReviewFacts key={record.id} record={record} />
+            <ResultsFindings
+              key={`findings-${record.id}`}
+              resultsId={record.id}
+              programId={record.program_id}
+            />
+          </Stack>
+        ) : (
+          <ReviewFacts key={record.id} record={record} />
+        )}
       </RecordPreviewPanel>
       {discussing && (
         <AssuranceReviewThreadDialog threadId={record.id} onClose={() => setDiscussing(false)} />

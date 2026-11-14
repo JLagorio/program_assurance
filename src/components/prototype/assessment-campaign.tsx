@@ -43,7 +43,7 @@ import {
   MoreHorizontal,
   Target,
 } from "lucide-react";
-import { compareObjectives, useAssessmentObjectiveRows } from "@/lib/assessment-objectives";
+import { storedObjective } from "@/lib/assessment-objectives";
 import { idSet, useModelSave, useRow, useRows, type Row, type TableName } from "@/lib/models";
 import { labelFor, type DataRecord } from "@/lib/records";
 import { useWorkspace } from "@/components/app/workspace";
@@ -53,6 +53,7 @@ import { revisionStates, stepDeterminations, testRunStatuses } from "@/lib/statu
 import { productCreateLabel, productRecordNoun } from "@/lib/product-records";
 import { RecordLink, RecordPreviewActions, RecordPreviewPanel } from "./record-preview";
 import { AssessmentTable } from "./assessment-table";
+import { CampaignObjectives, type CampaignObjective } from "./campaign-objectives";
 import { ModelFacts, RelationName, type DisplayColumn } from "./record-tools";
 import {
   DetailFacts,
@@ -110,10 +111,9 @@ export function AssessmentCampaign({
   const plans = useRows("assessment_plan_revisions", { campaign_id: campaign.id });
   const events = useRows("assessment_events", { campaign_id: campaign.id });
   // A plan's content is read through the campaign's plans, joined on the server: never every
-  // plan's objectives, activities and scheduled tasks in the workspace.
+  // plan's activities and scheduled tasks in the workspace. Its objectives, which run to thousands,
+  // are read a page at a time (CampaignObjectives).
   const inCampaign = { "assessment_plan_revisions.campaign_id": campaign.id };
-  // The objectives come with their place in the catalog's reading order, from their view.
-  const objectives = useAssessmentObjectiveRows({ campaign_id: campaign.id });
   const activities = useRows("assessment_activities", inCampaign);
   const scheduled = useRows("scheduled_assessment_tasks", inCampaign);
   const procedures = useRows("procedures");
@@ -130,17 +130,6 @@ export function AssessmentCampaign({
   const planTitle = (id: string | null | undefined) =>
     planRows.find((plan) => plan.id === id)?.title ?? null;
   const inPlans = (id: string | null | undefined) => planRows.some((plan) => plan.id === id);
-  // Each plan's objectives together, the newest plan first as the plans are listed, and each
-  // plan's in the catalog's reading order: AC-08a.01 before AC-08a.02, AC-2 before AC-10.
-  const planOrder = new Map(planRows.map((plan, index) => [plan.id, index]));
-  const objectiveRows = (objectives.data ?? [])
-    .filter((row) => inPlans(row.plan_revision_id))
-    .sort(
-      (a, b) =>
-        (planOrder.get(a.plan_revision_id) ?? 0) - (planOrder.get(b.plan_revision_id) ?? 0) ||
-        compareObjectives(a, b),
-    )
-    .map((row) => ({ ...row, plan: planTitle(row.plan_revision_id) }));
   const activityRows = (activities.data ?? [])
     .filter((row) => inPlans(row.plan_revision_id))
     .map((row) => ({
@@ -187,11 +176,11 @@ export function AssessmentCampaign({
   const writable = workspace.role !== "viewer";
   const draftPlan = planRows.find((row) => row.state === "draft");
   // The preview reads the stored record, so an edit saved under it shows and the edit form gets no
-  // derived names.
+  // derived names. An objective is read as the page of the Objectives holds it now.
   const stored: Partial<Record<TableName, DataRecord[] | undefined>> = {
     assessment_plan_revisions: plans.data as DataRecord[] | undefined,
     assessment_events: events.data as DataRecord[] | undefined,
-    assessment_objectives: objectives.data as DataRecord[] | undefined,
+    assessment_objectives: displayed["assessment_objectives"],
     assessment_activities: activities.data as DataRecord[] | undefined,
     scheduled_assessment_tasks: scheduled.data as DataRecord[] | undefined,
     procedures: procedures.data as DataRecord[] | undefined,
@@ -205,7 +194,17 @@ export function AssessmentCampaign({
   function edit(target: FormTarget) {
     // The preview stays open under the dialog, so closing it returns to the preview's action.
     if (form) return;
-    setForm(target);
+    // An objective's form starts from it as stored, without the plan's name the page derives.
+    setForm(
+      target.table === "assessment_objectives" && target.existing
+        ? {
+            ...target,
+            existing: storedObjective(
+              target.existing as unknown as CampaignObjective,
+            ) as unknown as DataRecord,
+          }
+        : target,
+    );
   }
   const inspect = (table: TableName) => (row: object) =>
     setSelection({ table, existing: row as DataRecord });
@@ -353,38 +352,23 @@ export function AssessmentCampaign({
                   onPreview={inspect("assessment_events")}
                 />
               </Section>
-              <Section title="Objectives">
-                <AssessmentTable
-                  queries={[plans, objectives]}
-                  actions={add({ table: "assessment_objectives" })}
-                  model="assessment_objectives"
-                  selectedId={
-                    selection?.table === "assessment_objectives"
-                      ? selection.existing?.id
-                      : undefined
-                  }
-                  onDisplayedRowsChange={keep("assessment_objectives")}
-                  compact
-                  label="Objectives"
-                  empty={{
-                    icon: <Target />,
-                    illustration: "shield",
-                    description: planEmpty("An objective says what the plan sets out to show."),
-                  }}
-                  rows={objectiveRows}
-                  columns={[
-                    { key: "title", label: "Objective" },
-                    { key: "acceptance_criterion", label: "Acceptance criterion" },
-                    {
-                      key: "plan",
-                      label: "Plan",
-                      value: (row) => row.plan ?? <Absent label="Not available" />,
-                      width: 180,
-                    },
-                  ]}
-                  onPreview={inspect("assessment_objectives")}
-                />
-              </Section>
+              {/* The campaign's objectives, a page at a time: a plan by objective holds one an
+                  assessment objective of each control it assesses. */}
+              <CampaignObjectives
+                campaignId={campaign.id}
+                queries={[plans]}
+                action={add({ table: "assessment_objectives" })}
+                selectedId={
+                  selection?.table === "assessment_objectives" ? selection.existing?.id : undefined
+                }
+                onDisplayedRowsChange={keep("assessment_objectives")}
+                onPreview={inspect("assessment_objectives")}
+                empty={{
+                  icon: <Target />,
+                  illustration: "shield",
+                  description: planEmpty("An objective says what the plan sets out to show."),
+                }}
+              />
               <Section title="Activities">
                 <AssessmentTable
                   queries={[plans, activities]}
@@ -1298,8 +1282,6 @@ function RunObservations({
 }
 
 function RegressionComparison({ runs }: { runs: Row<"test_runs">[] }) {
-  const results = useRows("step_results");
-  const steps = useRows("procedure_steps");
   const completed = runs
     .filter((run) => run.status === "completed" && run.completed_at)
     .sort((a, b) => b.completed_at!.localeCompare(a.completed_at!));
@@ -1308,10 +1290,25 @@ function RegressionComparison({ runs }: { runs: Row<"test_runs">[] }) {
     const key = `${run.procedure_revision_id}/${run.configuration_baseline_id}`;
     groups.set(key, [...(groups.get(key) ?? []), run]);
   });
-  const comparisons = [...groups.values()].flatMap((group) => {
-    const current = group[0],
-      previous = group[1];
-    if (!current || !previous) return [];
+  // The two latest completed runs of each procedure revision on each configuration baseline.
+  const pairs = [...groups.values()].flatMap((group) => {
+    const [current, previous] = group;
+    return current && previous ? [{ current, previous }] : [];
+  });
+  // Only the compared runs' step results and their procedure revisions' steps, read on the server
+  // with what a comparison shows: never every result and step in the workspace. No pair asks for
+  // nothing.
+  const results = useRows(
+    "step_results",
+    { test_run_id: idSet(pairs.flatMap(({ current, previous }) => [current.id, previous.id])) },
+    { columns: ["id", "test_run_id", "procedure_step_id", "determination"] },
+  );
+  const steps = useRows(
+    "procedure_steps",
+    { procedure_revision_id: idSet(pairs.map(({ current }) => current.procedure_revision_id)) },
+    { columns: ["id", "sequence_number", "instruction"] },
+  );
+  const comparisons = pairs.flatMap(({ current, previous }) => {
     const currentResults = (results.data ?? []).filter(
       (result) => result.test_run_id === current.id,
     );

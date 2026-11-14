@@ -8,7 +8,8 @@ import { QueryValue } from "@/components/prototype/library-shared";
 import { RecordLink, recordLink, useOpenRecord } from "@/components/prototype/record-preview";
 import { questionSearch } from "@/components/prototype/collection-question";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useMemo, type ReactNode } from "react";
+import type { UseQueryResult } from "@tanstack/react-query";
+import { createContext, useContext, useMemo, type ReactNode } from "react";
 import {
   Absent,
   Box,
@@ -37,8 +38,8 @@ import {
 import { FolderKanban, Plus, ShieldAlert } from "lucide-react";
 import {
   controlStatusShare,
-  useProgramControlStatus,
-  useProgramsControlStatus,
+  useProgramsControlStatusCounts,
+  type ControlStatusTotals,
 } from "@/lib/control-status";
 import {
   RECENT_ACTIVITY_EVENTS,
@@ -358,26 +359,35 @@ type ProgramRow = ServerRow<
   "code" | "name" | "status" | "last_activity_at"
 >;
 
+/** The rows' control status counts, read once for every row, for the cells to draw from. */
+const ProgramStandings = createContext<UseQueryResult<
+  ReadonlyMap<string, ControlStatusTotals>,
+  Error
+> | null>(null);
+
 /**
  * Where a program stands on its control baseline, in one line: the share an assessor found
  * satisfied, its last twelve days as a sparkline beside it once there are two, then every status
- * as its share of the baseline. The widget reads the same answers for its alert
- * (`useProgramsControlStatus`, and the rows' trends once, `ControlStatusTrends`), so this asks
- * nothing more.
+ * as its share of the baseline. The widget reads its rows' counts once, in one request
+ * (`useProgramsControlStatusCounts`, handed to the cells by `ProgramStandings`), and their trends
+ * once (`ControlStatusTrends`), with its alert, so this asks nothing more.
  */
 function ProgramControlStatusCell({ program }: { program: ProgramRow }) {
   const { formatNumber } = useLedgerLocale();
-  const status = useProgramControlStatus(program.id);
+  const standings = useContext(ProgramStandings);
+  const status = standings?.data?.get(program.id);
   return (
-    <QueryValue queries={[status]}>
+    <QueryValue queries={standings ? [standings] : []}>
       {() =>
-        status.data?.baseline ? (
+        !status ? (
+          <Absent label="Not available" />
+        ) : status.baseline ? (
           <Inline space="space.100" alignBlock="center" className="min-w-0">
-            <Text numeric>{formatNumber(controlStatusShare(status.data, "satisfied"))}%</Text>
-            <ControlStatusSparkline programId={program.id} status={status.data} />
+            <Text numeric>{formatNumber(controlStatusShare(status, "satisfied"))}%</Text>
+            <ControlStatusSparkline programId={program.id} status={status} />
             <ControlStatusTally
-              status={status.data}
-              label={`Control status of ${program.name}, ${formatNumber(status.data.total)} controls`}
+              status={status}
+              label={`Control status of ${program.name}, ${formatNumber(status.total)} controls`}
             />
           </Inline>
         ) : (
@@ -698,7 +708,8 @@ function Portfolio() {
       ]),
     [],
   );
-  const programControls = useProgramsControlStatus(
+  // The rows' control status counts, read once for all of them: each row's cell draws from them.
+  const programStandings = useProgramsControlStatusCounts(
     useMemo(() => programRows.map((row) => row.id), [programRows]),
   );
   // The rows' trends, read once for all of them: each row's sparkline draws from them.
@@ -862,46 +873,48 @@ function Portfolio() {
                 }}
                 onRowClick={(row) => openRecord("risks", row)}
               />
-              <ControlStatusTrends trend={programTrends}>
-                <Widget
-                  title="Recently updated programs"
-                  viewAll={
-                    <TextLink
-                      render={
-                        <Link
-                          to="/programs"
-                          search={questionSearch(registerViews.programs, everyRecord)}
-                        />
-                      }
-                    >
-                      View all programs
-                    </TextLink>
-                  }
-                  table={programTable}
-                  queries={[recentPrograms]}
-                  values={[...programControls.values(), programTrends]}
-                  retryLabel="Retry loading programs"
-                  empty={{
-                    title: "No programs yet",
-                    description: canCreate
-                      ? "Create a program to start building its assurance record."
-                      : "Programs appear here once someone in the workspace creates one.",
-                    size: "compact",
-                    icon: <FolderKanban />,
-                    action: canCreate ? (
-                      <LinkButton
-                        size="small"
-                        variant="primary"
-                        iconBefore={<Plus />}
-                        render={<Link to="/programs/new" />}
+              <ProgramStandings.Provider value={programStandings}>
+                <ControlStatusTrends trend={programTrends}>
+                  <Widget
+                    title="Recently updated programs"
+                    viewAll={
+                      <TextLink
+                        render={
+                          <Link
+                            to="/programs"
+                            search={questionSearch(registerViews.programs, everyRecord)}
+                          />
+                        }
                       >
-                        Create program
-                      </LinkButton>
-                    ) : undefined,
-                  }}
-                  onRowClick={(row) => openRecord("programs", row)}
-                />
-              </ControlStatusTrends>
+                        View all programs
+                      </TextLink>
+                    }
+                    table={programTable}
+                    queries={[recentPrograms]}
+                    values={[programStandings, programTrends]}
+                    retryLabel="Retry loading programs"
+                    empty={{
+                      title: "No programs yet",
+                      description: canCreate
+                        ? "Create a program to start building its assurance record."
+                        : "Programs appear here once someone in the workspace creates one.",
+                      size: "compact",
+                      icon: <FolderKanban />,
+                      action: canCreate ? (
+                        <LinkButton
+                          size="small"
+                          variant="primary"
+                          iconBefore={<Plus />}
+                          render={<Link to="/programs/new" />}
+                        >
+                          Create program
+                        </LinkButton>
+                      ) : undefined,
+                    }}
+                    onRowClick={(row) => openRecord("programs", row)}
+                  />
+                </ControlStatusTrends>
+              </ProgramStandings.Provider>
             </Stack>
             <Section title="Recent activity" className="min-w-0">
               <QueryState

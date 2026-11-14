@@ -1481,10 +1481,12 @@ const longPress = async (el: Element, ms = 650) => {
   el.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
 };
 
-/** What a press on the last row would open, so the play can tell a long press from a tap. */
+/** What a press on the overlay's row would open, so the play can tell a long press from a tap. */
 let overlayOpened = 0;
+/** How often the tailoring's link-styled name opened it. */
+let tailoringOpened = 0;
 
-/** A value that must be read whole wraps (`wrap`); a hash or URN inside it breaks anywhere as an `Id` with `break-all`, and a link in it wraps with the text. A heading that must be read whole wraps too, inside its sort button. A value its column cuts shows whole in the table's one tooltip, and only while it is cut: on hover, while the keyboard is on the cell or a link in it, and after a long press on a touch screen, which then opens nothing. Escape closes it. A cut heading shows whole the same way. */
+/** A value that must be read whole wraps (`wrap`); a hash or URN inside it breaks anywhere as an `Id` with `break-all`, and a link in it wraps with the text. A heading that must be read whole wraps too, inside its sort button. A value its column cuts shows whole in the table's one tooltip, and only while it is cut: on hover, while the keyboard is on the cell or a link in it, and after a long press on a touch screen, which then opens nothing. Escape closes it. A link-styled Button that names a record (`truncate`) keeps to the cut cell's one line and shows whole the same way. A cut heading shows whole the same way. */
 export const WrapAndTitles: Story = {
   name: "Wrapping and cut values",
   render: () => (
@@ -1540,6 +1542,19 @@ export const WrapAndTitles: Story = {
           <Table.Cell align="end">12</Table.Cell>
           <Table.Cell wrap>
             <Id className="break-all">urn:uuid:0d6f3a2e-9b14-4c7a-8f21-6e5b1a9c4d30</Id>
+          </Table.Cell>
+        </Table.Row>
+        <Table.Row>
+          <Table.Cell align="end">5</Table.Cell>
+          <Table.Cell>
+            {/* A record with no page of its own is named by a link-styled Button that opens it. */}
+            <Button variant="link" truncate onClick={() => (tailoringOpened += 1)}>
+              Space segment tailoring for the telemetry, tracking and command uplink
+            </Button>
+          </Table.Cell>
+          <Table.Cell align="end">9</Table.Cell>
+          <Table.Cell wrap>
+            <Id className="break-all">urn:uuid:3b9e2f41-7c05-4d8a-b6e3-91f0a2c4d857</Id>
           </Table.Cell>
         </Table.Row>
       </tbody>
@@ -1614,6 +1629,42 @@ export const WrapAndTitles: Story = {
     await waitFor(() => expect(cutReveal(overlayCell)).toBeNull());
     await userEvent.click(within(overlayCell.closest("tr")!).getByText("12"));
     await expect(overlayOpened).toBe(1);
+
+    // A record with no page of its own is named by a link-styled Button. In a cell that cuts its
+    // value it keeps to one line, as the cell's text does, and ends in an ellipsis; the table shows
+    // it whole on hover, from the keyboard and after a long press, which opens nothing.
+    const tailoringName = "Space segment tailoring for the telemetry, tracking and command uplink";
+    const tailoring = within(table).getByRole("button", { name: tailoringName });
+    const tailoringCell = tailoring.closest("td")!;
+    const tailoringWords = tailoring.querySelector<HTMLElement>('[data-slot="truncate"]')!;
+    await expect(textBox(tailoring).height).toBeLessThan(24);
+    await expect(getComputedStyle(tailoringWords).whiteSpace).toBe("nowrap");
+    await expect(getComputedStyle(tailoringWords).textOverflow).toBe("ellipsis");
+    await expect(tailoringWords.scrollWidth).toBeGreaterThan(tailoringWords.clientWidth);
+    await expect(along(tailoring).end).toBeLessThanOrEqual(along(tailoringCell).end + 0.5);
+    await userEvent.hover(tailoringCell);
+    await waitFor(() => expect(cutReveal(tailoringCell)).toHaveTextContent(tailoringName));
+    await userEvent.unhover(tailoringCell);
+    await waitFor(() => expect(cutReveal(tailoringCell)).toBeNull());
+    overlay.focus();
+    for (let i = 0; i < 6 && canvasElement.ownerDocument.activeElement !== tailoring; i++)
+      await userEvent.tab();
+    await expect(tailoring).toHaveFocus();
+    await waitFor(() => expect(cutReveal(tailoring)).toHaveTextContent(tailoringName));
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(cutReveal(tailoring)).toBeNull());
+    await expect(tailoring).toHaveFocus();
+    tailoring.blur();
+    tailoringOpened = 0;
+    await longPress(tailoring);
+    await waitFor(() => expect(cutReveal(tailoringCell)).toHaveTextContent(tailoringName));
+    await expect(tailoringOpened).toBe(0);
+    canvasElement.ownerDocument.body.dispatchEvent(
+      new PointerEvent("pointerdown", { bubbles: true, pointerType: "touch" }),
+    );
+    await waitFor(() => expect(cutReveal(tailoringCell)).toBeNull());
+    await userEvent.click(tailoring);
+    await expect(tailoringOpened).toBe(1);
 
     // A cut heading shows whole on hover; it is a heading, so it needs no title either.
     const cutHeading = within(table).getByRole("columnheader", {

@@ -53,6 +53,8 @@ export function RecordSummaryPreview<T extends { id: string }>({
   onEdit,
   recordActions,
   title,
+  noun: called,
+  defaultWidth,
 }: {
   model: TableName;
   record: T;
@@ -78,11 +80,18 @@ export function RecordSummaryPreview<T extends { id: string }>({
   recordActions?: ReactNode | undefined;
   /** The record's name, for a model with no name, title or code column ("Step 3"). */
   title?: ReactNode | undefined;
+  /**
+   * What the record is called, in place of the model's noun, where the screen names its records in
+   * the product's own words: the panel reads "Assessment results preview".
+   */
+  noun?: string | undefined;
+  /** The panel's width while the reader has not resized one: wide enough for a collection it holds. */
+  defaultWidth?: number | undefined;
 }) {
   const workspace = useWorkspace();
   const [editing, setEditing] = useState(false);
   const data = record as unknown as DataRecord;
-  const noun = productRecordNoun(model, data);
+  const noun = called ?? productRecordNoun(model, data);
   // The schema names the facts' kinds and the records their fields point at; it loads as the
   // preview opens.
   const schema = useCollection(model);
@@ -168,6 +177,7 @@ export function RecordSummaryPreview<T extends { id: string }>({
       <RecordPreviewPanel
         title={title ?? String(data["name"] ?? data["title"] ?? data["code"] ?? Noun)}
         label={`${Noun} preview`}
+        {...(defaultWidth ? { defaultWidth } : {})}
         onClose={onClose}
         recordActions={
           recordActions ??

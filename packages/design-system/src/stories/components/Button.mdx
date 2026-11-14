@@ -39,7 +39,7 @@ One primary per region: a page header, a dialog footer, a toolbar, a card. It is
 
 - **Name what happens, as a verb and its object:** “Create requirement revision”, “Export report”, “Remove allocation”. The trigger, the dialog's title and its primary use the same words.
 - **Never OK, Submit, Save or Yes alone.** A reader who lands on the button hears only its name.
-- **Sentence case, no end punctuation,** and short enough for one line: a label that needs to wrap is a sentence, and belongs in the region's text.
+- **Sentence case, no end punctuation,** and short enough for one line of a bounded button: a label that needs to wrap is a sentence, and belongs in the region's text. A `link` Button reads as text and wraps as text does (Long labels).
 - **The visible words are the name.** Do not put `aria-label` on a Button that shows text: a speech-input user says the words they see (WCAG 2.5.3, Label in Name). Add context with `aria-describedby` instead. A Button whose `aria-label` leaves out its visible text says so once in the console, with a message that starts “Ledger:”.
 - **Keep the label while loading.** Do not swap it for “Saving…”: `isLoading` keeps the name and the width, and `loadingLabel` says what is happening.
 
@@ -59,15 +59,19 @@ One primary per region: a page header, a dialog footer, a toolbar, a card. It is
 | `small`  | 28px   | Toolbars and rows.                      |
 | `xsmall` | 24px   | Dense inline actions.                   |
 
-The `link` variant has no fixed height and ignores `size`: it is as tall as its text. `iconBefore` and `iconAfter` take an icon element; Button sizes it to 14px and keeps a 6px gap. `isSelected` applies the selected palette and `aria-pressed`.
+The `link` variant has no fixed height and ignores `size`: it is as tall as its text, and it wraps as the text around it does. `iconBefore` and `iconAfter` take an icon element; Button sizes it to 14px and keeps a 6px gap. `isSelected` applies the selected palette and `aria-pressed`.
 
 The family shares one height axis: `xsmall` 24px, `small` 28px and `medium` 32px on Button, IconButton, LinkButton and LinkIconButton, and the icon-only two add `xxsmall`, the 20px row control. Button defaults to `medium` and IconButton to `small`, so an IconButton beside a default Button takes `size="medium"`. Toggle and ToggleGroup take the same words: `small` 28px, `medium` 32px, and `large`, a 36px step Button does not have. ButtonGroupText takes the `size` of the controls beside it.
 
 ## Long labels
 
-A label is short enough for one line in the slot it sits in; a longer one is a sentence and belongs in the region's text. For the one slot that cannot grow, such as a rail, a card's footer or a table cell, `truncate` lets the button narrow to its container and cuts the label with an ellipsis, its icons whole. The whole label stays the accessible name, and a tooltip shows it on hover and on keyboard focus while it is cut; with `disabledReason`, the reason's tooltip names the action. With `isFullWidth` the button fills the slot and cuts the label at its edge. Without `truncate`, a label never wraps or cuts.
+A label is short enough for one line in the slot it sits in; a longer one is a sentence and belongs in the region's text. For the one slot that cannot grow, such as a rail, a card's footer or a table cell, `truncate` lets the button narrow to its container and cuts the label with an ellipsis, its icons whole. The whole label stays the accessible name, and a tooltip shows it on hover and on keyboard focus while it is cut; with `disabledReason`, the reason's tooltip names the action. With `isFullWidth` the button fills the slot and cuts the label at its edge. Without `truncate`, a bounded button's label never wraps or cuts.
 
 <Canvas of={Stories.TruncatedLabel} />
+
+A `link` Button wraps like the text around it, as a [TextLink](?path=/docs/components-textlink--docs) does: it sets no `white-space` of its own. In a value narrower than its words, a next step in a rail's Details, its label goes on to the next line whole, its lines from the start, and its box is as tall as its lines: nothing is cut, it keeps its name, its touch area, its focus ring and, loading, its box. Where the text around it stays on one line, a table cell that cuts its value, it stays on one line too; a record's name there takes `truncate`, so it ends in an ellipsis and the table shows it whole on hover, on keyboard focus and after a long press ([Table](?path=/docs/components-table--docs), Wrapping and cut values). Its words still name one action: a sentence belongs in the region's text.
+
+<Canvas of={Stories.LinkWraps} />
 
 ## Loading and forms
 
@@ -117,7 +121,7 @@ Navigation is a [LinkButton](?path=/docs/components-linkbutton--docs): an anchor
 - A button that is unavailable but stays focusable (loading, `disabledReason` or `focusableWhenDisabled`) blocks activation only: Escape still reaches the panel, side nav or dialog around it.
 - In forced colours a primary, secondary or danger button keeps a ButtonText edge, a selected one is Highlight, and the spinner takes the text colour.
 - Use [IconButton](?path=/docs/components-iconbutton--docs) for an icon only action with a required accessible label, and [Toggle](?path=/docs/components-toggle--docs) for an on/off control.
-- `variant="link"` is as tall as its text. Where any pointer is coarse it takes an invisible hit area of at least 24px, centred on it, so nothing around it moves.
+- `variant="link"` is as tall as its text, its lines when it wraps. Where any pointer is coarse it takes an invisible hit area of at least 24px, centred on it, so nothing around it moves.
 
 <Canvas of={Stories.OnTouch} />
 

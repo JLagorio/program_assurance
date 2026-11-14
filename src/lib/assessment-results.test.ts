@@ -1,18 +1,26 @@
 import { describe, expect, it } from "vitest";
-import { args, fakeClient, uuid } from "./testing/fake-client";
+import { args, fakeClient, filter, uuid, type FakeCall } from "./testing/fake-client";
 
 const {
   CAMPAIGN_HAS_NO_RESULTS,
   CAMPAIGN_RESULTS_HOLD_NO_FINDING,
   CAMPAIGN_RESULTS_PUBLISHED,
   RESULTS_ANSWER_UNREADABLE,
+  RESULTS_EDIT_CHANGED,
+  RESULTS_EDIT_MISSING,
+  RESULTS_EDIT_NEEDS_TITLE,
+  RESULTS_EDIT_PUBLISHED,
+  RESULTS_FINDING_COLUMNS,
   RESULTS_NEED_FINDINGS,
   RESULTS_REVISION_MISSING,
   campaignResults,
   campaignResultsToPublish,
+  editAssessmentResults,
   newestResultsFirst,
   publishAssessmentResults,
+  resultsFindingRead,
 } = await import("./assessment-results");
+const { readServerPage } = await import("./server-table");
 
 const context = { tenantId: uuid(1), token: "token" };
 
@@ -192,5 +200,176 @@ describe("a campaign's results to publish", () => {
         [finding(20)],
       ),
     ).toEqual({ results: null, waits: CAMPAIGN_RESULTS_PUBLISHED });
+  });
+});
+
+describe("the findings a results revision holds", () => {
+  it("reads them a page at a time, scoped to the results, control by control", async () => {
+    const read = resultsFindingRead(uuid(20));
+    expect(read).toMatchObject({
+      source: "assessment_finding_rows",
+      model: "assessment_findings",
+      scope: { assessment_results_revision_id: uuid(20) },
+      search: ["title", "control_code"],
+    });
+    // What a row draws: the finding's name, its determination and the control it judges.
+    expect(read.columns).toEqual([...RESULTS_FINDING_COLUMNS]);
+    expect(read.columns).toEqual(["id", "title", "determination", "control_id", "control_code"]);
+    const { client, calls } = fakeClient(() => ({ data: [], error: null, count: 225 }));
+    const page = await readServerPage(client, context, read, { pageIndex: 1, pageSize: 25 });
+    expect(page.count).toBe(225);
+    expect(calls[0]?.table).toBe("assessment_finding_rows");
+    expect(filter(calls[0], "eq", "assessment_results_revision_id")).toBe(uuid(20));
+    // The catalog's reading order (AC-2 before AC-10, a statement before its objectives), then
+    // the title in a reader's order and the id: one place for every finding.
+    expect(args(calls[0], "order")).toEqual([
+      ["reading_order", { ascending: true, nullsFirst: false }],
+      ["title_order", { ascending: true, nullsFirst: false }],
+      ["id"],
+    ]);
+    expect(args(calls[0], "range")).toEqual([[25, 49]]);
+    // The Control column sorts in the catalog's order, the Determination column in the product's,
+    // and the determination filter asks for the values chosen.
+    await readServerPage(client, context, read, {
+      pageIndex: 0,
+      pageSize: 25,
+      sorting: [{ id: "control", desc: true }],
+      filters: [{ id: "determination", value: ["other_than_satisfied"] }],
+    });
+    expect(args(calls[1], "order")[0]).toEqual([
+      "reading_order",
+      { ascending: false, nullsFirst: true },
+    ]);
+    expect(args(calls[1], "in")).toEqual([["determination", ["other_than_satisfied"]]]);
+  });
+});
+
+describe("editing draft assessment results", () => {
+  const edit = {
+    id: uuid(20),
+    revision: 3,
+    title: "  Interim results — increment 2  ",
+    description: "  Determinations recorded since increment 1.  ",
+  };
+  const saved = {
+    state: "draft",
+    revision: 3,
+    title: "Interim results — expanded control set, increment 2",
+    description: null,
+  };
+  /** Answers the read with `current`, and the write with `written`. */
+  const answering =
+    (
+      current: unknown,
+      written: { data: unknown; error: { code?: string; message: string } | null },
+    ) =>
+    (call: FakeCall) =>
+      call.steps.some(([step]) => step === "update") ? written : { data: current, error: null };
+
+  it("writes the title and the description at the revision the reader opened, raised by one", async () => {
+    const { client, calls } = fakeClient(answering(saved, { data: { revision: 4 }, error: null }));
+    await expect(editAssessmentResults(client, context, edit)).resolves.toEqual({
+      outcome: "updated",
+      revision: 4,
+    });
+    expect(calls).toHaveLength(2);
+    expect(calls[0]!.table).toBe("assessment_results_revisions");
+    expect(filter(calls[0], "eq", "id")).toBe(uuid(20));
+    expect(filter(calls[0], "eq", "tenant_id")).toBe(uuid(1));
+    expect(args(calls[1], "update")).toEqual([
+      [
+        {
+          title: "Interim results — increment 2",
+          description: "Determinations recorded since increment 1.",
+          revision: 4,
+        },
+      ],
+    ]);
+    // Only at the revision the reader opened, and only while the results are a draft.
+    expect(filter(calls[1], "eq", "revision")).toBe(3);
+    expect(filter(calls[1], "eq", "state")).toBe("draft");
+    expect(filter(calls[1], "eq", "tenant_id")).toBe(uuid(1));
+    expect(args(calls[1], "setHeader")).toEqual([["Authorization", "Bearer token"]]);
+  });
+
+  it("writes nothing when the results already hold what the reader wrote", async () => {
+    const { client, calls } = fakeClient(
+      answering(
+        {
+          ...saved,
+          revision: 4,
+          title: "Interim results — increment 2",
+          description: "Determinations recorded since increment 1.",
+        },
+        { data: null, error: { message: "not expected" } },
+      ),
+    );
+    // A save sent again after an answer that was lost finds them already so.
+    await expect(editAssessmentResults(client, context, edit)).resolves.toEqual({
+      outcome: "unchanged",
+      revision: 4,
+    });
+    expect(calls).toHaveLength(1);
+    // An empty description is no description.
+    const blank = fakeClient(answering({ ...saved, title: "Kept" }, { data: null, error: null }));
+    await expect(
+      editAssessmentResults(blank.client, context, { ...edit, title: "Kept", description: "  " }),
+    ).resolves.toMatchObject({ outcome: "unchanged" });
+  });
+
+  it("refuses results published, changed since they were opened, or gone, in the reader's words", async () => {
+    for (const [current, said] of [
+      [{ ...saved, state: "published" }, RESULTS_EDIT_PUBLISHED],
+      [{ ...saved, revision: 4 }, RESULTS_EDIT_CHANGED],
+      [null, RESULTS_EDIT_MISSING],
+    ] as const) {
+      const { client, calls } = fakeClient(
+        answering(current, { data: { revision: 9 }, error: null }),
+      );
+      await expect(editAssessmentResults(client, context, edit)).rejects.toThrow(said);
+      expect(calls).toHaveLength(1);
+    }
+  });
+
+  it("says why when another session got there between the read and the write", async () => {
+    for (const [written, said] of [
+      // No row at that revision and still a draft any more.
+      [{ data: null, error: null }, RESULTS_EDIT_CHANGED],
+      [
+        {
+          data: null,
+          error: { code: "PT409", message: "Record revision conflict; reload before saving" },
+        },
+        RESULTS_EDIT_CHANGED,
+      ],
+      [
+        {
+          data: null,
+          error: {
+            code: "23514",
+            message: "Published revisions are immutable; create a new draft revision",
+          },
+        },
+        RESULTS_EDIT_PUBLISHED,
+      ],
+      [
+        {
+          data: null,
+          error: { code: "42501", message: "new row violates row-level security policy" },
+        },
+        "new row violates row-level security policy.",
+      ],
+    ] as const) {
+      const { client } = fakeClient(answering(saved, written));
+      await expect(editAssessmentResults(client, context, edit)).rejects.toThrow(said);
+    }
+  });
+
+  it("sends nothing for a blank title", async () => {
+    const { client, calls } = fakeClient(answering(saved, { data: { revision: 4 }, error: null }));
+    await expect(editAssessmentResults(client, context, { ...edit, title: "   " })).rejects.toThrow(
+      RESULTS_EDIT_NEEDS_TITLE,
+    );
+    expect(calls).toHaveLength(0);
   });
 });

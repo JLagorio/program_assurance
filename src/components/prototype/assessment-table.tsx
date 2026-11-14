@@ -92,9 +92,15 @@ export function AssessmentTable<T extends { id: string }>({
   sort,
   compact,
   actionVariant,
+  noun: called,
 }: {
   rows: T[];
   model?: TableName | undefined;
+  /**
+   * What a record is called, one and several, in place of the model's noun, where the screen names
+   * its records in the product's own words: "Could not load assessment results".
+   */
+  noun?: { one: string; other: string } | undefined;
   selectedId?: string | undefined;
   onDisplayedRowsChange?: ((rows: T[]) => void) | undefined;
   columns: AssessmentColumn<T>[];
@@ -295,7 +301,7 @@ export function AssessmentTable<T extends { id: string }>({
     [model, openPreview, activeId],
   );
   const primaryColumn = columns[primaryIndex];
-  const noun = model ? productRecordNoun(model) : label.toLowerCase();
+  const noun = called?.one ?? (model ? productRecordNoun(model) : label.toLowerCase());
   // A row's name as the reader sees it ("Step 2", the title), never its id.
   const nameOf = (record: T) => {
     const drawn = primaryColumn?.value?.(record);
@@ -330,7 +336,7 @@ export function AssessmentTable<T extends { id: string }>({
         {...(sort === undefined ? {} : { sort })}
         noun={{
           one: noun,
-          other: model ? productCollectionNoun(model) : label.toLowerCase(),
+          other: called?.other ?? (model ? productCollectionNoun(model) : label.toLowerCase()),
         }}
         onRowClick={
           model
@@ -356,6 +362,7 @@ export function AssessmentTable<T extends { id: string }>({
       {preview && model && !onPreview && (
         <RecordSummaryPreview
           model={model}
+          {...(called ? { noun: called.one } : {})}
           readOnly={readOnly}
           onEdit={onEdit ? () => onEdit(byId.get(preview.id) ?? preview) : undefined}
           record={byId.get(preview.id) ?? preview}

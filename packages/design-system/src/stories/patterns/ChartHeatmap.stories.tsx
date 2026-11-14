@@ -661,6 +661,130 @@ export const Details: Story = {
   },
 };
 
+/** The open findings of the grouped grid, by element and family. */
+const openFindings: Record<string, Record<string, number>> = {
+  "Space segment": { AC: 3, AU: 5, IA: 0, SC: 2 },
+  "Flight computer": { AC: 1, AU: 2, IA: 0, SC: 2 },
+  "Payload controller": { AC: 2, AU: 3, IA: 0, SC: 0 },
+  "Ground segment": { AC: 4, AU: 1, IA: 2, SC: 0 },
+  "Mission operations": { AC: 4, AU: 0, IA: 1, SC: 0 },
+  "Key management": { AC: 0, AU: 1, IA: 1, SC: 0 },
+};
+
+/** The element in the colour the page draws it in: its text, or a number's own span. */
+const ink = (face: HTMLElement) =>
+  getComputedStyle(face.querySelector<HTMLElement>("span:not(.sr-only)") ?? face).color;
+/** A colour's alpha, as the browser writes a computed colour. */
+const alphaOf = (color: string) =>
+  Number((/\/\s*([\d.]+)\s*\)$/.exec(color) ?? /rgba\([^)]*,\s*([\d.]+)\)$/.exec(color))?.[1] ?? 1);
+
+/** With a cell's card open the other cells step back: their fills and edges at `opacity.disabled`, their numbers in their own colour, so each still reads at 4.5:1 (the card stays open here, so the accessibility run checks that state in both modes and in forced colours). A status cell shows its tone's subtle fill under the tone's text, whatever its emphasis; a total keeps its colour and weight. In forced colours the fills stay whole and the open cell's ring says which it is. Each cell that opens a card is its whole slot, the cell and the gap after it, so at `small` it is a 24px target, and its ring sits around the cell. */
+export const CardOpen: Story = {
+  name: "Card open",
+  render: () => (
+    <Chart title="Open findings by element and family" description="Choose a cell for its findings">
+      <Stack space="space.150">
+        <Chart.Heatmap
+          rows={Object.keys(openFindings)}
+          columns={["AC", "AU", "IA", "SC"]}
+          value={(row, column) => openFindings[row]?.[column]}
+          scale={(value, row, column) =>
+            row === "Payload controller" && column === "AU"
+              ? { tone: "danger", emphasis: "bold" }
+              : value >= 3
+                ? "danger"
+                : value === 2
+                  ? "warning"
+                  : "neutral"
+          }
+          rowLevel={(row) => (row.endsWith("segment") ? 0 : 1)}
+          summary={(row) => row.endsWith("segment")}
+          zeroStep
+          size="small"
+          label="Open findings by element and family"
+          rowLabel="Element"
+          columnLabel="Family"
+          details={(s) => (
+            <Stack space="space.150">
+              <Text size="small">
+                {s.value} open findings of {s.column} on {s.row}
+              </Text>
+              <Button size="small" variant="secondary">
+                Open the register
+              </Button>
+            </Stack>
+          )}
+        />
+        <Chart.Scale
+          scale="status"
+          steps={[
+            { tone: "neutral", label: "Low" },
+            { tone: "warning", label: "Moderate" },
+            { tone: "danger", label: "High" },
+            { tone: "danger", emphasis: "bold", label: "Critical" },
+          ]}
+        />
+      </Stack>
+    </Chart>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const page = within(canvasElement.ownerDocument.body);
+    const grid = canvas.getByRole("table", { name: "Open findings by element and family" });
+    const face = (title: string) => within(grid).getByTitle(title);
+    const forced = matchMedia("(forced-colors: active)").matches;
+    // Every cell that opens a card is its whole slot: 24px tall at `small`, edge to edge.
+    for (const cell of within(grid).getAllByRole("button")) {
+      const box = cell.getBoundingClientRect();
+      await expect(box.height).toBeGreaterThanOrEqual(24);
+      await expect(box.width).toBeGreaterThanOrEqual(24);
+    }
+    const total = face("Space segment, AU: 5");
+    const high = face("Mission operations, AC: 4");
+    const critical = face("Payload controller, AU: 3");
+    const before = { total: ink(total), high: ink(high), critical: ink(critical) };
+    const criticalFill = getComputedStyle(critical).backgroundColor;
+    // Open the card of a cell under the totals: it covers the cells around it, as on a page.
+    const chosen = within(grid).getByRole("button", { name: "Flight computer, AC: 1" });
+    await userEvent.click(chosen);
+    const dialog = await page.findByRole("dialog", {
+      name: "Open findings by element and family, details",
+    });
+    await waitFor(() =>
+      expect(within(dialog).getByRole("button", { name: "Open the register" })).toHaveFocus(),
+    );
+    await expect(chosen).toHaveAttribute("aria-expanded", "true");
+    // The open cell keeps its fill and wears the ring, around the cell and not its gap.
+    const chosenFace = chosen.querySelector<HTMLElement>('[data-slot="chart-heatmap-cell"]')!;
+    await expect(chosenFace).not.toHaveAttribute("data-dimmed");
+    const ring = getComputedStyle(chosen, "::after");
+    await expect(ring.outlineStyle).toBe("solid");
+    await expect(parseFloat(ring.width)).toBeCloseTo(chosenFace.getBoundingClientRect().width, 0);
+    await expect(parseFloat(ring.height)).toBeCloseTo(chosenFace.getBoundingClientRect().height, 0);
+    // Every other cell steps back by its fill alone: the cell itself stays opaque.
+    const others = Array.from(
+      grid.querySelectorAll<HTMLElement>('[data-slot="chart-heatmap-cell"]'),
+    ).filter((cell) => cell !== chosenFace);
+    for (const cell of others) {
+      await expect(cell).toHaveAttribute("data-dimmed");
+      await expect(getComputedStyle(cell).opacity).toBe("1");
+    }
+    // The numbers keep their colour: a total its text colour, a status its tone's text. The
+    // critical cell's number takes the tone's text over the tone's subtle fill, as High's does.
+    await expect(ink(total)).toBe(before.total);
+    await expect(ink(high)).toBe(before.high);
+    await expect(ink(critical)).toBe(ink(high));
+    await expect(getComputedStyle(critical).backgroundColor).not.toBe(criticalFill);
+    // The fills fade, except in forced colours, where they stay whole over the system colours.
+    const highFill = alphaOf(getComputedStyle(high).backgroundColor);
+    if (forced) await expect(highFill).toBe(1);
+    else await expect(highFill).toBeLessThan(1);
+    // Still 24px targets while the card covers some of them.
+    for (const cell of within(grid).getAllByRole("button"))
+      await expect(cell.getBoundingClientRect().height).toBeGreaterThanOrEqual(24);
+  },
+};
+
 /** Where a register reads its question from the address. */
 const riskRegister = (likelihood: string, impact: string) =>
   `#risks?likelihood=${encodeURIComponent(likelihood)}&impact=${encodeURIComponent(impact)}`;

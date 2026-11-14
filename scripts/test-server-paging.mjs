@@ -2,11 +2,12 @@
 /**
  * Server-paged registers: the catalog's CCIs and Controls, a program's Requirements tab, the risk
  * register, operational issues, observations, assessment findings, system assets, unrolled
- * findings, evidence, My work and the Assessment campaigns page's Objectives read one page at a time
- * from the server, which pages, sorts (a derived column too), filters, searches and counts the whole
- * result; the question lives in the address, where the Portfolio's tiles ask it; saved views count
- * the whole register; and a preview counts the whole result and steps across a page edge. Every
- * register's records are seeded in the run's own disposable workspace.
+ * findings, evidence, My work, the Assessment campaigns page's Objectives and a campaign record's
+ * Objectives read one page at a time from the server, which pages, sorts (a derived column too),
+ * filters, searches and counts the whole result; the question lives in the address, where the
+ * Portfolio's tiles ask it; saved views count the whole register; and a preview counts the whole
+ * result and steps across a page edge. Every register's records are seeded in the run's own
+ * disposable workspace.
  */
 import assert from "node:assert/strict";
 import { mkdir, mkdtemp, readFile } from "node:fs/promises";
@@ -381,6 +382,21 @@ try {
     })),
   );
   await publish("assessment_plan_revisions", plan);
+  // The campaign's second plan, a draft, with two objectives: its record lists them before the
+  // first plan's, the newest plan first (Paging retest 2 before Paging retest 10).
+  const [retestPlan] = await insert("assessment_plan_revisions", {
+    campaign_id: campaign.id,
+    ssp_revision_id: ssp.id,
+    version_number: 2,
+    title: "Paging retest plan",
+  });
+  const retestObjectives = await insert(
+    "assessment_objectives",
+    ["Paging retest 10", "Paging retest 2"].map((title) => ({
+      plan_revision_id: retestPlan.id,
+      title,
+    })),
+  );
   const [otherCampaign] = await insert("assessment_campaigns", {
     program_id: program.id,
     title: "Another paging campaign",
@@ -398,12 +414,12 @@ try {
       title,
     })),
   );
-  // The register's own order: each campaign's objectives together by its title, then by theirs.
+  // The register's own order: each campaign's objectives together by its title, the newest plan
+  // first, then by theirs. The paging campaign's record lists its own in the same order.
   const byNumber = new Intl.Collator("en", { numeric: true });
-  const objectiveOrder = [
-    ...[...otherObjectives].sort((a, b) => byNumber.compare(a.title, b.title)),
-    ...[...pagingObjectives].sort((a, b) => byNumber.compare(a.title, b.title)),
-  ];
+  const byTitle = (list) => [...list].sort((a, b) => byNumber.compare(a.title, b.title));
+  const campaignObjectiveOrder = [...byTitle(retestObjectives), ...byTitle(pagingObjectives)];
+  const objectiveOrder = [...byTitle(otherObjectives), ...campaignObjectiveOrder];
   const [results] = await insert("assessment_results_revisions", {
     assessment_plan_revision_id: plan.id,
     version_number: 1,
@@ -1162,7 +1178,22 @@ try {
     reads.some((url) => url.pathname.endsWith("/rest/v1/program_activity")),
     "Recently updated programs reads the programs' last activity",
   );
+  // Its Controls satisfied column reads the rows' control status counts in one request, never a
+  // program's whole control status (every control of its baseline) once a row.
+  await expect
+    .poll(
+      () =>
+        reads.filter((url) => url.pathname.endsWith("/rest/v1/rpc/program_control_status_counts"))
+          .length,
+    )
+    .toBeGreaterThan(0);
+  assert.equal(
+    reads.filter((url) => url.pathname.endsWith("/rest/v1/rpc/program_control_status")).length,
+    0,
+    "Recently updated programs reads no program's whole control status",
+  );
   console.log("PASS the Portfolio's tiles count on the server, and its programs rank by activity");
+  console.log("PASS Recently updated programs reads its rows' control status counts alone");
   await issueTile.click();
   await expect(range(issueLabel)).toContainText(`1–${PAGE} of ${number(openIssues)}`);
   await expect(rows(issueTable)).toHaveCount(PAGE);
@@ -1524,9 +1555,11 @@ try {
   await expect(rows(objectiveTable)).toHaveCount(PAGE);
   await expect
     .poll(async () => (await rowIds(objectiveTable))[0])
-    .toBe(pagingObjectives.map((row) => row.id).sort()[0]);
+    .toBe(campaignObjectiveOrder.map((row) => row.id).sort()[0]);
   assert.ok(
-    (await rowIds(objectiveTable)).every((id) => pagingObjectives.some((row) => row.id === id)),
+    (await rowIds(objectiveTable)).every((id) =>
+      campaignObjectiveOrder.some((row) => row.id === id),
+    ),
     "The first page holds the paging campaign's objectives",
   );
   console.log("PASS Objectives sort by campaign on the server across every page");
@@ -1554,6 +1587,89 @@ try {
   );
   assert.equal(exportedObjectives.length, otherObjectives.length, "The export holds the result");
   console.log("PASS Objectives filter by campaign on the server, and Export writes the result");
+
+  // ——— A campaign record's Objectives: its own, a page at a time, the newest plan first ————————
+  const campaignTotal = campaignObjectiveOrder.length;
+  reads.length = 0;
+  counts.length = 0;
+  await fresh(`/campaigns/${campaign.id}?tab=Execution`);
+  await expect(rows(objectiveTable)).toHaveCount(PAGE);
+  await expect(range(objectiveLabel)).toContainText(`1–${PAGE} of ${campaignTotal}`);
+  expectPagedReads("assessment_objective_rows");
+  assert.ok(
+    reads
+      .filter((url) => url.pathname.endsWith("/rest/v1/assessment_objective_rows"))
+      .every((url) => url.searchParams.get("campaign_id") === `eq.${campaign.id}`),
+    "The record reads its own campaign's objectives",
+  );
+  expectNoBaseReads(
+    ["assessment_objectives"],
+    "The record reads the objectives' view a page at a time, not the objectives behind it",
+  );
+  // The Section counts the campaign's objectives on the server, with no rows.
+  await expect(
+    page
+      .locator('[data-slot="section"]')
+      .filter({ has: page.getByRole("heading", { name: objectiveLabel, exact: true }) })
+      .locator('[data-slot="count"]')
+      .first(),
+  ).toHaveText(String(campaignTotal));
+  assert.ok(
+    counts.some(
+      (url) =>
+        url.pathname.endsWith("/rest/v1/assessment_objective_rows") &&
+        url.searchParams.get("campaign_id") === `eq.${campaign.id}`,
+    ),
+    "The Section's count is the server's",
+  );
+  // The newest plan's first, then each plan's by title: Paging retest 2 before 10, objective 2
+  // before 10.
+  assert.deepEqual(
+    await rowIds(objectiveTable),
+    campaignObjectiveOrder.slice(0, PAGE).map((row) => row.id),
+  );
+  await expect(objectiveTable.getByRole("columnheader", { name: /^Target/ })).toBeVisible();
+  console.log(
+    `PASS a campaign record's Objectives read one page of ${PAGE} of its ${campaignTotal}, the newest plan first`,
+  );
+
+  // Its preview counts the campaign's objectives and steps across the page edge both ways, and
+  // its Edit opens the objective's form, with its workspace in the row.
+  await eye(objectiveTable, campaignObjectiveOrder[PAGE - 1].id).click();
+  await expect(status()).toHaveText(
+    `${campaignObjectiveOrder[PAGE - 1].title}, ${PAGE} of ${campaignTotal} records`,
+  );
+  await step("Next record").click();
+  await expect(status()).toHaveText(
+    `${campaignObjectiveOrder[PAGE].title}, ${PAGE + 1} of ${campaignTotal} records`,
+  );
+  await expect.poll(() => question().get(`campaign-objectives-${campaign.id}.page`)).toBe("2");
+  await expect(eye(objectiveTable, campaignObjectiveOrder[PAGE].id)).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  await expect(step("Next record")).toBeFocused();
+  await panel().getByRole("button", { name: "Edit assessment objective", exact: true }).click();
+  const objectiveDialog = page.getByRole("dialog", { name: "Edit assessment objective" });
+  await expect(objectiveDialog.getByRole("textbox", { name: /^Title/ })).toHaveValue(
+    campaignObjectiveOrder[PAGE].title,
+  );
+  await objectiveDialog.getByRole("button", { name: "Cancel", exact: true }).click();
+  await expect(objectiveDialog).toHaveCount(0);
+  await step("Previous record").click();
+  await expect(status()).toHaveText(
+    `${campaignObjectiveOrder[PAGE - 1].title}, ${PAGE} of ${campaignTotal} records`,
+  );
+  await escapePreview();
+  // A search is the server's, over what a row shows: the plan's title finds its two.
+  await page.getByRole("searchbox", { name: "Find objectives", exact: true }).fill("retest plan");
+  await expect(rows(objectiveTable)).toHaveCount(retestObjectives.length);
+  await expect
+    .poll(() => question().get(`campaign-objectives-${campaign.id}.q`))
+    .toBe("retest plan");
+  console.log(
+    "PASS a campaign record's Objective preview steps across the page edge, and its search is the server's",
+  );
 
   // ——— My work: the reader's tasks, everyone's, nobody's and Avery's, from the server ————————
   const taskLabel = "Tasks";

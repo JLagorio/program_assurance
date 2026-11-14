@@ -81,6 +81,20 @@ do $$ begin
     or not has_function_privilege('authenticated', 'public.program_control_objective_judgments(uuid, uuid[])', 'execute') then
     raise exception 'program_control_objective_judgments is not a signed-in member''s read';
   end if;
+  -- The coverage both reads count from, and the counts of a few programs: a member's, as themselves.
+  if has_function_privilege('anon', 'public.program_control_coverage(uuid, uuid[])', 'execute')
+    or has_function_privilege('public', 'public.program_control_coverage(uuid, uuid[])', 'execute')
+    or not has_function_privilege('authenticated', 'public.program_control_coverage(uuid, uuid[])', 'execute')
+    or has_function_privilege('anon', 'public.program_control_status_counts(uuid[])', 'execute')
+    or has_function_privilege('public', 'public.program_control_status_counts(uuid[])', 'execute')
+    or not has_function_privilege('authenticated', 'public.program_control_status_counts(uuid[])', 'execute') then
+    raise exception 'program_control_coverage or program_control_status_counts is not a signed-in member''s read';
+  end if;
+  if exists (select 1 from pg_catalog.pg_proc p where p.prosecdef and p.oid in (
+      'public.program_control_coverage(uuid, uuid[])'::regprocedure,
+      'public.program_control_status_counts(uuid[])'::regprocedure)) then
+    raise exception 'The coverage or the counts read does not run as its caller';
+  end if;
 end $$;
 
 insert into auth.users(id, email, raw_user_meta_data) values
@@ -114,6 +128,35 @@ set local role authenticated;
 select set_config('request.jwt.claim.sub', 'c5700000-0000-0000-0000-000000000002', true);
 select set_config('test.other_tenant', public.ensure_personal_tenant()::text, true);
 select pg_temp.expect_error($$select public.program_control_status('c5710000-0000-0000-0000-000000000001')$$, '42501');
+select set_config('request.jwt.claim.sub', 'c5700000-0000-0000-0000-000000000001', true);
+
+-- The counts of a few programs say the same of a program with no control baseline: nothing
+-- stands. They refuse the same readers, a list with no program or a program left unnamed, never
+-- answering a program as having no baseline, and more than 100 programs at once; a program named
+-- twice is answered once.
+do $$
+declare v_rows jsonb;
+begin
+  select jsonb_agg(to_jsonb(c)) into v_rows
+  from public.program_control_status_counts(array['c5710000-0000-0000-0000-000000000001'::uuid,
+    'c5710000-0000-0000-0000-000000000001'::uuid]) c;
+  if v_rows <> '[{"program_id": "c5710000-0000-0000-0000-000000000001", "baseline": false, "controls": 0, "no_requirement": 0, "no_evidence": 0, "not_assessed": 0, "other_than_satisfied": 0, "partially_satisfied": 0, "satisfied": 0}]'::jsonb then
+    raise exception 'The counts of a program with no baseline read %', v_rows;
+  end if;
+end $$;
+select pg_temp.expect_error($$select * from public.program_control_status_counts(array['c5710000-0000-0000-0000-00000000dead'::uuid])$$, '42501');
+select pg_temp.expect_error($$select * from public.program_control_status_counts(array['c5710000-0000-0000-0000-000000000001'::uuid, 'c5710000-0000-0000-0000-00000000dead'::uuid])$$, '42501');
+select pg_temp.expect_error($$select * from public.program_control_status_counts(array['c5710000-0000-0000-0000-000000000001'::uuid, null])$$, '42501');
+select pg_temp.expect_error($$select * from public.program_control_status_counts(null)$$, '42501');
+select pg_temp.expect_error($$select * from public.program_control_status_counts(array_fill('c5710000-0000-0000-0000-000000000001'::uuid, array[101]))$$, '22023');
+select set_config('request.jwt.claim.sub', '', true);
+select pg_temp.expect_error($$select * from public.program_control_status_counts(array['c5710000-0000-0000-0000-000000000001'::uuid])$$, '42501');
+set local role anon;
+select pg_temp.expect_error($$select * from public.program_control_status_counts(array['c5710000-0000-0000-0000-000000000001'::uuid])$$, '42501');
+set local role authenticated;
+select set_config('request.jwt.claim.sub', 'c5700000-0000-0000-0000-000000000002', true);
+select pg_temp.expect_error($$select * from public.program_control_status_counts(array['c5710000-0000-0000-0000-000000000001'::uuid])$$, '42501');
+select pg_temp.expect_error($$select * from public.program_control_coverage('c5710000-0000-0000-0000-000000000001', array[]::uuid[])$$, '42501');
 select set_config('request.jwt.claim.sub', 'c5700000-0000-0000-0000-000000000001', true);
 
 -- The read of one control's objectives refuses the same readers, and a control left unnamed. A
@@ -1680,6 +1723,38 @@ begin
   end if;
   perform set_config('request.jwt.claim.sub', 'c5700000-0000-0000-0000-000000000001', true);
   raise notice 'The checks of the latest determination ran against the pinned references';
+end $$;
+
+-- ---------------------------------------------------------------------------------------------
+-- The counts of a few programs (program_control_status_counts), as the Portfolio reads them: every
+-- program of the workspace in one request, one row each in id order, each with the counts the
+-- status says in its totals and whether it records a baseline. With the pinned references, that
+-- is every program this file set up, each at its last step.
+-- ---------------------------------------------------------------------------------------------
+do $$
+declare v_programs uuid[]; v_row record; v_answer jsonb; v_seen integer := 0;
+begin
+  select array_agg(p.id order by p.id) into v_programs
+  from public.programs p where p.tenant_id = current_setting('test.tenant')::uuid;
+  for v_row in select * from public.program_control_status_counts(v_programs || v_programs[1]) loop
+    v_seen := v_seen + 1;
+    if v_row.program_id <> v_programs[v_seen] then
+      raise exception 'The counts answered % in place of %', v_row.program_id, v_programs[v_seen];
+    end if;
+    v_answer := public.program_control_status(v_row.program_id);
+    if v_row.baseline is distinct from (v_answer->>'baseline')::boolean
+      or jsonb_build_object('controls', v_row.controls, 'satisfied', v_row.satisfied,
+        'partially_satisfied', v_row.partially_satisfied, 'other_than_satisfied', v_row.other_than_satisfied,
+        'not_assessed', v_row.not_assessed, 'no_evidence', v_row.no_evidence,
+        'no_requirement', v_row.no_requirement) <> v_answer->'totals' then
+      raise exception 'The counts of % read % where the status totals read %', v_row.program_id,
+        to_jsonb(v_row), v_answer->'totals';
+    end if;
+  end loop;
+  if v_seen <> cardinality(v_programs) then
+    raise exception 'The counts answered % programs of %', v_seen, cardinality(v_programs);
+  end if;
+  raise notice 'The counts read the status''s totals for % programs', v_seen;
 end $$;
 
 reset role;

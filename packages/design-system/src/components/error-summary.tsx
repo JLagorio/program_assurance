@@ -141,7 +141,7 @@ export function ErrorSummary({
                 <Button
                   type="button"
                   variant="link"
-                  className="h-auto whitespace-normal text-start text-danger underline"
+                  className="text-danger underline"
                   onClick={(event) => {
                     issue.onSelect?.();
                     focusIssue(issue, event.currentTarget.ownerDocument);

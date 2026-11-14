@@ -4,20 +4,24 @@ import { Absent, DateTime, Person, Prose, Section, useLedgerLocale } from "@ledg
 import { useWorkspace } from "@/components/app/workspace";
 import { useCampaignResults, type CampaignResults as Results } from "@/lib/assessment-results";
 import { idSet, useRows } from "@/lib/models";
+import { assessmentResultsWords } from "@/lib/product-records";
 import { revisionStates } from "@/lib/status";
 import { AssessmentTable, type AssessmentColumn } from "./assessment-table";
+import { ResultsMoreActions } from "./edit-results";
 import { usePublishResults } from "./publish-results";
 import { PublishResultsAction } from "./publish-results-action";
 import { RecordSummaryPreview, type RecordSummaryField } from "./record-summary-preview";
 import { RelationName } from "./record-tools";
+import { ResultsFindings } from "./results-findings";
 
 /*
  * A campaign's Assessment results: every results revision of its plans, newest first, with its
  * state, how many findings it holds, who published it and when. The campaign's Actions menu
  * publishes the newest draft that holds a finding, which this list shows. A results revision has
- * no page of its own, so its name opens its preview beside the page: the summary of its facts,
- * whose one primary, for a draft and a reader who may write, is the Review queue's Publish
- * assessment results.
+ * no page of its own, so its name opens its preview beside the page, Assessment results preview:
+ * the summary of its facts, then the findings it holds. For a draft and a reader who may write,
+ * its one primary is the Review queue's Publish assessment results, and its overflow menu offers
+ * Edit assessment results.
  */
 
 /** A results revision as the section lists it: the person who published it by name. */
@@ -71,7 +75,14 @@ const columns: AssessmentColumn<ResultsRow>[] = [
   },
 ];
 
-export function CampaignResults({ campaignId }: { campaignId: string }) {
+export function CampaignResults({
+  campaignId,
+  programId,
+}: {
+  campaignId: string;
+  /** The campaign's program, whose record of each control a finding's control opens. */
+  programId: string;
+}) {
   const { rows: results, queries } = useCampaignResults(campaignId);
   // The people who published, by name, so the column sorts and finds them by it.
   const publisherIds = useMemo(
@@ -101,6 +112,9 @@ export function CampaignResults({ campaignId }: { campaignId: string }) {
       <AssessmentTable
         queries={[...queries, parties]}
         model="assessment_results_revisions"
+        // A results revision is "assessment results", one and several: "Could not load assessment
+        // results", never "assessment results revisions".
+        noun={assessmentResultsWords}
         compact
         label="Assessment results"
         rows={rows}
@@ -119,6 +133,7 @@ export function CampaignResults({ campaignId }: { campaignId: string }) {
           // The list's copy, once a publication or a refresh reads it again.
           record={rows.find((row) => row.id === preview.id) ?? preview}
           rows={displayed}
+          programId={programId}
           onSelect={setPreview}
           onClose={() => setPreview(null)}
         />
@@ -129,19 +144,21 @@ export function CampaignResults({ campaignId }: { campaignId: string }) {
 
 /**
  * A results revision beside the campaign: its state, version, findings, who published it and when,
- * the plan it belongs to and what its author wrote, with previous and next through the list. A
- * draft offers Publish assessment results to a reader who may write; once a draft shown here is
- * published, here or in another session, the action keeps its place and says why it no longer
- * runs, so focus stays on it.
+ * the plan it belongs to and what its author wrote, then the findings it holds, with previous and
+ * next through the list. A draft offers Publish assessment results to a reader who may write, and
+ * Edit assessment results in its overflow menu; once a draft shown here is published, here or in
+ * another session, both keep their place and say why they no longer run, so focus stays on them.
  */
 function ResultsPreview({
   record,
   rows,
+  programId,
   onSelect,
   onClose,
 }: {
   record: ResultsRow;
   rows: ResultsRow[];
+  programId: string;
   onSelect: (row: ResultsRow) => void;
   onClose: () => void;
 }) {
@@ -177,6 +194,11 @@ function ResultsPreview({
     <>
       <RecordSummaryPreview
         model="assessment_results_revisions"
+        // "Assessment results preview", as the vocabulary names a results revision.
+        noun={assessmentResultsWords.one}
+        // As wide as the record's other previews, so the findings it lists keep their
+        // determination and control in the row.
+        defaultWidth={640}
         record={record}
         rows={rows}
         onSelect={onSelect}
@@ -184,11 +206,14 @@ function ResultsPreview({
         readOnly
         recordActions={
           offered ? (
-            <PublishResultsAction
-              key={record.id}
-              results={{ id: record.id, title: record.title, findings: record.findings }}
-              onPublish={publish.ask}
-            />
+            <>
+              <PublishResultsAction
+                key={record.id}
+                results={{ id: record.id, title: record.title, findings: record.findings }}
+                onPublish={publish.ask}
+              />
+              <ResultsMoreActions key={`more-${record.id}`} resultsId={record.id} />
+            </>
           ) : undefined
         }
         fields={fields}
@@ -196,6 +221,7 @@ function ResultsPreview({
         {record.description?.trim() ? (
           <Prose label="Description">{record.description}</Prose>
         ) : null}
+        <ResultsFindings key={record.id} resultsId={record.id} programId={programId} />
       </RecordSummaryPreview>
       {publish.confirmation}
     </>

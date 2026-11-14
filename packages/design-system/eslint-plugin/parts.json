@@ -740,8 +740,7 @@
         "shrink": ["shrink-0"],
         "transition": ["transition-colors"],
         "utility:outline-focused": ["focus-visible:outline-focused"],
-        "utility:touch-target": ["touch-target"],
-        "whitespace": ["whitespace-nowrap"]
+        "utility:touch-target": ["touch-target"]
       },
       "props": {
         "isFullWidth": {
@@ -816,6 +815,9 @@
           "shadow": {
             "secondary": ["data-[disabled]:not-data-[loading]:shadow-none", "shadow-raised"]
           },
+          "text-alignment": {
+            "link": ["text-start"]
+          },
           "text-color": {
             "danger": ["data-[disabled]:not-data-[loading]:text-disabled", "text-inverse"],
             "link": ["data-[disabled]:not-data-[loading]:text-disabled", "text-brand"],
@@ -836,6 +838,12 @@
           },
           "utility:touch-target": {
             "link": ["touch-target"]
+          },
+          "whitespace": {
+            "danger": ["whitespace-nowrap"],
+            "primary": ["whitespace-nowrap"],
+            "secondary": ["whitespace-nowrap"],
+            "subtle": ["whitespace-nowrap"]
           }
         }
       },
@@ -901,6 +909,7 @@
           "select",
           "shrink",
           "size",
+          "text-alignment",
           "utility:touch-target",
           "w",
           "whitespace"
@@ -1046,6 +1055,7 @@
           "shadow-none",
           "shadow-raised"
         ],
+        "text-alignment": ["text-start"],
         "text-color": [
           "aria-expanded:text-default",
           "data-[disabled]:not-data-[loading]:text-disabled",
@@ -1077,6 +1087,7 @@
           "pointer-events",
           "position",
           "select",
+          "text-alignment",
           "utility:touch-target",
           "w",
           "whitespace",
@@ -1320,8 +1331,7 @@
         "shrink": ["shrink-0"],
         "transition": ["transition-colors"],
         "utility:outline-focused": ["focus-visible:outline-focused"],
-        "utility:touch-target": ["touch-target"],
-        "whitespace": ["whitespace-nowrap"]
+        "utility:touch-target": ["touch-target"]
       },
       "props": {
         "isFullWidth": {
@@ -1396,6 +1406,9 @@
           "shadow": {
             "secondary": ["data-[disabled]:not-data-[loading]:shadow-none", "shadow-raised"]
           },
+          "text-alignment": {
+            "link": ["text-start"]
+          },
           "text-color": {
             "danger": ["data-[disabled]:not-data-[loading]:text-disabled", "text-inverse"],
             "link": ["data-[disabled]:not-data-[loading]:text-disabled", "text-brand"],
@@ -1416,6 +1429,12 @@
           },
           "utility:touch-target": {
             "link": ["touch-target"]
+          },
+          "whitespace": {
+            "danger": ["whitespace-nowrap"],
+            "primary": ["whitespace-nowrap"],
+            "secondary": ["whitespace-nowrap"],
+            "subtle": ["whitespace-nowrap"]
           }
         }
       },
@@ -1481,6 +1500,7 @@
           "select",
           "shrink",
           "size",
+          "text-alignment",
           "utility:touch-target",
           "w",
           "whitespace"
@@ -1626,6 +1646,7 @@
           "shadow-none",
           "shadow-raised"
         ],
+        "text-alignment": ["text-start"],
         "text-color": [
           "aria-expanded:text-default",
           "data-[disabled]:not-data-[loading]:text-disabled",
@@ -1657,6 +1678,7 @@
           "pointer-events",
           "position",
           "select",
+          "text-alignment",
           "utility:touch-target",
           "w",
           "whitespace",
@@ -2810,7 +2832,7 @@
     "Button": {
       "kind": "component",
       "file": "components/button.tsx",
-      "line": 490,
+      "line": 494,
       "root": {
         "align-items": ["items-center"],
         "display": ["inline-flex"],
@@ -2824,8 +2846,7 @@
         "rounded": ["rounded-medium"],
         "select": ["select-none"],
         "transition": ["transition-colors"],
-        "utility:outline-focused": ["focus-visible:outline-focused"],
-        "whitespace": ["whitespace-nowrap"]
+        "utility:outline-focused": ["focus-visible:outline-focused"]
       },
       "props": {
         "isFullWidth": {
@@ -2926,6 +2947,9 @@
           "shadow": {
             "secondary": ["data-[disabled]:not-data-[loading]:shadow-none", "shadow-raised"]
           },
+          "text-alignment": {
+            "link": ["text-start"]
+          },
           "text-color": {
             "danger": ["data-[disabled]:not-data-[loading]:text-disabled", "text-inverse"],
             "link": ["data-[disabled]:not-data-[loading]:text-disabled", "text-brand"],
@@ -2946,6 +2970,12 @@
           },
           "utility:touch-target": {
             "link": ["touch-target"]
+          },
+          "whitespace": {
+            "danger": ["whitespace-nowrap"],
+            "primary": ["whitespace-nowrap"],
+            "secondary": ["whitespace-nowrap"],
+            "subtle": ["whitespace-nowrap"]
           }
         }
       },
@@ -2971,6 +3001,7 @@
           "pointer-events",
           "position",
           "select",
+          "text-alignment",
           "utility:touch-target",
           "w",
           "whitespace"
@@ -3595,7 +3626,7 @@
     "Chart.Heatmap": {
       "kind": "component",
       "file": "patterns/chart/heatmap.tsx",
-      "line": 233,
+      "line": 245,
       "root": {
         "outline-style": ["outline-none"],
         "overflow-x": ["overflow-x-auto"],
@@ -3667,7 +3698,7 @@
     "Chart.Scale": {
       "kind": "component",
       "file": "patterns/chart/heatmap.tsx",
-      "line": 580,
+      "line": 614,
       "root": {
         "align-self": ["self-start"],
         "display": ["inline-flex"],
@@ -5178,6 +5209,9 @@
           "shadow": {
             "secondary": ["data-[disabled]:not-data-[loading]:shadow-none", "shadow-raised"]
           },
+          "text-alignment": {
+            "link": ["text-start"]
+          },
           "text-color": {
             "danger": ["data-[disabled]:not-data-[loading]:text-disabled", "text-inverse"],
             "link": ["data-[disabled]:not-data-[loading]:text-disabled", "text-brand"],
@@ -5198,6 +5232,12 @@
           },
           "utility:touch-target": {
             "link": ["touch-target"]
+          },
+          "whitespace": {
+            "danger": ["whitespace-nowrap"],
+            "primary": ["whitespace-nowrap"],
+            "secondary": ["whitespace-nowrap"],
+            "subtle": ["whitespace-nowrap"]
           }
         }
       },
@@ -5298,10 +5338,6 @@
         "utility:touch-target": {
           "props": ["label"],
           "classes": ["touch-target"]
-        },
-        "whitespace": {
-          "props": ["label"],
-          "classes": ["whitespace-nowrap"]
         }
       },
       "sets": {
@@ -5318,6 +5354,7 @@
           "select",
           "shrink",
           "size",
+          "text-alignment",
           "utility:touch-target",
           "w",
           "whitespace"
@@ -5571,8 +5608,7 @@
         "rounded": ["rounded-medium"],
         "select": ["select-none"],
         "transition": ["transition-colors"],
-        "utility:outline-focused": ["focus-visible:outline-focused"],
-        "whitespace": ["whitespace-nowrap"]
+        "utility:outline-focused": ["focus-visible:outline-focused"]
       },
       "props": {
         "isFullWidth": {
@@ -5647,6 +5683,9 @@
           "shadow": {
             "secondary": ["data-[disabled]:not-data-[loading]:shadow-none", "shadow-raised"]
           },
+          "text-alignment": {
+            "link": ["text-start"]
+          },
           "text-color": {
             "danger": ["data-[disabled]:not-data-[loading]:text-disabled", "text-inverse"],
             "link": ["data-[disabled]:not-data-[loading]:text-disabled", "text-brand"],
@@ -5667,6 +5706,12 @@
           },
           "utility:touch-target": {
             "link": ["touch-target"]
+          },
+          "whitespace": {
+            "danger": ["whitespace-nowrap"],
+            "primary": ["whitespace-nowrap"],
+            "secondary": ["whitespace-nowrap"],
+            "subtle": ["whitespace-nowrap"]
           }
         }
       },
@@ -5704,6 +5749,7 @@
           "pointer-events",
           "position",
           "select",
+          "text-alignment",
           "utility:touch-target",
           "w",
           "whitespace"
@@ -5737,8 +5783,7 @@
         "rounded": ["rounded-medium"],
         "select": ["select-none"],
         "transition": ["transition-colors"],
-        "utility:outline-focused": ["focus-visible:outline-focused"],
-        "whitespace": ["whitespace-nowrap"]
+        "utility:outline-focused": ["focus-visible:outline-focused"]
       },
       "props": {
         "isFullWidth": {
@@ -5813,6 +5858,9 @@
           "shadow": {
             "secondary": ["data-[disabled]:not-data-[loading]:shadow-none", "shadow-raised"]
           },
+          "text-alignment": {
+            "link": ["text-start"]
+          },
           "text-color": {
             "danger": ["data-[disabled]:not-data-[loading]:text-disabled", "text-inverse"],
             "link": ["data-[disabled]:not-data-[loading]:text-disabled", "text-brand"],
@@ -5833,6 +5881,12 @@
           },
           "utility:touch-target": {
             "link": ["touch-target"]
+          },
+          "whitespace": {
+            "danger": ["whitespace-nowrap"],
+            "primary": ["whitespace-nowrap"],
+            "secondary": ["whitespace-nowrap"],
+            "subtle": ["whitespace-nowrap"]
           }
         }
       },
@@ -5870,6 +5924,7 @@
           "pointer-events",
           "position",
           "select",
+          "text-alignment",
           "utility:touch-target",
           "w",
           "whitespace"
@@ -5942,8 +5997,7 @@
         "shadow": ["data-panel-open:shadow-none"],
         "text-color": ["data-panel-open:text-selected"],
         "transition": ["transition-colors"],
-        "utility:outline-focused": ["focus-visible:outline-focused"],
-        "whitespace": ["whitespace-nowrap"]
+        "utility:outline-focused": ["focus-visible:outline-focused"]
       },
       "props": {
         "isFullWidth": {
@@ -6044,6 +6098,9 @@
           "shadow": {
             "secondary": ["data-[disabled]:not-data-[loading]:shadow-none", "shadow-raised"]
           },
+          "text-alignment": {
+            "link": ["text-start"]
+          },
           "text-color": {
             "danger": ["data-[disabled]:not-data-[loading]:text-disabled", "text-inverse"],
             "link": ["data-[disabled]:not-data-[loading]:text-disabled", "text-brand"],
@@ -6064,6 +6121,12 @@
           },
           "utility:touch-target": {
             "link": ["touch-target"]
+          },
+          "whitespace": {
+            "danger": ["whitespace-nowrap"],
+            "primary": ["whitespace-nowrap"],
+            "secondary": ["whitespace-nowrap"],
+            "subtle": ["whitespace-nowrap"]
           }
         }
       },
@@ -6089,6 +6152,7 @@
           "pointer-events",
           "position",
           "select",
+          "text-alignment",
           "utility:touch-target",
           "w",
           "whitespace"
@@ -9172,8 +9236,7 @@
         "rounded": ["rounded-medium"],
         "select": ["select-none"],
         "transition": ["transition-colors"],
-        "utility:outline-focused": ["focus-visible:outline-focused"],
-        "whitespace": ["whitespace-nowrap"]
+        "utility:outline-focused": ["focus-visible:outline-focused"]
       },
       "props": {
         "isFullWidth": {
@@ -9274,6 +9337,9 @@
           "shadow": {
             "secondary": ["data-[disabled]:not-data-[loading]:shadow-none", "shadow-raised"]
           },
+          "text-alignment": {
+            "link": ["text-start"]
+          },
           "text-color": {
             "danger": ["data-[disabled]:not-data-[loading]:text-disabled", "text-inverse"],
             "link": ["data-[disabled]:not-data-[loading]:text-disabled", "text-brand"],
@@ -9294,6 +9360,12 @@
           },
           "utility:touch-target": {
             "link": ["touch-target"]
+          },
+          "whitespace": {
+            "danger": ["whitespace-nowrap"],
+            "primary": ["whitespace-nowrap"],
+            "secondary": ["whitespace-nowrap"],
+            "subtle": ["whitespace-nowrap"]
           }
         }
       },
@@ -9319,6 +9391,7 @@
           "pointer-events",
           "position",
           "select",
+          "text-alignment",
           "utility:touch-target",
           "w",
           "whitespace"
@@ -9961,7 +10034,7 @@
     "IconButton": {
       "kind": "component",
       "file": "components/button.tsx",
-      "line": 606,
+      "line": 610,
       "root": {
         "align-items": ["items-center"],
         "display": ["inline-flex"],
@@ -9979,8 +10052,7 @@
         "shrink": ["shrink-0"],
         "transition": ["transition-colors"],
         "utility:outline-focused": ["focus-visible:outline-focused"],
-        "utility:touch-target": ["touch-target"],
-        "whitespace": ["whitespace-nowrap"]
+        "utility:touch-target": ["touch-target"]
       },
       "props": {
         "isFullWidth": {
@@ -10055,6 +10127,9 @@
           "shadow": {
             "secondary": ["data-[disabled]:not-data-[loading]:shadow-none", "shadow-raised"]
           },
+          "text-alignment": {
+            "link": ["text-start"]
+          },
           "text-color": {
             "danger": ["data-[disabled]:not-data-[loading]:text-disabled", "text-inverse"],
             "link": ["data-[disabled]:not-data-[loading]:text-disabled", "text-brand"],
@@ -10075,6 +10150,12 @@
           },
           "utility:touch-target": {
             "link": ["touch-target"]
+          },
+          "whitespace": {
+            "danger": ["whitespace-nowrap"],
+            "primary": ["whitespace-nowrap"],
+            "secondary": ["whitespace-nowrap"],
+            "subtle": ["whitespace-nowrap"]
           }
         }
       },
@@ -10143,6 +10224,7 @@
           "select",
           "shrink",
           "size",
+          "text-alignment",
           "utility:touch-target",
           "w",
           "whitespace"
@@ -10632,8 +10714,7 @@
         "shadow": ["shadow-none"],
         "shrink": ["shrink-0"],
         "transition": ["transition-colors"],
-        "utility:outline-focused": ["focus-visible:outline-focused"],
-        "whitespace": ["whitespace-nowrap"]
+        "utility:outline-focused": ["focus-visible:outline-focused"]
       },
       "props": {
         "isFullWidth": {
@@ -10713,6 +10794,9 @@
           "shadow": {
             "secondary": ["data-[disabled]:not-data-[loading]:shadow-none", "shadow-raised"]
           },
+          "text-alignment": {
+            "link": ["text-start"]
+          },
           "text-color": {
             "danger": ["data-[disabled]:not-data-[loading]:text-disabled", "text-inverse"],
             "link": ["data-[disabled]:not-data-[loading]:text-disabled", "text-brand"],
@@ -10733,6 +10817,12 @@
           },
           "utility:touch-target": {
             "link": ["touch-target"]
+          },
+          "whitespace": {
+            "danger": ["whitespace-nowrap"],
+            "primary": ["whitespace-nowrap"],
+            "secondary": ["whitespace-nowrap"],
+            "subtle": ["whitespace-nowrap"]
           }
         }
       },
@@ -10796,6 +10886,7 @@
           "select",
           "shrink",
           "size",
+          "text-alignment",
           "utility:touch-target",
           "w",
           "whitespace"
@@ -11364,8 +11455,7 @@
         "shadow": ["shadow-none"],
         "text-color": ["text-selected"],
         "transition": ["transition-colors"],
-        "utility:outline-focused": ["focus-visible:outline-focused"],
-        "whitespace": ["whitespace-nowrap"]
+        "utility:outline-focused": ["focus-visible:outline-focused"]
       },
       "props": {
         "isFullWidth": {
@@ -11442,6 +11532,9 @@
           "shadow": {
             "secondary": ["data-[disabled]:not-data-[loading]:shadow-none", "shadow-raised"]
           },
+          "text-alignment": {
+            "link": ["text-start"]
+          },
           "text-color": {
             "danger": ["data-[disabled]:not-data-[loading]:text-disabled", "text-inverse"],
             "link": ["data-[disabled]:not-data-[loading]:text-disabled", "text-brand"],
@@ -11462,6 +11555,12 @@
           },
           "utility:touch-target": {
             "link": ["touch-target"]
+          },
+          "whitespace": {
+            "danger": ["whitespace-nowrap"],
+            "primary": ["whitespace-nowrap"],
+            "secondary": ["whitespace-nowrap"],
+            "subtle": ["whitespace-nowrap"]
           }
         }
       },
@@ -11481,6 +11580,7 @@
           "pointer-events",
           "position",
           "select",
+          "text-alignment",
           "utility:touch-target",
           "w",
           "whitespace"
@@ -11517,8 +11617,7 @@
         "text-color": ["text-selected"],
         "transition": ["transition-colors"],
         "utility:outline-focused": ["focus-visible:outline-focused"],
-        "utility:touch-target": ["touch-target"],
-        "whitespace": ["whitespace-nowrap"]
+        "utility:touch-target": ["touch-target"]
       },
       "props": {
         "isFullWidth": {
@@ -11569,6 +11668,9 @@
           "shadow": {
             "secondary": ["data-[disabled]:not-data-[loading]:shadow-none", "shadow-raised"]
           },
+          "text-alignment": {
+            "link": ["text-start"]
+          },
           "text-color": {
             "danger": ["data-[disabled]:not-data-[loading]:text-disabled", "text-inverse"],
             "link": ["data-[disabled]:not-data-[loading]:text-disabled", "text-brand"],
@@ -11589,6 +11691,12 @@
           },
           "utility:touch-target": {
             "link": ["touch-target"]
+          },
+          "whitespace": {
+            "danger": ["whitespace-nowrap"],
+            "primary": ["whitespace-nowrap"],
+            "secondary": ["whitespace-nowrap"],
+            "subtle": ["whitespace-nowrap"]
           }
         }
       },
@@ -11635,6 +11743,7 @@
           "position",
           "select",
           "shrink",
+          "text-alignment",
           "utility:touch-target",
           "w",
           "whitespace"
@@ -12101,6 +12210,7 @@
           "shadow-none",
           "shadow-raised"
         ],
+        "text-alignment": ["text-start"],
         "text-color": [
           "aria-expanded:text-default",
           "data-[disabled]:not-data-[loading]:text-disabled",
@@ -12150,6 +12260,7 @@
           "pointer-events",
           "position",
           "select",
+          "text-alignment",
           "utility:touch-target",
           "w",
           "whitespace"
@@ -12217,6 +12328,7 @@
           "shadow-none",
           "shadow-raised"
         ],
+        "text-alignment": ["text-start"],
         "text-color": [
           "aria-expanded:text-default",
           "data-[disabled]:not-data-[loading]:text-disabled",
@@ -12266,6 +12378,7 @@
           "pointer-events",
           "position",
           "select",
+          "text-alignment",
           "utility:touch-target",
           "w",
           "whitespace"
@@ -12333,6 +12446,7 @@
           "shadow-none",
           "shadow-raised"
         ],
+        "text-alignment": ["text-start"],
         "text-color": [
           "aria-expanded:text-default",
           "data-[disabled]:not-data-[loading]:text-disabled",
@@ -12382,6 +12496,7 @@
           "pointer-events",
           "position",
           "select",
+          "text-alignment",
           "utility:touch-target",
           "w",
           "whitespace"
@@ -14517,8 +14632,7 @@
         "shrink": ["shrink-0"],
         "transition": ["transition-colors"],
         "utility:outline-focused": ["focus-visible:outline-focused"],
-        "utility:touch-target": ["touch-target"],
-        "whitespace": ["whitespace-nowrap"]
+        "utility:touch-target": ["touch-target"]
       },
       "props": {
         "isFullWidth": {
@@ -14593,6 +14707,9 @@
           "shadow": {
             "secondary": ["data-[disabled]:not-data-[loading]:shadow-none", "shadow-raised"]
           },
+          "text-alignment": {
+            "link": ["text-start"]
+          },
           "text-color": {
             "danger": ["data-[disabled]:not-data-[loading]:text-disabled", "text-inverse"],
             "link": ["data-[disabled]:not-data-[loading]:text-disabled", "text-brand"],
@@ -14613,6 +14730,12 @@
           },
           "utility:touch-target": {
             "link": ["touch-target"]
+          },
+          "whitespace": {
+            "danger": ["whitespace-nowrap"],
+            "primary": ["whitespace-nowrap"],
+            "secondary": ["whitespace-nowrap"],
+            "subtle": ["whitespace-nowrap"]
           }
         }
       },
@@ -14680,6 +14803,7 @@
           "select",
           "shrink",
           "size",
+          "text-alignment",
           "utility:touch-target",
           "w",
           "whitespace"
@@ -14821,8 +14945,7 @@
         "shrink": ["shrink-0"],
         "transition": ["transition-colors"],
         "utility:outline-focused": ["focus-visible:outline-focused"],
-        "utility:touch-target": ["touch-target"],
-        "whitespace": ["whitespace-nowrap"]
+        "utility:touch-target": ["touch-target"]
       },
       "props": {
         "isFullWidth": {
@@ -14897,6 +15020,9 @@
           "shadow": {
             "secondary": ["data-[disabled]:not-data-[loading]:shadow-none", "shadow-raised"]
           },
+          "text-alignment": {
+            "link": ["text-start"]
+          },
           "text-color": {
             "danger": ["data-[disabled]:not-data-[loading]:text-disabled", "text-inverse"],
             "link": ["data-[disabled]:not-data-[loading]:text-disabled", "text-brand"],
@@ -14917,6 +15043,12 @@
           },
           "utility:touch-target": {
             "link": ["touch-target"]
+          },
+          "whitespace": {
+            "danger": ["whitespace-nowrap"],
+            "primary": ["whitespace-nowrap"],
+            "secondary": ["whitespace-nowrap"],
+            "subtle": ["whitespace-nowrap"]
           }
         }
       },
@@ -14981,6 +15113,7 @@
           "select",
           "shrink",
           "size",
+          "text-alignment",
           "utility:touch-target",
           "w",
           "whitespace"
@@ -15030,8 +15163,7 @@
         "shrink": ["shrink-0"],
         "transition": ["transition-colors"],
         "utility:outline-focused": ["focus-visible:outline-focused"],
-        "utility:touch-target": ["touch-target"],
-        "whitespace": ["whitespace-nowrap"]
+        "utility:touch-target": ["touch-target"]
       },
       "props": {
         "isFullWidth": {
@@ -15106,6 +15238,9 @@
           "shadow": {
             "secondary": ["data-[disabled]:not-data-[loading]:shadow-none", "shadow-raised"]
           },
+          "text-alignment": {
+            "link": ["text-start"]
+          },
           "text-color": {
             "danger": ["data-[disabled]:not-data-[loading]:text-disabled", "text-inverse"],
             "link": ["data-[disabled]:not-data-[loading]:text-disabled", "text-brand"],
@@ -15126,6 +15261,12 @@
           },
           "utility:touch-target": {
             "link": ["touch-target"]
+          },
+          "whitespace": {
+            "danger": ["whitespace-nowrap"],
+            "primary": ["whitespace-nowrap"],
+            "secondary": ["whitespace-nowrap"],
+            "subtle": ["whitespace-nowrap"]
           }
         }
       },
@@ -15190,6 +15331,7 @@
           "select",
           "shrink",
           "size",
+          "text-alignment",
           "utility:touch-target",
           "w",
           "whitespace"
@@ -15591,8 +15733,7 @@
         "shrink": ["shrink-0"],
         "transition": ["transition-colors"],
         "utility:outline-focused": ["focus-visible:outline-focused"],
-        "utility:touch-target": ["touch-target"],
-        "whitespace": ["whitespace-nowrap"]
+        "utility:touch-target": ["touch-target"]
       },
       "props": {
         "isFullWidth": {
@@ -15667,6 +15808,9 @@
           "shadow": {
             "secondary": ["data-[disabled]:not-data-[loading]:shadow-none", "shadow-raised"]
           },
+          "text-alignment": {
+            "link": ["text-start"]
+          },
           "text-color": {
             "danger": ["data-[disabled]:not-data-[loading]:text-disabled", "text-inverse"],
             "link": ["data-[disabled]:not-data-[loading]:text-disabled", "text-brand"],
@@ -15687,6 +15831,12 @@
           },
           "utility:touch-target": {
             "link": ["touch-target"]
+          },
+          "whitespace": {
+            "danger": ["whitespace-nowrap"],
+            "primary": ["whitespace-nowrap"],
+            "secondary": ["whitespace-nowrap"],
+            "subtle": ["whitespace-nowrap"]
           }
         }
       },
@@ -15754,6 +15904,7 @@
           "select",
           "shrink",
           "size",
+          "text-alignment",
           "utility:touch-target",
           "w",
           "whitespace"

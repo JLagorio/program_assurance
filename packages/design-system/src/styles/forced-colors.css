@@ -497,8 +497,11 @@
 /* CHARTB: a colour-scale Heatmap and its key keep their values (audit CHO-6). A cell's fill and a
    Chart.Scale step's are the value itself, painted inline, and would turn to Canvas with the
    values screen-reader-only: they keep their colours, outlined in CanvasText, and an empty cell
-   is a dashed GrayText box. The keyboard's ring on a chart mark (a Donut slice, a Treemap tile, a
-   Scatter point, drawn in the svg, which keeps its author colours) takes Highlight. */
+   is a dashed GrayText box. While a cell's card is open the others keep their fills whole (a
+   status cell its tone's subtle fill, under the tone's text): the system colours behind a cell are
+   not the surface a dimmed fill was mixed for, and the open cell's ring says which it is. The
+   keyboard's ring on a chart mark (a Donut slice, a Treemap tile, a Scatter point, drawn in the
+   svg, which keeps its author colours) takes Highlight. */
 @media (forced-colors: active) {
   [data-slot="chart-heatmap-cell"],
   [data-slot="chart-scale-step"] {
@@ -509,6 +512,9 @@
   [data-slot="chart-heatmap-cell"][data-empty] {
     outline-style: dashed;
     outline-color: GrayText;
+  }
+  [data-slot="chart-heatmap-cell"][data-dimmed] {
+    background-color: var(--chart-heatmap-fill, transparent);
   }
   circle[data-slot="chart-mark-focus"],
   [data-slot="chart-mark-focus"] rect[stroke] {

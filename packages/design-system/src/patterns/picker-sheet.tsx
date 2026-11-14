@@ -293,11 +293,14 @@ export function PickerSheet<TData extends RowData = RowData>({
                 {summary}
               </Truncate>
               {selected > 0 && onClear ? (
+                // The count gives way and Clear keeps its one line: a link-styled Button wraps as
+                // text does, so it holds its width here.
                 <Button
                   variant="link"
                   size="small"
                   disabled={pending}
                   focusableWhenDisabled
+                  className="shrink-0"
                   onClick={onClear}
                 >
                   {t("clear")}

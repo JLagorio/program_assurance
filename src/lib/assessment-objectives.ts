@@ -1,31 +1,27 @@
-import { useQuery, type UseQueryResult } from "@tanstack/react-query";
-import type { SupabaseClient } from "@supabase/supabase-js";
-import { useWorkspace } from "./workspace-context";
-import { database, requireIdentity } from "./database";
-import { normalizeFilters, readRows, type ReadContext, type Row } from "./models";
+import type { Row } from "./models";
 import { serverRead, type ServerRow } from "./server-table";
 
 /*
  * A campaign's objectives as its Objectives collections read them: `assessment_objective_rows`,
  * each objective with its campaign and program, what it is aimed at and its place in the catalog's
- * reading order. The Assessment campaigns page's register, and a program's, read it a page at a
- * time (`assessmentObjectiveRead`), and the server orders them; the campaign record reads its own
- * whole and orders them on the client by that place. Either way the order is the same: a control's
- * objectives as the catalog prints them (AC-08a.01 before AC-08a.02, a heading before the
- * objectives under it, the control's statement before its objectives), the controls in code order
- * (AC-2 before AC-10), and an objective aimed at no control part after them, by its title.
+ * reading order. Each collection reads them a page at a time and the server orders them: the
+ * Assessment campaigns page's register and a program's (`assessmentObjectiveRead`), and a campaign
+ * record's (`campaignObjectiveRead`). The order is the one the screens gave on the client: each
+ * campaign's together, the newest plan first, a plan's objectives as the catalog prints them
+ * (AC-08a.01 before AC-08a.02, a heading before the objectives under it, the control's statement
+ * before its objectives), the controls in code order (AC-2 before AC-10), and an objective aimed at
+ * no control part after them, by its title (`compareObjectives` says it for two objectives).
  */
-
-type Client = Pick<SupabaseClient, "from">;
 
 /**
  * What the collections read of an objective: every column its form edits, since a preview's Edit
- * starts the form from the row and the form saves a column it was not given as empty, its id and
- * revision, and where it stands (what it is aimed at, its place). The campaign and the program
- * only scope the read.
+ * starts the form from the row and the form saves a column it was not given as empty, its id, its
+ * workspace (the form edits only a record of the reader's workspace) and its revision, and where it
+ * stands (what it is aimed at, its place). The campaign and the program only scope the read.
  */
 export const OBJECTIVE_COLUMNS = [
   "id",
+  "tenant_id",
   "plan_revision_id",
   "title",
   "description",
@@ -47,45 +43,6 @@ export type AssessmentObjectiveRow = Pick<
 /** What a read is scoped to: one campaign, one program's campaigns, or every campaign. */
 export type ObjectiveScope =
   { campaign_id: string } | { program_id: string } | Record<never, never>;
-
-/** The objectives of a campaign, a program or the workspace. */
-export async function readAssessmentObjectiveRows(
-  client: Client,
-  context: ReadContext,
-  scope: ObjectiveScope,
-  signal?: AbortSignal,
-): Promise<AssessmentObjectiveRow[]> {
-  return (await readRows(
-    client,
-    context,
-    "assessment_objective_rows",
-    scope,
-    { columns: OBJECTIVE_COLUMNS },
-    signal,
-  )) as AssessmentObjectiveRow[];
-}
-
-/**
- * The objectives in scope, kept under the objectives' own model: a create, an edit or a removal of
- * an objective, by its form or by a command, reads them again.
- */
-export function useAssessmentObjectiveRows(
-  scope: ObjectiveScope,
-): UseQueryResult<AssessmentObjectiveRow[], Error> {
-  const workspace = useWorkspace();
-  const filters = normalizeFilters(scope);
-  return useQuery<AssessmentObjectiveRow[], Error>({
-    queryKey: ["models", workspace.tenantId, "assessment_objectives", "rows", filters],
-    retry: false,
-    queryFn: async ({ signal }) =>
-      readAssessmentObjectiveRows(
-        database(),
-        { tenantId: workspace.tenantId, token: await requireIdentity(workspace) },
-        filters as ObjectiveScope,
-        signal,
-      ),
-  });
-}
 
 /**
  * What a register reads of an objective a page at a time: what the collections read (every column
@@ -137,6 +94,50 @@ export function assessmentObjectiveRead(scope: ObjectiveScope) {
     },
     order: [
       { column: "campaign_order" },
+      { column: "plan_version", ascending: false },
+      { column: "plan_revision_id" },
+      { column: "reading_order" },
+      { column: "title_order" },
+    ],
+  });
+}
+
+/**
+ * What a campaign record's Objectives read of an objective a page at a time: what the collections
+ * read (every column its form edits, and where it stands), and its plan by name, which the Plan
+ * column shows. The campaign is the record's own, so its name is not read.
+ */
+export const CAMPAIGN_OBJECTIVE_COLUMNS = [...OBJECTIVE_COLUMNS, "plan_title"] as const;
+
+/** An objective as a campaign record's Objectives read it, a page at a time. */
+export type CampaignObjectiveRow = ServerRow<
+  "assessment_objective_rows",
+  (typeof CAMPAIGN_OBJECTIVE_COLUMNS)[number],
+  "tenant_id" | "plan_revision_id" | "title" | "revision" | "plan_title"
+>;
+
+/**
+ * One campaign's objectives, a page at a time, as its record's Execution tab lists them: the server
+ * pages, sorts, searches and counts them. Unasked, it orders them as the record always has: the
+ * newest plan first, each plan's in the catalog's reading order, then by title (Step 2 before
+ * Step 10). The search reads what a row shows (the objective's title, its acceptance criterion and
+ * its plan's title); the Objective and Plan columns sort by their titles' natural keys, and a write
+ * to a plan reads the pages again, since its title is here.
+ */
+export function campaignObjectiveRead(campaignId: string) {
+  return serverRead({
+    source: "assessment_objective_rows",
+    model: "assessment_objectives",
+    models: ["assessment_plan_revisions"],
+    columns: CAMPAIGN_OBJECTIVE_COLUMNS,
+    scope: { campaign_id: campaignId },
+    search: ["title", "acceptance_criterion", "plan_title"],
+    fields: {
+      title: { sort: "title_order", filter: false },
+      acceptance_criterion: { filter: false },
+      plan: { column: "plan_title", sort: "plan_order", filter: false },
+    },
+    order: [
       { column: "plan_version", ascending: false },
       { column: "plan_revision_id" },
       { column: "reading_order" },

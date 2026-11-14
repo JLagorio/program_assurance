@@ -8,6 +8,7 @@ import {
   useRef,
   useState,
   type ComponentProps,
+  type CSSProperties,
   type ReactNode,
   type RefObject,
 } from "react";
@@ -48,6 +49,12 @@ const statusFill = (status: HeatmapStatus) =>
   typeof status === "string"
     ? toneClasses[status].subtle
     : toneClasses[status.tone][status.emphasis ?? "subtle"];
+
+/**
+ * A fill while another cell's card is open, handed to chart.css as `--chart-heatmap-fill`, which
+ * draws it at `opacity.disabled` and leaves the cell's number its own colour.
+ */
+const dimmedFill = (color: string) => ({ "--chart-heatmap-fill": color }) as CSSProperties;
 
 /** What was chosen on a heatmap: the cell's row, column and value. */
 export type HeatmapSelection = { row: string; column: string; value: number };
@@ -126,15 +133,20 @@ const cellHeights: Record<ChartSize, string> = { small: "h-300", medium: "h-400"
 /** A row name's indent by its level in a hierarchy of rows: a step of the spacing scale a level. */
 const indents = ["ps-0", "ps-200", "ps-400", "ps-600"] as const;
 
-/** A cell that opens something, a button or a link: it fills its cell, its ring drawn above its neighbours. */
+/**
+ * A cell that opens something, a button or a link: its whole slot, the cell's face and the 2px gap
+ * after it, so the target is the cell's full height (24px at `small`, WCAG 2.5.8's minimum) and
+ * targets meet edge to edge. Its ring is drawn on ::after around the face alone, as it would sit on
+ * the face, above the neighbours; the pointer passes through it to the face and its title.
+ */
 const opener =
-  "relative block h-full w-full cursor-pointer rounded-xsmall outline-none focus-visible:z-20 focus-visible:outline-focused";
+  "relative block h-full w-full cursor-pointer pb-025 pe-025 outline-none after:pointer-events-none after:absolute after:start-0 after:top-0 after:end-025 after:bottom-025 after:rounded-xsmall focus-visible:z-20 focus-visible:after:outline-focused";
 
-type Paint = { style?: { backgroundColor: string } | undefined; className?: string | undefined };
+type Paint = { style?: CSSProperties | undefined; className?: string | undefined };
 
 /** A colour-scale step's paint: its fill, and the edge a faint step wears (`faintStep`). */
-const stepPaint = (color: string, faint: boolean): Paint => ({
-  style: { backgroundColor: color },
+const stepPaint = (color: string, faint: boolean, dimmed: boolean): Paint => ({
+  style: dimmed ? dimmedFill(color) : { backgroundColor: color },
   className: faint ? faintEdge : undefined,
 });
 
@@ -353,17 +365,29 @@ export function ChartHeatmap({
   useFrameReport(report);
   if (offstage) return null;
   const chooses = Boolean(onSelect || details);
-  const paint = (v: number, r: string, c: string): Paint => {
-    if (typeof scale === "function")
+  // `dimmed`: another cell's card is open. The fill steps back (chart.css) and the number keeps its
+  // colour; a status cell then wears its tone's subtle fill whatever its emphasis, under the tone's
+  // text, which holds 4.5:1 on that fill and on the surface alike.
+  const paint = (v: number, r: string, c: string, dimmed: boolean): Paint => {
+    if (typeof scale === "function") {
       // None is not a level of the status: a muted number and no fill.
-      return { className: zeroStep && v === 0 ? "text-subtlest" : statusFill(scale(v, r, c)) };
+      if (zeroStep && v === 0) return { className: "text-subtlest" };
+      const status = scale(v, r, c);
+      if (!dimmed) return { className: statusFill(status) };
+      const tone = typeof status === "string" ? status : status.tone;
+      return {
+        className: toneClasses[tone].text,
+        style: dimmedFill(token(`color.background.${tone}`)),
+      };
+    }
     if (scale === "diverging") {
       const step = divergingStep(v, min, max, midpoint);
-      return stepPaint(divergingColor(step), faintStep(step));
+      return stepPaint(divergingColor(step), faintStep(step), dimmed);
     }
-    if (zeroStep && v === 0) return stepPaint(token("color.chart.track"), faintStep("zero"));
+    if (zeroStep && v === 0)
+      return stepPaint(token("color.chart.track"), faintStep("zero"), dimmed);
     const step = sequentialStep(v, min, max);
-    return stepPaint(sequentialColor(step), faintStep(step));
+    return stepPaint(sequentialColor(step), faintStep(step), dimmed);
   };
   const choose = (selection: HeatmapSelection, el: HTMLButtonElement) => {
     onSelect?.(selection);
@@ -456,16 +480,22 @@ export function ChartHeatmap({
                 {columns.map((c, ci) => {
                   const v = values[ri]?.[ci];
                   const has = !loading && typeof v === "number";
-                  // A total is a number, not a step of the scale: no fill.
-                  const p: Paint = has && !total ? paint(v, r, c) : {};
-                  const title = cellName(r, c, has ? v : undefined);
                   const chosen = picked !== null && picked.row === r && picked.column === c;
+                  // With a card open the other cells step back: their fill and edge, never their
+                  // number (chart.css).
+                  const dimmed = picked !== null && !chosen && !loading;
+                  // A total is a number, not a step of the scale: no fill.
+                  const p: Paint = has && !total ? paint(v, r, c, dimmed) : {};
+                  const title = cellName(r, c, has ? v : undefined);
                   const selection = has ? { row: r, column: c, value: v } : null;
                   const to = selection ? linkOf(selection) : undefined;
+                  const opens =
+                    Boolean(to) || (chooses && selection !== null && canChoose(selection));
                   const face = (
                     <span
                       data-slot="chart-heatmap-cell"
                       data-empty={has ? undefined : ""}
+                      data-dimmed={dimmed ? "" : undefined}
                       className={cn(
                         "flex h-full w-full items-center justify-center rounded-xsmall font-body-small tabular-nums",
                         p.className,
@@ -473,7 +503,6 @@ export function ChartHeatmap({
                         loading
                           ? "animate-pulse bg-skeleton"
                           : !has && "border border-dashed border-bold",
-                        picked !== null && !chosen && "opacity-disabled",
                       )}
                       style={p.style}
                       title={loading ? undefined : title}
@@ -506,7 +535,12 @@ export function ChartHeatmap({
                     </span>
                   );
                   return (
-                    <td key={c} className={cn("min-w-500 pb-025 pe-025", cellHeights[size])}>
+                    // A cell that opens something takes the gap into its target; any other keeps
+                    // it as the cell's own padding.
+                    <td
+                      key={c}
+                      className={cn("min-w-500", !opens && "pb-025 pe-025", cellHeights[size])}
+                    >
                       {to ? (
                         // Links navigate: the cell is the caller's link, named by its place and value.
                         <CellLink link={to} label={title} className={opener}>
@@ -519,7 +553,7 @@ export function ChartHeatmap({
                           // A card is a dialog: the cell says it opens one, and whether it is open.
                           aria-haspopup={details ? "dialog" : undefined}
                           aria-expanded={details ? chosen : undefined}
-                          className={cn(opener, chosen && "z-20 outline-focused")}
+                          className={cn(opener, chosen && "z-20 after:outline-focused")}
                           onClick={(e) => choose(selection, e.currentTarget)}
                         >
                           {face}

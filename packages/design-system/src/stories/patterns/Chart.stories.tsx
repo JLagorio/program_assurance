@@ -670,25 +670,60 @@ export const Details: Story = {
     const page = within(canvasElement.ownerDocument.body);
     const plot = canvas.getByRole("application");
     const figure = canvas.getByRole("figure", { name: "Coverage by control family" });
-    let previousPath: string | null = null;
-    let changedAt = performance.now();
-    const mark = await waitFor(() => {
-      const element = canvasElement.querySelector<SVGGraphicsElement>(".recharts-bar-rectangle");
-      const path = element?.querySelector("path")?.getAttribute("d") ?? null;
-      if (path !== previousPath) changedAt = performance.now();
-      previousPath = path;
-      // The plot has measured its container: it spans the Frame, whatever the frame's width.
-      expect(
-        Math.abs(plot.getBoundingClientRect().width - figure.getBoundingClientRect().width),
-      ).toBeLessThan(2);
-      expect(element?.getBoundingClientRect().height).toBeGreaterThan(0);
-      // Recharts keys animated marks by their changing coordinates, replacing each SVG node.
-      expect(performance.now() - changedAt).toBeGreaterThan(100);
-      return element!;
-    });
-    const markRect = mark.getBoundingClientRect();
-    await userEvent.click(mark);
-    const dialog = await page.findByRole("dialog", { name: "Coverage by control family, details" });
+    const cardName = "Coverage by control family, details";
+    // Measured in the face the reader sees. The plot fits its labels in the fallback face until
+    // the page's font lands, then measures them again and its marks move to the new axes; a cold
+    // runner's font can land just as the play clicks. Laying the plot out first starts the loads
+    // that `ready` waits for.
+    void canvasElement.offsetWidth;
+    await document.fonts.ready;
+    /** The first mark once it holds still: the same node, drawn the same, for 300ms. */
+    const settledMark = () => {
+      let seen: Element | null = null;
+      let drawn: string | null = null;
+      let since = performance.now();
+      return waitFor(
+        () => {
+          const element =
+            canvasElement.querySelector<SVGGraphicsElement>(".recharts-bar-rectangle");
+          const path = element?.querySelector("path")?.getAttribute("d") ?? null;
+          // Recharts keys animated marks by their changing coordinates, replacing each SVG node.
+          if (element !== seen || path !== drawn) {
+            seen = element;
+            drawn = path;
+            since = performance.now();
+          }
+          // The plot has measured its container: it spans the Frame, whatever the frame's width.
+          expect(
+            Math.abs(plot.getBoundingClientRect().width - figure.getBoundingClientRect().width),
+          ).toBeLessThan(2);
+          expect(element?.getBoundingClientRect().height).toBeGreaterThan(0);
+          expect(performance.now() - since).toBeGreaterThan(300);
+          return element!;
+        },
+        { timeout: 5000 },
+      );
+    };
+    /**
+     * Clicks the settled mark and waits for its card. A mark whose node was replaced under the
+     * click (the plot moved once more) took the click with it, so the mark that replaced it is
+     * clicked; a mark still in place that opens nothing fails.
+     */
+    const openCard = async () => {
+      for (let attempt = 1; ; attempt++) {
+        const mark = await settledMark();
+        // Where the mark was when it was clicked: the card anchors there.
+        const rect = mark.getBoundingClientRect();
+        await userEvent.click(mark);
+        try {
+          const card = await page.findByRole("dialog", { name: cardName }, { timeout: 3000 });
+          return { card, rect };
+        } catch (error) {
+          if (mark.isConnected || attempt === 3) throw error;
+        }
+      }
+    };
+    const { card: dialog, rect: markRect } = await openCard();
     await waitFor(() => expect(within(dialog).getByText("Access control")).toBeVisible());
     // The card says what the tooltip would, so the tooltip stands down while the card is open.
     const tooltip = canvasElement.querySelector(".recharts-tooltip-wrapper");
@@ -725,9 +760,7 @@ export const Details: Story = {
     );
     // Enter chooses the category the live region said, though the pointer still rests on AC.
     await userEvent.keyboard("{Enter}");
-    const reopened = await page.findByRole("dialog", {
-      name: "Coverage by control family, details",
-    });
+    const reopened = await page.findByRole("dialog", { name: cardName }, { timeout: 3000 });
     await waitFor(() =>
       expect(within(reopened).getByRole("button", { name: "Open AU" })).toHaveFocus(),
     );
@@ -744,7 +777,7 @@ export const Details: Story = {
       expect(canvasElement.querySelector(".recharts-tooltip-wrapper")).toHaveTextContent(/^CM/),
     );
     await userEvent.keyboard("{Enter}");
-    const again = await page.findByRole("dialog", { name: "Coverage by control family, details" });
+    const again = await page.findByRole("dialog", { name: cardName }, { timeout: 3000 });
     await waitFor(() =>
       expect(within(again).getByRole("button", { name: "Open CM" })).toHaveFocus(),
     );

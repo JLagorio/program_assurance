@@ -531,11 +531,14 @@ function RecordBrowserContent<T extends { id: string }>({
             {selectedCount(t, formatNumber, selected.length, onOffer)}
           </Truncate>
           {selected.length ? (
+            // The count gives way and the action keeps its one line: a link-styled Button wraps
+            // as text does, so it holds its width here.
             <Button
               variant="link"
               size="small"
               disabled={saving}
               focusableWhenDisabled
+              className="shrink-0"
               onClick={() => table.resetRowSelection()}
             >
               {t("recordBrowserClearSelection")}

@@ -3,14 +3,16 @@ import { ArrowRight, ChevronDown, Download, Plus, Trash2 } from "lucide-react";
 import { createRef, useState } from "react";
 import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 
-import { Button, LinkButton } from "../../components";
+import { Button, KeyValue, LinkButton, TextLink } from "../../components";
 import { Inline, Stack, Text } from "../../primitives";
+import * as direction from "../_lib/direction";
 import * as storyLayout from "../_lib/matrix";
 import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
 const { Specimens } = storyLayout;
 const { Pair } = pairLayout;
+const { along } = direction;
 
 const meta = {
   title: "Components/Button",
@@ -657,5 +659,105 @@ export const TruncatedLabel: Story = {
     const fits = canvas.getByRole("button", { name: "Export" });
     const fitsLabel = fits.querySelector<HTMLElement>('[data-slot="truncate"]')!;
     await expect(fitsLabel.scrollWidth).toBeLessThanOrEqual(fitsLabel.clientWidth + 1);
+  },
+};
+
+/** The lines an element's words sit on, top to bottom, as the page draws them. */
+const lineBoxes = (el: Element) => {
+  const range = el.ownerDocument.createRange();
+  range.selectNodeContents(el);
+  const lines: DOMRect[] = [];
+  for (const rect of Array.from(range.getClientRects())) {
+    if (rect.width < 0.5 || rect.height < 0.5) continue;
+    if (!lines.some((line) => Math.abs(line.top - rect.top) < rect.height / 2)) lines.push(rect);
+  }
+  return lines;
+};
+
+const takeStep = fn();
+
+/** A record's Details rail: a `default` label column and a value about 130px wide. */
+function DetailsRail() {
+  const [reading, setReading] = useState(false);
+  return (
+    <div data-testid="rail" style={{ width: 247 }}>
+      <KeyValue.Group>
+        <KeyValue label="Control status">Not assessed</KeyValue>
+        <KeyValue label="Next step" wrap>
+          <Button
+            variant="link"
+            isLoading={reading}
+            onClick={() => {
+              takeStep();
+              setReading(true);
+            }}
+          >
+            Add to assessment campaign
+          </Button>
+        </KeyValue>
+        <KeyValue label="Evidence" wrap>
+          <Button variant="link" disabledReason="Map a requirement to the control first.">
+            Link evidence to a requirement
+          </Button>
+        </KeyValue>
+        <KeyValue label="Enhances" wrap>
+          <TextLink href="#account-management">AC-2 · Account Management</TextLink>
+        </KeyValue>
+      </KeyValue.Group>
+    </div>
+  );
+}
+
+/**
+ * A link-styled action wraps like the text around it, as a TextLink does. In a rail's value, about
+ * 130px wide, a step longer than the value goes on to the next line whole, its lines from the
+ * value's start: nothing is cut and nothing paints past the value. Unavailable, it wraps the same
+ * and says why; pressed, it keeps its box, its name and the focus while its work runs. Where the
+ * text around it stays on one line, a table cell that cuts its value, it stays on one line too.
+ */
+export const LinkWraps: Story = {
+  name: "Link wraps in a narrow value",
+  render: () => <DetailsRail />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    takeStep.mockClear();
+    const step = canvas.getByRole("button", { name: "Add to assessment campaign" });
+    const unavailable = canvas.getByRole("button", { name: "Link evidence to a requirement" });
+    const link = canvas.getByRole("link", { name: "AC-2 · Account Management" });
+    // The value is narrower than the step's words.
+    await expect(step.closest("dd")!.getBoundingClientRect().width).toBeLessThan(140);
+    for (const words of [step, unavailable, link]) {
+      const value = words.closest("dd")!;
+      const lines = lineBoxes(words);
+      // More than one line, whole: every line starts at the value's start and ends inside it.
+      await expect(lines.length).toBeGreaterThan(1);
+      for (const line of lines) {
+        await expect(Math.abs(along(words, line).start - along(value).start)).toBeLessThanOrEqual(
+          1,
+        );
+        await expect(along(words, line).end).toBeLessThanOrEqual(along(value).end + 0.5);
+      }
+      await expect(along(words).end).toBeLessThanOrEqual(along(value).end + 0.5);
+      await expect(value.scrollWidth).toBeLessThanOrEqual(value.clientWidth + 1);
+    }
+    for (const button of [step, unavailable]) {
+      await expect(button.scrollWidth).toBeLessThanOrEqual(button.clientWidth + 1);
+      await expectTouchTarget(button);
+    }
+    // Unavailable, it stays in the tab order and says why.
+    await expect(unavailable).toHaveAttribute("aria-disabled", "true");
+    await expect(unavailable).toHaveAccessibleDescription(
+      "Map a requirement to the control first.",
+    );
+    // Pressed, it keeps its box and its name while its work runs, and the focus stays on it.
+    const before = step.getBoundingClientRect();
+    await userEvent.click(step);
+    await expect(takeStep).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(step).toHaveAttribute("aria-busy", "true"));
+    const after = step.getBoundingClientRect();
+    await expect(after.width).toBe(before.width);
+    await expect(after.height).toBe(before.height);
+    await expect(step).toHaveAccessibleName("Add to assessment campaign");
+    await expect(step).toHaveFocus();
   },
 };

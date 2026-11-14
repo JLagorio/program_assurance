@@ -7,7 +7,10 @@
 -- orders titles). The register's own order, campaign_order, plan_version descending,
 -- plan_revision_id, reading_order and title_order, is the order the page gave on the client: each
 -- campaign's objectives together, the newest plan first, each plan's in the catalog's reading order
--- and then by title. Another workspace's member and an anonymous session read none of it.
+-- and then by title. A results revision's findings read through assessment_finding_rows in the same
+-- catalog's order (20261114193725_assessment_finding_controls), each with the control of the part it
+-- judges, whatever their titles: the order a results preview lists them in. Another workspace's
+-- member and an anonymous session read none of it.
 begin;
 insert into auth.users(id, email, raw_user_meta_data) values
   ('0b500000-0000-0000-0000-000000000001', 'objective-register-owner@example.test', '{"name":"Objective register test owner"}'),
@@ -21,7 +24,7 @@ select set_config('test.tenant', public.ensure_personal_tenant()::text, true);
 do $$
 declare
   v_tenant uuid := current_setting('test.tenant')::uuid;
-  v_resolution uuid; v_control uuid; v_first uuid; v_second uuid;
+  v_resolution uuid; v_control uuid; v_first uuid; v_second uuid; v_statement uuid;
   v_program uuid := '0b510000-0000-0000-0000-000000000001';
   v_system uuid := '0b520000-0000-0000-0000-000000000001';
   v_ssp uuid := '0b530000-0000-0000-0000-000000000001';
@@ -83,6 +86,21 @@ begin
     ('0b560000-0000-0000-0000-000000000005', v_tenant, '0b550000-0000-0000-0000-000000000002', 'Older plan''s objective', null),
     ('0b560000-0000-0000-0000-000000000006', v_tenant, '0b550000-0000-0000-0000-000000000001', 'Ten''s objective', null),
     ('0b560000-0000-0000-0000-000000000007', v_tenant, '0b550000-0000-0000-0000-000000000004', 'Prior objective', null);
+  -- The prior plan, published, has results holding three findings on the control: on its
+  -- statement and on its two objectives, titled against the catalog's order.
+  select p.id into v_statement from public.control_parts p
+    where p.control_id = v_control and p.name = 'statement' and p.parent_part_id is null
+    order by p.ordinal, p.id limit 1;
+  update public.assessment_plan_revisions set state = 'published', revision = revision + 1
+    where id = '0b550000-0000-0000-0000-000000000004';
+  insert into public.assessment_results_revisions(id, tenant_id, assessment_plan_revision_id, version_number, title) values
+    ('0b570000-0000-0000-0000-000000000001', v_tenant, '0b550000-0000-0000-0000-000000000004', 1, 'Prior results');
+  insert into public.result_sets(id, tenant_id, assessment_results_revision_id, title) values
+    ('0b580000-0000-0000-0000-000000000001', v_tenant, '0b570000-0000-0000-0000-000000000001', 'Prior result set');
+  insert into public.assessment_findings(id, tenant_id, assessment_results_revision_id, result_set_id, target_control_part_id, title, determination) values
+    ('0b590000-0000-0000-0000-000000000001', v_tenant, '0b570000-0000-0000-0000-000000000001', '0b580000-0000-0000-0000-000000000001', v_second, 'A finding on the second objective', 'satisfied'),
+    ('0b590000-0000-0000-0000-000000000002', v_tenant, '0b570000-0000-0000-0000-000000000001', '0b580000-0000-0000-0000-000000000001', v_first, 'B finding on the first objective', 'other_than_satisfied'),
+    ('0b590000-0000-0000-0000-000000000003', v_tenant, '0b570000-0000-0000-0000-000000000001', '0b580000-0000-0000-0000-000000000001', v_statement, 'C finding on the statement', 'partially_satisfied');
 end $$;
 
 do $$
@@ -116,11 +134,40 @@ begin
   end if;
 end $$;
 
+-- A results revision's findings: each names the control of the part it judges, and they read in
+-- the catalog's order, the statement before the objectives under it, whatever their titles.
+do $$
+declare v_order uuid[]; v_finding public.assessment_finding_rows;
+begin
+  select * into v_finding from public.assessment_finding_rows where id = '0b590000-0000-0000-0000-000000000002';
+  if v_finding.control_id is distinct from (select p.control_id from public.control_parts p where p.id = current_setting('test.first')::uuid)
+    or v_finding.control_code is distinct from (select k.code from public.control_parts p join public.controls k on k.id = p.control_id
+      where p.id = current_setting('test.first')::uuid)
+    or v_finding.title_order is distinct from 'B finding on the first objective' then
+    raise exception 'A finding names the control of the part it judges: %', row_to_json(v_finding);
+  end if;
+  v_order := array(
+    select f.id from public.assessment_finding_rows f
+    where f.assessment_results_revision_id = '0b570000-0000-0000-0000-000000000001'
+    order by f.reading_order, f.title_order, f.id);
+  if v_order <> array[
+    '0b590000-0000-0000-0000-000000000003', -- the statement,
+    '0b590000-0000-0000-0000-000000000002', -- the catalog's first objective,
+    '0b590000-0000-0000-0000-000000000001'  -- then its second.
+  ]::uuid[] then
+    raise exception 'A results revision''s findings do not read in the catalog''s order: %', v_order;
+  end if;
+end $$;
+
 -- Another workspace's member and an anonymous session read none of it.
 select set_config('request.jwt.claim.sub', '0b500000-0000-0000-0000-000000000002', true);
 do $$ begin
   if exists (select 1 from public.assessment_objective_rows where program_id = '0b510000-0000-0000-0000-000000000001') then
     raise exception 'Another workspace reads the objectives';
+  end if;
+  if exists (select 1 from public.assessment_finding_rows
+    where assessment_results_revision_id = '0b570000-0000-0000-0000-000000000001') then
+    raise exception 'Another workspace reads the findings';
   end if;
 end $$;
 set local role anon;

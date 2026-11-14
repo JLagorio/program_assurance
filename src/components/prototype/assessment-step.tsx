@@ -30,6 +30,8 @@ import { useFormFeedback, type FormIssue } from "@/components/app/form-feedback"
 import { causeText } from "@/components/app/sentence";
 import { useDraftGuard } from "@/components/app/use-draft-guard";
 import {
+  assessmentTakes,
+  campaignHolds,
   choiceRequests,
   useAddControlsToAssessmentPlan,
   useControlAssessment,
@@ -38,6 +40,7 @@ import {
   usePlanSspOptions,
   type AddedObjectives,
   type AssessmentCampaignPlan,
+  type AssessmentTakes,
 } from "@/lib/control-assessment";
 import { campaignStatuses } from "@/lib/status";
 import { useCollectionTable } from "./collection-question";
@@ -58,9 +61,12 @@ type CampaignChoice = {
   planRevision: number;
   /** How many objectives the draft plan holds; none until they are counted. */
   objectives: number | null;
-  /** The plan holds the control already: every objective it counts, or its statement. */
+  /**
+   * The plan holds what an assessment takes of the control already: every objective it counts, or
+   * its statement; of a control judged in part, every objective nobody has judged.
+   */
   holds: boolean;
-  /** How many of the control's objectives the plan holds. */
+  /** How many of the objectives an assessment takes of the control the plan holds. */
   held: number;
   /** The plan's SSP selects the control, which the plan needs to take it. */
   selects: boolean;
@@ -75,18 +81,29 @@ const reasonOf = (row: CampaignChoice, code: string) =>
 
 /**
  * What a campaign's row says beside its name: why it cannot take the control, or, where its plan
- * holds some of the objectives the control counts, how many, since choosing it adds the rest.
+ * holds some of the objectives an assessment takes of the control, how many, since choosing it adds
+ * the rest ("Holds 12 of 26 objectives"; of a control judged in part, "Holds 5 of 23 left to
+ * judge", the 23 the line above names). A badge keeps its width while the name gives way, so the
+ * note stays short enough to leave the campaign's name readable in a phone's frame.
  */
-const noteOf = (row: CampaignChoice, code: string, counted: number, format: Format) =>
+const noteOf = (row: CampaignChoice, code: string, takes: AssessmentTakes, format: Format) =>
   reasonOf(row, code) ??
-  (row.held > 0 && row.held < counted
-    ? `Holds ${format(row.held)} of ${format(counted)} objectives`
+  (row.held > 0 && row.held < takes.objectives
+    ? `Holds ${format(row.held)} of ${format(takes.objectives)} ${takes.unjudged ? "left to judge" : "objectives"}`
     : undefined);
 
-/** What joining a draft plan writes of the control, said above the campaigns to choose from. */
-function joinsAs(code: string, counted: number, formatNumber: Format) {
+/**
+ * What joining a draft plan writes of the control, said above the campaigns to choose from: the
+ * assessment objectives it counts, or, of a control its assessors have judged in part, the ones
+ * nobody has judged.
+ */
+function joinsAs(code: string, counted: number, takes: AssessmentTakes, formatNumber: Format) {
   if (counted === 0)
     return `${code} becomes one objective of the campaign's draft plan, aimed at its statement.`;
+  if (takes.unjudged)
+    return takes.objectives === 1
+      ? `${code} joins the campaign's draft plan as the one of its ${formatNumber(counted)} assessment objectives nobody has judged.`
+      : `${code} joins the campaign's draft plan as the ${formatNumber(takes.objectives)} of its ${formatNumber(counted)} assessment objectives nobody has judged; a plan that holds some takes only the rest.`;
   if (counted === 1)
     return `${code} joins the campaign's draft plan as its one assessment objective.`;
   return `${code} joins the campaign's draft plan as its ${formatNumber(counted)} assessment objectives; a plan that holds some takes only the rest.`;
@@ -94,25 +111,29 @@ function joinsAs(code: string, counted: number, formatNumber: Format) {
 
 /**
  * What a command added of the control, in a toast's words: how many of its objectives ("14 more
- * objectives of AC-2" where the plan held some), or the control itself where it counts none and
- * was written as its statement.
+ * objectives of AC-2" where the plan held some), saying so where they are the ones nobody has
+ * judged ("23 objectives of AC-2 nobody has judged"), or the control itself where it counts none
+ * and was written as its statement.
  */
 function addedOf(answer: AddedObjectives, code: string, formatPlural: Plural) {
   if (answer.counted === 0) return code;
+  // What the command took of the control: every objective it counts, but the judged ones.
+  const taken = answer.counted - answer.judged;
   const forms =
-    answer.added < answer.counted
+    answer.added < taken
       ? { one: "{count} more objective", other: "{count} more objectives" }
       : { one: "{count} objective", other: "{count} objectives" };
-  return `${formatPlural(answer.added, forms)} of ${code}`;
+  return `${formatPlural(answer.added, forms)} of ${code}${answer.judged > 0 ? " nobody has judged" : ""}`;
 }
 
 /**
  * Add to assessment campaign: choose one of the program's open campaigns that has a draft plan,
  * and the control joins it in one request, at the plan revision the reader saw, as the assessment
  * objectives it counts, one plan objective each (a control that counts none as one aimed at its
- * statement). A campaign whose plan holds some of them says how many and takes the rest; one whose
- * plan holds the control already, or whose SSP does not select it, is marked with why and cannot be
- * chosen. Where no campaign has a draft plan, the empty state plans an assessment around the
+ * statement); a control its assessors have judged in part joins as the objectives nobody has
+ * judged. A campaign whose plan holds some of them says how many and takes the rest; one whose plan
+ * holds them all already, or whose SSP does not select the control, is marked with why and cannot
+ * be chosen. Where no campaign has a draft plan, the empty state plans an assessment around the
  * control instead.
  */
 function AddToAssessmentPicker({
@@ -134,8 +155,13 @@ function AddToAssessmentPicker({
 }) {
   const { formatNumber, formatPlural } = useLedgerLocale();
   const assessment = useControlAssessment(programId, control.id);
-  // How many assessment objectives the control counts, once read: what a plan takes of it.
+  // How many assessment objectives the control counts, once read, and what a plan takes of them:
+  // every one, or the ones nobody has judged of a control its assessors have judged in part.
   const counted = assessment.data?.objectives;
+  const takes = useMemo(
+    () => (assessment.data ? assessmentTakes(assessment.data) : undefined),
+    [assessment.data],
+  );
   const drafts = useMemo(
     () =>
       (assessment.data?.campaigns ?? []).filter(
@@ -153,6 +179,10 @@ function AddToAssessmentPicker({
     () =>
       drafts.map((campaign) => {
         const detail = details.data?.get(campaign.plan.id);
+        // What the plan holds of what an assessment takes of the control.
+        const holding = takes
+          ? campaignHolds(campaign, takes)
+          : { held: campaign.objectivesHeld, holds: campaign.holds };
         return {
           id: campaign.id,
           title: campaign.title,
@@ -163,28 +193,28 @@ function AddToAssessmentPicker({
           planTitle: campaign.plan.title,
           planRevision: campaign.plan.revision,
           objectives: detail?.objectives ?? null,
-          holds: campaign.holds,
-          held: campaign.objectivesHeld,
+          holds: holding.holds,
+          held: holding.held,
           selects: detail?.selects ?? false,
         };
       }),
-    [drafts, details.data],
+    [drafts, details.data, takes],
   );
-  const read = !!details.data;
+  const read = !!details.data && !!takes;
   const columns = useMemo(
     () =>
       defineColumns<CampaignChoice>((c) => [
         c.text("title", {
           header: "Assessment campaign",
           priority: 0,
-          // Room for the name beside its note ("Holds 12 of 26 objectives"); the later columns
-          // fold into the row's More fields first.
-          minWidth: 280,
+          // Room for the name beside its note ("Holds 12 of 26 objectives", "Holds 5 of 23 left
+          // to judge"); the later columns fold into the row's More fields first.
+          minWidth: 360,
           hideable: false,
           // Why the campaign cannot take the control, or how much of it its plan holds, once its
           // plan's SSP has been read.
           badge: (row) => {
-            const note = read ? noteOf(row, control.code, counted ?? 0, formatNumber) : undefined;
+            const note = read && takes ? noteOf(row, control.code, takes, formatNumber) : undefined;
             return note ? (
               <Badge size="xsmall" variant="secondary" tone="neutral">
                 {note}
@@ -203,7 +233,7 @@ function AddToAssessmentPicker({
         c.date("startsAt", { header: "Starts", priority: 4 }),
         c.date("endsAt", { header: "Ends", priority: 5 }),
       ]),
-    [read, counted, control.code, formatNumber],
+    [read, takes, control.code, formatNumber],
   );
   const table = useCollectionTable({
     columns,
@@ -228,8 +258,8 @@ function AddToAssessmentPicker({
     if (!chosen || !guard.start()) return;
     setError(undefined);
     try {
-      // One request: the plan takes the objectives of the control it does not hold yet, or is left
-      // as it was.
+      // One request: the plan takes the objectives of the control it does not hold yet (of a
+      // control judged in part, those nobody has judged), or is left as it was.
       const answer = await add.mutateAsync({
         planRevisionId: chosen.planId,
         expectedRevision: chosen.planRevision,
@@ -268,10 +298,11 @@ function AddToAssessmentPicker({
       state={failed ? "error" : loading ? "loading" : "ready"}
       search={{ placeholder: "Find assessment campaigns" }}
       toolbar={
-        // What the plan takes of the control, once it is known how many objectives it counts.
-        counted === undefined ? undefined : (
+        // What the plan takes of the control, once it is known how many objectives it counts and
+        // how many its assessors have judged.
+        counted === undefined || !takes ? undefined : (
           <Text as="p" size="small" color="color.text.subtle">
-            {joinsAs(control.code, counted, formatNumber)}
+            {joinsAs(control.code, counted, takes, formatNumber)}
           </Text>
         )
       }
@@ -312,8 +343,9 @@ const TITLE_LIMIT = 300;
 /**
  * Plan an assessment: a new campaign of the program, planned, whose first plan is a draft pinned
  * to a published SSP of one of the program's systems, holding the control as the assessment
- * objectives it counts (its statement, where it counts none). One request writes all three, or
- * none; planning again after a failure plans no second campaign.
+ * objectives it counts (its statement, where it counts none; the objectives nobody has judged, of a
+ * control its assessors have judged in part), which the toast says. One request writes all three,
+ * or none; planning again after a failure plans no second campaign.
  */
 function PlanAssessmentDialog({
   programId,

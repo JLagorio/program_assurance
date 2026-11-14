@@ -6,6 +6,7 @@ const {
   controlStatusShare,
   emptyControlStatusCounts,
   readProgramControlStatus,
+  readProgramsControlStatusCounts,
 } = await import("./control-status");
 const { controlStatuses } = await import("./status");
 type ControlStanding = import("./control-status").ControlStanding;
@@ -223,6 +224,81 @@ describe("readProgramControlStatus", () => {
           program,
         ),
       ).rejects.toThrow();
+  });
+});
+
+describe("readProgramsControlStatusCounts", () => {
+  const second = "00000000-0000-4000-8000-000000000002";
+  const row = (programId: string, baseline: boolean, counts: Partial<typeof totals> = {}) => ({
+    program_id: programId,
+    baseline,
+    ...(baseline ? totals : Object.fromEntries(Object.keys(totals).map((status) => [status, 0]))),
+    ...counts,
+  });
+
+  it("asks for every program in one request, as the reader, and reads each one's counts alone", async () => {
+    const server = client({
+      data: [row(program, true), row(second, false)],
+      error: null,
+    });
+    const answer = await readProgramsControlStatusCounts(server.client, context, [
+      program,
+      second,
+      program,
+    ]);
+    // One request for the programs named, each once.
+    expect(server.calls).toEqual([
+      {
+        name: "program_control_status_counts",
+        args: { p_program_ids: [program, second] },
+        headers: { Authorization: "Bearer token" },
+      },
+    ]);
+    expect(answer.get(program)).toEqual({
+      programId: program,
+      baseline: true,
+      total: 5,
+      counts: {
+        no_requirement: 1,
+        no_evidence: 1,
+        not_assessed: 1,
+        other_than_satisfied: 0,
+        partially_satisfied: 0,
+        satisfied: 2,
+      },
+    });
+    // A program with no control baseline says so, with nothing counted.
+    expect(answer.get(second)).toEqual({
+      programId: second,
+      baseline: false,
+      total: 0,
+      counts: emptyControlStatusCounts(),
+    });
+    // What a row of a widget draws: the share satisfied, from the counts alone.
+    expect(controlStatusShare(answer.get(program)!, "satisfied")).toBe(40);
+  });
+
+  it("asks nothing for no program", async () => {
+    const server = client({ data: [], error: null });
+    expect((await readProgramsControlStatusCounts(server.client, context, [])).size).toBe(0);
+    expect(server.calls).toEqual([]);
+  });
+
+  it("says the server's refusal, and refuses an answer that is not counts", async () => {
+    await expect(
+      readProgramsControlStatusCounts(
+        client({ data: null, error: { message: "Program access is required" } }).client,
+        context,
+        [program],
+      ),
+    ).rejects.toThrow("Program access is required");
+    await expect(
+      readProgramsControlStatusCounts(
+        client({ data: [{ ...row(program, true), satisfied: "2" }], error: null }).client,
+        context,
+        [program],
+      ),
+    ).rejects.toThrow();
   });
 });
 

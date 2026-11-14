@@ -45,7 +45,7 @@ A grid of rows by columns with a value painted in each cell: how much, across tw
 | `medium` | 32px        | A Section. The default.                                       |
 | `large`  | 40px        | A five-by-five matrix that is a page's point, values printed. |
 
-A cell is at least 40px wide, and every value column takes the widest heading's width, so a long heading does not make its column look weighted. Past the width it has, the grid scrolls sideways inside its own box with the row names held at the start; while it overflows the box is a named region and a tab stop, so a keyboard can scroll it. In a Frame's expanded Dialog the cells are `large`.
+A cell is at least 40px wide, and every value column takes the widest heading's width, so a long heading does not make its column look weighted. A cell that chooses or links is its whole slot, the cell and the 2px gap after it, so even at `small` it is a target 24px tall (WCAG 2.5.8) and the targets meet edge to edge; its ring sits around the cell. Past the width it has, the grid scrolls sideways inside its own box with the row names held at the start; while it overflows the box is a named region and a tab stop, so a keyboard can scroll it. In a Frame's expanded Dialog the cells are `large`.
 
 <Canvas of={Stories.Narrow} />
 
@@ -66,12 +66,16 @@ A name longer than a heading's line, about twenty-five characters, takes a secon
 | State    | What changes                                                                                                                                                                                                                    |
 | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Hover    | The cell's title as a tooltip.                                                                                                                                                                                                  |
-| Chosen   | With `onSelect` or `details` the cells with a value but zero are buttons (`selectable` says which otherwise): a click, Enter or Space chooses one, it takes the focus ring, the others dim, and the card opens on it.           |
+| Chosen   | With `onSelect` or `details` the cells with a value but zero are buttons (`selectable` says which otherwise): a click, Enter or Space chooses one, it takes the focus ring, the others' fills dim, and the card opens on it.    |
 | Linked   | With `link` the cells with a value but zero are the links it returns (`selectable` says which otherwise): the register filtered to the cell's row and column. A link takes the focus ring and navigates; it never opens a card. |
 | Loading  | Every cell in `color.skeleton`, pulsing, at the grid's size. The Frame sets it from `state="loading"`.                                                                                                                          |
 | Isolated | Not applicable: a heatmap has no series to hide.                                                                                                                                                                                |
 
 <Canvas of={Stories.Details} />
+
+While a card is open the other cells step back by their fills alone: each fill and edge shows at `opacity.disabled` and each number keeps its own colour, so every number still reads at 4.5:1 and a total keeps its weight. A status cell then wears its tone's subtle fill under the tone's text, whatever its emphasis, since the tone's text holds 4.5:1 on that fill and on the surface alike. In forced colours the fills stay whole, as the system colours behind a cell are not the surface a dimmed fill was mixed for, and the open cell's ring says which it is.
+
+<Canvas of={Stories.CardOpen} />
 
 A cell that opens a register is a link, not a button: `link` returns the link element for a cell (a router's Link, or `<a href>`) and the cell becomes it, so a modifier or middle click opens a new tab. Both axes are levels in words, in the order given, so a risk matrix lists likelihood from the top and impact across. The table twin's values link to the same places.
 
@@ -123,7 +127,7 @@ A status function may return a tone with `emphasis: "bold"`, the tone's solid fi
 | Scale          | Five steps 24 by 8, 32 by 8 with thresholds · `radius.xsmall` · labels in `font.body.xsmall` `color.text.subtlest` · status swatches 12px in the cells' fills                    |
 | Forced colours | A cell and a step keep their fill, outlined in `CanvasText`; an empty cell is a dashed `GrayText` box                                                                            |
 | Chosen         | `color.border.focused` outline                                                                                                                                                   |
-| Dimmed         | `opacity.disabled`                                                                                                                                                               |
+| Dimmed         | The fill and the edge at `opacity.disabled`, the number in its own colour; a status cell in `color.background.<tone>` with `color.text.<tone>`; in forced colours the fill whole |
 | Skeleton       | `color.skeleton`                                                                                                                                                                 |
 
 ## Accessibility
@@ -134,7 +138,7 @@ A status function may return a tone with `emphasis: "bold"`, the tone's solid fi
 - **A colour scale's values are one press away** in a Frame: Values, a toggle button whose name stays "Values" while `aria-pressed` says whether they show, prints every value on its cell for keyboard, touch and magnifier readers alike. The reader's choice holds across the table view and the expanded Dialog.
 - **The table twin is the grid pivoted**: the Frame's Table toggle and CSV lay it out as a row per row and a column per column in the grid's order, headed by `rowLabel`, every value printed and no colour.
 - **A vertical heading is the same header cell**: its text is whole and where it was in the markup, so a screen reader hears each column's name, and each cell as "row, column, value", as before. For a reader who would rather not turn their head, the pointer over a heading says the name level (its `title`), and so do a cell's title, its card and the table twin, for the keyboard and touch too.
-- **Cells that choose are buttons**, focusable in reading order, with the kit's focus ring, each named by its place and value ("Likely, Critical: 3"); a zero is no tab stop unless `selectable` says so. A cell that opens a card says so (`aria-haspopup="dialog"`) and whether it is open (`aria-expanded`). The card is a dialog and focus returns to the cell when it closes.
+- **Cells that choose are buttons**, focusable in reading order, with the kit's focus ring, each named by its place and value ("Likely, Critical: 3"); a zero is no tab stop unless `selectable` says so. Each is its whole slot, at least 24px tall at every size, so it meets the target size with no spacing to lean on, a card over some of them included; while a card is open the numbers of the others keep 4.5:1. A cell that opens a card says so (`aria-haspopup="dialog"`) and whether it is open (`aria-expanded`). The card is a dialog and focus returns to the cell when it closes.
 - **Cells that open a register are links**, named the same way, and the table twin carries the same links, so the reader who reads the numbers as a table can open them too.
 - **The words are the locale's**: the cell's title ("SC, Jun: 12", "AU, Apr: none") and the dimensions ("Likelihood by Impact") come from `LedgerProvider` messages.
 - **The scale's swatches are `aria-hidden`**: its words are text, and the values are in the cells.

@@ -45,19 +45,23 @@ type ButtonStyleProps = {
 };
 
 const base =
-  "inline-flex select-none items-center justify-center gap-075 whitespace-nowrap rounded-medium font-body font-medium transition-colors duration-fast ease-standard focus-visible:outline-focused disabled:pointer-events-none [&>svg]:size-icon-small [&>svg]:shrink-0";
+  "inline-flex select-none items-center justify-center gap-075 rounded-medium font-body font-medium transition-colors duration-fast ease-standard focus-visible:outline-focused disabled:pointer-events-none [&>svg]:size-icon-small [&>svg]:shrink-0";
 
+// A bounded button keeps its label on one line: a label that needs two is a sentence.
 const variants: Record<ButtonVariant, string> = {
   primary:
-    "bg-brand-bold text-inverse hover:bg-brand-bold-hovered active:bg-brand-bold-pressed aria-expanded:bg-brand-bold-pressed data-[disabled]:not-data-[loading]:bg-disabled data-[disabled]:not-data-[loading]:text-disabled",
+    "bg-brand-bold text-inverse hover:bg-brand-bold-hovered active:bg-brand-bold-pressed aria-expanded:bg-brand-bold-pressed data-[disabled]:not-data-[loading]:bg-disabled data-[disabled]:not-data-[loading]:text-disabled whitespace-nowrap",
   secondary:
-    "bg-surface-raised text-default shadow-raised hover:bg-surface-raised-hovered active:bg-surface-raised-pressed aria-expanded:bg-surface-raised-pressed data-[disabled]:not-data-[loading]:bg-disabled data-[disabled]:not-data-[loading]:text-disabled data-[disabled]:not-data-[loading]:shadow-none",
+    "bg-surface-raised text-default shadow-raised hover:bg-surface-raised-hovered active:bg-surface-raised-pressed aria-expanded:bg-surface-raised-pressed data-[disabled]:not-data-[loading]:bg-disabled data-[disabled]:not-data-[loading]:text-disabled data-[disabled]:not-data-[loading]:shadow-none whitespace-nowrap",
   subtle:
-    "bg-neutral-subtle text-subtle hover:bg-neutral-subtle-hovered hover:text-default active:bg-neutral-subtle-pressed aria-expanded:bg-neutral-subtle-pressed aria-expanded:text-default data-[disabled]:not-data-[loading]:bg-neutral-subtle data-[disabled]:not-data-[loading]:text-disabled",
+    "bg-neutral-subtle text-subtle hover:bg-neutral-subtle-hovered hover:text-default active:bg-neutral-subtle-pressed aria-expanded:bg-neutral-subtle-pressed aria-expanded:text-default data-[disabled]:not-data-[loading]:bg-neutral-subtle data-[disabled]:not-data-[loading]:text-disabled whitespace-nowrap",
   danger:
-    "bg-danger-bold text-inverse hover:bg-danger-bold-hovered active:bg-danger-bold-pressed aria-expanded:bg-danger-bold-pressed data-[disabled]:not-data-[loading]:bg-disabled data-[disabled]:not-data-[loading]:text-disabled",
+    "bg-danger-bold text-inverse hover:bg-danger-bold-hovered active:bg-danger-bold-pressed aria-expanded:bg-danger-bold-pressed data-[disabled]:not-data-[loading]:bg-disabled data-[disabled]:not-data-[loading]:text-disabled whitespace-nowrap",
   // A link-styled action is only as tall as its text; on a touch screen it takes a 24px hit area.
-  link: "relative touch-target text-brand underline-offset-2 hover:underline data-[disabled]:not-data-[loading]:text-disabled data-[disabled]:not-data-[loading]:no-underline",
+  // It sets no white-space, so it wraps like the text around it, as a TextLink does: in a value or
+  // a sentence its label goes on to the next line whole, its lines from the start, and in a table
+  // cell that cuts its value it stays on one line, as the cell's text does.
+  link: "relative touch-target text-start text-brand underline-offset-2 hover:underline data-[disabled]:not-data-[loading]:text-disabled data-[disabled]:not-data-[loading]:no-underline",
 };
 
 const sizes: Record<ButtonSize, string> = {

@@ -29,7 +29,9 @@ import { useStaleOnWrite } from "./server-table";
  * the campaigns hold of a control is read here (`plan_control_holdings`), for its next step and
  * for the pickers that do it. The program's assessors decide a control once they have judged every
  * objective it counts, so a control judged in part is still waiting on them: its step opens the
- * campaign whose plan holds what is left to judge, which a plan holding the whole control does.
+ * campaign whose plan holds what is left to judge, which a plan holding the whole control does,
+ * and both commands write only what is left of it, the objectives nobody has judged
+ * (`assessmentTakes`).
  */
 
 /** The campaign statuses whose plan can still take a control. */
@@ -77,16 +79,22 @@ export type AssessmentCampaignPlan = {
   holdsUnjudged: boolean;
   /** How many of the control's objectives that plan holds; none while it has no plan. */
   objectivesHeld: number;
+  /**
+   * How many of the objectives the program's assessors have not judged that plan holds; none while
+   * it has no plan.
+   */
+  unjudgedHeld: number;
 };
 
 /**
  * What the program's open campaigns hold of a control: the campaigns, how many assessment
- * objectives the control counts (none for one a plan takes as its statement), and its step's
- * reading.
+ * objectives the control counts (none for one a plan takes as its statement), how many of them
+ * the program's assessors have judged, and its step's reading.
  */
 export type ControlAssessment = StepPlans & {
   campaigns: AssessmentCampaignPlan[];
   objectives: number;
+  objectivesAssessed: number;
 };
 
 /** What a plan holds of one control. */
@@ -100,6 +108,8 @@ export type PlanHolding = {
    * is judged, the rest once some are.
    */
   holdsUnjudged: boolean;
+  /** How many of the objectives the plan's program has not judged it holds. */
+  unjudgedHeld: number;
 };
 
 /** What the named plans hold of one control, as the server reads them. */
@@ -107,11 +117,54 @@ export type PlanHoldings = {
   controlId: string;
   /** The assessment objectives the control counts; none for a control a plan takes as its statement. */
   objectives: number;
+  /** How many of them the program's assessors have judged. */
+  objectivesAssessed: number;
   /** Each plan named that the reader reads, by its id. */
   plans: ReadonlyMap<string, PlanHolding>;
 };
 
-const NOT_HELD: PlanHolding = { held: 0, holds: false, holdsUnjudged: false };
+const NOT_HELD: PlanHolding = { held: 0, holds: false, holdsUnjudged: false, unjudgedHeld: 0 };
+
+/** What an assessment of a control takes: how many objectives, and whether only the unjudged ones. */
+export type AssessmentTakes = {
+  /** The objectives it takes; none for a control a plan takes as its statement. */
+  objectives: number;
+  /** Only the objectives nobody has judged, of a control its assessors have judged in part. */
+  unjudged: boolean;
+};
+
+/**
+ * What Add to assessment campaign and Plan an assessment take of a control, as the commands write
+ * it: while the program's assessors have judged some of the objectives it counts and not all, only
+ * the objectives nobody has judged (AC-2 with 3 of its 26 judged takes 23); else every objective it
+ * counts, none for a control a plan takes as its statement. A control judged on every objective is
+ * taken whole, a reassessment, which its next step never offers.
+ */
+export function assessmentTakes({
+  objectives,
+  objectivesAssessed,
+}: Pick<ControlAssessment, "objectives" | "objectivesAssessed">): AssessmentTakes {
+  const unjudged = objectivesAssessed > 0 && objectivesAssessed < objectives;
+  return { objectives: unjudged ? objectives - objectivesAssessed : objectives, unjudged };
+}
+
+/**
+ * What a campaign's latest plan holds of what an assessment takes of the control: how many of
+ * those objectives, and whether all of them, so the control takes nothing more from it. Of a
+ * control judged in part that is the objectives nobody has judged; else every objective, or the
+ * statement.
+ */
+export function campaignHolds(
+  campaign: Pick<
+    AssessmentCampaignPlan,
+    "objectivesHeld" | "holds" | "unjudgedHeld" | "holdsUnjudged"
+  >,
+  takes: AssessmentTakes,
+): { held: number; holds: boolean } {
+  return takes.unjudged
+    ? { held: campaign.unjudgedHeld, holds: campaign.holdsUnjudged }
+    : { held: campaign.objectivesHeld, holds: campaign.holds };
+}
 
 /** Each campaign's latest plan revision, by its campaign. */
 export function latestPlans(plans: readonly PlanRow[]): Map<string, PlanRow> {
@@ -138,12 +191,13 @@ const campaignOrder = (a: AssessmentCampaignPlan, b: AssessmentCampaignPlan) =>
  * and how many have a draft plan that does not hold that yet, which a plan holding some of its
  * objectives still is, since it takes the rest. A completed or cancelled campaign takes no control,
  * so a control only such a campaign planned is not under way anywhere. `holdings` is what those
- * plans hold of the control (`plan_control_holdings`).
+ * plans hold of the control (`plan_control_holdings`), with how many of its objectives the
+ * program's assessors have judged.
  */
 export function controlAssessment(
   campaigns: readonly CampaignRow[],
   plans: readonly PlanRow[],
-  holdings: Pick<PlanHoldings, "objectives" | "plans">,
+  holdings: Pick<PlanHoldings, "objectives" | "objectivesAssessed" | "plans">,
 ): ControlAssessment {
   const latest = latestPlans(plans);
   const open = campaigns
@@ -170,6 +224,7 @@ export function controlAssessment(
         holds: !!plan && holding.holds,
         holdsUnjudged: !!plan && holding.holdsUnjudged,
         objectivesHeld: plan ? holding.held : 0,
+        unjudgedHeld: plan ? holding.unjudgedHeld : 0,
       };
     })
     .sort(campaignOrder);
@@ -179,6 +234,7 @@ export function controlAssessment(
   return {
     campaigns: open,
     objectives: holdings.objectives,
+    objectivesAssessed: holdings.objectivesAssessed,
     planned: planned ? { id: planned.id, title: planned.title } : null,
     drafts: open.filter((campaign) => campaign.plan?.state === "draft" && !campaign.holdsUnjudged)
       .length,
@@ -188,12 +244,14 @@ export function controlAssessment(
 const holdingsSchema = z.object({
   control_id: z.string(),
   objectives: z.number().int().nonnegative(),
+  objectives_assessed: z.number().int().nonnegative(),
   plans: z.array(
     z.object({
       plan_revision_id: z.string(),
       objectives_held: z.number().int().nonnegative(),
       holds: z.boolean(),
       holds_unjudged: z.boolean(),
+      unjudged_held: z.number().int().nonnegative(),
     }),
   ),
 });
@@ -202,19 +260,22 @@ type Client = Pick<SupabaseClient, "rpc">;
 
 /**
  * What the named plans hold of one control, in one request, as the reader: how many assessment
- * objectives the control counts and, for each plan the reader reads, how many of them it holds,
- * whether it holds the control, and whether it holds what its program has not judged yet. A plan
- * left out of the answer holds nothing.
+ * objectives the control counts and how many of them the program's assessors have judged, and, for
+ * each plan the reader reads, how many of them it holds, whether it holds the control, whether it
+ * holds what its program has not judged yet and how many of those objectives it holds. A plan left
+ * out of the answer holds nothing.
  */
 export async function readPlanControlHoldings(
   client: Client,
   { tenantId, token }: ReadContext,
+  programId: string,
   controlId: string,
   planIds: readonly string[],
   signal?: AbortSignal,
 ): Promise<PlanHoldings> {
   const args: Database["public"]["Functions"]["plan_control_holdings"]["Args"] = {
     p_tenant_id: tenantId,
+    p_program_id: programId,
     p_control_id: controlId,
     p_plan_revision_ids: [...planIds],
   };
@@ -228,10 +289,16 @@ export async function readPlanControlHoldings(
   return {
     controlId: answer.control_id,
     objectives: answer.objectives,
+    objectivesAssessed: answer.objectives_assessed,
     plans: new Map(
       answer.plans.map((plan) => [
         plan.plan_revision_id,
-        { held: plan.objectives_held, holds: plan.holds, holdsUnjudged: plan.holds_unjudged },
+        {
+          held: plan.objectives_held,
+          holds: plan.holds,
+          holdsUnjudged: plan.holds_unjudged,
+          unjudgedHeld: plan.unjudged_held,
+        },
       ]),
     ),
   };
@@ -250,8 +317,10 @@ const HOLDING_MODELS = [
 /**
  * What the program's open assessment campaigns hold of one control, read while `enabled`: the
  * campaigns and their latest plans, each read scoped on the server, and what those plans hold of
- * the control (`plan_control_holdings`). `queries` are the three reads, for a value that waits on
- * them and a region's one alert. A write to a campaign, a plan or an objective reads them again.
+ * the control with how many of its objectives the program's assessors have judged
+ * (`plan_control_holdings`). `queries` are the three reads, for a value that waits on them and a
+ * region's one alert. A write to a campaign, a plan or an objective reads them again, and a write
+ * to a finding or a results revision reads again what the plans hold.
  */
 export function useControlAssessment(
   programId: string | null | undefined,
@@ -291,13 +360,21 @@ export function useControlAssessment(
     "plan_control_holdings",
   ]);
   const holdings = useQuery<PlanHoldings, Error>({
-    queryKey: ["models", workspace.tenantId, "plan_control_holdings", controlId ?? null, latestIds],
+    queryKey: [
+      "models",
+      workspace.tenantId,
+      "plan_control_holdings",
+      programId ?? null,
+      controlId ?? null,
+      latestIds,
+    ],
     enabled: on && plans.isSuccess,
     retry: false,
     queryFn: async ({ signal }) =>
       readPlanControlHoldings(
         database(),
         { tenantId: workspace.tenantId, token: await requireIdentity(workspace) },
+        programId!,
         controlId!,
         latestIds,
         signal,
@@ -461,10 +538,17 @@ const answerSchema = z.object({
    * before plans took objectives, whose receipt has no count.
    */
   counted: z.number().int().nonnegative().default(0),
+  /**
+   * How many of those objectives the command left out because the program's assessors have judged
+   * them: of a control judged in part, it took only the objectives nobody has judged. None for a
+   * control judged on none or on every one, and in every answer given before it took only what is
+   * left, whose receipt has no count.
+   */
+  judged: z.number().int().nonnegative().default(0),
 });
 /**
- * What a command did: the campaign and plan, the objectives it added, the controls it skipped and
- * how many objectives the chosen controls count.
+ * What a command did: the campaign and plan, the objectives it added, the controls it skipped, how
+ * many objectives the chosen controls count and how many of those it left out as judged.
  */
 export type AddedObjectives = z.infer<typeof answerSchema>;
 
@@ -498,9 +582,10 @@ export type AddControlsToAssessmentPlan = {
  * Add the chosen controls to a campaign's draft plan, at the plan revision the reader saw, in one
  * request: each control as the objectives it counts that the plan does not hold yet (all of them,
  * or the rest), one plan objective each, and a control that counts none as one objective aimed at
- * its statement; a control the plan holds whole takes nothing. A control the plan's SSP does not
- * select refuses the whole choice. Sent again under the same id, the request answers as it first
- * did.
+ * its statement; of a control the program's assessors have judged in part, only the objectives
+ * nobody has judged (`assessmentTakes`). Where the plan holds all of that already, the control
+ * takes nothing (skipped). A control the plan's SSP does not select refuses the whole choice. Sent
+ * again under the same id, the request answers as it first did.
  */
 export async function addControlsToAssessmentPlan(
   client: Client,
@@ -534,8 +619,9 @@ export type PlanControlAssessment = {
 /**
  * Plan an assessment of the chosen controls, in one request: a planned campaign of the program
  * with the given title, its first plan a draft pinned to the chosen SSP, holding each control as
- * the objectives it counts, or its statement where it counts none. Sent again under the same id,
- * the request answers as it first did.
+ * the objectives it counts, or its statement where it counts none; of a control the program's
+ * assessors have judged in part, only the objectives nobody has judged. Sent again under the same
+ * id, the request answers as it first did.
  */
 export async function planControlAssessment(
   client: Client,

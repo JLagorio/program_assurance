@@ -365,6 +365,18 @@ export const mapsObjectives = (count: string, total: string) =>
 /** What it says of a requirement whose mappings cover every objective chosen, on every system. */
 export const mapsChosenObjectives = "Maps the chosen objectives";
 
+/**
+ * Assessment results as the screens that show a campaign's results name them, one revision and
+ * several alike: the campaign's Assessment results, its preview ("Assessment results preview") and
+ * the line that says they could not load. The record noun stays "assessment results revision" for
+ * the generic forms and the schema inspector, which put an article before it ("Create the first
+ * assessment results revision to begin this collection.").
+ */
+export const assessmentResultsWords = {
+  one: "assessment results",
+  other: "assessment results",
+} as const;
+
 /** The framework items' table, or the view that reads the current revision's. */
 const isFrameworkItems = (table: string) =>
   table === "framework_items" || table === "framework_item_rows";

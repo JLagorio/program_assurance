@@ -88,7 +88,11 @@ export function GateItem({
         </span>
         {reason ? <span className="break-words font-body-xsmall text-subtle">{reason}</span> : null}
       </span>
-      {action ? <span className="flex shrink-0 items-center">{action}</span> : null}
+      {/* The action keeps its one line beside the label: a link-styled Button wraps as text does,
+          and a gate sized to its content would leave the label no room. */}
+      {action ? (
+        <span className="flex shrink-0 items-center whitespace-nowrap">{action}</span>
+      ) : null}
     </li>
   );
 }

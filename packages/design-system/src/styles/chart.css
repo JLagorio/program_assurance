@@ -99,6 +99,24 @@
   rotate: none;
 }
 
+/* While a Heatmap cell's card is open the other cells step back: a cell's fill and its edge show at
+   opacity.disabled, and its number keeps its own colour, so every number still reads at 4.5:1
+   (WCAG 1.4.3) where an opacity on the whole cell took its words down with the fill. The part hands
+   a dimmed cell its fill as --chart-heatmap-fill; a status cell's is its tone's subtle fill, under
+   the tone's text. A cell with no fill (a total, an empty cell, a status zero) has none to show. */
+[data-slot="chart-heatmap-cell"][data-dimmed] {
+  background-color: color-mix(
+    in srgb,
+    var(--chart-heatmap-fill, transparent) calc(var(--ds-opacity-disabled) * 100%),
+    transparent
+  );
+  border-color: color-mix(
+    in srgb,
+    var(--ds-color-border-bold) calc(var(--ds-opacity-disabled) * 100%),
+    transparent
+  );
+}
+
 /* A heatmap's zero is a faint point; the system palette keeps it visible. */
 @media (forced-colors: active) {
   [data-slot="chart-heatmap-zero"] {

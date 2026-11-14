@@ -140,6 +140,13 @@ export const ResponsiveWidths: Story = {
   ),
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
+    // Measured in the face the reader sees. Labels laid out in the fallback face (wider on a Linux
+    // runner) narrow when Geist arrives, and the browser pulls a strip scrolled to its end back to
+    // fit its shorter content, which no resize caused: a font that lands while the strip narrows
+    // below reads as the strip scrolling back. Laying the labels out first starts the loads that
+    // `ready` waits for.
+    void canvasElement.offsetWidth;
+    await document.fonts.ready;
     // The filled strip scrolls: its first tab starts inside the container, and End and Home
     // reveal the last and first tabs.
     const filled = canvas.getByRole("tablist", { name: "200px filled views" });

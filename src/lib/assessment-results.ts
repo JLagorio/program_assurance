@@ -6,6 +6,8 @@ import { useWorkspace } from "./workspace-context";
 import { database, requireIdentity } from "./database";
 import type { Database } from "./database.types";
 import { idSet, invalidateModel, useRows, type ReadContext, type Row } from "./models";
+import { serverRead, type ServerRow } from "./server-table";
+import { determinations } from "./status";
 
 /*
  * Publishing a program's assessment results. An assessor's findings stand in a draft results
@@ -16,7 +18,10 @@ import { idSet, invalidateModel, useRows, type ReadContext, type Row } from "./m
  * same request sent again returns its first answer. It also writes one activity event, so the
  * Portfolio's Recent activity and the program's Activity say who published, linked to the
  * campaign. A draft holding findings waits in the Review queue (Assessment results to publish),
- * and its campaign lists its results revisions and publishes from its Actions menu.
+ * and its campaign lists its results revisions and publishes from its Actions menu. Either preview
+ * of the results lists the findings they hold (`resultsFindingRead`), and while they are a draft
+ * their title and description change at the revision the reader opened them at
+ * (`editAssessmentResults`).
  */
 
 type Client = Pick<SupabaseClient, "rpc">;
@@ -257,6 +262,154 @@ export function useCampaignResults(campaignId: string) {
     [revisions.data, findings.data],
   );
   return { rows, revisions, findings, queries: [revisions, findings] };
+}
+
+/* ——— The findings the results hold —————————————————————————————————————————————————————————— */
+
+/** What a results preview's list reads of a finding: its name, its determination, its control. */
+export const RESULTS_FINDING_COLUMNS = [
+  "id",
+  "title",
+  "determination",
+  "control_id",
+  "control_code",
+] as const;
+
+/** A finding as a results preview lists it. */
+export type ResultsFindingRow = ServerRow<
+  "assessment_finding_rows",
+  (typeof RESULTS_FINDING_COLUMNS)[number],
+  "title" | "determination"
+>;
+
+/**
+ * The findings one results revision holds, a page at a time from the findings register's view: the
+ * server pages, sorts, filters, searches and counts them. Unasked, it reads them control by control
+ * in the catalog's reading order (AC-2 before AC-10, a statement before the objectives under it),
+ * then by title. The search reads a finding's title and its control's code, and finds a
+ * determination by the words its badge shows.
+ */
+export function resultsFindingRead(resultsId: string) {
+  return serverRead({
+    source: "assessment_finding_rows",
+    model: "assessment_findings",
+    columns: RESULTS_FINDING_COLUMNS,
+    scope: { assessment_results_revision_id: resultsId },
+    search: ["title", "control_code"],
+    fields: {
+      title: { sort: "title_order", filter: false },
+      determination: { labels: determinations, sort: "determination_rank" },
+      control: { column: "control_code", sort: "reading_order", filter: false },
+    },
+    order: [{ column: "reading_order" }, { column: "title_order" }],
+  });
+}
+
+/* ——— Editing draft results ——————————————————————————————————————————————————————————————————— */
+
+export const RESULTS_EDIT_NEEDS_TITLE = "Enter a title for these assessment results.";
+export const RESULTS_EDIT_MISSING = "These assessment results are no longer available.";
+export const RESULTS_EDIT_PUBLISHED =
+  "These assessment results are published, and published results no longer change.";
+export const RESULTS_EDIT_CHANGED =
+  "These assessment results changed since you opened them: close this dialog and edit them again to start from what is saved.";
+
+/** Draft results' title and description as the reader wrote them, over the revision they opened. */
+export type ResultsEdit = {
+  /** The results revision. */
+  id: string;
+  /** The revision the reader opened the form at: results changed since are refused. */
+  revision: number;
+  title: string;
+  description: string | null;
+};
+
+/** What an edit did: wrote the results at their next revision, or found them already so. */
+export type ResultsEdited = { outcome: "updated" | "unchanged"; revision: number };
+
+const editedSchema = z.object({ revision: z.number().int().positive() });
+const currentSchema = z.object({
+  state: z.string(),
+  revision: z.number().int().positive(),
+  title: z.string(),
+  description: z.string().nullable(),
+});
+
+/**
+ * Edit draft assessment results' title and description at the revision the reader opened them at,
+ * which the update raises by one. Results that already hold what the reader wrote are left as they
+ * are, so a save sent again after an answer that was lost changes nothing; results published,
+ * changed since or gone are refused in words the reader acts on, and so is a blank title.
+ */
+export async function editAssessmentResults(
+  client: Pick<SupabaseClient, "from">,
+  { tenantId, token }: ReadContext,
+  edit: ResultsEdit,
+): Promise<ResultsEdited> {
+  const title = edit.title.trim();
+  const description = edit.description?.trim() || null;
+  if (!title) throw new Error(RESULTS_EDIT_NEEDS_TITLE);
+  if (!Number.isSafeInteger(edit.revision)) throw new Error(RESULTS_EDIT_CHANGED);
+  const read = await client
+    .from("assessment_results_revisions")
+    .select("state,revision,title,description")
+    .eq("tenant_id", tenantId)
+    .eq("id", edit.id)
+    .setHeader("Authorization", `Bearer ${token}`)
+    .maybeSingle();
+  if (read.error) throw refusal(read.error);
+  if (!read.data) throw new Error(RESULTS_EDIT_MISSING);
+  const current = currentSchema.safeParse(read.data);
+  if (!current.success) throw new Error(RESULTS_EDIT_CHANGED);
+  const saved = current.data;
+  if (saved.title === title && saved.description === description)
+    return { outcome: "unchanged", revision: saved.revision };
+  if (saved.state !== "draft") throw new Error(RESULTS_EDIT_PUBLISHED);
+  if (saved.revision !== edit.revision) throw new Error(RESULTS_EDIT_CHANGED);
+  const written = await client
+    .from("assessment_results_revisions")
+    .update({ title, description, revision: edit.revision + 1 })
+    .eq("tenant_id", tenantId)
+    .eq("id", edit.id)
+    .eq("revision", edit.revision)
+    .eq("state", "draft")
+    .select("revision")
+    .setHeader("Authorization", `Bearer ${token}`)
+    .maybeSingle();
+  if (written.error) {
+    // Another session got there between the read and the write: it changed or published them.
+    if (written.error.code === "PT409") throw new Error(RESULTS_EDIT_CHANGED);
+    if (written.error.code === "23514" && /immutable/i.test(written.error.message))
+      throw new Error(RESULTS_EDIT_PUBLISHED);
+    throw refusal(written.error);
+  }
+  // No row at that revision and still a draft: they changed, or were published, in between.
+  if (!written.data) throw new Error(RESULTS_EDIT_CHANGED);
+  const edited = editedSchema.safeParse(written.data);
+  return {
+    outcome: "updated",
+    revision: edited.success ? edited.data.revision : edit.revision + 1,
+  };
+}
+
+/**
+ * Edit draft assessment results as a mutation. However the request settles, every read of the
+ * results revisions reads again (the campaign's results, its preview, the Review queue's pages), so
+ * a refusal for results someone else changed or published shows them as they are.
+ */
+export function useEditAssessmentResults() {
+  const workspace = useWorkspace();
+  const cache = useQueryClient();
+  return useMutation<ResultsEdited, Error, ResultsEdit>({
+    mutationFn: async (edit) =>
+      editAssessmentResults(
+        database(),
+        { tenantId: workspace.tenantId, token: await requireIdentity(workspace) },
+        edit,
+      ),
+    onSettled: () =>
+      void invalidateModel(cache, workspace.tenantId, "assessment_results_revisions"),
+  });
 }
 
 /**
