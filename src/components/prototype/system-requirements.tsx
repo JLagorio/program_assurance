@@ -8,7 +8,8 @@ import {
   useRemovalFocus,
 } from "./record-preview";
 import { RequirementRecordContent } from "./requirement-record";
-import { QueryState } from "./work-common";
+import { focusWhereStepWas } from "./step-focus";
+import { QueryState, type QueryStatus } from "./work-common";
 import { ProductCollection } from "./product-collection";
 import { useCollectionTable } from "./collection-question";
 import { useMemo, useRef, useState } from "react";
@@ -454,17 +455,70 @@ export function SystemRequirements({
 
 type Candidate = { id: string; revisionId: string; code: string; statement: string; type: string };
 
+/** The system a step allocates to: enough to name it and to allocate to it. */
+type AllocationTarget = Pick<SystemAssuranceRow, "id" | "code" | "name">;
+
+/**
+ * Allocate requirements, opened from a control's step where the control is short on a system and
+ * none of the program's requirements is allocated there (Allocate to R210-STD-CUSA):
+ * the system's own picker over the control's page, which leaves out what the system holds already.
+ * Focus follows the step to what replaced it once the allocation shows.
+ */
+export function AllocateRequirementsSurface({
+  programId,
+  system,
+  opener,
+  slot,
+  onClose,
+}: {
+  programId: string;
+  system: AllocationTarget;
+  opener: HTMLElement | null;
+  slot: HTMLElement | null;
+  onClose: () => void;
+}) {
+  const allocations = useRows(
+    "requirement_allocations",
+    { system_id: system.id },
+    { columns: ["id", "requirement_revision_id"] },
+  );
+  const allocated = useMemo(
+    () => new Set((allocations.data ?? []).map((allocation) => allocation.requirement_revision_id)),
+    [allocations.data],
+  );
+  return (
+    <AllocateToElement
+      programId={programId}
+      element={system}
+      allocated={allocated}
+      held={[allocations]}
+      finalFocus={() => (opener?.isConnected ? opener : true)}
+      onClose={onClose}
+      onDone={() => focusWhereStepWas(opener, slot)}
+    />
+  );
+}
+
 /** Choose the program's requirements to allocate to this element; every checked row is one explicit allocation. */
 function AllocateToElement({
   programId,
   element,
   allocated,
+  held = [],
+  finalFocus,
   onClose,
+  onDone,
 }: {
   programId: string;
-  element: SystemAssuranceRow;
+  element: AllocationTarget;
   allocated: Set<string>;
+  /** The reads that say what the element holds already: the picker waits on them. */
+  held?: readonly QueryStatus[] | undefined;
+  /** Where focus goes when the picker closes, where its opener may have left. */
+  finalFocus?: (() => HTMLElement | boolean) | undefined;
   onClose: () => void;
+  /** The requirements were allocated. */
+  onDone?: (() => void) | undefined;
 }) {
   const requirements = useRows(
     "engineering_requirements",
@@ -563,6 +617,7 @@ function AllocateToElement({
       });
       guard.finish();
       guard.complete();
+      onDone?.();
     } catch (cause) {
       // One write: a refusal saved none of them, and a retry after a lost answer adds only the rest.
       setError(
@@ -591,6 +646,7 @@ function AllocateToElement({
           controlRef={rationaleRef}
         />
       }
+      finalFocus={finalFocus}
       pending={guard.busy}
       error={error}
       secondary={
@@ -606,7 +662,7 @@ function AllocateToElement({
         disabled: chosen.length === 0,
       }}
     >
-      <QueryState queries={[requirements, revisions]}>
+      <QueryState queries={[requirements, revisions, ...held]}>
         <DataTable
           responsive
           table={table}

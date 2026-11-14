@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
-import { useWorkspace } from "@/components/app/workspace";
+import { useWorkspace } from "./workspace-context";
 import { database, requireIdentity } from "./database";
 import { systemWizardSchema } from "./program-wizard";
 

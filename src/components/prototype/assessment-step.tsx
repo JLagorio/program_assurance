@@ -23,6 +23,7 @@ import {
   Text,
   defineColumns,
   toast,
+  useLedgerLocale,
 } from "@ledger/design-system";
 import { ChoiceField, TextField } from "@/components/app/fields";
 import { useFormFeedback, type FormIssue } from "@/components/app/form-feedback";
@@ -35,6 +36,7 @@ import {
   useDraftPlanDetails,
   usePlanControlAssessment,
   usePlanSspOptions,
+  type AddedObjectives,
   type AssessmentCampaignPlan,
 } from "@/lib/control-assessment";
 import { campaignStatuses } from "@/lib/status";
@@ -56,22 +58,62 @@ type CampaignChoice = {
   planRevision: number;
   /** How many objectives the draft plan holds; none until they are counted. */
   objectives: number | null;
-  /** The plan holds the control already. */
+  /** The plan holds the control already: every objective it counts, or its statement. */
   holds: boolean;
+  /** How many of the control's objectives the plan holds. */
+  held: number;
   /** The plan's SSP selects the control, which the plan needs to take it. */
   selects: boolean;
 };
+
+type Plural = ReturnType<typeof useLedgerLocale>["formatPlural"];
+type Format = ReturnType<typeof useLedgerLocale>["formatNumber"];
 
 /** Why a campaign cannot take the control, or nothing when it can. */
 const reasonOf = (row: CampaignChoice, code: string) =>
   row.holds ? `Holds ${code}` : !row.selects ? "Not in its SSP's control baseline" : undefined;
 
 /**
+ * What a campaign's row says beside its name: why it cannot take the control, or, where its plan
+ * holds some of the objectives the control counts, how many, since choosing it adds the rest.
+ */
+const noteOf = (row: CampaignChoice, code: string, counted: number, format: Format) =>
+  reasonOf(row, code) ??
+  (row.held > 0 && row.held < counted
+    ? `Holds ${format(row.held)} of ${format(counted)} objectives`
+    : undefined);
+
+/** What joining a draft plan writes of the control, said above the campaigns to choose from. */
+function joinsAs(code: string, counted: number, formatNumber: Format) {
+  if (counted === 0)
+    return `${code} becomes one objective of the campaign's draft plan, aimed at its statement.`;
+  if (counted === 1)
+    return `${code} joins the campaign's draft plan as its one assessment objective.`;
+  return `${code} joins the campaign's draft plan as its ${formatNumber(counted)} assessment objectives; a plan that holds some takes only the rest.`;
+}
+
+/**
+ * What a command added of the control, in a toast's words: how many of its objectives ("14 more
+ * objectives of AC-2" where the plan held some), or the control itself where it counts none and
+ * was written as its statement.
+ */
+function addedOf(answer: AddedObjectives, code: string, formatPlural: Plural) {
+  if (answer.counted === 0) return code;
+  const forms =
+    answer.added < answer.counted
+      ? { one: "{count} more objective", other: "{count} more objectives" }
+      : { one: "{count} objective", other: "{count} objectives" };
+  return `${formatPlural(answer.added, forms)} of ${code}`;
+}
+
+/**
  * Add to assessment campaign: choose one of the program's open campaigns that has a draft plan,
- * and the control becomes one of its objectives in one request, at the plan revision the reader
- * saw. A campaign whose plan holds the control already, or whose SSP does not select it, is marked
- * with why and cannot be chosen. Where no campaign has a draft plan, the empty state plans an
- * assessment around the control instead.
+ * and the control joins it in one request, at the plan revision the reader saw, as the assessment
+ * objectives it counts, one plan objective each (a control that counts none as one aimed at its
+ * statement). A campaign whose plan holds some of them says how many and takes the rest; one whose
+ * plan holds the control already, or whose SSP does not select it, is marked with why and cannot be
+ * chosen. Where no campaign has a draft plan, the empty state plans an assessment around the
+ * control instead.
  */
 function AddToAssessmentPicker({
   programId,
@@ -90,7 +132,10 @@ function AddToAssessmentPicker({
   onPlan: () => void;
   finalFocus: () => HTMLElement | boolean;
 }) {
+  const { formatNumber, formatPlural } = useLedgerLocale();
   const assessment = useControlAssessment(programId, control.id);
+  // How many assessment objectives the control counts, once read: what a plan takes of it.
+  const counted = assessment.data?.objectives;
   const drafts = useMemo(
     () =>
       (assessment.data?.campaigns ?? []).filter(
@@ -119,26 +164,30 @@ function AddToAssessmentPicker({
           planRevision: campaign.plan.revision,
           objectives: detail?.objectives ?? null,
           holds: campaign.holds,
+          held: campaign.objectivesHeld,
           selects: detail?.selects ?? false,
         };
       }),
     [drafts, details.data],
   );
-  const counted = !!details.data;
+  const read = !!details.data;
   const columns = useMemo(
     () =>
       defineColumns<CampaignChoice>((c) => [
         c.text("title", {
           header: "Assessment campaign",
           priority: 0,
-          minWidth: 220,
+          // Room for the name beside its note ("Holds 12 of 26 objectives"); the later columns
+          // fold into the row's More fields first.
+          minWidth: 280,
           hideable: false,
-          // Why the campaign cannot take the control, once its plan's SSP has been read.
+          // Why the campaign cannot take the control, or how much of it its plan holds, once its
+          // plan's SSP has been read.
           badge: (row) => {
-            const why = counted ? reasonOf(row, control.code) : undefined;
-            return why ? (
+            const note = read ? noteOf(row, control.code, counted ?? 0, formatNumber) : undefined;
+            return note ? (
               <Badge size="xsmall" variant="secondary" tone="neutral">
-                {why}
+                {note}
               </Badge>
             ) : null;
           },
@@ -154,13 +203,13 @@ function AddToAssessmentPicker({
         c.date("startsAt", { header: "Starts", priority: 4 }),
         c.date("endsAt", { header: "Ends", priority: 5 }),
       ]),
-    [counted, control.code],
+    [read, counted, control.code, formatNumber],
   );
   const table = useCollectionTable({
     columns,
     data: rows,
     getRowId: (row) => row.id,
-    selectable: (row) => counted && !reasonOf(row, control.code),
+    selectable: (row) => read && !reasonOf(row, control.code),
     enableMultiRowSelection: false,
     label: "Assessment campaigns to add to",
   });
@@ -179,7 +228,8 @@ function AddToAssessmentPicker({
     if (!chosen || !guard.start()) return;
     setError(undefined);
     try {
-      // One request: the control becomes one objective of the plan, or the plan is left as it was.
+      // One request: the plan takes the objectives of the control it does not hold yet, or is left
+      // as it was.
       const answer = await add.mutateAsync({
         planRevisionId: chosen.planId,
         expectedRevision: chosen.planRevision,
@@ -188,7 +238,10 @@ function AddToAssessmentPicker({
       });
       toast.add(
         answer.added > 0
-          ? { type: "success", title: `${control.code} added to ${chosen.title}` }
+          ? {
+              type: "success",
+              title: `${addedOf(answer, control.code, formatPlural)} added to ${chosen.title}`,
+            }
           : { type: "information", title: `${chosen.title} already holds ${control.code}` },
       );
       guard.finish();
@@ -202,8 +255,8 @@ function AddToAssessmentPicker({
     }
   }
   const reads = [...assessment.queries, ...details.queries];
-  const failed = reads.some((read) => read.isError && read.data === undefined);
-  const loading = !failed && (!assessment.data || (drafts.length > 0 && !counted));
+  const failed = reads.some((query) => query.isError && query.data === undefined);
+  const loading = !failed && (!assessment.data || (drafts.length > 0 && !read));
   return (
     <PickerSheet
       open
@@ -215,9 +268,12 @@ function AddToAssessmentPicker({
       state={failed ? "error" : loading ? "loading" : "ready"}
       search={{ placeholder: "Find assessment campaigns" }}
       toolbar={
-        <Text as="p" size="small" color="color.text.subtle">
-          {`${control.code} becomes one objective of the campaign's draft plan, aimed at its statement.`}
-        </Text>
+        // What the plan takes of the control, once it is known how many objectives it counts.
+        counted === undefined ? undefined : (
+          <Text as="p" size="small" color="color.text.subtle">
+            {joinsAs(control.code, counted, formatNumber)}
+          </Text>
+        )
       }
       finalFocus={finalFocus}
       pending={guard.busy}
@@ -255,8 +311,9 @@ const TITLE_LIMIT = 300;
 
 /**
  * Plan an assessment: a new campaign of the program, planned, whose first plan is a draft pinned
- * to a published SSP of one of the program's systems, holding the control as its first objective.
- * One request writes all three, or none; planning again after a failure plans no second campaign.
+ * to a published SSP of one of the program's systems, holding the control as the assessment
+ * objectives it counts (its statement, where it counts none). One request writes all three, or
+ * none; planning again after a failure plans no second campaign.
  */
 function PlanAssessmentDialog({
   programId,
@@ -272,6 +329,7 @@ function PlanAssessmentDialog({
   onDone: () => void;
   finalFocus: () => HTMLElement | boolean;
 }) {
+  const { formatPlural } = useLedgerLocale();
   const formId = useId();
   const options = usePlanSspOptions(programId, control.id);
   const usable = useMemo(
@@ -284,7 +342,8 @@ function PlanAssessmentDialog({
   const [title, setTitle] = useState(`${control.code} assessment`);
   const [sspId, setSspId] = useState<string | null>(null);
   const [failure, setFailure] = useState<string | null>(null);
-  const saved = useRef<string | null>(null);
+  // The campaign planned and what its plan took of the control, which the toast says once closed.
+  const saved = useRef<{ title: string; answer: AddedObjectives } | null>(null);
   const submitRef = useRef<HTMLButtonElement>(null);
   // One published SSP that selects the control is the answer already; with several, the reader's.
   const chosenSsp = sspId ?? (usable.length === 1 ? usable[0]!.id : null);
@@ -324,14 +383,14 @@ function PlanAssessmentDialog({
     if (!guard.start()) return;
     const named = title.trim();
     try {
-      await plan.mutateAsync({
+      const answer = await plan.mutateAsync({
         programId,
         sspRevisionId: chosenSsp,
         title: named,
         requestId: requestFor([chosenSsp, named, control.id]),
         controlIds: [control.id],
       });
-      saved.current = named;
+      saved.current = { title: named, answer };
       guard.finish();
       guard.complete();
     } catch (cause) {
@@ -352,10 +411,14 @@ function PlanAssessmentDialog({
       }}
       onOpenChangeComplete={(next) => {
         if (next) return;
-        if (saved.current)
-          toast.add({ type: "success", title: `${control.code} planned in ${saved.current}` });
+        const planned = saved.current;
+        if (planned)
+          toast.add({
+            type: "success",
+            title: `${addedOf(planned.answer, control.code, formatPlural)} planned in ${planned.title}`,
+          });
         onClose();
-        if (saved.current) onDone();
+        if (planned) onDone();
       }}
     >
       <DialogContent

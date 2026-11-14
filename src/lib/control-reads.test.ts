@@ -1,7 +1,5 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { fakeClient, filter, uuid, type FakeCall } from "./testing/fake-client";
-
-vi.mock("@/components/app/workspace", () => ({ useWorkspace: () => ({}) }));
 
 const { readControlStatements, readMappingParts } = await import("./control-reads");
 

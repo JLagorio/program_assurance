@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@supabase/supabase-js";
-import { useWorkspace } from "@/components/app/workspace";
+import { useWorkspace } from "./workspace-context";
 import { database, requireIdentity } from "./database";
 import {
   citationRectangleSchema,

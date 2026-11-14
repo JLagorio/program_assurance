@@ -49,6 +49,9 @@ import { idSet, useRow, useRows, type Row } from "@/lib/models";
 import { SaveOnceConflict, useSaveOnce } from "@/lib/save-once";
 import {
   WHOLE_CONTROL_CHOICE,
+  coverageOf,
+  coveredObjectives,
+  fewestTargets,
   isMappingTarget,
   requirementMappingBaselines,
   type MappingBaseline,
@@ -375,7 +378,6 @@ export function RequirementControlMappings({
     data: rows,
     getRowId: (row) => row.id,
     preview: tablePreview,
-    rowLabel: (row) => row.name,
     label: "Requirement control mappings",
     view: "requirement-control-mappings",
     resizable: true,
@@ -631,9 +633,10 @@ function MappingDialog({
         : NONE_CHOSEN,
     [coverage, objectiveIds, known],
   );
-  // What this save writes: one mapping of the whole control, or one an objective chosen.
+  // What this save writes: one mapping of the whole control, or one an objective chosen, a chosen
+  // heading's one mapping covering the objectives under it, which are never written beside it.
   const targets: readonly (string | null)[] =
-    coverage === "whole" ? WHOLE_CONTROL_CHOICE : chosenObjectives;
+    coverage === "whole" ? WHOLE_CONTROL_CHOICE : fewestTargets(known ?? [], chosenObjectives);
   const labelOf = (objectiveId: string) =>
     known?.find((objective) => objective.id === objectiveId)?.label ?? "An objective";
   // A recorded target the reader has not changed is checked as it is recorded.
@@ -770,7 +773,13 @@ function MappingDialog({
           }),
           retry,
         });
-        saved.current = { objectives: coverage === "objectives" ? chosenObjectives.length : 0 };
+        // The toast counts what the mappings cover: a heading's covers the objectives under it.
+        saved.current = {
+          objectives:
+            coverage === "objectives" && known
+              ? coveredObjectives(coverageOf(known, targets), known)
+              : 0,
+        };
       }
       await requireIdentity(workspace);
       guard.finish();

@@ -2,11 +2,9 @@ import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { applyOperation, cellAt, createWorkbook, type Workbook } from "@ledger/spreadsheet-core";
 import { calculateWorkbook, initializeCalculation } from "@ledger/spreadsheet-core/calculation";
-import { beforeAll, describe, expect, it, vi } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import type { AssuranceWorkbookSnapshot } from "./assurance-workbook";
 import { uuid } from "./testing/fake-client";
-
-vi.mock("@/components/app/workspace", () => ({ useWorkspace: () => ({}) }));
 
 const { projectWorkbook, proposeWorkbookChanges, sourceSheets, workbookDocument } =
   await import("./workbook-projection");

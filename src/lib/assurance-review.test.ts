@@ -1,7 +1,6 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { QueryClient } from "@tanstack/react-query";
 import { args, fakeClient, uuid } from "./testing/fake-client";
-vi.mock("@/components/app/workspace", () => ({ useWorkspace: () => ({}) }));
 const {
   reviewTargetSchema,
   reviewCommandSchema,

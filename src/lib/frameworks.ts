@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
-import { useWorkspace } from "@/components/app/workspace";
+import { useWorkspace } from "./workspace-context";
 import { database, requireIdentity } from "./database";
 import type { Database, Json } from "./database.types";
 import { idSet, type Filters, type FilterValue, type ReadContext } from "./models";

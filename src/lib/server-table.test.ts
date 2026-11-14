@@ -1,10 +1,8 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import type { FakeCall, FakeResult } from "./testing/fake-client";
 import { uuid } from "./testing/fake-client";
-
-vi.mock("@/components/app/workspace", () => ({ useWorkspace: () => ({}) }));
 
 const { readServerCount, readServerPage, readServerPosition, readServerResult, serverQuestion } =
   await import("./server-table");

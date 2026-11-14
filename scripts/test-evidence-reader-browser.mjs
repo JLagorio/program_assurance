@@ -146,16 +146,45 @@ try {
     const text = page
       .getByRole("document", { name: "Page 1 text" })
       .getByText("The recovery exercise completed successfully.", { exact: true });
-    await text.waitFor();
-    await text.evaluate((el) => {
-      const range = document.createRange();
-      range.selectNodeContents(el);
-      const selection = window.getSelection();
-      selection.removeAllRanges();
-      selection.addRange(range);
-      el.dispatchEvent(new PointerEvent("pointerup", { bubbles: true, button: 0 }));
-    });
-    await page.getByRole("button", { name: "Cite selection", exact: true }).waitFor();
+    const cite = page.getByRole("button", { name: "Cite selection", exact: true });
+    // The text layer draws again whenever the page's width changes, as it does when the viewport
+    // leaves 390px, and a slow runner can still be drawing it when the sentence first shows: a
+    // selection made in the layer it replaces is never read. Select once the sentence has held
+    // still for three frames, and again if the reader does not offer the citation, four times at
+    // most.
+    for (let attempt = 1; ; attempt += 1) {
+      await text.waitFor();
+      await text.evaluate(
+        (el) =>
+          new Promise((resolve) => {
+            let last = "";
+            let still = 0;
+            let frames = 0;
+            const tick = () => {
+              const box = el.getBoundingClientRect();
+              const now = `${box.x},${box.y},${box.width},${box.height}`;
+              still = now === last && box.width > 0 ? still + 1 : 0;
+              last = now;
+              frames += 1;
+              if (still < 3 && frames < 120) return void requestAnimationFrame(tick);
+              const range = document.createRange();
+              range.selectNodeContents(el);
+              const selection = window.getSelection();
+              selection.removeAllRanges();
+              selection.addRange(range);
+              el.dispatchEvent(new PointerEvent("pointerup", { bubbles: true, button: 0 }));
+              resolve();
+            };
+            requestAnimationFrame(tick);
+          }),
+      );
+      try {
+        await cite.waitFor({ timeout: 5000 });
+        return;
+      } catch (error) {
+        if (attempt === 4) throw error;
+      }
+    }
   };
   await select();
   await page.getByRole("button", { name: "Cite selection", exact: true }).click();

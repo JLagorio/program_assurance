@@ -9,7 +9,7 @@ throw new Error(
   [
     'A domain test loaded "@ledger/design-system".',
     "The app's unit tests run without the built kit, so this fails in CI.",
-    "Mock the module that draws with it, most often the workspace context:",
-    '  vi.mock("@/components/app/workspace", () => ({ useWorkspace: () => ({}) }));',
+    "src/lib never imports the UI, so a module under test reached it through a file outside src/lib:",
+    "mock that module, or move what the test needs into src/lib.",
   ].join("\n"),
 );

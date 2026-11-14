@@ -1,9 +1,14 @@
+import { useMemo } from "react";
 import { useQueries, useQuery, type UseQueryResult } from "@tanstack/react-query";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
-import { useWorkspace } from "@/components/app/workspace";
+import { useWorkspace } from "./workspace-context";
+import type { AssuranceTrace } from "./assurance-trace";
+import { useControlAssessment } from "./control-assessment";
+import { useProgramControlObjectives } from "./control-objectives";
 import { database, requireIdentity } from "./database";
 import type { ReadContext, TableName } from "./models";
+import { controlNextStep, stepNeedsCoverage } from "./next-steps";
 import { useStaleOnWrite } from "./server-table";
 import { controlDeterminers, controlStatuses } from "./status";
 
@@ -272,6 +277,50 @@ export function useProgramsControlStatus(
       answers[index] as UseQueryResult<ProgramControlStatus, Error>,
     ]),
   );
+}
+
+/**
+ * Where a program stands on one control and the step that moves it up the ladder, as its Details
+ * and its trace both read them, so the two say the same step. The status is the read the program's
+ * Overview and its Control status view share. Where the step waits on more than the status says,
+ * it reads the control's coverage system by system (`program_control_objectives`): a control its
+ * requirements map in part, whose step is what is left or the system it is short on, and one with
+ * several requirements that cite no evidence, whose step names the one that owes it. For evidence
+ * no assessor has determined it reads what the program's open campaigns hold of the control.
+ * `requirements` are those that map the control, as its trace reads them. `known` once every read
+ * the step waits on has answered; `queries` are the step's own reads, which a failure region says.
+ * Nothing is read until both the program and the control are named.
+ */
+export function useControlNextStep(
+  programId: string | null | undefined,
+  controlId: string | null | undefined,
+  requirements?: AssuranceTrace["requirements"] | undefined,
+) {
+  const statuses = useProgramControlStatus(programId);
+  const standing = controlId
+    ? statuses.data?.controls.find((control) => control.id === controlId)
+    : undefined;
+  const waiting = standing?.status === "not_assessed";
+  const assessment = useControlAssessment(programId, controlId, { enabled: waiting });
+  const partial = !!standing && stepNeedsCoverage(standing);
+  const coverage = useProgramControlObjectives(programId, controlId, { enabled: partial });
+  // One step for as long as what it is read from holds, so the trace drawn from it keeps its own.
+  const step = useMemo(
+    () =>
+      standing
+        ? controlNextStep(
+            standing,
+            requirements,
+            assessment.data,
+            partial ? coverage.data : undefined,
+          )
+        : null,
+    [standing, requirements, assessment.data, partial, coverage.data],
+  );
+  const queries = waiting ? assessment.queries : partial ? [coverage] : [];
+  const known =
+    statuses.isSuccess && (!waiting || !!assessment.data) && (!partial || !!coverage.data);
+  return { statuses, standing, step, plans: assessment.data, queries, known };
 }
 
 /* ——— The roll-up ————————————————————————————————————————————————————————————————————— */

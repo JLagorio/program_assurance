@@ -1,7 +1,7 @@
 import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
-import { useWorkspace } from "@/components/app/workspace";
+import { useWorkspace } from "./workspace-context";
 import { database, requireIdentity } from "./database";
 import type { ReadContext, TableName } from "./models";
 import { useStaleOnWrite } from "./server-table";

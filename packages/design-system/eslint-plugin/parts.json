@@ -18700,7 +18700,7 @@
     "Trace": {
       "kind": "component",
       "file": "patterns/trace.tsx",
-      "line": 267,
+      "line": 271,
       "root": {},
       "props": {},
       "derived": {},

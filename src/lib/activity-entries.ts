@@ -7,7 +7,9 @@ import { serverRead } from "./server-table";
  * What an activity feed says of the events it lists: the Portfolio's Recent activity and a
  * program's Activity. An event is one recorded change (activity_events); consecutive edits of one
  * requirement by one person are one entry, and every other event is its own, its title the person
- * and what they did.
+ * and what they did. An event names its program, the one record of it the event is about, or both:
+ * a publication of assessment results names the program and the campaign, so the program's
+ * Activity lists it and the entry links to the campaign.
  */
 
 /** The columns an activity entry draws: who did what, when, to which record, and what was said. */
@@ -37,7 +39,8 @@ export const RECENT_ACTIVITY_EVENTS = 50;
 
 /**
  * The workspace's latest events, newest first, a page of `RECENT_ACTIVITY_EVENTS` with the columns
- * an entry draws. A write to a record whose changes are recorded marks it stale.
+ * an entry draws. A write to a record whose changes are recorded marks it stale: a publication of
+ * assessment results among them.
  */
 export const recentActivityRead = serverRead({
   source: "activity_events",
@@ -50,6 +53,7 @@ export const recentActivityRead = serverRead({
     "requirement_revisions",
     "evidence_artifacts",
     "assessment_campaigns",
+    "assessment_results_revisions",
     "authorization_packages",
   ],
   columns: ACTIVITY_COLUMNS,
@@ -154,11 +158,13 @@ const withArticle = (noun: string) => `${/^[aeiou]/i.test(noun) ? "an" : "a"} ${
 
 /**
  * What an event that is not a requirement's says: the deed after the person who did it, and what
- * was said, if anything. A recorded verb phrase ("assigned …") is the deed. A line that names a
- * record by its code before what changed in it ("X800-C-CUSB: took version 2 of X800 Missile.") is
- * the event's kind of that record ("updated X800-C-CUSB") over what changed ("Took version 2 of
- * X800 Missile."), never the bare kind. Any other text is what was said, under the kind of event
- * and the kind of record it names ("updated a task"), so the title still says who did what to what.
+ * was said, if anything. A recorded verb phrase ("assigned …", "published assessment results of
+ * Continuous monitoring FY2027") is the deed, and the lines after it what was said ("Interim
+ * results: 20 findings."). A line that names a record by its code before what changed in it
+ * ("X800-C-CUSB: took version 2 of X800 Missile.") is the event's kind of that record ("updated
+ * X800-C-CUSB") over what changed ("Took version 2 of X800 Missile."), never the bare kind. Any
+ * other text is what was said, under the kind of event and the kind of record it names ("updated a
+ * task"), so the title still says who did what to what.
  */
 export function eventWords(
   event: Pick<ActivityEvent, "event_type" | "description"> & EventTargets,

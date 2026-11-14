@@ -1,7 +1,5 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { args, fakeClient, uuid } from "./testing/fake-client";
-
-vi.mock("@/components/app/workspace", () => ({ useWorkspace: () => ({}) }));
 
 const { readResolutionCounts } = await import("./profile-reads");
 

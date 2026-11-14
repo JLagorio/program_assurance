@@ -5,6 +5,7 @@ import {
   Badge,
   Button,
   DataTable,
+  Fact,
   Grid,
   PickerSheet,
   Stack,
@@ -16,14 +17,21 @@ import { ChoiceField, TextField } from "@/components/app/fields";
 import { useFormFeedback, type FormIssue } from "@/components/app/form-feedback";
 import { causeText } from "@/components/app/sentence";
 import { useDraftGuard } from "@/components/app/use-draft-guard";
-import { unmappedObjectives, useProgramControlObjectives } from "@/lib/control-objectives";
+import {
+  objectivesShortOn,
+  uncoveredObjectives,
+  useProgramControlObjectives,
+  type ControlSystem,
+} from "@/lib/control-objectives";
 import { idSet, useRows } from "@/lib/models";
-import { mapsChosenObjectives, mapsObjectives } from "@/lib/product-records";
+import type { StepSystem } from "@/lib/next-steps";
+import { mapsChosenObjectives, mapsObjectives, objectivesOf } from "@/lib/product-records";
 import { labelFor } from "@/lib/records";
 import {
   WHOLE_CONTROL_CHOICE,
   coverageOf,
   coveredObjectives,
+  fewestTargets,
   requirementMappingStanding,
   type MappingTarget,
   type ObjectiveNode,
@@ -53,7 +61,14 @@ export type StepControl = { id: string; code: string; title: string };
 
 type CandidateRow = ServerRow<
   "program_requirement_rows",
-  "id" | "code" | "revision_id" | "title" | "statement" | "allocation" | "allocations",
+  | "id"
+  | "code"
+  | "revision_id"
+  | "title"
+  | "statement"
+  | "allocation"
+  | "allocations"
+  | "allocated_boundaries",
   "code" | "allocation" | "allocations"
 >;
 
@@ -70,6 +85,8 @@ type Candidate = {
   allocations: { id: string; name: string }[];
   /** The systems among them, which a mapping can name. */
   systemIds: string[];
+  /** The systems it is allocated in: each allocated system's own boundary, which the System filter asks. */
+  allocatedIn: string[];
 };
 
 /** A JSON list's objects, whatever else it holds. */
@@ -95,21 +112,34 @@ function candidateOf(row: CandidateRow): Candidate {
     systemIds: allocations.flatMap((item) =>
       typeof item["system_id"] === "string" ? [item["system_id"]] : [],
     ),
+    allocatedIn: row.allocated_boundaries ?? [],
   };
 }
 const candidates = (page: CandidateRow[]) => page.map(candidateOf);
 
+/** The column the System filter is kept on. It is never drawn. */
+const ALLOCATED_IN = "allocatedIn";
+
 /**
  * The program's requirements, a page at a time from the server, in code order: the register the
  * program's Requirements tab reads, flat. Each row says what it is allocated to, which decides the
- * system a mapping can name.
+ * system a mapping can name, and the systems it is allocated in, which the System filter asks.
  */
 const candidateRead = (programId: string) =>
   serverRead({
     source: "program_requirement_rows",
     model: "engineering_requirements",
     models: ["requirement_revisions", "requirement_allocations", "requirement_control_links"],
-    columns: ["id", "code", "revision_id", "title", "statement", "allocation", "allocations"],
+    columns: [
+      "id",
+      "code",
+      "revision_id",
+      "title",
+      "statement",
+      "allocation",
+      "allocations",
+      "allocated_boundaries",
+    ],
     scope: { program_id: programId },
     search: ["code", "title", "statement", "allocated_to"],
     fields: {
@@ -118,6 +148,7 @@ const candidateRead = (programId: string) =>
       statement: { filter: false },
       allocatedTo: { column: "allocated_to", filter: false },
       allocation: { column: "allocation" },
+      [ALLOCATED_IN]: { column: "allocated_boundaries", filter: "list", sort: false },
     },
     order: [{ column: "code_order" }],
   });
@@ -144,6 +175,7 @@ const relationshipOptions = mappingRelationships.map((value) => ({
 type MappingField = "relationship" | "objectives" | "rationale";
 const NO_CARRIERS: ReadonlyMap<string, string> = new Map();
 const NO_OBJECTIVES: readonly ObjectiveNode[] = [];
+const NO_SYSTEMS: readonly ControlSystem[] = [];
 const NONE_CHOSEN: readonly string[] = [];
 
 /** What a requirement's latest revision maps of the control: every mapping, and those on each system. */
@@ -191,13 +223,21 @@ function standingNote(
  * of 26 objectives), and one mapped on some of those systems already says on how many (Mapped on 1
  * of 2 systems); choosing it maps only what is missing. One that cannot take a mapping (its
  * mappings cover what is chosen on all of them, it has no details, is allocated to no system, or to
- * none that selects the control) is marked with why and cannot be chosen. Opened for the rest of a
- * control mapped in part (`rest`), it starts on the objectives no requirement maps yet.
+ * none that selects the control) is marked with why and cannot be chosen.
+ *
+ * The control is covered only once it is covered on every system of the program whose control
+ * baseline selects it. Where more than one does, the sheet says how much is mapped on each (R210-
+ * STD-CUSA 0 of 17 objectives mapped) and a System filter narrows the requirements to those
+ * allocated in one. Opened for the rest of a control mapped in part (`rest`), it starts on the
+ * objectives no such system covers yet; opened for a system the control is short on (`system`), on
+ * the requirements allocated there and what the system lacks. Either way a heading whose objectives
+ * are all left is chosen as the heading, one mapping a system.
  */
 function MapRequirementPicker({
   programId,
   control,
   rest = false,
+  system,
   onClose,
   onDone,
   onCreate,
@@ -205,8 +245,10 @@ function MapRequirementPicker({
 }: {
   programId: string;
   control: StepControl;
-  /** Start on the control's objectives no requirement of the program maps yet. */
+  /** Start on the control's objectives no system that selects it covers yet. */
   rest?: boolean | undefined;
+  /** Start on the requirements allocated in this system, and what it does not cover yet. */
+  system?: StepSystem | undefined;
   onClose: () => void;
   /** The requirements were mapped: focus follows the step to what replaced it. */
   onDone: () => void;
@@ -220,26 +262,47 @@ function MapRequirementPicker({
   const [relationship, setRelationship] = useState<MappingRelationship>("maps_to");
   const [rationale, setRationale] = useState("");
   const [error, setError] = useState<string>();
-  // What the requirements meet of the control: the whole control, or chosen objectives, which a
-  // step for the rest starts on the objectives no requirement maps yet until the reader chooses.
+  // Where the control stands, objective by objective and system by system: what a step opens on.
   const objectives = useProgramControlObjectives(programId, control.id);
   const nodes = objectives.data?.objectives;
-  const initialCoverage: MappingCoverage = rest ? "objectives" : "whole";
-  const [coverage, setCoverage] = useState<MappingCoverage>(initialCoverage);
+  const standingSystems = objectives.data?.systems ?? NO_SYSTEMS;
+  // What the step left to map, as the fewest mappings: the objectives no system covers yet (Map 3
+  // more objectives), or those the named system does not (Map on R210-STD-CUSA); a heading whose
+  // objectives are all left stands for them, since mapping it covers them.
+  const opened = useMemo(() => {
+    if (!nodes) return NONE_CHOSEN;
+    const left = rest
+      ? uncoveredObjectives(nodes)
+      : system
+        ? objectivesShortOn(nodes, system.id)
+        : [];
+    return fewestTargets(
+      nodes,
+      left.map((objective) => objective.id),
+    );
+  }, [nodes, rest, system]);
+  // A system that covers some of the control already lacks the rest, not the whole control.
+  const holdsSome =
+    !!system && (standingSystems.find((each) => each.id === system.id)?.objectivesMapped ?? 0) > 0;
+  const initialCoverage: MappingCoverage = rest || holdsSome ? "objectives" : "whole";
+  // What the requirements meet of the control: the whole control, or chosen objectives, which a
+  // step starts on what it left until the reader chooses.
+  const [chosenCoverage, setCoverage] = useState<MappingCoverage | null>(null);
+  const coverage = chosenCoverage ?? initialCoverage;
   const [picked, setPicked] = useState<string[] | null>(null);
-  const unmapped = useMemo(
-    () => (objectives.data ? unmappedObjectives(objectives.data.objectives) : []).map((o) => o.id),
-    [objectives.data],
-  );
-  const chosenObjectives = picked ?? (rest ? unmapped : NONE_CHOSEN);
+  const chosenObjectives = picked ?? (coverage === "objectives" ? opened : NONE_CHOSEN);
+  // What each requirement is mapped to: one mapping a target, never a heading and what it covers.
   const choice = useMemo(
-    () => (coverage === "whole" ? WHOLE_CONTROL_CHOICE : chosenObjectives),
-    [coverage, chosenObjectives],
+    () =>
+      coverage === "whole"
+        ? WHOLE_CONTROL_CHOICE
+        : fewestTargets(nodes ?? NO_OBJECTIVES, chosenObjectives),
+    [coverage, chosenObjectives, nodes],
   );
   // The systems a mapping can name: each of the program's systems whose control baseline selects
   // the control, by the selection it records.
   const systems = useRows("systems", { program_id: programId }, { columns: ["id"] });
-  const systemIds = useMemo(() => idSet(systems.data?.map((system) => system.id)), [systems.data]);
+  const systemIds = useMemo(() => idSet(systems.data?.map((each) => each.id)), [systems.data]);
   const baselines = useRows(
     "system_effective_baselines",
     { system_id: systemIds },
@@ -316,7 +379,7 @@ function MapRequirementPicker({
     [carriers, mapped, nodes, choice],
   );
   // How many of the control's objectives a requirement's mappings cover, on any system.
-  const objectivesOf = useMemo(
+  const objectivesOfRow = useMemo(
     () => (candidate: Candidate) => {
       const objectiveNodes = nodes ?? NO_OBJECTIVES;
       const parts = mapped?.get(candidate.revisionId ?? "")?.parts ?? [];
@@ -345,7 +408,7 @@ function MapRequirementPicker({
               ? standingNote(
                   standing(row),
                   control.code,
-                  objectivesOf(row),
+                  objectivesOfRow(row),
                   coverage === "objectives" && chosenObjectives.length > 0,
                   formatNumber,
                 )
@@ -371,10 +434,32 @@ function MapRequirementPicker({
         }),
         // Never drawn: it holds the Allocation filter.
         c.text("allocation", { header: "Allocation", width: 140 }),
+        // Never drawn: it holds the System filter, the systems each requirement is allocated in.
+        c.list(ALLOCATED_IN, {
+          header: "System",
+          width: 160,
+          items: (row) => row.allocatedIn.map((id) => ({ key: id, label: id })),
+        }),
       ]),
-    [standing, standingKnown, control.code, objectivesOf, coverage, chosenObjectives, formatNumber],
+    [
+      standing,
+      standingKnown,
+      control.code,
+      objectivesOfRow,
+      coverage,
+      chosenObjectives,
+      formatNumber,
+    ],
   );
   const read = useMemo(() => candidateRead(programId), [programId]);
+  // Opened for a system, the requirements allocated there; the reader clears it like any filter.
+  const initialState = useMemo(
+    () => ({
+      columnVisibility: { allocation: false, [ALLOCATED_IN]: false },
+      columnFilters: system ? [{ id: ALLOCATED_IN, value: [system.id] }] : [],
+    }),
+    [system],
+  );
   // The picker's question ends with the task: it stays out of the address.
   const collection = useServerCollection<Candidate, CandidateRow>(read, {
     keepQuestion: false,
@@ -385,9 +470,34 @@ function MapRequirementPicker({
     rowLabel: (row) => `${row.code} · ${row.name}`,
     label: "Requirements to map",
     pageSize: 50,
-    initialState: { columnVisibility: { allocation: false } },
+    initialState,
   });
   const { table } = collection;
+  // Where the control stands on each system that selects it, where more than one does: what the
+  // facts strip says, and the systems the System filter offers with how many requirements each.
+  const bySystem = standingSystems.length > 1;
+  const systemQuestions = useMemo<ServerResultQuestion[]>(
+    () =>
+      bySystem
+        ? standingSystems.map((each) => ({ filters: [{ id: ALLOCATED_IN, value: [each.id] }] }))
+        : [],
+    [bySystem, standingSystems],
+  );
+  const systemCounts = useServerCounts(read, systemQuestions);
+  const systemOptions = standingSystems.map((each, index) => {
+    const count = systemCounts[index];
+    return {
+      value: each.id,
+      label: `${each.code} · ${each.name}`,
+      ...(count === undefined ? {} : { count }),
+    };
+  });
+  const standingOn = (each: ControlSystem) =>
+    nodes && nodes.length > 0
+      ? `${objectivesOf(formatNumber(each.objectivesMapped), formatNumber(nodes.length))} objectives mapped`
+      : each.mapped
+        ? "Mapped"
+        : "Not mapped";
   // Every requirement the picker has shown or read, by id: a chosen one on another page is still
   // mapped by its revision and its systems.
   const known = useRef(new Map<string, Candidate>());
@@ -433,7 +543,7 @@ function MapRequirementPicker({
       chosen.length > 0 ||
       !!rationale.trim() ||
       relationship !== "maps_to" ||
-      coverage !== initialCoverage ||
+      chosenCoverage !== null ||
       picked !== null,
     onClose,
     description:
@@ -567,9 +677,31 @@ function MapRequirementPicker({
       state={state}
       total={total}
       search={{ placeholder: "Find requirements" }}
-      filters={<DataTable.Filter table={table} column="allocation" options={allocationOptions} />}
+      filters={
+        <>
+          <DataTable.Filter table={table} column="allocation" options={allocationOptions} />
+          {bySystem && (
+            <DataTable.Filter
+              table={table}
+              column={ALLOCATED_IN}
+              label="System"
+              options={systemOptions}
+            />
+          )}
+        </>
+      }
       toolbar={
         <Stack space="space.150">
+          {/* The control is covered once covered on every system that selects it: how far each is. */}
+          {bySystem && (
+            <Fact.Group aria-label={`Where ${control.code} is mapped`}>
+              {standingSystems.map((each) => (
+                <Fact key={each.id} label={each.code}>
+                  {standingOn(each)}
+                </Fact>
+              ))}
+            </Fact.Group>
+          )}
           <Grid gap="space.150" templateColumns={CHOICES_SIDE_BY_SIDE}>
             <ChoiceField
               label="Relationship"
@@ -695,9 +827,12 @@ export function MapRequirementSurface({
   slot,
   onClose,
   rest = false,
+  system,
 }: StepSurfaceProps & {
   /** Opened for the rest of a control mapped in part: the picker starts on what is left. */
   rest?: boolean | undefined;
+  /** Opened for a system the control is short on: the picker starts on what is allocated there. */
+  system?: StepSystem | undefined;
 }) {
   const navigate = useNavigate();
   const [creating, setCreating] = useState(false);
@@ -720,6 +855,7 @@ export function MapRequirementSurface({
       programId={programId}
       control={control}
       rest={rest}
+      system={system}
       finalFocus={backToStep}
       onClose={onClose}
       onDone={() => focusWhereStepWas(opener, slot)}

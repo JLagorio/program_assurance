@@ -4,8 +4,11 @@ import {
   controlNextStep,
   isInPlaceStep,
   isReaderFix,
+  mappingStep,
   nextStepLabel,
+  stepNeedsCoverage,
   traceGapFixes,
+  type StepCoverage,
 } from "./next-steps";
 import { controlStatuses } from "./status";
 
@@ -53,6 +56,43 @@ const trace = (focus: Trace["focus"], parts: Partial<Omit<Trace, "focus">> = {})
 
 /** An open campaign whose plan holds a control already. */
 const fy27 = { id: id(80), title: "Continuous monitoring FY2027" };
+
+/** Two systems that select a control: the program's authorization boundaries. */
+const x800 = { id: id(91), code: "X800-A-CUSA", name: "X800 Missile · Customer A" };
+const r210 = { id: id(92), code: "R210-STD-CUSA", name: "R210 Launcher · Customer A" };
+
+/** An objective of a control, covered on the systems named of the two that select it. */
+const objective = (n: number, on: string[], evidenced = false) => ({
+  id: id(600 + n),
+  label: `SI-04(13)(${n})`,
+  prose: null,
+  ancestors: [],
+  mapped: on.length === 2,
+  evidenced,
+  mappedOn: on,
+});
+
+/** A system's standing on a control of `of` objectives, as the coverage says it. */
+const onSystem = (
+  system: typeof x800,
+  mapped: number,
+  of: number,
+  allocated: number,
+): StepCoverage["systems"][number] => ({
+  ...system,
+  mapped: mapped === of,
+  evidenced: false,
+  objectivesMapped: mapped,
+  objectivesEvidenced: 0,
+  allocated,
+});
+
+const coverage = (parts: Partial<StepCoverage>): StepCoverage => ({
+  objectives: [],
+  systems: [],
+  requirements: [],
+  ...parts,
+});
 
 describe("controlNextStep", () => {
   it("has a step for every status but satisfied", () => {
@@ -138,38 +178,21 @@ describe("controlNextStep", () => {
   });
 
   it("names a requirement whose evidence would cover an objective nothing evidences", () => {
-    // REQ-007 covers a.1 and cites none, though REQ-009 evidences a.1; REQ-008 covers b, which
-    // nothing evidences: evidence on REQ-008 moves the control, on REQ-007 it would not.
-    const objectives = [
-      {
-        id: id(601),
-        label: "AC-02a.[01]",
-        prose: "account types are defined;",
-        ancestors: [],
-        mapped: true,
-        evidenced: true,
-        requirements: [
-          { id: id(7), code: "REQ-007", evidenced: false },
-          { id: id(9), code: "REQ-009", evidenced: true },
-        ],
-      },
-      {
-        id: id(602),
-        label: "AC-02b.",
-        prose: "account managers are assigned;",
-        ancestors: [],
-        mapped: true,
-        evidenced: false,
-        requirements: [{ id: id(8), code: "REQ-008", evidenced: false }],
-      },
-    ];
+    // REQ-007 covers a.1 and cites none, though REQ-009 evidences a.1 on every system; REQ-008
+    // covers b on a system where nothing evidences it: evidence on REQ-008 moves the control, on
+    // REQ-007 it would not. The coverage says which owes it.
+    const owing = coverage({
+      requirements: [
+        { id: id(7), code: "REQ-007", evidenced: false, owes: false },
+        { id: id(8), code: "REQ-008", evidenced: false, owes: true },
+        { id: id(9), code: "REQ-009", evidenced: true, owes: false },
+      ],
+    });
     const requirements = [requirement(7, 0), requirement(8, 0), requirement(9, 1)];
-    expect(controlNextStep({ status: "no_evidence" }, requirements, undefined, objectives)).toEqual(
-      {
-        kind: "link_evidence",
-        requirement: { id: id(8), code: "REQ-008", programId: PROGRAM },
-      },
-    );
+    expect(controlNextStep({ status: "no_evidence" }, requirements, undefined, owing)).toEqual({
+      kind: "link_evidence",
+      requirement: { id: id(8), code: "REQ-008", programId: PROGRAM },
+    });
     // Without the objectives, the first requirement that cites none.
     expect(controlNextStep({ status: "no_evidence" }, requirements)).toEqual({
       kind: "link_evidence",
@@ -177,10 +200,89 @@ describe("controlNextStep", () => {
     });
   });
 
+  describe("every system counts", () => {
+    it("maps what no system covers yet, before any system it is short on", () => {
+      // Three of six objectives covered on X800 alone: the three left are mapped first.
+      const partly = coverage({
+        objectives: [1, 2, 3, 4, 5, 6].map((n) => objective(n, n <= 3 ? [x800.id] : [])),
+        systems: [onSystem(x800, 3, 6, 2), onSystem(r210, 0, 6, 1)],
+      });
+      const step = controlNextStep({ status: "no_requirement" }, [], undefined, partly);
+      expect(step).toEqual({ kind: "map_requirement", rest: 3 });
+      expect(nextStepLabel(step!)).toBe("Map 3 more objectives");
+    });
+
+    it("maps on the first system it is short on, where a requirement is allocated there", () => {
+      // Every objective covered on X800, none on R210: the control stands at No requirement.
+      const short = coverage({
+        objectives: [1, 2].map((n) => objective(n, [x800.id])),
+        systems: [onSystem(r210, 0, 2, 2), onSystem(x800, 2, 2, 5)],
+      });
+      const step = mappingStep(short);
+      expect(step).toEqual({ kind: "map_requirement", system: r210 });
+      expect(nextStepLabel(step)).toBe("Map on R210-STD-CUSA");
+      expect(isInPlaceStep(step)).toBe(true);
+    });
+
+    it("allocates a requirement to the system first, where none is allocated there", () => {
+      const step = mappingStep(
+        coverage({
+          objectives: [objective(1, [x800.id])],
+          systems: [onSystem(x800, 1, 1, 3), onSystem(r210, 0, 1, 0)],
+        }),
+      );
+      expect(step).toEqual({ kind: "allocate_requirement", system: r210 });
+      expect(nextStepLabel(step)).toBe("Allocate to R210-STD-CUSA");
+      expect(isInPlaceStep(step)).toBe(true);
+    });
+
+    it("counts a control with no objective by the control itself on each system", () => {
+      const step = mappingStep(
+        coverage({
+          systems: [
+            { ...onSystem(x800, 0, 0, 1), mapped: false },
+            { ...onSystem(r210, 0, 0, 1), mapped: true },
+          ],
+        }),
+      );
+      expect(step).toEqual({ kind: "map_requirement", system: x800 });
+    });
+
+    it("maps the whole control where nothing is covered anywhere", () => {
+      for (const nothing of [
+        coverage({
+          objectives: [objective(1, []), objective(2, [])],
+          systems: [onSystem(x800, 0, 2, 1), onSystem(r210, 0, 2, 1)],
+        }),
+        coverage({ systems: [onSystem(x800, 0, 0, 0)] }),
+        coverage({}),
+      ])
+        expect(mappingStep(nothing)).toEqual({ kind: "map_requirement" });
+    });
+
+    it("reads the coverage only where the status cannot say the step", () => {
+      const standing = (status: keyof typeof controlStatuses, requirements = 0, evidenced = 0) => ({
+        status,
+        requirements,
+        evidenced,
+      });
+      // Mapped somewhere and short somewhere: what is left, and on which system.
+      expect(stepNeedsCoverage(standing("no_requirement", 1))).toBe(true);
+      expect(stepNeedsCoverage(standing("no_requirement", 0))).toBe(false);
+      // Several requirements without evidence: which one owes it.
+      expect(stepNeedsCoverage(standing("no_evidence", 3, 1))).toBe(true);
+      expect(stepNeedsCoverage(standing("no_evidence", 2, 1))).toBe(false);
+      for (const status of ["not_assessed", "partially_satisfied", "satisfied"] as const)
+        expect(stepNeedsCoverage(standing(status, 4, 4)), status).toBe(false);
+    });
+  });
+
   it("knows which steps are done on the control itself", () => {
     for (const step of [
       { kind: "map_requirement" },
       { kind: "map_requirement", rest: 3 },
+      { kind: "map_requirement", system: r210 },
+      { kind: "allocate_requirement", system: r210 },
       { kind: "assess" },
       { kind: "plan_assessment" },
     ] as const)
@@ -253,6 +355,42 @@ describe("traceGapFixes", () => {
         requirement: { id: id(3), code: "REQ-003", programId: PROGRAM },
       },
     ]);
+  });
+
+  it("carries the Details' step in the requirements stage of a control mapped in part", () => {
+    const partly = trace(onControl, {
+      controls: [control],
+      requirements: [requirement(262, 0)],
+    });
+    const waiting = { status: "no_requirement" as const };
+    // What is left, or the system it is short on: the step its Details carry, over the page.
+    for (const step of [
+      { kind: "map_requirement", rest: 3 },
+      { kind: "map_requirement", system: r210 },
+      { kind: "allocate_requirement", system: r210 },
+    ] as const) {
+      const fixes = traceGapFixes(partly, PROGRAM, waiting, undefined, step);
+      expect(fixes, step.kind).toEqual([
+        { stage: "requirement", ...step },
+        // Its requirement cites no evidence: the Evidence stage still offers it, as before.
+        {
+          stage: "evidence",
+          kind: "link_evidence",
+          requirement: { id: id(262), code: "REQ-262", programId: PROGRAM },
+        },
+      ]);
+      expect(isReaderFix(fixes[0]!)).toBe(true);
+    }
+    expect(nextStepLabel({ stage: "requirement", kind: "map_requirement", rest: 3 })).toBe(
+      "Map 3 more objectives",
+    );
+    // A control past No requirement offers nothing in the stage, whatever step it is given.
+    expect(
+      traceGapFixes(partly, PROGRAM, { status: "no_evidence" }, undefined, {
+        kind: "link_evidence",
+        requirement: null,
+      }).map((fix) => fix.stage),
+    ).toEqual(["evidence"]);
   });
 
   it("offers nothing more to a control whose requirements cite evidence until its plans are read", () => {

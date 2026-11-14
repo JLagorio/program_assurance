@@ -37,9 +37,15 @@ A stage with nothing in it is passed the same way: the gap sits under what the s
 
 Give every stage of the chain, also the ones the focus does not reach, with what its absence means as `empty`: No evidence linked, No risk recorded. A missing stage is a finding, and a trace that drops the column hides it.
 
+## A step that closes a gap
+
 <Canvas of={Stories.EmptyStageAction} />
 
-Where the reader can close the gap from the record the trace is about, give the stage its fix as `action`: a small `TextLink` whose words are what fills it (Link evidence, Map control), drawn under `empty` and only while the stage holds no record. A stage with nothing wrong in it, such as No risk recorded, has none.
+Where the reader can close a stage's gap from the record the trace is about, give the stage the step as `action`: a small `TextLink` whose words are the step (Link evidence, Map control), or a link-styled `Button` where the step opens over the page. In a stage with nothing in it the step is drawn under `empty`. A stage with nothing wrong in it, such as No risk recorded, has none.
+
+<Canvas of={Stories.ActionBesideRecords} />
+
+A stage that holds part of what it needs carries the step that adds the rest, after its records and their Show more: a control's requirements map some of its objectives, and the stage offers to map the others (Map 14 more objectives). The step is the stage's and not a record: it stays out of the stage's list and count, lights no path, and Tab reaches it after the stage's records and before the next stage's. Its words wrap in the column as a TextLink's do, a link-styled `Button`'s too, so they stay whole in a column as narrow as 128px.
 
 ## A path
 
@@ -51,7 +57,7 @@ Hovering or focusing a record lights the records it leads to and comes from, thr
 
 <Canvas of={Stories.Folded} />
 
-A stage shows `limit` records, eight unless said, and folds the rest behind Show more with their wires. The focus is never folded. A trace is for a chain a reader can take in; when a stage regularly holds dozens, show the stage as a table and link to it.
+A stage shows `limit` records, eight unless said, and folds the rest behind Show more with their wires; the stage's step stays after Show more. The focus is never folded. A trace is for a chain a reader can take in; when a stage regularly holds dozens, show the stage as a table and link to it.
 
 ## Narrow
 

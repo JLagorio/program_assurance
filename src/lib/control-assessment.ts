@@ -1,20 +1,33 @@
 import { useMemo } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
-import { useWorkspace } from "@/components/app/workspace";
+import { useWorkspace } from "./workspace-context";
 import { database, requireIdentity } from "./database";
 import type { Database } from "./database.types";
-import { idSet, invalidateModel, useRows, type ReadContext, type Row } from "./models";
+import {
+  idSet,
+  invalidateModel,
+  useRows,
+  type ReadContext,
+  type Row,
+  type TableName,
+} from "./models";
 import type { StepPlans } from "./next-steps";
+import { useStaleOnWrite } from "./server-table";
 
 /*
  * A control in an assessment. Evidence no assessor has determined moves on once an assessment
- * holds the control: an objective of the draft plan of one of the program's open campaigns
+ * holds the control: the draft plan of one of the program's open campaigns
  * (`add_controls_to_assessment_plan`), or of a campaign planned around it where none has a draft
- * plan (`plan_control_assessment`). Both commands write one objective a control, aimed at its
- * statement, the part an assessor's finding judges, as Plan delta assessment does. What the
- * campaigns hold of a control is read here, for its next step and for the pickers that do it.
+ * plan (`plan_control_assessment`). Both commands write a control as the assessment objectives it
+ * counts (the list `program_control_objectives` gives), one plan objective each, titled by its
+ * label and text and aimed at its part, which an assessor's finding judges; a control that counts
+ * none is one objective aimed at its statement, as Plan delta assessment writes a control. A plan
+ * holds a control once it holds every objective the control counts, or its statement, as every
+ * plan written before plans took objectives does; one that holds some takes only the rest. What
+ * the campaigns hold of a control is read here (`plan_control_holdings`), for its next step and
+ * for the pickers that do it.
  */
 
 /** The campaign statuses whose plan can still take a control. */
@@ -53,12 +66,40 @@ export type AssessmentCampaignPlan = {
   endsAt: string | null;
   /** The campaign's latest plan revision; none while it has no plan. */
   plan: CampaignPlanRevision | null;
-  /** Whether that plan holds an objective aimed at the control. */
+  /** Whether that plan holds the control: every objective it counts, or its statement. */
+  holds: boolean;
+  /** How many of the control's objectives that plan holds; none while it has no plan. */
+  objectivesHeld: number;
+};
+
+/**
+ * What the program's open campaigns hold of a control: the campaigns, how many assessment
+ * objectives the control counts (none for one a plan takes as its statement), and its step's
+ * reading.
+ */
+export type ControlAssessment = StepPlans & {
+  campaigns: AssessmentCampaignPlan[];
+  objectives: number;
+};
+
+/** What a plan holds of one control. */
+export type PlanHolding = {
+  /** How many of the objectives the control counts the plan holds. */
+  held: number;
+  /** It holds every one, or the control's statement: the control takes nothing more. */
   holds: boolean;
 };
 
-/** What the program's open campaigns hold of a control: the campaigns, and its step's reading. */
-export type ControlAssessment = StepPlans & { campaigns: AssessmentCampaignPlan[] };
+/** What the named plans hold of one control, as the server reads them. */
+export type PlanHoldings = {
+  controlId: string;
+  /** The assessment objectives the control counts; none for a control a plan takes as its statement. */
+  objectives: number;
+  /** Each plan named that the reader reads, by its id. */
+  plans: ReadonlyMap<string, PlanHolding>;
+};
+
+const NOT_HELD: PlanHolding = { held: 0, holds: false };
 
 /** Each campaign's latest plan revision, by its campaign. */
 export function latestPlans(plans: readonly PlanRow[]): Map<string, PlanRow> {
@@ -79,23 +120,24 @@ const campaignOrder = (a: AssessmentCampaignPlan, b: AssessmentCampaignPlan) =>
   a.id.localeCompare(b.id);
 
 /**
- * The program's open campaigns (planned or active) with their latest plan and whether it holds the
- * control, in the order a reader looks for one; the campaign whose plan holds it, first of them;
- * and how many have a draft plan that does not hold it yet. A completed or cancelled campaign
- * takes no control, so a control only such a campaign planned is not under way anywhere.
- * `held` are the objectives aimed at the control in those plans.
+ * The program's open campaigns (planned or active) with their latest plan and what it holds of the
+ * control, in the order a reader looks for one; the campaign whose plan holds it whole, first of
+ * them; and how many have a draft plan that does not hold it whole yet, which a plan holding some
+ * of its objectives still is, since it takes the rest. A completed or cancelled campaign takes no
+ * control, so a control only such a campaign planned is not under way anywhere. `holdings` is what
+ * those plans hold of the control (`plan_control_holdings`).
  */
 export function controlAssessment(
   campaigns: readonly CampaignRow[],
   plans: readonly PlanRow[],
-  held: readonly Pick<Row<"assessment_objectives">, "plan_revision_id">[],
+  holdings: Pick<PlanHoldings, "objectives" | "plans">,
 ): ControlAssessment {
   const latest = latestPlans(plans);
-  const holding = new Set(held.map((objective) => objective.plan_revision_id));
   const open = campaigns
     .filter((campaign) => OPEN_STATUSES.has(campaign.status))
     .map((campaign): AssessmentCampaignPlan => {
       const plan = latest.get(campaign.id);
+      const holding = (plan && holdings.plans.get(plan.id)) || NOT_HELD;
       return {
         id: campaign.id,
         title: campaign.title,
@@ -112,29 +154,85 @@ export function controlAssessment(
               sspRevisionId: plan.ssp_revision_id,
             }
           : null,
-        holds: !!plan && holding.has(plan.id),
+        holds: !!plan && holding.holds,
+        objectivesHeld: plan ? holding.held : 0,
       };
     })
     .sort(campaignOrder);
   const planned = open.find((campaign) => campaign.holds);
   return {
     campaigns: open,
+    objectives: holdings.objectives,
     planned: planned ? { id: planned.id, title: planned.title } : null,
     drafts: open.filter((campaign) => campaign.plan?.state === "draft" && !campaign.holds).length,
   };
 }
 
+const holdingsSchema = z.object({
+  control_id: z.string(),
+  objectives: z.number().int().nonnegative(),
+  plans: z.array(
+    z.object({
+      plan_revision_id: z.string(),
+      objectives_held: z.number().int().nonnegative(),
+      holds: z.boolean(),
+    }),
+  ),
+});
+
+type Client = Pick<SupabaseClient, "rpc">;
+
+/**
+ * What the named plans hold of one control, in one request, as the reader: how many assessment
+ * objectives the control counts and, for each plan the reader reads, how many of them it holds and
+ * whether it holds the control. A plan left out of the answer holds nothing.
+ */
+export async function readPlanControlHoldings(
+  client: Client,
+  { tenantId, token }: ReadContext,
+  controlId: string,
+  planIds: readonly string[],
+  signal?: AbortSignal,
+): Promise<PlanHoldings> {
+  const args: Database["public"]["Functions"]["plan_control_holdings"]["Args"] = {
+    p_tenant_id: tenantId,
+    p_control_id: controlId,
+    p_plan_revision_ids: [...planIds],
+  };
+  let request = client
+    .rpc("plan_control_holdings", args)
+    .setHeader("Authorization", `Bearer ${token}`);
+  if (signal) request = request.abortSignal(signal);
+  const { data, error } = await request;
+  if (error) throw new Error(error.message);
+  const answer = holdingsSchema.parse(data);
+  return {
+    controlId: answer.control_id,
+    objectives: answer.objectives,
+    plans: new Map(
+      answer.plans.map((plan) => [
+        plan.plan_revision_id,
+        { held: plan.objectives_held, holds: plan.holds },
+      ]),
+    ),
+  };
+}
+
+/** What a plan holds of a control is read from its objectives: a write to one reads it again. */
+const HOLDING_MODELS = ["assessment_objectives"] as const satisfies readonly TableName[];
+
 /**
  * What the program's open assessment campaigns hold of one control, read while `enabled`: the
- * campaigns, their latest plans and the objectives of those plans aimed at the control, each read
- * scoped on the server. `queries` are the three reads, for a value that waits on them and a
- * region's one alert. A write to a campaign, a plan or an objective reads them again.
+ * campaigns and their latest plans, each read scoped on the server, and what those plans hold of
+ * the control (`plan_control_holdings`). `queries` are the three reads, for a value that waits on
+ * them and a region's one alert. A write to a campaign, a plan or an objective reads them again.
  */
 export function useControlAssessment(
   programId: string | null | undefined,
   controlId: string | null | undefined,
   { enabled = true }: { enabled?: boolean | undefined } = {},
 ) {
+  const workspace = useWorkspace();
   const on = enabled && !!programId && !!controlId;
   const campaigns = useRows(
     "assessment_campaigns",
@@ -159,20 +257,34 @@ export function useControlAssessment(
     () => idSet([...latestPlans(plans.data ?? []).values()].map((plan) => plan.id)),
     [plans.data],
   );
-  // Only the objectives aimed at the control, joined through the part each is aimed at.
-  const held = useRows(
-    "assessment_objectives",
-    { plan_revision_id: latestIds, "control_parts.control_id": controlId ?? "" },
-    { columns: ["id", "plan_revision_id"], enabled: on && plans.isSuccess },
-  );
+  // What each latest plan holds of the control, and how many objectives the control counts, which
+  // the picker says even where no campaign has a plan yet.
+  useStaleOnWrite(workspace.tenantId, HOLDING_MODELS, [
+    "models",
+    workspace.tenantId,
+    "plan_control_holdings",
+  ]);
+  const holdings = useQuery<PlanHoldings, Error>({
+    queryKey: ["models", workspace.tenantId, "plan_control_holdings", controlId ?? null, latestIds],
+    enabled: on && plans.isSuccess,
+    retry: false,
+    queryFn: async ({ signal }) =>
+      readPlanControlHoldings(
+        database(),
+        { tenantId: workspace.tenantId, token: await requireIdentity(workspace) },
+        controlId!,
+        latestIds,
+        signal,
+      ),
+  });
   const data = useMemo(
     () =>
-      campaigns.data && plans.data && held.data
-        ? controlAssessment(campaigns.data, plans.data, held.data)
+      campaigns.data && plans.data && holdings.data
+        ? controlAssessment(campaigns.data, plans.data, holdings.data)
         : undefined,
-    [campaigns.data, plans.data, held.data],
+    [campaigns.data, plans.data, holdings.data],
   );
-  return { data, queries: [campaigns, plans, held] };
+  return { data, queries: [campaigns, plans, holdings] };
 }
 
 /**
@@ -312,11 +424,22 @@ export function usePlanSspOptions(
 const answerSchema = z.object({
   campaignId: z.string(),
   planRevisionId: z.string(),
+  /** The plan objectives the command added. */
   added: z.number().int().nonnegative(),
+  /** The chosen controls the plan held whole already, which took nothing. */
   skipped: z.number().int().nonnegative(),
   objectiveIds: z.array(z.string()),
+  /**
+   * The assessment objectives the chosen controls count, each a plan objective of its own. None
+   * where each was written as its statement: a control that counts none, and every answer given
+   * before plans took objectives, whose receipt has no count.
+   */
+  counted: z.number().int().nonnegative().default(0),
 });
-/** What a command did: the campaign and plan, the objectives it added and the controls it skipped. */
+/**
+ * What a command did: the campaign and plan, the objectives it added, the controls it skipped and
+ * how many objectives the chosen controls count.
+ */
 export type AddedObjectives = z.infer<typeof answerSchema>;
 
 export const CONTROL_ASSESSMENT_ANSWER_UNREADABLE =
@@ -336,8 +459,6 @@ function answer(data: unknown): AddedObjectives {
   return parsed.data;
 }
 
-type Client = Pick<SupabaseClient, "rpc">;
-
 export type AddControlsToAssessmentPlan = {
   planRevisionId: string;
   /** The plan revision the reader saw: a plan changed since is refused. */
@@ -349,9 +470,11 @@ export type AddControlsToAssessmentPlan = {
 
 /**
  * Add the chosen controls to a campaign's draft plan, at the plan revision the reader saw, in one
- * request: one objective a control the plan does not hold yet, aimed at its statement. A control
- * the plan's SSP does not select refuses the whole choice. Sent again under the same id, the
- * request answers as it first did.
+ * request: each control as the objectives it counts that the plan does not hold yet (all of them,
+ * or the rest), one plan objective each, and a control that counts none as one objective aimed at
+ * its statement; a control the plan holds whole takes nothing. A control the plan's SSP does not
+ * select refuses the whole choice. Sent again under the same id, the request answers as it first
+ * did.
  */
 export async function addControlsToAssessmentPlan(
   client: Client,
@@ -384,8 +507,9 @@ export type PlanControlAssessment = {
 
 /**
  * Plan an assessment of the chosen controls, in one request: a planned campaign of the program
- * with the given title, its first plan a draft pinned to the chosen SSP, holding one objective a
- * control. Sent again under the same id, the request answers as it first did.
+ * with the given title, its first plan a draft pinned to the chosen SSP, holding each control as
+ * the objectives it counts, or its statement where it counts none. Sent again under the same id,
+ * the request answers as it first did.
  */
 export async function planControlAssessment(
   client: Client,

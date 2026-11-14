@@ -1,7 +1,5 @@
 import { QueryClient } from "@tanstack/react-query";
-import { describe, expect, it, vi } from "vitest";
-
-vi.mock("@/components/app/workspace", () => ({ useWorkspace: () => ({}) }));
+import { describe, expect, it } from "vitest";
 
 const { invalidateModel } = await import("./models");
 const {

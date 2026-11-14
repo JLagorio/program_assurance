@@ -1,20 +1,38 @@
 import type { AssuranceTrace } from "./assurance-trace";
-import type { ControlObjective } from "./control-objectives";
+import type { ProgramControlObjectives } from "./control-objectives";
 import type { ControlStanding } from "./control-status";
+import { coveredSomewhere } from "./requirement-control-mappings";
 
 /*
  * What a reader does next. A control's status says where a program stands on it; its next step is
  * the one thing that moves it up the ladder, and names the record it is done on. A trace's gap, a
- * stage that holds no record, carries its fix the same way where the reader can make it. Both are
+ * stage that holds no record, carries its fix the same way where the reader can make it, and a
+ * control's Requirements stage is given its step while its requirements map it in part. Both are
  * derived here from what the reads already answer, so a screen decides nothing of its own: it
  * draws the step as a link to where it is done, or, for a step done on the control itself (Map a
- * requirement, Add to assessment campaign, Plan an assessment), as the control that opens it there.
+ * requirement, Allocate requirements, Add to assessment campaign, Plan an assessment), as the
+ * control that opens it there.
  */
 
 type TraceRequirement = AssuranceTrace["requirements"][number];
 
 /** A requirement a step names: enough to say it and to open it. */
 export type StepRequirement = { id: string; code: string; programId: string };
+
+/**
+ * A system a step names: one of the program's systems whose control baseline selects the control
+ * and on which it is not yet covered. Enough to say it ("Map on R210-STD-CUSA") and to work on it.
+ */
+export type StepSystem = { id: string; code: string; name: string };
+
+/**
+ * Where the program's requirements cover a control, objective by objective and system by system,
+ * as its next step reads it: `program_control_objectives` (control-objectives).
+ */
+export type StepCoverage = Pick<
+  ProgramControlObjectives,
+  "objectives" | "systems" | "requirements"
+>;
 
 /** A product assessment a step names: enough to open it. */
 export type StepAssessment = { id: string; title: string };
@@ -38,14 +56,23 @@ const stepRequirement = (requirement: TraceRequirement): StepRequirement => ({
 export type ControlNextStep =
   /**
    * No requirement maps the control, or the program's requirements map only some of its assessment
-   * objectives: one of the program's requirements is mapped to it. `rest` counts the objectives no
-   * requirement maps yet where some are mapped already; the picker then opens with them chosen.
+   * objectives, or not on every system whose control baseline selects it: one of the program's
+   * requirements is mapped to it. `rest` counts the objectives no such system covers yet where
+   * some are covered already; the picker then opens with them chosen. Where every objective is
+   * covered somewhere, `system` names the first system the control is short on, where a
+   * requirement allocated there can take the mapping; the picker then opens on that system.
    */
-  | { kind: "map_requirement"; rest?: number | undefined }
+  | { kind: "map_requirement"; rest?: number | undefined; system?: StepSystem | undefined }
   /**
-   * The requirements map every objective and one is not covered by a requirement that cites
-   * evidence: the first requirement that cites none and covers such an objective, else the first
-   * that cites none, in the order given. `null` until a read says which requirements map it.
+   * The control is short on a system and none of the program's requirements is allocated there:
+   * one is allocated to the system first, from its own Allocate requirements, over the page.
+   */
+  | { kind: "allocate_requirement"; system: StepSystem }
+  /**
+   * The requirements map every objective on every system and one is not covered there by a
+   * requirement that cites evidence: the first requirement that cites none and owes evidence (it
+   * covers such an objective on such a system), else the first that cites none, in the order
+   * given. `null` until a read says which requirements map it.
    */
   | { kind: "link_evidence"; requirement: StepRequirement | null }
   /**
@@ -77,7 +104,10 @@ export type StepStanding = Pick<ControlStanding, "status"> &
 
 /**
  * The objectives no requirement maps yet, where the requirements map some of a control's and not
- * all; none otherwise, the whole control being what is left.
+ * all; none otherwise, the whole control being what is left. Read from the status alone, which
+ * counts an objective once it is covered on every system: where the control is counted on one
+ * system, or on none, these are the objectives no system covers. `mappingStep` reads them system by
+ * system.
  */
 export function objectivesLeft(standing: StepStanding): number | undefined {
   const { objectives = 0, objectivesMapped = 0 } = standing;
@@ -86,38 +116,77 @@ export function objectivesLeft(standing: StepStanding): number | undefined {
     : undefined;
 }
 
+/** Whether a control's step can be said from its status alone, or waits on its coverage system by system. */
+export function stepNeedsCoverage(
+  standing: Pick<ControlStanding, "status" | "requirements" | "evidenced">,
+): boolean {
+  // Mapped somewhere and short somewhere: what is left, and on which system, is the coverage's.
+  if (standing.status === "no_requirement") return standing.requirements > 0;
+  // Two or more requirements without evidence: the coverage says which one owes it.
+  if (standing.status === "no_evidence") return standing.requirements - standing.evidenced > 1;
+  return false;
+}
+
+/**
+ * What is left to map of a control at No requirement, read from where its requirements cover it on
+ * each system that selects it: nothing covered anywhere, and the whole control is mapped; some of
+ * its objectives covered on no such system, and those are (Map 3 more objectives); else the first
+ * system it is short on, mapped on where a requirement of the program is allocated there (Map on
+ * R210-STD-CUSA) and allocated to first where none is (Allocate to R210-STD-CUSA).
+ */
+export function mappingStep(
+  coverage: StepCoverage,
+): Extract<ControlNextStep, { kind: "map_requirement" | "allocate_requirement" }> {
+  const covered = coverage.objectives.filter(coveredSomewhere).length;
+  const anywhere =
+    covered > 0 || coverage.systems.some((system) => system.mapped || system.objectivesMapped > 0);
+  if (!anywhere) return { kind: "map_requirement" };
+  const rest = coverage.objectives.length - covered;
+  if (rest > 0) return { kind: "map_requirement", rest };
+  const short = coverage.systems.find((system) => !system.mapped);
+  if (!short) return { kind: "map_requirement" };
+  const system = { id: short.id, code: short.code, name: short.name };
+  return short.allocated > 0
+    ? { kind: "map_requirement", system }
+    : { kind: "allocate_requirement", system };
+}
+
 /**
  * The next step for a control at a status: the one thing that moves it up the ladder. A satisfied
  * control has none, whoever determined it. No requirement maps the control, or they map some of its
- * objectives and the step maps the rest. `requirements` are the requirements that map the control,
- * as its trace reads them; without them a control with no evidence still says its step, and names
- * no requirement. Where some of its objectives are covered by evidence already, `objectives` (the
- * control's, as `program_control_objectives` reads them) name the requirement whose evidence
- * covers one that is not. Evidence no assessor has determined goes into an assessment: the
- * campaign whose plan holds the control already, else the draft plan of one of the program's open
- * campaigns, else a new one planned around it; without `plans` the step is to add it to a campaign.
- * A determination short of satisfied leads to what decided it: the program's assessment findings,
- * or the product assessment the program inherits it from.
+ * objectives, or they do not on every system whose control baseline selects it: the step maps the
+ * rest, or maps on the system it is short on, or allocates a requirement there first, which
+ * `coverage` (the control's objectives and systems, as `program_control_objectives` reads them)
+ * says; without it, the step says what the status alone does. `requirements` are the requirements
+ * that map the control, as its trace reads them; without them a control with no evidence still
+ * says its step, and names no requirement. With `coverage`, the step names the requirement that
+ * owes evidence: it cites none and covers an objective on a system where nothing evidences it.
+ * Evidence no assessor has determined goes into an assessment: the campaign whose plan holds the
+ * control already, else the draft plan of one of the program's open campaigns, else a new one
+ * planned around it; without `plans` the step is to add it to a campaign. A determination short of
+ * satisfied leads to what decided it: the program's assessment findings, or the product assessment
+ * the program inherits it from.
  */
 export function controlNextStep(
   standing: StepStanding,
   requirements?: readonly TraceRequirement[] | undefined,
   plans?: StepPlans | undefined,
-  objectives?: readonly ControlObjective[] | undefined,
+  coverage?: StepCoverage | undefined,
 ): ControlNextStep | null {
   switch (standing.status) {
     case "no_requirement": {
+      if (coverage) return mappingStep(coverage);
       const rest = objectivesLeft(standing);
       return rest ? { kind: "map_requirement", rest } : { kind: "map_requirement" };
     }
     case "no_evidence": {
       const bare = requirements?.filter((requirement) => requirement.evidence_count === 0) ?? [];
-      // A requirement that covers an objective nothing evidences, where one does: evidence on a
-      // requirement whose objectives are evidenced already moves nothing.
+      // A requirement that owes evidence, where the coverage says which: evidence on one whose
+      // objectives are evidenced already, on every system it covers them on, moves nothing.
       const owed = new Set(
-        (objectives ?? [])
-          .filter((objective) => !objective.evidenced)
-          .flatMap((objective) => objective.requirements.map((requirement) => requirement.id)),
+        (coverage?.requirements ?? [])
+          .filter((requirement) => requirement.owes)
+          .map((requirement) => requirement.id),
       );
       const named = bare.find((requirement) => owed.has(requirement.id)) ?? bare[0];
       return { kind: "link_evidence", requirement: named ? stepRequirement(named) : null };
@@ -148,23 +217,31 @@ function assessStep(
   return plans && plans.drafts === 0 ? { kind: "plan_assessment" } : { kind: "assess" };
 }
 
+/** The steps done on the control itself, each opening where it is done rather than leading away. */
+export type InPlaceStepKind =
+  "map_requirement" | "allocate_requirement" | "assess" | "plan_assessment";
+
 /** A step done on the control itself, which opens where it is done rather than leading away. */
 export const isInPlaceStep = (
   step: ControlNextStep | TraceGapFix,
-): step is Extract<
-  ControlNextStep | TraceGapFix,
-  { kind: "map_requirement" | "assess" | "plan_assessment" }
-> => step.kind === "map_requirement" || step.kind === "assess" || step.kind === "plan_assessment";
+): step is Extract<ControlNextStep | TraceGapFix, { kind: InPlaceStepKind }> =>
+  step.kind === "map_requirement" ||
+  step.kind === "allocate_requirement" ||
+  step.kind === "assess" ||
+  step.kind === "plan_assessment";
 
 /** A step in the words of its link: what the reader does, and on which record. */
 export function nextStepLabel(step: ControlNextStep | TraceGapFix): string {
   switch (step.kind) {
     case "map_requirement":
+      if ("system" in step && step.system) return `Map on ${step.system.code}`;
       return "rest" in step && step.rest
         ? step.rest === 1
           ? "Map 1 more objective"
           : `Map ${step.rest} more objectives`
         : "Map a requirement";
+    case "allocate_requirement":
+      return `Allocate to ${step.system.code}`;
     case "link_evidence":
       return step.requirement ? `Link evidence to ${step.requirement.code}` : "Link evidence";
     case "map_control":
@@ -189,10 +266,23 @@ export function nextStepLabel(step: ControlNextStep | TraceGapFix): string {
 /** An operational issue a step names: enough to open it. */
 export type StepIssue = { id: string };
 
-/** The fix for a trace's gap: the stage that holds no record, and what fills it. */
+/**
+ * The fix for a trace's gap: the stage that holds no record, and what fills it; or, for a control
+ * its requirements map in part, the step its Details carry, in the stage that holds them.
+ */
 export type TraceGapFix =
-  /** A control no requirement of the program maps. */
-  | { stage: "requirement"; kind: "map_requirement" }
+  /**
+   * A control no requirement of the program maps; or one they map some objectives of (`rest`), or
+   * not on every system that selects it (`system`), as its next step says.
+   */
+  | {
+      stage: "requirement";
+      kind: "map_requirement";
+      rest?: number | undefined;
+      system?: StepSystem | undefined;
+    }
+  /** A control short on a system none of the program's requirements is allocated to. */
+  | { stage: "requirement"; kind: "allocate_requirement"; system: StepSystem }
   /**
    * A control no requirement of the program maps and every product variant of the program
    * inherits with a determination: nothing is missing, and the product assessment that decided it
@@ -232,7 +322,12 @@ export const isReaderFix = (fix: TraceGapFix) =>
  * `standing` is where the program stands on a control, as the program's control status reads it.
  * A control the program's product variants inherit with a determination (`determinedBy`
  * "product") is decided by the product assessment, not missing a requirement: its requirements
- * stage names that assessment, the one that decided it first, and offers no requirement. Its
+ * stage names that assessment, the one that decided it first, and offers no requirement. A control
+ * its requirements map in part (some objectives, or not on every system that selects it) stands at
+ * No requirement with requirements in the stage: the stage is given `step`, the control's next
+ * step as its Details read it (Map 3 more objectives, Map on R210-STD-CUSA, Allocate to
+ * R210-STD-CUSA), which the trace draws where the stage can draw an action beside its records, and
+ * its Evidence stage still offers evidence for the first that cites none. Its
  * Assessment findings stage waits on `plans`, what the program's open campaigns hold of it: the
  * campaign whose plan holds it already is named, else the control is added to a draft plan or an
  * assessment is planned around it.
@@ -242,6 +337,7 @@ export function traceGapFixes(
   programId?: string | null | undefined,
   standing?: StepStanding | null | undefined,
   plans?: StepPlans | null | undefined,
+  step?: ControlNextStep | null | undefined,
 ): TraceGapFix[] {
   const fixes: TraceGapFix[] = [];
   if (trace.focus.kind === "control") {
@@ -258,16 +354,24 @@ export function traceGapFixes(
             }
           : { stage: "requirement", kind: "map_requirement" },
       );
-    } else if (trace.evidence.length === 0) {
-      const bare = trace.requirements.find((requirement) => requirement.evidence_count === 0);
-      if (bare)
-        fixes.push({
-          stage: "evidence",
-          kind: "link_evidence",
-          requirement: stepRequirement(bare),
-        });
-    } else if (standing?.status === "not_assessed" && trace.findings.length === 0 && plans) {
-      fixes.push({ stage: "finding", ...assessStep(plans) });
+    } else {
+      // Mapped in part: the requirements stage holds what maps it and offers what is left.
+      if (
+        standing?.status === "no_requirement" &&
+        (step?.kind === "map_requirement" || step?.kind === "allocate_requirement")
+      )
+        fixes.push({ stage: "requirement", ...step });
+      if (trace.evidence.length === 0) {
+        const bare = trace.requirements.find((requirement) => requirement.evidence_count === 0);
+        if (bare)
+          fixes.push({
+            stage: "evidence",
+            kind: "link_evidence",
+            requirement: stepRequirement(bare),
+          });
+      } else if (standing?.status === "not_assessed" && trace.findings.length === 0 && plans) {
+        fixes.push({ stage: "finding", ...assessStep(plans) });
+      }
     }
   }
   if (trace.focus.kind === "requirement") {

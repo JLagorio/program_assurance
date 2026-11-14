@@ -1,10 +1,12 @@
 -- Run with psql -v ON_ERROR_STOP=1 after migrations and the pinned reference data
 -- (npm run seed:reference). Every test row rolls back.
 -- Publish assessment results (publish_assessment_results): what a publication writes and freezes,
--- what a request sent again answers, each refusal in the reader's words (results already
--- published, changed since they were read, holding no finding, not in the workspace), and who may
--- call it: an editor, admin or owner of the workspace, never a viewer, a member of another
--- workspace or an anonymous session. Its receipts stay private.
+-- the one activity event that records it (who published, the program, the campaign and what was
+-- frozen; none for results published by a direct update, none for a refusal, and no second one for
+-- a request sent again), what a request sent again answers, each refusal in the reader's words
+-- (results already published, changed since they were read, holding no finding, not in the
+-- workspace), and who may call it: an editor, admin or owner of the workspace, never a viewer, a
+-- member of another workspace or an anonymous session. Its receipts stay private.
 begin;
 create function pg_temp.expect_error(statement text, expected_state text) returns void language plpgsql as $$
 begin
@@ -134,6 +136,10 @@ do $$ begin
     is distinct from array['ae570000-0000-0000-0000-000000000002']::uuid[] then
     raise exception 'The interim results are not the one row of results waiting in the queue';
   end if;
+  -- The results published by a direct update of their state, as the seeds publish, wrote no event.
+  if exists (select 1 from public.activity_events e where e.tenant_id = current_setting('test.tenant')::uuid) then
+    raise exception 'A direct update of a results revision''s state wrote an activity event';
+  end if;
 end $$;
 
 -- =============================================================================================
@@ -167,6 +173,9 @@ begin
     or (select revision from public.assessment_results_revisions where id = 'ae570000-0000-0000-0000-000000000002') <> 2 then
     raise exception 'A refused publication changed the results';
   end if;
+  if exists (select 1 from public.activity_events e where e.tenant_id = v_tenant::uuid) then
+    raise exception 'A refused publication wrote an activity event';
+  end if;
 end $$;
 
 -- =============================================================================================
@@ -176,6 +185,7 @@ do $$
 declare
   v_tenant uuid := current_setting('test.tenant')::uuid;
   v_answer jsonb; v_again jsonb; v_results public.assessment_results_revisions;
+  v_event public.activity_events;
 begin
   v_answer := public.publish_assessment_results(v_tenant, 'ae570000-0000-0000-0000-000000000002', 2, 2,
     'ae5a0000-0000-0000-0000-000000000010');
@@ -183,7 +193,8 @@ begin
     or v_answer->>'campaignId' <> 'ae550000-0000-0000-0000-000000000001'
     or v_answer->>'programId' <> 'ae520000-0000-0000-0000-000000000001'
     or (v_answer->>'versionNumber')::integer <> 2 or (v_answer->>'findings')::integer <> 2
-    or (v_answer->>'publishedAt')::timestamptz <> now() then
+    or (v_answer->>'publishedAt')::timestamptz <> now()
+    or (v_answer->>'activityEventId') is null then
     raise exception 'The publication did not answer with what it published: %', v_answer;
   end if;
   -- Published now, by the editor's party, at the next revision, its title and content as they were.
@@ -203,12 +214,34 @@ begin
     or (select published_at from public.assessment_results_revisions where id = 'ae570000-0000-0000-0000-000000000001') <> now() - interval '1 day' then
     raise exception 'The publication changed other results';
   end if;
+  -- One activity event records the publication, at its moment: the editor's party published, in
+  -- the program, the campaign the feeds link to, and the words they draw after the person.
+  if (select count(*) from public.activity_events e where e.tenant_id = v_tenant) <> 1 then
+    raise exception 'Expected one activity event for the publication, found %',
+      (select count(*) from public.activity_events e where e.tenant_id = v_tenant);
+  end if;
+  select * into v_event from public.activity_events e where e.tenant_id = v_tenant;
+  if v_event.id::text is distinct from v_answer->>'activityEventId'
+    or v_event.actor_party_id is distinct from 'ae510000-0000-0000-0000-000000000002'
+    or v_event.program_id is distinct from 'ae520000-0000-0000-0000-000000000001'
+    or v_event.assessment_campaign_id is distinct from 'ae550000-0000-0000-0000-000000000001'
+    or coalesce(v_event.task_id, v_event.issue_id, v_event.risk_id, v_event.poam_item_id,
+      v_event.evidence_artifact_id, v_event.package_id, v_event.requirement_revision_id) is not null
+    or v_event.event_type <> 'published'
+    or v_event.description is distinct from
+      E'published assessment results of Rollback results campaign\nRollback interim results: 2 findings.'
+    or v_event.occurred_at <> v_results.published_at
+    or v_event.created_by is distinct from 'ae500000-0000-0000-0000-000000000002' then
+    raise exception 'The publication was not recorded as the editor''s, in the program and its campaign: %', to_jsonb(v_event);
+  end if;
 
-  -- The same request sent again answers as it first did and writes nothing.
+  -- The same request sent again answers as it first did and writes nothing: no second publication
+  -- and no second event.
   v_again := public.publish_assessment_results(v_tenant, 'ae570000-0000-0000-0000-000000000002', 2, 2,
     'ae5a0000-0000-0000-0000-000000000010');
   if v_again <> v_answer
-    or (select revision from public.assessment_results_revisions where id = 'ae570000-0000-0000-0000-000000000002') <> 3 then
+    or (select revision from public.assessment_results_revisions where id = 'ae570000-0000-0000-0000-000000000002') <> 3
+    or (select count(*) from public.activity_events e where e.tenant_id = v_tenant) <> 1 then
     raise exception 'The request sent again answered % and wrote again', v_again;
   end if;
   -- Sent again with what the reader would see now, it still answers as it first did.
@@ -223,6 +256,9 @@ begin
   -- Another request for the published results is refused: someone published them first.
   perform pg_temp.expect_refusal(format($f$select public.publish_assessment_results(%L, 'ae570000-0000-0000-0000-000000000002', 2, 2, 'ae5a0000-0000-0000-0000-000000000011')$f$,
     v_tenant), '23514', 'already published');
+  if (select count(*) from public.activity_events e where e.tenant_id = v_tenant) <> 1 then
+    raise exception 'A refused publication of published results wrote an activity event';
+  end if;
 end $$;
 
 -- The results and their findings are frozen, and they no longer wait in the queue.
@@ -282,10 +318,15 @@ select pg_temp.expect_error(format($f$select public.publish_assessment_results(%
   current_setting('test.tenant')), '42501');
 reset role;
 
--- None of them published it, and the one receipt is the editor's publication.
+-- None of them published it, and the one receipt and the one activity event are the editor's
+-- publication.
 do $$ begin
   if (select state from public.assessment_results_revisions where id = 'ae570000-0000-0000-0000-000000000004') <> 'draft' then
     raise exception 'A caller who may not publish published the final results';
+  end if;
+  if (select array_agg(e.actor_party_id) from public.activity_events e where e.tenant_id = current_setting('test.tenant')::uuid)
+    is distinct from array['ae510000-0000-0000-0000-000000000002']::uuid[] then
+    raise exception 'Expected one activity event, the editor''s publication';
   end if;
   if (select array_agg(r.id) from public.assessment_results_requests r where r.tenant_id = current_setting('test.tenant')::uuid)
     is distinct from array['ae5a0000-0000-0000-0000-000000000010']::uuid[] then
@@ -295,4 +336,4 @@ do $$ begin
 end $$;
 
 rollback;
-select 'Publish assessment results: what it writes and freezes, a request sent again, each refusal and who may call it passed.' as result;
+select 'Publish assessment results: what it writes and freezes, the activity event that records it, a request sent again, each refusal and who may call it passed.' as result;

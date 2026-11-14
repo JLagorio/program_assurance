@@ -47,9 +47,13 @@ export type TraceStage = {
   /** What the stage says when it holds no record: "No evidence cited". */
   empty?: string | undefined;
   /**
-   * What closes the gap, drawn under `empty` while the stage holds no record: a small TextLink
-   * whose words are the fix, "Link evidence". Give it only where the reader can make the fix from
-   * the record the trace is about; a stage with nothing wrong in it has none.
+   * The step that closes the stage's gap: a small TextLink whose words are the step, "Link
+   * evidence", or a link-styled Button where the step opens over the page. It is drawn whenever it
+   * is given: under `empty` while the stage holds no record, and after its records (and their Show
+   * more) while it holds some, so a stage that holds part of what it needs carries the step that
+   * adds the rest, "Map 3 more objectives". It is not a record: it stays out of the stage's list
+   * and count. Give it only where the reader can take the step from the record the trace is about;
+   * a stage with nothing wrong in it has none.
    */
   action?: ReactNode | undefined;
 };
@@ -465,21 +469,9 @@ export function Trace({
                       ),
                     )}
                   </ul>
-                ) : (
-                  <>
-                    {stage.empty ? <p data-slot="trace-empty">{stage.empty}</p> : null}
-                    {stage.action ? <div data-slot="trace-action">{stage.action}</div> : null}
-                    {column.length ? (
-                      // A stage with nothing in it still gives each link that passes it a gap of its
-                      // own, under what it says, so the wire runs through it and never over the words.
-                      <div data-slot="trace-passes" aria-hidden>
-                        {column.map((entry) => (
-                          <div key={entry.id} data-slot="trace-pass" data-trace-id={entry.id} />
-                        ))}
-                      </div>
-                    ) : null}
-                  </>
-                )}
+                ) : stage.empty ? (
+                  <p data-slot="trace-empty">{stage.empty}</p>
+                ) : null}
                 {more > 0 || open ? (
                   <Button
                     size="small"
@@ -501,6 +493,18 @@ export function Trace({
                           other: t("traceShowMoreOther"),
                         })}
                   </Button>
+                ) : null}
+                {/* The stage's step: after its records and their Show more, outside their list, or
+                    under what a stage with nothing in it says. */}
+                {stage.action ? <div data-slot="trace-action">{stage.action}</div> : null}
+                {!stage.nodes.length && column.length ? (
+                  // A stage with nothing in it still gives each link that passes it a gap of its own,
+                  // under what it says and its step, so the wire runs through it and never over them.
+                  <div data-slot="trace-passes" aria-hidden>
+                    {column.map((entry) => (
+                      <div key={entry.id} data-slot="trace-pass" data-trace-id={entry.id} />
+                    ))}
+                  </div>
                 ) : null}
               </div>
             </li>

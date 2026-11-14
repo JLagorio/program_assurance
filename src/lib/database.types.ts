@@ -16419,6 +16419,7 @@ export type Database = {
       };
       program_requirement_rows: {
         Row: {
+          allocated_boundaries: string[] | null;
           allocated_to: string | null;
           allocation: string | null;
           allocations: Json | null;
@@ -16955,6 +16956,21 @@ export type Database = {
         Args: { p_control_ids: string[] };
         Returns: string[];
       };
+      assessment_objective_title: {
+        Args: { p_part_id: string };
+        Returns: string;
+      };
+      assessment_plan_control_parts: {
+        Args: { p_control_ids: string[]; p_plan_revision_ids: string[] };
+        Returns: {
+          control_id: string;
+          held: boolean;
+          objective: boolean;
+          part_id: string;
+          place: number[];
+          plan_revision_id: string;
+        }[];
+      };
       assign_record_owner: {
         Args: {
           p_collection: string;
@@ -17115,9 +17131,28 @@ export type Database = {
         Args: { p_command: Json; p_request_id: string; p_tenant_id: string };
         Returns: Json;
       };
+      control_assessment_parts: {
+        Args: { p_control_ids: string[] };
+        Returns: {
+          above: string[];
+          control_id: string;
+          objective: boolean;
+          part_id: string;
+          place: number[];
+          statement_id: string;
+        }[];
+      };
       control_objective_counts: {
         Args: { p_control_id: string; p_program_ids: string[] };
         Returns: Json;
+      };
+      control_parameter_placeholder: {
+        Args: { p_control_id: string; p_depth?: number; p_parameter: string };
+        Returns: string;
+      };
+      control_prose_words: {
+        Args: { p_control_id: string; p_depth?: number; p_text: string };
+        Returns: string;
       };
       copy_product_revision: {
         Args: { p_source_revision_id: string; p_tenant_id: string };
@@ -17281,6 +17316,14 @@ export type Database = {
         };
         Returns: Json;
       };
+      plan_control_holdings: {
+        Args: {
+          p_control_id: string;
+          p_plan_revision_ids: string[];
+          p_tenant_id: string;
+        };
+        Returns: Json;
+      };
       plan_delta_assessment: {
         Args: {
           p_request_id: string;
@@ -17323,6 +17366,7 @@ export type Database = {
           evidenced: boolean;
           objective_id: string;
           requirement_id: string;
+          system_id: string;
         }[];
       };
       program_control_objectives: {

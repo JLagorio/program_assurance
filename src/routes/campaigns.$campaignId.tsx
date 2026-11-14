@@ -19,9 +19,11 @@ import {
   PageHeader,
   Prose,
   Section,
+  Stack,
 } from "@ledger/design-system";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AssessmentCampaign } from "@/components/prototype/assessment-campaign";
+import { CampaignResults } from "@/components/prototype/campaign-results";
 import { usePublishResults } from "@/components/prototype/publish-results";
 import { RecordTrail, TrailLink } from "@/components/prototype/record-trail";
 import { RelationName } from "@/components/prototype/record-tools";
@@ -52,7 +54,8 @@ function CampaignDetail() {
   const campaign = query.data;
   useRecordTitle("Assessment campaign", campaign?.title);
   const workspace = useWorkspace();
-  // The campaign's latest draft results holding a finding, which its Actions menu publishes.
+  // The campaign's latest draft results holding a finding, which its Actions menu publishes and
+  // the Overview's Assessment results lists among the rest.
   const toPublish = useCampaignResultsToPublish(campaignId);
   const publishResults = usePublishResults();
   return (
@@ -62,7 +65,10 @@ function CampaignDetail() {
       <QueryState queries={[query]} region>
         {campaign ? (
           <>
-            <ReportFailures queries={toPublish.queries} />
+            {/* The Actions menu's reads. On the Overview its Assessment results section reads the
+                same two requests and says their failure in the tab's alert, so the page says it
+                on the other tabs alone: one alert for one outage. */}
+            {tab !== "Overview" && <ReportFailures queries={toPublish.queries} />}
             <PageHeader>
               <RecordTrail current={campaign.title}>
                 <TrailLink to="/campaigns">Assessment campaigns</TrailLink>
@@ -134,15 +140,20 @@ function CampaignDetail() {
                     </Shell.Aside>
                   }
                 >
-                  <Section title="Description">
-                    {campaign.description ? (
-                      <Box className="max-w-layout-measure">
-                        <Prose>{campaign.description}</Prose>
-                      </Box>
-                    ) : (
-                      <Absent label="No description recorded" />
-                    )}
-                  </Section>
+                  {/* What the campaign sets out to do, then what it found: its results revisions,
+                      newest first, the draft the Actions menu publishes among them. */}
+                  <Stack space="space.300">
+                    <Section title="Description">
+                      {campaign.description ? (
+                        <Box className="max-w-layout-measure">
+                          <Prose>{campaign.description}</Prose>
+                        </Box>
+                      ) : (
+                        <Absent label="No description recorded" />
+                      )}
+                    </Section>
+                    <CampaignResults campaignId={campaign.id} />
+                  </Stack>
                 </AsideLayout>
               }
               tab={tab}

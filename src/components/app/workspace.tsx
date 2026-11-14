@@ -52,8 +52,12 @@ import {
 } from "@ledger/design-system";
 import { AlertCircle, LogOut } from "lucide-react";
 import { database, loadWorkspace, type Workspace } from "@/lib/database";
+import { WorkspaceContext, useWorkspace } from "@/lib/workspace-context";
 import { useBrowserTitle } from "./browser-title";
 import { labelFor } from "@/lib/records";
+
+export { useWorkspace };
+export type { WorkspaceContextValue } from "@/lib/workspace-context";
 
 const seededUser = (() => {
   if (!import.meta.env.DEV) return null;
@@ -76,21 +80,7 @@ const seededUser = (() => {
   }
 })();
 
-/**
- * The signed-in workspace as screens read it: who reads, in which tenant, and in what role. The
- * record schema is not part of it: a screen reads a collection through `useCollection(name)`, or
- * the whole schema through `useSchemaCatalog()` (src/lib/collections), which load it on demand.
- */
-export type WorkspaceContextValue = Workspace;
-
-const WorkspaceContext = createContext<WorkspaceContextValue | null>(null);
-export function useWorkspace(): WorkspaceContextValue {
-  const workspace = useContext(WorkspaceContext);
-  if (!workspace) throw new Error("A signed-in workspace is required.");
-  return workspace;
-}
-
-/** Provides the workspace. A screen that never asks for the record schema never loads it. */
+/** Provides the workspace (the context is src/lib/workspace-context's). A screen that never asks for the record schema never loads it. */
 function WorkspaceValue({ workspace, children }: { workspace: Workspace; children: ReactNode }) {
   return <WorkspaceContext.Provider value={workspace}>{children}</WorkspaceContext.Provider>;
 }

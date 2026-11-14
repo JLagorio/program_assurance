@@ -23,13 +23,14 @@ function holdFocus(target: RefObject<HTMLElement | null>) {
 }
 
 /**
- * Publish assessment results, as the Review queue's preview and an assessment campaign's Actions
- * menu ask it: a confirmation that names the results and says publishing freezes their findings,
- * which runs the command as its action (a refusal shows inside it, the action its retry), then a
- * toast. Each confirmation sends one request, so a retry after an answer that was lost is answered
- * as the first was. Render `confirmation` where it outlives the control that asked: beside the
- * preview, outside the menu. `ask` resolves true once the results are published; `returnFocus`,
- * the control that asked where it stays in place, keeps focus however the prompt ends.
+ * Publish assessment results, as the Review queue's preview, an assessment campaign's Actions menu
+ * and its Assessment results preview ask it: a confirmation that names the results and says
+ * publishing freezes their findings, which runs the command as its action (a refusal shows inside
+ * it, the action its retry), then a toast. Each confirmation sends one request, so a retry after an
+ * answer that was lost is answered as the first was. Render `confirmation` where it outlives the
+ * control that asked: beside the preview, outside the menu. `ask` resolves true once the results
+ * are published; `returnFocus`, the control that asked where it stays in place, keeps focus however
+ * the prompt ends.
  */
 export function usePublishResults() {
   const { formatPlural } = useLedgerLocale();

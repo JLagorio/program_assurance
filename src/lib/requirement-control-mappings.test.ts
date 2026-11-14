@@ -2,9 +2,11 @@ import { describe, expect, it } from "vitest";
 import {
   WHOLE_CONTROL,
   WHOLE_CONTROL_CHOICE,
+  chosenHeadingOf,
   coverageOf,
   coveredObjectives,
   coversTarget,
+  fewestTargets,
   isControlStatement,
   isMappingTarget,
   mappingCoverage,
@@ -339,6 +341,50 @@ describe("what mappings cover", () => {
       targets: [{ systemId: "system", selectedControlId: "selection", objectiveId: "a" }],
       mapped: 0,
       eligible: 1,
+    });
+  });
+});
+
+describe("a heading chosen in a Map dialog", () => {
+  // AC-08a. prints a sentence of its own over AC-08a.01 to AC-08a.04, so AC-8 counts it beside them.
+  const ac8 = [
+    { id: "a", ancestors: ["root"] },
+    { id: "a.1", ancestors: ["root", "a"] },
+    { id: "a.2", ancestors: ["root", "a"] },
+    { id: "a.3", ancestors: ["root", "a"] },
+    { id: "a.4", ancestors: ["root", "a"] },
+    { id: "b", ancestors: ["root"] },
+  ];
+
+  it("covers the objectives under it, which are not chosen again", () => {
+    expect(chosenHeadingOf(ac8, "a.2", ["a", "b"])).toBe("a");
+    expect(chosenHeadingOf(ac8, "a.2", ["b"])).toBeUndefined();
+    expect(chosenHeadingOf(ac8, "a", ["a", "a.2"])).toBeUndefined();
+    // Chosen with objectives under it, the heading's one mapping stands for them.
+    expect(fewestTargets(ac8, ["a.1", "a.3", "a", "b"])).toEqual(["a", "b"]);
+    expect(fewestTargets(ac8, ["a.1", "a.3", "a.1"])).toEqual(["a.1", "a.3"]);
+    expect(coveredObjectives(coverageOf(ac8, fewestTargets(ac8, ["a", "b"])), ac8)).toBe(6);
+  });
+
+  it("is written alone, one mapping a system, never with the objectives under it", () => {
+    const standing = requirementMappingStanding(
+      { revisionId: "revision", systemIds: ["one", "two"] },
+      new Map([
+        ["one", "selection-1"],
+        ["two", "selection-2"],
+      ]),
+      new Map(),
+      fewestTargets(ac8, ["a", "a.1", "a.2", "a.3", "a.4"]),
+      ac8,
+    );
+    expect(standing).toEqual({
+      kind: "targets",
+      targets: [
+        { systemId: "one", selectedControlId: "selection-1", objectiveId: "a" },
+        { systemId: "two", selectedControlId: "selection-2", objectiveId: "a" },
+      ],
+      mapped: 0,
+      eligible: 2,
     });
   });
 });

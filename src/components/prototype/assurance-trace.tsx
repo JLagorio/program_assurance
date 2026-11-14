@@ -27,8 +27,7 @@ import {
   type TraceKind,
   type TraceRemediation,
 } from "@/lib/assurance-trace";
-import { useControlAssessment } from "@/lib/control-assessment";
-import { useProgramControlStatus } from "@/lib/control-status";
+import { useControlNextStep } from "@/lib/control-status";
 import { objectivesOf } from "@/lib/product-records";
 import {
   determinations,
@@ -43,7 +42,13 @@ import {
   type StatusTone,
   type StatusVocabulary,
 } from "@/lib/status";
-import { isReaderFix, traceGapFixes, type StepPlans, type StepStanding } from "@/lib/next-steps";
+import {
+  isReaderFix,
+  traceGapFixes,
+  type ControlNextStep,
+  type StepPlans,
+  type StepStanding,
+} from "@/lib/next-steps";
 import { useWorkspace } from "@/components/app/workspace";
 import { NextStep, StepSurfaceHost } from "./next-step";
 import { ProductCollection } from "./product-collection";
@@ -102,14 +107,17 @@ const stageLabel: Record<TraceKind, string> = {
 
 /**
  * Where a program stands on the control a trace is about, as its control status reads it: `known`
- * once the read has answered, `value` null where the control is not in the baseline. `plans` is
- * what the program's open campaigns hold of a control whose evidence waits on an assessor, once
- * read: its Assessment findings stage waits on it.
+ * once the reads its step waits on have answered, `value` null where the control is not in the
+ * baseline. `plans` is what the program's open campaigns hold of a control whose evidence waits on
+ * an assessor, once read: its Assessment findings stage waits on it. `step` is the control's next
+ * step as its Details read it, which the Requirements stage carries while its requirements map it
+ * in part.
  */
 type TraceStanding = {
   known: boolean;
   value: StepStanding | null;
   plans?: StepPlans | undefined;
+  step?: ControlNextStep | null | undefined;
 };
 
 /** A trace as the kit draws it: its seven stages, each record a link to its page, and the links. */
@@ -218,10 +226,17 @@ function useTraceStages(
     // A gap the reader can close from this record carries its fix, for a reader who may make it: a
     // link to where it is made, or, for a fix made on the control itself, the button that opens it
     // over the page. A control's requirements wait on where the program stands on it, since one its
-    // product decided names the product assessment instead of a fix; its assessment findings wait
-    // on what the program's open campaigns hold of it too.
+    // product decided names the product assessment instead of a fix, and one they map in part is
+    // given its next step, which Ledger's Trace draws under the requirements; its assessment
+    // findings wait on what the program's open campaigns hold of it too.
     const fixes = new Map(
-      traceGapFixes(trace, scope, controlStanding.value, controlStanding.plans)
+      traceGapFixes(
+        trace,
+        scope,
+        controlStanding.value,
+        controlStanding.plans,
+        controlStanding.step,
+      )
         .filter((fix) => !isReaderFix(fix) || canWrite)
         .filter(
           (fix) =>
@@ -297,11 +312,13 @@ type Tile = {
 };
 
 /**
- * How many of a control's assessment objectives the program's requirements cover, as its control
- * status counts them: `undefined` while the status is read, `null` where nothing is counted (not a
- * control in a program, a control outside its baseline, or a read that failed).
+ * How many of a control's assessment objectives are mapped and how many evidenced, as its control
+ * status counts them (each on every system that selects the control): `undefined` while the
+ * status is read, `null` where nothing is counted (not a control in a program, or a control outside
+ * its baseline), and `"failed"` where the read could not answer.
  */
-type ObjectiveTally = { objectives: number; mapped: number } | null | undefined;
+type ObjectiveTally =
+  { objectives: number; mapped: number; evidenced: number } | "failed" | null | undefined;
 
 /** The band's numbers for a trace: what its focus is, what it rests on or reaches, and how its treatment stands. */
 function useTiles(
@@ -484,23 +501,30 @@ function useTiles(
             : undefined,
           ...(worst ? { tone: statusTone(determinations, worst) } : {}),
         };
-        // How much of the control the requirements cover, objective by objective ("12 of 26
-        // objectives"), where its control status counts objectives; the tile waits on that read.
-        const covered =
-          objectives && objectives.objectives > 0
-            ? `${objectivesOf(formatNumber(objectives.mapped), formatNumber(objectives.objectives))} objectives`
-            : undefined;
+        // How much of the control the requirements cover, objective by objective, where its
+        // control status counts objectives: "3 of 6 objectives · 0 with evidence", both numbers
+        // objectives, mapped and evidenced on every system that selects it. A control the catalog
+        // gives no objective counts its requirements that cite evidence. The tile waits on that
+        // read, and says when it could not load rather than a number it does not have.
+        const counted =
+          objectives && objectives !== "failed" && objectives.objectives > 0 ? objectives : null;
+        const note =
+          objectives === "failed"
+            ? "Could not load"
+            : counted
+              ? `${objectivesOf(formatNumber(counted.mapped), formatNumber(counted.objectives))} objectives · ${formatNumber(counted.evidenced)} with evidence`
+              : trace.requirements.length
+                ? `${formatNumber(evidenced)} with evidence`
+                : undefined;
+        const unevidenced = counted
+          ? trace.requirements.length > 0 && counted.evidenced < counted.objectives
+          : trace.requirements.length > 0 && evidenced < trace.requirements.length;
         return [
           {
             label: "Requirements",
             value: trace.requirements.length,
-            note:
-              [covered, trace.requirements.length ? `${evidenced} with evidence` : undefined]
-                .filter(Boolean)
-                .join(" · ") || undefined,
-            ...(trace.requirements.length && evidenced < trace.requirements.length
-              ? { tone: "warning" as const }
-              : {}),
+            note,
+            ...(unevidenced && objectives !== "failed" ? { tone: "warning" as const } : {}),
             ...(objectives === undefined ? { isLoading: true } : {}),
           },
           findings,
@@ -568,34 +592,39 @@ export function TraceBand({
 }) {
   const today = useToday();
   const workspace = useWorkspace();
-  // Where the program stands on a control decides what its empty requirements say: one its
-  // product decided names the product assessment. The read the page's Details already share.
-  const statuses = useProgramControlStatus(kind === "control" ? programId : null);
+  // Where the program stands on a control decides what its requirements stage says: one its
+  // product decided names the product assessment, and one its requirements map in part is given
+  // its next step. The reads the page's Details already share, so the two say the same step.
   const focusId = trace.data?.focus.id;
-  const focusStanding =
-    kind === "control" && programId && statuses.isSuccess
-      ? (statuses.data.controls.find((control) => control.id === focusId) ?? null)
-      : null;
-  // Its objectives, which the Requirements tile counts beside the requirements: the same read, so
-  // the tile waits on it, and a read that fails says nothing of objectives under the page's alert.
+  const next = useControlNextStep(
+    kind === "control" ? programId : null,
+    focusId,
+    trace.data?.requirements,
+  );
+  const { statuses } = next;
+  const focusStanding = kind === "control" && programId ? (next.standing ?? null) : null;
+  // Its objectives, which the Requirements tile counts: the same read, so the tile waits on it,
+  // and a read that fails says Could not load under the page's alert.
   const objectives = useMemo<ObjectiveTally>(() => {
-    if (kind !== "control" || !programId || statuses.isError) return null;
+    if (kind !== "control" || !programId) return null;
+    if (statuses.isError) return "failed";
     if (!statuses.isSuccess) return undefined;
     return focusStanding
-      ? { objectives: focusStanding.objectives, mapped: focusStanding.objectivesMapped }
+      ? {
+          objectives: focusStanding.objectives,
+          mapped: focusStanding.objectivesMapped,
+          evidenced: focusStanding.objectivesEvidenced,
+        }
       : null;
   }, [kind, programId, statuses.isError, statuses.isSuccess, focusStanding]);
   const tiles = useTiles(trace.data, today, objectives);
   // Evidence nobody has determined waits on what the program's open campaigns hold of the control,
   // which the Details read too: its fix adds it to a draft plan, or plans an assessment around it.
-  const waiting = focusStanding?.status === "not_assessed";
-  const assessment = useControlAssessment(programId, focusId, { enabled: waiting });
   const controlStanding = useMemo<TraceStanding>(() => {
     if (kind !== "control" || !programId) return { known: true, value: null };
     if (!statuses.isSuccess) return { known: false, value: null };
-    if (waiting && !assessment.data) return { known: false, value: focusStanding };
-    return { known: true, value: focusStanding, plans: assessment.data };
-  }, [kind, programId, statuses.isSuccess, focusStanding, waiting, assessment.data]);
+    return { known: next.known, value: focusStanding, plans: next.plans, step: next.step };
+  }, [kind, programId, statuses.isSuccess, focusStanding, next.known, next.plans, next.step]);
   const drawn = useTraceStages(trace.data, programId, controlStanding, workspace.role !== "viewer");
   // While another record's trace loads, the numbers wait, and a chain still drawn from the record
   // before is marked busy: nothing of that record stands as this one's.

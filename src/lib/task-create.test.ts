@@ -1,7 +1,5 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { uuid } from "./testing/fake-client";
-
-vi.mock("@/components/app/workspace", () => ({ useWorkspace: () => ({}) }));
 
 const { createTaskSchema } = await import("./task-create");
 const { INVALID_DUE_DATE } = await import("./due-dates");

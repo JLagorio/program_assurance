@@ -4,6 +4,7 @@
  * workspace.
  */
 import assert from "node:assert/strict";
+import { randomUUID } from "node:crypto";
 import { chromium } from "playwright";
 import { localWorkspace } from "./tests/local-workspace.mjs";
 import { isControlStatement } from "../src/lib/requirement-control-mappings.ts";
@@ -291,6 +292,286 @@ try {
     client.from("requirement_control_links").select().eq("requirement_revision_id", content.id),
   );
   assert.equal(links.length, 5);
+  // A heading chosen covers the objectives under it (AC-8's AC-08a., which prints a sentence of its
+  // own over AC-08a.01 to AC-08a.04): they read Covered by AC-08a., cannot be chosen apart from it,
+  // an objective under it chosen first is taken out, and the write maps the heading alone.
+  const ac8 = (
+    await data(
+      client
+        .from("controls")
+        .select("id, code, title, catalog_revision_id")
+        .eq("code", "AC-8")
+        .eq("catalog_revision_id", control.catalog_revision_id),
+    )
+  )[0];
+  const [ac8Selection] = ac8
+    ? await data(
+        client
+          .from("selected_controls")
+          .select("profile_resolution_id")
+          .eq("control_id", ac8.id)
+          .is("tenant_id", null)
+          .limit(1),
+      )
+    : [];
+  assert.ok(ac8 && ac8Selection, "The pinned catalog holds AC-8 in a reference baseline");
+  const headingSystem = await insert("systems", {
+    program_id: program.id,
+    code: "SYS-AC8",
+    name: "Notification system",
+    system_type: "information_system",
+  });
+  await insert("ssp_revisions", {
+    system_id: headingSystem.id,
+    profile_resolution_id: ac8Selection.profile_resolution_id,
+    version_number: 1,
+  });
+  const banner = await insert("engineering_requirements", {
+    program_id: program.id,
+    code: "REQ-BANNER",
+  });
+  const bannerContent = await insert("requirement_revisions", {
+    engineering_requirement_id: banner.id,
+    version_number: 1,
+    title: "Use notification",
+    statement: "The system shall show a use notification before granting access.",
+    acceptance_criteria: "The banner is shown and acknowledged.",
+    requirement_type: "security",
+  });
+  await insert("requirement_allocations", {
+    requirement_revision_id: bannerContent.id,
+    system_id: headingSystem.id,
+  });
+  await page.goto(
+    `${origin}/programs/${program.id}/requirements/${banner.id}?tab=Control%20mappings`,
+  );
+  await page.getByRole("button", { name: "Map control", exact: true }).click();
+  dialog = page.getByRole("dialog", { name: "Map control", exact: true });
+  await dialog.getByRole("combobox", { name: "Control", exact: true }).fill("AC-8");
+  await page.getByRole("option", { name: `AC-8 · ${ac8.title}`, exact: true }).click();
+  await dialog.getByRole("radio", { name: "Chosen objectives", exact: true }).click();
+  await dialog.getByRole("combobox", { name: "Objectives to map", exact: true }).click();
+  await page.getByRole("option", { name: "AC-08a.01", exact: true }).click();
+  await page.getByRole("option", { name: "AC-08a.", exact: true }).click();
+  for (const under of ["AC-08a.01", "AC-08a.02", "AC-08a.03", "AC-08a.04"])
+    assert.equal(
+      await page.getByRole("option", { name: under, exact: true }).getAttribute("aria-disabled"),
+      "true",
+      `${under} is covered by AC-08a.`,
+    );
+  assert.ok(await page.getByText("Covered by AC-08a.").count());
+  await page.keyboard.press("Escape");
+  await dialog.getByText("AC-08a. and 4 under it", { exact: true }).waitFor();
+  assert.equal(await dialog.getByText("AC-08a.01", { exact: true }).count(), 0);
+  await dialog.getByText(/^Covers 5 of 9 objectives\./).waitFor();
+  await dialog.getByRole("button", { name: "Map control", exact: true }).click();
+  await dialog.waitFor({ state: "hidden" });
+  const heading = (
+    await data(
+      client
+        .from("control_parts")
+        .select("id, props")
+        .eq("control_id", ac8.id)
+        .eq("name", "assessment-objective"),
+    )
+  ).find((part) => label(part) === "AC-08a.");
+  assert.deepEqual(
+    (
+      await data(
+        client
+          .from("requirement_control_links")
+          .select("control_part_id, system_id")
+          .eq("requirement_revision_id", bannerContent.id),
+      )
+    ).map((link) => [link.control_part_id, link.system_id]),
+    [[heading.id, headingSystem.id]],
+    "The heading alone, one mapping on the system",
+  );
+  // Every system counts. A program with two systems on one baseline: a control mapped on the first
+  // is short on the second, whose step allocates a requirement there first (Allocate to SYS-TWO),
+  // then maps on it (Map on SYS-TWO), the picker saying each system's standing and opening on the
+  // requirements allocated there. A heading chosen in the picker maps alone, once on each system.
+  const profileKey = randomUUID();
+  const twoSystems = await data(
+    client.rpc("create_program_wizard", {
+      p_tenant_id: tenantId,
+      p_draft: {
+        requestId: randomUUID(),
+        code: "EVERY",
+        name: "Every system counts",
+        description: "",
+        sponsorPartyId: null,
+        startsOn: null,
+        endsOn: null,
+        roles: [],
+        catalogRevisionId: control.catalog_revision_id,
+        profiles: [
+          {
+            key: profileKey,
+            baseResolutionId: ac8Selection.profile_resolution_id,
+            tailoring: [],
+            parameters: [],
+          },
+        ],
+        systems: ["ONE", "TWO"].map((code) => ({
+          key: randomUUID(),
+          code: `SYS-${code}`,
+          name: `System ${code.toLowerCase()}`,
+          description: "",
+          type: "information_system",
+          ownerPartyId: null,
+          confidentiality: "low",
+          integrity: "low",
+          availability: "low",
+          categorizationRationale: "A limited impact boundary for a disposable check.",
+          profileKey,
+          elements: [],
+        })),
+      },
+    }),
+  );
+  const everySystems = await data(
+    client.from("systems").select("id, code").eq("program_id", twoSystems.programId),
+  );
+  const sysOne = everySystems.find((row) => row.code === "SYS-ONE").id;
+  const sysTwo = everySystems.find((row) => row.code === "SYS-TWO").id;
+  const ac1 = (
+    await data(
+      client
+        .from("controls")
+        .select("id, code, title")
+        .eq("code", "AC-1")
+        .eq("catalog_revision_id", control.catalog_revision_id),
+    )
+  )[0];
+  const [sysOneBaseline] = await data(
+    client
+      .from("system_effective_baselines")
+      .select("profile_resolution_id")
+      .eq("system_id", sysOne),
+  );
+  const [ac1Selection] = await data(
+    client
+      .from("selected_controls")
+      .select("id")
+      .eq("profile_resolution_id", sysOneBaseline.profile_resolution_id)
+      .eq("control_id", ac1.id),
+  );
+  const everyRequirement = async (code, title, systemId) => {
+    const identity = await insert("engineering_requirements", {
+      program_id: twoSystems.programId,
+      code,
+    });
+    const revision = await insert("requirement_revisions", {
+      engineering_requirement_id: identity.id,
+      version_number: 1,
+      title,
+      statement: `The system shall ${title.toLowerCase()}.`,
+      acceptance_criteria: "The recorded test demonstrates it.",
+      requirement_type: "security",
+    });
+    for (const target of systemId ? [systemId].flat() : [])
+      await insert("requirement_allocations", {
+        requirement_revision_id: revision.id,
+        system_id: target,
+      });
+    return revision;
+  };
+  const policyOne = await everyRequirement("REQ-ONE", "Keep a policy on system one", sysOne);
+  const policyTwo = await everyRequirement("REQ-TWO", "Keep a policy on system two");
+  const banners = await everyRequirement("REQ-BANNERS", "Show a use notification");
+  await insert("requirement_control_links", {
+    requirement_revision_id: policyOne.id,
+    control_id: ac1.id,
+    system_id: sysOne,
+    selected_control_id: ac1Selection.id,
+    relationship_type: "maps_to",
+  });
+  await page.goto(`${origin}/programs/${twoSystems.programId}/controls/${ac1.id}`);
+  const nextStep = page.locator('[data-slot="key-value"]', { hasText: "Next step" }).first();
+  await page.getByText("0 of 17 objectives · 0 with evidence", { exact: true }).waitFor();
+  await nextStep.getByRole("button", { name: "Allocate to SYS-TWO", exact: true }).click();
+  let sheet = page.getByRole("dialog", { name: "Allocate requirements", exact: true });
+  await sheet.getByRole("checkbox", { name: /REQ-TWO/ }).click();
+  await sheet.getByRole("button", { name: "Allocate 1 to SYS-TWO", exact: true }).click();
+  await sheet.waitFor({ state: "hidden" });
+  await nextStep.getByRole("button", { name: "Map on SYS-TWO", exact: true }).click();
+  sheet = page.getByRole("dialog", { name: "Map a requirement", exact: true });
+  await sheet.getByText("17 of 17 objectives mapped", { exact: true }).waitFor();
+  await sheet.getByText("0 of 17 objectives mapped", { exact: true }).waitFor();
+  await sheet.getByRole("checkbox", { name: /REQ-TWO/ }).waitFor();
+  assert.equal(
+    await sheet.getByRole("checkbox", { name: /REQ-ONE/ }).count(),
+    0,
+    "The picker opens on the requirements allocated in SYS-TWO",
+  );
+  await sheet.getByRole("checkbox", { name: /REQ-TWO/ }).click();
+  await sheet.getByRole("button", { name: "Map 1 requirement to AC-1", exact: true }).click();
+  await sheet.waitFor({ state: "hidden" });
+  assert.deepEqual(
+    (
+      await data(
+        client
+          .from("requirement_control_links")
+          .select("system_id, control_part_id")
+          .eq("requirement_revision_id", policyTwo.id),
+      )
+    ).map((link) => [link.system_id, link.control_part_id]),
+    [[sysTwo, null]],
+  );
+  await nextStep.getByText("Link evidence to REQ-ONE", { exact: true }).waitFor();
+  await page.getByText("17 of 17 objectives · 0 with evidence", { exact: true }).waitFor();
+  // AC-8 from its own page: AC-08a. chosen covers the four under it and maps once on each system.
+  for (const target of [sysOne, sysTwo])
+    await insert("requirement_allocations", {
+      requirement_revision_id: banners.id,
+      system_id: target,
+    });
+  await page.goto(`${origin}/programs/${twoSystems.programId}/controls/${ac8.id}`);
+  await nextStep.getByRole("button", { name: "Map a requirement", exact: true }).click();
+  sheet = page.getByRole("dialog", { name: "Map a requirement", exact: true });
+  await sheet.getByRole("radio", { name: "Chosen objectives", exact: true }).click();
+  await sheet.getByRole("combobox", { name: "Objectives to map", exact: true }).click();
+  await page.getByRole("option", { name: "AC-08a.", exact: true }).click();
+  assert.equal(
+    await page
+      .getByRole("option", { name: "AC-08a.04", exact: true })
+      .getAttribute("aria-disabled"),
+    "true",
+  );
+  await page.keyboard.press("Escape");
+  await sheet.getByText("AC-08a. and 4 under it", { exact: true }).waitFor();
+  await sheet.getByRole("checkbox", { name: /REQ-BANNERS/ }).click();
+  await sheet.getByRole("button", { name: "Map 1 requirement to AC-8", exact: true }).click();
+  await sheet.waitFor({ state: "hidden" });
+  const headingId = (
+    await data(
+      client
+        .from("control_parts")
+        .select("id, props")
+        .eq("control_id", ac8.id)
+        .eq("name", "assessment-objective"),
+    )
+  ).find((part) => label(part) === "AC-08a.").id;
+  assert.deepEqual(
+    (
+      await data(
+        client
+          .from("requirement_control_links")
+          .select("system_id, control_part_id")
+          .eq("requirement_revision_id", banners.id),
+      )
+    )
+      .map(
+        (link) =>
+          `${link.system_id === sysOne ? "SYS-ONE" : "SYS-TWO"} ${link.control_part_id === headingId}`,
+      )
+      .sort(),
+    ["SYS-ONE true", "SYS-TWO true"],
+  );
+  await nextStep.getByText("Map 4 more objectives", { exact: true }).waitFor();
+  // Back to the first requirement's Control mappings, which a viewer reads next.
+  await page.goto(url);
   otherOwner = await localWorkspace("control-mapping-owner");
   await data(
     client
@@ -322,7 +603,7 @@ try {
   });
   assert.deepEqual(errors, []);
   console.log(
-    "PASS control mappings: inherited profile/control labels, objectives (one an edit, several a new mapping), a recorded statement, CAS update, whole-control creation, discard, viewer read-only; disposable workspace cleaned",
+    "PASS control mappings: inherited profile/control labels, objectives (one an edit, several a new mapping), a heading chosen covering the objectives under it and written alone in both Map dialogs, every system counting (Allocate to SYS-TWO, then Map on SYS-TWO), a recorded statement, CAS update, whole-control creation, discard, viewer read-only; disposable workspace cleaned",
   );
 } catch (error) {
   await page.screenshot({

@@ -2,8 +2,6 @@ import { describe, expect, it, vi } from "vitest";
 import { args, fakeClient, filter, uuid } from "./testing/fake-client";
 import type { Collection, Column } from "./records";
 
-vi.mock("@/components/app/workspace", () => ({ useWorkspace: () => ({}) }));
-
 const { MISSING_RECORD, createNameBatcher, nameColumns, readRecordNames } =
   await import("./record-names");
 

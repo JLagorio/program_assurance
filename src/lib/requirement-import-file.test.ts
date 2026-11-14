@@ -1,7 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
 // The requirement types come from the edit command's module, which reads the workspace.
-vi.mock("@/components/app/workspace", () => ({ useWorkspace: vi.fn() }));
 vi.mock("./database", () => ({ database: vi.fn(), requireIdentity: vi.fn() }));
 
 import {

@@ -5,10 +5,13 @@ import { AssessmentSurface } from "./assessment-step";
 import { questionSearch } from "./collection-question";
 import { MapRequirementSurface, type StepControl } from "./map-requirement";
 import { stepSlot } from "./step-focus";
+import { AllocateRequirementsSurface } from "./system-requirements";
 import {
   isInPlaceStep,
   nextStepLabel,
   type ControlNextStep,
+  type InPlaceStepKind,
+  type StepSystem,
   type TraceGapFix,
 } from "@/lib/next-steps";
 import { registerViews } from "@/lib/register-views";
@@ -16,11 +19,13 @@ import { determinations } from "@/lib/status";
 
 /** What an in-place step asked to open: the step, the control and the row it was opened from. */
 type StepSurface = {
-  kind: "map_requirement" | "assess" | "plan_assessment";
+  kind: InPlaceStepKind;
   programId: string;
   control: StepControl;
   /** Map a requirement opened for the rest of a control mapped in part: it starts on what is left. */
   rest: boolean;
+  /** The system the control is short on, which Map a requirement opens on or Allocate requirements allocates to. */
+  system: StepSystem | undefined;
   opener: HTMLElement | null;
   slot: HTMLElement | null;
   key: number;
@@ -50,10 +55,22 @@ export function StepSurfaceHost({ children }: { children: ReactNode }) {
             programId={surface.programId}
             control={surface.control}
             rest={surface.rest}
+            system={surface.system}
             opener={surface.opener}
             slot={surface.slot}
             onClose={close}
           />
+        ) : surface.kind === "allocate_requirement" ? (
+          surface.system && (
+            <AllocateRequirementsSurface
+              key={surface.key}
+              programId={surface.programId}
+              system={surface.system}
+              opener={surface.opener}
+              slot={surface.slot}
+              onClose={close}
+            />
+          )
         ) : (
           <AssessmentSurface
             key={surface.key}
@@ -94,6 +111,7 @@ function InPlaceStep({
           programId,
           control,
           rest: "rest" in step && !!step.rest,
+          system: "system" in step ? step.system : undefined,
           opener: opener.current,
           slot: stepSlot(opener.current),
         })
@@ -111,10 +129,7 @@ const shortOfSatisfied = Object.keys(determinations).filter(
 );
 
 /** A step that leads to where it is done: every step but the ones done on the control itself. */
-type LinkStep = Exclude<
-  ControlNextStep | TraceGapFix,
-  { kind: "map_requirement" | "assess" | "plan_assessment" }
->;
+type LinkStep = Exclude<ControlNextStep | TraceGapFix, { kind: InPlaceStepKind }>;
 
 /**
  * A next step as the link that leads to where it is done: the requirement's Evidence or Control
@@ -218,11 +233,13 @@ function NextStepLink({
  * to where it is done. A step done on the control itself is a link-styled button that opens where
  * it is done over the page, so the reader makes the change without leaving the control: Map a
  * requirement, a picker of the program's requirements (for the rest of a control mapped in part,
- * Map 14 more objectives, with those objectives chosen); Add to assessment campaign, a picker of its
- * campaigns with a draft plan; Plan an assessment, the form that plans a new campaign around the
- * control. What it opens is held by the nearest `StepSurfaceHost`, or by its own where there is
- * none. For a reader who may not make the change, and while the control is not yet known, such a
- * step is its words alone.
+ * Map 14 more objectives, with those objectives chosen; for a control short on a system, Map on
+ * R210-STD-CUSA, on the requirements allocated there); Allocate to R210-STD-CUSA, the
+ * system's own picker of the program's requirements, where none is allocated there yet; Add to
+ * assessment campaign, a picker of its campaigns with a draft plan; Plan an assessment, the form
+ * that plans a new campaign around the control. What it opens is held by the nearest
+ * `StepSurfaceHost`, or by its own where there is none. For a reader who may not make the change,
+ * and while the control is not yet known, such a step is its words alone.
  */
 export function NextStep(props: {
   step: ControlNextStep | TraceGapFix;

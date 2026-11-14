@@ -845,9 +845,13 @@ export function RecordPreviewActions<T extends { id: string }>({
     places.current = { result: paging.result, at: new Map() };
   if (paging && index >= 0) places.current.at.set(record.id, offset + index + 1);
   const place = paging && index < 0 ? places.current.at.get(record.id) : undefined;
-  // A record last seen on another page of the result keeps that place.
+  // A record last seen on another page of the result keeps that place, while the result still
+  // reaches it: past the result's end (the last record of its page left, and the page is empty) it
+  // is asked, as a record missing from its page is.
   const elsewhere =
-    place !== undefined && (place <= offset || place > offset + rows.length) ? place : undefined;
+    place !== undefined && place <= count && (place <= offset || place > offset + rows.length)
+      ? place
+      : undefined;
   // One that is not on the page that should hold it (an edit moved it, or it left the result, or
   // the preview opened it from elsewhere) is asked where it stands now: the server counts the rows
   // its order puts before it, or says the question no longer finds it.

@@ -20,10 +20,17 @@ import {
   Skeleton,
   VisuallyHidden,
   useComboboxAnchor,
+  useLedgerLocale,
 } from "@ledger/design-system";
 import { ComboboxField, type ControlRef } from "@/components/app/fields";
 import type { ControlObjective } from "@/lib/control-objectives";
-import { objectiveWords } from "@/lib/product-records";
+import { objectiveWords, objectivesOf } from "@/lib/product-records";
+import {
+  chosenHeadingOf,
+  coverageOf,
+  coveredObjectives,
+  fewestTargets,
+} from "@/lib/requirement-control-mappings";
 import { mappingCoverages } from "@/lib/status";
 import { controlProseText, useControlPlaceholders } from "./library-controls";
 
@@ -36,8 +43,21 @@ export type MappingCoverage = keyof typeof mappingCoverages;
 
 const COVERAGES = Object.keys(mappingCoverages) as MappingCoverage[];
 
-/** An objective as a list offers it: its label, and what the assessor determines under it. */
-type ObjectiveOption = { value: string; label: string; detail: string | null };
+/**
+ * An objective as a list offers it: its label, what the assessor determines under it, and, for a
+ * heading that counts, how many of the control's objectives sit under it, which choosing it covers.
+ */
+type ObjectiveOption = { value: string; label: string; detail: string | null; under: number };
+
+/** The words a choice of objectives says of what it covers, kept with the fields that say them. */
+const coverWords = {
+  /** An objective under a chosen heading, which the heading's mapping covers. */
+  coveredBy: (heading: string) => `Covered by ${heading}`,
+  /** A chosen heading's chip: it and the objectives under it. */
+  heading: (label: string, under: string) => `${label} and ${under} under it`,
+  /** What the chosen objectives cover together, out of every objective the control counts. */
+  covers: (count: string, total: string) => `Covers ${objectivesOf(count, total)} objectives.`,
+};
 
 /** The objectives as options, in reading order, each with its text and the catalog's placeholders. */
 function useObjectiveOptions(
@@ -53,8 +73,34 @@ function useObjectiveOptions(
         value: objective.id,
         label: objective.label ?? objectiveWords.unlabelled,
         detail: objective.prose ? controlProseText(objective.prose, controlId, placeholders) : null,
+        under: (objectives ?? []).filter((other) => other.ancestors.includes(objective.id)).length,
       })),
     [objectives, controlId, placeholders],
+  );
+}
+
+/**
+ * What a choice covers, in words: how many of the control's objectives its mappings cover, a
+ * heading's covering the objectives under it. None while nothing is chosen.
+ */
+function useCoverText(
+  objectives: readonly ControlObjective[] | undefined,
+  value: readonly string[],
+): string | undefined {
+  const { formatNumber } = useLedgerLocale();
+  if (!objectives?.length || value.length === 0) return undefined;
+  const covered = coveredObjectives(coverageOf(objectives, value), objectives);
+  return coverWords.covers(formatNumber(covered), formatNumber(objectives.length));
+}
+
+/** A field's hint: what the choice covers, then what the caller says of the field. */
+function hint(cover: string | undefined, description: ReactNode) {
+  if (!cover) return description;
+  if (!description) return cover;
+  return (
+    <>
+      {cover} {description}
+    </>
   );
 }
 
@@ -118,7 +164,11 @@ export function ObjectiveCoverage({
 /**
  * The control's objectives to choose from, each listed by its label with its text, found by
  * either. `multiple` chooses several as chips (a new mapping, one an objective); otherwise one, for
- * a mapping being edited. While the objectives load, the field keeps its place.
+ * a mapping being edited. A heading that counts (it prints a sentence of its own) covers every
+ * objective under it: chosen, its chip says so (AC-08a. and 4 under it), the objectives under it
+ * are listed as covered by it and cannot be chosen apart from it, and choosing it takes out any of
+ * them chosen before, so the choice is the fewest mappings. The hint says how many of the control's
+ * objectives the choice covers. While the objectives load, the field keeps its place.
  */
 export function ObjectivesField({
   multiple,
@@ -149,6 +199,7 @@ export function ObjectivesField({
   onRetry?: (() => void) | undefined;
 }) {
   const options = useObjectiveOptions(controlId, objectives);
+  const cover = useCoverText(objectives, value);
   if (!multiple)
     return (
       <ComboboxField
@@ -163,7 +214,7 @@ export function ObjectivesField({
         loading={loading}
         loadError={loadError}
         onRetry={onRetry}
-        description={description}
+        description={hint(cover, description)}
         error={error}
         controlRef={controlRef}
       />
@@ -177,10 +228,11 @@ export function ObjectivesField({
     );
   return (
     <ObjectiveChips
+      objectives={objectives ?? []}
       options={options}
       value={value}
       onChange={onChange}
-      description={description}
+      description={hint(cover, description)}
       error={error}
       controlRef={controlRef}
     />
@@ -188,6 +240,7 @@ export function ObjectivesField({
 }
 
 function ObjectiveChips({
+  objectives,
   options,
   value,
   onChange,
@@ -195,6 +248,7 @@ function ObjectiveChips({
   error,
   controlRef,
 }: {
+  objectives: readonly ControlObjective[];
   options: ObjectiveOption[];
   value: readonly string[];
   onChange: (next: string[]) => void;
@@ -202,6 +256,7 @@ function ObjectiveChips({
   error?: string | undefined;
   controlRef?: ControlRef | undefined;
 }) {
+  const { formatNumber } = useLedgerLocale();
   const anchor = useComboboxAnchor();
   // The chosen options as one array for as long as they are the same: a fresh array each render
   // would have the Combobox write its value back over what the reader is typing.
@@ -209,6 +264,15 @@ function ObjectiveChips({
     () => options.filter((option) => value.includes(option.value)),
     [options, value],
   );
+  const labels = useMemo(
+    () => new Map(options.map((option) => [option.value, option.label])),
+    [options],
+  );
+  // Why an objective cannot be chosen: a chosen heading above it covers it already.
+  const coveredBy = (option: ObjectiveOption) => {
+    const heading = chosenHeadingOf(objectives, option.value, value);
+    return heading ? coverWords.coveredBy(labels.get(heading) ?? objectiveWords.unlabelled) : "";
+  };
   return (
     <Field invalid={error ? true : undefined} required>
       <FieldLabel>{objectiveWords.chooseMany}</FieldLabel>
@@ -216,14 +280,28 @@ function ObjectiveChips({
         items={options}
         multiple
         value={chosen}
-        onValueChange={(next) => onChange(next.map((option) => option.value))}
+        onValueChange={(next) =>
+          // A heading chosen takes out the objectives under it: its one mapping covers them.
+          onChange(
+            fewestTargets(
+              objectives,
+              next.map((option) => option.value),
+            ),
+          )
+        }
         isItemEqualToValue={(item, selected) => item.value === selected.value}
         filter={matches}
       >
         <ComboboxChips ref={anchor}>
           <ComboboxValue>
             {(items: ObjectiveOption[]) =>
-              items.map((item) => <ComboboxChip key={item.value}>{item.label}</ComboboxChip>)
+              items.map((item) => (
+                <ComboboxChip key={item.value} label={item.label}>
+                  {item.under > 0
+                    ? coverWords.heading(item.label, formatNumber(item.under))
+                    : item.label}
+                </ComboboxChip>
+              ))
             }
           </ComboboxValue>
           <ComboboxChipsInput ref={bind(controlRef)} placeholder={objectiveWords.add} />
@@ -231,15 +309,19 @@ function ObjectiveChips({
         <ComboboxContent anchor={anchor}>
           <ComboboxEmpty>{objectiveWords.none}</ComboboxEmpty>
           <ComboboxList>
-            {(item: ObjectiveOption) => (
-              <ComboboxItem
-                key={item.value}
-                value={item}
-                {...(item.detail ? { description: item.detail } : {})}
-              >
-                {item.label}
-              </ComboboxItem>
-            )}
+            {(item: ObjectiveOption) => {
+              const covered = coveredBy(item);
+              return (
+                <ComboboxItem
+                  key={item.value}
+                  value={item}
+                  {...(covered ? { disabledReason: covered } : {})}
+                  {...(item.detail ? { description: item.detail } : {})}
+                >
+                  {item.label}
+                </ComboboxItem>
+              );
+            }}
           </ComboboxList>
         </ComboboxContent>
       </Combobox>

@@ -43,10 +43,9 @@ const REFERENCE_KITS = [
 ];
 
 // Domain code never imports the UI: src/lib holds data access, commands and rules that screens
-// compose. The workspace context is the one named exception until it moves into src/lib.
+// compose, the workspace context among them (src/lib/workspace-context.ts), with no exception.
 const DOMAIN_NEVER_IMPORTS_UI = {
-  regex:
-    "^(@ledger/design-system(/.*)?|@/components(/(?!app/workspace$).*)?|@/routes(/.*)?|react-dom(/.*)?)$",
+  regex: "^(@ledger/design-system(/.*)?|@/components(/.*)?|@/routes(/.*)?|react-dom(/.*)?)$",
   message:
     "src/lib is domain code and never imports the UI. Move the rendering into src/components or src/routes and keep the rule, hook or command here.",
 };

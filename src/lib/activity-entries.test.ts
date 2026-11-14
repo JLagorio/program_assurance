@@ -1,6 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
-
-vi.mock("@/components/app/workspace", () => ({ useWorkspace: () => ({}) }));
+import { describe, expect, it } from "vitest";
 
 const {
   ACTIVITY_COLUMNS,
@@ -36,6 +34,10 @@ describe("the feed's read", () => {
     expect(recentActivityRead.columns).toEqual(ACTIVITY_COLUMNS);
     expect(recentActivityRead.columns).not.toContain("tenant_id");
     expect(recentActivityRead.order).toEqual([{ column: "occurred_at", ascending: false }]);
+  });
+
+  it("reads again once assessment results are published, which records an event", () => {
+    expect(recentActivityRead.models).toContain("assessment_results_revisions");
   });
 });
 
@@ -82,6 +84,25 @@ describe("eventWords", () => {
       deed: "completed",
       said: undefined,
     });
+  });
+
+  it("says who published assessment results of which campaign, and what the results held", () => {
+    // As publish_assessment_results records it: the program and the campaign, the deed naming the
+    // campaign and the line after it the results and their findings.
+    const published = event({
+      id: "7",
+      event_type: "published",
+      program_id: "program",
+      assessment_campaign_id: "campaign",
+      description:
+        "published assessment results of WS-X90 Expanded Control Set Assessment\nInterim results — expanded control set, increment 2: 20 findings.",
+    });
+    expect(eventWords(published)).toEqual({
+      deed: "published assessment results of WS-X90 Expanded Control Set Assessment",
+      said: "Interim results — expanded control set, increment 2: 20 findings.",
+    });
+    // The entry links to the campaign, which lists its results; the program is its meta.
+    expect(eventRecord(published)).toEqual({ table: "assessment_campaigns", id: "campaign" });
   });
 });
 

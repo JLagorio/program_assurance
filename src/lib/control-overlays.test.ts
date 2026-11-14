@@ -1,6 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
-
-vi.mock("@/components/app/workspace", () => ({ useWorkspace: () => ({}) }));
+import { describe, expect, it } from "vitest";
 
 const {
   OVERLAY_CHANGED_BEFORE_DELETE,

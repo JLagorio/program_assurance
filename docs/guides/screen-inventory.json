@@ -15,7 +15,7 @@
     "tabList": "Campaign sections",
     "collectionTabs": ["Runs"],
     "tabExceptions": {
-      "Overview": "Record properties and summary.",
+      "Overview": "Record properties, the description and the assessment results revisions as one compact collection under its Section heading.",
       "Execution": "Campaign details and five separate collections.",
       "Procedures": "Procedures and revisions are distinct collections.",
       "Regression": "Derived comparison rows with an explanation, not a record collection."

@@ -1,8 +1,6 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { programRequirementScope, programRequirementTables } from "./requirement-reads";
 import { fakeClient, filter, uuid } from "./testing/fake-client";
-
-vi.mock("@/components/app/workspace", () => ({ useWorkspace: () => ({}) }));
 
 const { readRows, selectClause } = await import("./models");
 

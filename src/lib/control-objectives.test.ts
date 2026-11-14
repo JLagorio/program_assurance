@@ -1,9 +1,12 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
-vi.mock("@/components/app/workspace", () => ({ useWorkspace: () => ({}) }));
-
-const { readControlObjectiveCounts, readProgramControlObjectives, unmappedObjectives } =
-  await import("./control-objectives");
+const {
+  coveredSomewhere,
+  objectivesShortOn,
+  readControlObjectiveCounts,
+  readProgramControlObjectives,
+  uncoveredObjectives,
+} = await import("./control-objectives");
 
 type Answer = { data: unknown; error: { message: string } | null };
 
@@ -36,19 +39,30 @@ const context = { tenantId: "tenant", token: "token" };
 const program = "00000000-0000-4000-8000-000000000001";
 const control = "00000000-0000-4000-8000-000000000002";
 
-const objective = (
-  id: string,
-  label: string,
-  mapped: boolean,
-  requirements: { id: string; code: string; evidenced: boolean }[] = [],
-) => ({
+const one = "00000000-0000-4000-8000-000000000011";
+const two = "00000000-0000-4000-8000-000000000012";
+
+/** An objective as the server answers it: covered on the systems named, of the two that select it. */
+const objective = (id: string, label: string, on: string[], evidenced = false) => ({
   id,
   label,
   prose: `${label} is determined;`,
   ancestors: ["root", "a"],
-  mapped,
-  evidenced: requirements.some((requirement) => requirement.evidenced),
-  requirements,
+  mapped: on.length === 2,
+  evidenced,
+  mapped_on: on,
+});
+
+/** A system that selects the control, as the server answers it. */
+const system = (id: string, code: string, mapped: number, allocated: number) => ({
+  id,
+  code,
+  name: `${code} system`,
+  mapped: mapped === 3,
+  evidenced: false,
+  objectives_mapped: mapped,
+  objectives_evidenced: 0,
+  allocated,
 });
 
 describe("readProgramControlObjectives", () => {
@@ -58,9 +72,14 @@ describe("readProgramControlObjectives", () => {
         program_id: program,
         control_id: control,
         objectives: [
-          objective("a.1", "AC-02a.[01]", true, [{ id: "r1", code: "REQ-001", evidenced: true }]),
-          objective("a.2", "AC-02a.[02]", false),
-          objective("b", "AC-02b.", true, [{ id: "r2", code: "REQ-002", evidenced: false }]),
+          objective("a.1", "AC-02a.[01]", [one, two], true),
+          objective("a.2", "AC-02a.[02]", []),
+          objective("b", "AC-02b.", [one]),
+        ],
+        systems: [system(one, "SYS-A", 2, 4), system(two, "SYS-B", 1, 0)],
+        requirements: [
+          { id: "r1", code: "REQ-001", evidenced: true, owes: false },
+          { id: "r2", code: "REQ-002", evidenced: false, owes: true },
         ],
       },
       error: null,
@@ -78,10 +97,48 @@ describe("readProgramControlObjectives", () => {
       "AC-02a.[02]",
       "AC-02b.",
     ]);
-    expect(answer.objectives[0]).toMatchObject({ mapped: true, evidenced: true });
-    expect(answer.objectives[2]).toMatchObject({ mapped: true, evidenced: false });
-    // What a step for the rest opens on: the objectives no requirement maps yet.
-    expect(unmappedObjectives(answer.objectives).map((each) => each.id)).toEqual(["a.2"]);
+    expect(answer.objectives[0]).toMatchObject({
+      mapped: true,
+      evidenced: true,
+      mappedOn: [one, two],
+    });
+    // Covered on one of the two systems that select the control: not mapped, but somewhere.
+    expect(answer.objectives[2]).toMatchObject({ mapped: false, mappedOn: [one] });
+    expect(coveredSomewhere(answer.objectives[2]!)).toBe(true);
+    // What Map N more objectives opens on: the objectives no system covers yet.
+    expect(uncoveredObjectives(answer.objectives).map((each) => each.id)).toEqual(["a.2"]);
+    // What Map on SYS-B opens on: the objectives that system does not cover.
+    expect(objectivesShortOn(answer.objectives, two).map((each) => each.id)).toEqual(["a.2", "b"]);
+    expect(answer.systems).toEqual([
+      {
+        id: one,
+        code: "SYS-A",
+        name: "SYS-A system",
+        mapped: false,
+        evidenced: false,
+        objectivesMapped: 2,
+        objectivesEvidenced: 0,
+        allocated: 4,
+      },
+      {
+        id: two,
+        code: "SYS-B",
+        name: "SYS-B system",
+        mapped: false,
+        evidenced: false,
+        objectivesMapped: 1,
+        objectivesEvidenced: 0,
+        allocated: 0,
+      },
+    ]);
+    expect(answer.requirements.find((each) => each.owes)?.code).toBe("REQ-002");
+  });
+
+  it("covers an objective by any mapping where no system selects the control", () => {
+    // Mapped, and on no system: no system selects the control, so any mapping covers it.
+    const pooled = { mapped: true, mappedOn: [] };
+    expect(coveredSomewhere(pooled)).toBe(true);
+    expect(uncoveredObjectives([pooled])).toEqual([]);
   });
 
   it("says the server's refusal, and refuses an answer it cannot read", async () => {
@@ -96,7 +153,13 @@ describe("readProgramControlObjectives", () => {
     await expect(
       readProgramControlObjectives(
         client({
-          data: { program_id: program, control_id: control, objectives: [{ id: "a.1" }] },
+          data: {
+            program_id: program,
+            control_id: control,
+            objectives: [{ id: "a.1" }],
+            systems: [],
+            requirements: [],
+          },
           error: null,
         }).client,
         context,

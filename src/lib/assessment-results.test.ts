@@ -1,7 +1,5 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { args, fakeClient, uuid } from "./testing/fake-client";
-
-vi.mock("@/components/app/workspace", () => ({ useWorkspace: () => ({}) }));
 
 const {
   CAMPAIGN_HAS_NO_RESULTS,
@@ -10,7 +8,9 @@ const {
   RESULTS_ANSWER_UNREADABLE,
   RESULTS_NEED_FINDINGS,
   RESULTS_REVISION_MISSING,
+  campaignResults,
   campaignResultsToPublish,
+  newestResultsFirst,
   publishAssessmentResults,
 } = await import("./assessment-results");
 
@@ -32,6 +32,7 @@ describe("publishing assessment results", () => {
     versionNumber: 2,
     findings: 20,
     publishedAt: "2026-11-13T23:10:00+00:00",
+    activityEventId: uuid(40),
   };
 
   it("sends one request at the revision and with the findings the reader saw, and reads its answer", async () => {
@@ -92,6 +93,12 @@ describe("publishing assessment results", () => {
     expect(calls).toHaveLength(0);
   });
 
+  it("reads an answer given before publications recorded an event, which names none", async () => {
+    const { activityEventId: _recorded, ...earlier } = answered;
+    const { client } = fakeClient(() => ({ data: earlier, error: null }));
+    await expect(publishAssessmentResults(client, context, request)).resolves.toEqual(earlier);
+  });
+
   it("says when the answer cannot be read, since the results may have been published", async () => {
     const { client } = fakeClient(() => ({ data: { findings: "twenty" }, error: null }));
     await expect(publishAssessmentResults(client, context, request)).rejects.toThrow(
@@ -133,6 +140,42 @@ describe("a campaign's results to publish", () => {
       results: { id: uuid(22), title: "Results 22", versionNumber: 3, revision: 4, findings: 3 },
       waits: null,
     });
+  });
+
+  it("lists the campaign's results newest first, each with how many findings it holds", () => {
+    const revision = (n: number, state: "draft" | "published", version: number, at: string) => ({
+      ...results(n, state, version, at),
+      description: null,
+      published_at: state === "published" ? at : null,
+      published_by_party_id: state === "published" ? uuid(90) : null,
+      assessment_plan_revision_id: uuid(80),
+    });
+    const listed = campaignResults(
+      [
+        revision(20, "published", 1, "2026-11-01T00:00:00Z"),
+        // Created together, the higher version is the newer.
+        revision(22, "draft", 3, "2026-11-12T00:00:00Z"),
+        revision(21, "draft", 2, "2026-11-12T00:00:00Z"),
+      ],
+      [finding(20), finding(20), finding(22)],
+    );
+    expect(listed.map((row) => [row.id, row.findings])).toEqual([
+      [uuid(22), 1],
+      [uuid(21), 0],
+      [uuid(20), 2],
+    ]);
+    // The Actions menu publishes the first draft of that order that holds a finding.
+    expect(
+      campaignResultsToPublish(listed, [finding(20), finding(20), finding(22)]).results?.id,
+    ).toBe(uuid(22));
+    expect(
+      [
+        results(2, "draft", 1, "2026-11-12T00:00:00Z"),
+        results(1, "draft", 1, "2026-11-12T00:00:00Z"),
+      ]
+        .sort(newestResultsFirst)
+        .map((row) => row.id),
+    ).toEqual([uuid(1), uuid(2)]);
   });
 
   it("says why there is nothing to publish", () => {

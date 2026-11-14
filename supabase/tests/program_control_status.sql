@@ -16,7 +16,12 @@
 -- a sentence of its own counts on its own: the rule finds the nine SP 800-53A prints, a control
 -- whose leaves are all mapped without such a heading stays no requirement, the heading covers
 -- itself and every objective under it, the read of the control's objectives lists it before them,
--- and the catalog control's table (control_objective_counts) counts as the status does.
+-- and the catalog control's table (control_objective_counts) counts as the status does. Last, every
+-- system counts: a control, and each objective it counts, is covered only once it is covered on
+-- every system of the program whose control baseline selects it, an element's mapping counting on
+-- its boundary, a mapping that names no system on every one, evidence system by system, and a
+-- control no system selects by any mapping; the read of one control's objectives says each
+-- system's standing, how many requirements are allocated there and which requirement owes evidence.
 begin;
 create function pg_temp.expect_error(statement text, expected_state text) returns void language plpgsql as $$
 begin
@@ -110,7 +115,8 @@ begin
   v_answer := public.program_control_objectives('c5710000-0000-0000-0000-000000000001', v_control);
   if jsonb_array_length(v_answer->'objectives') = 0
     or exists (select 1 from jsonb_array_elements(v_answer->'objectives') o
-      where (o->>'mapped')::boolean or (o->>'evidenced')::boolean or o->'requirements' <> '[]'::jsonb) then
+      where (o->>'mapped')::boolean or (o->>'evidenced')::boolean or o->'mapped_on' <> '[]'::jsonb)
+    or v_answer->'requirements' <> '[]'::jsonb or v_answer->'systems' <> '[]'::jsonb then
     raise exception 'A program with no requirement answered a control''s objectives as %', v_answer;
   end if;
 end $$;
@@ -726,9 +732,16 @@ begin
         or (o->>'evidenced')::boolean
         or nullif(o->>'label', '') is null or nullif(o->>'prose', '') is null
         or ((o->>'id')::uuid = any(v_under)) <> (o->'ancestors' ? v_heading::text)
-        or ((o->>'mapped')::boolean and o->'requirements' <> jsonb_build_array(jsonb_build_object(
-          'id', 'c5720000-0000-0000-0000-000000000021', 'code', 'REQ-HEADING', 'evidenced', false)))
-        or (not (o->>'mapped')::boolean and o->'requirements' <> '[]'::jsonb)) then
+        -- A mapping that names no system counts on the program's one system.
+        or ((o->>'mapped')::boolean and o->'mapped_on' <> (
+          select jsonb_agg(s.id) from public.systems s where s.program_id = v_program and s.is_authorization_boundary))
+        or (not (o->>'mapped')::boolean and o->'mapped_on' <> '[]'::jsonb))
+    -- The requirement that covers what is covered, citing no evidence, owes it.
+    or v_read->'requirements' <> jsonb_build_array(jsonb_build_object(
+      'id', 'c5720000-0000-0000-0000-000000000021', 'code', 'REQ-HEADING', 'evidenced', false, 'owes', true))
+    or jsonb_array_length(v_read->'systems') <> 1
+    or (v_read->'systems'->0->>'objectives_mapped')::integer <> cardinality(v_under)
+    or (v_read->'systems'->0->>'mapped')::boolean then
     raise exception 'The objectives of a control mapped at one heading read %', v_read;
   end if;
   if (select array_agg((o->>'id')::uuid order by n) from jsonb_array_elements(v_read->'objectives') with ordinality t(o, n))
@@ -952,7 +965,7 @@ begin
   v_read := public.program_control_objectives(v_program, v_control);
   if jsonb_array_length(v_read->'objectives') <> v_counted
     or not exists (select 1 from jsonb_array_elements(v_read->'objectives') o
-      where (o->>'id')::uuid = v_heading and not (o->>'mapped')::boolean and o->'requirements' = '[]'::jsonb
+      where (o->>'id')::uuid = v_heading and not (o->>'mapped')::boolean and o->'mapped_on' = '[]'::jsonb
         and nullif(o->>'label', '') is not null and nullif(o->>'prose', '') is not null)
     or exists (select 1 from jsonb_array_elements(v_read->'objectives') o
       where (o->>'id')::uuid = any(v_under) and not (o->'ancestors' ? v_heading::text))
@@ -1014,6 +1027,226 @@ begin
   raise notice 'The checks of a heading of its own ran against the pinned references';
 end $$;
 
+-- ---------------------------------------------------------------------------------------------
+-- Every system counts (20261114072913_every_system_counts): a control, and each objective it
+-- counts, is covered only once it is covered on every system of the program whose control baseline
+-- selects it (each of its authorization boundaries that does), and evidenced only once covered on
+-- every one by a requirement that cites evidence. A mapping counts on the boundary of the system it
+-- names, an element's on its boundary; a mapping that names no system counts on every system; and a
+-- control no system selects is covered by any mapping, as before. The read of one control's
+-- objectives says each system's standing, how many requirements are allocated there and which
+-- requirement owes evidence.
+-- ---------------------------------------------------------------------------------------------
+create function pg_temp.selection(system uuid, control uuid) returns uuid language sql stable as $$
+  select sc.id from public.selected_controls sc
+  join public.system_effective_baselines b on b.profile_resolution_id = sc.profile_resolution_id
+  where b.system_id = system and sc.control_id = control limit 1;
+$$;
+grant execute on function pg_temp.selection(uuid, uuid) to authenticated;
+
+do $$
+declare
+  v_tenant uuid := current_setting('test.tenant')::uuid;
+  v_catalog uuid; v_small uuid; v_more uuid; v_program uuid; v_created jsonb;
+  v_small_key uuid := gen_random_uuid(); v_more_key uuid := gen_random_uuid();
+  v_one uuid; v_two uuid; v_element uuid := gen_random_uuid();
+  v_control uuid; v_first uuid; v_counted integer; v_legacy uuid; v_unselected uuid;
+  v_line jsonb; v_read jsonb;
+  v_system jsonb := jsonb_build_object('description', '', 'type', 'information_system', 'ownerPartyId', null,
+    'confidentiality', 'low', 'integrity', 'low', 'availability', 'low',
+    'categorizationRationale', 'A limited impact boundary for a rollback test.', 'elements', '[]'::jsonb);
+begin
+  -- The smallest published reference baseline, and a larger one of its catalog that selects
+  -- controls it does not.
+  select r.id, i.catalog_revision_id into v_small, v_catalog
+  from public.profile_resolutions r
+  join public.profile_imports i on i.profile_revision_id = r.profile_revision_id
+  join public.catalog_revisions k on k.id = i.catalog_revision_id and k.state = 'published'
+  where r.tenant_id is null and r.state = 'published' and r.base_profile_resolution_id is null
+    and (select count(*) from public.selected_controls sc where sc.profile_resolution_id = r.id) >= 3
+  order by (select count(*) from public.selected_controls sc where sc.profile_resolution_id = r.id), r.id limit 1;
+  if v_small is null then
+    raise notice 'The pinned references are not installed: the checks of every system were skipped';
+    return;
+  end if;
+  select r.id into v_more
+  from public.profile_resolutions r
+  join public.profile_imports i on i.profile_revision_id = r.profile_revision_id and i.catalog_revision_id = v_catalog
+  where r.tenant_id is null and r.state = 'published' and r.base_profile_resolution_id is null and r.id <> v_small
+    and exists (select 1 from public.selected_controls sc where sc.profile_resolution_id = r.id
+      and not exists (select 1 from public.selected_controls x
+        where x.profile_resolution_id = v_small and x.control_id = sc.control_id))
+  order by r.id limit 1;
+  -- Two systems on the smaller baseline; the program adopts the larger one too, which no system does.
+  v_created := public.create_program_wizard(v_tenant, jsonb_build_object(
+    'requestId', gen_random_uuid(), 'code', 'CS-SYSTEMS', 'name', 'Every system counts test', 'description', '',
+    'sponsorPartyId', null, 'startsOn', null, 'endsOn', null, 'roles', '[]'::jsonb,
+    'catalogRevisionId', v_catalog,
+    'profiles', jsonb_build_array(jsonb_build_object(
+        'key', v_small_key, 'baseResolutionId', v_small, 'tailoring', '[]'::jsonb, 'parameters', '[]'::jsonb))
+      || case when v_more is null then '[]'::jsonb else jsonb_build_array(jsonb_build_object(
+        'key', v_more_key, 'baseResolutionId', v_more, 'tailoring', '[]'::jsonb, 'parameters', '[]'::jsonb)) end,
+    'systems', jsonb_build_array(
+      v_system || jsonb_build_object('key', gen_random_uuid(), 'code', 'CS-SYS-ONE', 'name', 'First system', 'profileKey', v_small_key),
+      v_system || jsonb_build_object('key', gen_random_uuid(), 'code', 'CS-SYS-TWO', 'name', 'Second system', 'profileKey', v_small_key))));
+  v_program := (v_created->>'programId')::uuid;
+  select s.id into v_one from public.systems s where s.program_id = v_program and s.code = 'CS-SYS-ONE';
+  select s.id into v_two from public.systems s where s.program_id = v_program and s.code = 'CS-SYS-TWO';
+  -- An element inside the second system, which inherits its baseline.
+  insert into public.systems(id, tenant_id, program_id, code, name, system_type, parent_system_id, boundary_system_id, is_authorization_boundary)
+    values (v_element, v_tenant, v_program, 'CS-SYS-TWO-EL', 'Element of the second system', 'subsystem', v_two, v_two, false);
+
+  -- A control of the smaller baseline with two leaves or more and no heading of its own, another
+  -- for a mapping that names no system, and one only the larger baseline selects.
+  select sc.control_id into v_control
+  from public.selected_controls sc
+  join public.catalog_control_rows k on k.id = sc.control_id
+  where sc.profile_resolution_id = v_small
+    and (select count(*) from public.control_parts o where o.control_id = sc.control_id and o.name = 'assessment-objective'
+      and not exists (select 1 from public.control_parts g where g.parent_part_id = o.id and g.name = 'assessment-objective')) >= 2
+    and not exists (select 1 from public.control_parts h where h.control_id = sc.control_id and h.name = 'assessment-objective'
+      and exists (select 1 from public.control_parts u where u.parent_part_id = h.id and u.name = 'assessment-objective')
+      and public.objective_prints_own_sentence(h.prose))
+  order by k.code_order limit 1;
+  select count(*), (array_agg(o.id order by o.source_pointer))[1] into v_counted, v_first
+  from public.control_parts o where o.control_id = v_control and o.name = 'assessment-objective'
+    and not exists (select 1 from public.control_parts g where g.parent_part_id = o.id and g.name = 'assessment-objective');
+  select sc.control_id into v_legacy
+  from public.selected_controls sc join public.catalog_control_rows k on k.id = sc.control_id
+  where sc.profile_resolution_id = v_small and sc.control_id <> v_control
+  order by k.code_order limit 1;
+  if v_more is not null then
+    select sc.control_id into v_unselected
+    from public.selected_controls sc join public.catalog_control_rows k on k.id = sc.control_id
+    where sc.profile_resolution_id = v_more
+      and not exists (select 1 from public.selected_controls x where x.profile_resolution_id = v_small and x.control_id = sc.control_id)
+    order by k.code_order limit 1;
+  end if;
+
+  insert into public.engineering_requirements(id, tenant_id, program_id, code) values
+    ('c5720000-0000-0000-0000-000000000041', v_tenant, v_program, 'REQ-ONE'),
+    ('c5720000-0000-0000-0000-000000000042', v_tenant, v_program, 'REQ-TWO');
+  insert into public.requirement_revisions(id, tenant_id, engineering_requirement_id, version_number, title, statement, acceptance_criteria, requirement_type) values
+    ('c5730000-0000-0000-0000-000000000041', v_tenant, 'c5720000-0000-0000-0000-000000000041', 1, 'Meets it on the first system', 'The first system does it.', 'It is recorded.', 'functional'),
+    ('c5730000-0000-0000-0000-000000000042', v_tenant, 'c5720000-0000-0000-0000-000000000042', 1, 'Meets it on the second system', 'The second system does it.', 'It is recorded.', 'functional');
+  insert into public.requirement_allocations(tenant_id, requirement_revision_id, system_id) values
+    (v_tenant, 'c5730000-0000-0000-0000-000000000041', v_one),
+    (v_tenant, 'c5730000-0000-0000-0000-000000000042', v_element);
+
+  -- Mapped as a whole on the first system: covered there, and short on the second.
+  insert into public.requirement_control_links(tenant_id, requirement_revision_id, control_id, system_id, selected_control_id, relationship_type)
+    values (v_tenant, 'c5730000-0000-0000-0000-000000000041', v_control, v_one, pg_temp.selection(v_one, v_control), 'maps_to');
+  v_line := pg_temp.line(public.program_control_status(v_program), v_control);
+  if v_line->>'status' <> 'no_requirement' or v_line->'requirements' <> '1'::jsonb
+    or (v_line->>'objectives')::integer <> v_counted or v_line->'objectives_mapped' <> '0'::jsonb then
+    raise exception 'A control mapped on one of the two systems that select it read %', v_line;
+  end if;
+  v_read := public.program_control_objectives(v_program, v_control);
+  if v_read->'systems' <> jsonb_build_array(
+      jsonb_build_object('id', v_one, 'code', 'CS-SYS-ONE', 'name', 'First system', 'mapped', true, 'evidenced', false,
+        'objectives_mapped', v_counted, 'objectives_evidenced', 0, 'allocated', 1),
+      jsonb_build_object('id', v_two, 'code', 'CS-SYS-TWO', 'name', 'Second system', 'mapped', false, 'evidenced', false,
+        'objectives_mapped', 0, 'objectives_evidenced', 0, 'allocated', 1))
+    or exists (select 1 from jsonb_array_elements(v_read->'objectives') o
+      where (o->>'mapped')::boolean or o->'mapped_on' <> jsonb_build_array(v_one)) then
+    raise exception 'The systems of a control mapped on one of them read %', v_read;
+  end if;
+
+  -- One objective mapped on the element inside the second system counts on the second system:
+  -- that objective is covered on both, the rest on the first alone.
+  insert into public.requirement_control_links(tenant_id, requirement_revision_id, control_id, control_part_id, system_id, selected_control_id, relationship_type)
+    values (v_tenant, 'c5730000-0000-0000-0000-000000000042', v_control, v_first, v_element, pg_temp.selection(v_element, v_control), 'maps_to');
+  v_line := pg_temp.line(public.program_control_status(v_program), v_control);
+  if v_line->>'status' <> 'no_requirement' or v_line->'requirements' <> '2'::jsonb
+    or v_line->'objectives_mapped' <> '1'::jsonb then
+    raise exception 'A control with one objective mapped on both systems read %', v_line;
+  end if;
+  v_read := public.program_control_objectives(v_program, v_control);
+  if (v_read->'systems'->1->>'objectives_mapped')::integer <> 1
+    or exists (select 1 from jsonb_array_elements(v_read->'objectives') o
+      where (o->>'mapped')::boolean <> ((o->>'id')::uuid = v_first)) then
+    raise exception 'The objectives of a control mapped in part on the second system read %', v_read;
+  end if;
+
+  -- The whole control mapped there too: covered on every system, with no evidence anywhere.
+  insert into public.requirement_control_links(tenant_id, requirement_revision_id, control_id, system_id, selected_control_id, relationship_type)
+    values (v_tenant, 'c5730000-0000-0000-0000-000000000042', v_control, v_element, pg_temp.selection(v_element, v_control), 'maps_to');
+  v_line := pg_temp.line(public.program_control_status(v_program), v_control);
+  if v_line->>'status' <> 'no_evidence' or (v_line->>'objectives_mapped')::integer <> v_counted then
+    raise exception 'A control covered on both systems read %', v_line;
+  end if;
+
+  -- Evidence on the first system's requirement alone evidences nothing on the second: the control
+  -- stays no evidence, and the second system's requirement owes it.
+  insert into public.evidence_artifacts(id, tenant_id, title, artifact_kind, program_id) values
+    ('c5740000-0000-0000-0000-000000000041', v_tenant, 'Rollback systems report', 'document', v_program);
+  insert into public.evidence_versions(id, tenant_id, artifact_id, version_number, state, external_uri) values
+    ('c5750000-0000-0000-0000-000000000041', v_tenant, 'c5740000-0000-0000-0000-000000000041', 1, 'published', 'https://example.test/evidence/systems');
+  insert into public.requirement_evidence(tenant_id, requirement_revision_id, evidence_version_id) values
+    (v_tenant, 'c5730000-0000-0000-0000-000000000041', 'c5750000-0000-0000-0000-000000000041');
+  v_line := pg_temp.line(public.program_control_status(v_program), v_control);
+  if v_line->>'status' <> 'no_evidence' or v_line->'evidenced' <> '1'::jsonb
+    or v_line->'objectives_evidenced' <> '0'::jsonb then
+    raise exception 'A control with evidence on one of its two systems read %', v_line;
+  end if;
+  v_read := public.program_control_objectives(v_program, v_control);
+  if v_read->'requirements' <> jsonb_build_array(
+      jsonb_build_object('id', 'c5720000-0000-0000-0000-000000000041', 'code', 'REQ-ONE', 'evidenced', true, 'owes', false),
+      jsonb_build_object('id', 'c5720000-0000-0000-0000-000000000042', 'code', 'REQ-TWO', 'evidenced', false, 'owes', true))
+    or (v_read->'systems'->0->>'evidenced')::boolean is distinct from true
+    or (v_read->'systems'->1->>'evidenced')::boolean is distinct from false then
+    raise exception 'The requirements of a control evidenced on one system read %', v_read;
+  end if;
+  -- Evidence on the second system's requirement too: evidenced on every system, not assessed.
+  insert into public.requirement_evidence(tenant_id, requirement_revision_id, evidence_version_id) values
+    (v_tenant, 'c5730000-0000-0000-0000-000000000042', 'c5750000-0000-0000-0000-000000000041');
+  v_line := pg_temp.line(public.program_control_status(v_program), v_control);
+  if v_line->>'status' <> 'not_assessed' or (v_line->>'objectives_evidenced')::integer <> v_counted then
+    raise exception 'A control evidenced on both systems read %', v_line;
+  end if;
+
+  -- A mapping that names no system counts on every system, as it always counted.
+  insert into public.requirement_control_links(tenant_id, requirement_revision_id, control_id, relationship_type)
+    values (v_tenant, 'c5730000-0000-0000-0000-000000000041', v_legacy, 'derived_from');
+  v_line := pg_temp.line(public.program_control_status(v_program), v_legacy);
+  if v_line->>'status' <> 'not_assessed' or v_line->'objectives_mapped' <> v_line->'objectives' then
+    raise exception 'A control mapped with no system read %', v_line;
+  end if;
+  v_read := public.program_control_objectives(v_program, v_legacy);
+  if exists (select 1 from jsonb_array_elements(v_read->'systems') s where not (s->>'mapped')::boolean)
+    or jsonb_array_length(v_read->'systems') <> 2 then
+    raise exception 'A mapping that names no system did not count on both systems: %', v_read;
+  end if;
+
+  -- A control no system of the program selects is counted on no system: any mapping covers it.
+  if v_unselected is not null then
+    v_line := pg_temp.line(public.program_control_status(v_program), v_unselected);
+    if v_line->>'status' <> 'no_requirement' then
+      raise exception 'A control nothing maps, and no system selects, read %', v_line;
+    end if;
+    insert into public.requirement_control_links(tenant_id, requirement_revision_id, control_id, relationship_type)
+      values (v_tenant, 'c5730000-0000-0000-0000-000000000042', v_unselected, 'maps_to');
+    v_line := pg_temp.line(public.program_control_status(v_program), v_unselected);
+    v_read := public.program_control_objectives(v_program, v_unselected);
+    if v_line->>'status' <> 'not_assessed' or v_line->'objectives_mapped' <> v_line->'objectives'
+      or v_read->'systems' <> '[]'::jsonb
+      or exists (select 1 from jsonb_array_elements(v_read->'objectives') o
+        where not (o->>'mapped')::boolean or o->'mapped_on' <> '[]'::jsonb) then
+      raise exception 'A control no system selects, mapped, read % and %', v_line, v_read;
+    end if;
+  end if;
+
+  -- Every control still stands at one status, its counts within its objectives, and the
+  -- internal lines the snapshots count are the read's.
+  if (select sum(value::integer) from jsonb_each_text(public.program_control_status(v_program)->'totals') where key <> 'controls')
+      <> (public.program_control_status(v_program)->'totals'->>'controls')::integer
+    or exists (select 1 from public.program_control_status_lines(v_program) l
+      where l.objectives_mapped > l.objectives or l.objectives_evidenced > l.objectives_mapped) then
+    raise exception 'The counts of a program with two systems do not add up';
+  end if;
+  raise notice 'The checks of every system ran against the pinned references';
+end $$;
+
 reset role;
 rollback;
-select 'Program control status: privileges, refusal, a program with no baseline, the ladder a control climbs, the determinations a program takes from its products, the objectives a control''s requirements cover and the headings that count on their own passed.' as result;
+select 'Program control status: privileges, refusal, a program with no baseline, the ladder a control climbs, the determinations a program takes from its products, the objectives a control''s requirements cover, the headings that count on their own and every system that selects a control passed.' as result;

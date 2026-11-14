@@ -70,11 +70,18 @@
   margin: 0;
   color: var(--ds-color-text-subtlest);
 }
-/* The fix for a gap, under what the stage says: over the wire of a link that passes the stage. */
+/* A stage's step: after its records and their Show more, or under what a stage with nothing in it
+   says, over the wire of a link that passes that stage. */
 [data-slot="trace-action"] {
   position: relative;
   z-index: 1;
   min-width: 0;
+}
+/* A step's words wrap in its column as a TextLink's do, a link-styled Button's too, which keeps
+   them on one line elsewhere: a column can be 128px, so they stay whole and paint nothing past it. */
+[data-slot="trace-action"] [data-button-variant="link"] {
+  white-space: normal;
+  text-align: start;
 }
 
 /* ---------- a record ---------- */

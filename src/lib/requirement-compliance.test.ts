@@ -1,6 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
 
-vi.mock("@/components/app/workspace", () => ({ useWorkspace: vi.fn() }));
 vi.mock("./database", () => ({ database: vi.fn(), requireIdentity: vi.fn() }));
 
 import {

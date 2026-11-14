@@ -165,6 +165,61 @@ export function coveredObjectives(
   return objectives.filter((objective) => coverage.has(objective.id)).length;
 }
 
+/**
+ * An objective as a program stands on it, as coverage system by system reads it: covered on every
+ * system that selects the control (`mapped`), and the systems it is covered on (`mappedOn`).
+ */
+type StandingObjective = { mapped: boolean; mappedOn: readonly string[] };
+
+/** Whether an objective is covered on any system that selects its control, or by any mapping where none does. */
+export const coveredSomewhere = (objective: StandingObjective) =>
+  objective.mapped || objective.mappedOn.length > 0;
+
+/**
+ * The objectives no system that selects the control covers yet, in reading order: what Map N more
+ * objectives maps.
+ */
+export function uncoveredObjectives<T extends StandingObjective>(objectives: readonly T[]): T[] {
+  return objectives.filter((objective) => !coveredSomewhere(objective));
+}
+
+/** The objectives one system that selects the control does not cover yet, in reading order. */
+export function objectivesShortOn<T extends StandingObjective>(
+  objectives: readonly T[],
+  systemId: string,
+): T[] {
+  return objectives.filter((objective) => !objective.mappedOn.includes(systemId));
+}
+
+/**
+ * The heading a chosen objective sits under among the objectives chosen, which covers it: a
+ * heading that counts (it prints a sentence of its own) covers every objective under it, so the
+ * objectives under a chosen heading are not chosen again. None where no chosen objective is above it.
+ */
+export function chosenHeadingOf(
+  objectives: readonly ObjectiveNode[],
+  objectiveId: string,
+  chosen: Iterable<string>,
+): string | undefined {
+  const picked = new Set(chosen);
+  return objectives
+    .find((objective) => objective.id === objectiveId)
+    ?.ancestors.find((id) => picked.has(id));
+}
+
+/**
+ * The fewest objectives that cover a choice, one mapping each: an objective whose heading is chosen
+ * too is left out, since the heading covers it. Mapping AC-08a. covers AC-08a.01 to AC-08a.04, so a
+ * choice of the five maps AC-08a. alone; the order is the choice's.
+ */
+export function fewestTargets(
+  objectives: readonly ObjectiveNode[],
+  chosen: readonly string[],
+): string[] {
+  const unique = [...new Set(chosen)];
+  return unique.filter((id) => chosenHeadingOf(objectives, id, unique) === undefined);
+}
+
 /** A system that can carry a mapping of a control: it and the selection its baseline records. */
 export type MappingCarrier = { systemId: string; selectedControlId: string };
 

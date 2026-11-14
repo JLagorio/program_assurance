@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
-import { useWorkspace } from "@/components/app/workspace";
+import { useWorkspace } from "./workspace-context";
 import { database, requireIdentity } from "./database";
 import type { ReadContext, TableName } from "./models";
 import { useStaleOnWrite } from "./server-table";
@@ -14,22 +14,21 @@ import { useStaleOnWrite } from "./server-table";
  * prints a sentence of its own besides the objectives under it (PM-24, "a Data Integrity Board is
  * established"); a heading is above the objectives it holds, so a mapping that names it covers it
  * and every objective under it, and one that names no objective (the whole control, or a statement
- * or item of its text) covers them all. Where a program stands on the control counts them: it
- * leaves No requirement once every objective is covered, and No evidence once each is covered by a
- * requirement that cites evidence (`program_control_status`). `program_control_objectives` answers one control's
- * objectives in one request, as the reader, for its Map a requirement and its next step;
- * `control_objective_counts` counts one control's objectives in several programs at once, for the
- * catalog control's table; what a set of mappings covers, which the Map dialogs ask of the mappings
- * a requirement holds, is `coverageOf` in requirement-control-mappings.
+ * or item of its text) covers them all.
+ *
+ * Every system counts. A control is counted on each system of the program whose control baseline
+ * selects it (its authorization boundaries, the systems that hold an SSP; an element counts inside
+ * its boundary), and an objective is covered only once it is covered on every one of them; where
+ * no system selects the control, any mapping covers it. A mapping counts on the system it names, or
+ * on every system where it names none. Where a program stands on the control counts them: it leaves
+ * No requirement once every objective is covered on every system, and No evidence once each is
+ * covered on every one by a requirement that cites evidence (`program_control_status`).
+ * `program_control_objectives` answers one control's objectives and systems in one request, as the
+ * reader, for its Map a requirement and its next step; `control_objective_counts` counts one
+ * control's objectives in several programs at once, for the catalog control's table; what a set of
+ * mappings covers, which the Map dialogs ask of the mappings a requirement holds, is `coverageOf`
+ * in requirement-control-mappings.
  */
-
-/** One of the program's requirements whose mapping covers an objective. */
-export type ObjectiveRequirement = {
-  id: string;
-  code: string; // "REQ-001"
-  /** Its latest revision cites evidence. */
-  evidenced: boolean;
-};
 
 /** An objective a control counts, as the program stands on it. */
 export type ControlObjective = {
@@ -40,12 +39,51 @@ export type ControlObjective = {
   prose: string | null;
   /** The objectives above it, from the control's root down: a mapping naming one covers it. */
   ancestors: string[];
-  /** A requirement of the program, at its latest revision, covers it. */
+  /**
+   * Covered on every system that selects the control by a requirement of the program, at its
+   * latest revision; by any of them, where no system selects it.
+   */
   mapped: boolean;
-  /** One of those requirements cites evidence. */
+  /** Covered on every one of them by a requirement that cites evidence. */
   evidenced: boolean;
-  /** The requirements that cover it, by code. */
-  requirements: ObjectiveRequirement[];
+  /** The systems that select the control it is covered on, by id; none where none selects it. */
+  mappedOn: string[];
+};
+
+/**
+ * A system of the program whose control baseline selects the control, as the control is counted on
+ * it: one of the program's authorization boundaries, with what is covered there.
+ */
+export type ControlSystem = {
+  id: string;
+  code: string; // "R210-STD-CUSA"
+  name: string;
+  /** Every objective is covered there (the control itself, for one that counts no objective). */
+  mapped: boolean;
+  /** Every one is covered there by a requirement that cites evidence. */
+  evidenced: boolean;
+  /** The objectives covered there, and those covered by a requirement that cites evidence. */
+  objectivesMapped: number;
+  objectivesEvidenced: number;
+  /**
+   * The program's requirements whose latest revision is allocated there (to it, or to a system
+   * inside it whose control baseline selects the control): the requirements a mapping on it can be
+   * recorded for. None, and the step allocates one first.
+   */
+  allocated: number;
+};
+
+/** One of the program's requirements whose mapping covers the control where it is counted. */
+export type CoveringRequirement = {
+  id: string;
+  code: string; // "REQ-001"
+  /** Its latest revision cites evidence. */
+  evidenced: boolean;
+  /**
+   * It cites none and covers an objective on a system where no requirement that cites evidence
+   * covers it: evidence linked to it moves the control.
+   */
+  owes: boolean;
 };
 
 export type ProgramControlObjectives = {
@@ -53,6 +91,10 @@ export type ProgramControlObjectives = {
   controlId: string;
   /** Every objective the control counts, in the catalog's reading order. None where it has none. */
   objectives: ControlObjective[];
+  /** The systems that select the control, in code order. None where none does. */
+  systems: ControlSystem[];
+  /** The requirements that cover the control where it is counted, in code order. */
+  requirements: CoveringRequirement[];
 };
 
 const answerSchema = z.object({
@@ -66,8 +108,23 @@ const answerSchema = z.object({
       ancestors: z.array(z.string()),
       mapped: z.boolean(),
       evidenced: z.boolean(),
-      requirements: z.array(z.object({ id: z.string(), code: z.string(), evidenced: z.boolean() })),
+      mapped_on: z.array(z.string()),
     }),
+  ),
+  systems: z.array(
+    z.object({
+      id: z.string(),
+      code: z.string(),
+      name: z.string(),
+      mapped: z.boolean(),
+      evidenced: z.boolean(),
+      objectives_mapped: z.number(),
+      objectives_evidenced: z.number(),
+      allocated: z.number(),
+    }),
+  ),
+  requirements: z.array(
+    z.object({ id: z.string(), code: z.string(), evidenced: z.boolean(), owes: z.boolean() }),
   ),
 });
 
@@ -91,17 +148,38 @@ export async function readProgramControlObjectives(
   return {
     programId: answer.program_id,
     controlId: answer.control_id,
-    objectives: answer.objectives,
+    objectives: answer.objectives.map(({ mapped_on, ...objective }) => ({
+      ...objective,
+      mappedOn: mapped_on,
+    })),
+    systems: answer.systems.map((system) => ({
+      id: system.id,
+      code: system.code,
+      name: system.name,
+      mapped: system.mapped,
+      evidenced: system.evidenced,
+      objectivesMapped: system.objectives_mapped,
+      objectivesEvidenced: system.objectives_evidenced,
+      allocated: system.allocated,
+    })),
+    requirements: answer.requirements,
   };
 }
 
-/** What the coverage is read from: a write to one reads it again. */
+/**
+ * What the coverage is read from: a write to one reads it again. The systems a control is counted
+ * on follow their baselines (an SSP's, or one a system adopts), and how many requirements are
+ * allocated on each follows the allocations.
+ */
 const OBJECTIVE_MODELS = [
   "engineering_requirements",
   "requirement_revisions",
   "requirement_control_links",
   "requirement_evidence",
   "evidence_versions",
+  "requirement_allocations",
+  "systems",
+  "ssp_revisions",
 ] as const satisfies readonly TableName[];
 
 /** One control's objectives and where the program stands on each; nothing until both are named. */
@@ -137,10 +215,12 @@ export function useProgramControlObjectives(
   });
 }
 
-/** The objectives no requirement of the program covers yet, in reading order. */
-export function unmappedObjectives(objectives: readonly ControlObjective[]): ControlObjective[] {
-  return objectives.filter((objective) => !objective.mapped);
-}
+// Where an objective stands system by system, as the steps read it: pure, beside what mappings cover.
+export {
+  coveredSomewhere,
+  objectivesShortOn,
+  uncoveredObjectives,
+} from "./requirement-control-mappings";
 
 /* ——— One control in several programs ——————————————————————————————————————————————————————— */
 

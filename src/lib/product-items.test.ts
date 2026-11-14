@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import type { Row } from "./models";
 import {
   expandProductConfiguration,
@@ -9,7 +9,6 @@ import {
 
 // The functions sit beside row hooks that ask the workspace, and the workspace's module draws with
 // the design system: unmocked, this file needs the kit built.
-vi.mock("@/components/app/workspace", () => ({ useWorkspace: () => ({}) }));
 
 const tenant = "00000000-0000-4000-8000-000000000001";
 const stamp = { revision: 1, created_at: "", updated_at: "", created_by: null, updated_by: null };

@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useMemo } from "react";
 import { z } from "zod";
-import { useWorkspace } from "@/components/app/workspace";
+import { useWorkspace } from "./workspace-context";
 import { database, requireIdentity } from "./database";
 import type { Database } from "./database.types";
 import { idSet, invalidateModel, useRows, type ReadContext, type Row } from "./models";
@@ -13,8 +13,10 @@ import { idSet, invalidateModel, useRows, type ReadContext, type Row } from "./m
  * program's control statuses, its traces and its posture read them, and a published revision, with
  * its findings, no longer changes. `publish_assessment_results` publishes one draft at the revision
  * the reader saw and holding the findings the reader was told, in one request answered once: the
- * same request sent again returns its first answer. A draft holding findings waits in the Review
- * queue (Assessment results to publish) and in its campaign's Actions menu.
+ * same request sent again returns its first answer. It also writes one activity event, so the
+ * Portfolio's Recent activity and the program's Activity say who published, linked to the
+ * campaign. A draft holding findings waits in the Review queue (Assessment results to publish),
+ * and its campaign lists its results revisions and publishes from its Actions menu.
  */
 
 type Client = Pick<SupabaseClient, "rpc">;
@@ -43,8 +45,13 @@ const publishedSchema = z.object({
   versionNumber: z.number().int(),
   findings: z.number().int().nonnegative(),
   publishedAt: z.string(),
+  /** The activity event that records the publication; absent in an answer given before it was. */
+  activityEventId: z.string().optional(),
 });
-/** What a publication did: the results, their campaign and program, and how many findings it froze. */
+/**
+ * What a publication did: the results, their campaign and program, how many findings it froze and
+ * the activity event that records it.
+ */
 export type PublishedResults = z.infer<typeof publishedSchema>;
 
 export const RESULTS_NEED_FINDINGS = "Record a finding before publishing these assessment results.";
@@ -90,10 +97,11 @@ export async function publishAssessmentResults(
 
 /**
  * Publish assessment results as a mutation. However the request settles, every read of the results
- * revisions reads again, and with them each read that names the model: the Review queue's pages,
- * the campaign's results, the program's control statuses, traces and posture, the findings
- * register and the Portfolio's recently updated programs. A refusal for results someone else
- * published, or changed, then shows them as they are.
+ * revisions and of the activity events reads again, and with them each read that names either
+ * model: the Review queue's pages, the campaign's results, the program's control statuses, traces
+ * and posture, the findings register, the Portfolio's recently updated programs and its Recent
+ * activity, and the program's Activity. A refusal for results someone else published, or changed,
+ * then shows them as they are.
  */
 export function usePublishAssessmentResults() {
   const workspace = useWorkspace();
@@ -106,7 +114,11 @@ export function usePublishAssessmentResults() {
         request,
       ),
     onSettled: () =>
-      void invalidateModel(cache, workspace.tenantId, "assessment_results_revisions"),
+      void Promise.all(
+        (["assessment_results_revisions", "activity_events"] as const).map((model) =>
+          invalidateModel(cache, workspace.tenantId, model),
+        ),
+      ),
   });
 }
 
@@ -123,6 +135,35 @@ type ResultsLine = Pick<
   Row<"assessment_results_revisions">,
   "id" | "title" | "version_number" | "state" | "revision" | "created_at"
 >;
+type FindingLine = { assessment_results_revision_id: string };
+
+/**
+ * A campaign's results revisions in the order its Assessment results section lists them, newest
+ * first: the latest created, then the highest version (a campaign's plans each number their own),
+ * then by id, so the order holds. The Actions menu publishes the first draft in it that holds a
+ * finding.
+ */
+export function newestResultsFirst(
+  a: Pick<ResultsLine, "id" | "version_number" | "created_at">,
+  b: Pick<ResultsLine, "id" | "version_number" | "created_at">,
+) {
+  return (
+    b.created_at.localeCompare(a.created_at) ||
+    b.version_number - a.version_number ||
+    a.id.localeCompare(b.id)
+  );
+}
+
+/** How many findings each results revision holds, by its id. */
+function findingsHeld(findings: readonly FindingLine[]) {
+  const held = new Map<string, number>();
+  for (const finding of findings)
+    held.set(
+      finding.assessment_results_revision_id,
+      (held.get(finding.assessment_results_revision_id) ?? 0) + 1,
+    );
+  return held;
+}
 
 /**
  * Which of a campaign's results Publish assessment results publishes: its latest draft that holds a
@@ -131,23 +172,13 @@ type ResultsLine = Pick<
  */
 export function campaignResultsToPublish(
   revisions: readonly ResultsLine[],
-  findings: readonly { assessment_results_revision_id: string }[],
+  findings: readonly FindingLine[],
 ): { results: ResultsToPublish; waits: null } | { results: null; waits: string } {
-  const held = new Map<string, number>();
-  for (const finding of findings)
-    held.set(
-      finding.assessment_results_revision_id,
-      (held.get(finding.assessment_results_revision_id) ?? 0) + 1,
-    );
+  const held = findingsHeld(findings);
   const drafts = revisions.filter((revision) => revision.state === "draft");
   const [latest] = drafts
     .filter((revision) => (held.get(revision.id) ?? 0) > 0)
-    .sort(
-      (a, b) =>
-        b.created_at.localeCompare(a.created_at) ||
-        b.version_number - a.version_number ||
-        a.id.localeCompare(b.id),
-    );
+    .sort(newestResultsFirst);
   if (latest)
     return {
       results: {
@@ -169,27 +200,73 @@ export function campaignResultsToPublish(
   };
 }
 
+/* ——— A campaign's results revisions —————————————————————————————————————————————————————————— */
+
+/** The columns the campaign's Assessment results section, its preview and Actions menu read. */
+const CAMPAIGN_RESULTS_COLUMNS = [
+  "id",
+  "title",
+  "description",
+  "version_number",
+  "state",
+  "revision",
+  "created_at",
+  "published_at",
+  "published_by_party_id",
+  "assessment_plan_revision_id",
+] as const;
+
+/** A results revision of a campaign, with how many findings it holds. */
+export type CampaignResults = Pick<
+  Row<"assessment_results_revisions">,
+  (typeof CAMPAIGN_RESULTS_COLUMNS)[number]
+> & { findings: number };
+
+/** Each of a campaign's results revisions with how many findings it holds, newest first. */
+export function campaignResults(
+  revisions: readonly Omit<CampaignResults, "findings">[],
+  findings: readonly FindingLine[],
+): CampaignResults[] {
+  const held = findingsHeld(findings);
+  return revisions
+    .map((revision) => ({ ...revision, findings: held.get(revision.id) ?? 0 }))
+    .sort(newestResultsFirst);
+}
+
 /**
- * A campaign's results to publish, read on the server: the campaign's results revisions, then the
- * findings of its drafts. `waits` says why there is nothing to publish, while the reads load, when
- * they fail (the page's alert says it too, from `queries`) or once they answer.
+ * A campaign's results revisions, read on the server: the revisions of its plans, then the ids of
+ * the findings they hold, counted on the client. `rows` waits for both; `queries` are the reads,
+ * for the section's states and the page's alert. The Actions menu reads the same two requests.
  */
-export function useCampaignResultsToPublish(campaignId: string) {
+export function useCampaignResults(campaignId: string) {
   const revisions = useRows(
     "assessment_results_revisions",
     { "assessment_plan_revisions.campaign_id": campaignId },
-    { columns: ["id", "title", "version_number", "state", "revision", "created_at"] },
+    { columns: CAMPAIGN_RESULTS_COLUMNS },
   );
-  const drafts = useMemo(
-    () => idSet(revisions.data?.filter((row) => row.state === "draft").map((row) => row.id)),
-    [revisions.data],
-  );
-  // A list of no drafts asks the server nothing.
+  const ids = useMemo(() => idSet(revisions.data?.map((row) => row.id)), [revisions.data]);
+  // A campaign with no results asks the server nothing more.
   const findings = useRows(
     "assessment_findings",
-    { assessment_results_revision_id: drafts },
+    { assessment_results_revision_id: ids },
     { columns: ["id", "assessment_results_revision_id"], enabled: revisions.isSuccess },
   );
+  const rows = useMemo(
+    () =>
+      revisions.data && findings.data ? campaignResults(revisions.data, findings.data) : undefined,
+    [revisions.data, findings.data],
+  );
+  return { rows, revisions, findings, queries: [revisions, findings] };
+}
+
+/**
+ * A campaign's results to publish, from the reads its Assessment results section makes: the
+ * campaign's results revisions and the findings they hold. `waits` says why there is nothing to
+ * publish, while the reads load, when they fail (the page's alert says it too, from `queries`) or
+ * once they answer.
+ */
+export function useCampaignResultsToPublish(campaignId: string) {
+  const { revisions, findings, queries } = useCampaignResults(campaignId);
   const answer = useMemo(
     () =>
       revisions.data && findings.data
@@ -203,6 +280,6 @@ export function useCampaignResultsToPublish(campaignId: string) {
     waits:
       answer?.waits ??
       (answer ? undefined : failed ? CAMPAIGN_RESULTS_UNREADABLE : CAMPAIGN_RESULTS_READING),
-    queries: [revisions, findings],
+    queries,
   };
 }

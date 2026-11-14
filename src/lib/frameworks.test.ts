@@ -1,10 +1,8 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { gunzipSync } from "node:zlib";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { args, fakeClient, filter, uuid, type FakeCall } from "./testing/fake-client";
-
-vi.mock("@/components/app/workspace", () => ({ useWorkspace: () => ({}) }));
 
 const { frameworkItemWords, productColumnLabel, productRecordNoun } =
   await import("./product-records");

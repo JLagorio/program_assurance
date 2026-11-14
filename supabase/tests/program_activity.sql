@@ -1,11 +1,13 @@
 -- Run with psql -v ON_ERROR_STOP=1 after migrations. Every test row rolls back.
 -- When each program last saw activity (program_activity), which orders the Portfolio's Recently
 -- updated programs: a program with nothing recorded stands at its own last edit; an activity event
--- places it, named for the program or for a task of it, and an older one never takes it back; a
--- published assessment result places it at the moment it was published, and a draft one does not;
--- and a reader sees only the programs of the workspaces they belong to. Every row written here
--- carries the transaction's start as its own last change, so a moment after it is what moves a
--- program.
+-- places it, named for the program, for a task of it, or for a campaign of it and the program
+-- beside it (as a publication of assessment results is recorded), and an older one never takes it
+-- back; an event naming a program beside another program's record, two records or nothing is
+-- refused; a published assessment result places it at the moment it was published, and a draft
+-- one does not; and a reader sees only the programs of the workspaces they belong to. Every row
+-- written here carries the transaction's start as its own last change, so a moment after it is
+-- what moves a program.
 begin;
 
 -- Who may read: a signed-in member, as themselves.
@@ -33,7 +35,10 @@ insert into public.programs(id, tenant_id, code, name) values
   ('ac710000-0000-0000-0000-000000000001', current_setting('test.tenant')::uuid, 'QUIET', 'Program with nothing recorded'),
   ('ac710000-0000-0000-0000-000000000002', current_setting('test.tenant')::uuid, 'EVENTS', 'Program whose task has an event'),
   ('ac710000-0000-0000-0000-000000000003', current_setting('test.tenant')::uuid, 'PROGRAM-EVENT', 'Program named by an event'),
-  ('ac710000-0000-0000-0000-000000000004', current_setting('test.tenant')::uuid, 'PUBLISHED', 'Program with a published result');
+  ('ac710000-0000-0000-0000-000000000004', current_setting('test.tenant')::uuid, 'PUBLISHED', 'Program with a published result'),
+  ('ac710000-0000-0000-0000-000000000005', current_setting('test.tenant')::uuid, 'CAMPAIGN-EVENT', 'Program whose campaign has an event');
+insert into public.assessment_campaigns(id, tenant_id, program_id, title) values
+  ('ac730000-0000-0000-0000-000000000001', current_setting('test.tenant')::uuid, 'ac710000-0000-0000-0000-000000000005', 'Campaign with an event');
 insert into public.tasks(id, tenant_id, program_id, title) values
   ('ac720000-0000-0000-0000-000000000001', current_setting('test.tenant')::uuid, 'ac710000-0000-0000-0000-000000000002', 'Task with an event');
 insert into public.activity_events(tenant_id, task_id, event_type, description, occurred_at) values
@@ -42,6 +47,41 @@ insert into public.activity_events(tenant_id, program_id, event_type, descriptio
   (current_setting('test.tenant')::uuid, 'ac710000-0000-0000-0000-000000000003', 'updated', 'edited the program', now() + interval '2 days'),
   -- An event older than the program's own last edit never takes the program back.
   (current_setting('test.tenant')::uuid, 'ac710000-0000-0000-0000-000000000001', 'created', 'recorded long ago', now() - interval '30 days');
+-- An event naming a campaign and its program beside it, as publish_assessment_results records a
+-- publication.
+insert into public.activity_events(tenant_id, program_id, assessment_campaign_id, event_type, description, occurred_at) values
+  (current_setting('test.tenant')::uuid, 'ac710000-0000-0000-0000-000000000005', 'ac730000-0000-0000-0000-000000000001',
+    'published', E'published assessment results of Campaign with an event\nResults: 1 finding.', now() + interval '12 hours');
+
+-- What an event may name: its program, one record of it, or that record and its own program. A
+-- program beside another program's record, two records and nothing are refused, writing nothing.
+do $$
+declare v_tenant uuid := current_setting('test.tenant')::uuid;
+begin
+  begin
+    insert into public.activity_events(tenant_id, program_id, assessment_campaign_id, event_type, occurred_at)
+      values (v_tenant, 'ac710000-0000-0000-0000-000000000003', 'ac730000-0000-0000-0000-000000000001', 'published', now());
+    raise exception 'An event named a program beside another program''s campaign';
+  exception when check_violation then
+    if position('the record''s own program' in sqlerrm) = 0 then raise; end if;
+  end;
+  begin
+    insert into public.activity_events(tenant_id, task_id, assessment_campaign_id, event_type, occurred_at)
+      values (v_tenant, 'ac720000-0000-0000-0000-000000000001', 'ac730000-0000-0000-0000-000000000001', 'updated', now());
+    raise exception 'An event named two records';
+  exception when check_violation then
+    if position('activity_events_target' in sqlerrm) = 0 then raise; end if;
+  end;
+  begin
+    insert into public.activity_events(tenant_id, event_type, occurred_at) values (v_tenant, 'updated', now());
+    raise exception 'An event named nothing';
+  exception when check_violation then
+    if position('activity_events_target' in sqlerrm) = 0 then raise; end if;
+  end;
+  if (select count(*) from public.activity_events where tenant_id = v_tenant) <> 4 then
+    raise exception 'A refused event was written';
+  end if;
+end $$;
 
 do $$
 declare v_program record;
@@ -57,6 +97,10 @@ begin
   select * into v_program from public.program_activity where id = 'ac710000-0000-0000-0000-000000000003';
   if v_program.last_activity_at is distinct from now() + interval '2 days' then
     raise exception 'An event naming the program places it, not %', v_program.last_activity_at;
+  end if;
+  select * into v_program from public.program_activity where id = 'ac710000-0000-0000-0000-000000000005';
+  if v_program.last_activity_at is distinct from now() + interval '12 hours' then
+    raise exception 'An event naming a campaign of the program and the program places it, not %', v_program.last_activity_at;
   end if;
 end $$;
 

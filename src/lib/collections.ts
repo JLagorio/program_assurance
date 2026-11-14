@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useQuery, type UseQueryResult } from "@tanstack/react-query";
-import { useWorkspace } from "@/components/app/workspace";
+import { useWorkspace } from "./workspace-context";
 import type { Collection } from "./records";
 import { schemaCatalogOptions } from "./schema-catalog";
 

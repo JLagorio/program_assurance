@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
-import { useWorkspace } from "@/components/app/workspace";
+import { useWorkspace } from "./workspace-context";
 import { openIssue, openRisk } from "./assurance-trace";
 import { database, requireIdentity } from "./database";
 import type { Database } from "./database.types";

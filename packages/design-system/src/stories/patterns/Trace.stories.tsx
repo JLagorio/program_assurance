@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { createRef } from "react";
-import { expect, userEvent, waitFor, within } from "storybook/test";
+import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 
-import { Dot, TextLink } from "../../components";
+import { Button, Dot, TextLink } from "../../components";
 import { Trace, type TraceStage } from "../../patterns";
 
 const meta = {
@@ -299,10 +299,7 @@ export const EmptyStage: Story = {
   },
 };
 
-/**
- * A gap the reader can close from here carries its fix: `action` under what the stage says. The
- * stage that holds records draws none, whatever it is given.
- */
+/** A gap the reader can close from here carries its fix: `action` under what the stage says. */
 export const EmptyStageAction: Story = {
   args: {
     label: "What the requirement REQ-412 answers and what proves it",
@@ -312,11 +309,6 @@ export const EmptyStageAction: Story = {
         id: "controls",
         label: "Controls",
         nodes: [{ id: "sc-8", code: "SC-8", title: "Transmission confidentiality and integrity" }],
-        action: (
-          <TextLink size="small" render={<a href="#map-control" />}>
-            Map control
-          </TextLink>
-        ),
       },
       {
         id: "requirements",
@@ -339,13 +331,127 @@ export const EmptyStageAction: Story = {
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    await expect(canvas.getByText("No evidence linked")).toBeVisible();
-    // The gap's fix is the trace's one link: the stage that holds a record offers none.
+    const words = canvas.getByText("No evidence linked");
+    await expect(words).toBeVisible();
+    // The gap's fix is the trace's one link, under what the stage says: the records are text.
     const fix = canvas.getByRole("link", { name: "Link evidence" });
     await expect(fix).toBeVisible();
     await expect(fix).toHaveAttribute("href", "#link-evidence");
     await expect(canvas.getAllByRole("link")).toHaveLength(1);
-    await expect(canvas.queryByRole("link", { name: "Map control" })).toBeNull();
+    await expect(fix.getBoundingClientRect().top).toBeGreaterThanOrEqual(
+      words.getBoundingClientRect().bottom,
+    );
+  },
+};
+
+const mapObjectives = fn();
+
+/**
+ * A stage that holds part of what it needs carries the step that adds the rest: `action` after its
+ * records, outside their list. AC-2's requirements map some of its objectives, so its Requirements
+ * stage holds them and offers to map the others, in its column however narrow the chain's seven
+ * stages make it.
+ */
+export const ActionBesideRecords: Story = {
+  args: {
+    label: "What the control AC-2 Account management is met by, what proves it and what answers it",
+    focus: "ac-2",
+    stages: [
+      {
+        id: "controls",
+        label: "Controls",
+        nodes: [
+          { id: "ac-2", code: "AC-2", title: "Account management", link: <a href="#ac-2" /> },
+        ],
+      },
+      {
+        id: "requirements",
+        label: "Requirements",
+        nodes: [
+          {
+            id: "req-101",
+            code: "REQ-101",
+            title: "Define the account types each system allows",
+            link: <a href="#req-101" />,
+          },
+          {
+            id: "req-102",
+            code: "REQ-102",
+            title: "Review every account each quarter",
+            mark: <Dot tone="warning" />,
+            meta: "No evidence",
+            link: <a href="#req-102" />,
+          },
+        ],
+        action: (
+          <Button variant="link" size="small" onClick={mapObjectives}>
+            Map 14 more objectives
+          </Button>
+        ),
+      },
+      {
+        id: "evidence",
+        label: "Evidence",
+        nodes: [
+          {
+            id: "evd-31",
+            title: "Account type register",
+            meta: "Collected Oct 9",
+            link: <a href="#evd-31" />,
+          },
+        ],
+      },
+      { id: "findings", label: "Assessment findings", nodes: [], empty: "No assessment finding" },
+      { id: "issues", label: "Operational issues", nodes: [], empty: "No operational issue" },
+      { id: "risks", label: "Risks", nodes: [], empty: "No risk recorded" },
+      { id: "remediation", label: "Remediation", nodes: [], empty: "No remediation item" },
+    ],
+    links: [
+      { from: "ac-2", to: "req-101" },
+      { from: "ac-2", to: "req-102" },
+      { from: "req-101", to: "evd-31" },
+    ],
+  },
+  play: async ({ canvasElement }) => {
+    mapObjectives.mockClear();
+    const canvas = within(canvasElement);
+    const trace = root(canvasElement);
+    const step = canvas.getByRole("button", { name: "Map 14 more objectives" });
+    await expect(step).toBeVisible();
+    // The step is the stage's, and not one of its records: the stage's list and its count hold the
+    // two requirements alone.
+    const requirements = canvas.getByRole("list", { name: /^Requirements/ });
+    const records = within(requirements).getAllByRole("listitem");
+    await expect(records).toHaveLength(2);
+    await expect(requirements).not.toContainElement(step);
+    const stage = step.closest<HTMLElement>('[data-slot="trace-stage"]')!;
+    await expect(stage).toContainElement(requirements);
+    // It sits under the records and inside the stage's column, its words wrapping where the column
+    // is narrower than they are.
+    const box = step.getBoundingClientRect();
+    const column = stage.getBoundingClientRect();
+    await expect(box.top).toBeGreaterThanOrEqual(records.at(-1)!.getBoundingClientRect().bottom);
+    await expect(box.left).toBeGreaterThanOrEqual(column.left - 1);
+    await expect(box.right).toBeLessThanOrEqual(column.right + 1);
+    // Tab reaches it after the stage's records and before the next stage's. It lights no path,
+    // since it is not a record, and Enter takes the step where it is.
+    canvas.getByRole("link", { name: /REQ-102/ }).focus();
+    await userEvent.tab();
+    await expect(step).toHaveFocus();
+    await waitFor(() => expect(trace).not.toHaveAttribute("data-active"));
+    await userEvent.keyboard("{Enter}");
+    await expect(mapObjectives).toHaveBeenCalledTimes(1);
+    await userEvent.tab();
+    const evidence = canvas.getByRole("link", { name: /Account type register/ });
+    await expect(evidence).toHaveFocus();
+    evidence.blur();
+    await waitFor(() => expect(trace).not.toHaveAttribute("data-active"));
+    // A wire a link, while the columns stand side by side.
+    await waitFor(() =>
+      expect(trace.querySelectorAll('[data-slot="trace-wire"]')).toHaveLength(
+        inColumns(trace) ? 3 : 0,
+      ),
+    );
   },
 };
 
@@ -470,10 +576,18 @@ const many: TraceStage[] = [
       title: `Account rule ${index + 1}`,
       link: <a href={`#req-${index + 1}`} />,
     })),
+    action: (
+      <TextLink size="small" render={<a href="#map-objectives" />}>
+        Map 3 more objectives
+      </TextLink>
+    ),
   },
 ];
 
-/** A stage shows `limit` records and folds the rest behind Show more, with their wires. */
+/**
+ * A stage shows `limit` records and folds the rest behind Show more, with their wires. The stage's
+ * step stays after Show more, so the fold control stays with the records it folds.
+ */
 export const Folded: Story = {
   args: {
     label: "The requirements that meet AC-2",
@@ -486,13 +600,26 @@ export const Folded: Story = {
     const canvas = within(canvasElement);
     const trace = root(canvasElement);
     const shown = () => trace.querySelectorAll('[data-slot="trace-node"]').length;
+    const step = () => canvas.getByRole("link", { name: "Map 3 more objectives" });
+    const follows = (before: Element) =>
+      expect(
+        before.compareDocumentPosition(step()) & Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy();
     await expect(shown()).toBe(5);
     const more = canvas.getByRole("button", { name: "Show 7 more" });
     await expect(more).toHaveAttribute("aria-expanded", "false");
+    // Tab goes from the last record shown to Show more, then to the stage's step.
+    canvas.getByRole("link", { name: /REQ-103/ }).focus();
+    await userEvent.tab();
+    await expect(more).toHaveFocus();
+    await userEvent.tab();
+    await expect(step()).toHaveFocus();
     await userEvent.click(more);
     await expect(shown()).toBe(12);
     const fewer = canvas.getByRole("button", { name: "Show fewer" });
     await expect(fewer).toHaveAttribute("aria-expanded", "true");
+    await follows(fewer);
+    await follows(canvas.getByRole("link", { name: /REQ-110/ }));
     await waitFor(() =>
       expect(trace.querySelectorAll('[data-slot="trace-wire"]')).toHaveLength(
         inColumns(trace) ? 11 : 0,

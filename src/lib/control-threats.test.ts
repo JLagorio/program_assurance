@@ -1,8 +1,7 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import type { FrameworkControlLink } from "./frameworks";
 
 // frameworks.ts holds the hooks beside the readers this module uses; the hooks are not run here.
-vi.mock("@/components/app/workspace", () => ({ useWorkspace: () => ({}) }));
 
 const { controlThreats, risksByTechnique } = await import("./control-threats");
 

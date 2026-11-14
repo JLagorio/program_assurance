@@ -17,18 +17,15 @@ import {
 import { StatusBadge } from "@/components/app/status";
 import { useWorkspace } from "@/components/app/workspace";
 import type { AssuranceTrace } from "@/lib/assurance-trace";
-import { useControlAssessment } from "@/lib/control-assessment";
-import { useProgramControlObjectives } from "@/lib/control-objectives";
 import {
   CONTROL_STATUS_ORDER,
   controlStatusFamilies,
-  useProgramControlStatus,
+  useControlNextStep,
   type ControlStanding,
   type ControlStatus,
   type ControlStatusCounts,
   type ProgramControlStatus,
 } from "@/lib/control-status";
-import { controlNextStep } from "@/lib/next-steps";
 import { objectiveWords, objectivesOf } from "@/lib/product-records";
 import { controlDeterminers, controlStatuses } from "@/lib/status";
 import { QueryValue } from "./library-shared";
@@ -199,18 +196,15 @@ export function ControlStatusMap({
 
 /**
  * Where a program stands on one control, as the first rows of the control's Details: its control
- * status, how many of its assessment objectives the program's requirements map and how many with
- * evidence ("12 of 26"), whose determination it is (the program's assessment, or each product
- * assessment the program's variants inherit it from, a link to its record), and the next step that
- * moves it up the ladder: a link to where the step is done, or, for a step done on the control
- * itself, the button that opens it over the page (Map a requirement, or Map 14 more
- * objectives for a control mapped in part; Add to assessment campaign, Plan an assessment), which a
- * viewer reads as words alone. The status comes from the read the program's Overview and its
- * Control status view share, so the page opens on what the reader came from. `requirements` are
- * the requirements that map the control, as its trace reads them: the step names the first that
- * cites no evidence, and where some objectives are evidenced already, the first that covers one
- * that is not, which the control's objectives say. Evidence no assessor has determined waits on
- * what the program's open campaigns hold of the control, which decides the step.
+ * status, how many of its assessment objectives are mapped on every system that selects it and how
+ * many with evidence ("12 of 26"), whose determination it is (the program's assessment, or each
+ * product assessment the program's variants inherit it from, a link to its record), and the next
+ * step that moves it up the ladder: a link to where the step is done, or, for a step done on the
+ * control itself, the button that opens it over the page (Map a requirement; Map 14 more
+ * objectives for a control mapped in part; Map on R210-STD-CUSA, or Allocate to
+ * R210-STD-CUSA, for one short on a system; Add to assessment campaign, Plan an assessment), which
+ * a viewer reads as words alone. `requirements` are the requirements that map the control, as its
+ * trace reads them: the step names the first that cites no evidence, or the one that owes it.
  */
 export function ControlStandingFacts({
   programId,
@@ -224,23 +218,12 @@ export function ControlStandingFacts({
 }) {
   const workspace = useWorkspace();
   const { formatNumber } = useLedgerLocale();
-  const statuses = useProgramControlStatus(programId);
-  const standing = controlId
-    ? statuses.data?.controls.find((control) => control.id === controlId)
-    : undefined;
-  const waiting = standing?.status === "not_assessed";
-  const assessment = useControlAssessment(programId, controlId, { enabled: waiting });
-  // Evidence that covers some objectives and not others: the step names a requirement that
-  // covers one without, which only the control's objectives say.
-  const owing =
-    standing?.status === "no_evidence" &&
-    standing.objectivesEvidenced > 0 &&
-    standing.objectivesEvidenced < standing.objectives;
-  const objectives = useProgramControlObjectives(programId, controlId, { enabled: owing });
-  const step = standing
-    ? controlNextStep(standing, requirements, assessment.data, objectives.data?.objectives)
-    : null;
-  const stepQueries = waiting ? assessment.queries : owing ? [objectives] : [];
+  const {
+    statuses,
+    standing,
+    step,
+    queries: stepQueries,
+  } = useControlNextStep(programId, controlId, requirements);
   const nextStep = step && standing && (
     <NextStep
       step={step}
