@@ -1001,3 +1001,15 @@ export const riskAssessments = {
   },
   dueAt: "17:00:00Z",
 };
+
+/**
+ * Who owns a WS-X90 evidence artifact that waits on a review and has no owner: the person of the
+ * program's team (`people`) who holds the role the archive gives the requirement the artifact was
+ * collected for (each archived requirement's `owner_role`). An artifact that has an owner keeps it.
+ */
+export const evidenceOwnerRoles = {
+  "System Security Engineer": "isso",
+  "Product Security Engineer": "keyManagement",
+  "Firmware Lead": "antiTamper",
+  "Platform Lead": "platform",
+};

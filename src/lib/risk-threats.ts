@@ -13,18 +13,20 @@ import {
   type FrameworkItem,
   type FrameworkItemLink,
 } from "./frameworks";
+import { attackVocabulary, matrixPlace } from "./control-threats";
 import { idSet, invalidateModel, useRows, type ReadContext, type TableName } from "./models";
 import { useStaleOnWrite } from "./server-table";
 
 /*
  * The threat a risk concerns, named as ATT&CK techniques, and what counters it. Appendix F of NIST
- * SP 800-160 Vol. 2 Rev. 1 lists, for each ATT&CK technique, the mitigations and the cyber
- * resiliency approaches, effects and SP 800-53 controls that counter it (`ATTACK_FRAMEWORK` in
- * frameworks). A risk names the techniques it concerns, one link a technique, and `risk_threats`
- * reads them in one request, as the reader, with the controls the appendix prints against them and
+ * SP 800-160 Vol. 2 Rev. 1 lists, for each ATT&CK for Enterprise technique, the mitigations and the
+ * cyber resiliency approaches, effects and SP 800-53 controls that counter it (`ATTACK_FRAMEWORK`
+ * in frameworks), and Appendix G does the same for ATT&CK for ICS (`ATTACK_ICS_FRAMEWORK`). A risk
+ * names the techniques it concerns, from either, one link a technique, and `risk_threats` reads
+ * them in one request, as the reader, with the controls the appendices print against them and
  * where the risk's program stands on each: in its control baseline or not, its requirements, and
  * its requirements with evidence. This module is that read, the link and unlink commands, and what
- * the screens derive from the appendix: the order a risk's controls read in, the techniques a
+ * the screens derive from the appendices: the order a risk's controls read in, the techniques a
  * picker offers, and one technique's mitigations and controls.
  */
 
@@ -40,9 +42,11 @@ export type RiskTechnique = {
   linkId: string;
   /** The technique's item, in the reading of the appendix the link was made from. */
   itemId: string;
-  /** The ATT&CK identifier: "T1190". */
+  /** The ATT&CK identifier: "T1190", or "T0819" in ATT&CK for ICS. */
   code: string;
   title: string;
+  /** The framework that prints it: Appendix F's for ATT&CK for Enterprise, Appendix G's for ICS. */
+  framework: string;
   /** Its tactics, in the order of the appendix's tables. */
   tactics: ThreatTactic[];
 };
@@ -113,6 +117,8 @@ const answerSchema = z.object({
       item_id: uuid,
       code: z.string(),
       title: z.string(),
+      // Every answer names it since ATT&CK for ICS was read; Appendix F's before.
+      framework: z.string().default(ATTACK_FRAMEWORK),
       tactics: z.array(named),
     }),
   ),
@@ -169,6 +175,7 @@ export async function readRiskThreats(
       itemId: technique.item_id,
       code: technique.code,
       title: technique.title,
+      framework: technique.framework,
       tactics: technique.tactics,
     })),
     controls: answer.controls.map((control) => ({
@@ -474,42 +481,59 @@ export function leastHeldFirst<
 const comparePlace = new Intl.Collator("en", { numeric: true }).compare;
 const compareText = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
 
-/** A technique as a picker offers it: its item in the framework's current reading, and its tactics. */
-export type TechniqueChoice = { id: string; code: string; title: string; tactics: ThreatTactic[] };
+/**
+ * A technique as a picker offers it: its item in its framework's current reading, the framework
+ * (Appendix F's for ATT&CK for Enterprise, Appendix G's for ICS) and its tactics.
+ */
+export type TechniqueChoice = {
+  id: string;
+  code: string;
+  title: string;
+  framework: string;
+  tactics: ThreatTactic[];
+};
 
 /**
- * The techniques a picker offers, in the order of their identifiers, each with its tactics in the
- * order of the appendix's tables. Give it the framework's `attack-technique` items, its `tactic`
- * item links and its `tactic` items; without the tactic items the tactics keep the links' order.
+ * The techniques a picker offers, ATT&CK for Enterprise's first and then ATT&CK for ICS's, each in
+ * the order of their identifiers, with its tactics in the order of its appendix's tables. Give it
+ * the frameworks' `attack-technique` items, their `tactic` item links and their `tactic` items;
+ * without the tactic items the tactics keep the links' order. Both appendices print an Initial
+ * Access, so a tactic is placed among its own framework's.
  */
 export function techniqueChoices(
   techniques: readonly FrameworkItem[],
   tacticLinks: readonly FrameworkItemLink[],
   tactics: readonly FrameworkItem[] = [],
 ): TechniqueChoice[] {
-  const place = new Map(tactics.map((tactic) => [tactic.code, tactic.ordinal]));
+  const named = attackVocabulary(tactics);
   const held = new Map<string, ThreatTactic[]>();
   for (const link of tacticLinks) {
     if (link.relation !== "tactic") continue;
-    const list = held.get(link.source_code) ?? [];
-    held.set(link.source_code, list);
+    const key = `${link.framework_code} ${link.source_code}`;
+    const list = held.get(key) ?? [];
+    held.set(key, list);
     if (!list.some((tactic) => tactic.code === link.target_code))
       list.push({ code: link.target_code, title: link.target_title });
   }
-  for (const list of held.values())
-    list.sort(
-      (a, b) =>
-        (place.get(a.code) ?? Number.MAX_SAFE_INTEGER) -
-        (place.get(b.code) ?? Number.MAX_SAFE_INTEGER),
-    );
+  for (const [key, list] of held) {
+    const framework = key.slice(0, key.indexOf(" "));
+    const place = (tactic: ThreatTactic) =>
+      named(framework, tactic.code)?.ordinal ?? Number.MAX_SAFE_INTEGER;
+    list.sort((a, b) => place(a) - place(b));
+  }
   return techniques
     .filter((item) => item.kind === "attack-technique")
-    .sort((a, b) => compareText(a.code_order, b.code_order))
+    .sort(
+      (a, b) =>
+        matrixPlace(a.framework_code) - matrixPlace(b.framework_code) ||
+        compareText(a.code_order, b.code_order),
+    )
     .map((item) => ({
       id: item.id,
       code: item.code,
       title: item.title,
-      tactics: held.get(item.code) ?? [],
+      framework: item.framework_code,
+      tactics: held.get(`${item.framework_code} ${item.code}`) ?? [],
     }));
 }
 
@@ -536,19 +560,20 @@ export type TechniqueControl = {
 };
 
 /**
- * One technique's mitigations and the controls that counter it, from the appendix's rows for it
- * (`useFrameworkControlLinks(ATTACK_FRAMEWORK, { itemCodes: [code], relation: "mitigates",
- * catalogRevisionId })`). A technique that sits under several tactics is printed in each one's
- * table: a mitigation and a control are listed once, with every approach and effect those rows
- * print. `attack` names the mitigations and orders the effects (the framework's `mitigation`,
- * `candidate-mitigation` and `effect` items); `approaches` names the approaches (the cyber
- * resiliency framework's `approach` items). An item a list lacks reads as its code.
+ * One technique's mitigations and the controls that counter it, from its appendix's rows for it
+ * (`useFrameworkControlLinks(framework, { itemCodes: [code], relation: "mitigates",
+ * catalogRevisionId })`, Appendix F's framework or Appendix G's). A technique that sits under
+ * several tactics is printed in each one's table: a mitigation and a control are listed once, with
+ * every approach and effect those rows print. `attack` names the mitigations and orders the effects
+ * (the frameworks' `mitigation` and `candidate-mitigation` items, and Table F-1's `effect` items);
+ * `approaches` names the approaches (the cyber resiliency framework's `approach` items). An item a
+ * list lacks reads as its code.
  */
 export function techniqueDefence(
   links: readonly FrameworkControlLink[],
   vocabulary: { attack: readonly FrameworkItem[]; approaches: readonly FrameworkItem[] },
 ): { mitigations: TechniqueMitigation[]; controls: TechniqueControl[] } {
-  const attack = new Map(vocabulary.attack.map((item) => [item.code, item]));
+  const named = attackVocabulary(vocabulary.attack);
   const approachTitles = new Map(vocabulary.approaches.map((item) => [item.code, item.title]));
   const effectPlace = new Map(
     vocabulary.attack
@@ -565,7 +590,7 @@ export function techniqueDefence(
   for (const link of printed) {
     const mitigation = propText(link.props, "mitigation");
     if (mitigation && !mitigations.has(mitigation)) {
-      const item = attack.get(mitigation);
+      const item = named(link.framework_code, mitigation);
       mitigations.set(mitigation, {
         code: mitigation,
         title: item?.title ?? mitigation,
@@ -588,7 +613,7 @@ export function techniqueDefence(
     if (mitigation && !control.mitigations.includes(mitigation))
       control.mitigations.push(mitigation);
     for (const reference of propList(link.props, "approaches")) {
-      const { code } = itemReference(reference, ATTACK_FRAMEWORK);
+      const { code } = itemReference(reference, link.framework_code);
       const title = approachTitles.get(code) ?? code;
       if (!control.approaches.includes(title)) control.approaches.push(title);
     }

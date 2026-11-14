@@ -60,6 +60,7 @@ export function buildPayload({
     detailScenarioSha256,
     asOf,
     detailDatasetId: detailScenario.detailDatasetId,
+    reviewQueue: detailScenario.reviewQueue,
     flowDownDatasetId: detailScenario.flowDownDatasetId,
     flowDown: detailScenario.flowDown,
     productDetail: detailScenario.productDetail,
@@ -104,6 +105,9 @@ export function buildPayload({
     deltaAssessments: scenario.deltaAssessments,
     overlayDatasetId: scenario.overlayDatasetId,
     customerOverlay: scenario.customerOverlay,
+    overlayMaps: scenario.overlayRequirementMaps(),
+    overlayDocument: scenario.customerRequirements[scenario.customerOverlay.program].source.code,
+    overlayMapRationale: scenario.overlayMapRationale,
     customerRequirements: scenario.programs.map((program) => ({
       program: program.code,
       prefix: program.variant.prefix,
@@ -134,7 +138,27 @@ export function readTarget(tenantId) {
   const capabilities = Object.values(workScenario.work).flatMap((entry) =>
     entry.capabilities.map((capability) => capability[0]),
   );
+  const overlay = scenario.customerOverlay;
+  const document = scenario.customerRequirements[overlay.program].source.code;
+  const maps = scenario
+    .overlayRequirementMaps()
+    .map(([control, reference]) => `(${quote(control)}, ${quote(reference)})`)
+    .join(", ");
+  const { productAssessment, package: submitted } = detailScenario.reviewQueue;
   return queryJson(`select jsonb_build_object(
+    'overlayUnmapped', (select coalesce(jsonb_agg(m.control), '[]'::jsonb) from (values ${maps}) m(control, reference)
+      where not exists (select 1 from public.requirement_control_links l
+        join public.controls k on k.id = l.control_id
+        join public.requirement_revisions v on v.id = l.requirement_revision_id
+        join public.engineering_requirements q on q.id = v.engineering_requirement_id
+        join public.requirement_sources s on s.id = q.source_id
+        join public.programs g on g.id = q.program_id
+        where q.tenant_id = ${tenant} and g.code = ${quote(overlay.program)} and s.code = ${quote(document)}
+          and q.source_reference = m.reference and k.code = m.control)),
+    'reviewSeeded', exists (select 1 from public.product_assessments a
+        where a.tenant_id = ${tenant} and a.title = ${quote(productAssessment.title)})
+      and exists (select 1 from public.authorization_packages a
+        where a.tenant_id = ${tenant} and a.title = ${quote(submitted.title)}),
     'seeded', exists (select 1 from public.demo_import_batches where tenant_id = ${tenant} and dataset_id = ${quote(scenario.datasetId)}),
     'workSeeded', exists (select 1 from public.demo_import_batches where tenant_id = ${tenant} and dataset_id = ${quote(workScenario.workDatasetId)}),
     'detailSeeded', exists (select 1 from public.demo_import_batches where tenant_id = ${tenant} and dataset_id = ${quote(detailScenario.detailDatasetId)}),
@@ -282,6 +306,18 @@ export function overlaySummary() {
     adds: decided("include"),
     removes: decided("exclude"),
     program: `Put on top of ${overlay.program}'s stack through set_program_baseline_overlays; its SSP revisions keep the baseline they were pinned to.`,
+    maps: scenario
+      .overlayRequirementMaps()
+      .map(([control, reference]) => `${control} to ${reference}`),
+  };
+}
+
+/** What waits on a reviewer once the fifth step has run, as a reader sees it before it runs. */
+export function reviewSummary() {
+  const { productAssessment, package: submitted } = detailScenario.reviewQueue;
+  return {
+    productAssessment: `${productAssessment.title}, a draft holding ${productAssessment.determinations.reduce((sum, line) => sum + line[1].length, 0)} determinations by ${productAssessment.assessor}`,
+    package: `${submitted.title} in ${submitted.program}, published, submitted and reviewed, with no authorization decision`,
   };
 }
 
@@ -352,15 +388,19 @@ export function buildPlan({ target, asOf }) {
   );
   if (target.seeded) {
     // What is already here is left as it is; the steps still to run are the plan.
+    const overlayHeld =
+      target.overlaySeeded && target.overlayStacked && !target.overlayUnmapped?.length;
+    const detailHeld = target.detailSeeded && target.reviewSeeded;
     const held = [
       "the products scenario",
       target.requirementsSeeded && "the customers' requirements",
       target.assessmentsSeeded && "the delta assessments",
       target.workSeeded && "the programs' work",
-      target.detailSeeded && "the records one click down",
-      target.overlaySeeded && target.overlayStacked && "the customer overlay",
+      detailHeld && "the records one click down",
+      overlayHeld && "the customer overlay",
       target.flowDownSeeded && "the flow-down",
     ].filter(Boolean);
+    const overlay = scenario.customerOverlay;
     return {
       issues,
       summary: {
@@ -368,12 +408,22 @@ export function buildPlan({ target, asOf }) {
         ...(target.requirementsSeeded ? {} : { customerRequirements }),
         ...(target.assessmentsSeeded ? {} : { deltaAssessments }),
         ...(target.workSeeded ? {} : { work }),
-        ...(target.detailSeeded ? {} : { detail }),
-        ...(target.overlaySeeded && target.overlayStacked
+        ...(detailHeld
+          ? {}
+          : target.detailSeeded
+            ? { reviewQueue: reviewSummary() }
+            : { detail: { ...detail, reviewQueue: reviewSummary() } }),
+        ...(overlayHeld
           ? {}
           : {
               customerOverlay: target.overlaySeeded
-                ? `${scenario.customerOverlay.code} is in the library; the run puts it on top of ${scenario.customerOverlay.program}'s stack.`
+                ? `${overlay.code} is in the library; the run ${[
+                    !target.overlayStacked && `puts it on top of ${overlay.program}'s stack`,
+                    target.overlayUnmapped?.length &&
+                      `maps ${target.overlayUnmapped.join(", ")} to the requirements that call for them`,
+                  ]
+                    .filter(Boolean)
+                    .join(" and ")}.`
                 : overlaySummary(),
             }),
         ...(target.flowDownSeeded ? {} : { flowDown: flowDownSummary() }),
@@ -431,7 +481,7 @@ export function buildPlan({ target, asOf }) {
       customerRequirements,
       deltaAssessments,
       work,
-      detail,
+      detail: { ...detail, reviewQueue: reviewSummary() },
       customerOverlay: overlaySummary(),
       flowDown: flowDownSummary(),
       programs: scenario.programs.map((program) => ({
@@ -554,8 +604,12 @@ async function main() {
       ? "Nothing changed: this workspace already holds the whole scenario."
       : options.apply
         ? `Committed: ${result.records} record(s) listed under ${written.join(", ")}.${
-            result.overlay.changed && result.overlay.stack?.controls
+            result.overlay.stacked && result.overlay.stack?.controls
               ? ` ${scenario.customerOverlay.program}'s control baseline is ${result.overlay.stack.controls.after} controls (${result.overlay.stack.controls.before} before).`
+              : ""
+          }${
+            result.overlay.maps?.mapped?.length
+              ? ` Mapped ${result.overlay.maps.mapped.join(", ")}.`
               : ""
           }`
         : "Check passed; the transaction was rolled back and nothing was written.",

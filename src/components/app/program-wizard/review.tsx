@@ -171,6 +171,9 @@ export function ReviewStep({
       >
         {draft.profiles.map((profile) => {
           const base = option(profile.baseResolutionId);
+          const combined = profile.combinedResolutionId
+            ? option(profile.combinedResolutionId)
+            : undefined;
           const preview = previews.get(profile.key);
           const tailored = profile.tailoring.length > 0 || profile.parameters.length > 0;
           const summary = tailored
@@ -188,6 +191,7 @@ export function ReviewStep({
           return (
             <Text as="p" key={profile.key}>
               {base ? `${base.title} ${base.version}` : "Unavailable profile"}
+              {combined ? ` and ${combined.title} ${combined.version}` : ""}
               {profile.overlayIds.length
                 ? ` · ${count(profile.overlayIds.length, "overlay")} stacked`
                 : ""}{" "}

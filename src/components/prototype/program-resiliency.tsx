@@ -48,6 +48,7 @@ import {
   useFrameworkItems,
   useResiliencyControlLinks,
 } from "@/lib/frameworks";
+import { frameworkItemWords } from "@/lib/product-records";
 import { useProgramResiliencyChoice } from "@/lib/resiliency-choice";
 import {
   LADDER_KINDS,
@@ -58,10 +59,12 @@ import {
   type LadderItem,
   type LadderKind,
   type LadderLayer,
+  type LadderStanding,
   type ResiliencyLadder,
 } from "@/lib/resiliency-ladder";
 import { baselineControlStatuses } from "@/lib/status";
 import { marks as standingMarks } from "./baseline-map";
+import { ApproachLayers } from "./control-resiliency";
 import { RecordLink, RecordPreviewActions, RecordPreviewPanel, recordLink } from "./record-preview";
 import { EmptyMessage, QueryState, ReportFailures } from "./work-common";
 
@@ -69,8 +72,9 @@ import { EmptyMessage, QueryState, ReportFailures } from "./work-common";
  * A program's cyber resiliency as one picture: the ladder of NIST SP 800-160 Vol. 2 Rev. 1 (goals,
  * objectives, techniques, approaches) with how much of each the program's control baseline holds,
  * read at any layer of the stack. Two takes of the same numbers: the ladder itself (Ledger's
- * `Ladder`), and technique by technique, layer by layer. An approach opens onto what NIST says of
- * it and the controls behind it. The numbers come from `src/lib/resiliency-ladder.ts`.
+ * `Ladder`), and technique by technique, layer by layer. Every item of the ladder opens onto what
+ * NIST says of it; an approach also onto the architectural layers it can be used at and the
+ * controls behind it. The numbers come from `src/lib/resiliency-ladder.ts`.
  */
 
 /** How the ladder is shown. */
@@ -175,9 +179,63 @@ function ControlList({
 }
 
 /**
+ * The body of a goal's, an objective's or a technique's preview: how much of the controls behind it
+ * the baseline holds at the layer shown, then what the publication says of it, its definition and
+ * the discussion Tables 2, 3 and D-4 print beside it. A technique also leads to the Control
+ * baseline read by it.
+ */
+function ConstructDetails({
+  programId,
+  item,
+  standing,
+  baselineName,
+}: {
+  programId: string;
+  item: LadderItem;
+  standing: LadderStanding;
+  /** The baseline the standing is read at, in words. */
+  baselineName: string;
+}) {
+  const { formatNumber } = useLedgerLocale();
+  const counts = standing.byItem.get(item.code);
+  const guidance = itemGuidance(item);
+  return (
+    <Stack space="space.250" className="min-w-0">
+      <KeyValue.Group labelWidth="default">
+        {item.kind === "technique" && (
+          <KeyValue label="Control baseline" wrap>
+            <TextLink
+              render={
+                <Link
+                  to="/programs/$programId/control-baseline"
+                  params={{ programId }}
+                  search={{ technique: techniqueSlug(item.code) }}
+                />
+              }
+            >
+              {`${item.title} controls`}
+            </TextLink>
+          </KeyValue>
+        )}
+        <KeyValue label="Controls held">
+          {formatNumber(counts?.held ?? 0)} of {formatNumber(counts?.total ?? 0)}
+        </KeyValue>
+        <KeyValue label="Baseline" wrap>
+          {baselineName}
+        </KeyValue>
+        <KeyValue label="Printed in">{item.printedIn}</KeyValue>
+      </KeyValue.Group>
+      {guidance.definition && <Prose label="Definition">{guidance.definition}</Prose>}
+      {guidance.discussion && <Prose label="Discussion">{guidance.discussion}</Prose>}
+    </Stack>
+  );
+}
+
+/**
  * The body of an approach's preview: what Table D-4 says of it (its definition, NIST's examples
- * and its discussion, as a control's Cyber resiliency section reads them), then the controls that
- * support it, those in the baseline at the layer shown first.
+ * and its discussion, as a control's Cyber resiliency section reads them), the architectural
+ * layers Table D-5 says it can be used at, then the controls that support it, those in the
+ * baseline at the layer shown first.
  */
 function ApproachDetails({
   programId,
@@ -211,7 +269,8 @@ function ApproachDetails({
           {guidance.informalDescription}
         </Text>
       )}
-      <KeyValue.Group labelWidth="default">
+      {/* Architectural layers is a label of twenty characters. */}
+      <KeyValue.Group labelWidth="wide">
         {technique && (
           <KeyValue label="Technique" wrap>
             <TextLink
@@ -232,6 +291,9 @@ function ApproachDetails({
         </KeyValue>
         <KeyValue label="Baseline" wrap>
           {baselineName}
+        </KeyValue>
+        <KeyValue label="Architectural layers" wrap>
+          <ApproachLayers code={approach.code} />
         </KeyValue>
         <KeyValue label="Printed in">{approach.printedIn}</KeyValue>
       </KeyValue.Group>
@@ -539,10 +601,11 @@ function ResiliencyView({
   const layer = layers[upto];
   const standing = layer?.standing;
 
-  // What the reader chose on the ladder: its path is kept, and an approach opens its preview too.
+  // What the reader chose on the ladder: its path is kept, and it opens its preview too.
   const [pick, setPick] = useState<string | null>(null);
   const picked = pick ? ladder.byCode.get(pick) : undefined;
-  const preview = picked?.kind === "approach" ? picked : null;
+  const preview = picked ?? null;
+  const previewKind: LadderKind = preview?.kind ?? "approach";
   // The approaches with nothing behind them, in the ladder's order: what the view narrows to.
   const gaps = useMemo(
     () =>
@@ -553,14 +616,22 @@ function ResiliencyView({
         : [],
     [ladder, standing],
   );
-  // The approaches the preview steps through: the ones the view is narrowed to, else all of them.
+  // What the preview steps through: the items of the shown one's level, and of the approaches the
+  // ones the view is narrowed to, else all of them.
   const stepped = useMemo(
     () =>
-      ladder.levels.approach
-        .filter((approach) => !narrowed || !standing || standing.empty.has(approach.code))
-        .map((approach) => ({ id: approach.id, code: approach.code })),
-    [ladder, narrowed, standing],
+      ladder.levels[previewKind]
+        .filter(
+          (item) =>
+            item.kind !== "approach" || !narrowed || !standing || standing.empty.has(item.code),
+        )
+        .map((item) => ({ id: item.id, code: item.code })),
+    [ladder, previewKind, narrowed, standing],
   );
+  const words = frameworkItemWords(previewKind);
+  const previewLabel = words
+    ? `${words.noun.charAt(0).toUpperCase()}${words.noun.slice(1)} preview`
+    : "Preview";
 
   // The ladder as Ledger's part draws it: every item a node with what the baseline holds of the
   // controls behind it, and an approach's controls as its marks, what the baseline holds first.
@@ -861,7 +932,7 @@ function ResiliencyView({
           {preview && (
             <RecordPreviewPanel
               title={preview.title}
-              label="Approach preview"
+              label={previewLabel}
               // Beside the ladder, narrow enough to leave it its wires in a 1280px window too.
               defaultWidth={take === "ladder" ? 360 : 480}
               onClose={() => setPick(null)}
@@ -874,16 +945,26 @@ function ResiliencyView({
                 />
               }
             >
-              <ApproachDetails
-                key={preview.code}
-                programId={programId}
-                ladder={ladder}
-                approach={preview}
-                baseline={baseline}
-                upto={upto}
-                requirements={requirements}
-                baselineName={baselineName}
-              />
+              {preview.kind === "approach" ? (
+                <ApproachDetails
+                  key={preview.code}
+                  programId={programId}
+                  ladder={ladder}
+                  approach={preview}
+                  baseline={baseline}
+                  upto={upto}
+                  requirements={requirements}
+                  baselineName={baselineName}
+                />
+              ) : (
+                <ConstructDetails
+                  key={preview.code}
+                  programId={programId}
+                  item={preview}
+                  standing={standing}
+                  baselineName={baselineName}
+                />
+              )}
             </RecordPreviewPanel>
           )}
         </Stack>

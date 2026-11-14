@@ -4,7 +4,7 @@ import { resolve } from "node:path";
 import test from "node:test";
 import { gunzipSync } from "node:zlib";
 import * as scenario from "../demo/showcase-scenario.mjs";
-import { buildPayload, fiscalYear, readArchive } from "../seed-demo-showcase.mjs";
+import { buildPayload, evidenceOwners, fiscalYear, readArchive } from "../seed-demo-showcase.mjs";
 
 const framework = (name) =>
   JSON.parse(gunzipSync(readFileSync(resolve("supabase/reference", `${name}.json.gz`))));
@@ -311,4 +311,28 @@ test("each issue the scenario links names the requirement its title says it is a
     assert.equal(issue, `Unmet requirement ${code}`);
   }
   assert.deepEqual(payload.issueRequirements, scenario.issueRequirements);
+});
+
+test("an artifact waiting on a review is owned by the person who holds its requirement's role", () => {
+  const archive = readArchive();
+  const roles = new Set(archive.requirements.map((item) => item.owner_role));
+  // Every role the archive gives a requirement is held by someone of the program's team.
+  assert.deepEqual([...roles].sort(), Object.keys(scenario.evidenceOwnerRoles).sort());
+  const owners = evidenceOwners(archive);
+  assert.equal(Object.keys(owners).length, archive.evidence.length);
+  const team = new Set(Object.values(scenario.people));
+  for (const [id, owner] of Object.entries(owners)) {
+    assert.ok(team.has(owner), `${id} is owned by ${owner}, who is not on the team`);
+    // The assessor reviews the evidence; nobody reviews what they own.
+    assert.notEqual(owner, scenario.people.assessor);
+  }
+  const requirement = new Map(archive.requirements.map((item) => [item.id, item]));
+  const first = archive.evidence[0];
+  assert.equal(
+    owners[first.id],
+    scenario.people[
+      scenario.evidenceOwnerRoles[requirement.get(first.requirement_ids[0]).owner_role]
+    ],
+  );
+  assert.deepEqual(payload.evidenceOwners, owners);
 });

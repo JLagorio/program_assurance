@@ -284,14 +284,22 @@ describe("the ladder of NIST SP 800-160 Vol. 2", () => {
     expect(approach && itemGuidance(approach).informalDescription).toBe(
       "Change how resources are or can be used.",
     );
-    // A goal is printed with its definition alone.
+    // A goal is printed with its definition and the discussion Table 2 prints under it, which its
+    // preview on the ladder reads.
     const goal = ladder.byCode.get("goal.anticipate");
     expect(goal && itemGuidance(goal)).toEqual({
       definition: "Maintain a state of informed preparedness for adversity.",
       informalDescription: undefined,
-      discussion: undefined,
+      discussion: expect.stringMatching(
+        /^Adversity refers to adverse conditions.*vital information for informed preparedness\.$/,
+      ),
       examples: [],
     });
+    expect(ladder.byCode.get("objective.understand")?.props["discussion"]).toMatch(
+      /^This objective supports the achievement of all other objectives/,
+    );
+    // Table D-5's layers stand off the ladder.
+    expect(ladder.byCode.get("layer.operations")).toBeUndefined();
   });
 
   it("counts the controls Table E-1 names behind every item, each once", () => {

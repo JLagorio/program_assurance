@@ -181,6 +181,20 @@ export function archivedAssessments({ asOf, archive = readArchive() }) {
   };
 }
 
+/**
+ * Who owns each archived evidence item, by its id: the person of the program's team who holds the
+ * role the archive gives the requirement the item was collected for (scenario.evidenceOwnerRoles).
+ */
+export function evidenceOwners(archive = readArchive()) {
+  const roles = new Map(archive.requirements.map((item) => [item.id, item.owner_role]));
+  return Object.fromEntries(
+    archive.evidence.flatMap((item) => {
+      const role = scenario.evidenceOwnerRoles[roles.get(item.requirement_ids?.[0])];
+      return role ? [[item.id, scenario.people[role]]] : [];
+    }),
+  );
+}
+
 /** The fiscal year the as-of date falls in, October to September (FY2027 starts 2026-10-01). */
 export function fiscalYear(asOf) {
   const [year, month] = asOf.split("-").map(Number);
@@ -272,6 +286,7 @@ export function buildPayload({ tenantId, accountUserId, asOf, scenarioSha256, ar
     scans,
     riskTechniques: scenario.riskTechniques,
     riskAssessments: scenario.riskAssessments,
+    evidenceOwners: evidenceOwners(...(archive ? [archive] : [])),
     // Issue requirements: the requirement each named issue is about (issue_requirements).
     issueRequirements: scenario.issueRequirements,
   };
@@ -324,7 +339,7 @@ export function buildPlan({ target, asOf = new Date().toISOString().slice(0, 10)
     issues.push({
       blocks: false,
       message:
-        "This workspace already holds the showcase; a run writes only what its risks still lack (a threat, a vulnerability, a rationale, a response's due moment).",
+        "This workspace already holds the showcase; a run writes only what its risks still lack (a threat, a vulnerability, a rationale, a response's due moment) and an owner for each artifact that waits on a review with none.",
     });
   if (!target.program)
     issues.push({
@@ -372,6 +387,11 @@ export function buildPlan({ target, asOf = new Date().toISOString().slice(0, 10)
       riskTechniques: Object.keys(scenario.riskTechniques).length,
       issueRequirements: Object.keys(scenario.issueRequirements).length,
       riskAssessments: `${Object.keys(scenario.riskAssessments.risks).length} risks in their own words, the rest from the requirement they arise from; each response due by its severity`,
+      evidenceOwners: `each WS-X90 artifact waiting on a review with no owner, given the person who holds the role the archive gives its requirement (${Object.entries(
+        scenario.evidenceOwnerRoles,
+      )
+        .map(([role, person]) => `${role}: ${scenario.people[person]}`)
+        .join(", ")})`,
     },
   };
 }
@@ -387,18 +407,20 @@ export function applyShowcase(transaction, payload, { commit = false } = {}) {
       transaction,
       `select pg_temp.seed_showcase(${json(payload)});`,
       `select pg_temp.seed_showcase_risk_details(${json(payload)});`,
+      `select pg_temp.seed_showcase_evidence_owners(${json(payload)});`,
       commit ? "commit;" : "rollback;",
     ].join("\n"),
   );
-  const [showcase, riskDetails] = result
+  const [showcase, riskDetails, evidenceOwners] = result
     .split("\n")
     .filter((line) => line.startsWith("{"))
-    .slice(-2)
+    .slice(-3)
     .map((line) => JSON.parse(line));
   return {
     ...showcase,
     riskDetails,
-    changed: Boolean(showcase.changed || riskDetails.changed),
+    evidenceOwners,
+    changed: Boolean(showcase.changed || riskDetails.changed || evidenceOwners.changed),
     showcaseChanged: Boolean(showcase.changed),
     committed: commit,
   };
@@ -460,7 +482,7 @@ async function main() {
     commit: Boolean(options.apply),
   });
   console.log(JSON.stringify(result, null, 2));
-  const filled = `${result.riskDetails.riskRevisions} risk revision(s) and ${result.riskDetails.riskResponses} response(s) filled`;
+  const filled = `${result.riskDetails.riskRevisions} risk revision(s) and ${result.riskDetails.riskResponses} response(s) filled, ${result.evidenceOwners.assigned ?? 0} evidence artifact(s) given an owner`;
   console.log(
     !result.changed
       ? "Nothing changed: this workspace already holds the showcase and everything its risks need."

@@ -95,8 +95,10 @@ export function ProgramActivity({ programId }: { programId: string }) {
       const record = requirementId ? requirementById.get(requirementId) : undefined;
       const requirement = record ? { id: record.id, code: record.code } : null;
       const previous = list.at(-1);
+      // A requirement's creation is its own entry; consecutive edits of it share one.
       if (
         requirement &&
+        event.event_type !== "created" &&
         previous?.requirement?.id === requirement.id &&
         previous.actor === event.actor_party_id
       )
@@ -112,6 +114,14 @@ export function ProgramActivity({ programId }: { programId: string }) {
   const entryItem = (entry: ActivityEntry) => {
     const [latest] = entry.events as [Row<"activity_events">];
     const actor = entry.actor ? partyName.get(entry.actor) : undefined;
+    if (entry.requirement && latest.event_type === "created")
+      return {
+        title: `${actor ?? "Someone"} created ${entry.requirement.code}`,
+        link: recordLink("engineering_requirements", {
+          id: entry.requirement.id,
+          program_id: programId,
+        }),
+      };
     if (entry.requirement) {
       const fields = [...new Set(entry.events.flatMap(changedFields))];
       const edits = formatPlural(entry.events.length, {

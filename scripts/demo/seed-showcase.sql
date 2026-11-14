@@ -787,3 +787,60 @@ begin
   return jsonb_build_object('changed', v_revisions + v_responses > 0, 'riskRevisions', v_revisions, 'riskResponses', v_responses);
 end;
 $details$;
+
+-- An owner for each WS-X90 evidence artifact that waits on a review and has none: the person of the
+-- program's team who holds the role the archive gives the requirement the artifact was collected
+-- for (showcase-scenario.mjs, evidenceOwnerRoles; the payload's evidenceOwners, by the archived
+-- evidence id the import listed the artifact under). An artifact waits on a review when its latest
+-- version's latest review is pending, as the Review queue reads it. Each owner is given through
+-- assign_record_owner as the account, one request an owner; an artifact that has an owner keeps it.
+-- Counted under the showcase's batch, so a further run changes nothing.
+create function pg_temp.seed_showcase_evidence_owners(p jsonb) returns jsonb language plpgsql as $owners$
+declare
+  t uuid := (p->>'tenantId')::uuid;
+  v_program uuid; v_batch uuid; v_owner record; v_result jsonb; v_assigned integer := 0; v_by jsonb := '{}';
+begin
+  perform pg_advisory_xact_lock(hashtextextended(t::text || '/demo-showcase', 0));
+  select id into v_batch from public.demo_import_batches where tenant_id = t and dataset_id = p->>'datasetId';
+  if v_batch is null then
+    return jsonb_build_object('changed', false, 'reason', 'This workspace does not hold the showcase.');
+  end if;
+  select id into v_program from public.programs where tenant_id = t and code = p->>'programCode';
+  for v_owner in
+    select p->'evidenceOwners'->>d.source_key as name, array_agg(a.id order by a.id) as artifacts
+    from public.evidence_artifacts a
+    join public.demo_import_records d on d.tenant_id = a.tenant_id and d.destination_table = 'evidence_artifacts'
+      and d.destination_id = a.id and d.dataset_id = p->>'legacyDatasetId'
+    where a.tenant_id = t and a.program_id = v_program and a.owner_party_id is null
+      and p->'evidenceOwners' ? d.source_key
+      and exists (
+        select 1 from public.evidence_versions v
+        cross join lateral (
+          select r.decision from public.evidence_reviews r
+          where r.tenant_id = v.tenant_id and r.evidence_version_id = v.id
+          order by coalesce(r.reviewed_at, r.created_at) desc, r.id desc limit 1
+        ) latest
+        where v.tenant_id = a.tenant_id and v.artifact_id = a.id and latest.decision = 'pending'
+          and v.version_number = (select max(z.version_number) from public.evidence_versions z
+            where z.tenant_id = a.tenant_id and z.artifact_id = a.id))
+    group by 1 order by 1
+  loop
+    perform set_config('request.jwt.claims', jsonb_build_object('sub', p->>'accountUserId', 'role', 'authenticated')::text, true);
+    v_result := public.assign_record_owner('evidence_artifacts', v_owner.artifacts, pg_temp.party(t, v_owner.name));
+    perform set_config('request.jwt.claims', '', true);
+    v_assigned := v_assigned + (v_result->>'assigned')::integer;
+    v_by := v_by || jsonb_build_object(v_owner.name, (v_result->>'assigned')::integer);
+  end loop;
+  if v_assigned > 0 then
+    insert into public.demo_import_sources (id, tenant_id, import_batch_id, source_pointer, source_sha256, source_record)
+      values (pg_temp.sid(t, 'demo_import_sources/evidenceOwners'), t, v_batch, '/evidenceOwners',
+        encode(extensions.digest((p->'evidenceOwners')::text, 'sha256'), 'hex'), p->'evidenceOwners')
+      on conflict (id) do nothing;
+    update public.demo_import_batches set summary = summary || jsonb_build_object('updated',
+        coalesce(summary->'updated', '{}'::jsonb) || jsonb_build_object(
+          'evidence_artifacts', coalesce((summary->'updated'->>'evidence_artifacts')::integer, 0) + v_assigned))
+      where id = v_batch;
+  end if;
+  return jsonb_build_object('changed', v_assigned > 0, 'assigned', v_assigned, 'byOwner', v_by);
+end;
+$owners$;

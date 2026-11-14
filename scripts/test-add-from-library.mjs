@@ -42,7 +42,9 @@ const rows = (table, filters = {}) => {
   return data(query.order("id"));
 };
 const tabs = () => page.getByRole("tablist", { name: "Element sections", exact: true });
-const sheet = () => page.getByRole("dialog");
+// A toast is a dialog too (Base UI gives its root that role), and one the pointer rests on stays,
+// so the sheet is any dialog but a toast.
+const sheet = () => page.getByRole("dialog").and(page.locator(':not([data-slot="toast"])'));
 
 try {
   const profile = await data(
@@ -194,7 +196,7 @@ try {
   await sheet().getByRole("button", { name: "Continue", exact: true }).click();
   // The confirmation is its own Dialog, titled and submitted with the trigger's words; the picker
   // has gone once it shows.
-  await expect(page.getByRole("dialog")).toHaveCount(1);
+  await expect(sheet()).toHaveCount(1);
   await expect(
     sheet().getByRole("heading", { name: "Add from library", exact: true }),
   ).toBeVisible();
@@ -268,7 +270,7 @@ try {
   await page.getByRole("menuitem", { name: "Add from library", exact: true }).click();
   await sheet().getByRole("row").filter({ hasText: "RQD-RETAIN" }).first().click();
   await sheet().getByRole("button", { name: "Continue", exact: true }).click();
-  await expect(page.getByRole("dialog")).toHaveCount(1);
+  await expect(sheet()).toHaveCount(1);
   await sheet().getByRole("button", { name: "Add from library", exact: true }).click();
   await expect(sheet()).toHaveCount(0, { timeout: 30000 });
   const requirementsTable = page.getByRole("table", {
@@ -354,9 +356,12 @@ try {
   await sheet().getByRole("row").filter({ hasText: "corp-audit" }).first().click();
   await sheet().getByRole("button", { name: "Continue", exact: true }).click();
   await expect(sheet().getByRole("checkbox", { name: /Create as a child element/ })).toBeChecked();
-  await sheet().getByLabel("Element code under SYS-CHILD", { exact: true }).fill("ELEM-AUDIT");
+  // By the control's name: the label's text also holds the required mark, which is hidden from it.
   await sheet()
-    .getByLabel("Element name under SYS-CHILD", { exact: true })
+    .getByRole("textbox", { name: "Element code under SYS-CHILD", exact: true })
+    .fill("ELEM-AUDIT");
+  await sheet()
+    .getByRole("textbox", { name: "Element name under SYS-CHILD", exact: true })
     .fill("Audit policy element");
   await sheet()
     .getByRole("textbox", { name: "Rationale", exact: true })

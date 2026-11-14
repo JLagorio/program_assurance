@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 /**
  * Transcribes the cyber resiliency constructs of NIST SP 800-160 Vol. 2 Rev. 1 from its PDF, the
- * only form NIST publishes them in: the goals (Table 2), the objectives (Table 3), the techniques
- * and their approaches with the discussion and the examples printed for each (Table D-4), the
- * strategic and structural design principles (Tables D-6 and D-9), what supports what (Tables
- * D-12 to D-15) and the SP 800-53 controls that support each approach (Table E-1).
+ * only form NIST publishes them in: the goals (Table 2) and the objectives (Table 3) with the
+ * discussion printed for each, the techniques and their approaches with the discussion and the
+ * examples printed for each (Table D-4), the architectural layers each approach can be used at
+ * (Table D-5), the strategic and structural design principles (Tables D-6 and D-9), what supports
+ * what (Tables D-12 to D-15) and the SP 800-53 controls that support each approach (Table E-1).
  *
  *   node scripts/reference-transcribe/sp800-160v2r1-cref.mjs --pdf <path> [--json <copy>] [--check]
  *
@@ -74,6 +75,15 @@ const TABLES = {
     pages: [109, 121],
     headingEnd: "EXAMPLES",
     starts: [95.64, 216.9, 367.9],
+  },
+  // The techniques, their approaches and a column of X marks under each layer. The layers'
+  // headings are printed turned up the page, above the word that closes the headings.
+  layers: {
+    name: "Table D-5",
+    caption: "D-5:",
+    pages: [122, 125],
+    headingEnd: "TECHNIQUES",
+    starts: [95.28, 170, 240],
   },
   strategic: {
     name: "Table D-6",
@@ -167,6 +177,15 @@ const CORRECTIONS = [
     reason: "The 115 is the raised reference mark of footnote 115, not part of the definition.",
   },
   {
+    printed_in: "Table D-5",
+    printed:
+      "Layer names and the headings above them in capitals, such as OPERATING SYSTEM, TECHNICAL SYSTEM AS A WHOLE and SOCIO-TECHNICAL SYSTEM",
+    transcribed:
+      "Layer names and the headings above them in title case, such as Operating System, Technical System as a Whole and Socio-Technical System",
+    reason:
+      "The letter case of the publication's headings, in which the transcription writes every name a table prints in capitals, as the techniques and approaches of Table D-4. The text before the table writes the layers in lower case, as in “other software”.",
+  },
+  {
     printed_in: "Table D-6",
     printed: "Principle names in capitals with a full stop, such as REDUCE ATTACK SURFACES.",
     transcribed:
@@ -240,6 +259,7 @@ const CODE_PREFIX = {
   objective: "objective",
   technique: "technique",
   approach: "approach",
+  "architectural-layer": "layer",
   "strategic-design-principle": "strategic-principle",
   "structural-design-principle": "structural-principle",
 };
@@ -252,15 +272,22 @@ const EXPECTED = {
     objective: 8,
     technique: 14,
     approach: 50,
+    "architectural-layer": 11,
     "strategic-design-principle": 5,
     "structural-design-principle": 14,
   },
-  links: { "Table D-12": 19, "Table D-13": 204, "Table D-14": 26, "Table D-15": 65 },
+  links: {
+    "Table D-5": 240,
+    "Table D-12": 19,
+    "Table D-13": 204,
+    "Table D-14": 26,
+    "Table D-15": 65,
+  },
   controlRows: 265,
   controlLinks: 421,
-  // Table D-4 prints a discussion for every technique and approach, and examples for every
-  // approach: 193 bullets in all.
-  discussions: { technique: 14, approach: 50 },
+  // Tables 2 and 3 print a discussion for every goal and objective, Table D-4 for every technique
+  // and approach, and examples for every approach: 193 bullets in all.
+  discussions: { goal: 4, objective: 8, technique: 14, approach: 50 },
   approachesWithExamples: 50,
   examples: 193,
 };
@@ -287,7 +314,7 @@ const FAMILIES = new Map([
 ]);
 
 // The words a title keeps in lower case, as the publication's headings do.
-const MINOR_WORDS = new Set(["and", "for", "in", "of", "on", "or", "the", "to"]);
+const MINOR_WORDS = new Set(["a", "and", "as", "for", "in", "of", "on", "or", "the", "to"]);
 
 const MARGIN_NOTE =
   "This publication is available free of charge from: https://doi.org/10.6028/NIST.SP.800-160v2r1";
@@ -509,7 +536,10 @@ function titleCase(capitals) {
     );
 }
 
-/** Tables 2 and 3: a name, then its definition, which ends where "Discussion:" starts. */
+/**
+ * Tables 2 and 3: a name, then its definition, which ends where "Discussion:" starts, and the
+ * discussion to the end of the row, on the next page too.
+ */
 function readDefinitions(pages, table) {
   const [names, descriptions] = readColumns(pages, table);
   return rowsOf(table, names, descriptions).map((row) => {
@@ -517,9 +547,11 @@ function readDefinitions(pages, table) {
     if (!isCapitals(row.name) || discussion < 1) {
       stop(`${table.name}: "${row.name}" is not a name with a definition and a discussion.`);
     }
+    const discussed = proseOf(table, `${row.name}, Discussion`, row.cells[0].slice(discussion));
     return {
       title: titleCase(row.name),
       prose: proseOf(table, row.name, row.cells[0].slice(0, discussion)),
+      discussion: discussed.slice("Discussion:".length).trim(),
     };
   });
 }
@@ -612,6 +644,153 @@ function readApproaches(pages) {
     });
   }
   return { techniques, approaches };
+}
+
+// Table D-5 turns its layers' headings up the page. The lines of one heading stand 10 pt apart
+// and two headings 16.8 pt or more. A heading stands in the middle of its cell, and the cells under
+// a row of the headings that group the layers start where that row ends, so the middles of the
+// headings under one row stand within 3.6 pt of each other and 6.7 pt or more from the next.
+const HEADING_LINES = 14;
+const DEPTH_GAP = 5;
+// A row of grouping headings stands over the middle of the layers it groups, within 2.7 pt, and a
+// mark stands under the middle of its layer's heading, within 1 pt.
+const CENTRED = 4;
+const UNDER = 6;
+
+/**
+ * The headings of one page of Table D-5: every layer's, turned up the page and read from the
+ * bottom, its lines from left to right, and the rows of headings above them that group them. A
+ * row holds one heading, which stands over the layers under it: the layers whose headings stand in
+ * the band of heights for that row or a deeper one. Each layer keeps the headings it stands under,
+ * the outermost first.
+ */
+function layerHeadings(table, page, words, heading) {
+  const caption = words.find(
+    (word, at) => word.text === "TABLE" && words[at + 1]?.text === table.caption,
+  );
+  const rules = words.filter((word) => /^_+$/.test(word.text));
+  const above = caption?.bottom ?? Math.max(...rules.map((word) => word.bottom));
+  if (!Number.isFinite(above))
+    stop(`${table.name}, page ${page}: no caption or rule above the headings.`);
+  const band = words.filter((word) => word.top > above && word.top < heading.top - SAME_LINE);
+  const level = band.filter((word) => Math.abs(word.height - heading.height) < 0.1);
+  const turned = band.filter((word) => !level.includes(word));
+  const widths = new Set(turned.map((word) => (word.right - word.left).toFixed(1)));
+  if (turned.length === 0 || widths.size !== 1) {
+    stop(`${table.name}, page ${page}: the layers' headings are not all turned up the page.`);
+  }
+  // The turned words as lines, each read from the bottom up, and the lines as headings.
+  const lines = [];
+  for (const word of [...turned].sort((a, b) => a.left - b.left || b.top - a.top)) {
+    const line = lines.at(-1);
+    if (line && Math.abs(line.left - word.left) < 0.5) line.words.push(word);
+    else lines.push({ left: word.left, words: [word] });
+  }
+  const columns = [];
+  for (const line of lines) {
+    const column = columns.at(-1);
+    if (column && line.left - column.lines.at(-1).left < HEADING_LINES) column.lines.push(line);
+    else columns.push({ lines: [line] });
+  }
+  for (const column of columns) {
+    const all = column.lines.flatMap((line) => line.words);
+    column.printed = column.lines
+      .map((line) => line.words.map((word) => word.text).join(" "))
+      .join(" ");
+    column.left = Math.min(...all.map((word) => word.left));
+    column.right = Math.max(...all.map((word) => word.right));
+    column.center = (column.left + column.right) / 2;
+    column.middle =
+      (Math.min(...all.map((word) => word.top)) + Math.max(...all.map((word) => word.bottom))) / 2;
+    if (!isCapitals(column.printed))
+      stop(`${table.name}, page ${page}: "${column.printed}" is no heading.`);
+  }
+  // How deep each heading stands: the bands of heights its middle falls in, from the top.
+  const middles = [...columns].sort((a, b) => a.middle - b.middle);
+  let depth = 1;
+  middles.forEach((column, at) => {
+    if (at > 0 && column.middle - middles[at - 1].middle >= DEPTH_GAP) depth += 1;
+    column.depth = depth;
+  });
+  const rows = linesOf(level).map((line) => ({
+    printed: line.text,
+    center: (line.words[0].left + line.words.at(-1).right) / 2,
+  }));
+  if (rows.length !== depth || rows.some((row) => !isCapitals(row.printed))) {
+    stop(
+      `${table.name}, page ${page}: ${rows.length} rows of headings over ${depth} depths of layers.`,
+    );
+  }
+  rows.forEach((row, at) => {
+    const held = columns.map((column) => column.depth > at);
+    const first = held.indexOf(true);
+    const last = held.lastIndexOf(true);
+    const center = (columns[first].left + columns[last].right) / 2;
+    if (held.slice(first, last + 1).includes(false) || Math.abs(center - row.center) > CENTRED) {
+      stop(`${table.name}, page ${page}: "${row.printed}" stands over no run of layers.`);
+    }
+  });
+  return columns.map((column) => ({
+    printed: column.printed,
+    title: titleCase(column.printed),
+    center: column.center,
+    within: rows.slice(0, column.depth).map((row) => titleCase(row.printed)),
+  }));
+}
+
+/**
+ * Table D-5: the architectural layers, and the approaches that can be used at each. The table
+ * lists the approaches under their techniques, as Table D-4 does, with an X under each layer an
+ * approach can be used at. Every page repeats the layers' headings, and they must read alike.
+ */
+function readLayers(pages) {
+  const table = TABLES.layers;
+  let layers = null;
+  const techniques = [];
+  const approaches = [];
+  for (let page = table.pages[0]; page <= table.pages[1]; page += 1) {
+    const { words, heading, body } = tableBody(pages, table, page);
+    const headings = layerHeadings(table, page, words, heading);
+    if (!layers) layers = headings;
+    const same = (a, b) =>
+      a.printed === b.printed &&
+      a.within.join("|") === b.within.join("|") &&
+      Math.abs(a.center - b.center) < 1.5;
+    if (headings.length !== layers.length || headings.some((one, at) => !same(one, layers[at]))) {
+      stop(`${table.name}, page ${page}: the layers' headings differ from the first page's.`);
+    }
+    const [names, rows, marks] = columnsOf(table, body).map(linesOf);
+    techniques.push(...rowsOf(table, names));
+    const pageRows = rowsOf(table, rows).map((row) => ({ ...row, marked: new Set() }));
+    for (const mark of marks.flatMap((line) => line.words)) {
+      const center = (mark.left + mark.right) / 2;
+      const row = pageRows.filter((candidate) => Math.abs(candidate.top - mark.top) < 2);
+      const column = layers.filter((candidate) => Math.abs(candidate.center - center) < UNDER);
+      if (mark.text !== "X" || row.length !== 1 || column.length !== 1) {
+        stop(
+          `${table.name}, page ${page}: "${mark.text}" at ${mark.left}, ${mark.top} is no mark.`,
+        );
+      }
+      row[0].marked.add(column[0].title);
+    }
+    approaches.push(...pageRows);
+  }
+  for (const technique of techniques) {
+    if (!isCapitals(technique.name)) stop(`${table.name}: "${technique.name}" is no technique.`);
+  }
+  return {
+    layers,
+    approaches: approaches.map((row) => {
+      const technique = techniques.findLast((candidate) => isBeside(row, candidate));
+      if (!technique) stop(`${table.name}: ${row.name} stands under no technique.`);
+      return {
+        printed: row.name,
+        technique: technique.name,
+        // In the order of the layers' columns.
+        layers: layers.filter((layer) => row.marked.has(layer.title)).map((layer) => layer.title),
+      };
+    }),
+  };
 }
 
 /** Tables D-6 and D-9: a principle's name, closed by a full stop, and its key ideas. */
@@ -780,8 +959,11 @@ function codeOf(items, table, kind, printed) {
   return item.code;
 }
 
-/** The goals, the objectives, the techniques with their approaches and the design principles. */
-function readItems(pages) {
+/**
+ * The goals, the objectives, the techniques with their approaches, the architectural layers
+ * (`layerTable`, Table D-5 as `readLayers` reads it) and the design principles.
+ */
+function readItems(pages, layerTable) {
   const items = [];
   /** Adds an item, numbered in printed order among the items of its kind under its parent. */
   const add = (kind, table, title, prose, { parent = null, props = {} } = {}) => {
@@ -791,11 +973,17 @@ function readItems(pages) {
     return code;
   };
 
+  // A goal's and an objective's prose is its definition; the discussion under it is a property,
+  // as a technique's is.
   for (const goal of readDefinitions(pages, TABLES.goals)) {
-    add("goal", TABLES.goals, goal.title, goal.prose);
+    add("goal", TABLES.goals, goal.title, goal.prose, {
+      props: { discussion: goal.discussion },
+    });
   }
   for (const objective of readDefinitions(pages, TABLES.objectives)) {
-    add("objective", TABLES.objectives, objective.title, objective.prose);
+    add("objective", TABLES.objectives, objective.title, objective.prose, {
+      props: { discussion: objective.discussion },
+    });
   }
 
   // An item's prose is its definition. What Table D-4 prints beside it is the guidance: a
@@ -827,6 +1015,14 @@ function readItems(pages) {
     exampled.reduce((sum, item) => sum + item.props.examples.length, 0),
     EXPECTED.examples,
   );
+
+  // Table D-5's layers, in the order of its columns. The table defines none of them, and each keeps
+  // the headings it is printed under, the outermost first.
+  for (const layer of layerTable.layers) {
+    add("architectural-layer", TABLES.layers, layer.title, null, {
+      props: { within: layer.within },
+    });
+  }
 
   // Table D-6 prints a principle's key ideas as two labelled paragraphs.
   for (const principle of readPrinciples(pages, TABLES.strategic)) {
@@ -862,20 +1058,53 @@ function readItems(pages) {
   return items;
 }
 
-/** What supports what among the items: Tables D-12 to D-15. */
-function readItemLinks(pages, items) {
+/**
+ * The layers each approach can be used at (Table D-5, `layerTable`), and what supports what among
+ * the items (Tables D-12 to D-15).
+ */
+function readItemLinks(pages, items, layerTable) {
   const links = [];
-  const link = (table, source, target, props = {}) => {
+  const link = (table, source, target, props = {}, relation = "supports") => {
     links.push({
       source_identifier: `${table.name.slice("Table ".length)}:${source}:${target}`,
       source,
       target,
-      relation: "supports",
+      relation,
       ordinal: null,
       props,
       printed_in: table.name,
     });
   };
+
+  // Table D-5 lists every approach once, under the technique Table D-4 holds it under. It puts
+  // Coordinated Protection before Contextual Awareness, which Table D-4 does not.
+  const layers = TABLES.layers;
+  const listed = layerTable.approaches.map((row) => [
+    codeOf(items, layers, "technique", row.technique),
+    codeOf(items, layers, "approach", row.printed),
+  ]);
+  const defined = items
+    .filter((item) => item.kind === "approach")
+    .map((approach) => [approach.parent, approach.code]);
+  const pairs = (list) =>
+    list
+      .map((pair) => pair.join(" "))
+      .sort()
+      .join("|");
+  if (listed.length !== defined.length || pairs(listed) !== pairs(defined)) {
+    stop("Table D-5 does not list every approach once under its technique.");
+  }
+  layerTable.approaches.forEach((row, at) => {
+    for (const title of row.layers) {
+      link(
+        layers,
+        listed[at][1],
+        codeOf(items, layers, "architectural-layer", title),
+        {},
+        "used-at",
+      );
+    }
+  });
   /** The headings of a table whose columns are the items of one kind, in their printed order. */
   const headingsOf = (table, kind, capitals) =>
     items
@@ -968,8 +1197,9 @@ function readControlLinks(pages, items) {
 function transcribe(pdf) {
   const pages = readPages(pdf);
   requireSource(pages);
-  const items = readItems(pages);
-  const itemLinks = readItemLinks(pages, items);
+  const layerTable = readLayers(pages);
+  const items = readItems(pages, layerTable);
+  const itemLinks = readItemLinks(pages, items, layerTable);
   const controlLinks = readControlLinks(pages, items);
 
   const unused = CORRECTIONS.filter((entry) => (entry.row || entry.alias) && !used.has(entry));

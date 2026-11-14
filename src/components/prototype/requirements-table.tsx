@@ -1,5 +1,6 @@
 import { ProductCollection } from "./product-collection";
 import { useServerCollection, useServerPresetCounts } from "./collection-question";
+import { useOwnerAssignment, useOwnerOptions } from "./assign-owner";
 import { useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
@@ -18,10 +19,17 @@ import {
   type Preset,
 } from "@ledger/design-system";
 import { useWorkspace } from "@/components/app/workspace";
+import { ownerField } from "@/lib/owner-assign";
 import { labelFor } from "@/lib/records";
 import { requirementTypes } from "@/lib/requirement-edit";
 import type { RequirementTreeNode } from "@/lib/requirement-tree";
-import { serverRead, useServerRows, type ServerRow } from "@/lib/server-table";
+import {
+  serverRead,
+  useServerResult,
+  useServerRows,
+  type ServerResultQuestion,
+  type ServerRow,
+} from "@/lib/server-table";
 import { ProgramEditor } from "./program-shared";
 import {
   RecordLink,
@@ -127,7 +135,8 @@ const requirementRead = (programId: string) =>
       allocatedTo: { column: "allocated_to", filter: false },
       controlSources: { column: "linked_controls", filter: false },
       requirementType: { column: "requirement_type", labels: requirementTypeLabels },
-      owner: { column: "owner_name" },
+      // The owner sorts, filters and is found by name; No owner asks for the requirements with none.
+      owner: ownerField,
       controlMapping: { column: "control_mapping" },
     },
     order: [{ column: "tree_order" }],
@@ -229,6 +238,15 @@ const controlMappingOptions = [
   "Details not recorded",
 ].map((value) => ({ value }));
 
+const requirementNoun = { one: "requirement", other: "requirements" };
+/** A requirement's owner is on its details: one whose details are not recorded takes none. */
+const takesOwner = (row: RequirementNode) => row.revisionId !== null;
+/** A row of the whole result whose details are recorded, so it can take an owner. */
+const hasDetails = (row: unknown) =>
+  typeof row === "object" &&
+  row !== null &&
+  typeof (row as { revision_id?: unknown }).revision_id === "string";
+
 const presets: Preset[] = [
   { id: "all", label: "All requirements" },
   {
@@ -313,6 +331,9 @@ export function RequirementsTable({
 }) {
   const workspace = useWorkspace();
   const navigate = useNavigate();
+  // Every member but a viewer writes requirements, and row-level security decides each write: the
+  // role says it, so the tab does not load the record schema, which is the schema inspector's.
+  const canWrite = workspace.role !== "viewer";
   const [adding, setAdding] = useState(false);
   const [localPreviewId, setLocalPreviewId] = useState<string>();
   const [localTab, setLocalTab] = useState<RequirementTab>("Overview");
@@ -364,14 +385,18 @@ export function RequirementsTable({
             </RecordLink>
           ),
         }),
+        // In a narrow frame the facts a reader works by (where a requirement is allocated, the
+        // controls it meets, who owns it) stay in the row longer than the statement's prose.
         c.text("statement", {
           header: "Statement",
           minWidth: 200,
+          priority: 5,
           cell: (row) => row.statement ?? <Absent label="Details not recorded" />,
         }),
         c.list("allocatedTo", {
           header: "Allocated to",
           width: 240,
+          priority: 2,
           opens: "detail",
           items: (row) =>
             row.allocations.map((item) => ({ key: item.id, label: item.name, meta: item.kind })),
@@ -384,6 +409,7 @@ export function RequirementsTable({
         c.list("controlSources", {
           header: "Linked controls",
           width: 220,
+          priority: 3,
           items: (row) =>
             row.controlSources.map((source) => ({
               key: source.id,
@@ -403,6 +429,7 @@ export function RequirementsTable({
         }),
         c.person("owner", {
           header: "Owner",
+          priority: 4,
           cell: (row) =>
             row.owner ? (
               <Person name={row.owner} />
@@ -438,18 +465,27 @@ export function RequirementsTable({
       columnVisibility: {
         allocation: false,
         controlMapping: false,
-        owner: false,
         requirementType: false,
       },
     },
+    // A reader who may edit chooses requirements to assign them an owner together; one whose
+    // details are not recorded has no owner to take.
+    selectable: canWrite ? takesOwner : false,
   });
   const { table } = collection;
   const visibleRows = useDisplayedRecords(table);
   const presetCounts = useServerPresetCounts(read, presets);
-  // Every member but a viewer writes requirements, and row-level security decides each write: the
-  // role says it, so the tab does not load the record schema, which is the schema inspector's.
-  const canCreate = workspace.role !== "viewer";
-  const newRequirement = canCreate ? (
+  const readResult = useServerResult(read);
+  const owners = useOwnerAssignment({
+    table,
+    collection: "engineering_requirements",
+    noun: requirementNoun,
+    // Select all chooses every requirement the question finds that can take an owner.
+    result: (question: ServerResultQuestion) =>
+      readResult(question).then((rows) => rows.filter(hasDetails)),
+  });
+  const ownerOptions = useOwnerOptions(read, "owner");
+  const newRequirement = canWrite ? (
     <Button size="small" variant="primary" iconBefore={<Plus />} onClick={() => setAdding(true)}>
       Create engineering requirement
     </Button>
@@ -512,10 +548,13 @@ export function RequirementsTable({
                 column="controlMapping"
                 options={controlMappingOptions}
               />
+              <DataTable.Filter table={table} column="owner" options={ownerOptions} />
             </>
           }
+          selection={owners.selection}
         />
       </Stack>
+      {owners.dialog}
       {adding && (
         <ProgramEditor
           table="engineering_requirements"

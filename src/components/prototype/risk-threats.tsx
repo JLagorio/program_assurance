@@ -26,8 +26,10 @@ import { causeText } from "@/components/app/sentence";
 import { StatusBadge } from "@/components/app/status";
 import { useWorkspace } from "@/components/app/workspace";
 import {
-  ATTACK_FRAMEWORK,
+  ATTACK_FRAMEWORKS,
   CYBER_RESILIENCY_FRAMEWORK,
+  attackAppendix,
+  attackMatrix,
   useFramework,
   useFrameworkControlLinks,
   useFrameworkItemLinks,
@@ -64,8 +66,9 @@ import { EmptyMessage, QueryState } from "./work-common";
 
 /*
  * The threat a risk concerns, in ATT&CK's words, and what counters it: the techniques the risk
- * names, and the controls NIST SP 800-160 Vol. 2 Rev. 1, Appendix F prints against them with where
- * the risk's program stands on each. A technique has no page of its own: its name opens its preview.
+ * names, of ATT&CK for Enterprise or ATT&CK for ICS, and the controls NIST SP 800-160 Vol. 2 Rev. 1
+ * prints against them (Appendix F for Enterprise, Appendix G for ICS) with where the risk's program
+ * stands on each. A technique has no page of its own: its name opens its preview.
  */
 
 const LINK = "Link ATT&CK technique";
@@ -173,19 +176,23 @@ function defenceColumns(programId: string | null, mitigationNames: ReadonlyMap<s
 }
 
 /**
- * What the appendix says of one technique: its tactics, the mitigations printed against it, the
- * controls that counter it with their approaches and effects, and, closed until asked for, where
- * the reference data comes from and the terms it is used under. It is the body of the technique's
- * preview, beside a risk, beside a control that counters it and inside the picker.
+ * What its appendix says of one technique: the matrix and the tactics it sits under, the
+ * mitigations printed against it, the controls that counter it with their approaches and effects,
+ * and, closed until asked for, where the reference data comes from and the terms it is used under.
+ * It is the body of the technique's preview, beside a risk, beside a control that counters it and
+ * inside the picker.
  */
 export function TechniqueDetails({
   code,
+  framework: frameworkCode,
   tactics,
   catalogRevisionId,
   programId = null,
 }: {
-  /** The ATT&CK identifier: "T1190". */
+  /** The ATT&CK identifier: "T1190", or "T0819" in ATT&CK for ICS. */
   code: string;
+  /** The ATT&CK framework that prints it: Appendix F's for Enterprise, Appendix G's for ICS. */
+  framework: string;
   tactics: readonly ThreatTactic[];
   /** The catalog edition whose controls are listed; there is none where the reference data is not loaded. */
   catalogRevisionId: string | null | undefined;
@@ -200,10 +207,12 @@ export function TechniqueDetails({
         : undefined,
     [code, catalogRevisionId],
   );
-  const links = useFrameworkControlLinks(ATTACK_FRAMEWORK, scope);
-  const attack = useFrameworkItems(ATTACK_FRAMEWORK, { kinds: VOCABULARY_KINDS });
+  const links = useFrameworkControlLinks(frameworkCode, scope);
+  // Both appendices' words, read once for every preview: Table F-1's effects name the rows of each.
+  const attack = useFrameworkItems(ATTACK_FRAMEWORKS, { kinds: VOCABULARY_KINDS });
   const approaches = useFrameworkItems(CYBER_RESILIENCY_FRAMEWORK, { kinds: APPROACH_KINDS });
-  const framework = useFramework(ATTACK_FRAMEWORK);
+  const framework = useFramework(frameworkCode);
+  const appendix = attackAppendix(frameworkCode) ?? "The appendix";
   const defence = useMemo(
     () =>
       techniqueDefence(links.data ?? [], {
@@ -237,6 +246,7 @@ export function TechniqueDetails({
   return (
     <Stack space="space.250" className="min-w-0">
       <KeyValue.Group labelWidth="default">
+        <KeyValue label="Matrix">{attackMatrix(frameworkCode) ?? <Absent />}</KeyValue>
         <KeyValue label="Tactics" wrap>
           {tactics.length ? (
             tactics.map((tactic) => tactic.title).join(", ")
@@ -281,7 +291,7 @@ export function TechniqueDetails({
                 : {})}
               empty={{
                 title: "No countering controls",
-                description: "Appendix F prints no control against this technique.",
+                description: `${appendix} prints no control against this technique.`,
                 icon: <ShieldCheck />,
               }}
             />
@@ -314,18 +324,26 @@ type TechniqueRow = {
   code: string;
   /** Its identifier and name together. */
   name: string;
+  /** The framework that prints it, and the matrix a reader tells it by: Enterprise or ICS. */
+  framework: string;
+  matrix: string | null;
   tactics: ThreatTactic[];
 };
 
-type ChoiceRow = TechniqueChoice & { name: string };
+type ChoiceRow = TechniqueChoice & { name: string; matrix: string | null };
 
-/** The picker's columns: a technique by its identifier and name, and the tactics it sits under. */
+/**
+ * The picker's columns: a technique by its identifier and name, the matrix it belongs to, which
+ * tells T0819 Exploit Public-Facing Application (ICS) from T1190 of the same name (Enterprise), and
+ * the tactics it sits under.
+ */
 const choiceColumns = defineColumns<ChoiceRow>((c) => [
   c.text("name", { header: "ATT&CK technique", minWidth: 240, priority: 0, hideable: false }),
+  c.text("matrix", { header: "Matrix", width: 120, priority: 1 }),
   c.list("tactics", {
     header: "Tactics",
     width: 280,
-    priority: 1,
+    priority: 2,
     items: (row) => tacticItems(row.tactics),
   }),
 ]);
@@ -457,6 +475,8 @@ export function RiskThreats({
         linkId: technique.linkId,
         code: technique.code,
         name: codedName(technique),
+        framework: technique.framework,
+        matrix: attackMatrix(technique.framework) ?? null,
         tactics: technique.tactics,
       })),
     [data?.techniques],
@@ -532,6 +552,7 @@ export function RiskThreats({
           priority: 1,
           items: (row) => tacticItems(row.tactics),
         }),
+        c.text("matrix", { header: "Matrix", width: 110, priority: 2 }),
         ...(canWrite
           ? [
               c.actions((row: TechniqueRow) => [
@@ -573,22 +594,31 @@ export function RiskThreats({
     initialState: { sorting: [{ id: "baseline", desc: false }] },
   });
 
-  // What the picker offers: every technique of the appendix the risk does not name yet.
-  const offered = useFrameworkItems(ATTACK_FRAMEWORK, { kinds: TECHNIQUE_KINDS, enabled: opened });
-  const tacticLinks = useFrameworkItemLinks(ATTACK_FRAMEWORK, TACTIC_LINKS, { enabled: opened });
-  const vocabulary = useFrameworkItems(ATTACK_FRAMEWORK, {
+  // What the picker offers: every technique of either appendix the risk does not name yet.
+  const offered = useFrameworkItems(ATTACK_FRAMEWORKS, {
+    kinds: TECHNIQUE_KINDS,
+    enabled: opened,
+  });
+  const tacticLinks = useFrameworkItemLinks(ATTACK_FRAMEWORKS, TACTIC_LINKS, { enabled: opened });
+  const vocabulary = useFrameworkItems(ATTACK_FRAMEWORKS, {
     kinds: VOCABULARY_KINDS,
     enabled: opened,
   });
   const choices = useMemo<ChoiceRow[]>(() => {
-    const named = new Set(techniques.map((technique) => technique.code));
+    const named = new Set(
+      techniques.map((technique) => `${technique.framework} ${technique.code}`),
+    );
     return techniqueChoices(
       offered.data ?? [],
       tacticLinks.data ?? [],
       (vocabulary.data ?? []).filter((item) => item.kind === "tactic"),
     )
-      .filter((choice) => !named.has(choice.code))
-      .map((choice) => ({ ...choice, name: codedName(choice) }));
+      .filter((choice) => !named.has(`${choice.framework} ${choice.code}`))
+      .map((choice) => ({
+        ...choice,
+        name: codedName(choice),
+        matrix: attackMatrix(choice.framework) ?? null,
+      }));
   }, [offered.data, tacticLinks.data, vocabulary.data, techniques]);
   const choiceQueries = [offered, tacticLinks, vocabulary];
   const choiceState = choiceQueries.some((query) => query.isError)
@@ -712,7 +742,7 @@ export function RiskThreats({
             description="Find, read and choose the ATT&CK techniques this risk concerns."
             records={choices}
             columns={choiceColumns}
-            filters={["tactics"]}
+            filters={["matrix", "tactics"]}
             previewColumn="name"
             searchPlaceholder="Find ATT&CK techniques"
             recordTitle={(row) => row.name}
@@ -739,6 +769,7 @@ export function RiskThreats({
               <TechniqueDetails
                 key={row.id}
                 code={row.code}
+                framework={row.framework}
                 tactics={row.tactics}
                 catalogRevisionId={data?.catalogRevisionId}
               />
@@ -791,6 +822,7 @@ export function RiskThreats({
             <TechniqueDetails
               key={preview.id}
               code={preview.code}
+              framework={preview.framework}
               tactics={preview.tactics}
               catalogRevisionId={data?.catalogRevisionId}
               programId={programId}
@@ -823,7 +855,7 @@ export function RiskThreats({
             techniques.length
               ? {
                   title: "No countering controls",
-                  description: "Appendix F prints no control against these techniques.",
+                  description: "Appendices F and G print no control against these techniques.",
                   icon: <ShieldCheck />,
                 }
               : {

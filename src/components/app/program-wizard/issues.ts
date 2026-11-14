@@ -90,6 +90,8 @@ export const wizardRow = (key: string) =>
 export const wizardField = {
   role: (role: ProgramRole) => `role:${role}`,
   profile: (baseResolutionId: string) => `profile:${baseResolutionId}`,
+  /** The second baseline combined with a chosen base. */
+  combined: (baseResolutionId: string) => `combined:${baseResolutionId}`,
   system: (systemKey: string, field: SystemField) => `system:${systemKey}:${field}`,
   element: (systemKey: string, elementKey: string, field: ElementField) =>
     `element:${systemKey}:${elementKey}:${field}`,
@@ -335,8 +337,27 @@ export function wizardIssues({
           rank,
           prefix,
         );
+      // A second baseline: another reference baseline on the catalog that adds what the base lacks.
+      const combined = profile.combinedResolutionId
+        ? profiles.find((item) => item.id === profile.combinedResolutionId)
+        : undefined;
+      if (
+        profile.combinedResolutionId &&
+        (!combined ||
+          !combined.supported ||
+          combined.kind !== "reference" ||
+          combined.id === profile.baseResolutionId ||
+          combined.catalogRevisionId !== draft.catalogRevisionId)
+      )
+        catalogStep(
+          wizardField.combined(profile.baseResolutionId),
+          "Choose another reference baseline of the catalog to combine, or none.",
+          rank,
+          prefix,
+        );
       const layers = stacks.get(profile.key)?.derivation.layers ?? [];
-      if (layers.length !== profile.overlayIds.length)
+      const overlayLayers = layers.filter((layer) => layer.kind === "overlay");
+      if (overlayLayers.length !== profile.overlayIds.length)
         catalogStep(
           field,
           "Remove the overlay that is no longer published from its stack.",
@@ -344,7 +365,14 @@ export function wizardIssues({
           prefix,
         );
       for (const layer of layers)
-        if (idleLayer(layer))
+        if (layer.kind === "baseline" && !layer.added)
+          catalogStep(
+            wizardField.combined(profile.baseResolutionId),
+            `${layer.title} selects nothing ${option?.title ?? "the base"} does not. Choose another baseline, or none.`,
+            rank,
+            prefix,
+          );
+        else if (layer.kind === "overlay" && idleLayer(layer))
           catalogStep(
             field,
             `${layer.title} changes nothing where it is in the stack. Remove it, or move it earlier.`,

@@ -3,10 +3,20 @@ import type { Row } from "./models";
 import type { ChainHop } from "./profile-chain";
 
 /**
- * How a control baseline is formed: a reference baseline, then layers in order. A layer is an
- * overlay from the library or a program's (or system's) own tailoring. One walker serves the
+ * How a control baseline is formed: a reference baseline, then layers in order. A layer is a second
+ * reference baseline combined with the first (their union, always the first layer), an overlay from
+ * the library or a program's (or system's) own tailoring. One walker serves the
  * program setup's draft stack and a saved profile chain, so both count the same way.
  */
+/** A second reference baseline combined with the first, an overlay, or the program's tailoring. */
+export type LayerKind = "baseline" | "overlay" | "tailoring";
+/** What a layer is called in the stack's Type column and its rows. */
+export const layerKinds: Record<LayerKind, string> = {
+  baseline: "Baseline",
+  overlay: "Overlay",
+  tailoring: "Tailoring",
+};
+
 export type StackDecision = {
   controlId: string;
   action: "include" | "exclude";
@@ -18,7 +28,7 @@ export type LayerEffect = { controlId: string; effect: LayerEffectKind; rational
 export type StackLayerInput = {
   /** The saved layer's resolution id, or the overlay's id in a draft stack. */
   key: string;
-  kind: "overlay" | "tailoring";
+  kind: LayerKind;
   title: string;
   overlayId?: string | null | undefined;
   /** The layered profile's record, once the layer is saved. */
@@ -29,7 +39,7 @@ export type StackLayerInput = {
 };
 export type BaselineLayer = {
   key: string;
-  kind: "overlay" | "tailoring";
+  kind: LayerKind;
   title: string;
   overlayId: string | null;
   profileId: string | null;
@@ -176,12 +186,23 @@ export function controlStanding(step: StackStep, controlId: string): ControlStan
 }
 
 /** A layer's decisions, read back from what each one did where it was applied. */
-const decisionsOf = (layer: Pick<BaselineLayer, "effects">): StackDecision[] =>
+export const decisionsOf = (layer: Pick<BaselineLayer, "effects">): StackDecision[] =>
   layer.effects.map((row) => ({
     controlId: row.controlId,
     action: row.effect === "added" || row.effect === "reaffirmed" ? "include" : "exclude",
     rationale: row.rationale,
   }));
+
+/** A derived layer as an input again: its decisions as it applied them, for deriving it anew. */
+export const layerInput = (layer: BaselineLayer): StackLayerInput => ({
+  key: layer.key,
+  kind: layer.kind,
+  title: layer.title,
+  overlayId: layer.overlayId,
+  profileId: layer.profileId,
+  decisions: decisionsOf(layer),
+  parameters: layer.parameters,
+});
 
 /**
  * The stack read as if some of its layers were switched off (a what-if): a layer switched off keeps
@@ -318,6 +339,12 @@ export type SavedChainRows = {
   tailoringTitle: string;
   /** The layers' parameter settings, one a parameter a layer sets values for. */
   settings?: readonly Pick<Row<"profile_parameter_settings">, "profile_revision_id">[] | undefined;
+  /**
+   * The layers that combine a second reference baseline with the first, by resolution id, with the
+   * second's name and its profile record: such a layer is a baseline, not a tailoring.
+   */
+  combinations?:
+    readonly { resolutionId: string; title: string; profileId: string | null }[] | undefined;
 };
 
 /** Read a saved profile chain as a stack: the reference baseline, then each layer on it. */
@@ -356,12 +383,18 @@ export function deriveSavedBaseline(rows: SavedChainRows): BaselineDerivation {
       for (const controlId of application?.not_applicable_control_ids ?? [])
         decisions.push({ controlId, action: "exclude", rationale: null });
       const overlay = rows.overlays.find((row) => row.id === application?.overlay_id);
+      const combined = rows.combinations?.find((row) => row.resolutionId === hop.resolutionId);
       return {
         key: hop.resolutionId,
-        kind: application ? "overlay" : "tailoring",
-        title: application ? (overlay?.title ?? "Overlay") : rows.tailoringTitle,
+        kind: application ? "overlay" : combined ? "baseline" : "tailoring",
+        title: application
+          ? (overlay?.title ?? "Overlay")
+          : combined
+            ? combined.title
+            : rows.tailoringTitle,
         overlayId: application?.overlay_id ?? null,
-        profileId: hop.profileId,
+        // A combined baseline's name opens the baseline's own record.
+        profileId: combined ? combined.profileId : hop.profileId,
         decisions,
         parameters: (rows.settings ?? []).filter(
           (setting) => setting.profile_revision_id === hop.profileRevisionId,

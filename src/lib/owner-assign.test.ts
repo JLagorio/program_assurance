@@ -4,11 +4,14 @@ import { args, fakeClient, uuid } from "./testing/fake-client";
 vi.mock("@/components/app/workspace", () => ({ useWorkspace: () => ({}) }));
 
 const {
+  NO_OWNER,
   OWNED_COLLECTIONS,
   OWNER_ANSWER_UNREADABLE,
   OWNER_NOTHING_CHOSEN,
   assignOwner,
+  isOwnedCollection,
   ownerAssignedText,
+  unownedQuestions,
 } = await import("./owner-assign");
 const { productRecordNoun } = await import("./product-records");
 
@@ -36,6 +39,39 @@ describe("assignOwner", () => {
     expect(sent.p_owner_party_id).toBe(owner);
     expect([...sent.p_record_ids].sort()).toEqual([uuid(1), uuid(2), uuid(3)]);
     expect(args(calls[0], "setHeader")[0]).toEqual(["Authorization", "Bearer token"]);
+  });
+
+  it("names a program's requirements by their identities, as the register sends them", async () => {
+    const { client, calls } = fakeClient(() => ({
+      data: { assigned: 1, unchanged: 0 },
+      error: null,
+    }));
+    await assignOwner(client, context, {
+      collection: "engineering_requirements",
+      recordIds: [uuid(9)],
+      ownerPartyId: owner,
+    });
+    const [sent] = args(calls[0], "rpc")[0] as [
+      { p_collection: string; p_record_ids: string[]; p_owner_party_id: string },
+    ];
+    expect(sent).toEqual({
+      p_collection: "engineering_requirements",
+      p_record_ids: [uuid(9)],
+      p_owner_party_id: owner,
+    });
+  });
+
+  it("passes on a requirement's refusal for details not recorded, as the command words it", async () => {
+    const message =
+      "REQ-007 has no details recorded. Record its details before assigning an owner.";
+    const { client } = fakeClient(() => ({ data: null, error: { code: "23514", message } }));
+    await expect(
+      assignOwner(client, context, {
+        collection: "engineering_requirements",
+        recordIds: [uuid(1), uuid(2)],
+        ownerPartyId: owner,
+      }),
+    ).rejects.toThrow(message);
   });
 
   it("asks nothing of the server when nothing is chosen", async () => {
@@ -122,5 +158,26 @@ describe("the collections that assign an owner", () => {
   it("each has a product noun", () => {
     for (const collection of OWNED_COLLECTIONS)
       expect(productRecordNoun(collection), collection).toBeTruthy();
+  });
+
+  it("are the ones whose records carry an owner, requirements among them", () => {
+    expect(isOwnedCollection("engineering_requirements")).toBe(true);
+    expect(isOwnedCollection("poam_items")).toBe(true);
+    // A campaign carries an owner, set as it is planned; its registers assign none.
+    expect(isOwnedCollection("assessment_campaigns")).toBe(false);
+    expect(isOwnedCollection("programs")).toBe(false);
+  });
+});
+
+describe("the open records nobody owns", () => {
+  it("are asked for by the open statuses and No owner, as the Overview's trays count them", () => {
+    expect(unownedQuestions.operational_issues.filters).toEqual([
+      { id: "status", value: ["open", "triaged", "in_progress"] },
+      { id: "owner_party_id", value: [NO_OWNER] },
+    ]);
+    expect(unownedQuestions.risks.filters).toEqual([
+      { id: "status", value: ["open", "investigating", "responding", "accepted"] },
+      { id: "owner_party_id", value: [NO_OWNER] },
+    ]);
   });
 });

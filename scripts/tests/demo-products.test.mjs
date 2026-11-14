@@ -193,18 +193,23 @@ test("the plan names only the steps a workspace still lacks", () => {
   assert.equal(all.summary.work, undefined);
   // A workspace that holds the first four is given the fifth alone.
   assert.deepEqual(Object.keys(all.summary.detail.programs), ["PRG-2101", "PRG-2102", "PRG-2201"]);
-  const every = buildPlan({
-    target: {
-      ...emptyTarget,
-      seeded: true,
-      requirementsSeeded: true,
-      assessmentsSeeded: true,
-      workSeeded: true,
-      detailSeeded: true,
-    },
-  });
+  // A workspace whose fifth step ran before the review queue's records is given them alone.
+  const fifth = {
+    ...emptyTarget,
+    seeded: true,
+    requirementsSeeded: true,
+    assessmentsSeeded: true,
+    workSeeded: true,
+    detailSeeded: true,
+  };
+  const waiting = buildPlan({ target: fifth });
+  assert.match(waiting.summary.state, /the programs' work\.$/);
+  assert.equal(waiting.summary.detail, undefined);
+  assert.match(waiting.summary.reviewQueue.productAssessment, /^G40 .* High baseline, a draft/);
+  const every = buildPlan({ target: { ...fifth, reviewSeeded: true } });
   assert.match(every.summary.state, /the records one click down\.$/);
   assert.equal(every.summary.detail, undefined);
+  assert.equal(every.summary.reviewQueue, undefined);
 });
 
 // The fourth step, the programs' work, as written.
@@ -664,6 +669,85 @@ test("the overlay step is planned once, and refuses a code the workspace already
   assert.deepEqual(done.issues, []);
   assert.equal(done.summary.customerOverlay, undefined);
   assert.match(done.summary.state, /the customer overlay\.$/);
+  // A stack that holds the overlay, where a control it adds is not yet mapped, is given the mapping.
+  const unmapped = buildPlan({
+    target: {
+      ...held,
+      overlaySeeded: true,
+      overlayTaken: true,
+      overlayStacked: true,
+      overlayUnmapped: ["SC-32"],
+    },
+  });
+  assert.equal(
+    unmapped.summary.customerOverlay,
+    "OVL-CUSA-SSRD is in the library; the run maps SC-32 to the requirements that call for them.",
+  );
+});
+
+test("each control the overlay adds is mapped to the paragraph that calls for it", () => {
+  const overlay = scenario.customerOverlay;
+  const items = new Map(
+    scenario.customerRequirements[overlay.program].items.map((item) => [item[0], item]),
+  );
+  const maps = scenario.overlayRequirementMaps();
+  assert.deepEqual(
+    maps.map(([control]) => control),
+    overlay.decisions.filter(([, action]) => action === "include").map(([control]) => control),
+  );
+  for (const [control, reference] of maps) {
+    assert.ok(items.has(reference), `${control} cites ${reference}, which CUSA-SSRD does not hold`);
+    assert.ok(highBaseline.has(profileId(control)) === false, `${control} is in the High baseline`);
+  }
+  // 3.3.2 maps CM-14 from the import; the other five are mapped by the sixth step.
+  const already = maps.filter(([control, reference]) => items.get(reference)[4].includes(control));
+  assert.deepEqual(already, [["CM-14", "3.3.2"]]);
+  const payload = buildPayload({
+    tenantId: "t",
+    accountUserId: "u",
+    scenarioSha256: "0".repeat(64),
+  });
+  assert.deepEqual(payload.overlayMaps, maps);
+  assert.equal(payload.overlayDocument, "CUSA-SSRD");
+  assert.ok(payload.overlayMapRationale.trim());
+});
+
+test("what waits on a reviewer: a draft product assessment and a package with the customer", () => {
+  const { productAssessment, package: submitted } = detailScenario.reviewQueue;
+  const g40 = scenario.otherProducts.find((item) => item.code === productAssessment.product);
+  const elements = new Set(g40.elements.map((element) => element[0]));
+  const judged = new Set();
+  for (const [element, controls, determination, rationale] of productAssessment.determinations) {
+    assert.ok(element === null || elements.has(element), `${element} is not an element of the G40`);
+    assert.ok(["satisfied", "partially_satisfied", "other_than_satisfied"].includes(determination));
+    assert.ok(rationale.trim().length > 20, `${controls} have no rationale`);
+    for (const control of controls) {
+      // A determination names a control of the assessment's baseline, once an element.
+      assert.ok(highBaseline.has(profileId(control)), `${control} is not in the High baseline`);
+      const key = `${element}/${control}`;
+      assert.ok(!judged.has(key), `${key} is judged twice`);
+      judged.add(key);
+    }
+  }
+  assert.ok(judged.size >= 5 && judged.size <= 15, "a handful of determinations");
+  assert.ok(
+    productAssessment.determinations.some(([element]) => element === null),
+    "something is judged for the terminal as a whole",
+  );
+  // The package holds what its program's draft package holds, and is reviewed once submitted.
+  const draft = workScenario.work[submitted.program].package;
+  for (const document of submitted.documents) assert.ok(draft.documents.includes(document));
+  assert.ok(submitted.review[3] >= submitted.submitted);
+  const gate = workScenario.work[submitted.program].gates.find(
+    (item) => item.title === "Variant security plan approval",
+  );
+  assert.equal(gate.status, "in_review");
+  const payload = buildPayload({
+    tenantId: "t",
+    accountUserId: "u",
+    scenarioSha256: "0".repeat(64),
+  });
+  assert.deepEqual(payload.reviewQueue, detailScenario.reviewQueue);
 });
 
 test("the flow-down names each element once a requirement, and only requirements of its program", () => {

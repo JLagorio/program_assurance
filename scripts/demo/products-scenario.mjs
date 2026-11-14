@@ -919,6 +919,14 @@ export function requirementIssues() {
   }
   for (const program of programs)
     if (!customerRequirements[program.code]) say(`${program.code} has no customer requirements.`);
+  const cited = new Set(
+    (customerRequirements[customerOverlay.program]?.items ?? []).map((item) => item[0]),
+  );
+  for (const [control, reference] of overlayRequirementMaps())
+    if (!cited.has(reference))
+      say(
+        `${customerOverlay.code} adds ${control} for ${reference ?? "no paragraph"}, which ${customerOverlay.program}'s document does not hold.`,
+      );
   return issues;
 }
 
@@ -996,3 +1004,20 @@ export const customerOverlay = {
     ],
   ],
 };
+
+/**
+ * Each control the overlay adds, mapped to the CUSA-SSRD requirement its decision cites, as
+ * [control, reference]: once the overlay is on the stack the paragraph that called for a control
+ * maps it, so the control reads where its requirement's evidence leaves it rather than No
+ * requirement. A requirement that maps its control already (3.3.2 maps CM-14 from the import) is
+ * left as it is.
+ */
+export function overlayRequirementMaps() {
+  return customerOverlay.decisions
+    .filter(([, action]) => action === "include")
+    .map(([control, , rationale]) => [control, rationale.match(/^CUSA-SSRD (\S+) requires /)?.[1]]);
+}
+
+/** What a mapping the overlay brings says of itself. */
+export const overlayMapRationale =
+  "Customer A's overlay adds this control to the program's baseline for this requirement.";

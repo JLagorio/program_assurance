@@ -91,7 +91,17 @@ const answer = {
       item_id: id(52),
       code: "T1595",
       title: "Active Scanning",
+      framework: "nist-sp800-160v2r1-attack",
       tactics: [{ code: "tactic.reconnaissance", title: "Reconnaissance" }],
+    },
+    // A technique of ATT&CK for ICS, which Appendix G prints.
+    {
+      link_id: id(43),
+      item_id: id(53),
+      code: "T0819",
+      title: "Exploit Public-Facing Application",
+      framework: "nist-sp800-160v2r1-attack-ics",
+      tactics: [{ code: "tactic.initial-access", title: "Initial Access" }],
     },
   ],
   controls: [
@@ -136,7 +146,15 @@ describe("readRiskThreats", () => {
       itemId: id(51),
       code: "T1190",
       title: "Exploit Public-Facing Application",
+      // An answer that names no framework, as before ATT&CK for ICS was read, is Appendix F's.
+      framework: "nist-sp800-160v2r1-attack",
       tactics: [{ code: "tactic.initial-access", title: "Initial Access" }],
+    });
+    // The same name in ATT&CK for ICS is another technique, told apart by its framework.
+    expect(threats.techniques[2]).toMatchObject({
+      code: "T0819",
+      title: "Exploit Public-Facing Application",
+      framework: "nist-sp800-160v2r1-attack-ics",
     });
     expect(threats.controls[1]).toEqual({
       id: id(62),
@@ -365,10 +383,16 @@ describe("the order a risk's controls read in", () => {
 });
 
 /** A framework item as `framework_item_rows` answers, with what these derivations read. */
-function item(kind: string, code: string, title: string, ordinal = 1): FrameworkItem {
+function item(
+  kind: string,
+  code: string,
+  title: string,
+  ordinal = 1,
+  framework = "nist-sp800-160v2r1-attack",
+): FrameworkItem {
   return {
     id: `item:${code}`,
-    framework_code: "nist-sp800-160v2r1-attack",
+    framework_code: framework,
     framework_revision_id: "revision",
     kind,
     code,
@@ -386,10 +410,15 @@ function item(kind: string, code: string, title: string, ordinal = 1): Framework
   };
 }
 
-function tacticLink(technique: string, tactic: string, title: string): FrameworkItemLink {
+function tacticLink(
+  technique: string,
+  tactic: string,
+  title: string,
+  framework = "nist-sp800-160v2r1-attack",
+): FrameworkItemLink {
   return {
     id: `${technique}>${tactic}`,
-    framework_code: "nist-sp800-160v2r1-attack",
+    framework_code: framework,
     framework_revision_id: "revision",
     relation: "tactic",
     ordinal: null,
@@ -400,12 +429,12 @@ function tacticLink(technique: string, tactic: string, title: string): Framework
     source_code: technique,
     source_kind: "attack-technique",
     source_title: technique,
-    source_framework_code: "nist-sp800-160v2r1-attack",
+    source_framework_code: framework,
     target_item_id: `item:${tactic}`,
     target_code: tactic,
     target_kind: "tactic",
     target_title: title,
-    target_framework_code: "nist-sp800-160v2r1-attack",
+    target_framework_code: framework,
   };
 }
 
@@ -486,6 +515,39 @@ describe("techniqueChoices", () => {
       "Persistence",
     ]);
     expect(techniqueChoices([], [])).toEqual([]);
+  });
+
+  it("offers ATT&CK for ICS's techniques after Enterprise's, each tactic in its own matrix's order", () => {
+    const ics = "nist-sp800-160v2r1-attack-ics";
+    const choices = techniqueChoices(
+      [
+        item("attack-technique", "T0858", "Change Operating Mode", 1, ics),
+        item("attack-technique", "T1190", "Exploit Public-Facing Application"),
+        item("attack-technique", "T0819", "Exploit Public-Facing Application", 2, ics),
+      ],
+      [
+        tacticLink("T0858", "tactic.evasion", "Evasion", ics),
+        tacticLink("T0858", "tactic.execution", "Execution", ics),
+        tacticLink("T0819", "tactic.initial-access", "Initial Access", ics),
+        tacticLink("T1190", "tactic.initial-access", "Initial Access"),
+      ],
+      [
+        // Enterprise has no Evasion: were Appendix G's tactics placed among Appendix F's, Evasion
+        // would read before Execution.
+        item("tactic", "tactic.execution", "Execution", 4),
+        item("tactic", "tactic.execution", "Execution", 2, ics),
+        item("tactic", "tactic.evasion", "Evasion", 5, ics),
+      ],
+    );
+    expect(choices.map((choice) => [choice.code, choice.framework])).toEqual([
+      ["T1190", "nist-sp800-160v2r1-attack"],
+      ["T0819", ics],
+      ["T0858", ics],
+    ]);
+    expect(choices[2]!.tactics.map((tactic) => tactic.title)).toEqual(["Execution", "Evasion"]);
+    expect(choices[1]!.tactics).toEqual([
+      { code: "tactic.initial-access", title: "Initial Access" },
+    ]);
   });
 });
 

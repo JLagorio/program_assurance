@@ -1,8 +1,9 @@
 -- Run with psql -v ON_ERROR_STOP=1 after migrations and the pinned reference data
 -- (npm run seed:reference). Every test row rolls back.
 -- A risk's ATT&CK techniques: who links and unlinks, what a link may name, who sees it, and what
--- risk_threats answers: the controls Appendix F of NIST SP 800-160 Vol. 2 Rev. 1 prints against a
--- technique, and where the risk's program stands on each.
+-- risk_threats answers: the controls Appendix F (ATT&CK for Enterprise) and Appendix G (ATT&CK for
+-- ICS) of NIST SP 800-160 Vol. 2 Rev. 1 print against a technique, and where the risk's program
+-- stands on each.
 begin;
 create function pg_temp.expect_error(statement text, expected_state text) returns void language plpgsql as $$
 begin
@@ -43,6 +44,20 @@ begin
     where framework_code = v_framework and tenant_id is null and kind = 'mitigation' order by code limit 1), true);
   perform set_config('test.approach', (select id::text from public.framework_item_rows
     where framework_code = 'nist-sp800-160v2r1-cref' and tenant_id is null and kind = 'approach' order by code limit 1), true);
+  -- Appendix G's framework, ATT&CK for ICS: T0819 shares T1190's name, and Initial Access is a
+  -- tactic of both matrices.
+  if not exists (select 1 from public.framework_rows where code = 'nist-sp800-160v2r1-attack-ics' and tenant_id is null) then
+    raise exception 'The ATT&CK for ICS reference data is not loaded. Run npm run seed:reference first.';
+  end if;
+  perform set_config('test.t0819', (select id::text from public.framework_item_rows
+    where framework_code = 'nist-sp800-160v2r1-attack-ics' and tenant_id is null and kind = 'attack-technique' and code = 'T0819'), true);
+  perform set_config('test.ics_tactic', (select id::text from public.framework_item_rows
+    where framework_code = 'nist-sp800-160v2r1-attack-ics' and tenant_id is null and kind = 'tactic' and code = 'tactic.initial-access'), true);
+  perform set_config('test.ics_mitigation', (select id::text from public.framework_item_rows
+    where framework_code = 'nist-sp800-160v2r1-attack-ics' and tenant_id is null and kind = 'mitigation' and code = 'M0930'), true);
+  if '' in (current_setting('test.t0819'), current_setting('test.ics_tactic'), current_setting('test.ics_mitigation')) then
+    raise exception 'The pinned ATT&CK for ICS reference data is incomplete: T0819, Initial Access or M0930 is missing';
+  end if;
   -- IR-4(13), which Table F-3 prints against T1595, and a published baseline on the same edition.
   perform set_config('test.control', (select control_id::text from public.framework_control_link_rows
     where framework_code = v_framework and tenant_id is null and item_code = 'T1595' and control_code = 'IR-4(13)'
@@ -87,7 +102,8 @@ insert into public.programs(id, tenant_id, code, name) values
   ('d7100000-0000-0000-0000-000000000002', current_setting('test.tenant')::uuid, 'THREAT-OTHER', 'Another rollback program');
 insert into public.risks(id, tenant_id, program_id, title) values
   ('d7200000-0000-0000-0000-000000000001', current_setting('test.tenant')::uuid, 'd7100000-0000-0000-0000-000000000001', 'Rollback risk'),
-  ('d7200000-0000-0000-0000-000000000002', current_setting('test.tenant')::uuid, 'd7100000-0000-0000-0000-000000000001', 'Rollback risk with no technique');
+  ('d7200000-0000-0000-0000-000000000002', current_setting('test.tenant')::uuid, 'd7100000-0000-0000-0000-000000000001', 'Rollback risk with no technique'),
+  ('d7200000-0000-0000-0000-000000000003', current_setting('test.tenant')::uuid, 'd7100000-0000-0000-0000-000000000001', 'Rollback risk to a control system');
 -- The risk's assessment is published: the link is the risk's, so it is still made and removed.
 insert into public.risk_revisions(id, tenant_id, risk_id, version_number, threat) values
   ('d7210000-0000-0000-0000-000000000001', current_setting('test.tenant')::uuid, 'd7200000-0000-0000-0000-000000000001', 1, 'An adversary scans the boundary');
@@ -235,6 +251,60 @@ begin
   if answer->'techniques' <> '[]'::jsonb or answer->'controls' <> '[]'::jsonb
     or (answer->'totals'->>'techniques')::integer <> 0 or (answer->'totals'->>'controls')::integer <> 0 then
     raise exception 'risk_threats does not answer empty lists for a risk with no technique: %', answer;
+  end if;
+end $$;
+
+-- ---------------------------------------------------------------------------------------------
+-- An ATT&CK for ICS technique (Appendix G) is named as an Enterprise one is, beside one of the same
+-- name: T0819 and T1190 are both Exploit Public-Facing Application, in two matrices.
+-- ---------------------------------------------------------------------------------------------
+insert into public.risk_attack_techniques(tenant_id, risk_id, framework_item_id) values
+  (current_setting('test.tenant')::uuid, 'd7200000-0000-0000-0000-000000000003', current_setting('test.t0819')::uuid),
+  (current_setting('test.tenant')::uuid, 'd7200000-0000-0000-0000-000000000003', current_setting('test.t1190')::uuid);
+-- An ATT&CK for ICS tactic or mitigation is not a technique to name.
+select pg_temp.expect_error(format($$insert into public.risk_attack_techniques(tenant_id, risk_id, framework_item_id)
+  values (%L, 'd7200000-0000-0000-0000-000000000003', %L)$$, current_setting('test.tenant'), current_setting('test.ics_tactic')), '23514');
+select pg_temp.expect_error(format($$insert into public.risk_attack_techniques(tenant_id, risk_id, framework_item_id)
+  values (%L, 'd7200000-0000-0000-0000-000000000003', %L)$$, current_setting('test.tenant'), current_setting('test.ics_mitigation')), '23514');
+do $$
+declare answer jsonb; control jsonb; printed integer;
+begin
+  answer := public.risk_threats(current_setting('test.tenant')::uuid, 'd7200000-0000-0000-0000-000000000003');
+  -- Enterprise's first, each named by its code in its own framework, with its own matrix's tactics.
+  if (select jsonb_agg(jsonb_build_array(t->>'code', t->>'framework')) from jsonb_array_elements(answer->'techniques') t)
+    <> '[["T1190", "nist-sp800-160v2r1-attack"], ["T0819", "nist-sp800-160v2r1-attack-ics"]]'::jsonb then
+    raise exception 'risk_threats does not name techniques of both matrices by their frameworks: %', answer->'techniques';
+  end if;
+  if answer->'techniques'->1->>'title' <> 'Exploit Public-Facing Application'
+    or answer->'techniques'->1->>'item_id' <> current_setting('test.t0819')
+    or answer->'techniques'->1->'tactics' <> '[{"code": "tactic.initial-access", "title": "Initial Access"}]'::jsonb then
+    raise exception 'risk_threats does not name an ATT&CK for ICS technique with its tactics: %', answer->'techniques'->1;
+  end if;
+  -- The controls either appendix prints against either technique, each once: sixteen over the
+  -- two, nine of them printed against both.
+  select count(distinct s.control_id) into printed from public.framework_control_link_rows s
+    where s.tenant_id is null and s.relation = 'mitigates' and s.catalog_revision_id = current_setting('test.catalog')::uuid
+      and ((s.framework_code = 'nist-sp800-160v2r1-attack' and s.item_code = 'T1190')
+        or (s.framework_code = 'nist-sp800-160v2r1-attack-ics' and s.item_code = 'T0819'));
+  if printed <> 16 or jsonb_array_length(answer->'controls') <> 16 or (answer->'totals'->>'controls')::integer <> 16 then
+    raise exception 'risk_threats does not answer the sixteen controls printed against T1190 and T0819: % printed, % answered',
+      printed, jsonb_array_length(answer->'controls');
+  end if;
+  -- Appendix G alone prints AC-6(5) against T0819, through Trust-Based Privilege Management.
+  select c into control from jsonb_array_elements(answer->'controls') c where c->>'code' = 'AC-6(5)';
+  if control->'techniques' <> '["T0819"]'::jsonb
+    or (select jsonb_agg(a->>'title') from jsonb_array_elements(control->'approaches') a) <> '["Trust-Based Privilege Management"]'::jsonb
+    or control->'effects' <> '["Negate", "Exert"]'::jsonb then
+    raise exception 'risk_threats does not answer a control Appendix G prints: %', control;
+  end if;
+  -- SC-39 counters both, Enterprise's first; Appendix F alone prints CA-8 against T1190.
+  select c into control from jsonb_array_elements(answer->'controls') c where c->>'code' = 'SC-39';
+  if control->'techniques' <> '["T1190", "T0819"]'::jsonb then
+    raise exception 'risk_threats does not say a control counters techniques of both matrices: %', control;
+  end if;
+  select c into control from jsonb_array_elements(answer->'controls') c where c->>'code' = 'CA-8';
+  if control->'techniques' <> '["T1190"]'::jsonb then
+    raise exception 'risk_threats says a control counters a technique its appendix does not print it against: %', control;
   end if;
 end $$;
 

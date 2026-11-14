@@ -1,12 +1,21 @@
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { ChevronDown } from "lucide-react";
 import {
   Alert,
   AlertDescription,
   AsideLayout,
   Box,
+  Button,
   DateTime,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
   Id,
   Inspector,
   PageHeader,
@@ -27,7 +36,7 @@ import { QueryValue } from "@/components/prototype/library-shared";
 import { canAuthorLibrary } from "@/components/prototype/library-utils";
 import { OverlayDecisions, useOverlayDecisions } from "@/components/prototype/overlay-decisions";
 import { OverlayDialog, useCatalogEditions } from "@/components/prototype/overlay-dialog";
-import { OverlayParameters, useOverlayParameters } from "@/components/prototype/overlay-parameters";
+import { OverlayParameters } from "@/components/prototype/overlay-parameters";
 import { RecordTrail, TrailLink } from "@/components/prototype/record-trail";
 import {
   DetailFacts,
@@ -37,12 +46,14 @@ import {
   ReportFailures,
 } from "@/components/prototype/work-common";
 import {
+  useCreateOverlayVersion,
   useDeleteControlOverlay,
+  useOverlayParameters,
   usePublishControlOverlay,
   type ControlOverlay,
 } from "@/lib/control-overlays";
-import { useRow } from "@/lib/models";
-import { overlayDecisionActions, revisionStates } from "@/lib/status";
+import { useRow, useRows, type Row } from "@/lib/models";
+import { overlayDecisionActions, revisionStates, statusLabel } from "@/lib/status";
 
 export const Route = createFileRoute("/overlays/$overlayId")({
   component: OverlayRoute,
@@ -56,9 +67,11 @@ function OverlayRoute() {
 }
 
 /**
- * The overlay record: its Details beside its description and its control decisions. While it is a
- * draft, a reader who may write edits it, adds and removes decisions and publishes it; a published
- * overlay cannot change, so it shows no authoring action.
+ * The overlay record, one version of it: its Details beside its description, its control decisions
+ * and its parameter values. While the version is a draft, a reader who may write edits it, adds and
+ * removes decisions and values and publishes it; a published version cannot change, so its
+ * authoring action is Create version, the next version as a draft carrying what it decides. The
+ * version menu in the header names the version every part of the page reads, and opens another.
  */
 function OverlayRecord({ overlayId }: { overlayId: string }) {
   const workspace = useWorkspace();
@@ -76,6 +89,18 @@ function OverlayRecord({ overlayId }: { overlayId: string }) {
   const navigate = useNavigate();
   const { confirm, confirmation } = useConfirmation();
   const [editing, setEditing] = useState(false);
+  // Every version of the overlay, newest first: they share its code.
+  const versionRows = useRows(
+    "control_overlays",
+    { code: overlay?.code ?? "" },
+    { columns: ["id", "version", "state", "previous_overlay_id"], enabled: !!overlay },
+  );
+  const versions = useMemo(
+    () => [...(versionRows.data ?? [])].sort((a, b) => b.version - a.version),
+    [versionRows.data],
+  );
+  const newest = versions[0];
+  const createVersion = useCreateOverlayVersion();
   // What this page's last write answered, until the overlay read back carries it: the next write
   // (more decisions, a removal, Publish) is made at its revision, and a publish shows at once.
   const answered = useRef<ControlOverlay | null>(null);
@@ -127,11 +152,63 @@ function OverlayRecord({ overlayId }: { overlayId: string }) {
       description: `Programs can now apply ${overlay.title}.`,
     });
   }
-  /** Delete overlay: a draft no program applies goes, with its decisions, and the register opens. */
+  /**
+   * Create version: the next version of a published one, a draft carrying its decisions and its
+   * values, opened once it exists. Its id is chosen as the prompt opens, so trying again after a
+   * failure sends the same request.
+   */
+  async function createNextVersion() {
+    if (!overlay) return;
+    const versionId = crypto.randomUUID();
+    const next = overlay.version + 1;
+    const held = contents();
+    let created: ControlOverlay | null = null;
+    const done = await confirm({
+      title: `Create version ${formatNumber(next)}?`,
+      description: `A draft of ${overlay.title}${held ? ` with version ${formatNumber(overlay.version)}'s ${held}` : ""}, to edit and publish. Version ${formatNumber(overlay.version)} stays published, and every program that applies it keeps it until its stack is changed.`,
+      confirmLabel: `Create version ${formatNumber(next)}`,
+      variant: "primary",
+      failureTitle: "The version was not created",
+      action: async () => {
+        created = await createVersion.mutateAsync({ overlayId: overlay.id, versionId });
+      },
+    });
+    const opened = created as ControlOverlay | null;
+    if (!done || !opened) return;
+    toast.add({
+      type: "success",
+      title: `Version ${formatNumber(opened.version)} created`,
+      description: `A draft of ${overlay.code} to edit and publish.`,
+    });
+    void navigate({ to: "/overlays/$overlayId", params: { overlayId: opened.id } });
+  }
+  /**
+   * Delete overlay: a draft no program applies goes, with its decisions and values. A first version
+   * leaves for the register; a later one opens the version it was created from, which stays.
+   */
   async function deleteOverlay() {
     if (!overlay) return;
     const loaded = decisions.data !== undefined && parameters.data !== undefined;
     const held = contents();
+    const previous = overlay.previous_overlay_id;
+    if (previous) {
+      const gone = await confirm({
+        title: `Delete version ${formatNumber(overlay.version)}?`,
+        description: `Version ${formatNumber(overlay.version)} of ${overlay.title}${!loaded ? " and its control decisions and parameter values" : held ? ` and its ${held}` : ""} will be deleted. Version ${formatNumber(overlay.version - 1)} stays as it is.`,
+        confirmLabel: "Delete draft version",
+        variant: "danger",
+        failureTitle: "The version was not deleted",
+        action: () => remove.mutateAsync({ overlayId: overlay.id, expectedRevision: revision() }),
+      });
+      if (!gone) return;
+      toast.add({
+        type: "success",
+        title: "Draft version deleted",
+        description: `${overlay.code} is at version ${formatNumber(overlay.version - 1)} again.`,
+      });
+      void navigate({ to: "/overlays/$overlayId", params: { overlayId: previous }, replace: true });
+      return;
+    }
     const deleted = await confirm({
       title: "Delete overlay?",
       description: `${overlay.title}${!loaded ? " and its control decisions and parameter values" : held ? ` and its ${held}` : ""} will be deleted. A deleted overlay cannot be restored.`,
@@ -167,6 +244,20 @@ function OverlayRecord({ overlayId }: { overlayId: string }) {
                 <PageHeader.Title>{overlay.title}</PageHeader.Title>
               </PageHeader.Heading>
               <PageHeader.Actions>
+                {/* The version every part of the page reads, named and chosen here. */}
+                {versions.length > 0 && (
+                  <VersionMenu
+                    versions={versions}
+                    current={overlay.id}
+                    onVersion={(id) =>
+                      void navigate({
+                        to: "/overlays/$overlayId",
+                        params: { overlayId: id },
+                        replace: true,
+                      })
+                    }
+                  />
+                )}
                 <RecordActions
                   table="control_overlays"
                   id={overlay.id}
@@ -185,9 +276,28 @@ function OverlayRecord({ overlayId }: { overlayId: string }) {
                       Publish overlay
                     </DropdownMenuItem>
                   )}
+                  {!draft && canAuthorLibrary(workspace.role) && (
+                    <DropdownMenuItem
+                      {...(!newest || !decisions.data || !parameters.data
+                        ? {
+                            disabledReason:
+                              versionRows.isError || decisions.isError || parameters.isError
+                                ? "The overlay's versions could not be loaded."
+                                : "The overlay's versions are still loading.",
+                          }
+                        : newest.id !== overlay.id
+                          ? {
+                              disabledReason: `Version ${formatNumber(newest.version)} is the overlay's newest; a next version is created from it.`,
+                            }
+                          : {})}
+                      onClick={() => void createNextVersion()}
+                    >
+                      {`Create version ${formatNumber(overlay.version + 1)}`}
+                    </DropdownMenuItem>
+                  )}
                   {canAuthor && (
                     <DropdownMenuItem variant="danger" onClick={() => void deleteOverlay()}>
-                      Delete overlay
+                      {overlay.previous_overlay_id ? "Delete draft version" : "Delete overlay"}
                     </DropdownMenuItem>
                   )}
                 </RecordActions>
@@ -206,6 +316,7 @@ function OverlayRecord({ overlayId }: { overlayId: string }) {
                       facts={[
                         ["State", <StatusBadge statuses={revisionStates} value={state} />],
                         ["Code", <Id>{overlay.code}</Id>],
+                        ["Version", formatNumber(overlay.version)],
                         [
                           "Catalog edition",
                           <QueryValue queries={editions.queries}>
@@ -248,8 +359,9 @@ function OverlayRecord({ overlayId }: { overlayId: string }) {
                 {!draft && (
                   <Alert role="note">
                     <AlertDescription>
-                      This overlay is published, and a published overlay cannot change. Create a new
-                      overlay to decide differently.
+                      {newest && newest.id !== overlay.id
+                        ? `Version ${formatNumber(overlay.version)} is published and cannot change. Version ${formatNumber(newest.version)} is the overlay's newest.`
+                        : `Version ${formatNumber(overlay.version)} is published and cannot change. Create version ${formatNumber(overlay.version + 1)} to decide differently.`}
                     </AlertDescription>
                   </Alert>
                 )}
@@ -284,5 +396,49 @@ function OverlayRecord({ overlayId }: { overlayId: string }) {
       </QueryState>
       {confirmation}
     </Page>
+  );
+}
+
+/**
+ * The version every part of the page reads, as the header's version menu: its trigger names the
+ * version, and the menu lists every version of the overlay, newest first, with its state, the shown
+ * one marked. Choosing one opens it in place of this one, as a library record's version does.
+ */
+function VersionMenu({
+  versions,
+  current,
+  onVersion,
+}: {
+  versions: readonly Pick<Row<"control_overlays">, "id" | "version" | "state">[];
+  current: string;
+  onVersion: (id: string) => void;
+}) {
+  const { formatNumber } = useLedgerLocale();
+  const shown = versions.find((version) => version.id === current);
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={
+          <Button
+            iconAfter={<ChevronDown />}
+          >{`Version ${formatNumber(shown?.version ?? 1)}`}</Button>
+        }
+      />
+      <DropdownMenuContent align="end">
+        <DropdownMenuGroup>
+          <DropdownMenuLabel>Overlay versions</DropdownMenuLabel>
+          <DropdownMenuRadioGroup
+            value={current}
+            onValueChange={(value: string) => onVersion(value)}
+          >
+            {versions.map((version) => (
+              <DropdownMenuRadioItem key={version.id} value={version.id} closeOnClick>
+                {formatNumber(version.version)} · {statusLabel(revisionStates, version.state)}
+              </DropdownMenuRadioItem>
+            ))}
+          </DropdownMenuRadioGroup>
+        </DropdownMenuGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

@@ -16191,11 +16191,13 @@ There is no zebra striping: the hairline and the row's hover carry the eye acros
 
 Rows are `dimension.row` 40px, and the header `dimension.row.header` 32px. A table's `density` sets its own rows: `compact` resolves them to `dimension.row.compact` 36px, for a picker's table by design or a register the reader has set so. It is a table's setting, never the document's, so two tables on a page each keep their own; a DataTable offers the reader Compact rows in its Columns menu. See [Density](?path=/docs/components-density--docs).
 
-Column widths are content. `width` in pixels on the header fixes a column (on the cells, in a table with no header row); one column takes the slack. `minWidth` gives a column a floor instead: give the name column one, 180 to 220, so in a narrow frame the table scrolls sideways under the pinned columns rather than squeezing the name to a sliver. The frame scrolls sideways when the columns are wider than the page, and a pinned column keeps its place.
+Column widths are content. `width` in pixels on the header fixes a column (on the cells, in a table with no header row); one column takes the slack. `minWidth` gives a column a floor instead: give the name column one, 180 to 220, so in a narrow frame the table scrolls sideways under the pinned columns rather than squeezing the name to a sliver. The frame scrolls sideways when the columns are wider than the page, and a pinned column keeps its place, while the pinned columns leave the middle room to scroll: where they would take more than 60% of the frame, as in a panel or on a phone, they give way from the middle outward, the end band first, as a DataTable's do. A column that gives way is drawn in the scrolling middle, every cell of it alike, the column that comes to touch the middle draws the edge, and the checkbox column, or any pinned column as narrow, never gives way. The pins return as the frame widens. The Table measures its frame for this, so a cell's `pinned` and `offset` stay what the column asks for.
 
 _Example: story `Stories.FrameStory`._
 
 _Example: story `Stories.RegisterPhone`._
+
+_Example: story `Stories.PinsInANarrowFrame`._
 
 ## States
 

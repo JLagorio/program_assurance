@@ -43,25 +43,42 @@ update public.oscal_document_revisions set state = 'published', published_at = n
 update public.catalog_revisions set state = 'published' where id = 'fa400000-0000-0000-0000-000000000001';
 
 -- A vocabulary and the controls that support it, read against the first edition; a second
--- framework whose links name the first one's items.
+-- framework whose links name the first one's items, and a third that does too, as Appendices F and
+-- G of NIST SP 800-160 Vol. 2 both name the cyber resiliency approaches.
 insert into public.frameworks(id, source_id, code, title) values
   ('fb000000-0000-0000-0000-000000000001', 'fa000000-0000-0000-0000-000000000002', 'test-resiliency', 'Test resiliency'),
-  ('fb000000-0000-0000-0000-000000000002', 'fa000000-0000-0000-0000-000000000002', 'test-attack', 'Test attack analysis');
+  ('fb000000-0000-0000-0000-000000000002', 'fa000000-0000-0000-0000-000000000002', 'test-attack', 'Test attack analysis'),
+  ('fb000000-0000-0000-0000-000000000003', 'fa000000-0000-0000-0000-000000000002', 'test-attack-ics', 'Test attack analysis for control systems');
 insert into public.framework_revisions(id, framework_id, version, title, format, content_sha256, input_sha256, catalog_revision_id, source_document) values
   ('fc000000-0000-0000-0000-000000000001', 'fb000000-0000-0000-0000-000000000001', 'Rev. 1', 'Test resiliency', 'reference-framework/1', repeat('a', 64), repeat('a', 64), 'fa400000-0000-0000-0000-000000000001', '{"title":"Test source"}'),
-  ('fc000000-0000-0000-0000-000000000002', 'fb000000-0000-0000-0000-000000000002', 'Rev. 1', 'Test attack analysis', 'reference-framework/1', repeat('b', 64), repeat('b', 64), 'fa400000-0000-0000-0000-000000000001', '{"title":"Test source"}');
+  ('fc000000-0000-0000-0000-000000000002', 'fb000000-0000-0000-0000-000000000002', 'Rev. 1', 'Test attack analysis', 'reference-framework/1', repeat('b', 64), repeat('b', 64), 'fa400000-0000-0000-0000-000000000001', '{"title":"Test source"}'),
+  ('fc000000-0000-0000-0000-000000000005', 'fb000000-0000-0000-0000-000000000003', 'Rev. 1', 'Test attack analysis for control systems', 'reference-framework/1', repeat('5', 64), repeat('5', 64), 'fa400000-0000-0000-0000-000000000001', '{"title":"Test source"}');
 -- A child may be written in the same statement as its parent, in either order.
 insert into public.framework_items(id, framework_revision_id, parent_item_id, kind, code, title, ordinal, printed_in) values
   ('fd000000-0000-0000-0000-000000000002', 'fc000000-0000-0000-0000-000000000001', 'fd000000-0000-0000-0000-000000000001', 'approach', 'approach.dynamic-privileges', 'Dynamic Privileges', 1, 'Table 1'),
   ('fd000000-0000-0000-0000-000000000001', 'fc000000-0000-0000-0000-000000000001', null, 'technique', 'technique.privilege-restriction', 'Privilege Restriction', 1, 'Table 1'),
   ('fd000000-0000-0000-0000-000000000003', 'fc000000-0000-0000-0000-000000000001', null, 'objective', 'objective.constrain', 'Constrain', 1, 'Table 1'),
-  ('fd000000-0000-0000-0000-000000000011', 'fc000000-0000-0000-0000-000000000002', null, 'attack-technique', 'T1595', 'Active Scanning', 1, 'Table 2');
+  ('fd000000-0000-0000-0000-000000000011', 'fc000000-0000-0000-0000-000000000002', null, 'attack-technique', 'T1595', 'Active Scanning', 1, 'Table 2'),
+  -- A layer an approach can be used at, as Table D-5 names them: an item no table defines.
+  ('fd000000-0000-0000-0000-000000000004', 'fc000000-0000-0000-0000-000000000001', null, 'architectural-layer', 'layer.operations', 'Operations', 1, 'Table D-5'),
+  -- The third framework's technique and its tactic, whose code the second framework could print too.
+  ('fd000000-0000-0000-0000-000000000051', 'fc000000-0000-0000-0000-000000000005', null, 'attack-technique', 'T0819', 'Exploit Public-Facing Application', 1, 'Table G-1'),
+  ('fd000000-0000-0000-0000-000000000052', 'fc000000-0000-0000-0000-000000000005', null, 'tactic', 'tactic.initial-access', 'Initial Access', 1, 'Table G-1');
+-- A discussion is a property beside the definition, as Tables 2 and 3 print one for an objective.
+update public.framework_items set prose = 'Limit damage from adversity.',
+  props = '{"discussion":"This objective specifically applies to critical or high-value assets."}'
+  where id = 'fd000000-0000-0000-0000-000000000003';
 insert into public.framework_item_links(id, framework_revision_id, source_item_id, target_item_id, relation, source_identifier, printed_in) values
   ('fe000000-0000-0000-0000-000000000001', 'fc000000-0000-0000-0000-000000000001', 'fd000000-0000-0000-0000-000000000001', 'fd000000-0000-0000-0000-000000000003', 'supports', 'T1:1', 'Table 1'),
-  ('fe000000-0000-0000-0000-000000000011', 'fc000000-0000-0000-0000-000000000002', 'fd000000-0000-0000-0000-000000000011', 'fd000000-0000-0000-0000-000000000002', 'affected-by', 'T2:1', 'Table 2');
+  ('fe000000-0000-0000-0000-000000000011', 'fc000000-0000-0000-0000-000000000002', 'fd000000-0000-0000-0000-000000000011', 'fd000000-0000-0000-0000-000000000002', 'affected-by', 'T2:1', 'Table 2'),
+  ('fe000000-0000-0000-0000-000000000002', 'fc000000-0000-0000-0000-000000000001', 'fd000000-0000-0000-0000-000000000002', 'fd000000-0000-0000-0000-000000000004', 'used-at', 'D-5:approach.dynamic-privileges:layer.operations', 'Table D-5'),
+  ('fe000000-0000-0000-0000-000000000051', 'fc000000-0000-0000-0000-000000000005', 'fd000000-0000-0000-0000-000000000051', 'fd000000-0000-0000-0000-000000000052', 'tactic', 'G-1:T0819', 'Table G-1'),
+  ('fe000000-0000-0000-0000-000000000052', 'fc000000-0000-0000-0000-000000000005', 'fd000000-0000-0000-0000-000000000051', 'fd000000-0000-0000-0000-000000000002', 'affected-by', 'G-1:T0819:M0926:1', 'Table G-1');
 insert into public.framework_control_links(id, framework_revision_id, item_id, control_label, control_id, catalog_revision_id, resolution_status, relation, ordinal, props, source_identifier, printed_in) values
   ('ff000000-0000-0000-0000-000000000001', 'fc000000-0000-0000-0000-000000000001', 'fd000000-0000-0000-0000-000000000002', 'AC-2(6)', 'fa500000-0000-0000-0000-000000000001', 'fa400000-0000-0000-0000-000000000001', 'resolved', 'supports', 1, '{"technique":"technique.privilege-restriction"}', 'E-1:AC-2(6):1:1', 'Table E-1'),
-  ('ff000000-0000-0000-0000-000000000011', 'fc000000-0000-0000-0000-000000000002', 'fd000000-0000-0000-0000-000000000011', 'SI-4', 'fa500000-0000-0000-0000-000000000002', 'fa400000-0000-0000-0000-000000000001', 'resolved', 'mitigates', null, '{"effects":["Detect"]}', 'F:T1595:1:SI-4', 'Table 2');
+  ('ff000000-0000-0000-0000-000000000011', 'fc000000-0000-0000-0000-000000000002', 'fd000000-0000-0000-0000-000000000011', 'SI-4', 'fa500000-0000-0000-0000-000000000002', 'fa400000-0000-0000-0000-000000000001', 'resolved', 'mitigates', null, '{"effects":["Detect"]}', 'F:T1595:1:SI-4', 'Table 2'),
+  -- A control printed in bold keeps it, as Appendix G prints a control that diverges from ATT&CK for ICS's mapping.
+  ('ff000000-0000-0000-0000-000000000051', 'fc000000-0000-0000-0000-000000000005', 'fd000000-0000-0000-0000-000000000051', 'SI-4', 'fa500000-0000-0000-0000-000000000002', 'fa400000-0000-0000-0000-000000000001', 'resolved', 'mitigates', 1, '{"tactic":"tactic.initial-access","mitigation":"M0926","effects":["Negate","Exert"],"bold":true}', 'G-1:T0819:M0926:1:SI-4', 'Table G-1');
 
 -- ---------------------------------------------------------------------------------------------
 -- What a control link must say.
@@ -99,13 +116,16 @@ select pg_temp.expect_error($$insert into public.framework_items(framework_revis
 -- ---------------------------------------------------------------------------------------------
 -- A framework's current revision is one of its own published revisions.
 select pg_temp.expect_error($$update public.frameworks set current_revision_id = 'fc000000-0000-0000-0000-000000000001' where id = 'fb000000-0000-0000-0000-000000000001'$$, '23514');
--- The attack analysis names an approach of the resiliency revision, which is still a draft.
+-- The attack analyses name an approach of the resiliency revision, which is still a draft.
 select pg_temp.expect_error($$update public.framework_revisions set state = 'published' where id = 'fc000000-0000-0000-0000-000000000002'$$, '23514');
+select pg_temp.expect_error($$update public.framework_revisions set state = 'published' where id = 'fc000000-0000-0000-0000-000000000005'$$, '23514');
 update public.framework_revisions set state = 'published' where id = 'fc000000-0000-0000-0000-000000000001';
 update public.framework_revisions set state = 'published' where id = 'fc000000-0000-0000-0000-000000000002';
+update public.framework_revisions set state = 'published' where id = 'fc000000-0000-0000-0000-000000000005';
 select pg_temp.expect_error($$update public.frameworks set current_revision_id = 'fc000000-0000-0000-0000-000000000002' where id = 'fb000000-0000-0000-0000-000000000001'$$, '23514');
 update public.frameworks set current_revision_id = 'fc000000-0000-0000-0000-000000000001' where id = 'fb000000-0000-0000-0000-000000000001';
 update public.frameworks set current_revision_id = 'fc000000-0000-0000-0000-000000000002' where id = 'fb000000-0000-0000-0000-000000000002';
+update public.frameworks set current_revision_id = 'fc000000-0000-0000-0000-000000000005' where id = 'fb000000-0000-0000-0000-000000000003';
 
 -- A published revision, its items and its links reject change, as the importer's own role too.
 select pg_temp.expect_error($$update public.framework_revisions set corrections = '[{"printed":"x"}]' where id = 'fc000000-0000-0000-0000-000000000001'$$, '23514');
@@ -144,8 +164,43 @@ begin
     or found.authority <> 'Test' or found.authoritative then
     raise exception 'framework_rows does not name the framework''s current revision and its source';
   end if;
-  if (select count(*) from public.framework_item_rows where framework_code = 'test-resiliency') <> 3 then
+  if (select count(*) from public.framework_item_rows where framework_code = 'test-resiliency') <> 4 then
     raise exception 'framework_item_rows does not list the current revision''s items';
+  end if;
+  -- A discussion stands in the item's properties beside its definition, through the view.
+  select * into found from public.framework_item_rows where framework_code = 'test-resiliency' and code = 'objective.constrain';
+  if found.prose <> 'Limit damage from adversity.'
+    or found.props->>'discussion' <> 'This objective specifically applies to critical or high-value assets.' then
+    raise exception 'framework_item_rows does not keep an item''s discussion beside its definition';
+  end if;
+  -- An approach is linked to the layers it can be used at, a relation of its own beside supports.
+  select * into found from public.framework_item_link_rows where framework_code = 'test-resiliency' and relation = 'used-at';
+  if found.source_code <> 'approach.dynamic-privileges' or found.source_kind <> 'approach'
+    or found.target_code <> 'layer.operations' or found.target_kind <> 'architectural-layer'
+    or found.target_framework_code <> 'test-resiliency' or found.printed_in <> 'Table D-5' then
+    raise exception 'framework_item_link_rows does not name an approach''s layer';
+  end if;
+  if (select count(*) from public.framework_item_link_rows where framework_code = 'test-resiliency') <> 2
+    or (select count(*) from public.framework_item_link_rows where framework_code = 'test-resiliency' and relation = 'supports') <> 1 then
+    raise exception 'framework_item_link_rows does not tell a layer link from a link of what supports what';
+  end if;
+  -- A second analysis names the same approaches: each framework's links are its own, and its
+  -- tactic is told from another framework's by the framework it belongs to.
+  select * into found from public.framework_item_link_rows where framework_code = 'test-attack-ics' and relation = 'affected-by';
+  if found.source_code <> 'T0819' or found.source_framework_code <> 'test-attack-ics'
+    or found.target_code <> 'approach.dynamic-privileges' or found.target_framework_code <> 'test-resiliency' then
+    raise exception 'framework_item_link_rows does not name a second analysis''s link to the approaches';
+  end if;
+  if (select target_framework_code from public.framework_item_link_rows where framework_code = 'test-attack-ics' and relation = 'tactic')
+      <> 'test-attack-ics'
+    or (select count(*) from public.framework_item_link_rows where framework_code in ('test-attack', 'test-attack-ics')) <> 3
+    or (select count(*) from public.framework_item_rows where framework_code in ('test-attack', 'test-attack-ics')) <> 3 then
+    raise exception 'The views do not read two analyses side by side';
+  end if;
+  select * into found from public.framework_control_link_rows where framework_code = 'test-attack-ics';
+  if found.control_code <> 'SI-4' or found.item_code <> 'T0819' or found.props->'bold' <> 'true'::jsonb
+    or found.props->'effects' <> '["Negate", "Exert"]'::jsonb or found.technique_code is not null then
+    raise exception 'framework_control_link_rows does not keep a control printed in bold';
   end if;
   select * into found from public.framework_item_rows where framework_code = 'test-resiliency' and code = 'approach.dynamic-privileges';
   if found.kind <> 'approach' or found.parent_code <> 'technique.privilege-restriction' or found.parent_kind <> 'technique'
@@ -200,7 +255,7 @@ do $$ begin
     raise exception 'framework_control_link_rows reads a link''s technique from its item''s parent, not from the group it is printed in';
   end if;
   -- The framework still names the first revision, so its items are the ones listed.
-  if (select count(*) from public.framework_item_rows where framework_code = 'test-resiliency') <> 3
+  if (select count(*) from public.framework_item_rows where framework_code = 'test-resiliency') <> 4
     or exists (select 1 from public.framework_item_rows where framework_code = 'test-resiliency' and framework_revision_id <> 'fc000000-0000-0000-0000-000000000001') then
     raise exception 'framework_item_rows left the revision its framework names as current';
   end if;
@@ -272,13 +327,13 @@ select set_config('test.tenant', public.ensure_personal_tenant()::text, true);
 do $$ begin
   if (select count(*) from public.frameworks where code in ('test-resiliency', 'test-attack')) <> 2
     or (select count(*) from public.framework_revisions where framework_id = 'fb000000-0000-0000-0000-000000000001') <> 3
-    or (select count(*) from public.framework_items where framework_revision_id = 'fc000000-0000-0000-0000-000000000001') <> 3
+    or (select count(*) from public.framework_items where framework_revision_id = 'fc000000-0000-0000-0000-000000000001') <> 4
     or (select count(*) from public.framework_item_links where framework_revision_id = 'fc000000-0000-0000-0000-000000000002') <> 1
     or (select count(*) from public.framework_control_links where framework_revision_id = 'fc000000-0000-0000-0000-000000000001') <> 1 then
     raise exception 'A member cannot read the shared framework tables';
   end if;
   if (select count(*) from public.framework_rows where code in ('test-resiliency', 'test-attack')) <> 2
-    or (select count(*) from public.framework_item_rows where framework_code = 'test-resiliency') <> 3
+    or (select count(*) from public.framework_item_rows where framework_code = 'test-resiliency') <> 4
     or (select count(*) from public.framework_item_link_rows where framework_code = 'test-attack') <> 1
     or (select count(*) from public.framework_control_link_rows where framework_code = 'test-attack' and control_code = 'SI-4') <> 1 then
     raise exception 'A member cannot read the shared frameworks through the views';
@@ -352,7 +407,7 @@ do $$ begin
     or exists (select 1 from public.framework_item_rows where framework_code = 'test-workspace-framework') then
     raise exception 'A member of another workspace read a workspace''s framework';
   end if;
-  if (select count(*) from public.framework_item_rows where framework_code = 'test-resiliency') <> 3 then
+  if (select count(*) from public.framework_item_rows where framework_code = 'test-resiliency') <> 4 then
     raise exception 'A member of another workspace cannot read the shared frameworks';
   end if;
 end $$;

@@ -7,8 +7,13 @@ import {
   type TileMapLayout,
   type TileMapMark,
 } from "@ledger/design-system";
-import type { ProgramBaseline } from "@/lib/baseline-reads";
-import { controlStanding, type ControlStanding, type StackStep } from "@/lib/baseline-stack";
+import type { BaselineControl } from "@/lib/baseline-reads";
+import {
+  controlStanding,
+  type BaselineDerivation,
+  type ControlStanding,
+  type StackStep,
+} from "@/lib/baseline-stack";
 import type { Row } from "@/lib/models";
 import { baselineControlStatuses } from "@/lib/status";
 
@@ -44,6 +49,21 @@ const setBack = {
   fill: "empty",
 } as const satisfies Pick<TileMapMark, "tone" | "fill">;
 
+/**
+ * What the map draws of a control baseline: the catalog's controls by id and the layers that name
+ * what added or removed each, a saved program baseline's or a draft's in program setup.
+ */
+export type MapBaseline = {
+  controls: ReadonlyMap<
+    string,
+    Pick<
+      BaselineControl,
+      "id" | "code" | "title" | "source_id" | "group_id" | "parent_control_id" | "status"
+    >
+  >;
+  derivation: Pick<BaselineDerivation, "layers">;
+};
+
 /** A resiliency technique the map is read by: its name, and the controls that support it. */
 export type BaselineMapTechnique = {
   title: string;
@@ -64,7 +84,7 @@ export function BaselineMap({
   technique,
   onSelectFamily,
 }: {
-  baseline: ProgramBaseline;
+  baseline: MapBaseline;
   /** The catalog's families. */
   groups: readonly BaselineFamily[];
   /** The stack after the layers the reader chose. */

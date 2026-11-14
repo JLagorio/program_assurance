@@ -66,6 +66,7 @@ import { ProgramSystemsTree } from "./program-systems-tree";
 import { ProgramLibrary } from "./program-library";
 import { ProgramControlStatusView } from "./program-control-status";
 import { ProgramControlStatusTray, ProgramOpenWork } from "./program-overview";
+import { ProgramControlStatusTrend } from "./control-status-trend";
 import { ProgramProductDeltaTrays, ProgramProductDeltaView } from "./product-delta";
 import { ProgramComplianceView, ProgramRequirementsTrays } from "./compliance-matrix";
 import { ProgramTimeline } from "./program-timeline";
@@ -285,6 +286,7 @@ export function ProgramWorkspace({
                 tabLink={tabLink}
               />
               <ProgramControlStatusTray programId={programId} programName={program.name} />
+              <ProgramControlStatusTrend programId={programId} />
               <ProgramProductDeltaTrays programId={programId} />
               <ProgramRequirementsTrays programId={programId} />
               <ProgramQueryState queries={[gates]}>
@@ -461,8 +463,10 @@ export function ProgramWorkspace({
                 { key: "title", title: "Operational issue" },
                 { key: "status", title: "Status" },
                 { key: "severity", title: "Severity" },
+                { key: "owner_party_id", title: "Owner", kind: "person" },
                 { key: "opened_at", title: "Opened" },
               ]}
+              assignOwner
             />
             <ObservationsRegister programId={programId} />
           </>
@@ -1004,6 +1008,7 @@ function ProgramPoamsAndRisks({ programId }: { programId: string }) {
     return [
       { key: "title", title: "Risk" },
       { key: "status", title: "Status" },
+      { key: "owner_party_id", title: "Owner", kind: "person" },
       {
         key: programRiskTechniquesColumn,
         title: "ATT&CK techniques",
@@ -1037,10 +1042,12 @@ function ProgramPoamsAndRisks({ programId }: { programId: string }) {
           columns={[
             { key: "title", title: "Item" },
             { key: "status", title: "Status" },
+            { key: "owner_party_id", title: "Owner", kind: "person" },
             { key: "updated_at", title: "Updated" },
           ]}
           canCreate={ids.size > 0}
           prerequisite="Remediation items belong to a POA&M plan. Create a POA&M plan first."
+          assignOwner
         />
       )}
       <ProgramCollection
@@ -1051,6 +1058,7 @@ function ProgramPoamsAndRisks({ programId }: { programId: string }) {
         filters={{ program_id: programId }}
         columns={riskColumns}
         queries={threats.queries}
+        assignOwner
       />
     </Stack>
   );

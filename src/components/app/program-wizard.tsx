@@ -131,11 +131,19 @@ export function ProgramWizard() {
   const overlayLayers = useRows("profile_overlay_applications", undefined, {
     columns: ["profile_resolution_id"],
   });
+  // So is the layer that combines a second baseline with a first: the same comes from Combine with.
+  const combinedLayers = useRows("profile_baseline_combinations", undefined, {
+    columns: ["profile_resolution_id"],
+  });
   const options = useMemo(() => {
     const all = catalogProfileOptions(resources.data);
-    const layers = new Set((overlayLayers.data ?? []).map((row) => row.profile_resolution_id));
+    const layers = new Set(
+      [...(overlayLayers.data ?? []), ...(combinedLayers.data ?? [])].map(
+        (row) => row.profile_resolution_id,
+      ),
+    );
     return { ...all, profiles: all.profiles.filter((profile) => !layers.has(profile.id)) };
-  }, [resources.data, overlayLayers.data]);
+  }, [resources.data, overlayLayers.data, combinedLayers.data]);
   const published = usePublishedOverlays();
   // Each program profile's draft stack: its base with its overlays applied in order, in the
   // shape the saved chain will have, so the tailoring and every count read the stacked baseline.
@@ -152,6 +160,7 @@ export function ProgramWizard() {
               (id) => published.overlays.find((overlay) => overlay.id === id) ?? [],
             ),
             profile.key,
+            profile.combinedResolutionId ?? null,
           ),
         ]),
       ),

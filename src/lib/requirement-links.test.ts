@@ -2,8 +2,12 @@ import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@/components/app/workspace", () => ({ useWorkspace: () => ({}) }));
 
-const { allocateRequirement, allocateRequirementsToSystem, removeRequirementLink } =
-  await import("./requirement-links");
+const {
+  allocateRequirement,
+  allocateRequirementsToSystem,
+  mapRequirementsToControl,
+  removeRequirementLink,
+} = await import("./requirement-links");
 
 type Result = { data: unknown; error: { code?: string; message: string } | null };
 type Call = { table: string; steps: [string, unknown[]][] };
@@ -379,5 +383,170 @@ describe("allocating many requirements to one system", () => {
     await expect(
       allocateRequirementsToSystem(client, context, { ...request, targets: [] }),
     ).rejects.toThrow("Choose a requirement.");
+  });
+});
+
+describe("mapping many requirements to one control", () => {
+  const targets = Array.from({ length: 140 }, (_, index) => ({
+    id: id(2000 + index),
+    requirementRevisionId: id(6000 + index),
+    systemId: id(31),
+    selectedControlId: id(41),
+  }));
+  const request = {
+    controlId: id(40),
+    relationship: "maps_to" as const,
+    rationale: "  Meets the separation the control asks for  ",
+    targets,
+  };
+  const recorded = (target: (typeof targets)[number], changes: Record<string, unknown> = {}) => ({
+    id: target.id,
+    requirement_revision_id: target.requirementRevisionId,
+    control_id: id(40),
+    control_part_id: null,
+    system_id: id(31),
+    selected_control_id: id(41),
+    relationship_type: "maps_to",
+    rationale: "Meets the separation the control asks for",
+    ...changes,
+  });
+
+  it("writes every chosen requirement in one insert on a first attempt, the whole control each", async () => {
+    const { client, calls } = fakeClient([{ data: null, error: null }]);
+    await expect(mapRequirementsToControl(client, context, request)).resolves.toEqual({
+      mappingIds: targets.map((target) => target.id),
+      created: 140,
+    });
+    expect(calls).toHaveLength(1);
+    expect(calls[0]!.table).toBe("requirement_control_links");
+    const rows = calls[0]!.steps.find(([name]) => name === "insert")?.[1][0] as unknown[];
+    expect(rows).toHaveLength(140);
+    expect(rows[0]).toEqual({ ...recorded(targets[0]!), tenant_id: tenantId });
+  });
+
+  it("on a retry, looks up its ids a hundred at a time and inserts only the rest", async () => {
+    const { client, calls } = fakeClient([
+      { data: targets.slice(0, 100).map((target) => recorded(target)), error: null },
+      { data: targets.slice(100, 110).map((target) => recorded(target)), error: null },
+      { data: null, error: null },
+    ]);
+    await expect(
+      mapRequirementsToControl(client, context, { ...request, retry: true }),
+    ).resolves.toMatchObject({ created: 30 });
+    const lookups = calls.filter((call) => steps(call)?.includes("in"));
+    expect(lookups).toHaveLength(2);
+    const rows = calls.at(-1)!.steps.find(([name]) => name === "insert")?.[1][0] as {
+      id: string;
+    }[];
+    expect(rows.map((row) => row.id)).toEqual(targets.slice(110).map((target) => target.id));
+  });
+
+  it("writes nothing on a retry that finds every mapping already recorded", async () => {
+    const one = targets.slice(0, 1);
+    const { client, calls } = fakeClient([{ data: [recorded(one[0]!)], error: null }]);
+    await expect(
+      mapRequirementsToControl(client, context, { ...request, targets: one, retry: true }),
+    ).resolves.toMatchObject({ created: 0 });
+    expect(calls.some((call) => steps(call)?.includes("insert"))).toBe(false);
+  });
+
+  it("refuses a retry when one of its rows now says something else", async () => {
+    for (const changes of [
+      { relationship_type: "satisfies" },
+      { rationale: "Another reason" },
+      { system_id: id(99) },
+      { control_part_id: id(98) },
+    ]) {
+      const { client } = fakeClient([{ data: [recorded(targets[0]!, changes)], error: null }]);
+      await expect(
+        mapRequirementsToControl(client, context, {
+          ...request,
+          targets: targets.slice(0, 1),
+          retry: true,
+        }),
+        JSON.stringify(changes),
+      ).rejects.toThrow("A control mapping changed after this attempt");
+    }
+  });
+
+  it("maps one requirement on each of its systems in the same insert, and a retry adds the missing one", async () => {
+    const onBoth = [
+      {
+        id: id(3000),
+        requirementRevisionId: id(7000),
+        systemId: id(31),
+        selectedControlId: id(41),
+      },
+      {
+        id: id(3001),
+        requirementRevisionId: id(7000),
+        systemId: id(32),
+        selectedControlId: id(42),
+      },
+    ];
+    const first = fakeClient([{ data: null, error: null }]);
+    await mapRequirementsToControl(first.client, context, { ...request, targets: onBoth });
+    const rows = first.calls[0]!.steps.find(([name]) => name === "insert")?.[1][0] as {
+      requirement_revision_id: string;
+      system_id: string;
+      selected_control_id: string;
+    }[];
+    expect(
+      rows.map((row) => [row.requirement_revision_id, row.system_id, row.selected_control_id]),
+    ).toEqual([
+      [id(7000), id(31), id(41)],
+      [id(7000), id(32), id(42)],
+    ]);
+    // The first system's row landed before its answer was lost: the retry inserts the second alone.
+    const landed = { ...recorded(onBoth[0]!), requirement_revision_id: id(7000) };
+    const retry = fakeClient([
+      { data: [landed], error: null },
+      { data: null, error: null },
+    ]);
+    await expect(
+      mapRequirementsToControl(retry.client, context, { ...request, targets: onBoth, retry: true }),
+    ).resolves.toMatchObject({ created: 1 });
+    const inserted = retry.calls.at(-1)!.steps.find(([name]) => name === "insert")?.[1][0] as {
+      id: string;
+      system_id: string;
+    }[];
+    expect(inserted.map((row) => [row.id, row.system_id])).toEqual([[id(3001), id(32)]]);
+  });
+
+  it("says another session mapped one of them when the insert meets a duplicate", async () => {
+    const { client } = fakeClient([
+      { data: null, error: { code: "23505", message: "duplicate key value" } },
+    ]);
+    await expect(mapRequirementsToControl(client, context, request)).rejects.toThrow(
+      "mapped to this control in another session",
+    );
+  });
+
+  it("passes on the schema's words when a requirement cannot map the control", async () => {
+    const { client } = fakeClient([
+      {
+        data: null,
+        error: {
+          code: "23514",
+          message: "Allocate the requirement to this system before mapping its controls",
+        },
+      },
+    ]);
+    await expect(mapRequirementsToControl(client, context, request)).rejects.toThrow(
+      "Allocate the requirement to this system before mapping its controls.",
+    );
+  });
+
+  it("needs at least one requirement and a relationship it knows", async () => {
+    const { client } = fakeClient([]);
+    await expect(
+      mapRequirementsToControl(client, context, { ...request, targets: [] }),
+    ).rejects.toThrow("Choose a requirement.");
+    await expect(
+      mapRequirementsToControl(client, context, {
+        ...request,
+        relationship: "implements" as never,
+      }),
+    ).rejects.toThrow();
   });
 });

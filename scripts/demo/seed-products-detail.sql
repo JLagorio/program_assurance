@@ -344,11 +344,18 @@ declare
   v_source uuid; v_requirement uuid; v_ssp public.ssp_revisions; v_target uuid; v_count bigint; v_n integer; v_m integer;
   v_campaign uuid; v_plan_rev uuid; v_event uuid; v_baseline uuid; v_thread jsonb; v_status text; v_doc uuid; v_doc_version uuid;
   v_procedures jsonb; v_boundaries jsonb := '{}'; v_variants jsonb := '{}'; v_prefixes jsonb := '{}';
-  v_job uuid; v_batch uuid; v_tables jsonb; v_updated jsonb; v_read jsonb := '{}'; v_skipped jsonb := '[]';
+  v_job uuid; v_batch uuid; v_tables jsonb; v_updated jsonb; v_read jsonb := '{}'; v_skipped jsonb := '[]'; v_review jsonb;
 begin
   perform pg_advisory_xact_lock(hashtextextended(t::text || '/demo-product-detail', 0));
-  if exists (select 1 from public.demo_import_batches where tenant_id = t and dataset_id = p->>'detailDatasetId') then
-    return jsonb_build_object('changed', false, 'reason', 'This workspace already holds the records one click down.');
+  select id into v_batch from public.demo_import_batches where tenant_id = t and dataset_id = p->>'detailDatasetId';
+  if v_batch is not null then
+    -- A workspace that holds the records one click down is given only what waits on a reviewer, if
+    -- it lacks it, under the same batch.
+    v_review := pg_temp.seed_product_review(p, v_batch);
+    if not (v_review->>'changed')::boolean then
+      return jsonb_build_object('changed', false, 'reason', 'This workspace already holds the records one click down.');
+    end if;
+    return jsonb_build_object('changed', true, 'records', (v_review->>'records')::integer, 'review', v_review);
   end if;
   if not exists (select 1 from public.demo_import_batches where tenant_id = t and dataset_id = p->>'workDatasetId') then
     raise exception 'This workspace does not hold the programs'' work, which this step fills in.';
@@ -1187,15 +1194,153 @@ begin
   from pg_temp.product_detail_tracked k
   join public.demo_import_sources x on x.tenant_id = t and x.import_batch_id = v_batch and x.source_pointer = '/' || split_part(k.section, '/ssp/', 1)
   order by k.destination_table, k.destination_id, k.source_key;
+  v_review := pg_temp.seed_product_review(p, v_batch);
 
   return jsonb_build_object(
     'changed', true,
-    'tables', v_tables,
+    'tables', (select summary->'tables' from public.demo_import_batches where id = v_batch),
     'updated', v_updated,
     'records', (select count(*) from public.demo_import_records where tenant_id = t and import_batch_id = v_batch),
     'read', v_read,
-    'skipped', v_skipped
+    'skipped', v_skipped,
+    'review', v_review
   );
+end;
+$seed$;
+
+-- What waits on a reviewer (products-detail-scenario.mjs, reviewQueue), written after the records
+-- one click down under the same batch. The G40 judged against a second baseline is left a draft
+-- holding the determinations its assessor has recorded through the command as the account. Customer
+-- B's package is with the customer for a decision: it holds the published SSP and delta assessment
+-- plan the program's draft package holds, is published and submitted by its owner and reviewed by
+-- the program's assessor, as the showcase's submitted packages are, and carries no authorization
+-- decision. Each is written once: a workspace that holds it is left as it is, and one whose fifth
+-- step ran before it is given it, its days counted from the as-of day the batch recorded.
+create function pg_temp.seed_product_review(p jsonb, p_batch uuid) returns jsonb language plpgsql as $seed$
+declare
+  t uuid := (p->>'tenantId')::uuid;
+  rq jsonb := p->'reviewQueue';
+  v_source uuid := pg_temp.did(t, 'demo_import_sources/reviewQueue');
+  v_hash text := encode(extensions.digest(rq::text, 'sha256'), 'hex');
+  v_days jsonb; v_item jsonb; v_entry jsonb; v_key text; v_n integer;
+  v_revision public.product_revisions; v_resolution uuid; v_catalog uuid; v_assessment uuid; v_element uuid; v_controls uuid[];
+  v_assessor uuid; v_program uuid; v_held public.authorization_packages; v_ssp uuid; v_plan uuid;
+  v_package uuid; v_package_rev uuid; v_owner uuid; v_reviewer uuid; v_id uuid;
+  v_written jsonb := '{}'; v_tracked jsonb := '[]';
+begin
+  select jsonb_build_object('asOf', coalesce(source_manifest->>'asOf', p->>'asOf')) into v_days
+    from public.demo_import_batches where id = p_batch;
+
+  -- The G40 against a second baseline, a draft holding what its assessor has judged so far.
+  v_item := rq->'productAssessment';
+  v_key := 'reviewQueue/product_assessments/' || (v_item->>'product') || '/' || (v_item->>'version') || '/' || (v_item->>'baseline');
+  v_assessment := pg_temp.did(t, v_key);
+  if not exists (select 1 from public.product_assessments where id = v_assessment) then
+    select r.* into v_revision from public.product_revisions r join public.products x on x.id = r.product_id
+      where x.tenant_id = t and x.code = v_item->>'product' and r.version_number = (v_item->>'version')::integer;
+    if v_revision.id is null or v_revision.state <> 'published' then
+      raise exception '% version % is not published in this workspace.', v_item->>'product', v_item->>'version';
+    end if;
+    select b.resolution_id, b.catalog_revision_id into v_resolution, v_catalog from pg_temp.reference_baseline(v_item->>'baseline') b;
+    select id into v_assessor from public.parties where tenant_id = t and name = v_item->>'assessor' order by id limit 1;
+    if v_assessor is null then raise exception 'Person "%" is not in this workspace.', v_item->>'assessor'; end if;
+    perform pg_temp.as_account(p);
+    insert into public.product_assessments (id, tenant_id, product_revision_id, profile_resolution_id, title, description, assessor_party_id, started_on)
+      values (v_assessment, t, v_revision.id, v_resolution, v_item->>'title', v_item->>'description', v_assessor,
+        pg_temp.wday(v_days, (v_item->>'startedOn')::integer));
+    for v_entry in select value from jsonb_array_elements(v_item->'determinations') loop
+      v_element := null;
+      if v_entry->>0 is not null then
+        select e.id into v_element from public.product_elements e
+          where e.tenant_id = t and e.product_revision_id = v_revision.id and e.code = v_entry->>0;
+        if v_element is null then
+          raise exception '% version % holds no element %.', v_item->>'product', v_item->>'version', v_entry->>0;
+        end if;
+      end if;
+      select array_agg(k.id) into v_controls from public.controls k
+        where k.catalog_revision_id = v_catalog and k.code in (select jsonb_array_elements_text(v_entry->1));
+      if coalesce(cardinality(v_controls), 0) <> jsonb_array_length(v_entry->1) then
+        raise exception 'A control of % is not in the catalog of the %.', v_entry->1, v_item->>'baseline';
+      end if;
+      perform public.record_product_determinations(t, v_assessment, v_element, v_controls, v_entry->>2, v_entry->>3);
+    end loop;
+    perform pg_temp.as_seed();
+    select count(*) into v_n from public.product_determinations where tenant_id = t and product_assessment_id = v_assessment;
+    v_tracked := v_tracked || jsonb_build_array(jsonb_build_array('product_assessments', v_assessment, v_key))
+      || coalesce((select jsonb_agg(jsonb_build_array('product_determinations', d.id, 'product_determinations/' || d.id))
+        from public.product_determinations d where d.tenant_id = t and d.product_assessment_id = v_assessment), '[]'::jsonb);
+    v_written := v_written || jsonb_build_object('productAssessment',
+      jsonb_build_object('title', v_item->>'title', 'determinations', v_n));
+  end if;
+
+  -- Customer B's package, with the customer for a decision.
+  v_item := rq->'package';
+  v_key := 'reviewQueue/authorization_packages/' || (v_item->>'program') || '/' || (v_item->>'key');
+  v_package := pg_temp.did(t, v_key);
+  if not exists (select 1 from public.authorization_packages where id = v_package) then
+    select id into v_program from public.programs where tenant_id = t and code = v_item->>'program';
+    -- The program's draft package: the boundary it is for and the published documents it holds.
+    select ap.* into v_held from public.authorization_packages ap
+      where ap.tenant_id = t and ap.program_id = v_program and ap.id <> v_package order by ap.created_at, ap.id limit 1;
+    select d.ssp_revision_id into v_ssp from public.package_documents d join public.package_revisions r on r.id = d.package_revision_id
+      where r.tenant_id = t and r.package_id = v_held.id and d.ssp_revision_id is not null order by r.version_number desc limit 1;
+    select d.assessment_plan_revision_id into v_plan from public.package_documents d join public.package_revisions r on r.id = d.package_revision_id
+      where r.tenant_id = t and r.package_id = v_held.id and d.assessment_plan_revision_id is not null order by r.version_number desc limit 1;
+    if v_held.id is null or (v_item->'documents' ? 'ssp' and v_ssp is null) or (v_item->'documents' ? 'plan' and v_plan is null) then
+      raise exception '% holds no package with its published SSP and delta assessment plan. The fourth step writes it.', v_item->>'program';
+    end if;
+    select id into v_owner from public.parties where tenant_id = t and name = v_item->>'owner' order by id limit 1;
+    select id into v_reviewer from public.parties where tenant_id = t and name = v_item->'review'->>0 order by id limit 1;
+    if v_owner is null or v_reviewer is null then
+      raise exception '"%" or "%" is not in this workspace.', v_item->>'owner', v_item->'review'->>0;
+    end if;
+    insert into public.authorization_packages (id, tenant_id, program_id, system_id, title, owner_party_id)
+      values (v_package, t, v_program, v_held.system_id, v_item->>'title', v_owner);
+    v_package_rev := pg_temp.did(t, v_key || '/package_revisions/1');
+    insert into public.package_revisions (id, tenant_id, version_number, state, package_id, description, submitted_at)
+      values (v_package_rev, t, 1, 'draft', v_package, v_item->>'description', pg_temp.wtime(v_days, (v_item->>'submitted')::integer, 15));
+    v_tracked := v_tracked || jsonb_build_array(jsonb_build_array('authorization_packages', v_package, v_key),
+      jsonb_build_array('package_revisions', v_package_rev, v_key || '/package_revisions/1'));
+    if v_item->'documents' ? 'ssp' then
+      v_id := pg_temp.did(t, v_key || '/package_documents/ssp');
+      insert into public.package_documents (id, tenant_id, package_revision_id, title, ssp_revision_id)
+        values (v_id, t, v_package_rev, 'System security plan', v_ssp);
+      v_tracked := v_tracked || jsonb_build_array(jsonb_build_array('package_documents', v_id, v_key || '/package_documents/ssp'));
+    end if;
+    if v_item->'documents' ? 'plan' then
+      v_id := pg_temp.did(t, v_key || '/package_documents/plan');
+      insert into public.package_documents (id, tenant_id, package_revision_id, title, assessment_plan_revision_id)
+        values (v_id, t, v_package_rev, 'Delta assessment plan', v_plan);
+      v_tracked := v_tracked || jsonb_build_array(jsonb_build_array('package_documents', v_id, v_key || '/package_documents/plan'));
+    end if;
+    update public.package_revisions set state = 'published', published_by_party_id = v_owner,
+        published_at = pg_temp.wtime(v_days, (v_item->>'submitted')::integer, 16)
+      where id = v_package_rev;
+    v_id := pg_temp.did(t, v_key || '/review_decisions/1');
+    insert into public.review_decisions (id, tenant_id, package_revision_id, reviewer_party_id, decision, rationale, decided_at)
+      values (v_id, t, v_package_rev, v_reviewer, v_item->'review'->>1, v_item->'review'->>2,
+        pg_temp.wtime(v_days, (v_item->'review'->>3)::integer, 15));
+    v_tracked := v_tracked || jsonb_build_array(jsonb_build_array('review_decisions', v_id, v_key || '/review_decisions/1'));
+    v_written := v_written || jsonb_build_object('package', jsonb_build_object('title', v_item->>'title',
+      'submittedAt', pg_temp.wtime(v_days, (v_item->>'submitted')::integer, 15)));
+  end if;
+
+  if jsonb_array_length(v_tracked) > 0 then
+    insert into public.demo_import_sources (id, tenant_id, import_batch_id, source_pointer, source_sha256, source_record)
+      values (v_source, t, p_batch, '/reviewQueue', v_hash, rq)
+      on conflict (id) do nothing;
+    insert into public.demo_import_records (id, tenant_id, import_batch_id, dataset_id, destination_table, destination_id, source_key, source_pointer, source_sha256, source_record_id, mapped_values)
+    select pg_temp.did(t, 'demo_import_records/' || (x->>0) || '/' || (x->>1)), t, p_batch, p->>'detailDatasetId',
+      x->>0, (x->>1)::uuid, x->>2, '/reviewQueue', v_hash, v_source, jsonb_build_object('section', 'reviewQueue')
+    from jsonb_array_elements(v_tracked) x;
+    update public.demo_import_batches set summary = summary || jsonb_build_object(
+        'reviewQueue', coalesce(summary->'reviewQueue', '{}'::jsonb) || v_written,
+        'tables', (select jsonb_object_agg(destination_table, n) from (select destination_table, count(*) as n
+          from public.demo_import_records where tenant_id = t and import_batch_id = p_batch group by destination_table) c))
+      where id = p_batch;
+  end if;
+  return jsonb_build_object('changed', jsonb_array_length(v_tracked) > 0, 'written', v_written,
+    'records', jsonb_array_length(v_tracked));
 end;
 $seed$;
 

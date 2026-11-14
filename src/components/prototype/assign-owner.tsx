@@ -21,6 +21,20 @@ const chosenIds = (selection: Record<string, boolean>) =>
   Object.keys(selection).filter((id) => selection[id]);
 
 /**
+ * The Owner filter's values: every person and organization by name, then No owner with how many
+ * records of the whole collection nobody owns (no count while it is not known).
+ */
+export function ownerFilterOptions(
+  names: readonly string[],
+  unowned: number | undefined,
+): FilterOption[] {
+  return [
+    ...[...new Set(names)].sort((a, b) => a.localeCompare(b)).map((value) => ({ value })),
+    { value: NO_OWNER, ...(unowned === undefined ? {} : { count: unowned }) },
+  ];
+}
+
+/**
  * The Owner filter's values on a server-paged register: every person and organization by name,
  * since one page's rows are not every owner there is, then No owner with how many records of the
  * whole register nobody owns. `column` is the Owner column's id in the register's table.
@@ -33,12 +47,11 @@ export function useOwnerOptions(read: ServerRead, column = "owner_party_id"): Fi
   );
   const count = useServerPresetCounts(read, unowned)["none"];
   return useMemo(
-    () => [
-      ...[...new Set((parties.data ?? []).map((party) => party.name))]
-        .sort((a, b) => a.localeCompare(b))
-        .map((value) => ({ value })),
-      { value: NO_OWNER, ...(count === undefined ? {} : { count }) },
-    ],
+    () =>
+      ownerFilterOptions(
+        (parties.data ?? []).map((party) => party.name),
+        count,
+      ),
     [parties.data, count],
   );
 }
@@ -60,10 +73,13 @@ function selectAllOf(from: HTMLElement | null): HTMLElement | null {
  * Assign owner, the verb a register offers while rows are chosen. Hand `selection` to
  * ProductCollection, which draws it in the selection bar, and render `dialog` beside the
  * collection: the Dialog outlives the bar, which goes once the owner is assigned and the
- * selection cleared. Give the table `selectable` only for a reader who may edit.
+ * selection cleared. Give the table `selectable` only for a reader who may edit. With no
+ * `collection` (a collection that assigns no owner) both are empty.
  *
  * A server-paged register passes `result`, its whole-result read: once the page is chosen and the
  * register holds more, the bar offers every record the question finds as a second, explicit step.
+ * A register whose rows cannot all take an owner (a requirement with no details) leaves those out
+ * of what its `result` answers, as its `selectable` leaves them out of the page.
  */
 export function useOwnerAssignment<T extends { id: string }>({
   table,
@@ -72,7 +88,7 @@ export function useOwnerAssignment<T extends { id: string }>({
   result,
 }: {
   table: DataTableInstance<T>;
-  collection: OwnedCollection;
+  collection: OwnedCollection | undefined;
   noun: Noun;
   result?: ((question: ServerResultQuestion) => Promise<readonly unknown[]>) | undefined;
 }): { selection: ReactNode; dialog: ReactNode } {
@@ -111,6 +127,7 @@ export function useOwnerAssignment<T extends { id: string }>({
       )
       .finally(() => setReading(false));
   };
+  if (!collection) return { selection: null, dialog: null };
   const selection = (
     <>
       {offerAll ? (

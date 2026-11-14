@@ -293,6 +293,42 @@ describe("deriveSavedBaseline", () => {
     tailoringTitle: "Program tailoring",
   });
 
+  it("reads a layer that combines a second baseline as a baseline, named for the second", () => {
+    const combined = deriveSavedBaseline({
+      hops: [hop("overlaid"), hop("union"), hop("high")],
+      rules: [
+        {
+          profile_revision_id: "union-revision",
+          kind: "include",
+          definition: { "with-ids": ["ac-3"] },
+          rationale: "Selected by the Privacy baseline.",
+        },
+      ],
+      controls: [
+        { id: "c1", source_id: "ac-1" },
+        { id: "c3", source_id: "ac-3" },
+      ],
+      baselineControlIds: ["c1"],
+      applications: [
+        {
+          profile_resolution_id: "overlaid",
+          overlay_id: "overlay-1",
+          reaffirmed_control_ids: ["c3"],
+          not_applicable_control_ids: [],
+        },
+      ],
+      overlays: [{ id: "overlay-1", title: "Mission assurance" }],
+      tailoringTitle: "Program tailoring",
+      combinations: [{ resolutionId: "union", title: "Privacy baseline", profileId: "privacy" }],
+    });
+    expect(combined.layers.map((layer) => [layer.kind, layer.title, layer.profileId])).toEqual([
+      ["baseline", "Privacy baseline", "privacy"],
+      ["overlay", "Mission assurance", "overlaid-profile"],
+    ]);
+    expect(combined.layers[0]).toMatchObject({ added: 1, total: 2 });
+    expect(combined.layers[1]).toMatchObject({ added: 0, reaffirmed: 1, total: 2 });
+  });
+
   it("reads each hop above the reference profile as a layer, bottom up", () => {
     expect(saved.layers.map((layer) => [layer.kind, layer.title, layer.profileId])).toEqual([
       ["overlay", "Mission assurance", "overlaid-profile"],

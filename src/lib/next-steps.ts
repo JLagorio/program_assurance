@@ -6,7 +6,8 @@ import type { ControlStanding } from "./control-status";
  * the one thing that moves it up the ladder, and names the record it is done on. A trace's gap, a
  * stage that holds no record, carries its fix the same way where the reader can make it. Both are
  * derived here from what the reads already answer, so a screen decides nothing of its own: it
- * draws the step as a link to where it is done.
+ * draws the step as a link to where it is done, or, for a step done on the control itself (Map a
+ * requirement, Add to assessment campaign, Plan an assessment), as the control that opens it there.
  */
 
 type TraceRequirement = AssuranceTrace["requirements"][number];
@@ -17,6 +18,16 @@ export type StepRequirement = { id: string; code: string; programId: string };
 /** A product assessment a step names: enough to open it. */
 export type StepAssessment = { id: string; title: string };
 
+/** An assessment campaign a step names: enough to say it and to open it. */
+export type StepCampaign = { id: string; title: string };
+
+/**
+ * What the program's open assessment campaigns hold of a control, as its next step reads it: the
+ * campaign whose latest plan holds it already (`planned`), and how many have a draft plan it could
+ * be added to (`drafts`). From `useControlAssessment` in control-assessment.
+ */
+export type StepPlans = { planned: StepCampaign | null; drafts: number };
+
 const stepRequirement = (requirement: TraceRequirement): StepRequirement => ({
   id: requirement.id,
   code: requirement.code,
@@ -24,15 +35,22 @@ const stepRequirement = (requirement: TraceRequirement): StepRequirement => ({
 });
 
 export type ControlNextStep =
-  /** No requirement maps the control: one is written or mapped among the program's requirements. */
+  /** No requirement maps the control: one of the program's requirements is mapped to it. */
   | { kind: "map_requirement" }
   /**
    * A requirement maps the control and none cites evidence: the first of them, in the order
    * given. `null` until a read says which requirements map the control.
    */
   | { kind: "link_evidence"; requirement: StepRequirement | null }
-  /** Evidence is cited and no assessor has published a determination. */
+  /**
+   * Evidence is cited, no assessor has published a determination and no open campaign's plan
+   * holds the control: it is added to the draft plan of one of the program's campaigns.
+   */
   | { kind: "assess" }
+  /** The same, where no open campaign has a draft plan: an assessment is planned around it. */
+  | { kind: "plan_assessment" }
+  /** The same, where an open campaign's plan holds the control: its assessment is under way there. */
+  | { kind: "open_campaign"; campaign: StepCampaign }
   /** An assessor found the control short of satisfied: the findings say why. */
   | { kind: "review_findings" }
   /**
@@ -52,12 +70,16 @@ export type StepStanding = Pick<ControlStanding, "status"> &
  * The next step for a control at a status: the one thing that moves it up the ladder. A satisfied
  * control has none, whoever determined it. `requirements` are the requirements that map the
  * control, as its trace reads them; without them a control with no evidence still says its step,
- * and names no requirement. A determination short of satisfied leads to what decided it: the
- * program's assessment findings, or the product assessment the program inherits it from.
+ * and names no requirement. Evidence no assessor has determined goes into an assessment: the
+ * campaign whose plan holds the control already, else the draft plan of one of the program's open
+ * campaigns, else a new one planned around it; without `plans` the step is to add it to a campaign.
+ * A determination short of satisfied leads to what decided it: the program's assessment findings,
+ * or the product assessment the program inherits it from.
  */
 export function controlNextStep(
   standing: StepStanding,
   requirements?: readonly TraceRequirement[] | undefined,
+  plans?: StepPlans | undefined,
 ): ControlNextStep | null {
   switch (standing.status) {
     case "no_requirement":
@@ -67,7 +89,7 @@ export function controlNextStep(
       return { kind: "link_evidence", requirement: bare ? stepRequirement(bare) : null };
     }
     case "not_assessed":
-      return { kind: "assess" };
+      return assessStep(plans);
     case "other_than_satisfied":
     case "partially_satisfied": {
       const decided =
@@ -84,6 +106,22 @@ export function controlNextStep(
   }
 }
 
+/** Where evidence nobody has determined goes: the campaign that holds it, a draft plan, or a new plan. */
+function assessStep(
+  plans: StepPlans | undefined,
+): Extract<ControlNextStep, { kind: "assess" | "plan_assessment" | "open_campaign" }> {
+  if (plans?.planned) return { kind: "open_campaign", campaign: plans.planned };
+  return plans && plans.drafts === 0 ? { kind: "plan_assessment" } : { kind: "assess" };
+}
+
+/** A step done on the control itself, which opens where it is done rather than leading away. */
+export const isInPlaceStep = (
+  step: ControlNextStep | TraceGapFix,
+): step is Extract<
+  ControlNextStep | TraceGapFix,
+  { kind: "map_requirement" | "assess" | "plan_assessment" }
+> => step.kind === "map_requirement" || step.kind === "assess" || step.kind === "plan_assessment";
+
 /** A step in the words of its link: what the reader does, and on which record. */
 export function nextStepLabel(step: ControlNextStep | TraceGapFix): string {
   switch (step.kind) {
@@ -94,7 +132,11 @@ export function nextStepLabel(step: ControlNextStep | TraceGapFix): string {
     case "map_control":
       return "Map control";
     case "assess":
-      return "Open assessment campaigns";
+      return "Add to assessment campaign";
+    case "plan_assessment":
+      return "Plan an assessment";
+    case "open_campaign":
+      return "Open assessment campaign";
     case "review_findings":
       return "Open assessment findings";
     case "review_product_assessment":
@@ -124,29 +166,44 @@ export type TraceGapFix =
   /** A requirement that cites no evidence: the one the trace is about, or a control's first. */
   | { stage: "evidence"; kind: "link_evidence"; requirement: StepRequirement }
   /** A requirement that maps no control. */
-  | { stage: "control"; kind: "map_control"; requirement: StepRequirement };
+  | { stage: "control"; kind: "map_control"; requirement: StepRequirement }
+  /** A control whose evidence no assessor has determined and no open campaign's plan holds. */
+  | { stage: "finding"; kind: "assess" }
+  /** The same, where no open campaign has a draft plan to add it to. */
+  | { stage: "finding"; kind: "plan_assessment" }
+  /**
+   * A control whose evidence an open campaign's plan holds and no assessor has determined yet:
+   * nothing the reader can close, and the campaign where it is assessed is named instead.
+   */
+  | { stage: "finding"; kind: "open_campaign"; campaign: StepCampaign };
 
 /** Whether a gap's entry is a fix the reader makes, rather than words that say why it is empty. */
-export const isReaderFix = (fix: TraceGapFix) => fix.kind !== "decided_by_product";
+export const isReaderFix = (fix: TraceGapFix) =>
+  fix.kind !== "decided_by_product" && fix.kind !== "open_campaign";
 
 /**
  * The gaps of a trace that its record's reader can close, each with the stage it fills. A control
- * read inside a program offers a requirement where none maps it and, where its requirements cite
- * no evidence, evidence for the first of them; a requirement offers a control and evidence of its
- * own; and an operational issue that names no requirement offers one, since the link is the
- * issue's own, made on its page. A stage with nothing wrong in it (no operational issue, no risk)
- * is not a gap, and otherwise a record further down the chain closes nothing upstream from its own
- * page: evidence, a finding, a risk and a remediation item offer nothing.
+ * read inside a program offers a requirement where none maps it, where its requirements cite no
+ * evidence, evidence for the first of them, and, where no assessor has determined that evidence,
+ * an assessment that holds the control; a requirement offers a control and evidence of its own;
+ * and an operational issue that names no requirement offers one, since the link is the issue's
+ * own, made on its page. A stage with nothing wrong in it (no operational issue, no risk) is not a
+ * gap, and otherwise a record further down the chain closes nothing upstream from its own page:
+ * evidence, a finding, a risk and a remediation item offer nothing.
  *
  * `standing` is where the program stands on a control, as the program's control status reads it.
  * A control the program's product variants inherit with a determination (`determinedBy`
  * "product") is decided by the product assessment, not missing a requirement: its requirements
- * stage names that assessment, the one that decided it first, and offers no requirement.
+ * stage names that assessment, the one that decided it first, and offers no requirement. Its
+ * Assessment findings stage waits on `plans`, what the program's open campaigns hold of it: the
+ * campaign whose plan holds it already is named, else the control is added to a draft plan or an
+ * assessment is planned around it.
  */
 export function traceGapFixes(
-  trace: Pick<AssuranceTrace, "focus" | "controls" | "requirements" | "evidence">,
+  trace: Pick<AssuranceTrace, "focus" | "controls" | "requirements" | "evidence" | "findings">,
   programId?: string | null | undefined,
   standing?: StepStanding | null | undefined,
+  plans?: StepPlans | null | undefined,
 ): TraceGapFix[] {
   const fixes: TraceGapFix[] = [];
   if (trace.focus.kind === "control") {
@@ -171,6 +228,8 @@ export function traceGapFixes(
           kind: "link_evidence",
           requirement: stepRequirement(bare),
         });
+    } else if (standing?.status === "not_assessed" && trace.findings.length === 0 && plans) {
+      fixes.push({ stage: "finding", ...assessStep(plans) });
     }
   }
   if (trace.focus.kind === "requirement") {

@@ -41,8 +41,11 @@ import type {
   WizardProfileOption,
 } from "@/lib/program-wizard-reference";
 import type { PublishedOverlay } from "@/lib/baseline-reads";
+import { newestVersions } from "@/lib/program-overlays";
 import { BaselineStackTable, type StackRow } from "@/components/prototype/baseline-stack";
+import { DraftBaselineMap } from "@/components/prototype/draft-baseline-map";
 import { QueryState, type QueryStatus } from "@/components/prototype/work-common";
+import { ChoiceField } from "../fields";
 import { ProfileTailoringEditor } from "../profile-tailoring/editor";
 import { wizardField } from "./issues";
 import type { WizardResources } from "./resources";
@@ -104,6 +107,21 @@ export function CatalogStep({
 
   const matching = profiles.filter(
     (profile) => profile.catalogRevisionId === draft.catalogRevisionId,
+  );
+  // The catalog edition's controls and families, which each draft baseline's map draws.
+  const catalogControls = useMemo(
+    () =>
+      new Map(
+        data.controls
+          .filter((control) => control.catalog_revision_id === draft.catalogRevisionId)
+          .map((control) => [control.id, control]),
+      ),
+    [data.controls, draft.catalogRevisionId],
+  );
+  const catalogGroups = useMemo(
+    () =>
+      data.catalogGroups.filter((group) => group.catalog_revision_id === draft.catalogRevisionId),
+    [data.catalogGroups, draft.catalogRevisionId],
   );
   const chosen = (option: WizardProfileOption) =>
     draft.profiles.find((profile) => profile.baseResolutionId === option.id);
@@ -186,9 +204,23 @@ export function CatalogStep({
     () => new Map(data.controls.map((control) => [control.id, control.code])),
     [data.controls],
   );
-  const offered = overlays.filter(
-    (overlay) => overlay.catalogRevisionId === draft.catalogRevisionId,
+  // Each overlay at its newest published version: an older one is not offered again.
+  const offered = newestVersions(
+    overlays.filter((overlay) => overlay.catalogRevisionId === draft.catalogRevisionId),
   );
+  /**
+   * Combine a chosen reference baseline with a second one, or none: the stack starts from their
+   * union, and the overlays and the tailoring above it are checked again.
+   */
+  function setCombined(key: string, combinedResolutionId: string | null, said: string) {
+    onChange({
+      ...draft,
+      profiles: draft.profiles.map((profile) =>
+        profile.key === key ? { ...profile, combinedResolutionId } : profile,
+      ),
+    });
+    announce(said);
+  }
   /** Change one program profile's overlay stack; the tailoring above it is checked again. */
   function setOverlays(key: string, overlayIds: string[], said: string) {
     onChange({
@@ -435,6 +467,39 @@ export function CatalogStep({
                       {existing && stack ? (
                         <Box paddingInlineStart="space.300">
                           <Stack space="space.100">
+                            {/* A reference baseline may start the stack with a second one: their
+                                union, the second's controls added as the first layer. */}
+                            {option.kind === "reference" ? (
+                              <Box className="max-w-layout-measure">
+                                <ChoiceField
+                                  label="Combine with"
+                                  value={existing.combinedResolutionId ?? null}
+                                  emptyOption="No second baseline"
+                                  placeholder="No second baseline"
+                                  options={matching
+                                    .filter(
+                                      (other) =>
+                                        other.kind === "reference" &&
+                                        other.supported &&
+                                        other.id !== option.id,
+                                    )
+                                    .map((other) => ({ value: other.id, label: other.title }))}
+                                  onChange={(value) => {
+                                    const other = matching.find((item) => item.id === value);
+                                    setCombined(
+                                      existing.key,
+                                      value,
+                                      other
+                                        ? `${option.title} combined with ${other.title}.`
+                                        : `${option.title} starts the stack alone.`,
+                                    );
+                                  }}
+                                  description="Start from the union of both baselines: every control either selects."
+                                  error={errorFor(wizardField.combined(option.id))}
+                                  controlRef={controlRef(wizardField.combined(option.id))}
+                                />
+                              </Box>
+                            ) : null}
                             <BaselineStackTable
                               label={`How the ${option.title} program profile is formed`}
                               reference={{
@@ -442,8 +507,10 @@ export function CatalogStep({
                                 count: stack.derivation.baselineCount,
                               }}
                               layers={rows}
-                              actions={(layer, index) =>
-                                layer.kind === "overlay" ? (
+                              actions={(layer) => {
+                                // The overlay's place among the overlays: a second baseline may come before them.
+                                const index = existing.overlayIds.indexOf(layer.key);
+                                return layer.kind === "overlay" ? (
                                   <Inline space="space.050" alignInline="end">
                                     <IconButton
                                       size="small"
@@ -495,8 +562,8 @@ export function CatalogStep({
                                       }
                                     />
                                   </Inline>
-                                ) : null
-                              }
+                                ) : null;
+                              }}
                             />
                             <QueryState queries={overlayQueries}>
                               {available.length ? (
@@ -539,6 +606,16 @@ export function CatalogStep({
                                 </Text>
                               )}
                             </QueryState>
+                            {/* Where each control ends up, beside what each layer did: the map
+                                of the result, its List one toggle away. */}
+                            <DraftBaselineMap
+                              label={option.title}
+                              controls={catalogControls}
+                              groups={catalogGroups}
+                              stack={stack.derivation}
+                              added={tailored && preview ? preview.addedControlIds : NO_IDS}
+                              excluded={tailored && preview ? preview.excludedControlIds : NO_IDS}
+                            />
                           </Stack>
                         </Box>
                       ) : null}
@@ -568,3 +645,5 @@ export function CatalogStep({
     </Stack>
   );
 }
+
+const NO_IDS: readonly string[] = [];

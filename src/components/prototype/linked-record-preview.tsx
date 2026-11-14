@@ -11,6 +11,7 @@ import { frameworkProps, itemGuidance } from "@/lib/frameworks";
 import { useRow, type TableName } from "@/lib/models";
 import { frameworkItemWords, productRecordNoun } from "@/lib/product-records";
 import { labelFor, type DataRecord } from "@/lib/records";
+import { ApproachLayers } from "./control-resiliency";
 import { ObservationDetails } from "./observations-register";
 import type { RecordIdentity } from "./record-comparison";
 import { RecordPreviewPanel } from "./record-preview";
@@ -120,13 +121,14 @@ function NameThrough({
 /**
  * A framework item's facts, in the product's words: the items that hold it by name, nearest first
  * and each under what it is to the item (a security outcome's Process and Group, an approach's
- * Technique), where the publication prints it, and its framework by title. What kind of item it is
- * names the preview, and its code is the transcription's own unless it leads the title, so neither
- * is a fact.
+ * Technique), the architectural layers an approach can be used at (Table D-5), where the
+ * publication prints it, and its framework by title. What kind of item it is names the preview,
+ * and its code is the transcription's own unless it leads the title, so neither is a fact.
  */
 function frameworkItemFacts(record: DataRecord): RecordSummaryField<DataRecord>[] {
   const parentId = wordsAt(record, "parent_item_id");
   const holders = frameworkItemWords(record["kind"])?.holders ?? [];
+  const code = wordsAt(record, "code");
   return [
     // The summary names the item that holds this one, under the label its kind gives the column.
     ...(parentId ? [{ key: "parent_item_id" }] : []),
@@ -144,6 +146,16 @@ function frameworkItemFacts(record: DataRecord): RecordSummaryField<DataRecord>[
             />
           ),
         }))
+      : []),
+    // An approach's layers are Table D-5's, read by the approach's code in the current reading.
+    ...(record["kind"] === "approach" && code
+      ? [
+          {
+            key: "architectural_layers",
+            label: "Architectural layers",
+            render: () => <ApproachLayers code={code} />,
+          },
+        ]
       : []),
     { key: "printed_in" },
     {
@@ -184,8 +196,9 @@ function titleOf(record: DataRecord, fallback: string) {
  * drawn: an observation in an issue's facts, an organization as an owner, a procedure in a step.
  * A record with a curated body (an observation) shows it; a framework item shows the facts the
  * product has words for (`frameworkItemFacts`), under the name its kind gives it ("Security
- * outcome preview"), then its own text and what the publication prints beside it: a technique's
- * or an approach's Discussion, and an approach's Examples as a list; any other shows its stored
+ * outcome preview"), then its own text and what the publication prints beside it: the Discussion
+ * of a goal, an objective, a technique or an approach, and an approach's Examples as a list; any
+ * other shows its stored
  * facts, each related record by name, and its authored text. It is one record, not a place in a
  * collection, so its header holds no previous or next.
  */
@@ -240,8 +253,8 @@ export function LinkedRecordPreview({
   const item =
     identity.table === "framework_items" ? frameworkItemWords(record["kind"]) : undefined;
   const facts = identity.table === "framework_items" ? frameworkItemFacts(record) : factsOf(record);
-  // What the publication prints beside the item, after its own text: a technique's or an
-  // approach's Discussion, and the Examples it lists for an approach.
+  // What the publication prints beside the item, after its own text: the Discussion of a goal, an
+  // objective, a technique or an approach, and the Examples it lists for an approach.
   const guidance =
     identity.table === "framework_items"
       ? itemGuidance({ prose: wordsAt(record, "prose"), props: frameworkProps(record["props"]) })

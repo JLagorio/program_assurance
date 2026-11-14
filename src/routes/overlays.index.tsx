@@ -40,7 +40,10 @@ export const Route = createFileRoute("/overlays/")({
   component: OverlaysIndex,
 });
 
-/** What the register shows of an overlay: its identity, its state and what Postgres counts for it. */
+/**
+ * What the register shows of an overlay, at its newest version: its identity, its state and what
+ * Postgres counts for it.
+ */
 type OverlayRow = Pick<
   Row<"control_overlay_rows">,
   | "id"
@@ -54,6 +57,10 @@ type OverlayRow = Pick<
   | "application_count"
   | "parameter_count"
   | "updated_at"
+  | "version"
+  | "previous_overlay_id"
+  | "next_overlay_id"
+  | "overlay_application_count"
 >;
 
 const columns = defineColumns<OverlayRow>((c) => [
@@ -71,6 +78,7 @@ const columns = defineColumns<OverlayRow>((c) => [
     ),
   }),
   c.status("state", { header: "State", width: 125, priority: 2, statuses: revisionStates }),
+  c.number("version", { header: "Version", width: 100, priority: 3 }),
   c.number("include_count", {
     header: overlayDecisionActions.include.label,
     width: 100,
@@ -83,8 +91,8 @@ const columns = defineColumns<OverlayRow>((c) => [
   }),
   // How many parameters it sets values for.
   c.number("parameter_count", { header: "Parameters", width: 120, priority: 4 }),
-  // How many baselines apply the overlay.
-  c.number("application_count", { header: "Applied", width: 110, priority: 4 }),
+  // How many baselines apply any version of the overlay.
+  c.number("overlay_application_count", { header: "Applied", width: 110, priority: 4 }),
   c.date("updated_at", { header: "Updated", priority: 5 }),
 ]);
 
@@ -106,8 +114,17 @@ function OverlaysIndex() {
       "application_count",
       "parameter_count",
       "updated_at",
+      "version",
+      "previous_overlay_id",
+      "next_overlay_id",
+      "overlay_application_count",
     ],
   });
+  // Each overlay once, at its newest version: an older version is one choice away on its record.
+  const newest = useMemo(
+    () => (overlays.data ? overlays.data.filter((row) => !row.next_overlay_id) : undefined),
+    [overlays.data],
+  );
   const [creating, setCreating] = useState(false);
   const [selected, setSelected] = useState<OverlayRow | null>(null);
   const table = useCollectionTable<OverlayRow>({
@@ -115,7 +132,7 @@ function OverlaysIndex() {
       () => ({ onPreview: setSelected, activeId: selected?.id ?? null }),
       [selected?.id],
     ),
-    data: overlays.data ?? NO_OVERLAYS,
+    data: newest ?? NO_OVERLAYS,
     columns,
     getRowId: (row) => row.id,
     label: "Overlays",
@@ -129,7 +146,7 @@ function OverlaysIndex() {
   const remove = useDeleteControlOverlay();
   const { confirm, confirmation } = useConfirmation();
   // A deleted overlay takes its row and the preview that asked; focus comes to Create overlay.
-  const focus = useRemovalFocus(overlays.data ?? NO_OVERLAYS);
+  const focus = useRemovalFocus(newest ?? NO_OVERLAYS);
   /** Delete overlay, from the preview of a draft: it asks first, and says a failure in the prompt. */
   async function deleteOverlay(row: OverlayRow) {
     const total = row.include_count + row.exclude_count;
@@ -143,12 +160,17 @@ function OverlaysIndex() {
           ]
         : []),
     ].join(" and ");
+    // A draft version after the first goes alone: the version it was created from stays, and the
+    // register shows it again.
+    const later = !!row.previous_overlay_id;
     const deleted = await confirm({
-      title: "Delete overlay?",
-      description: `${row.title}${held ? ` and its ${held}` : ""} will be deleted. A deleted overlay cannot be restored.`,
-      confirmLabel: "Delete overlay",
+      title: later ? `Delete version ${formatNumber(row.version)}?` : "Delete overlay?",
+      description: later
+        ? `Version ${formatNumber(row.version)} of ${row.title}${held ? ` and its ${held}` : ""} will be deleted. Version ${formatNumber(row.version - 1)} stays as it is.`
+        : `${row.title}${held ? ` and its ${held}` : ""} will be deleted. A deleted overlay cannot be restored.`,
+      confirmLabel: later ? "Delete draft version" : "Delete overlay",
       variant: "danger",
-      failureTitle: "The overlay was not deleted",
+      failureTitle: later ? "The version was not deleted" : "The overlay was not deleted",
       action: async () => {
         focus.removed(row.id);
         await remove.mutateAsync({ overlayId: row.id, expectedRevision: row.revision });
@@ -156,11 +178,19 @@ function OverlaysIndex() {
     });
     if (!deleted) return;
     setSelected((current) => (current?.id === row.id ? null : current));
-    toast.add({
-      type: "success",
-      title: "Overlay deleted",
-      description: `${row.code} is no longer in the library.`,
-    });
+    toast.add(
+      later
+        ? {
+            type: "success",
+            title: "Draft version deleted",
+            description: `${row.code} is at version ${formatNumber(row.version - 1)} again.`,
+          }
+        : {
+            type: "success",
+            title: "Overlay deleted",
+            description: `${row.code} is no longer in the library.`,
+          },
+    );
   }
   const create = canCreate ? (
     <Button
@@ -224,6 +254,7 @@ function OverlaysIndex() {
               render: (row) => <StatusBadge statuses={revisionStates} value={row.state} />,
             },
             { key: "code", label: "Code", render: (row) => <Id>{row.code}</Id> },
+            { key: "version", label: "Version", render: (row) => formatNumber(row.version) },
             {
               key: "include_count",
               label: overlayDecisionActions.include.label,
@@ -240,9 +271,9 @@ function OverlaysIndex() {
               render: (row) => formatNumber(row.parameter_count),
             },
             {
-              key: "application_count",
+              key: "overlay_application_count",
               label: "Applied",
-              render: (row) => formatNumber(row.application_count),
+              render: (row) => formatNumber(row.overlay_application_count),
             },
             {
               key: "updated_at",
@@ -270,7 +301,7 @@ function OverlaysIndex() {
                 />
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem variant="danger" onClick={() => void deleteOverlay(selected)}>
-                    Delete overlay
+                    {selected.previous_overlay_id ? "Delete draft version" : "Delete overlay"}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

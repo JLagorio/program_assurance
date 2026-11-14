@@ -16680,7 +16680,7 @@
     "Table.Cell": {
       "kind": "component",
       "file": "components/table.tsx",
-      "line": 1041,
+      "line": 1038,
       "root": {
         "h": ["h-row"],
         "max-w": ["max-w-0"],
@@ -16789,7 +16789,7 @@
     "Table.Detail": {
       "kind": "component",
       "file": "components/table.tsx",
-      "line": 1692,
+      "line": 1686,
       "root": {
         "px": ["px-200"],
         "py": ["py-150"],
@@ -16805,7 +16805,7 @@
     "Table.Disclosure": {
       "kind": "component",
       "file": "components/table.tsx",
-      "line": 1633,
+      "line": 1627,
       "root": {
         "h": ["h-row"],
         "max-w": ["max-w-0", "max-w-none"],
@@ -16914,7 +16914,7 @@
     "Table.Group": {
       "kind": "component",
       "file": "components/table.tsx",
-      "line": 1414,
+      "line": 1408,
       "root": {
         "border-color": ["border-default"],
         "border-w-t": ["border-t"]
@@ -16929,7 +16929,7 @@
     "Table.Handle": {
       "kind": "component",
       "file": "components/table.tsx",
-      "line": 1719,
+      "line": 1713,
       "root": {
         "align-items": ["items-center"],
         "bg-color": ["hover:bg-neutral-subtle-hovered"],
@@ -17098,7 +17098,7 @@
     "Table.Id": {
       "kind": "component",
       "file": "components/table.tsx",
-      "line": 1251,
+      "line": 1245,
       "root": {
         "h": ["h-row"],
         "max-w": ["max-w-0", "max-w-none"],
@@ -17207,7 +17207,7 @@
     "Table.List": {
       "kind": "component",
       "file": "components/table.tsx",
-      "line": 1785,
+      "line": 1779,
       "root": {
         "align-items": ["items-center"],
         "display": ["flex"],
@@ -17247,7 +17247,7 @@
     "Table.Name": {
       "kind": "component",
       "file": "components/table.tsx",
-      "line": 1957,
+      "line": 1951,
       "root": {
         "align-items": ["items-center"],
         "display": ["flex"],
@@ -17265,7 +17265,7 @@
     "Table.Row": {
       "kind": "component",
       "file": "components/table.tsx",
-      "line": 1124,
+      "line": 1118,
       "root": {
         "border-color": ["border-default"],
         "border-w-b": ["border-b", "last:border-b-0"],
@@ -17300,7 +17300,7 @@
     "Table.Selection": {
       "kind": "component",
       "file": "components/table.tsx",
-      "line": 1331,
+      "line": 1325,
       "root": {},
       "props": {
         "header": {
@@ -17322,7 +17322,7 @@
     "Table.Tree": {
       "kind": "component",
       "file": "components/table.tsx",
-      "line": 1576,
+      "line": 1570,
       "root": {
         "h": ["h-row"],
         "max-w": ["max-w-0", "max-w-none"],

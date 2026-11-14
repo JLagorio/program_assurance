@@ -17,6 +17,7 @@ import {
   SelectSeparator,
   SelectTrigger,
   SelectValue,
+  Skeleton,
   Stack,
   Table,
   Text,
@@ -37,6 +38,7 @@ import {
 import {
   CYBER_RESILIENCY_FRAMEWORK,
   resiliencyByControl,
+  useApproachLayers,
   useFrameworkControlLinks,
   useFrameworkItems,
   type ControlLinkScope,
@@ -46,8 +48,9 @@ import { QueryState, ReportFailures } from "./work-common";
 /*
  * What a control supports in cyber resiliency, from NIST SP 800-160 Vol. 2 Rev. 1: the Section a
  * control's record lists it in (the techniques and approaches Table E-1 prints for the control,
- * each opening onto what Table D-4 says of them), and the choice of one technique a program's
- * Control baseline is read by.
+ * each opening onto what Table D-4 says of them), the choice of one technique a program's Control
+ * baseline is read by, and the architectural layers an approach can be used at (Table D-5), a
+ * fact of an approach's preview.
  */
 
 /** One approach as Table D-4 gives it: what it is, the publication's examples and its discussion. */
@@ -288,6 +291,28 @@ export function ControlResiliency({
         {rows.length > 0 && <ResiliencyTable key={controlId} rows={rows} programId={programId} />}
       </QueryState>
     </Section>
+  );
+}
+
+/**
+ * The architectural layers Table D-5 says an approach can be used at, in the table's order, as the
+ * value of a fact in an approach's preview. Table D-5 is read once for every approach, so a step to
+ * the next reads nothing. A preview is drawn outside the page's region, so a failure is said in
+ * place.
+ */
+export function ApproachLayers({ code }: { code: string }) {
+  const { byApproach, queries } = useApproachLayers();
+  if (!byApproach)
+    return queries.some((query) => query.isError) ? (
+      <Text color="color.text.subtle">Could not load</Text>
+    ) : (
+      <Skeleton shape="line" width={160} />
+    );
+  const layers = byApproach.get(code) ?? [];
+  return layers.length ? (
+    <>{layers.map((layer) => layer.title).join(", ")}</>
+  ) : (
+    <Absent label="No layer named" />
   );
 }
 

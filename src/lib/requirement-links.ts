@@ -78,6 +78,42 @@ export const allocateToSystemSchema = z
   .strict();
 export type AllocateToSystem = z.infer<typeof allocateToSystemSchema>;
 
+/** The relationships a control mapping records, in the order a form offers them. */
+export const mappingRelationships = ["maps_to", "derived_from", "satisfies"] as const;
+export type MappingRelationship = (typeof mappingRelationships)[number];
+
+export const mapRequirementsToControlSchema = z
+  .object({
+    controlId: uuid,
+    /** One relationship for every chosen requirement. */
+    relationship: z.enum(mappingRelationships),
+    /** One rationale for every chosen requirement; none unsaid. */
+    rationale: z.string().trim().max(10000).nullable(),
+    /**
+     * One mapping per chosen requirement and system, each with an id chosen once for every
+     * attempt: the requirement's latest revision, on each system it is allocated to whose control
+     * baseline selects the control, by that baseline's selection.
+     */
+    targets: z
+      .array(
+        z.object({
+          id: uuid,
+          requirementRevisionId: uuid,
+          systemId: uuid,
+          selectedControlId: uuid,
+        }),
+      )
+      .min(1, "Choose a requirement.")
+      .max(ALLOCATE_TO_SYSTEM_LIMIT),
+    /**
+     * A later attempt after one whose answer was lost: the ids are looked up first, so only what
+     * the earlier attempt did not write is inserted. A first attempt sends the one insert.
+     */
+    retry: z.boolean().optional(),
+  })
+  .strict();
+export type MapRequirementsToControl = z.infer<typeof mapRequirementsToControlSchema>;
+
 /** A database refusal in the reader's words: what happened and what to do next. */
 function failure(error: NonNullable<PostgrestFailure>, noun: string): Error {
   // 23514 is every check the schema makes; only the history guard's is about the revision. The
@@ -310,6 +346,92 @@ export async function allocateRequirementsToSystem(
   return { allocationIds: ids, created: missing.length };
 }
 
+type RecordedMapping = {
+  requirement_revision_id: string;
+  control_id: string;
+  control_part_id: string | null;
+  system_id: string | null;
+  selected_control_id: string | null;
+  relationship_type: string;
+  rationale: string | null;
+};
+
+/**
+ * Map many requirements to one control in one insert, with one relationship and one rationale
+ * for all: the control's Map a requirement. Each row is the mapping the requirement's own Map
+ * control records, the whole control on one system the requirement is allocated to (a requirement
+ * on two such systems is two rows, so each system's SSP lists it), which the schema checks row by
+ * row (`guard_requirement_control_target`); a single insert is one statement,
+ * so a refusal writes none of them. A retry (`retry: true`) first reads which of its ids an earlier
+ * attempt wrote, inserts only the rest, and refuses when a row with one of those ids now says
+ * something else.
+ */
+export async function mapRequirementsToControl(
+  client: Client,
+  { tenantId, token }: Context,
+  request: MapRequirementsToControl,
+): Promise<{ mappingIds: string[]; created: number }> {
+  const values = mapRequirementsToControlSchema.parse(request);
+  const rationale = values.rationale?.trim() || null;
+  const ids = values.targets.map((target) => target.id);
+  const found = new Map<string, RecordedMapping>();
+  if (values.retry)
+    for (let offset = 0; offset < ids.length; offset += LOOKUP_CHUNK) {
+      const existing = await client
+        .from("requirement_control_links")
+        .select(
+          "id, requirement_revision_id, control_id, control_part_id, system_id, selected_control_id, relationship_type, rationale",
+        )
+        .eq("tenant_id", tenantId)
+        .in("id", ids.slice(offset, offset + LOOKUP_CHUNK))
+        .setHeader("Authorization", `Bearer ${token}`);
+      if (existing.error) throw failure(existing.error, "control mapping");
+      for (const row of (existing.data ?? []) as (RecordedMapping & { id: string })[])
+        found.set(row.id, row);
+    }
+  for (const target of values.targets) {
+    const row = found.get(target.id);
+    if (
+      row &&
+      (row.requirement_revision_id !== target.requirementRevisionId ||
+        row.control_id !== values.controlId ||
+        row.control_part_id !== null ||
+        row.system_id !== target.systemId ||
+        row.selected_control_id !== target.selectedControlId ||
+        row.relationship_type !== values.relationship ||
+        row.rationale !== rationale)
+    )
+      throw new Error(
+        "A control mapping changed after this attempt. Close and map again to see the current mappings.",
+      );
+  }
+  const missing = values.targets.filter((target) => !found.has(target.id));
+  if (missing.length) {
+    const { error } = await client
+      .from("requirement_control_links")
+      .insert(
+        missing.map((target) => ({
+          id: target.id,
+          tenant_id: tenantId,
+          requirement_revision_id: target.requirementRevisionId,
+          control_id: values.controlId,
+          control_part_id: null,
+          system_id: target.systemId,
+          selected_control_id: target.selectedControlId,
+          relationship_type: values.relationship,
+          rationale,
+        })),
+      )
+      .setHeader("Authorization", `Bearer ${token}`);
+    if (error?.code === "23505")
+      throw new Error(
+        "One of these requirements was mapped to this control in another session. Close and map again to see what is left.",
+      );
+    if (error) throw failure(error, "control mapping");
+  }
+  return { mappingIds: ids, created: missing.length };
+}
+
 const prefixes = ["models", "model", "records", "record", "reference-options"];
 
 function useRefresh() {
@@ -350,6 +472,23 @@ export function useAllocateRequirement() {
       return allocateRequirement(database(), { tenantId: workspace.tenantId, token }, request);
     },
     onSuccess: () => refresh(["requirement_allocations"]),
+  });
+}
+
+/**
+ * Map the chosen requirements to one control in one write. The control's status, its trace and
+ * the registers that list its mappings read the table, so the write marks them stale.
+ */
+export function useMapRequirementsToControl() {
+  const workspace = useWorkspace();
+  const refresh = useRefresh();
+  return useMutation({
+    mutationFn: async (request: MapRequirementsToControl) => {
+      const token = await requireIdentity(workspace);
+      return mapRequirementsToControl(database(), { tenantId: workspace.tenantId, token }, request);
+    },
+    // Read again however it settles: a request whose answer was lost may still have written.
+    onSettled: () => refresh(["requirement_control_links"]),
   });
 }
 

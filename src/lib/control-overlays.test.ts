@@ -14,6 +14,7 @@ const {
   saveControlOverlay,
   setOverlayDecisions,
   setOverlayParameters,
+  createOverlayVersion,
 } = await import("./control-overlays");
 
 type Answer = { data: unknown; error: { code?: string; message: string } | null };
@@ -124,6 +125,27 @@ describe("control overlay commands", () => {
         parameters: [],
       }),
     ).rejects.toThrow(OVERLAY_CHANGED_ELSEWHERE);
+  });
+
+  it("creates the next version under the id chosen for it, and says why one was refused", async () => {
+    const { client: rpc, calls } = client({ data: { ...overlay, version: 2 }, error: null });
+    const created = await createOverlayVersion(rpc, context, {
+      overlayId: "overlay",
+      versionId: "next",
+    });
+    expect(created).toMatchObject({ version: 2 });
+    expect(calls[0]).toMatchObject({
+      name: "create_control_overlay_version",
+      headers: { Authorization: "Bearer token" },
+      args: { p_tenant_id: "tenant", p_overlay_id: "overlay", p_version_id: "next" },
+    });
+    const refused = client({
+      data: null,
+      error: { code: "23514", message: "Version 2 of Mission assurance already exists." },
+    });
+    await expect(
+      createOverlayVersion(refused.client, context, { overlayId: "overlay", versionId: "next" }),
+    ).rejects.toThrow("Version 2 of Mission assurance already exists.");
   });
 
   it("publishes at the revision the reader saw", async () => {

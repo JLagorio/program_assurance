@@ -703,6 +703,51 @@ export type Database = {
           },
         ];
       };
+      assessment_plan_requests: {
+        Row: {
+          campaign_id: string;
+          created_at: string;
+          created_by: string;
+          id: string;
+          payload_sha256: string;
+          result: Json;
+          tenant_id: string;
+        };
+        Insert: {
+          campaign_id: string;
+          created_at?: string;
+          created_by: string;
+          id: string;
+          payload_sha256: string;
+          result: Json;
+          tenant_id: string;
+        };
+        Update: {
+          campaign_id?: string;
+          created_at?: string;
+          created_by?: string;
+          id?: string;
+          payload_sha256?: string;
+          result?: Json;
+          tenant_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "assessment_plan_requests_tenant_id_campaign_id_fkey";
+            columns: ["tenant_id", "campaign_id"];
+            isOneToOne: false;
+            referencedRelation: "assessment_campaigns";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "assessment_plan_requests_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       assessment_plan_revisions: {
         Row: {
           campaign_id: string;
@@ -3741,12 +3786,14 @@ export type Database = {
           created_by: string | null;
           description: string | null;
           id: string;
+          previous_overlay_id: string | null;
           revision: number;
           state: string;
           tenant_id: string;
           title: string;
           updated_at: string;
           updated_by: string | null;
+          version: number;
         };
         Insert: {
           catalog_revision_id: string;
@@ -3755,12 +3802,14 @@ export type Database = {
           created_by?: string | null;
           description?: string | null;
           id?: string;
+          previous_overlay_id?: string | null;
           revision?: number;
           state?: string;
           tenant_id: string;
           title: string;
           updated_at?: string;
           updated_by?: string | null;
+          version?: number;
         };
         Update: {
           catalog_revision_id?: string;
@@ -3769,12 +3818,14 @@ export type Database = {
           created_by?: string | null;
           description?: string | null;
           id?: string;
+          previous_overlay_id?: string | null;
           revision?: number;
           state?: string;
           tenant_id?: string;
           title?: string;
           updated_at?: string;
           updated_by?: string | null;
+          version?: number;
         };
         Relationships: [
           {
@@ -3783,6 +3834,20 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "catalog_revisions";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "control_overlays_previous_fkey";
+            columns: ["tenant_id", "previous_overlay_id"];
+            isOneToOne: false;
+            referencedRelation: "control_overlay_rows";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "control_overlays_previous_fkey";
+            columns: ["tenant_id", "previous_overlay_id"];
+            isOneToOne: false;
+            referencedRelation: "control_overlays";
+            referencedColumns: ["tenant_id", "id"];
           },
           {
             foreignKeyName: "control_overlays_tenant_id_fkey";
@@ -10049,6 +10114,64 @@ export type Database = {
           },
         ];
       };
+      profile_baseline_combinations: {
+        Row: {
+          combined_resolution_id: string;
+          created_at: string;
+          created_by: string | null;
+          id: string;
+          profile_resolution_id: string;
+          revision: number;
+          tenant_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          combined_resolution_id: string;
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          profile_resolution_id: string;
+          revision?: number;
+          tenant_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          combined_resolution_id?: string;
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          profile_resolution_id?: string;
+          revision?: number;
+          tenant_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "profile_baseline_combinations_combined_resolution_id_fkey";
+            columns: ["combined_resolution_id"];
+            isOneToOne: false;
+            referencedRelation: "profile_resolutions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "profile_baseline_combinations_profile_resolution_id_fkey";
+            columns: ["profile_resolution_id"];
+            isOneToOne: true;
+            referencedRelation: "profile_resolutions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "profile_baseline_combinations_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       profile_imports: {
         Row: {
           catalog_revision_id: string | null;
@@ -10707,6 +10830,73 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "tenants";
             referencedColumns: ["id"];
+          },
+        ];
+      };
+      program_posture_snapshots: {
+        Row: {
+          controls: number;
+          id: string;
+          no_evidence: number;
+          no_requirement: number;
+          not_assessed: number;
+          other_than_satisfied: number;
+          partially_satisfied: number;
+          program_id: string;
+          satisfied: number;
+          taken_at: string;
+          taken_on: string;
+          tenant_id: string;
+        };
+        Insert: {
+          controls: number;
+          id?: string;
+          no_evidence: number;
+          no_requirement: number;
+          not_assessed: number;
+          other_than_satisfied: number;
+          partially_satisfied: number;
+          program_id: string;
+          satisfied: number;
+          taken_at?: string;
+          taken_on: string;
+          tenant_id: string;
+        };
+        Update: {
+          controls?: number;
+          id?: string;
+          no_evidence?: number;
+          no_requirement?: number;
+          not_assessed?: number;
+          other_than_satisfied?: number;
+          partially_satisfied?: number;
+          program_id?: string;
+          satisfied?: number;
+          taken_at?: string;
+          taken_on?: string;
+          tenant_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "program_posture_snapshots_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "program_posture_snapshots_tenant_id_program_id_fkey";
+            columns: ["tenant_id", "program_id"];
+            isOneToOne: false;
+            referencedRelation: "program_activity";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "program_posture_snapshots_tenant_id_program_id_fkey";
+            columns: ["tenant_id", "program_id"];
+            isOneToOne: false;
+            referencedRelation: "programs";
+            referencedColumns: ["tenant_id", "id"];
           },
         ];
       };
@@ -15377,12 +15567,16 @@ export type Database = {
           exclude_count: number | null;
           id: string | null;
           include_count: number | null;
+          next_overlay_id: string | null;
+          overlay_application_count: number | null;
           parameter_count: number | null;
+          previous_overlay_id: string | null;
           revision: number | null;
           state: string | null;
           tenant_id: string | null;
           title: string | null;
           updated_at: string | null;
+          version: number | null;
         };
         Insert: {
           application_count?: never;
@@ -15393,12 +15587,16 @@ export type Database = {
           exclude_count?: never;
           id?: string | null;
           include_count?: never;
+          next_overlay_id?: never;
+          overlay_application_count?: never;
           parameter_count?: never;
+          previous_overlay_id?: string | null;
           revision?: number | null;
           state?: string | null;
           tenant_id?: string | null;
           title?: string | null;
           updated_at?: string | null;
+          version?: number | null;
         };
         Update: {
           application_count?: never;
@@ -15409,12 +15607,16 @@ export type Database = {
           exclude_count?: never;
           id?: string | null;
           include_count?: never;
+          next_overlay_id?: never;
+          overlay_application_count?: never;
           parameter_count?: never;
+          previous_overlay_id?: string | null;
           revision?: number | null;
           state?: string | null;
           tenant_id?: string | null;
           title?: string | null;
           updated_at?: string | null;
+          version?: number | null;
         };
         Relationships: [
           {
@@ -15423,6 +15625,20 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "catalog_revisions";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "control_overlays_previous_fkey";
+            columns: ["tenant_id", "previous_overlay_id"];
+            isOneToOne: false;
+            referencedRelation: "control_overlay_rows";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "control_overlays_previous_fkey";
+            columns: ["tenant_id", "previous_overlay_id"];
+            isOneToOne: false;
+            referencedRelation: "control_overlays";
+            referencedColumns: ["tenant_id", "id"];
           },
           {
             foreignKeyName: "control_overlays_tenant_id_fkey";
@@ -16586,6 +16802,25 @@ export type Database = {
       };
     };
     Functions: {
+      add_control_objectives: {
+        Args: {
+          p_control_ids: string[];
+          p_plan_revision_id: string;
+          p_profile_resolution_id: string;
+          p_tenant_id: string;
+        };
+        Returns: Json;
+      };
+      add_controls_to_assessment_plan: {
+        Args: {
+          p_control_ids: string[];
+          p_expected_revision: number;
+          p_plan_revision_id: string;
+          p_request_id: string;
+          p_tenant_id: string;
+        };
+        Returns: Json;
+      };
       add_gate_security_outcomes: {
         Args: {
           p_gate_id: string;
@@ -16673,6 +16908,10 @@ export type Database = {
       apply_tenant_security: {
         Args: { table_name: string };
         Returns: undefined;
+      };
+      assessment_control_choice: {
+        Args: { p_control_ids: string[] };
+        Returns: string[];
       };
       assign_record_owner: {
         Args: {
@@ -16806,6 +17045,17 @@ export type Database = {
       can_own_tenant: { Args: { target_tenant: string }; Returns: boolean };
       can_read_tenant: { Args: { target_tenant: string }; Returns: boolean };
       can_write_tenant: { Args: { target_tenant: string }; Returns: boolean };
+      combine_reference_baselines: {
+        Args: {
+          p_catalog_id: string;
+          p_code: string;
+          p_first_resolution_id: string;
+          p_second_resolution_id: string;
+          p_tenant_id: string;
+          p_title: string;
+        };
+        Returns: string;
+      };
       command_assurance_attention: {
         Args: { p_command: Json; p_request_id: string; p_tenant_id: string };
         Returns: Json;
@@ -16826,6 +17076,35 @@ export type Database = {
       copy_product_revision: {
         Args: { p_source_revision_id: string; p_tenant_id: string };
         Returns: string;
+      };
+      create_control_overlay_version: {
+        Args: {
+          p_overlay_id: string;
+          p_tenant_id: string;
+          p_version_id: string;
+        };
+        Returns: {
+          catalog_revision_id: string;
+          code: string;
+          created_at: string;
+          created_by: string | null;
+          description: string | null;
+          id: string;
+          previous_overlay_id: string | null;
+          revision: number;
+          state: string;
+          tenant_id: string;
+          title: string;
+          updated_at: string;
+          updated_by: string | null;
+          version: number;
+        };
+        SetofOptions: {
+          from: "*";
+          to: "control_overlays";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
       };
       create_evidence_with_version: {
         Args: { p_evidence: Json; p_request_id: string; p_tenant_id: string };
@@ -16897,6 +17176,10 @@ export type Database = {
         Returns: string;
       };
       ensure_personal_tenant: { Args: never; Returns: string };
+      ensure_program_posture_snapshots: {
+        Args: { p_program_ids: string[] };
+        Returns: Json;
+      };
       import_customer_requirements: {
         Args: {
           p_program_id: string;
@@ -16932,6 +17215,17 @@ export type Database = {
           p_values: Json;
         };
         Returns: string[];
+      };
+      plan_control_assessment: {
+        Args: {
+          p_control_ids: string[];
+          p_program_id: string;
+          p_request_id: string;
+          p_ssp_revision_id: string;
+          p_tenant_id: string;
+          p_title: string;
+        };
+        Returns: Json;
       };
       plan_delta_assessment: {
         Args: {
@@ -16973,6 +17267,23 @@ export type Database = {
         Returns: Json;
       };
       program_control_status: { Args: { p_program_id: string }; Returns: Json };
+      program_control_status_lines: {
+        Args: { p_program_id: string };
+        Returns: {
+          code: string;
+          code_order: string;
+          determined_by: string;
+          evidenced: number;
+          family: string;
+          family_title: string;
+          id: string;
+          parent_control_id: string;
+          product_assessments: Json;
+          requirements: number;
+          status: string;
+          title: string;
+        }[];
+      };
       program_posture: {
         Args: { p_program_id: string; p_tenant_id: string };
         Returns: Json;
@@ -16985,6 +17296,29 @@ export type Database = {
           p_tenant_id: string;
         };
         Returns: Json;
+      };
+      program_posture_trend: {
+        Args: { p_program_ids: string[]; p_since?: string };
+        Returns: {
+          controls: number;
+          id: string;
+          no_evidence: number;
+          no_requirement: number;
+          not_assessed: number;
+          other_than_satisfied: number;
+          partially_satisfied: number;
+          program_id: string;
+          satisfied: number;
+          taken_at: string;
+          taken_on: string;
+          tenant_id: string;
+        }[];
+        SetofOptions: {
+          from: "*";
+          to: "program_posture_snapshots";
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       program_resiliency_choice: {
         Args: { p_program_id: string };
@@ -17015,12 +17349,14 @@ export type Database = {
           created_by: string | null;
           description: string | null;
           id: string;
+          previous_overlay_id: string | null;
           revision: number;
           state: string;
           tenant_id: string;
           title: string;
           updated_at: string;
           updated_by: string | null;
+          version: number;
         };
         SetofOptions: {
           from: "*";
@@ -17151,12 +17487,14 @@ export type Database = {
           created_by: string | null;
           description: string | null;
           id: string;
+          previous_overlay_id: string | null;
           revision: number;
           state: string;
           tenant_id: string;
           title: string;
           updated_at: string;
           updated_by: string | null;
+          version: number;
         };
         SetofOptions: {
           from: "*";
@@ -17210,12 +17548,14 @@ export type Database = {
           created_by: string | null;
           description: string | null;
           id: string;
+          previous_overlay_id: string | null;
           revision: number;
           state: string;
           tenant_id: string;
           title: string;
           updated_at: string;
           updated_by: string | null;
+          version: number;
         };
         SetofOptions: {
           from: "*";
@@ -17239,12 +17579,14 @@ export type Database = {
           created_by: string | null;
           description: string | null;
           id: string;
+          previous_overlay_id: string | null;
           revision: number;
           state: string;
           tenant_id: string;
           title: string;
           updated_at: string;
           updated_by: string | null;
+          version: number;
         };
         SetofOptions: {
           from: "*";
@@ -17273,6 +17615,10 @@ export type Database = {
         };
         Returns: Json;
       };
+      take_program_posture_snapshots: {
+        Args: { p_program_id?: string };
+        Returns: number;
+      };
       update_library_assignment: {
         Args: {
           p_assignment_id: string;
@@ -17284,6 +17630,10 @@ export type Database = {
         Returns: Json;
       };
       variant_control_delta: {
+        Args: { p_system_id: string; p_tenant_id: string };
+        Returns: Json;
+      };
+      variant_control_delta_answer: {
         Args: { p_system_id: string; p_tenant_id: string };
         Returns: Json;
       };

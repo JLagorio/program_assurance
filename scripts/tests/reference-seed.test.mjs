@@ -13,7 +13,7 @@ const result = await buildReferenceRows();
 const rows = (table) => result.tables.get(table) ?? [];
 
 test("pinned source releases retain complete published catalog and CCI counts", () => {
-  assert.equal(result.sources.length, 9);
+  assert.equal(result.sources.length, 10);
   assert.equal(rows("controls").length, 1196);
   assert.equal(rows("control_parts").length, 12730);
   assert.equal(rows("parameters").length, 1600);
@@ -112,6 +112,7 @@ test("import is deterministic, transactional and contains only reference tables"
 
 const CYBER_RESILIENCY = "nist-sp800-160v2r1-cref";
 const ATTACK = "nist-sp800-160v2r1-attack";
+const ATTACK_ICS = "nist-sp800-160v2r1-attack-ics";
 const LIFE_CYCLE = "nist-sp800-160v1r1-processes";
 const pinnedFramework = (code) => result.frameworks.find((framework) => framework.code === code);
 const itemsOf = (code) =>
@@ -129,20 +130,25 @@ test("the pinned transcriptions are sources of their own kind, never authoritati
       "nist-sp800-160v2r1-cref-transcription",
       "nist-sp800-160v1r1-processes-transcription",
       "nist-sp800-160v2r1-attack-transcription",
+      "nist-sp800-160v2r1-attack-ics-transcription",
     ],
   );
-  // Appendix F names ATT&CK techniques: its entry carries MITRE's license and designation too.
-  const appendix = transcriptions.find(
-    (source) => source.id === "nist-sp800-160v2r1-attack-transcription",
-  );
-  assert.match(
-    appendix.rights,
-    /The MITRE Corporation \(MITRE\) hereby grants you a non-exclusive, royalty-free license to use ATT&CK\u00ae/,
-  );
-  assert.match(
-    appendix.rights,
-    /"\u00a9 2026 The MITRE Corporation\. This work is reproduced and distributed with the permission of The MITRE Corporation\."/,
-  );
+  // Appendices F and G name ATT&CK techniques: their entries carry MITRE's license and
+  // designation too.
+  for (const id of [
+    "nist-sp800-160v2r1-attack-transcription",
+    "nist-sp800-160v2r1-attack-ics-transcription",
+  ]) {
+    const appendix = transcriptions.find((source) => source.id === id);
+    assert.match(
+      appendix.rights,
+      /The MITRE Corporation \(MITRE\) hereby grants you a non-exclusive, royalty-free license to use ATT&CK\u00ae/,
+    );
+    assert.match(
+      appendix.rights,
+      /"\u00a9 2026 The MITRE Corporation\. This work is reproduced and distributed with the permission of The MITRE Corporation\."/,
+    );
+  }
   for (const source of transcriptions) {
     assert.equal(source.authoritative, false);
     assert.match(source.authority, /transcribed by this project/);
@@ -159,11 +165,11 @@ test("the pinned transcriptions are sources of their own kind, never authoritati
     assert.equal(record.authoritative, false);
     assert.equal(record.rights, source.rights);
   }
-  // A framework is built after the ones its links name: Appendix F names the approaches of the
-  // cyber resiliency constructs. Among equals the order is alphabetical.
+  // A framework is built after the ones its links name: Appendices F and G name the approaches
+  // of the cyber resiliency constructs. Among equals the order is alphabetical.
   assert.deepEqual(
     result.frameworks.map((framework) => framework.code),
-    [LIFE_CYCLE, CYBER_RESILIENCY, ATTACK],
+    [LIFE_CYCLE, CYBER_RESILIENCY, ATTACK, ATTACK_ICS],
   );
   for (const framework of result.frameworks) {
     const record = rows("frameworks").find((row) => row.id === framework.frameworkId);
@@ -188,13 +194,14 @@ test("the cyber resiliency constructs and Table E-1 are transcribed whole", () =
     objective: 8,
     technique: 14,
     approach: 50,
+    "architectural-layer": 11,
     "strategic-design-principle": 5,
     "structural-design-principle": 14,
   });
-  assert.deepEqual(framework.itemLinks, { supports: 314 });
+  assert.deepEqual(framework.itemLinks, { "used-at": 240, supports: 314 });
   assert.deepEqual(framework.controlLinks, { supports: 421 });
   assert.equal(framework.controls, 265);
-  assert.equal(framework.corrections, 14);
+  assert.equal(framework.corrections, 15);
 
   const items = new Map(itemsOf(CYBER_RESILIENCY).map((row) => [row.id, row]));
   const byCode = new Map([...items.values()].map((row) => [row.code, row]));
@@ -212,6 +219,7 @@ test("the cyber resiliency constructs and Table E-1 are transcribed whole", () =
     relates[key] = (relates[key] ?? 0) + 1;
   }
   assert.deepEqual(relates, {
+    "approach > architectural-layer": 240,
     "objective > goal": 19,
     "technique > objective": 59,
     "approach > objective": 145,
@@ -270,7 +278,7 @@ test("the cyber resiliency constructs and Table E-1 are transcribed whole", () =
   );
 });
 
-test("Table D-4's guidance is transcribed for every technique and approach", () => {
+test("the guidance of Tables 2, 3 and D-4 is transcribed for every goal, objective, technique and approach", () => {
   const items = itemsOf(CYBER_RESILIENCY);
   const byCode = new Map(items.map((row) => [row.code, row]));
   const techniques = items.filter((row) => row.kind === "technique");
@@ -308,10 +316,24 @@ test("Table D-4's guidance is transcribed for every technique and approach", () 
   assert.equal(techniques.length, 14);
   assert.equal(approaches.length, 50);
   assert.equal(bullets, 193);
-  // No other kind carries either. Tables 2 and 3 do print a Discussion for each goal and
-  // objective; it is not transcribed, and their prose is the definition alone.
+  // Tables 2 and 3 print a Discussion for each goal and objective, under its definition: the
+  // definition is its prose and the Discussion its one property.
+  const discussed = items.filter((row) => row.kind === "goal" || row.kind === "objective");
+  assert.equal(discussed.length, 12);
+  for (const item of discussed) {
+    assert.deepEqual(Object.keys(item.props), ["discussion"], item.code);
+    assert.ok(isSentence(item.props.discussion), item.code);
+    assert.ok(isSentence(item.prose), item.code);
+  }
+  assert.equal(byCode.get("objective.constrain").prose, "Limit damage from adversity.");
+  // A discussion that runs on to the next page is whole.
+  assert.match(
+    byCode.get("objective.reconstitute").props.discussion,
+    /^This objective relates to essential functions, .* timely and correct availability of resources\.$/,
+  );
+  // No other kind carries a discussion or examples.
   for (const item of items)
-    if (item.kind !== "technique" && item.kind !== "approach") {
+    if (!["goal", "objective", "technique", "approach"].includes(item.kind)) {
       assert.equal("discussion" in item.props, false, item.code);
       assert.equal("examples" in item.props, false, item.code);
     }
@@ -357,6 +379,81 @@ test("Table D-4's guidance is transcribed for every technique and approach", () 
     "Implement random channel-hopping.",
     "Use random masking in dynamic data masking.",
   ]);
+});
+
+test("Table D-5's architectural layers are transcribed with the approaches each can be used at", () => {
+  const framework = pinnedFramework(CYBER_RESILIENCY);
+  const items = new Map(itemsOf(CYBER_RESILIENCY).map((row) => [row.id, row]));
+  const layers = [...items.values()].filter((row) => row.kind === "architectural-layer");
+  // The layers, in the order of the table's columns; the table defines none of them.
+  assert.deepEqual(
+    layers.map((row) => [row.code, row.ordinal]),
+    [
+      ["layer.hardware-and-firmware", 1],
+      ["layer.networking-and-communications", 2],
+      ["layer.other-software", 3],
+      ["layer.operating-system", 4],
+      ["layer.cloud-virtualization-middleware-infrastructure", 5],
+      ["layer.application", 6],
+      ["layer.information-storage-management", 7],
+      ["layer.technical-system-as-a-whole", 8],
+      ["layer.operations", 9],
+      ["layer.support", 10],
+      ["layer.environment-of-operation", 11],
+    ],
+  );
+  for (const layer of layers) {
+    assert.equal(layer.prose, null, layer.code);
+    assert.equal(layer.parent_item_id, null, layer.code);
+    assert.equal(layer.printed_in, "Table D-5", layer.code);
+    // Every layer stands under the table's first heading, and some under more.
+    assert.equal(layer.props.within[0], "Socio-Technical System", layer.code);
+  }
+  const within = (code) => layers.find((row) => row.code === code).props.within;
+  assert.deepEqual(within("layer.application"), [
+    "Socio-Technical System",
+    "Technical System",
+    "Software",
+  ]);
+  assert.deepEqual(within("layer.information-storage-management"), [
+    "Socio-Technical System",
+    "Technical System",
+  ]);
+  assert.deepEqual(within("layer.support"), ["Socio-Technical System"]);
+  assert.equal(layers[7].title, "Technical System as a Whole");
+
+  // An X under a layer is a link from the approach to the layer, named for the cell it fills.
+  const links = rows("framework_item_links").filter(
+    (row) => row.framework_revision_id === framework.revisionId && row.relation === "used-at",
+  );
+  assert.equal(links.length, 240);
+  const byApproach = new Map();
+  for (const link of links) {
+    const approach = items.get(link.source_item_id);
+    const layer = items.get(link.target_item_id);
+    assert.equal(approach.kind, "approach");
+    assert.equal(layer.kind, "architectural-layer");
+    assert.equal(link.source_identifier, `D-5:${approach.code}:${layer.code}`);
+    assert.equal(link.printed_in, "Table D-5");
+    assert.equal(link.ordinal, null);
+    assert.deepEqual(link.props, {});
+    byApproach.set(approach.code, [...(byApproach.get(approach.code) ?? []), layer.code]);
+  }
+  // Every one of the fifty approaches can be used at one layer or more.
+  assert.equal(byApproach.size, 50);
+  assert.deepEqual(byApproach.get("approach.asset-mobility"), [
+    "layer.operations",
+    "layer.environment-of-operation",
+  ]);
+  assert.deepEqual(byApproach.get("approach.fragmentation"), [
+    "layer.information-storage-management",
+  ]);
+  assert.deepEqual(byApproach.get("approach.calibrated-defense-in-depth"), [
+    "layer.technical-system-as-a-whole",
+    "layer.operations",
+    "layer.support",
+  ]);
+  assert.equal(byApproach.get("approach.obfuscation").length, 8);
 });
 
 test("the life cycle processes are transcribed with their security outcomes and nothing reprinted", () => {
@@ -537,6 +634,141 @@ test("Appendix F is transcribed with its techniques, mitigations, approaches, ef
   );
 });
 
+test("Appendix G is transcribed with its ATT&CK for ICS techniques, mitigations, approaches and controls", () => {
+  const framework = pinnedFramework(ATTACK_ICS);
+  assert.deepEqual(framework.items, {
+    tactic: 12,
+    "attack-technique": 79,
+    mitigation: 38,
+    "candidate-mitigation": 50,
+  });
+  assert.deepEqual(framework.itemLinks, { tactic: 89, "affected-by": 706 });
+  assert.deepEqual(framework.controlLinks, { mitigates: 999 });
+  assert.equal(framework.controls, 129);
+  assert.equal(framework.corrections, 4);
+
+  const items = new Map(itemsOf(ATTACK_ICS).map((row) => [row.id, row]));
+  const byCode = new Map([...items.values()].map((row) => [row.code, row]));
+  // ATT&CK for ICS numbers its own techniques and mitigations: no identifier is one of Appendix F's.
+  const enterprise = new Set(itemsOf(ATTACK).map((row) => row.code));
+  for (const item of items.values()) {
+    assert.equal(item.parent_item_id, null, item.code);
+    if (item.kind === "tactic") continue;
+    assert.equal(enterprise.has(item.code), false, item.code);
+    assert.match(item.code, item.kind === "attack-technique" ? /^T08\d\d$/ : /^C?M[0-2]\d{3}$/);
+  }
+  // Its tactics share names with Enterprise's, as codes of another framework.
+  assert.deepEqual(
+    [...items.values()].filter((row) => row.kind === "tactic").map((row) => row.title),
+    [
+      "Initial Access",
+      "Execution",
+      "Persistence",
+      "Privilege Escalation",
+      "Evasion",
+      "Discovery",
+      "Lateral Movement",
+      "Collection",
+      "Command and Control",
+      "Inhibit Response Function",
+      "Impair Process Control",
+      "Impact",
+    ],
+  );
+  // A row names Table F-1's effects by title, as Appendix F's rows do: the appendix prints none.
+  const effects = new Set(
+    itemsOf(ATTACK)
+      .filter((row) => row.kind === "effect")
+      .map((row) => row.title),
+  );
+  const approaches = new Map(
+    itemsOf(CYBER_RESILIENCY)
+      .filter((row) => row.kind === "approach")
+      .map((row) => [row.id, row]),
+  );
+  const approachReferences = new Set(
+    [...approaches.values()].map((row) => `${CYBER_RESILIENCY}:${row.code}`),
+  );
+  const checkRow = (link) => {
+    assert.equal(byCode.get(link.props.tactic).kind, "tactic", link.source_identifier);
+    assert.ok(
+      ["mitigation", "candidate-mitigation"].includes(byCode.get(link.props.mitigation).kind),
+      link.source_identifier,
+    );
+    assert.ok(link.props.effects.length > 0, link.source_identifier);
+    for (const effect of link.props.effects) assert.ok(effects.has(effect), effect);
+  };
+  const itemLinks = rows("framework_item_links").filter(
+    (row) => row.framework_revision_id === framework.revisionId,
+  );
+  for (const link of itemLinks) {
+    assert.equal(items.get(link.source_item_id).kind, "attack-technique");
+    assert.match(link.source_identifier, /^G-\d+:T08/);
+    if (link.relation === "tactic") {
+      assert.equal(items.get(link.target_item_id).kind, "tactic");
+      continue;
+    }
+    assert.equal(link.relation, "affected-by");
+    assert.ok(approaches.has(link.target_item_id), link.source_identifier);
+    checkRow(link);
+  }
+  // Table G-7 gives Default Credentials no mitigation: its tactic link keeps the words it prints,
+  // and nothing else links it.
+  const bare = itemLinks.filter((link) => link.props.mitigation_as_printed !== undefined);
+  assert.deepEqual(
+    bare.map((link) => [link.source_identifier, link.relation, link.props.mitigation_as_printed]),
+    [["G-7:T0812", "tactic", "No cyber resiliency mitigations or candidate mitigations"]],
+  );
+  // A technique printed in two tactics' tables is one item, linked to each tactic.
+  const tacticsOf = (code) =>
+    itemLinks
+      .filter((link) => link.relation === "tactic" && items.get(link.source_item_id).code === code)
+      .map((link) => items.get(link.target_item_id).title);
+  assert.deepEqual(tacticsOf("T0858"), ["Execution", "Evasion"]);
+
+  const controls = new Map(rows("controls").map((row) => [row.id, row]));
+  const catalogRevision = rows("catalog_revisions")[0].id;
+  const revision = rows("framework_revisions").find((row) => row.id === framework.revisionId);
+  assert.equal(revision.catalog_revision_id, catalogRevision);
+  const links = rows("framework_control_links").filter(
+    (row) => row.framework_revision_id === framework.revisionId,
+  );
+  assert.equal(links.length, 999);
+  let bold = 0;
+  for (const link of links) {
+    const control = controls.get(link.control_id);
+    assert.equal(control.code, link.control_label);
+    assert.equal(control.status, "active");
+    assert.equal(link.catalog_revision_id, catalogRevision);
+    assert.equal(link.relation, "mitigates");
+    assert.equal(items.get(link.item_id).kind, "attack-technique");
+    checkRow(link);
+    for (const reference of link.props.approaches)
+      assert.ok(approachReferences.has(reference), reference);
+    assert.equal(link.props.approaches.length > 0, true, link.source_identifier);
+    // Bold marks a control the analysis matched better than ATT&CK for ICS's own mapping of an
+    // ATT&CK mitigation; a candidate mitigation is not ATT&CK's, and none of its controls is bold.
+    if (link.props.bold !== undefined) {
+      assert.equal(link.props.bold, true);
+      assert.match(link.props.mitigation, /^M/, link.source_identifier);
+      bold += 1;
+    }
+  }
+  assert.equal(bold, 547);
+  const weights = (prefix) =>
+    links
+      .filter((link) => link.source_identifier.startsWith(prefix))
+      .map((link) => `${link.control_label}${link.props.bold ? "*" : ""}`);
+  assert.deepEqual(weights("G-1:T0818:M0947:1:"), ["SI-7", "SI-7(1)*", "SI-7(9)*", "SI-7(10)*"]);
+  assert.deepEqual(weights("G-1:T0810:CM1207:1:"), ["CA-8", "CA-8(2)"]);
+  // The rows that print a short cell lower in a tall row keep it on their own row.
+  assert.deepEqual(weights("G-1:T0819:M0930:1:"), ["AC-4(2)*", "SC-7(29)*", "SC-7(22)*"]);
+  assert.deepEqual(weights("G-6:T0842:M0932:1:"), ["IA-2(6)*"]);
+  // The row whose mitigation is printed without its identifier is CM1201's.
+  assert.deepEqual(weights("G-1:T0819:CM1201:1:"), ["SC-30(4)"]);
+  assert.equal(new Set(links.map((link) => link.control_id)).size, 129);
+});
+
 test("the import publishes each framework revision after the catalog and names it as current", () => {
   const sql = referenceSql(result);
   const catalogPublished = sql.indexOf(
@@ -552,12 +784,13 @@ test("the import publishes each framework revision after the catalog and names i
     );
     assert.ok(catalogPublished < published && published < current, framework.code);
   }
-  // Appendix F's links name items of the cyber resiliency revision, which is published first.
+  // Appendices F and G link items of the cyber resiliency revision, which is published first.
   const publishedAt = (code) =>
     sql.indexOf(
       `update public."framework_revisions" set state = 'published' where state = 'draft' and id = '${pinnedFramework(code).revisionId}'::uuid;`,
     );
   assert.ok(publishedAt(CYBER_RESILIENCY) < publishedAt(ATTACK));
+  assert.ok(publishedAt(CYBER_RESILIENCY) < publishedAt(ATTACK_ICS));
 });
 
 /* ——— Transcribed frameworks: the importer's rules, on a fixture ————————————————————————————— */

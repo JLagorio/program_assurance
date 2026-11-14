@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { isControlStatement, requirementMappingBaselines } from "./requirement-control-mappings";
+import {
+  isControlStatement,
+  requirementMappingBaselines,
+  requirementMappingStanding,
+} from "./requirement-control-mappings";
 
 describe("requirement control statement choices", () => {
   const part = (
@@ -94,5 +98,76 @@ describe("effective profiles for allocated systems", () => {
       requirementMappingBaselines({ ...input, allocations: [{ system_id: "missing" }] }).sources,
     ).toEqual([]);
     expect(requirementMappingBaselines({ ...input, baselines: [] }).sources).toEqual([]);
+  });
+});
+
+describe("where a control's Map a requirement puts a requirement's mappings", () => {
+  // Two systems whose control baselines select the control, each by its own selection; a third
+  // whose baseline does not.
+  const carriers = new Map([
+    ["flight", "selection-flight"],
+    ["ground", "selection-ground"],
+  ]);
+  const requirement = (systemIds: string[], revisionId: string | null = "revision") => ({
+    revisionId,
+    systemIds,
+  });
+
+  it("maps on each system the requirement is allocated to that selects the control", () => {
+    expect(
+      requirementMappingStanding(requirement(["flight", "ground", "lab"]), carriers, new Set()),
+    ).toEqual({
+      kind: "targets",
+      targets: [
+        { systemId: "flight", selectedControlId: "selection-flight" },
+        { systemId: "ground", selectedControlId: "selection-ground" },
+      ],
+      mapped: 0,
+      eligible: 2,
+    });
+  });
+
+  it("adds only the systems still missing, and says how many carry one already", () => {
+    expect(
+      requirementMappingStanding(requirement(["flight", "ground"]), carriers, new Set(["flight"])),
+    ).toEqual({
+      kind: "targets",
+      targets: [{ systemId: "ground", selectedControlId: "selection-ground" }],
+      mapped: 1,
+      eligible: 2,
+    });
+  });
+
+  it("has nothing to add once every such system carries a mapping", () => {
+    expect(
+      requirementMappingStanding(
+        requirement(["flight", "ground", "lab"]),
+        carriers,
+        new Set(["flight", "ground"]),
+      ),
+    ).toEqual({ kind: "mapped", eligible: 2 });
+  });
+
+  it("maps a system it is allocated to twice once", () => {
+    const standing = requirementMappingStanding(
+      requirement(["ground", "ground"]),
+      carriers,
+      new Set(),
+    );
+    expect(standing.kind === "targets" && standing.targets).toEqual([
+      { systemId: "ground", selectedControlId: "selection-ground" },
+    ]);
+  });
+
+  it("says why a requirement can take no mapping", () => {
+    expect(requirementMappingStanding(requirement(["flight"], null), carriers, new Set())).toEqual({
+      kind: "no_details",
+    });
+    expect(requirementMappingStanding(requirement([]), carriers, new Set())).toEqual({
+      kind: "unallocated",
+    });
+    expect(requirementMappingStanding(requirement(["lab"]), carriers, new Set())).toEqual({
+      kind: "not_selected",
+    });
   });
 });

@@ -11,22 +11,51 @@ import { readServerResult, serverRead, type ServerRead, type ServerRow } from ".
 /*
  * The reference frameworks read beside the control catalog. NIST SP 800-160 is the first: the
  * cyber resiliency constructs and the controls that support them (Vol. 2, Table E-1), the ATT&CK
- * techniques with the approaches and controls that counter them (Vol. 2, Appendix F), and the
- * system life cycle processes with their security outcomes (Vol. 1). NIST publishes them in print
- * only, so each is this project's transcription, pinned and imported as reference data
- * (docs/reference-seeding.md).
+ * techniques with the approaches and controls that counter them (Vol. 2, Appendix F for ATT&CK
+ * for Enterprise and Appendix G for ATT&CK for ICS), and the system life cycle processes with
+ * their security outcomes (Vol. 1). NIST publishes them in print only, so each is this project's
+ * transcription, pinned and imported as reference data (docs/reference-seeding.md).
  *
  * Every read goes through a view that answers for the revision the product reads, so a screen
  * names a framework by its code and never a revision. An item keeps its code from one revision to
  * the next: match items across reads by code, not by id.
  */
 
-/** The cyber resiliency goals, objectives, techniques, approaches and design principles, and the controls that support them (NIST SP 800-160 Vol. 2 Rev. 1, Table E-1). */
+/** The cyber resiliency goals, objectives, techniques, approaches, the architectural layers each approach can be used at (Table D-5) and the design principles, and the controls that support them (NIST SP 800-160 Vol. 2 Rev. 1, Table E-1). */
 export const CYBER_RESILIENCY_FRAMEWORK = "nist-sp800-160v2r1-cref";
-/** The ATT&CK tactics, techniques and mitigations, with the approaches and controls that counter each technique (NIST SP 800-160 Vol. 2 Rev. 1, Appendix F). */
+/** The ATT&CK tactics, techniques and mitigations, with the approaches and controls that counter each technique (NIST SP 800-160 Vol. 2 Rev. 1, Appendix F, ATT&CK for Enterprise). Its Table F-1 defines the effects both ATT&CK appendices name. */
 export const ATTACK_FRAMEWORK = "nist-sp800-160v2r1-attack";
+/** The ATT&CK for ICS tactics, techniques and mitigations, read as Appendix F is (NIST SP 800-160 Vol. 2 Rev. 1, Appendix G). ATT&CK for ICS numbers its own tactics, techniques and mitigations. */
+export const ATTACK_ICS_FRAMEWORK = "nist-sp800-160v2r1-attack-ics";
 /** The system life cycle processes and their security outcomes (NIST SP 800-160 Vol. 1 Rev. 1). */
 export const LIFE_CYCLE_FRAMEWORK = "nist-sp800-160v1r1-processes";
+
+/**
+ * Both ATT&CK frameworks, Enterprise first, each with the matrix a reader tells it by. A technique's
+ * identifier names it in one matrix only (T1190 in Enterprise, T0819 in ICS), so a read of both
+ * keeps every code apart; a tactic's code is its name, which both matrices may print
+ * (`tactic.initial-access`), so a tactic is told apart by its framework.
+ */
+export const ATTACK_MATRICES = [
+  { framework: ATTACK_FRAMEWORK, matrix: "Enterprise", appendix: "Appendix F" },
+  { framework: ATTACK_ICS_FRAMEWORK, matrix: "ICS", appendix: "Appendix G" },
+] as const;
+/** The codes of both ATT&CK frameworks, for a read of their items or links together. */
+export const ATTACK_FRAMEWORKS: readonly string[] = ATTACK_MATRICES.map((entry) => entry.framework);
+/** The matrix an ATT&CK framework's items belong to ("Enterprise", "ICS"), or `undefined` for another framework. */
+export function attackMatrix(framework: string | null | undefined): string | undefined {
+  return ATTACK_MATRICES.find((entry) => entry.framework === framework)?.matrix;
+}
+/** The appendix of NIST SP 800-160 Vol. 2 Rev. 1 that prints an ATT&CK framework ("Appendix F"), or `undefined`. */
+export function attackAppendix(framework: string | null | undefined): string | undefined {
+  return ATTACK_MATRICES.find((entry) => entry.framework === framework)?.appendix;
+}
+
+/** A framework by its code, or several read together (`ATTACK_FRAMEWORKS`). */
+export type FrameworkCodes = string | readonly string[];
+/** The filter a framework's code, or a list of them, puts on a view's `framework_code`. */
+const frameworkFilter = (framework: FrameworkCodes): FilterValue =>
+  typeof framework === "string" ? framework : idSet(framework);
 
 type Client = Pick<SupabaseClient, "from">;
 type Views = Database["public"]["Views"];
@@ -257,17 +286,20 @@ const itemRead = (scope: Filters) =>
   });
 
 /**
- * The items of a framework's current revision, in the order of their codes: every kind, or the
- * kinds named. A framework holds a few hundred items, so a screen reads a kind whole.
+ * The items of a framework's current revision, or of several frameworks' (`ATTACK_FRAMEWORKS`), in
+ * the order of their codes: every kind, or the kinds named. A framework holds a few hundred items,
+ * so a screen reads a kind whole.
  */
 export async function readFrameworkItems(
   client: Client,
   context: ReadContext,
-  framework: string,
+  framework: FrameworkCodes,
   kinds?: readonly string[] | undefined,
   signal?: AbortSignal | undefined,
 ): Promise<FrameworkItem[]> {
-  const filters: ViewFilters<"framework_item_rows"> = { framework_code: framework };
+  const filters: ViewFilters<"framework_item_rows"> = {
+    framework_code: frameworkFilter(framework),
+  };
   if (kinds) filters.kind = idSet(kinds);
   const items = await readParts<FrameworkItem>(client, context, itemRead, filters, signal);
   return items.sort((a, b) => compareText(a.code_order, b.code_order));
@@ -294,19 +326,19 @@ export function itemsByParent(
 /* ——— Guidance: what the publication prints beside an item ——————————————————————————————————— */
 
 /**
- * What the publication says of an item beyond its name. Table D-4 of NIST SP 800-160 Vol. 2 Rev. 1
- * prints it for the cyber resiliency techniques and approaches: a definition and a discussion for
- * each, and for an approach an informal description and a list of examples. The examples are the
- * implementation guidance a control reaches through Table E-1, by the approaches it supports. A
- * part the reference data does not hold for an item is absent: the Discussion Tables 2 and 3 print
- * for a goal and an objective is not transcribed.
+ * What the publication says of an item beyond its name. NIST SP 800-160 Vol. 2 Rev. 1 prints a
+ * definition and a discussion for each cyber resiliency goal and objective (Tables 2 and 3) and for
+ * each technique and approach (Table D-4), and for an approach an informal description and a list
+ * of examples. The examples are the implementation guidance a control reaches through Table E-1,
+ * by the approaches it supports. A part the reference data does not hold for an item is absent: a
+ * design principle answers with its definition alone.
  */
 export type ItemGuidance = {
   /** The item's definition: its `prose`. */
   definition: string | undefined;
   /** The one line that describes an approach informally (`props.informal_description`). */
   informalDescription: string | undefined;
-  /** The discussion printed beside a technique or an approach (`props.discussion`). */
+  /** The discussion printed beside a goal, an objective, a technique or an approach (`props.discussion`). */
   discussion: string | undefined;
   /** The examples listed for an approach, one a bullet in printed order (`props.examples`); empty when it lists none. */
   examples: string[];
@@ -335,6 +367,40 @@ export function itemGuidance(item: {
     discussion: propText(item.props, "discussion"),
     examples: propList(item.props, "examples").filter((example) => example !== ""),
   };
+}
+
+/* ——— Architectural layers: where an approach can be used (Table D-5) ————————————————————————— */
+
+/** The kind of the architectural layers Table D-5 names, such as Operating System and Operations. */
+export const LAYER_KIND = "architectural-layer";
+/** The relation from an approach to a layer Table D-5 says it can be used at. */
+export const USED_AT = "used-at";
+
+/**
+ * The architectural layers each approach can be used at, by the approach's code, each list in the
+ * order of Table D-5's columns (the layers' `ordinal`, from the hardware to the environment of
+ * operation). Give it the table's `used-at` links and its layer items; a layer the items do not
+ * name keeps the order it was linked in, after the rest.
+ */
+export function layersByApproach(
+  links: readonly Pick<
+    FrameworkItemLink,
+    "relation" | "source_code" | "target_code" | "target_title"
+  >[],
+  layers: readonly Pick<FrameworkItem, "code" | "ordinal">[],
+): Map<string, ResiliencyConstruct[]> {
+  const place = new Map(layers.map((layer) => [layer.code, layer.ordinal]));
+  const byApproach = new Map<string, ResiliencyConstruct[]>();
+  for (const link of links) {
+    if (link.relation !== USED_AT) continue;
+    const held = byApproach.get(link.source_code) ?? [];
+    byApproach.set(link.source_code, held);
+    if (!held.some((layer) => layer.code === link.target_code))
+      held.push({ code: link.target_code, title: link.target_title });
+  }
+  const at = (layer: ResiliencyConstruct) => place.get(layer.code) ?? Number.MAX_SAFE_INTEGER;
+  for (const held of byApproach.values()) held.sort((a, b) => at(a) - at(b));
+  return byApproach;
 }
 
 /* ——— Item links ————————————————————————————————————————————————————————————————————————————— */
@@ -390,15 +456,20 @@ const itemLinkRead = (scope: Filters) =>
     order: [{ column: "source_identifier" }],
   });
 
-/** The item links of a framework's current revision, in the order of their place in the publication. */
+/**
+ * The item links of a framework's current revision, or of several frameworks', in the order of
+ * their place in the publication.
+ */
 export async function readFrameworkItemLinks(
   client: Client,
   context: ReadContext,
-  framework: string,
+  framework: FrameworkCodes,
   scope: ItemLinkScope = {},
   signal?: AbortSignal | undefined,
 ): Promise<FrameworkItemLink[]> {
-  const filters: ViewFilters<"framework_item_link_rows"> = { framework_code: framework };
+  const filters: ViewFilters<"framework_item_link_rows"> = {
+    framework_code: frameworkFilter(framework),
+  };
   if (scope.relation) filters.relation = scope.relation;
   if (scope.sourceCodes) filters.source_code = idSet(scope.sourceCodes);
   if (scope.targetCodes) filters.target_code = idSet(scope.targetCodes);
@@ -451,12 +522,14 @@ type ControlLinkColumn = (typeof CONTROL_LINK_COLUMNS)[number];
  * Self-Challenge, a Coordinated Protection approach, in a Deception group for SR-7. They are empty
  * for a link that names no technique, as in Appendix F.
  *
- * An Appendix F link keeps its row in `props`: `tactic` and `mitigation` are item codes of the same
- * framework, `approaches` the row's approaches in printed order as references to the cyber
- * resiliency framework (`itemReference`), `approach` the one reference when there is exactly one,
- * and `effects` the titles of effect items. A row that prints words where an approach belongs
- * keeps them as `approach_as_printed`; a printed label the catalog does not hold is kept as
- * `controls_not_in_catalog` and makes no link.
+ * An Appendix F or Appendix G link keeps its row in `props`: `tactic` and `mitigation` are item
+ * codes of the same framework, `approaches` the row's approaches in printed order as references to
+ * the cyber resiliency framework (`itemReference`), `approach` the one reference when there is
+ * exactly one, and `effects` the titles of Table F-1's effect items, which Appendix F holds. A row
+ * that prints words where an approach belongs keeps them as `approach_as_printed`; a printed label
+ * the catalog does not hold is kept as `controls_not_in_catalog` and makes no link. A control
+ * Appendix G prints in bold, which Section G.1.2 says diverges from the controls ATT&CK for ICS
+ * identifies for the mitigation, keeps `bold: true`.
  */
 export type FrameworkControlLink = Omit<
   ServerRow<
@@ -512,8 +585,10 @@ const controlLinkRead = (columns: readonly ControlLinkColumn[]) => (scope: Filte
 const wholeLinkRead = controlLinkRead(CONTROL_LINK_COLUMNS);
 
 /** The scope as filters on the view, each list in one spelling so equal reads share a key. */
-function controlLinkFilters(framework: string, scope: ControlLinkScope): Filters {
-  const filters: ViewFilters<"framework_control_link_rows"> = { framework_code: framework };
+function controlLinkFilters(framework: FrameworkCodes, scope: ControlLinkScope): Filters {
+  const filters: ViewFilters<"framework_control_link_rows"> = {
+    framework_code: frameworkFilter(framework),
+  };
   if (scope.catalogRevisionId) filters.catalog_revision_id = scope.catalogRevisionId;
   if (scope.controlIds) filters.control_id = idSet(scope.controlIds);
   if (scope.itemCodes) filters.item_code = idSet(scope.itemCodes);
@@ -555,7 +630,7 @@ async function readControlLinks<Link extends LinkPlace = FrameworkControlLink>(
 export async function readFrameworkControlLinks(
   client: Client,
   context: ReadContext,
-  framework: string,
+  framework: FrameworkCodes,
   scope: ControlLinkScope = {},
   signal?: AbortSignal | undefined,
 ): Promise<FrameworkControlLink[]> {
@@ -756,25 +831,26 @@ export function useFramework(
 }
 
 /**
- * The items of a framework's current revision: every kind, or the kinds named
+ * The items of a framework's current revision, or of several frameworks' (`ATTACK_FRAMEWORKS`):
+ * every kind, or the kinds named
  * (`useFrameworkItems(CYBER_RESILIENCY_FRAMEWORK, { kinds: ["technique", "approach"] })`).
  */
 export function useFrameworkItems(
-  framework: string,
+  framework: FrameworkCodes,
   options: FrameworkReadOptions & { kinds?: readonly string[] | undefined } = {},
 ): UseQueryResult<FrameworkItem[], Error> {
   const kinds = useMemo(() => (options.kinds ? idSet(options.kinds) : undefined), [options.kinds]);
   return useFrameworkRead(
     "framework_items",
-    [framework, kinds ?? null],
+    [frameworkFilter(framework), kinds ?? null],
     options.enabled ?? true,
     (client, context, signal) => readFrameworkItems(client, context, framework, kinds, signal),
   );
 }
 
-/** The item links of a framework's current revision, narrowed by relation or by the items' codes. */
+/** The item links of one or several frameworks' current revisions, narrowed by relation or by the items' codes. */
 export function useFrameworkItemLinks(
-  framework: string,
+  framework: FrameworkCodes,
   scope: ItemLinkScope = {},
   options: FrameworkReadOptions = {},
 ): UseQueryResult<FrameworkItemLink[], Error> {
@@ -789,7 +865,7 @@ export function useFrameworkItemLinks(
   );
   return useFrameworkRead(
     "framework_item_links",
-    [framework, narrowed],
+    [frameworkFilter(framework), narrowed],
     options.enabled ?? true,
     (client, context, signal) =>
       readFrameworkItemLinks(client, context, framework, narrowed, signal),
@@ -797,12 +873,12 @@ export function useFrameworkItemLinks(
 }
 
 /**
- * The control links of a framework for the scope named: a catalog revision, controls or items.
- * An `undefined` scope keeps the read waiting (the controls are still being worked out); an empty
- * list reads nothing. Never the whole of a framework with thousands of links.
+ * The control links of one or several frameworks for the scope named: a catalog revision,
+ * controls or items. An `undefined` scope keeps the read waiting (the controls are still being
+ * worked out); an empty list reads nothing. Never the whole of a framework with thousands of links.
  */
 export function useFrameworkControlLinks(
-  framework: string,
+  framework: FrameworkCodes,
   scope: ControlLinkScope | undefined,
   options: FrameworkReadOptions = {},
 ): UseQueryResult<FrameworkControlLink[], Error> {
@@ -858,4 +934,28 @@ export function useResiliencyControlLinks(
     (client, context, signal) =>
       readResiliencyControlLinks(client, context, catalogRevisionId ?? "", signal),
   );
+}
+
+/** Table D-5's reads, kept at module level so each keeps its key. */
+const layerItems = { kinds: [LAYER_KIND] } as const;
+const layerLinks = { relation: USED_AT } as const;
+
+/**
+ * Table D-5 whole: the architectural layers each approach can be used at, by the approach's code
+ * (`layersByApproach`), once both reads have answered. Two small reads (240 links and 11 layers)
+ * that every approach shares, so stepping from one approach to the next reads nothing. `queries`
+ * are the reads to wait on and say the failure of.
+ */
+export function useApproachLayers(options: FrameworkReadOptions = {}) {
+  const links = useFrameworkItemLinks(CYBER_RESILIENCY_FRAMEWORK, layerLinks, options);
+  const layers = useFrameworkItems(CYBER_RESILIENCY_FRAMEWORK, {
+    kinds: layerItems.kinds,
+    enabled: options.enabled,
+  });
+  const byApproach = useMemo(
+    () => (links.data && layers.data ? layersByApproach(links.data, layers.data) : undefined),
+    [links.data, layers.data],
+  );
+  const queries = useMemo(() => [links, layers], [links, layers]);
+  return { byApproach, queries };
 }

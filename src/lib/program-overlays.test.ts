@@ -5,6 +5,8 @@ vi.mock("@/components/app/workspace", () => ({ useWorkspace: () => ({}) }));
 
 const {
   ProgramOverlaysError,
+  newerVersion,
+  newestVersions,
   restackPreview,
   setProgramBaselineOverlays,
   stackShape,
@@ -208,6 +210,75 @@ const answer = {
   systems: [{ id: id(7), code: "SYS-1" }],
   ssps: [{ id: id(8), systemId: id(7), systemCode: "SYS-1", version: 1, state: "published" }],
 };
+
+describe("a stack that starts from two baselines", () => {
+  const combined = deriveStack(reference, [
+    {
+      key: "privacy",
+      kind: "baseline",
+      title: "Privacy baseline",
+      decisions: [add("pt-2", "Selected by the Privacy baseline.")],
+    },
+    { key: "a", kind: "overlay", title: "Overlay a", overlayId: "a", decisions: [remove("pe-3")] },
+  ]);
+
+  it("is a stack the command keeps in order, with the second baseline as part of its root", () => {
+    expect(stackShape(combined)).toEqual({ overlayIds: ["a"], tailoring: false, supported: true });
+    const misplaced = deriveStack(reference, [
+      { key: "a", kind: "overlay", title: "Overlay a", overlayId: "a", decisions: [add("ac-3")] },
+      { key: "privacy", kind: "baseline", title: "Privacy baseline", decisions: [add("pt-2")] },
+    ]);
+    expect(stackShape(misplaced).supported).toBe(false);
+  });
+
+  it("keeps the second baseline first when the overlays change", () => {
+    const preview = restackPreview(combined, [overlay("b", [add("au-3")])], null);
+    expect(preview.derivation.layers.map((layer) => [layer.key, layer.kind, layer.total])).toEqual([
+      ["privacy", "baseline", 5],
+      ["b", "overlay", 6],
+    ]);
+    expect(preview.added.sort()).toEqual(["au-3", "pe-3"]);
+    expect(preview.removed).toEqual([]);
+    expect(preview.idle).toEqual([]);
+  });
+});
+
+describe("an overlay's versions", () => {
+  const versions = [
+    { id: "ma-1", code: "MA", version: 1 },
+    { id: "ma-3", code: "MA", version: 3 },
+    { id: "ma-2", code: "MA", version: 2 },
+    { id: "dp-1", code: "DP", version: 1 },
+  ];
+
+  it("offers each overlay once, at its newest published version", () => {
+    expect(newestVersions(versions).map((row) => row.id)).toEqual(["ma-3", "dp-1"]);
+  });
+
+  it("names the newer version of the one a stack applies, and none for the newest", () => {
+    expect(newerVersion(versions, { id: "ma-1" })?.id).toBe("ma-3");
+    expect(newerVersion(versions, { id: "ma-3" })).toBeUndefined();
+    expect(newerVersion(versions, { id: "dp-1" })).toBeUndefined();
+    expect(newerVersion(versions, { id: "gone" })).toBeUndefined();
+  });
+
+  it("counts an overlay's values where its layer selects their controls", () => {
+    const preview = restackPreview(
+      deriveStack(reference, []),
+      [
+        {
+          ...overlay("a", [add("ac-3")]),
+          parameters: [{ controlId: "ac-3" }, { controlId: "zz-9" }],
+        },
+        { ...overlay("values", []), parameters: [{ controlId: "ac-1" }] },
+        { ...overlay("moot", []), parameters: [{ controlId: "zz-9" }] },
+      ],
+      null,
+    );
+    expect(preview.derivation.layers.map((layer) => layer.parameters)).toEqual([1, 1, 0]);
+    expect(preview.idle).toEqual(["moot"]);
+  });
+});
 
 describe("the command", () => {
   it("sends the overlays in order at the revision the reader saw, with the request's id", async () => {

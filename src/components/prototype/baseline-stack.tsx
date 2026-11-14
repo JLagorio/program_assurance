@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Table, Text } from "@ledger/design-system";
-import type { BaselineLayer } from "@/lib/baseline-stack";
+import { layerKinds, type BaselineLayer } from "@/lib/baseline-stack";
 
 /** What the stack table needs of a layer: a saved or draft one, or the program's unsaved tailoring. */
 export type StackRow = Pick<
@@ -94,7 +94,7 @@ export function BaselineStackTable({
             <Table.Cell wrap {...start}>
               {name(layer)}
             </Table.Cell>
-            <Table.Cell>{layer.kind === "overlay" ? "Overlay" : "Tailoring"}</Table.Cell>
+            <Table.Cell>{layerKinds[layer.kind]}</Table.Cell>
             <Table.Cell align="end">{change(layer, "added")}</Table.Cell>
             <Table.Cell align="end">{change(layer, "removed")}</Table.Cell>
             <Table.Cell align="end">{values(layer)}</Table.Cell>

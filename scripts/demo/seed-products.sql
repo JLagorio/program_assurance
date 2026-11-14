@@ -514,9 +514,10 @@ $seed$;
 
 -- The sixth step: Customer A's overlay (products-scenario.mjs, customerOverlay), saved, given its
 -- decisions and published through the overlay commands as the account, under its own dataset, then
--- put on top of the program's stack (pg_temp.stack_product_overlay). Every decision must change the
--- baseline it lands on. A workspace that already holds the overlay is given only its place on the
--- stack, recorded under the step's batch.
+-- put on top of the program's stack (pg_temp.stack_product_overlay), and each control it adds
+-- mapped to the requirement that calls for it (pg_temp.map_product_overlay). Every decision must
+-- change the baseline it lands on. A workspace that already holds the overlay is given only what it
+-- lacks of its place on the stack and its mappings, recorded under the step's batch.
 create function pg_temp.seed_product_overlay(p jsonb) returns jsonb language plpgsql as $seed$
 declare
   t uuid := (p->>'tenantId')::uuid;
@@ -525,14 +526,19 @@ declare
   v_program uuid; v_choice public.program_reference_choices; v_count integer; v_selected uuid[];
   v_decisions jsonb; v_id uuid; v_overlay public.control_overlays;
   v_job uuid; v_batch uuid; v_source uuid; v_hash text; v_tables jsonb := '{}'; v_read jsonb; v_records integer := 0;
-  v_stack jsonb;
+  v_stack jsonb; v_maps jsonb;
 begin
   perform pg_advisory_xact_lock(hashtextextended(t::text || '/demo-product-overlay', 0));
   v_batch := pg_temp.sid(t, 'demo_import_batches/overlay');
   if exists (select 1 from public.demo_import_batches where tenant_id = t and dataset_id = p->>'overlayDatasetId') then
-    -- A workspace that holds the overlay is given only its place on the program's stack.
+    -- A workspace that holds the overlay is given only its place on the program's stack and the
+    -- mappings it lacks.
     select id into v_batch from public.demo_import_batches where tenant_id = t and dataset_id = p->>'overlayDatasetId';
-    return pg_temp.stack_product_overlay(p, v_batch, false);
+    v_stack := pg_temp.stack_product_overlay(p, v_batch, false);
+    v_maps := pg_temp.map_product_overlay(p, v_batch);
+    return v_stack || jsonb_build_object(
+      'changed', (v_stack->>'changed')::boolean or (v_maps->>'changed')::boolean,
+      'maps', v_maps, 'records', (v_maps->>'records')::integer);
   end if;
   select id into v_program from public.programs where tenant_id = t and code = v_entry->>'program';
   if v_program is null then
@@ -600,9 +606,69 @@ begin
       where tenant_id = t and import_batch_id = v_batch group by destination_table) c;
   update public.demo_import_batches set summary = jsonb_build_object('tables', v_tables, 'read', v_read) where id = v_batch;
   v_stack := pg_temp.stack_product_overlay(p, v_batch, true);
-  return jsonb_build_object('changed', true, 'tables', v_tables, 'records', v_records, 'read', v_stack->'read', 'stack', v_stack->'stack');
+  v_maps := pg_temp.map_product_overlay(p, v_batch);
+  return jsonb_build_object('changed', true, 'tables', (select summary->'tables' from public.demo_import_batches where id = v_batch),
+    'records', v_records + (v_maps->>'records')::integer, 'read', v_stack->'read', 'stacked', v_stack->'stacked', 'stack', v_stack->'stack', 'maps', v_maps);
 end;
 $seed$;
+
+-- Each control the overlay adds, mapped to the requirement of Customer A's document its decision
+-- cites (products-scenario.mjs, overlayRequirementMaps), as the requirements step writes its
+-- mappings: a maps_to link on the requirement's latest revision, written by the seed itself. A
+-- mapping the requirement already holds is left as it is. Each mapping is listed under the step's
+-- batch, from its own source, and the batch's summary counts them.
+create function pg_temp.map_product_overlay(p jsonb, p_batch uuid) returns jsonb language plpgsql as $$
+declare
+  t uuid := (p->>'tenantId')::uuid;
+  v_entry jsonb := p->'customerOverlay';
+  v_source uuid := pg_temp.sid(t, 'demo_import_sources/customerOverlay/maps');
+  v_hash text := encode(extensions.digest((p->'overlayMaps')::text, 'sha256'), 'hex');
+  v_program uuid; v_catalog uuid; v_map jsonb; v_control uuid; v_revision uuid; v_id uuid;
+  v_mapped jsonb := '[]'; v_held jsonb := '[]';
+begin
+  -- Written by the seed itself, with no session, as the requirements step writes its mappings.
+  perform set_config('request.jwt.claims', '', true);
+  select id into v_program from public.programs where tenant_id = t and code = v_entry->>'program';
+  select c.catalog_revision_id into v_catalog from public.program_reference_choices c
+    where c.tenant_id = t and c.program_id = v_program order by c.id limit 1;
+  for v_map in select value from jsonb_array_elements(p->'overlayMaps') loop
+    select k.id into v_control from public.controls k where k.catalog_revision_id = v_catalog and k.code = v_map->>0;
+    select v.id into v_revision from public.engineering_requirements q
+      join public.requirement_sources s on s.tenant_id = q.tenant_id and s.id = q.source_id
+      join public.requirement_revisions v on v.tenant_id = q.tenant_id and v.engineering_requirement_id = q.id
+      where q.tenant_id = t and q.program_id = v_program and s.code = p->>'overlayDocument' and q.source_reference = v_map->>1
+      order by v.version_number desc limit 1;
+    if v_control is null or v_revision is null then
+      raise exception '% holds no requirement % of % to map %.', v_entry->>'program', v_map->>1, p->>'overlayDocument', v_map->>0;
+    end if;
+    if exists (select 1 from public.requirement_control_links l
+        where l.tenant_id = t and l.requirement_revision_id = v_revision and l.control_id = v_control) then
+      v_held := v_held || jsonb_build_array(v_map->>0);
+      continue;
+    end if;
+    v_id := pg_temp.sid(t, 'requirement_control_links/overlay/' || (v_map->>1) || '/' || (v_map->>0));
+    insert into public.requirement_control_links (id, tenant_id, requirement_revision_id, control_id, relationship_type, rationale)
+      values (v_id, t, v_revision, v_control, 'maps_to', p->>'overlayMapRationale');
+    insert into public.demo_import_sources (id, tenant_id, import_batch_id, source_pointer, source_sha256, source_record)
+      values (v_source, t, p_batch, '/customerOverlay/maps', v_hash, p->'overlayMaps')
+      on conflict (id) do nothing;
+    insert into public.demo_import_records (id, tenant_id, import_batch_id, dataset_id, destination_table, destination_id, source_key, source_pointer, source_sha256, source_record_id, mapped_values)
+      values (pg_temp.sid(t, 'demo_import_records/requirement_control_links/' || v_id), t, p_batch, p->>'overlayDatasetId',
+        'requirement_control_links', v_id, 'requirement_control_links/overlay/' || (v_map->>1) || '/' || (v_map->>0),
+        '/customerOverlay/maps', v_hash, v_source,
+        jsonb_build_object('section', 'customerOverlay/maps', 'requirement', v_map->>1, 'control', v_map->>0));
+    v_mapped := v_mapped || jsonb_build_array((v_map->>0) || ' to ' || (v_map->>1));
+  end loop;
+  if jsonb_array_length(v_mapped) > 0 then
+    update public.demo_import_batches set summary = summary || jsonb_build_object(
+        'maps', coalesce(summary->'maps', '[]'::jsonb) || v_mapped,
+        'tables', coalesce(summary->'tables', '{}'::jsonb) || jsonb_build_object('requirement_control_links',
+          coalesce((summary->'tables'->>'requirement_control_links')::integer, 0) + jsonb_array_length(v_mapped)))
+      where id = p_batch;
+  end if;
+  return jsonb_build_object('changed', jsonb_array_length(v_mapped) > 0, 'mapped', v_mapped, 'held', v_held,
+    'records', jsonb_array_length(v_mapped));
+end $$;
 
 -- Customer A's overlay on top of the program's stack, through set_program_baseline_overlays as the
 -- account: the overlays the stack holds, bottom up, then this one, with a request id of its own on
@@ -633,7 +699,7 @@ begin
   end loop;
   if v_overlays ? v_overlay::text then
     select summary into v_summary from public.demo_import_batches where id = p_batch;
-    return jsonb_build_object('changed', p_created, 'reason', 'Customer A''s stack already holds the overlay.',
+    return jsonb_build_object('changed', p_created, 'stacked', false, 'reason', 'Customer A''s stack already holds the overlay.',
       'read', v_summary->'read', 'stack', v_summary->'stack');
   end if;
   perform set_config('request.jwt.claims', v_claims, true);
@@ -645,5 +711,5 @@ begin
       || jsonb_build_object('read', coalesce(summary->'read', '{}'::jsonb) || jsonb_build_object('applied', true))
       || jsonb_build_object('stack', v_stack)
     where id = p_batch returning summary into v_summary;
-  return jsonb_build_object('changed', true, 'read', v_summary->'read', 'stack', v_stack);
+  return jsonb_build_object('changed', true, 'stacked', true, 'read', v_summary->'read', 'stack', v_stack);
 end $$;

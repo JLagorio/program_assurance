@@ -43,15 +43,16 @@ import { TextField } from "@/components/app/fields";
 import { useFormFeedback, type FormIssue } from "@/components/app/form-feedback";
 import { parameterName } from "@/components/app/profile-tailoring/names";
 import {
-  ParameterValueEntry,
   choiceHeadingOf,
   entryMode,
   useOffers,
   type Offer,
-} from "@/components/app/profile-tailoring/parameter-picker";
+} from "@/components/app/profile-tailoring/parameter-offers";
+import { ParameterValueEntry } from "@/components/app/profile-tailoring/parameter-picker";
 import { causeText } from "@/components/app/sentence";
 import { useDraftGuard } from "@/components/app/use-draft-guard";
 import {
+  useOverlayParameters,
   useSetOverlayParameters,
   type ControlOverlay,
   type OverlayParameterValue,
@@ -61,15 +62,6 @@ import { resiliencyParameter, vocabularyValues } from "@/lib/resiliency-choice";
 import { useCollectionTable } from "./collection-question";
 import { ProductCollection } from "./product-collection";
 import { RecordLink, useRemovalFocus } from "./record-preview";
-
-/** The values an overlay gives its parameters, as its record page and its Dialog read them. */
-export function useOverlayParameters(overlayId: string) {
-  return useRows(
-    "control_overlay_parameters",
-    { overlay_id: overlayId },
-    { columns: ["id", "parameter_id", "parameter_values", "rationale"] },
-  );
-}
 
 type OverlayLike = Pick<ControlOverlay, "id" | "code" | "title" | "catalog_revision_id">;
 type SetValue = Pick<
@@ -283,11 +275,15 @@ export function OverlayParameters({
     edit: (row) => setEditing({ parameterId: row.parameterId }),
     remove: (row) => void removeValues(row),
   };
+  // The button that opens the Dialog: the empty state's until a value is set, then the toolbar's.
+  // Focus returns to whichever is on the page when the Dialog closes.
+  const opener = useRef<HTMLButtonElement | null>(null);
   const action = canAuthor ? (
     <Button
       // A removal takes its row and the menu that asked; focus comes back here.
       ref={(node: HTMLButtonElement | null) => {
         focus.target.current = node;
+        if (node) opener.current = node;
       }}
       size="small"
       variant="secondary"
@@ -310,6 +306,7 @@ export function OverlayParameters({
           revision={revision}
           set={values.data ?? NO_VALUES}
           initialParameterId={editing.parameterId}
+          finalFocus={() => (opener.current?.isConnected ? opener.current : true)}
           onSaved={onSaved}
           onClose={() => setEditing(null)}
         />
@@ -352,6 +349,7 @@ function OverlayParameterDialog({
   revision,
   set,
   initialParameterId,
+  finalFocus,
   onSaved,
   onClose,
 }: {
@@ -361,6 +359,8 @@ function OverlayParameterDialog({
   set: readonly SetValue[];
   /** The parameter the Dialog opens on, with focus on its heading. */
   initialParameterId: string | null;
+  /** Where focus goes as the Dialog closes: the opener on the page then. */
+  finalFocus: () => HTMLElement | boolean;
   onSaved: (saved: ControlOverlay) => void;
   onClose: () => void;
 }) {
@@ -447,9 +447,12 @@ function OverlayParameterDialog({
   const [busy, setBusy] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
+  // The Dialog closes through its open state, so its exit and the return of focus to the button
+  // that opened it run before the section unmounts it.
+  const [open, setOpen] = useState(true);
   const guard = useDraftGuard({
     dirty,
-    onClose,
+    onClose: () => setOpen(false),
     description: "The values you entered have not been saved.",
   });
   const { confirm, confirmation } = useConfirmation();
@@ -473,16 +476,20 @@ function OverlayParameterDialog({
     : `${formatNumber(found.length)} listed: the parameters this overlay sets and those of the controls it adds`;
   return (
     <Dialog
-      open
+      open={open}
       pending={busy || guard.busy}
       onOpenChange={(next, details) => {
         if (next) return;
         details.cancel();
         void guard.close();
       }}
+      onOpenChangeComplete={(next) => {
+        if (!next) onClose();
+      }}
     >
       <DialogContent
         width="xlarge"
+        finalFocus={finalFocus}
         initialFocus={() =>
           initialParameterId ? (headingRef.current ?? true) : (searchRef.current ?? true)
         }

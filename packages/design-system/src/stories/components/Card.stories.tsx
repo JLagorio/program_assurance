@@ -64,12 +64,16 @@ const headerLayout = (card: Element) => {
   const contentEnd = box.right - parseFloat(style.paddingInlineEnd);
   const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
   const action = slotBox(card, "card-action");
-  // The title's width on one line, read as the header reads it, and put back before paint.
+  // The title's width on one line: its text's line boxes, read without touching the page, since
+  // a play calls this inside waitFor, which runs it again on every change to the page.
   const title = card.querySelector<HTMLElement>('[data-slot="card-title"]')!;
-  const width = title.style.width;
-  title.style.width = "max-content";
-  const titleWidth = title.getBoundingClientRect().width;
-  title.style.width = width;
+  const range = document.createRange();
+  let titleWidth = 0;
+  const walker = document.createTreeWalker(title, NodeFilter.SHOW_TEXT);
+  for (let text = walker.nextNode(); text; text = walker.nextNode()) {
+    range.selectNodeContents(text);
+    for (const line of range.getClientRects()) titleWidth += line.width;
+  }
   const actionPart = card.querySelector<HTMLElement>('[data-slot="card-action"]')!;
   const controls = [...actionPart.children].map((child) => child.getBoundingClientRect().width);
   const actionWidth =
@@ -180,14 +184,17 @@ export const OnASmallPhone: Story = {
   },
 };
 
-/** A full-width card on a 320px phone is 288px wide, 2px short of 16rem inside its header's inset. The header decides from the title's measure and the action, not from a fixed width, so the short action still sits at the end of the title's row. */
+/** A full-width card on a 320px phone, in the 288px its 16px gutters leave: 2px short of 16rem inside the header's inset. The header decides from the title's measure and the action, not from a fixed width, so the short action still sits at the end of the title's row. */
 export const OnANarrowPhone: Story = {
-  name: "On a narrow phone",
-  globals: { viewport: { value: "ledgerNarrow", isRotated: false } },
-  render: reviewPreferences,
+  name: "On a 320px phone",
+  // A frame around the Playground's card: a measurement, not code to copy.
+  tags: ["!manifest"],
+  render: (args, context) => (
+    <div style={{ maxWidth: 288 }}>{reviewPreferences(args, context)}</div>
+  ),
   play: async ({ canvasElement }) => {
-    await waitFor(() => expect(window.innerWidth).toBe(320));
     const card = within(canvasElement).getByRole("region", { name: "Review preferences" });
+    await expect(card.getBoundingClientRect().width).toBe(288);
     const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
     const header = card.querySelector<HTMLElement>('[data-slot="card-header"]')!;
     const style = getComputedStyle(header);

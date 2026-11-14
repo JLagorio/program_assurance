@@ -104,6 +104,8 @@ describe("controlThreats", () => {
       id: remote[0],
       code: "T1133",
       title: "External Remote Services",
+      // A row read without its framework is Appendix F's.
+      framework: "nist-sp800-160v2r1-attack",
       // In the order of the appendix's tables, whatever order the rows were read in.
       tactics: [
         { code: "tactic.initial-access", title: "Initial Access" },
@@ -149,6 +151,75 @@ describe("controlThreats", () => {
 
   it("answers nothing for a control the appendix does not name", () => {
     expect(controlThreats([], { attack, approaches })).toEqual([]);
+  });
+
+  it("lists ATT&CK for ICS's techniques after Enterprise's, each tactic placed in its own matrix", () => {
+    const enterprise = "nist-sp800-160v2r1-attack";
+    const ics = "nist-sp800-160v2r1-attack-ics";
+    const inFramework = (link: FrameworkControlLink, framework: string) =>
+      ({ ...link, framework_code: framework }) as FrameworkControlLink;
+    const historian: [string, string, string] = [id(810), "T0810", "Data Historian Compromise"];
+    const mode: [string, string, string] = [id(858), "T0858", "Change Operating Mode"];
+    const rows = [
+      inFramework(
+        printed("G-5:T0858:M0930:1:SC-7", mode, {
+          tactic: "tactic.evasion",
+          mitigation: "M0930",
+          approaches: [cref("predefined-segmentation")],
+          effects: ["Contain", "Exert"],
+        }),
+        ics,
+      ),
+      inFramework(
+        printed("G-2:T0858:M0930:1:SC-7", mode, {
+          tactic: "tactic.execution",
+          mitigation: "M0930",
+          approaches: [cref("predefined-segmentation")],
+          effects: ["Contain", "Exert"],
+        }),
+        ics,
+      ),
+      inFramework(
+        printed("G-1:T0810:M0930:1:SC-7", historian, {
+          tactic: "tactic.initial-access",
+          mitigation: "M0930",
+          approaches: [cref("predefined-segmentation")],
+          effects: ["Negate", "Contain"],
+        }),
+        ics,
+      ),
+      inFramework(links[0]!, enterprise),
+    ];
+    // Both matrices print an Initial Access and an Execution, in another place among their tactics.
+    const vocabulary = [
+      {
+        ...item("tactic", "tactic.initial-access", "Initial Access", 3),
+        framework_code: enterprise,
+      },
+      { ...item("tactic", "tactic.execution", "Execution", 4), framework_code: enterprise },
+      { ...item("tactic", "tactic.persistence", "Persistence", 5), framework_code: enterprise },
+      { ...item("tactic", "tactic.initial-access", "Initial Access", 1), framework_code: ics },
+      { ...item("tactic", "tactic.execution", "Execution", 2), framework_code: ics },
+      { ...item("tactic", "tactic.evasion", "Evasion", 5), framework_code: ics },
+      { ...item("mitigation", "M0930", "Network Segmentation"), framework_code: ics },
+      { ...item("mitigation", "M1030", "Network Segmentation"), framework_code: enterprise },
+      { ...item("effect", "effect.negate", "Negate", 2), framework_code: enterprise },
+      { ...item("effect", "effect.contain", "Contain", 10), framework_code: enterprise },
+      { ...item("effect", "effect.exert", "Exert", 13), framework_code: enterprise },
+    ];
+    const listed = controlThreats(rows, { attack: vocabulary, approaches });
+    expect(listed.map((technique) => [technique.code, technique.framework])).toEqual([
+      ["T1133", enterprise],
+      ["T0810", ics],
+      ["T0858", ics],
+    ]);
+    // Execution before Evasion, as Appendix G's tables print them.
+    expect(listed[2]!.tactics.map((tactic) => tactic.title)).toEqual(["Execution", "Evasion"]);
+    expect(listed[1]).toMatchObject({
+      mitigations: [{ code: "M0930", title: "Network Segmentation", candidate: false }],
+      approaches: [{ code: "approach.predefined-segmentation", title: "Predefined Segmentation" }],
+      effects: ["Negate", "Contain"],
+    });
   });
 });
 

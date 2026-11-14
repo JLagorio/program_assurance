@@ -2,6 +2,7 @@ import { useEffect, useId, useMemo, useRef, useState, type FormEvent } from "rea
 import { AlertCircle, ArrowDown, ArrowUp, Plus, X } from "lucide-react";
 import {
   Alert,
+  AlertAction,
   AlertDescription,
   AlertTitle,
   announce,
@@ -40,6 +41,8 @@ import { idSet, useRows } from "@/lib/models";
 import {
   OVERLAY_LIMIT,
   ProgramOverlaysError,
+  newerVersion,
+  newestVersions,
   restackPreview,
   stackShape,
   tailoringDecisions,
@@ -49,6 +52,10 @@ import {
 } from "@/lib/program-overlays";
 import { BaselineStackTable } from "./baseline-stack";
 import { QueryState } from "./work-common";
+
+/** An overlay's name in the stack: a version after the first says which it is, since versions share a name. */
+const versionTitle = (overlay: { title: string; version: number }) =>
+  overlay.version > 1 ? `${overlay.title} · version ${overlay.version}` : overlay.title;
 
 /** How many control codes a line of the summary names before it counts the rest. */
 const NAMED = 6;
@@ -159,7 +166,7 @@ export function ProgramOverlaysDialog({
         const overlay = byId.get(id);
         return {
           id,
-          title: overlay?.title ?? savedTitles.get(id) ?? "Overlay",
+          title: overlay ? versionTitle(overlay) : (savedTitles.get(id) ?? "Overlay"),
           decisions: overlay?.decisions ?? [],
           parameters: overlay?.parameters ?? [],
         };
@@ -182,7 +189,21 @@ export function ProgramOverlaysDialog({
     () => restackPreview(opened.derivation, chosen, tailoring),
     [opened.derivation, chosen, tailoring],
   );
-  const available = [...byId.values()].filter((overlay) => !overlayIds.includes(overlay.id));
+  // Add overlay offers each overlay at its newest published version, and none the stack holds in
+  // any version: a newer version of one it holds is taken in its place (below).
+  const held = new Set(overlayIds.flatMap((id) => byId.get(id)?.code ?? []));
+  const available = newestVersions([...byId.values()]).filter((overlay) => !held.has(overlay.code));
+  // The overlays of the stack a newer version of which is published: each can take it in its place.
+  const newer = overlayIds.flatMap((id) => {
+    const version = newerVersion([...byId.values()], { id });
+    const overlay = byId.get(id);
+    return version && overlay ? [{ id, overlay, version }] : [];
+  });
+  const take = (item: (typeof newer)[number]) =>
+    change(
+      overlayIds.map((id) => (id === item.id ? item.version.id : id)),
+      `${item.overlay.title} version ${item.version.version} takes the place of version ${item.overlay.version}.`,
+    );
   const code = (id: string) => opened.controls.get(id)?.code ?? "A control";
   const named = (ids: readonly string[]) => {
     const codes = ids.map(code).sort((a, b) => a.localeCompare(b, "en", { numeric: true }));
@@ -393,6 +414,40 @@ export function ProgramOverlaysDialog({
                 </Alert>
               ) : null}
               <ErrorSummary issues={feedback.summary} focusKey={feedback.attempts} />
+              {newer.length > 0 && (
+                <Alert tone="information">
+                  <AlertTitle>
+                    {newer.length === 1
+                      ? `A newer version of ${newer[0]!.overlay.title} is published`
+                      : "Newer versions of overlays in the stack are published"}
+                  </AlertTitle>
+                  <AlertDescription>
+                    {newer
+                      .map(
+                        (item) =>
+                          `${item.overlay.title}: the stack applies version ${formatNumber(item.overlay.version)}, and version ${formatNumber(item.version.version)} is published.`,
+                      )
+                      .join(" ")}{" "}
+                    Taking one applies it in the older one&rsquo;s place, and the layers above it
+                    again.
+                  </AlertDescription>
+                  <AlertAction>
+                    {newer.map((item) => (
+                      <Button
+                        key={item.id}
+                        size="small"
+                        variant="secondary"
+                        disabled={guard.busy}
+                        onClick={() => take(item)}
+                      >
+                        {newer.length === 1
+                          ? `Take version ${formatNumber(item.version.version)}`
+                          : `Take version ${formatNumber(item.version.version)} of ${item.overlay.title}`}
+                      </Button>
+                    ))}
+                  </AlertAction>
+                </Alert>
+              )}
               <QueryState queries={published.queries}>
                 <FieldSet disabled={guard.busy}>
                   <FieldLegend variant="label">Overlays</FieldLegend>
@@ -405,8 +460,10 @@ export function ProgramOverlaysDialog({
                     reference={{ name: reference, count: opened.derivation.baselineCount }}
                     layers={preview.derivation.layers}
                     resultLabel="Program control baseline"
-                    actions={(layer, index) =>
-                      layer.kind === "overlay" ? (
+                    actions={(layer) => {
+                      // The overlay's place among the overlays: a second baseline may come before them.
+                      const index = overlayIds.indexOf(layer.key);
+                      return layer.kind === "overlay" ? (
                         <Inline space="space.050" alignInline="end">
                           <IconButton
                             size="small"
@@ -440,8 +497,8 @@ export function ProgramOverlaysDialog({
                             }
                           />
                         </Inline>
-                      ) : null
-                    }
+                      ) : null;
+                    }}
                   />
                   <Inline>
                     {addUnavailable ? (

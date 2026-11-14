@@ -36,6 +36,7 @@ import {
 import {
   controlStanding,
   layerChange,
+  layerKinds,
   layerParamKey,
   stackAt,
   stackWithout,
@@ -227,7 +228,11 @@ function referenceName(baseline: ProgramBaseline) {
 function BaselineStack({ baseline }: { baseline: ProgramBaseline }) {
   return (
     <BaselineStackTable
-      label={`How ${baseline.reference?.title ?? "this baseline"} becomes the program's control baseline`}
+      label={
+        baseline.derivation.layers[0]?.kind === "baseline"
+          ? `How ${baseline.reference?.title ?? "this baseline"} and ${baseline.derivation.layers[0].title} become the program's control baseline`
+          : `How ${baseline.reference?.title ?? "this baseline"} becomes the program's control baseline`
+      }
       reference={{ name: referenceName(baseline), count: baseline.derivation.baselineCount }}
       layers={baseline.derivation.layers}
       name={(row) => layerName(baseline, row)}
@@ -601,7 +606,7 @@ function BaselineDetail({
                 <Item
                   key={item.key}
                   title={item.title}
-                  description={`${item.kind === "overlay" ? "Overlay" : "Tailoring"} · ${
+                  description={`${layerKinds[item.kind]} · ${
                     applied ? layerChange(item) : "Not applied"
                   } · ${formatNumber(item.total)}`}
                   isActive={upto === index + 1}
@@ -633,7 +638,9 @@ function BaselineDetail({
                     ? `controls in ${reference}`
                     : offKeys.has(layer.key)
                       ? `controls without ${layer.title}`
-                      : `controls after ${layer.title}`}
+                      : layer.kind === "baseline"
+                        ? `controls in ${reference} and ${layer.title}`
+                        : `controls after ${layer.title}`}
                 </Heading>
                 <Inline space="space.100" alignBlock="center" shouldWrap>
                   {options.length > 0 && (

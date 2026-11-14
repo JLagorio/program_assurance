@@ -81,6 +81,8 @@ jobs:
           path: out/*.tgz
   stories:
     runs-on: ubuntu-latest
+    # A story that never settles hangs its browser past any test timeout; stop the job instead.
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

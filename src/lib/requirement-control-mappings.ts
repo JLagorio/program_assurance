@@ -67,3 +67,52 @@ export function requirementMappingBaselines(input: {
   });
   return { allocated: allocatedIds.size > 0, systems, sources };
 }
+
+/** A system that can carry a mapping of a control: it and the selection its baseline records. */
+export type MappingCarrier = { systemId: string; selectedControlId: string };
+
+/**
+ * Where a control's Map a requirement puts a requirement's mappings, or why it puts none:
+ * - `targets`: one mapping on each system the requirement is allocated to whose control baseline
+ *   selects the control and that carries none of the control yet, so every such system's SSP lists
+ *   the requirement under it; `mapped` of the `eligible` systems carry one already.
+ * - `mapped`: every such system carries one already.
+ * - `no_details`: the requirement has no revision to record a mapping on.
+ * - `unallocated`: it is allocated to no system.
+ * - `not_selected`: none of its systems' control baselines selects the control.
+ */
+export type RequirementMappingStanding =
+  | { kind: "targets"; targets: MappingCarrier[]; mapped: number; eligible: number }
+  | { kind: "mapped"; eligible: number }
+  | { kind: "no_details" }
+  | { kind: "unallocated" }
+  | { kind: "not_selected" };
+
+/**
+ * A requirement's standing for mapping one control. `systemIds` are the systems its latest
+ * revision is allocated to, in the order the register lists them; `carriers` the program's systems
+ * whose control baseline selects the control, each with that selection; `mappedOn` the systems on
+ * which its latest revision maps the control already, in any relationship. A mapping that names no
+ * system (a catalog reference) carries no system, so it leaves every system to map.
+ */
+export function requirementMappingStanding(
+  requirement: { revisionId: string | null; systemIds: readonly string[] },
+  carriers: ReadonlyMap<string, string>,
+  mappedOn: ReadonlySet<string>,
+): RequirementMappingStanding {
+  if (!requirement.revisionId) return { kind: "no_details" };
+  if (requirement.systemIds.length === 0) return { kind: "unallocated" };
+  const eligible = [...new Set(requirement.systemIds)].filter((id) => carriers.has(id));
+  if (eligible.length === 0) return { kind: "not_selected" };
+  const targets = eligible
+    .filter((systemId) => !mappedOn.has(systemId))
+    .map((systemId) => ({ systemId, selectedControlId: carriers.get(systemId)! }));
+  return targets.length === 0
+    ? { kind: "mapped", eligible: eligible.length }
+    : {
+        kind: "targets",
+        targets,
+        mapped: eligible.length - targets.length,
+        eligible: eligible.length,
+      };
+}

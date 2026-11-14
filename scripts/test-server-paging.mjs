@@ -74,6 +74,17 @@ async function fresh(path) {
   await page.evaluate(() => sessionStorage.clear());
   await page.goto(`${origin}${path}`);
 }
+/** A filter's chip, in the toolbar's row or in More's Filters where the row folded it. */
+async function openFilter(label) {
+  const toolbar = page.locator('main [data-slot="toolbar"]');
+  const chips = (scope) =>
+    scope.locator('[data-slot="filter-chip"]').filter({ hasText: new RegExp(`(^|\\+)${label}`) });
+  for (const chip of await chips(toolbar).all()) if (await chip.isVisible()) return chip.click();
+  await toolbar.getByRole("button", { name: /^More filters/ }).click();
+  await chips(page.getByRole("dialog", { name: /^Filters/ }))
+    .first()
+    .click();
+}
 /** Escape ends the preview; a tooltip open on the focused control takes the first press. */
 async function escapePreview() {
   await expect
@@ -820,10 +831,7 @@ try {
   // A filter on a derived state is the server's: its count is the whole result's.
   await fresh(requirementsPath);
   await expect(rows(requirementTable)).toHaveCount(PAGE);
-  await page
-    .getByRole("button", { name: /^Allocation/ })
-    .first()
-    .click();
+  await openFilter("Allocation");
   await page.getByRole("checkbox", { name: "Unallocated", exact: true }).click();
   await page.keyboard.press("Escape");
   await expect(range(requirementLabel)).toContainText(`of ${number(unallocated)}`);
@@ -853,6 +861,85 @@ try {
     "An order the reader chose lists each requirement on its own row",
   );
   console.log("PASS Requirements sort by their owner's name on the server across every page");
+
+  // ——— Assign owner on the program's Requirements: one owner for the chosen requirements ————
+  // Choosing the page offers every requirement of the result as a second, explicit step, a tree's
+  // parts among them.
+  await fresh(requirementsPath);
+  await expect(rows(requirementTable)).toHaveCount(PAGE);
+  const requirementSelectAll = requirementTable.locator("thead").getByRole("checkbox");
+  const requirementBar = page.getByRole("region", { name: "Selection", exact: true });
+  await requirementSelectAll.click();
+  await expect(requirementBar).toContainText(`${PAGE} selected`);
+  await requirementBar
+    .getByRole("button", { name: `Select all ${codes.length} requirements`, exact: true })
+    .click();
+  await expect(requirementBar).toContainText(`${codes.length} selected`);
+  await requirementBar.getByRole("button", { name: "Clear", exact: true }).click();
+  await expect(requirementBar).toHaveCount(0);
+  console.log(`PASS Requirements choose the page, then every requirement (${codes.length})`);
+
+  // The Owner filter's No owner counts every requirement nobody owns, across the pages.
+  const unownedRequirements = requirementOrder.filter((row) => !row.owner_name).length;
+  await openFilter("Owner");
+  const noRequirementOwner = page.getByRole("checkbox", { name: /^No owner/ });
+  await expect(noRequirementOwner.locator("xpath=ancestor::label[1]")).toContainText(
+    String(unownedRequirements),
+  );
+  await noRequirementOwner.click();
+  await page.keyboard.press("Escape");
+  await expect(range(requirementLabel)).toContainText(`of ${number(unownedRequirements)}`);
+  await expect.poll(() => question().get(`${requirementQuestion}.filters`)).toContain("No owner");
+  await requirementSelectAll.click();
+  await expect(requirementBar).toContainText(`${unownedRequirements} selected`);
+  await requirementBar.getByRole("button", { name: "Assign owner", exact: true }).click();
+  const requirementOwnerDialog = page.getByRole("dialog", { name: "Assign owner", exact: true });
+  await expect(requirementOwnerDialog).toContainText(
+    `${unownedRequirements} requirements selected`,
+  );
+  await requirementOwnerDialog.getByRole("combobox", { name: /^Owner/ }).click();
+  await page.getByRole("option", { name: /^Morgan Paging/ }).click();
+  const requirementAssigned = page.waitForRequest((request) =>
+    request.url().includes("/rest/v1/rpc/assign_record_owner"),
+  );
+  await requirementOwnerDialog.getByRole("button", { name: "Assign owner", exact: true }).click();
+  const requirementSent = JSON.parse((await requirementAssigned).postData() ?? "{}");
+  assert.equal(requirementSent.p_collection, "engineering_requirements");
+  assert.equal(
+    new Set(requirementSent.p_record_ids).size,
+    unownedRequirements,
+    "One request names every requirement chosen",
+  );
+  await expect(requirementOwnerDialog).toHaveCount(0);
+  await expect(requirementBar).toHaveCount(0);
+  await expect(requirementSelectAll).toBeFocused();
+  // Nobody is left without an owner, and each change is an entry of the requirement's history.
+  await expect(rows(requirementTable)).toHaveCount(0);
+  assert.equal(
+    await count(
+      client
+        .from("program_requirement_rows")
+        .select("id", { count: "exact", head: true })
+        .eq("program_id", program.id)
+        .is("owner_party_id", null),
+    ),
+    0,
+    "Every requirement has an owner",
+  );
+  assert.equal(
+    await count(
+      client
+        .from("activity_events")
+        .select("id", { count: "exact", head: true })
+        .eq("program_id", program.id)
+        .like("description", "%: edited Owner."),
+    ),
+    unownedRequirements,
+    "Each requirement that took the owner recorded the edit of its owner",
+  );
+  console.log(
+    `PASS Assign owner gives the requirements nobody owned one owner, each change in its history (${unownedRequirements})`,
+  );
 
   // ——— The risk register: the latest assessment, sorted and filtered on the server —————————
   const riskLabel = "Risks";

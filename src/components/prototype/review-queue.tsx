@@ -97,21 +97,29 @@ const NOT_NAMED = "Not named";
 /**
  * The queue, a page at a time from the server, the record that has waited longest first. Every
  * table the view derives from is named, so a review recorded, a gate decided, an assessment
- * published or a discussion resolved reads the page again.
+ * published, a discussion resolved or a name changed reads the page again.
  */
 const reviewRead = serverRead({
   source: "review_queue_rows",
   models: [
-    "evidence_reviews",
+    "evidence_artifacts",
     "evidence_versions",
+    "evidence_reviews",
+    "assessment_campaigns",
+    "assessment_plan_revisions",
     "assessment_results_revisions",
     "assessment_findings",
+    "products",
+    "product_revisions",
     "product_assessments",
     "product_determinations",
     "lifecycle_gates",
+    "authorization_packages",
     "package_revisions",
     "authorization_decisions",
     "assurance_review_threads",
+    "programs",
+    "parties",
   ],
   columns: [
     "id",
@@ -154,7 +162,9 @@ function reviewRecord(row: ReviewRow): { table: TableName; record: PreviewRecord
       return { table: "evidence_versions", record: { id: row.id, artifact_id: row.parent_id } };
     // A package version is decided on its package's page.
     case "package":
-      return { table: "authorization_packages", record: { id: row.parent_id ?? row.id } };
+      return row.parent_id
+        ? { table: "authorization_packages", record: { id: row.parent_id } }
+        : { table: "package_revisions", record: { id: row.id } };
     default:
       return { table: row.record_table as TableName, record: { id: row.id } };
   }
@@ -414,18 +424,19 @@ function ReviewPreview({
             rows={rows}
             onSelect={onSelect}
             recordLabel={record.name}
-            {...(link
-              ? {
-                  openLink: (
-                    <Link
-                      to={link.to as never}
-                      search={link.search as never}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    />
-                  ),
-                }
-              : { destination: reviewDestination(record) })}
+            // A discussion opens the record it was started on; every other record, its own page,
+            // or none for a record with no page.
+            destination={link ? undefined : reviewDestination(record)}
+            openLink={
+              link ? (
+                <Link
+                  to={link.to as never}
+                  search={link.search as never}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                />
+              ) : undefined
+            }
           />
         }
       >
@@ -522,7 +533,9 @@ function ReviewFacts({ record }: { record: ReviewRow }) {
   ];
   return (
     <KeyValue.Group
-      {...(facts.some(([label]) => label.length > LONG_LABEL) ? { labelWidth: "wide" as const } : {})}
+      {...(facts.some(([label]) => label.length > LONG_LABEL)
+        ? { labelWidth: "wide" as const }
+        : {})}
     >
       {facts.map(([label, value]) => (
         <KeyValue key={label} label={label} wrap>

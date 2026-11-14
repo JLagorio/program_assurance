@@ -33,6 +33,7 @@ import {
   TabsContent,
   Text,
   defineColumns,
+  type DataTableColumn,
   type EmptyIllustrationKind,
   type StackProps,
 } from "@ledger/design-system";
@@ -80,7 +81,9 @@ import {
 } from "@/components/prototype/record-tools";
 import { linkedName } from "@/lib/link-name";
 import { useGateCriterionSources } from "@/lib/gate-criteria";
+import { isOwnedCollection, NO_OWNER } from "@/lib/owner-assign";
 import { AddSecurityOutcomes, CriterionSource } from "./gate-criteria-outcomes";
+import { ownerFilterOptions, useOwnerAssignment } from "./assign-owner";
 
 export type ProgramTableName = Parameters<typeof useRows>[0];
 export type ProgramColumn = {
@@ -511,6 +514,23 @@ const CHIP_KEYS = new Set(["role", "method", "kind"]);
 const DATE_KEYS = /_(at|on|date)$/;
 const NUMBER_KEYS = /_number$/;
 
+/** The Owner column of a collection whose records carry an owner. */
+const OWNER_KEY = "owner_party_id";
+/**
+ * The Owner column as its filter reads it: each record under its owner's name, and a record nobody
+ * owns under No owner. The kit's person column has no value of its own for an empty cell (its list
+ * column's `emptyLabel`), so the filter matches the row's members as the list column matches them,
+ * and the value the row sorts, searches and exports by stays empty.
+ */
+const withNoOwner = (column: DataTableColumn<DataRecord>): DataTableColumn<DataRecord> => ({
+  ...column,
+  filterFn: "members",
+  getUniqueValues: (row: DataRecord) => {
+    const owner = row[OWNER_KEY];
+    return [typeof owner === "string" && owner ? owner : NO_OWNER];
+  },
+});
+
 /** The record a collection belongs to, by the column it is filtered on, in the reader's words. */
 const collectionOwners: Record<string, string> = {
   program_id: "program",
@@ -542,6 +562,7 @@ export function ProgramCollection({
   fill,
   section = false,
   owner: ownerName,
+  assignOwner = false,
 }: {
   name: ProgramTableName;
   title: string;
@@ -577,12 +598,39 @@ export function ProgramCollection({
   prerequisite?: string;
   /** The register is the tab's one block: it takes the rest of the window. */
   fill?: boolean | undefined;
+  /**
+   * The records carry an owner, which a reader who may edit gives several of them at once: the
+   * table is selectable for them, Assign owner is the verb in its selection bar, and its Owner
+   * column (`owner_party_id`, a person) is the last of its filters, every person and organization
+   * by name and then No owner with how many of the records nobody owns. Only for a collection
+   * whose records carry an owner (`OWNED_COLLECTIONS`), and one that draws the Owner column.
+   */
+  assignOwner?: boolean | undefined;
 }) {
   const dialogNavigation = useContext(ProgramDialogNavigation);
   const openRecord = useOpenRecord();
   const displayedRef = useRef<DataRecord[]>([]);
   const query = useRows(name, filters);
   const workspace = useWorkspace();
+  // The collection assigns owners where its records carry one and it draws their Owner column.
+  const ownerCollection =
+    assignOwner && isOwnedCollection(name) && columns.some(({ key }) => key === OWNER_KEY)
+      ? name
+      : undefined;
+  // A person column named by a party id alone reads its people's names once, for the whole table
+  // and for the Owner filter, which lists every person and organization.
+  const peopleKeys = columns
+    .filter((column) => column.kind === "person" && !column.value && !column.names)
+    .map((column) => column.key)
+    .join("\n");
+  const people = useRows("parties", undefined, {
+    columns: ["id", "name"],
+    enabled: peopleKeys !== "",
+  });
+  const personNames = useMemo(
+    () => new Map((people.data ?? []).map((party) => [party.id, party.name])),
+    [people.data],
+  );
   // A link that names this collection's section (the Overview's trays, `#program-risks`) brings
   // it into view once its rows are read and moves focus to it, as a count that filters a section
   // on its own tab does; once for each arrival, not on every refetch. The collections above it on
@@ -674,11 +722,18 @@ export function ProgramCollection({
           if (name) view[namingKey] = name;
           else delete view[namingKey];
         }
+        // A person by their name, which the row sorts and is found by; none recorded stays empty.
+        for (const key of peopleKeys ? peopleKeys.split("\n") : []) {
+          const id = row[key];
+          const person = typeof id === "string" ? personNames.get(id) : undefined;
+          if (person) view[key] = person;
+          else delete view[key];
+        }
         for (const column of columns)
           if (DATE_KEYS.test(column.key) && view[column.key] == null) delete view[column.key];
         return view;
       }),
-    [records, columns, namingKey, linkNames],
+    [records, columns, namingKey, linkNames, peopleKeys, personNames],
   );
   // Each status or level column reads through its vocabulary: the badge or indicator, the rank it
   // sorts by, the labels its filter and search use. A field the product has not mapped reads in
@@ -779,8 +834,8 @@ export function ProgramCollection({
               items: (row: DataRecord) => items(raw(row)),
               empty: () => <Absent label={`No ${header}`} />,
             });
-          if (column.kind === "person")
-            return c.person(column.key, {
+          if (column.kind === "person") {
+            const person = c.person(column.key, {
               header,
               cell: (row: DataRecord) => {
                 const person = row[column.key];
@@ -789,6 +844,8 @@ export function ProgramCollection({
                 return render ? render(raw(row)) : <Absent label="Not available" />;
               },
             });
+            return ownerCollection && column.key === OWNER_KEY ? withNoOwner(person) : person;
+          }
           // A date takes its kind's width, as every date column does, with a readable minimum
           // where its cell says more than the day.
           if (DATE_KEYS.test(column.key))
@@ -816,7 +873,7 @@ export function ProgramCollection({
           });
         }),
       ),
-    [columns, name, vocabularies, open],
+    [columns, name, vocabularies, open, ownerCollection],
   );
   // The preview is the table's, so stepping through rows never rebuilds the columns.
   const preview = useMemo(
@@ -834,6 +891,9 @@ export function ProgramCollection({
     )
     .map((column) => column.key)
     .slice(0, 3);
+  // Every member but a viewer gives the records an owner, and row-level security decides each
+  // write, as it does a create.
+  const assigning = ownerCollection !== undefined && !readOnly && workspace.role !== "viewer";
   const table = useCollectionTable({
     columns: tableColumns,
     data: rows,
@@ -843,9 +903,26 @@ export function ProgramCollection({
     view: `program-${name}`,
     resizable: true,
     reorderable: true,
+    // A reader who may edit chooses records to give them one owner together.
+    selectable: assigning,
   });
   const displayed = useDisplayedRecords(table, undefined, byId);
   displayedRef.current = displayed;
+  const owners = useOwnerAssignment({
+    table,
+    collection: assigning ? ownerCollection : undefined,
+    noun: { one: productRecordNoun(name), other: productCollectionNoun(name) },
+  });
+  // The Owner filter's values: everyone by name, then No owner with how many records nobody owns.
+  const unowned = records.filter((row) => !row[OWNER_KEY]).length;
+  const ownerOptions = useMemo(
+    () =>
+      ownerFilterOptions(
+        (people.data ?? []).map((party) => party.name),
+        unowned,
+      ),
+    [people.data, unowned],
+  );
   // A list's filter lists every value its rows hold, each with how many rows hold it under the
   // other filters, however many there are: past the kit's facet limit a list's filter would be a
   // text field instead, and a value a link asks for would not read as chosen on its chip.
@@ -930,7 +1007,7 @@ export function ProgramCollection({
   const content = (
     <ProductCollection
       table={table}
-      queries={[query, ...linked.queries, ...(queries ?? [])]}
+      queries={[query, ...linked.queries, ...(peopleKeys ? [people] : []), ...(queries ?? [])]}
       fill={fill}
       // A named collection sits beside others on its tab: the compact shape, as EntitySection, and
       // a secondary create action, since the page header keeps the surface's one primary.
@@ -939,14 +1016,28 @@ export function ProgramCollection({
       searchLabel={`Find ${noun}`}
       // A collection inside a preview answers the task at hand; its question ends with it.
       keepQuestion={!dialogNavigation}
-      filters={chips.map((key) => (
-        <DataTable.Filter
-          key={key}
-          table={table}
-          column={key}
-          options={listKeys.has(key) ? listOptions(key) : undefined}
-        />
-      ))}
+      filters={[
+        ...chips.map((key) => (
+          <DataTable.Filter
+            key={key}
+            table={table}
+            column={key}
+            options={listKeys.has(key) ? listOptions(key) : undefined}
+          />
+        )),
+        // The Owner, last, where the collection assigns owners.
+        ...(ownerCollection
+          ? [
+              <DataTable.Filter
+                key={OWNER_KEY}
+                table={table}
+                column={OWNER_KEY}
+                options={ownerOptions}
+              />,
+            ]
+          : []),
+      ]}
+      selection={owners.selection}
       action={allowCreate ? createAction : extraActions}
       // A record with no page opens its preview, as its name and its eye do.
       onRowClick={(row) => {
@@ -972,6 +1063,7 @@ export function ProgramCollection({
       ) : (
         content
       )}
+      {owners.dialog}
       {selected !== undefined && (
         <ProgramRecordDialog
           table={name}

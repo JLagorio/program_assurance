@@ -3,7 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { useWorkspace } from "@/components/app/workspace";
 import { database, requireIdentity } from "./database";
 import type { SupportedTechnique } from "./frameworks";
-import type { ReadContext, Row } from "./models";
+import { useRows, type ReadContext, type Row } from "./models";
 
 type Client = Pick<SupabaseClient, "rpc">;
 
@@ -179,6 +179,15 @@ export async function setOverlayParameters(
   return data as ControlOverlay;
 }
 
+/** The values an overlay gives its parameters, as its record page and its Dialog read them. */
+export function useOverlayParameters(overlayId: string) {
+  return useRows(
+    "control_overlay_parameters",
+    { overlay_id: overlayId },
+    { columns: ["id", "parameter_id", "parameter_values", "rationale"] },
+  );
+}
+
 /** Freeze a draft overlay so programs can apply it. */
 export async function publishControlOverlay(
   client: Client,
@@ -193,6 +202,27 @@ export async function publishControlOverlay(
     })
     .setHeader("Authorization", `Bearer ${token}`);
   if (error) throw failure(error);
+  return data as ControlOverlay;
+}
+
+/**
+ * Create the next version of a published overlay as a draft carrying its decisions and values.
+ * The version's id is chosen once by the caller, so sending the request again answers the same
+ * draft; an overlay that already has a next version is refused with the command's words.
+ */
+export async function createOverlayVersion(
+  client: Client,
+  { tenantId, token }: ReadContext,
+  request: { overlayId: string; versionId: string },
+): Promise<ControlOverlay> {
+  const { data, error } = await client
+    .rpc("create_control_overlay_version", {
+      p_tenant_id: tenantId,
+      p_overlay_id: request.overlayId,
+      p_version_id: request.versionId,
+    })
+    .setHeader("Authorization", `Bearer ${token}`);
+  if (error) throw new Error(error.message);
   return data as ControlOverlay;
 }
 
@@ -242,6 +272,7 @@ function useOverlayCommand<Request>(
 export const useSaveControlOverlay = () => useOverlayCommand(saveControlOverlay);
 export const useSetOverlayDecisions = () => useOverlayCommand(setOverlayDecisions);
 export const useSetOverlayParameters = () => useOverlayCommand(setOverlayParameters);
+export const useCreateOverlayVersion = () => useOverlayCommand(createOverlayVersion);
 export const usePublishControlOverlay = () => useOverlayCommand(publishControlOverlay);
 
 /**

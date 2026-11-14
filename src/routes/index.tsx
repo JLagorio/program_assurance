@@ -1,5 +1,9 @@
 import { EmptyMessage, QueryState, type QueryStatus } from "@/components/prototype/work-common";
 import { ControlStatusTally } from "@/components/prototype/control-status";
+import {
+  ControlStatusSparkline,
+  ControlStatusTrends,
+} from "@/components/prototype/control-status-trend";
 import { QueryValue } from "@/components/prototype/library-shared";
 import { RecordLink, recordLink, useOpenRecord } from "@/components/prototype/record-preview";
 import { questionSearch } from "@/components/prototype/collection-question";
@@ -37,6 +41,7 @@ import {
   useProgramsControlStatus,
 } from "@/lib/control-status";
 import { useRows, type Row, type TableName } from "@/lib/models";
+import { useRecentPostureTrend } from "@/lib/posture-trend";
 import {
   determinations,
   operationalIssueStatuses,
@@ -50,6 +55,7 @@ import { useWorkspace } from "@/components/app/workspace";
 import { Page } from "@/components/app/shell";
 import { LevelIndicator } from "@/components/app/status";
 import { labelFor } from "@/lib/records";
+import { noOwnerFilter, ownerField } from "@/lib/owner-assign";
 import { registerViews } from "@/lib/register-views";
 import {
   serverRead,
@@ -101,6 +107,13 @@ const severeOf = (question: TableQuery): TableQuery => ({
   filters: [...(question.filters ?? []), { id: "severity", value: ["high", "critical"] }],
 });
 /**
+ * A tile's question narrowed to the records nobody owns: the Open risks tile's note, since the
+ * matrix and Highest open risks under the band already say the risks' severity.
+ */
+const unownedOf = (question: TableQuery): TableQuery => ({
+  filters: [...(question.filters ?? []), ...noOwnerFilter()],
+});
+/**
  * Every record, as the register opens unasked: a View all link opens this rather than the question
  * the register last asked in this tab, which may be a tile's or a cell's.
  */
@@ -116,6 +129,8 @@ const riskCounts = serverRead({
   // A risk's severity is its latest assessment's.
   models: ["risk_revisions"],
   columns: ["id", "status", "severity"],
+  // No owner asks for the risks nobody owns, as the register's Owner filter does.
+  fields: { owner_party_id: ownerField },
 });
 const issueCounts = serverRead({
   source: "operational_issue_rows",
@@ -336,8 +351,10 @@ type ProgramRow = ServerRow<
 
 /**
  * Where a program stands on its control baseline, in one line: the share an assessor found
- * satisfied, then every status as its share of the baseline. The widget reads the same answer for
- * its alert (`useProgramsControlStatus`), so this asks nothing more.
+ * satisfied, its last twelve days as a sparkline beside it once there are two, then every status
+ * as its share of the baseline. The widget reads the same answers for its alert
+ * (`useProgramsControlStatus`, and the rows' trends once, `ControlStatusTrends`), so this asks
+ * nothing more.
  */
 function ProgramControlStatusCell({ program }: { program: ProgramRow }) {
   const { formatNumber } = useLedgerLocale();
@@ -348,6 +365,7 @@ function ProgramControlStatusCell({ program }: { program: ProgramRow }) {
         status.data?.baseline ? (
           <Inline space="space.100" alignBlock="center" className="min-w-0">
             <Text numeric>{formatNumber(controlStatusShare(status.data, "satisfied"))}%</Text>
+            <ControlStatusSparkline programId={program.id} status={status.data} />
             <ControlStatusTally
               status={status.data}
               label={`Control status of ${program.name}, ${formatNumber(status.data.total)} controls`}
@@ -422,9 +440,9 @@ function Portfolio() {
     columns: ["id", "risk_id", "version_number", "severity", "likelihood", "impact"] as const,
   });
   // Each tile's count and note: the server counts its register's question, rows unread.
-  const [openRiskCount, severeRiskCount] = useServerCountQueries(riskCounts, [
+  const [openRiskCount, unownedRiskCount] = useServerCountQueries(riskCounts, [
     openRisksQuestion,
-    severeOf(openRisksQuestion),
+    unownedOf(openRisksQuestion),
   ]) as [CountQuery, CountQuery];
   const [openIssueCount, severeIssueCount] = useServerCountQueries(issueCounts, [
     openIssuesQuestion,
@@ -487,6 +505,13 @@ function Portfolio() {
   /** A note that counts the tile's high and critical records, once its count has loaded. */
   const severeNote = (count: CountQuery) =>
     count.data === undefined ? undefined : `${formatNumber(count.data)} high or critical`;
+  /** A note that counts the tile's records nobody owns, once its count has loaded. */
+  const unownedNote = (count: CountQuery) =>
+    count.data === undefined
+      ? undefined
+      : count.data === 0
+        ? "All have an owner"
+        : `${formatNumber(count.data)} without an owner`;
   const metrics: {
     label: string;
     query: QueryStatus[];
@@ -508,9 +533,11 @@ function Portfolio() {
     },
     {
       label: "Open risks",
-      query: [openRiskCount, severeRiskCount],
+      query: [openRiskCount, unownedRiskCount],
       value: openRiskCount.data,
-      note: severeNote(severeRiskCount),
+      // Their severity is the matrix's and Highest open risks' below: the part to look at first
+      // here is the risks nobody is answerable for.
+      note: unownedNote(unownedRiskCount),
       zero: "No open risks",
       link: <Link to="/risks" search={questionSearch(registerViews.risks, openRisksQuestion)} />,
     },
@@ -547,7 +574,7 @@ function Portfolio() {
   const metricQueries = [
     programs,
     openRiskCount,
-    severeRiskCount,
+    unownedRiskCount,
     openIssueCount,
     severeIssueCount,
     unsatisfiedCount,
@@ -687,6 +714,10 @@ function Portfolio() {
   const programControls = useProgramsControlStatus(
     useMemo(() => programRows.map((row) => row.id), [programRows]),
   );
+  // The rows' trends, read once for all of them: each row's sparkline draws from them.
+  const programTrends = useRecentPostureTrend(
+    useMemo(() => programRows.map((row) => row.id), [programRows]),
+  );
   const programTable = useDataTable({
     columns: programColumns,
     data: programRows,
@@ -718,8 +749,10 @@ function Portfolio() {
         ? { id: record.id, code: record.code, programId: record.program_id }
         : null;
       const previous = entries.at(-1);
+      // A requirement's creation is its own entry; consecutive edits of it share one.
       if (
         requirement &&
+        event.event_type !== "created" &&
         previous?.requirement?.id === requirement.id &&
         previous.actor === event.actor_party_id
       )
@@ -736,6 +769,15 @@ function Portfolio() {
     const [latest] = entry.events as [Row<"activity_events">];
     const actor = entry.actor ? partyName.get(entry.actor) : undefined;
     const program = latest.program_id ? programName.get(latest.program_id) : undefined;
+    if (entry.requirement && latest.event_type === "created")
+      return {
+        title: `${actor ?? "Someone"} created ${entry.requirement.code}`,
+        meta: program,
+        link: recordLink("engineering_requirements", {
+          id: entry.requirement.id,
+          program_id: entry.requirement.programId,
+        }),
+      };
     if (entry.requirement) {
       const fields = [...new Set(entry.events.flatMap(changedFields))];
       const edits = formatPlural(entry.events.length, {
@@ -853,44 +895,46 @@ function Portfolio() {
                 }}
                 onRowClick={(row) => openRecord("risks", row)}
               />
-              <Widget
-                title="Recently updated programs"
-                viewAll={
-                  <TextLink
-                    render={
-                      <Link
-                        to="/programs"
-                        search={questionSearch(registerViews.programs, everyRecord)}
-                      />
-                    }
-                  >
-                    View all programs
-                  </TextLink>
-                }
-                table={programTable}
-                queries={[recentPrograms]}
-                values={[...programControls.values()]}
-                retryLabel="Retry loading programs"
-                empty={{
-                  title: "No programs yet",
-                  description: canCreate
-                    ? "Create a program to start building its assurance record."
-                    : "Programs appear here once someone in the workspace creates one.",
-                  size: "compact",
-                  icon: <FolderKanban />,
-                  action: canCreate ? (
-                    <LinkButton
-                      size="small"
-                      variant="primary"
-                      iconBefore={<Plus />}
-                      render={<Link to="/programs/new" />}
+              <ControlStatusTrends trend={programTrends}>
+                <Widget
+                  title="Recently updated programs"
+                  viewAll={
+                    <TextLink
+                      render={
+                        <Link
+                          to="/programs"
+                          search={questionSearch(registerViews.programs, everyRecord)}
+                        />
+                      }
                     >
-                      Create program
-                    </LinkButton>
-                  ) : undefined,
-                }}
-                onRowClick={(row) => openRecord("programs", row)}
-              />
+                      View all programs
+                    </TextLink>
+                  }
+                  table={programTable}
+                  queries={[recentPrograms]}
+                  values={[...programControls.values(), programTrends]}
+                  retryLabel="Retry loading programs"
+                  empty={{
+                    title: "No programs yet",
+                    description: canCreate
+                      ? "Create a program to start building its assurance record."
+                      : "Programs appear here once someone in the workspace creates one.",
+                    size: "compact",
+                    icon: <FolderKanban />,
+                    action: canCreate ? (
+                      <LinkButton
+                        size="small"
+                        variant="primary"
+                        iconBefore={<Plus />}
+                        render={<Link to="/programs/new" />}
+                      >
+                        Create program
+                      </LinkButton>
+                    ) : undefined,
+                  }}
+                  onRowClick={(row) => openRecord("programs", row)}
+                />
+              </ControlStatusTrends>
             </Stack>
             <Section title="Recent activity" className="min-w-0">
               <QueryState

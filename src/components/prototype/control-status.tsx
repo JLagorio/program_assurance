@@ -14,7 +14,9 @@ import {
   type TileMapMark,
 } from "@ledger/design-system";
 import { StatusBadge } from "@/components/app/status";
+import { useWorkspace } from "@/components/app/workspace";
 import type { AssuranceTrace } from "@/lib/assurance-trace";
+import { useControlAssessment } from "@/lib/control-assessment";
 import {
   CONTROL_STATUS_ORDER,
   controlStatusFamilies,
@@ -27,7 +29,7 @@ import {
 import { controlNextStep } from "@/lib/next-steps";
 import { controlDeterminers, controlStatuses } from "@/lib/status";
 import { QueryValue } from "./library-shared";
-import { NextStepLink } from "./next-step";
+import { NextStep, StepSurfaceHost } from "./next-step";
 import { RecordLink } from "./record-preview";
 import { ReportFailures } from "./work-common";
 
@@ -158,10 +160,13 @@ export function ControlStatusMap({
  * Where a program stands on one control, as the first rows of the control's Details: its control
  * status, whose determination it is (the program's assessment, or each product assessment the
  * program's variants inherit it from, a link to its record), and the next step that moves it up
- * the ladder, a link to where the step is done. The status comes from the read the program's
+ * the ladder: a link to where the step is done, or, for a step done on the control itself, the
+ * button that opens it over the page (Map a requirement, Add to assessment campaign, Plan an
+ * assessment), which a viewer reads as words alone. The status comes from the read the program's
  * Overview and its Control status view share, so the page opens on what the reader came from.
  * `requirements` are the requirements that map the control, as its trace reads them: the step
- * names the first that cites no evidence.
+ * names the first that cites no evidence. Evidence no assessor has determined waits on what the
+ * program's open campaigns hold of the control, which decides the step.
  */
 export function ControlStandingFacts({
   programId,
@@ -173,14 +178,26 @@ export function ControlStandingFacts({
   controlId: string | undefined;
   requirements?: AssuranceTrace["requirements"] | undefined;
 }) {
+  const workspace = useWorkspace();
   const statuses = useProgramControlStatus(programId);
   const standing = controlId
     ? statuses.data?.controls.find((control) => control.id === controlId)
     : undefined;
-  const step = standing ? controlNextStep(standing, requirements) : null;
+  const waiting = standing?.status === "not_assessed";
+  const assessment = useControlAssessment(programId, controlId, { enabled: waiting });
+  const step = standing ? controlNextStep(standing, requirements, assessment.data) : null;
+  const nextStep = step && standing && (
+    <NextStep
+      step={step}
+      programId={programId}
+      control={{ id: standing.id, code: standing.code, title: standing.title }}
+      canWrite={workspace.role !== "viewer"}
+    />
+  );
+  // The Details hold what a step opens, so it stays open while the step under it changes.
   return (
-    <>
-      <ReportFailures queries={[statuses]} />
+    <StepSurfaceHost>
+      <ReportFailures queries={[statuses, ...(waiting ? assessment.queries : [])]} />
       <KeyValue label="Control status">
         <QueryValue queries={[statuses]}>
           {() =>
@@ -213,9 +230,13 @@ export function ControlStandingFacts({
       )}
       {step && (
         <KeyValue label="Next step" wrap>
-          <NextStepLink step={step} programId={programId} />
+          {waiting ? (
+            <QueryValue queries={assessment.queries}>{() => nextStep}</QueryValue>
+          ) : (
+            nextStep
+          )}
         </KeyValue>
       )}
-    </>
+    </StepSurfaceHost>
   );
 }

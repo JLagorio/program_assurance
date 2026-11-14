@@ -1,16 +1,22 @@
+import { useMemo } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { useWorkspace } from "@/components/app/workspace";
+import { openIssue, openRisk } from "./assurance-trace";
 import { database, requireIdentity } from "./database";
 import type { Database } from "./database.types";
-import { idSet, invalidateModel, type ReadContext } from "./models";
+import { idSet, invalidateModel, type ReadContext, type TableName } from "./models";
+import { serverRead, useServerCountQueries, type ServerResultQuestion } from "./server-table";
+import { operationalIssueStatuses, riskStatuses } from "./status";
 
 /*
  * One owner for many records. A register's reader chooses rows and assigns them an owner in one
  * request, `assign_record_owner`: every chosen record takes the party or none does. A record that
  * already holds the owner is left as it is, so the request is safe to send again, and one that
- * takes it moves to its next revision.
+ * takes it moves to its next revision. A requirement's owner is on its current details: they take
+ * it at their next revision, and each change is an entry of the requirement's edit history, as an
+ * edit of the owner is.
  */
 
 /** The collections whose registers assign an owner to several records at once. */
@@ -19,8 +25,29 @@ export const OWNED_COLLECTIONS = [
   "operational_issues",
   "evidence_artifacts",
   "poam_items",
+  "engineering_requirements",
 ] as const;
 export type OwnedCollection = (typeof OWNED_COLLECTIONS)[number];
+
+/** Whether a collection's records carry an owner that a register assigns several at a time. */
+export const isOwnedCollection = (table: string): table is OwnedCollection =>
+  (OWNED_COLLECTIONS as readonly string[]).includes(table);
+
+/**
+ * The models an assignment writes, whose reads it marks stale: the collection's own, and for a
+ * requirement the details its owner is on and the edit history that records the change.
+ */
+const writtenModels: Record<OwnedCollection, readonly TableName[]> = {
+  risks: ["risks"],
+  operational_issues: ["operational_issues"],
+  evidence_artifacts: ["evidence_artifacts"],
+  poam_items: ["poam_items"],
+  engineering_requirements: [
+    "engineering_requirements",
+    "requirement_revisions",
+    "activity_events",
+  ],
+};
 
 /** The filter value, and the saved view, that ask a register for the records nobody owns. */
 export const NO_OWNER = "No owner";
@@ -33,6 +60,50 @@ export const ownerField = { column: "owner_name", emptyLabel: NO_OWNER } as cons
 
 /** The column filter that lists the records nobody owns, by the Owner column's id. */
 export const noOwnerFilter = (column = "owner_party_id") => [{ id: column, value: [NO_OWNER] }];
+
+/** The statuses of an open operational issue and of an open risk, as the Overview counts them. */
+const openIssueStatuses = Object.keys(operationalIssueStatuses).filter(openIssue);
+const openRiskStatuses = Object.keys(riskStatuses).filter(openRisk);
+
+/**
+ * What a program's Overview asks of each register it counts owners in: the open records nobody
+ * owns, by the register's status and Owner columns. The same question counts them on the server
+ * and, through `questionSearch`, opens the program tab's register on exactly those records.
+ */
+export const unownedQuestions = {
+  operational_issues: {
+    filters: [{ id: "status", value: openIssueStatuses }, ...noOwnerFilter()],
+  },
+  risks: { filters: [{ id: "status", value: openRiskStatuses }, ...noOwnerFilter()] },
+} satisfies Record<string, ServerResultQuestion>;
+
+/** A program's open records of one collection, as its register's view gives them. */
+const programOwnerRead = (source: "operational_issue_rows" | "risk_rows", programId: string) =>
+  serverRead({
+    source,
+    model: source === "risk_rows" ? "risks" : "operational_issues",
+    columns: ["id", "status"],
+    scope: { program_id: programId },
+    fields: { owner_party_id: ownerField },
+  });
+
+/**
+ * How many of a program's open operational issues and open risks nobody owns: one HEAD request
+ * each, with the exact count and no rows, asked of the register's view. Each is a query, so a tray
+ * says its count is loading or could not be read rather than a zero; an assignment counts again.
+ */
+export function useProgramUnowned(programId: string) {
+  const reads = useMemo(
+    () => ({
+      issues: programOwnerRead("operational_issue_rows", programId),
+      risks: programOwnerRead("risk_rows", programId),
+    }),
+    [programId],
+  );
+  const [issues] = useServerCountQueries(reads.issues, [unownedQuestions.operational_issues]);
+  const [risks] = useServerCountQueries(reads.risks, [unownedQuestions.risks]);
+  return { issues: issues!, risks: risks! };
+}
 
 export type AssignOwner = {
   collection: OwnedCollection;
@@ -110,6 +181,10 @@ export function useAssignOwner() {
     mutationFn: async (request) =>
       assignOwner(database(), { token: await requireIdentity(workspace) }, request),
     onSettled: (_answer, _error, request) =>
-      void invalidateModel(cache, workspace.tenantId, request.collection),
+      void Promise.all(
+        writtenModels[request.collection].map((model) =>
+          invalidateModel(cache, workspace.tenantId, model),
+        ),
+      ),
   });
 }

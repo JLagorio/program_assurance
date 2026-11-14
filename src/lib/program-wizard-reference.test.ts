@@ -601,6 +601,35 @@ describe("a draft stack of overlays", () => {
     expect(preview.counts.base).toBe(baseIds.size + 1);
   });
 
+  it("starts from the union when a second baseline is combined with the base", () => {
+    const privacy = data.profileRevisions.find((row) => /PRIVACY/i.test(row.title))!;
+    const second = data.resolutions.find((row) => row.profile_revision_id === privacy.id)!;
+    const selectedBy = (resolutionId: string) =>
+      new Set(
+        data.selectedControls
+          .filter((row) => row.profile_resolution_id === resolutionId)
+          .map((row) => row.control_id),
+      );
+    const base = selectedBy(input.baseResolutionId);
+    const union = new Set([...base, ...selectedBy(second.id)]);
+    const stack = stackDraftOverlays(
+      data,
+      input.catalogRevisionId,
+      input.baseResolutionId,
+      [],
+      "k",
+      second.id,
+    );
+    expect(stack.derivation.layers.map((layer) => [layer.kind, layer.added, layer.total])).toEqual([
+      ["baseline", union.size - base.size, union.size],
+    ]);
+    expect(stack.derivation.layers[0]!.effects[0]!.rationale).toMatch(/^Selected by /);
+    expect(stack.resolutionId).toBe(`draft:k:baseline:${second.id}`);
+    const top = inspectBase(stack.resolutionId, stack.data);
+    expect(top.errors).toEqual([]);
+    expect(top.selected).toHaveLength(union.size);
+  });
+
   it("is the base itself when no overlay is stacked", () => {
     const stack = stackDraftOverlays(
       data,

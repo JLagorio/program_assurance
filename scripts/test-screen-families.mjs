@@ -409,10 +409,22 @@ try {
       title: `${label} authorization package`,
     });
     await insert("parties", { party_type: "organization", name: `${label} supplier` });
-    await insert("evidence_artifacts", {
+    const evidence = await insert("evidence_artifacts", {
       program_id: program.id,
       title: `${label} evidence`,
       artifact_kind: "document",
+    });
+    // A published version waiting on its reviewer, so the Review queue holds a record to open.
+    const evidenceVersion = await insert("evidence_versions", {
+      artifact_id: evidence.id,
+      version_number: 1,
+      state: "published",
+      external_uri: `https://example.test/evidence/${label.toLowerCase()}`,
+    });
+    await insert("evidence_reviews", {
+      evidence_version_id: evidenceVersion.id,
+      reviewer_party_id: person.id,
+      decision: "pending",
     });
     const component = await insert("component_definitions", {
       code: `COMP-${label}`,

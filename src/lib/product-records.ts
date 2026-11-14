@@ -19,6 +19,7 @@ const nouns = {
   assessment_finding_rows: "assessment finding",
   assessment_findings: "assessment finding",
   assessment_objectives: "assessment objective",
+  assessment_plan_requests: "assessment plan request",
   assessment_plan_revisions: "assessment plan revision",
   assessment_results_revisions: "assessment results revision",
   assessment_subjects: "assessment subject",
@@ -164,6 +165,7 @@ const nouns = {
   product_elements: "product element",
   product_revisions: "product version",
   products: "product",
+  profile_baseline_combinations: "baseline combination",
   profile_imports: "profile import",
   profile_overlay_applications: "overlay application",
   profile_parameter_settings: "parameter setting",
@@ -179,6 +181,8 @@ const nouns = {
   // A receipt of Edit overlays (set_program_baseline_overlays).
   program_baseline_requests: "control baseline change request",
   program_control_requirement_counts: "control coverage",
+  // A program's control status counts on one day: the Overview's and the Portfolio's trend.
+  program_posture_snapshots: "control status snapshot",
   program_reference_choices: "reference choice",
   // The program Requirements register: a requirement, its latest revision and its place in a tree.
   program_requirement_rows: "engineering requirement",
@@ -278,9 +282,12 @@ const frameworkItemKinds: Readonly<
   objective: { noun: "resiliency objective", text: "Definition" },
   technique: { noun: "resiliency technique", text: "Definition" },
   approach: { noun: "approach", holders: ["Technique"], text: "Definition" },
+  // Table D-5's layers, at which an approach can be used; the table defines none of them.
+  "architectural-layer": { noun: "architectural layer" },
   "strategic-design-principle": { noun: "strategic design principle" },
   "structural-design-principle": { noun: "structural design principle" },
-  // ATT&CK as the volume's Appendix F names it. A specific effect is held by a high-level one.
+  // ATT&CK as the volume's Appendix F names it, and its Appendix G for ATT&CK for ICS, whose items
+  // are of the same kinds in a framework of their own. A specific effect is held by a high-level one.
   tactic: { noun: "tactic" },
   "attack-technique": { noun: "ATT&CK technique", coded: true },
   mitigation: { noun: "ATT&CK mitigation", coded: true },

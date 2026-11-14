@@ -42,7 +42,7 @@ export type WizardReferenceData = {
   >[];
   catalogGroups: readonly Pick<
     Row<"catalog_groups">,
-    "id" | "catalog_revision_id" | "source_id" | "title" | "parent_group_id"
+    "id" | "catalog_revision_id" | "source_id" | "title" | "parent_group_id" | "ordinal"
   >[];
   profileRevisions: readonly Pick<
     Row<"profile_revisions">,
@@ -902,26 +902,65 @@ export function stackDraftOverlays<T extends WizardReferenceData>(
   baseResolutionId: string,
   overlays: readonly DraftOverlay[],
   key: string,
+  /** A second reference baseline combined with the base: the first layer adds what it selects. */
+  combinedResolutionId: string | null = null,
 ): DraftStack<T> {
   const baseIds = data.selectedControls
     .filter((row) => row.profile_resolution_id === baseResolutionId)
     .map((row) => row.control_id);
+  // The second baseline as the database authors it: one layer that adds the controls it selects
+  // and the base does not, each with the second's name as its reason.
+  const combinedTitle = combinedResolutionId
+    ? (profileDisplayTitle(
+        data.profileRevisions.find(
+          (row) =>
+            row.id ===
+            data.resolutions.find((item) => item.id === combinedResolutionId)?.profile_revision_id,
+        ),
+        data,
+      ) ?? "Second baseline")
+    : null;
+  const combined =
+    combinedResolutionId && combinedTitle
+      ? [
+          {
+            key: `baseline:${combinedResolutionId}`,
+            kind: "baseline" as const,
+            title: combinedTitle,
+            profileId:
+              data.profileRevisions.find(
+                (row) =>
+                  row.id ===
+                  data.resolutions.find((item) => item.id === combinedResolutionId)
+                    ?.profile_revision_id,
+              )?.profile_id ?? null,
+            decisions: data.selectedControls
+              .filter((row) => row.profile_resolution_id === combinedResolutionId)
+              .map((row) => ({
+                controlId: row.control_id,
+                action: "include" as const,
+                rationale: `Selected by ${combinedTitle}.`,
+              })),
+          },
+        ]
+      : [];
   // An overlay's values count where its layer selects their controls, as applying it authors them.
   const valuesOf = (key: string) => overlays.find((overlay) => overlay.id === key)?.parameters;
   const derivation = withParameters(
-    deriveStack(
-      baseIds,
-      overlays.map((overlay) => ({
+    deriveStack(baseIds, [
+      ...combined,
+      ...overlays.map((overlay) => ({
         key: overlay.id,
         kind: "overlay" as const,
         title: overlay.title,
         overlayId: overlay.id,
         decisions: overlay.decisions,
       })),
-    ),
+    ]),
     valuesOf,
   );
-  if (!overlays.length) return { data, resolutionId: baseResolutionId, derivation };
+  if (!overlays.length && !combined.length)
+    return { data, resolutionId: baseResolutionId, derivation };
   const sourceIds = new Map(data.controls.map((control) => [control.id, control.source_id]));
   const parameterSources = new Map(
     data.parameters.map((parameter) => [parameter.id, parameter.source_id]),

@@ -12,6 +12,7 @@ import {
 } from "@ledger/design-system";
 import { openIssue } from "@/lib/assurance-trace";
 import { controlStatusShare, useProgramControlStatus } from "@/lib/control-status";
+import { NO_OWNER, unownedQuestions, useProgramUnowned } from "@/lib/owner-assign";
 import { programTasksView, registerViews } from "@/lib/register-views";
 import {
   operationalIssueStatuses,
@@ -25,7 +26,7 @@ import { questionSearch } from "./collection-question";
 import { ControlStatusKey, ControlStatusMap } from "./control-status";
 import { controlStatusLink } from "./control-status-link";
 import { useOpenRecord } from "./record-preview";
-import { QueryState, type QueryStatus } from "./work-common";
+import { QueryState, ReportFailures, type QueryStatus } from "./work-common";
 
 /** The program tabs that hold open work. */
 type WorkTab = "Schedule" | "Findings" | "POA&M & risk";
@@ -82,6 +83,8 @@ export function ProgramOpenWork({
     (issue) => !["closed", "resolved", "cancelled"].includes(issue.status),
   );
   const openRisks = risks.data?.filter((risk) => risk.status !== "closed");
+  // How many of the open issues and risks nobody owns, counted on the server.
+  const unowned = useProgramUnowned(programId);
   const queues: {
     title: string;
     tab: WorkTab;
@@ -92,6 +95,11 @@ export function ProgramOpenWork({
     ask: (value: string) => Record<string, unknown>;
     /** The id of the Section that holds the register, where the tab draws others above it. */
     section?: string;
+    /**
+     * The open records nobody owns, the last line, where the records carry an owner: its count
+     * and the question that asks the tab's register for exactly those records.
+     */
+    unowned?: { count: QueryStatus & { data?: number | undefined }; ask: Record<string, unknown> };
   }[] = [
     {
       title: "open tasks",
@@ -127,6 +135,13 @@ export function ProgramOpenWork({
         "moderate",
         "low",
       ]),
+      unowned: {
+        count: unowned.issues,
+        ask: questionSearch(
+          registerViews.programOperationalIssues,
+          unownedQuestions.operational_issues,
+        ),
+      },
     },
     {
       title: "open risks",
@@ -143,10 +158,16 @@ export function ProgramOpenWork({
         "responding",
         "accepted",
       ]),
+      unowned: {
+        count: unowned.risks,
+        ask: questionSearch(registerViews.programRisks, unownedQuestions.risks),
+      },
     },
   ];
   return (
     <Grid templateColumns="repeat(auto-fit, minmax(min(100%, 208px), 1fr))" gap="space.200">
+      {/* A No owner count that could not be read is said by the page's one alert. */}
+      <ReportFailures queries={[unowned.issues, unowned.risks]} />
       {queues.map((queue) => {
         const failed = queue.open === undefined && queue.query.isError;
         const loading = queue.open === undefined && !failed;
@@ -173,6 +194,20 @@ export function ProgramOpenWork({
                       : {})}
                   />
                 ))}
+                {/* The open records nobody owns: a count opens exactly those, and a zero nothing.
+                    A count that could not be read draws no line, never a zero: the page's alert
+                    says it, with Retry. */}
+                {queue.unowned &&
+                !(queue.unowned.count.isError && queue.unowned.count.data === undefined) ? (
+                  <Stat.Row
+                    label={NO_OWNER}
+                    value={queue.unowned.count.data ?? 0}
+                    isLoading={loading || queue.unowned.count.data === undefined}
+                    {...(!loading && (queue.unowned.count.data ?? 0) > 0
+                      ? { link: tabLink(queue.tab, queue.unowned.ask, queue.section) }
+                      : {})}
+                  />
+                ) : null}
               </Stat.List>
             )}
           </Tray>

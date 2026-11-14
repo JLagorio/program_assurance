@@ -18,6 +18,7 @@ import {
   TRACE_KINDS,
   openIssue,
   openRisk,
+  shortOfSatisfied,
   traceKey,
   traceLinks,
   traceReach,
@@ -26,6 +27,7 @@ import {
   type TraceKind,
   type TraceRemediation,
 } from "@/lib/assurance-trace";
+import { useControlAssessment } from "@/lib/control-assessment";
 import { useProgramControlStatus } from "@/lib/control-status";
 import {
   determinations,
@@ -40,9 +42,9 @@ import {
   type StatusTone,
   type StatusVocabulary,
 } from "@/lib/status";
-import { isReaderFix, traceGapFixes, type StepStanding } from "@/lib/next-steps";
+import { isReaderFix, traceGapFixes, type StepPlans, type StepStanding } from "@/lib/next-steps";
 import { useWorkspace } from "@/components/app/workspace";
-import { NextStepLink } from "./next-step";
+import { NextStep, StepSurfaceHost } from "./next-step";
 import { ProductCollection } from "./product-collection";
 import { RecordLink, recordLink, useOpenRecord } from "./record-preview";
 import { DueDate, QueryState, type QueryStatus } from "./work-common";
@@ -99,9 +101,15 @@ const stageLabel: Record<TraceKind, string> = {
 
 /**
  * Where a program stands on the control a trace is about, as its control status reads it: `known`
- * once the read has answered, `value` null where the control is not in the baseline.
+ * once the read has answered, `value` null where the control is not in the baseline. `plans` is
+ * what the program's open campaigns hold of a control whose evidence waits on an assessor, once
+ * read: its Assessment findings stage waits on it.
  */
-type TraceStanding = { known: boolean; value: StepStanding | null };
+type TraceStanding = {
+  known: boolean;
+  value: StepStanding | null;
+  plans?: StepPlans | undefined;
+};
 
 /** A trace as the kit draws it: its seven stages, each record a link to its page, and the links. */
 function useTraceStages(
@@ -206,22 +214,31 @@ function useTraceStages(
         link: recordLink("poam_items", { id: item.id }),
       })),
     };
-    // A gap the reader can close from this record carries its fix: a link to where it is made, for
-    // a reader who may make it. A control's requirements wait on where the program stands on it,
-    // since one its product decided names the product assessment instead of a fix.
+    // A gap the reader can close from this record carries its fix, for a reader who may make it: a
+    // link to where it is made, or, for a fix made on the control itself, the button that opens it
+    // over the page. A control's requirements wait on where the program stands on it, since one its
+    // product decided names the product assessment instead of a fix; its assessment findings wait
+    // on what the program's open campaigns hold of it too.
     const fixes = new Map(
-      traceGapFixes(trace, scope, controlStanding.value)
+      traceGapFixes(trace, scope, controlStanding.value, controlStanding.plans)
         .filter((fix) => !isReaderFix(fix) || canWrite)
         .filter(
           (fix) =>
-            !(trace.focus.kind === "control" && fix.stage === "requirement") ||
-            controlStanding.known,
+            !(
+              trace.focus.kind === "control" &&
+              (fix.stage === "requirement" || fix.stage === "finding")
+            ) || controlStanding.known,
         )
         .map((fix) => [fix.stage, fix]),
     );
+    // The control the trace is about, which a fix made on it works on.
+    const focused =
+      trace.focus.kind === "control"
+        ? trace.controls.find((control) => control.id === trace.focus.id)
+        : undefined;
     const stages: TraceStage[] = TRACE_KINDS.map((kind) => {
       const fix =
-        kind === "control" || kind === "requirement" || kind === "evidence"
+        kind === "control" || kind === "requirement" || kind === "evidence" || kind === "finding"
           ? fixes.get(kind)
           : undefined;
       return {
@@ -232,9 +249,15 @@ function useTraceStages(
         ...(fix && scope
           ? {
               action: (
-                <NextStepLink
+                <NextStep
                   step={fix}
                   programId={scope}
+                  control={
+                    focused
+                      ? { id: focused.id, code: focused.code, title: focused.title }
+                      : undefined
+                  }
+                  canWrite={canWrite}
                   own={trace.focus.kind === "requirement"}
                   size="small"
                 />
@@ -428,6 +451,25 @@ function useTiles(trace: AssuranceTrace | undefined, today: string): Tile[] {
         const evidenced = trace.requirements.filter(
           (requirement) => requirement.evidence_count > 0,
         ).length;
+        // What assessors found short of satisfied on the control's parts, in published results;
+        // its Requirements tile already says how many cite evidence.
+        const short = trace.findings.filter((finding) => shortOfSatisfied(finding.determination));
+        const worst = short.some((finding) => finding.determination === "other_than_satisfied")
+          ? "other_than_satisfied"
+          : short.length
+            ? "partially_satisfied"
+            : null;
+        const findings: Tile = {
+          label: "Findings short of satisfied",
+          value: short.length,
+          note: trace.findings.length
+            ? formatPlural(trace.findings.length, {
+                one: "of {count} finding",
+                other: "of {count} findings",
+              })
+            : undefined,
+          ...(worst ? { tone: statusTone(determinations, worst) } : {}),
+        };
         return [
           {
             label: "Requirements",
@@ -437,7 +479,7 @@ function useTiles(trace: AssuranceTrace | undefined, today: string): Tile[] {
               ? { tone: "warning" as const }
               : {}),
           },
-          evidence,
+          findings,
           issues("Open issues"),
           risks("Open risks"),
         ];
@@ -472,7 +514,7 @@ function useTiles(trace: AssuranceTrace | undefined, today: string): Tile[] {
 
 /** The band's labels for each kind of record, which hold their place while its trace loads. */
 const tileLabels: Record<TraceKind, readonly string[]> = {
-  control: ["Requirements", "Evidence", "Open issues", "Open risks"],
+  control: ["Requirements", "Findings short of satisfied", "Open issues", "Open risks"],
   requirement: ["Controls met", "Evidence", "Open issues", "Open risks"],
   evidence: ["Requirements supported", "Open issues citing it", "Open risks", "Milestones done"],
   finding: ["Determination", "Controls judged", "Open risks", "Milestones done"],
@@ -507,14 +549,20 @@ export function TraceBand({
   // product decided names the product assessment. The read the page's Details already share.
   const statuses = useProgramControlStatus(kind === "control" ? programId : null);
   const focusId = trace.data?.focus.id;
+  const focusStanding =
+    kind === "control" && programId && statuses.isSuccess
+      ? (statuses.data.controls.find((control) => control.id === focusId) ?? null)
+      : null;
+  // Evidence nobody has determined waits on what the program's open campaigns hold of the control,
+  // which the Details read too: its fix adds it to a draft plan, or plans an assessment around it.
+  const waiting = focusStanding?.status === "not_assessed";
+  const assessment = useControlAssessment(programId, focusId, { enabled: waiting });
   const controlStanding = useMemo<TraceStanding>(() => {
     if (kind !== "control" || !programId) return { known: true, value: null };
     if (!statuses.isSuccess) return { known: false, value: null };
-    return {
-      known: true,
-      value: statuses.data.controls.find((control) => control.id === focusId) ?? null,
-    };
-  }, [kind, programId, statuses.isSuccess, statuses.data, focusId]);
+    if (waiting && !assessment.data) return { known: false, value: focusStanding };
+    return { known: true, value: focusStanding, plans: assessment.data };
+  }, [kind, programId, statuses.isSuccess, focusStanding, waiting, assessment.data]);
   const drawn = useTraceStages(trace.data, programId, controlStanding, workspace.role !== "viewer");
   // While another record's trace loads, the numbers wait, and a chain still drawn from the record
   // before is marked busy: nothing of that record stands as this one's.
@@ -542,17 +590,20 @@ export function TraceBand({
         ))}
       </Stat.Grid>
       <Section title="Trace">
-        <QueryState query={trace}>
-          {drawn && (
-            <Trace
-              label={`The chain around ${name}`}
-              aria-busy={stale || undefined}
-              stages={drawn.stages}
-              links={drawn.links}
-              focus={drawn.focus}
-            />
-          )}
-        </QueryState>
+        {/* The trace holds what a fix opens, so it stays open while the stage under it fills. */}
+        <StepSurfaceHost>
+          <QueryState query={trace}>
+            {drawn && (
+              <Trace
+                label={`The chain around ${name}`}
+                aria-busy={stale || undefined}
+                stages={drawn.stages}
+                links={drawn.links}
+                focus={drawn.focus}
+              />
+            )}
+          </QueryState>
+        </StepSurfaceHost>
       </Section>
     </Stack>
   );

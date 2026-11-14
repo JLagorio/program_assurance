@@ -22,6 +22,7 @@ const catalogGroupColumns = [
   "source_id",
   "title",
   "parent_group_id",
+  "ordinal",
 ] as const;
 const profileRevisionColumns = [
   "id",

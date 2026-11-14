@@ -77,8 +77,17 @@ export function useProgramBaselines(programId: string): {
   });
   const catalogs = useRows("catalogs", undefined, { columns: ["id", "title"] });
   const overlays = useRows("control_overlays", undefined, {
-    columns: ["id", "title", "description"],
+    columns: ["id", "title", "description", "version"],
   });
+  // A layer of a version after the first says which version it applies, since versions share a name.
+  const layerTitles = useMemo(
+    () =>
+      (overlays.data ?? []).map((row) => ({
+        id: row.id,
+        title: row.version > 1 ? `${row.title} · version ${row.version}` : row.title,
+      })),
+    [overlays.data],
+  );
 
   const chains = useMemo(() => {
     if (
@@ -136,6 +145,15 @@ export function useProgramBaselines(programId: string): {
     { profile_revision_id: scope.layerRevisions },
     { columns: ["profile_revision_id"], enabled: scope.layerRevisions.length > 0 },
   );
+  // The layer that combines a second reference baseline with the first, where a stack has one.
+  const combinations = useRows(
+    "profile_baseline_combinations",
+    { profile_resolution_id: scope.layerResolutions },
+    {
+      columns: ["profile_resolution_id", "combined_resolution_id"],
+      enabled: scope.layerResolutions.length > 0,
+    },
+  );
   const applications = useRows(
     "profile_overlay_applications",
     { profile_resolution_id: scope.layerResolutions },
@@ -180,7 +198,8 @@ export function useProgramBaselines(programId: string): {
     (!hasLayers ||
       (rules.data !== undefined &&
         applications.data !== undefined &&
-        settings.data !== undefined)) &&
+        settings.data !== undefined &&
+        combinations.data !== undefined)) &&
     (!hasChoices || (referenceControls.data !== undefined && controls.data !== undefined));
   const baselines = useMemo((): ProgramBaseline[] => {
     if (!ready || !chains) return [];
@@ -219,9 +238,25 @@ export function useProgramBaselines(programId: string): {
             .filter((row) => row.profile_resolution_id === reference?.resolutionId)
             .map((row) => row.control_id),
           applications: applications.data ?? [],
-          overlays: overlays.data ?? [],
+          overlays: layerTitles,
           tailoringTitle: "Program tailoring",
           settings: settings.data ?? [],
+          combinations: (combinations.data ?? []).map((row) => {
+            const resolution = resolutions.data?.find(
+              (item) => item.id === row.combined_resolution_id,
+            );
+            const revision = revisions.data?.find(
+              (item) => item.id === resolution?.profile_revision_id,
+            );
+            return {
+              resolutionId: row.profile_resolution_id,
+              title:
+                profiles.data?.find((item) => item.id === revision?.profile_id)?.title ??
+                revision?.title ??
+                "Second baseline",
+              profileId: revision?.profile_id ?? null,
+            };
+          }),
         }),
         hops: chain.hops,
         overlayDescriptions: new Map((overlays.data ?? []).map((row) => [row.id, row.description])),
@@ -239,7 +274,12 @@ export function useProgramBaselines(programId: string): {
     referenceControls.data,
     applications.data,
     overlays.data,
+    layerTitles,
     settings.data,
+    combinations.data,
+    resolutions.data,
+    revisions.data,
+    profiles.data,
   ]);
   return {
     baselines,
@@ -253,7 +293,7 @@ export function useProgramBaselines(programId: string): {
       catalogRevisions,
       catalogs,
       overlays,
-      ...(hasLayers ? [rules, applications, settings] : []),
+      ...(hasLayers ? [rules, applications, settings, combinations] : []),
       ...(hasChoices ? [referenceControls, controls] : []),
     ],
   };
@@ -279,6 +319,8 @@ export type PublishedOverlay = DraftOverlay & {
   code: string;
   description: string | null;
   catalogRevisionId: string;
+  /** Its number in its overlay's chain of versions, which share the code. */
+  version: number;
 };
 
 /**
@@ -292,7 +334,7 @@ export function usePublishedOverlays({ enabled = true }: { enabled?: boolean | u
   const records = useRows(
     "control_overlays",
     { state: "published" },
-    { columns: ["id", "code", "title", "description", "catalog_revision_id"], enabled },
+    { columns: ["id", "code", "title", "description", "catalog_revision_id", "version"], enabled },
   );
   const ids = useMemo(() => (records.data ?? []).map((row) => row.id).sort(), [records.data]);
   const decisions = useRows(
@@ -336,6 +378,7 @@ export function usePublishedOverlays({ enabled = true }: { enabled?: boolean | u
               title: row.title,
               description: row.description,
               catalogRevisionId: row.catalog_revision_id,
+              version: row.version,
               decisions: (decisions.data ?? [])
                 .filter((decision) => decision.overlay_id === row.id)
                 .map((decision) => ({

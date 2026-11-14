@@ -116,7 +116,10 @@ async function revealLastTab(tabs) {
       { message: "Keyboard focus reveals the last tab inside the shared scroller" },
     )
     .toBe(true);
-  await tabs.getByRole("tab").first().click();
+  // Back to the first tab by key, as a reader goes. A click would aim at a tab that moves while a
+  // panel still eases to its new width, and Playwright's retries then scroll the panel itself.
+  await page.keyboard.press("Home");
+  await expect(tabs.getByRole("tab").first()).toBeFocused();
 }
 async function systemPreviewFits(name) {
   await expectPreviewHeader(page, {

@@ -5,8 +5,9 @@ import { Absent, DataTable, Section, TextLink, defineColumns } from "@ledger/des
 import { RESILIENCY_GUIDANCE_KINDS } from "@/lib/control-resiliency";
 import { controlThreats, risksByTechnique, type CounteredTechnique } from "@/lib/control-threats";
 import {
-  ATTACK_FRAMEWORK,
+  ATTACK_FRAMEWORKS,
   CYBER_RESILIENCY_FRAMEWORK,
+  attackMatrix,
   useFrameworkControlLinks,
   useFrameworkItemLinks,
   useFrameworkItems,
@@ -27,20 +28,23 @@ import { TechniqueDetails } from "./risk-threats";
 import { ReportFailures, type QueryStatus } from "./work-common";
 
 /*
- * The threats a control counters, in ATT&CK's words: the techniques NIST SP 800-160 Vol. 2 Rev. 1,
- * Appendix F prints the control against, each with the tactics, the mitigations, the cyber
- * resiliency approaches and the effects on the adversary. It is the appendix read from the
- * control's side; a risk's record reads it from the technique's (risk-threats). A technique has no
- * page of its own: its name opens its preview.
+ * The threats a control counters, in ATT&CK's words: the techniques NIST SP 800-160 Vol. 2 Rev. 1
+ * prints the control against, ATT&CK for Enterprise's in Appendix F and ATT&CK for ICS's in
+ * Appendix G, each with the tactics, the mitigations, the cyber resiliency approaches and the
+ * effects on the adversary. It is the appendices read from the control's side; a risk's record
+ * reads them from the technique's (risk-threats). A technique has no page of its own: its name
+ * opens its preview.
  */
 
 const techniqueNoun = { one: "ATT&CK technique", other: "ATT&CK techniques" };
-/** What the appendix's rows name by code or title: the same items a technique's preview reads. */
+/** What the appendices' rows name by code or title: the same items a technique's preview reads. */
 const VOCABULARY_KINDS = ["candidate-mitigation", "effect", "mitigation", "tactic"] as const;
 
 type ThreatRow = CounteredTechnique & {
   /** The technique's identifier and name together. */
   name: string;
+  /** The matrix it belongs to: Enterprise or ICS. */
+  matrix: string | null;
   /** How many of the program's risks name it; none outside a program, or when it could not be read. */
   risks: number | null;
 };
@@ -61,9 +65,10 @@ const risksNaming = (technique: string) => ({
 });
 
 /**
- * The columns: a technique by its identifier and name, which opens its preview, then what the
- * appendix prints with it for this control. Inside a program, how many of its risks name the
- * technique stays in a narrow row longest, as a number does, and a count opens those risks.
+ * The columns: a technique by its identifier and name, which opens its preview, the matrix it
+ * belongs to, then what its appendix prints with it for this control. Inside a program, how many
+ * of its risks name the technique stays in a narrow row longest, as a number does, and a count
+ * opens those risks.
  */
 function threatColumns(onPreview: (id: string) => void, programId: string | undefined) {
   return defineColumns<ThreatRow>((c) => [
@@ -83,17 +88,18 @@ function threatColumns(onPreview: (id: string) => void, programId: string | unde
         </RecordLink>
       ),
     }),
+    c.text("matrix", { header: "Matrix", width: 110, priority: 2 }),
     c.list("tactics", {
       header: "Tactics",
       width: 190,
-      priority: 3,
+      priority: 4,
       searchable: true,
       items: (row) => named(row.tactics),
     }),
     c.list("mitigations", {
       header: "Mitigations",
       width: 220,
-      priority: 5,
+      priority: 6,
       searchable: true,
       items: (row) =>
         row.mitigations.map((mitigation) => ({
@@ -105,7 +111,7 @@ function threatColumns(onPreview: (id: string) => void, programId: string | unde
     c.list("approaches", {
       header: "Approaches",
       width: 220,
-      priority: 4,
+      priority: 5,
       searchable: true,
       items: (row) => named(row.approaches),
       empty: () => <Absent label="No approach named" />,
@@ -113,7 +119,7 @@ function threatColumns(onPreview: (id: string) => void, programId: string | unde
     c.list("effects", {
       header: "Effects",
       width: 170,
-      priority: 2,
+      priority: 3,
       searchable: true,
       items: (row) => row.effects.map((effect) => ({ key: effect, label: effect })),
     }),
@@ -162,8 +168,8 @@ function CounteredTechniquePreview({
   catalogRevisionId,
   programId,
 }: {
-  technique: Pick<CounteredTechnique, "code" | "tactics">;
-  /** Each tactic's place among the appendix's tables, by its code. */
+  technique: Pick<CounteredTechnique, "code" | "framework" | "tactics">;
+  /** Each tactic's place among its appendix's tables, by its framework and code. */
   tacticOrder: ReadonlyMap<string, number>;
   catalogRevisionId: string;
   programId?: string | undefined;
@@ -172,17 +178,19 @@ function CounteredTechniquePreview({
     (): ItemLinkScope => ({ relation: "tactic", sourceCodes: [technique.code] }),
     [technique.code],
   );
-  const links = useFrameworkItemLinks(ATTACK_FRAMEWORK, scope);
+  const links = useFrameworkItemLinks(technique.framework, scope);
   const tactics = useMemo((): readonly ThreatTactic[] => {
     if (!links.data?.length) return technique.tactics;
-    const place = (code: string) => tacticOrder.get(code) ?? Number.MAX_SAFE_INTEGER;
+    const place = (code: string) =>
+      tacticOrder.get(`${technique.framework} ${code}`) ?? Number.MAX_SAFE_INTEGER;
     return links.data
       .map((link) => ({ code: link.target_code, title: link.target_title }))
       .sort((a, b) => place(a.code) - place(b.code));
-  }, [links.data, technique.tactics, tacticOrder]);
+  }, [links.data, technique.tactics, technique.framework, tacticOrder]);
   return (
     <TechniqueDetails
       code={technique.code}
+      framework={technique.framework}
       tactics={tactics}
       catalogRevisionId={catalogRevisionId}
       programId={programId}
@@ -191,9 +199,10 @@ function CounteredTechniquePreview({
 }
 
 /**
- * The ATT&CK techniques a control counters, as a Section of its record: one line a technique. A
- * control Appendix F does not name draws nothing, and nothing is drawn until the read says which.
- * Inside a program a Risks column counts the program's risks that name each technique.
+ * The ATT&CK techniques a control counters, as a Section of its record: one line a technique, of
+ * ATT&CK for Enterprise (Appendix F) or ATT&CK for ICS (Appendix G). A control neither appendix
+ * names draws nothing, and nothing is drawn until the read says which. Inside a program a Risks
+ * column counts the program's risks that name each technique.
  */
 export function ControlThreats({
   controlId,
@@ -210,10 +219,10 @@ export function ControlThreats({
     (): ControlLinkScope => ({ controlIds: [controlId], relation: "mitigates" }),
     [controlId],
   );
-  const links = useFrameworkControlLinks(ATTACK_FRAMEWORK, scope);
+  const links = useFrameworkControlLinks(ATTACK_FRAMEWORKS, scope);
   const countered = (links.data?.length ?? 0) > 0;
-  // What the rows name: read once for every control, and only for one the appendix names.
-  const attack = useFrameworkItems(ATTACK_FRAMEWORK, {
+  // What the rows name: read once for every control, and only for one an appendix names.
+  const attack = useFrameworkItems(ATTACK_FRAMEWORKS, {
     kinds: VOCABULARY_KINDS,
     enabled: countered,
   });
@@ -250,17 +259,21 @@ export function ControlThreats({
       techniques.map((technique) => ({
         ...technique,
         name: codedName(technique),
+        matrix: attackMatrix(technique.framework) ?? null,
         risks: riskCounts ? (riskCounts.get(technique.code) ?? 0) : null,
       })),
     [techniques, riskCounts],
   );
+  // A Matrix filter is worth its place once the control counters techniques of both matrices.
+  const matrices = new Set(rows.map((row) => row.matrix)).size;
 
+  // Both appendices print an Initial Access: a tactic's place is its own framework's.
   const tacticOrder = useMemo(
     () =>
       new Map(
         (attack.data ?? [])
           .filter((item) => item.kind === "tactic")
-          .map((item) => [item.code, item.ordinal]),
+          .map((item) => [`${item.framework_code} ${item.code}`, item.ordinal]),
       ),
     [attack.data],
   );
@@ -284,9 +297,9 @@ export function ControlThreats({
   const displayed = useDisplayedRecords(table);
   const preview = rows.find((row) => row.id === previewId);
 
-  // Most controls counter no technique the appendix names: the Section waits for the read.
+  // Most controls counter no technique the appendices name: the Section waits for the read.
   if (links.data === undefined && !links.isError) return null;
-  // A control the appendix does not name has no Section; a refresh of that answer that failed is
+  // A control neither appendix names has no Section; a refresh of that answer that failed is
   // still said, by the page's alert.
   if (links.data !== undefined && !techniques.length)
     return links.isError ? <ReportFailures queries={[links]} /> : null;
@@ -305,7 +318,7 @@ export function ControlThreats({
       title="ATT&CK techniques"
       count={links.data ? techniques.length : undefined}
       countMax={9999}
-      description="The ATT&CK techniques this control counters, with the mitigations, approaches and effects, from NIST SP 800-160 Vol. 2 Rev. 1, Appendix F."
+      description="The ATT&CK techniques this control counters, with the mitigations, approaches and effects, from NIST SP 800-160 Vol. 2 Rev. 1, Appendices F (ATT&CK for Enterprise) and G (ATT&CK for ICS)."
     >
       <ReportFailures queries={uncounted} />
       <ProductCollection
@@ -318,13 +331,14 @@ export function ControlThreats({
         onRowClick={(row) => setPreviewId(row.id)}
         filters={
           <>
+            {matrices > 1 && <DataTable.Filter table={table} column="matrix" />}
             <DataTable.Filter table={table} column="tactics" />
             <DataTable.Filter table={table} column="effects" />
           </>
         }
         empty={{
           title: "No ATT&CK techniques",
-          description: "Appendix F prints this control against no technique.",
+          description: "Appendices F and G print this control against no technique.",
           icon: <Crosshair />,
         }}
       />

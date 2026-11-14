@@ -71,6 +71,10 @@ type Schema = Omit<Tables, "composition_nodes" | "composition_nodes_archive_2026
       exclude_count: number;
       application_count: number;
       parameter_count: number;
+      /** The version created from this one, if any. */
+      next_overlay_id: string | null;
+      /** How many baselines apply any version of the overlay. */
+      overlay_application_count: number;
     };
     Insert: never;
     Update: never;

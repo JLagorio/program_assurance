@@ -28,6 +28,11 @@ export type ParameterOverride = { parameterId: string; values: string[]; rationa
 export type ProgramProfileDraft = {
   key: string;
   baseResolutionId: string;
+  /**
+   * A second reference baseline combined with the base: the stack starts from their union. None
+   * starts it from the base alone.
+   */
+  combinedResolutionId?: string | null | undefined;
   /** The published overlays stacked on the base, in the order they apply. */
   overlayIds: string[];
   tailoring: TailoringDecision[];
@@ -198,6 +203,7 @@ export const programWizardSchema = z
           .object({
             key: uuid,
             baseResolutionId: uuid,
+            combinedResolutionId: uuid.nullable().optional(),
             overlayIds: z
               .array(uuid)
               .max(6, "Stack at most six overlays on a base profile.")
@@ -241,7 +247,11 @@ export const programWizardSchema = z
         });
       profileKeys.add(profile.key);
       if (!profile.tailoring.length && !profile.parameters.length) {
-        const stack = [profile.baseResolutionId, ...profile.overlayIds].join("/");
+        const stack = [
+          profile.baseResolutionId,
+          profile.combinedResolutionId ?? "",
+          ...profile.overlayIds,
+        ].join("/");
         if (untailoredBases.has(stack))
           context.addIssue({
             code: "custom",

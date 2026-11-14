@@ -11,12 +11,19 @@ const { frameworkItemWords, productColumnLabel, productRecordNoun } =
 
 const {
   ATTACK_FRAMEWORK,
+  ATTACK_FRAMEWORKS,
+  ATTACK_ICS_FRAMEWORK,
   CYBER_RESILIENCY_FRAMEWORK,
+  LAYER_KIND,
   LIFE_CYCLE_FRAMEWORK,
+  USED_AT,
+  attackAppendix,
+  attackMatrix,
   frameworkProps,
   itemGuidance,
   itemReference,
   itemsByParent,
+  layersByApproach,
   propList,
   propText,
   readFrameworkControlLinks,
@@ -104,10 +111,20 @@ const tableE1 = () => [
 ];
 
 describe("the framework codes", () => {
-  it("name the three pinned transcriptions", () => {
+  it("name the four pinned transcriptions", () => {
     expect(CYBER_RESILIENCY_FRAMEWORK).toBe("nist-sp800-160v2r1-cref");
     expect(ATTACK_FRAMEWORK).toBe("nist-sp800-160v2r1-attack");
+    expect(ATTACK_ICS_FRAMEWORK).toBe("nist-sp800-160v2r1-attack-ics");
     expect(LIFE_CYCLE_FRAMEWORK).toBe("nist-sp800-160v1r1-processes");
+  });
+
+  it("tell the two ATT&CK matrices apart, Enterprise first", () => {
+    expect(ATTACK_FRAMEWORKS).toEqual([ATTACK_FRAMEWORK, ATTACK_ICS_FRAMEWORK]);
+    expect(attackMatrix(ATTACK_FRAMEWORK)).toBe("Enterprise");
+    expect(attackMatrix(ATTACK_ICS_FRAMEWORK)).toBe("ICS");
+    expect(attackAppendix(ATTACK_ICS_FRAMEWORK)).toBe("Appendix G");
+    expect(attackMatrix(CYBER_RESILIENCY_FRAMEWORK)).toBeUndefined();
+    expect(attackMatrix(null)).toBeUndefined();
   });
 });
 
@@ -299,6 +316,24 @@ describe("reading a framework's items", () => {
     ]);
     // The second outcome before the tenth.
     expect(items.map((row) => row.code)).toEqual(["outcome.BA.2", "outcome.BA.10"]);
+  });
+
+  it("reads both ATT&CK frameworks together, by one list of their codes", async () => {
+    const { client, calls } = fakeClient(() => ({ data: [], error: null, count: 0 }));
+    await readFrameworkItems(client, context, ATTACK_FRAMEWORKS, ["attack-technique"]);
+    expect(filter(calls[0], "eq", "framework_code")).toBeUndefined();
+    expect(filter(calls[0], "in", "framework_code")).toEqual([
+      ATTACK_FRAMEWORK,
+      ATTACK_ICS_FRAMEWORK,
+    ]);
+    await readFrameworkItemLinks(client, context, [ATTACK_ICS_FRAMEWORK, ATTACK_FRAMEWORK], {
+      relation: "tactic",
+    });
+    // In one spelling whatever order the codes were given in.
+    expect(filter(calls[1], "in", "framework_code")).toEqual([
+      ATTACK_FRAMEWORK,
+      ATTACK_ICS_FRAMEWORK,
+    ]);
   });
 
   it("reads every kind when none is named, a page of rows at a time", async () => {
@@ -672,7 +707,7 @@ describe("an item's guidance", () => {
     ).toHaveLength(2);
   });
 
-  it("reads Table D-4's guidance from the pinned cyber resiliency constructs", () => {
+  it("reads the guidance of Tables 2, 3 and D-4 from the pinned cyber resiliency constructs", () => {
     const reference = fileURLToPath(new URL("../../supabase/reference", import.meta.url));
     const manifest = JSON.parse(readFileSync(`${reference}/manifest.json`, "utf8")) as {
       sources: { id: string; file: string }[];
@@ -710,11 +745,31 @@ describe("an item's guidance", () => {
       expect(entry.examples.length).toBeGreaterThan(0);
     }
     expect(ofKind("approach").reduce((count, entry) => count + entry.examples.length, 0)).toBe(193);
-    // No other kind carries a discussion or examples: a goal, an objective and a design
-    // principle answer with their definition alone.
+    // Tables 2 and 3 print a definition and a discussion for every goal and objective, and no
+    // informal description or examples.
+    expect(ofKind("goal")).toHaveLength(4);
+    expect(ofKind("objective")).toHaveLength(8);
+    for (const entry of [...ofKind("goal"), ...ofKind("objective")]) {
+      expect(entry.definition).toBeTruthy();
+      expect(entry.discussion).toBeTruthy();
+      expect(entry.informalDescription).toBeUndefined();
+      expect(entry.examples).toEqual([]);
+    }
+    expect(guidance.get("goal.anticipate")!.discussion).toMatch(
+      /^Adversity refers to adverse conditions, stresses, attacks, or compromises on cyber resources\. /,
+    );
+    // The objective's definition stops where its discussion starts, and the discussion keeps the
+    // dash it prints.
+    expect(guidance.get("objective.constrain")).toMatchObject({
+      definition: "Limit damage from adversity.",
+      discussion:
+        "This objective specifically applies to critical or high-value assets—those cyber assets that contain or process sensitive information, are mission-essential, or provide infrastructure services to mission-essential capabilities.",
+    });
+    // A design principle answers with its definition alone, and a layer with nothing: Table D-5
+    // defines none.
     for (const entry of guidance.values())
-      if (entry.kind !== "technique" && entry.kind !== "approach") {
-        expect(entry.definition).toBeTruthy();
+      if (!["goal", "objective", "technique", "approach"].includes(entry.kind)) {
+        if (entry.kind !== "architectural-layer") expect(entry.definition).toBeTruthy();
         expect(entry.discussion).toBeUndefined();
         expect(entry.examples).toEqual([]);
       }
@@ -727,6 +782,106 @@ describe("an item's guidance", () => {
     expect(guidance.get("technique.segmentation")!.discussion).toBe(
       "Reduce the adversary’s scope for lateral movement or command and control (C2).",
     );
+  });
+});
+
+describe("the architectural layers an approach can be used at", () => {
+  const layer = (code: string, ordinal: number) => ({ code: `layer.${code}`, ordinal });
+  const usedAt = (approach: string, target: string, title: string, relation = USED_AT) => ({
+    relation,
+    source_code: `approach.${approach}`,
+    target_code: `layer.${target}`,
+    target_title: title,
+  });
+
+  it("lists each approach's layers once, in the order of Table D-5's columns", () => {
+    const byApproach = layersByApproach(
+      [
+        usedAt("asset-mobility", "environment-of-operation", "Environment of Operation"),
+        usedAt("asset-mobility", "operations", "Operations"),
+        usedAt("asset-mobility", "operations", "Operations"),
+        usedAt("fragmentation", "information-storage-management", "Information Storage Management"),
+        // A relation other than used-at is not a layer.
+        usedAt("fragmentation", "operations", "Operations", "supports"),
+        // A layer the items do not name keeps its place after the rest.
+        usedAt("fragmentation", "elsewhere", "Elsewhere"),
+      ],
+      [
+        layer("information-storage-management", 7),
+        layer("operations", 9),
+        layer("environment-of-operation", 11),
+      ],
+    );
+    expect(byApproach.get("approach.asset-mobility")).toEqual([
+      { code: "layer.operations", title: "Operations" },
+      { code: "layer.environment-of-operation", title: "Environment of Operation" },
+    ]);
+    expect(byApproach.get("approach.fragmentation")!.map((entry) => entry.title)).toEqual([
+      "Information Storage Management",
+      "Elsewhere",
+    ]);
+    expect(layersByApproach([], []).size).toBe(0);
+  });
+
+  it("reads Table D-5 from the pinned cyber resiliency constructs", () => {
+    const reference = fileURLToPath(new URL("../../supabase/reference", import.meta.url));
+    const manifest = JSON.parse(readFileSync(`${reference}/manifest.json`, "utf8")) as {
+      sources: { id: string; file: string }[];
+    };
+    const source = manifest.sources.find(
+      (entry) => entry.id === `${CYBER_RESILIENCY_FRAMEWORK}-transcription`,
+    )!;
+    const document = JSON.parse(
+      gunzipSync(readFileSync(`${reference}/${source.file}`)).toString("utf8"),
+    ) as {
+      items: { code: string; kind: string; title: string; ordinal: number; props: unknown }[];
+      item_links: { source: string; target: string; relation: string }[];
+    };
+    const titles = new Map(document.items.map((item) => [item.code, item.title]));
+    const layers = document.items.filter((item) => item.kind === LAYER_KIND);
+    // Eleven layers, in the order of the table's columns.
+    expect(layers.map((item) => item.title)).toEqual([
+      "Hardware and Firmware",
+      "Networking and Communications",
+      "Other Software",
+      "Operating System",
+      "Cloud, Virtualization Middleware, Infrastructure",
+      "Application",
+      "Information Storage Management",
+      "Technical System as a Whole",
+      "Operations",
+      "Support",
+      "Environment of Operation",
+    ]);
+    expect(layers.map((item) => item.ordinal)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+    // Each keeps the headings it is printed under, the outermost first.
+    expect(frameworkProps(layers[3]!.props)["within"]).toEqual([
+      "Socio-Technical System",
+      "Technical System",
+      "Software",
+    ]);
+    expect(frameworkProps(layers[8]!.props)["within"]).toEqual(["Socio-Technical System"]);
+    const byApproach = layersByApproach(
+      document.item_links.map((link) => ({
+        relation: link.relation,
+        source_code: link.source,
+        target_code: link.target,
+        target_title: titles.get(link.target) ?? link.target,
+      })),
+      layers,
+    );
+    const approaches = document.items.filter((item) => item.kind === "approach");
+    expect(byApproach.size).toBe(50);
+    for (const approach of approaches)
+      expect(byApproach.get(approach.code)?.length, approach.code).toBeGreaterThan(0);
+    expect([...byApproach.values()].reduce((count, held) => count + held.length, 0)).toBe(240);
+    expect(byApproach.get("approach.asset-mobility")!.map((entry) => entry.title)).toEqual([
+      "Operations",
+      "Environment of Operation",
+    ]);
+    expect(byApproach.get("approach.fragmentation")!.map((entry) => entry.title)).toEqual([
+      "Information Storage Management",
+    ]);
   });
 });
 

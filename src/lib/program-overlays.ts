@@ -3,6 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { useWorkspace } from "@/components/app/workspace";
 import {
+  decisionsOf,
   deriveStack,
   idleLayer,
   stackAt,
@@ -36,6 +37,33 @@ export type StackOverlay = {
   parameters?: readonly { controlId: string | null }[] | undefined;
 };
 
+/** A published overlay version as the stack offers it: its overlay is its code, its place a number. */
+type Versioned = { id: string; code: string; version: number };
+
+/**
+ * The newest published version of each overlay, which is what a stack is offered: an older version
+ * stays where a stack applies it, and is not offered again.
+ */
+export function newestVersions<T extends Versioned>(overlays: readonly T[]): T[] {
+  const newest = new Map<string, T>();
+  for (const overlay of overlays) {
+    const held = newest.get(overlay.code);
+    if (!held || overlay.version > held.version) newest.set(overlay.code, overlay);
+  }
+  return overlays.filter((overlay) => newest.get(overlay.code) === overlay);
+}
+
+/** The newest published version of the overlay a stack applies, when it is newer than the one applied. */
+export function newerVersion<T extends Versioned>(
+  overlays: readonly T[],
+  applied: Pick<Versioned, "id">,
+): T | undefined {
+  const held = overlays.find((overlay) => overlay.id === applied.id);
+  if (!held) return undefined;
+  const newest = newestVersions(overlays.filter((overlay) => overlay.code === held.code))[0];
+  return newest && newest.version > held.version ? newest : undefined;
+}
+
 /** What the program's tailoring holds: its decisions, and the control each parameter value sets. */
 export type TailoringContent = {
   decisions: readonly StackDecision[];
@@ -44,7 +72,8 @@ export type TailoringContent = {
 
 /**
  * How a saved stack is made, as the command reads it: its overlays bottom up, and whether the
- * program's tailoring is its last layer. A layer no overlay accounts for anywhere but last is not
+ * program's tailoring is its last layer. A second baseline combined with the first is part of the
+ * root, so it may only be the first layer. A layer no overlay accounts for anywhere but last is not
  * a stack the command can keep in order, and `supported` says so.
  */
 export function stackShape(derivation: Pick<BaselineDerivation, "layers">): {
@@ -59,6 +88,7 @@ export function stackShape(derivation: Pick<BaselineDerivation, "layers">): {
   const tailoring = layers.at(-1)?.kind === "tailoring";
   const supported = layers.every(
     (layer, index) =>
+      (layer.kind === "baseline" && index === 0) ||
       (layer.kind === "overlay" && !!layer.overlayId) ||
       (layer.kind === "tailoring" && index === layers.length - 1),
   );
@@ -127,12 +157,22 @@ export function restackPreview(
   tailoring: TailoringContent | null,
 ): RestackPreview {
   const reference = stackAt(current, 0).selected;
-  const layers = overlays.map(overlayLayer);
+  // A second baseline combined with the first is part of the root the command keeps: it stays the
+  // first layer, as it was applied.
+  const root = current.layers[0]?.kind === "baseline" ? current.layers[0] : null;
+  const layers: StackLayerInput[] = [
+    ...(root
+      ? [{ key: root.key, kind: root.kind, title: root.title, decisions: decisionsOf(root) }]
+      : []),
+    ...overlays.map(overlayLayer),
+  ];
   // An overlay's values count where the layer it makes selects their controls, as applying it
   // authors them; the tailoring's are those it keeps.
   const valuesOf = (key: string) => overlays.find((overlay) => overlay.id === key)?.parameters;
   const stacked = withParameters(deriveStack(reference, layers), valuesOf);
-  const idle = stacked.layers.filter(idleLayer).map((layer) => layer.key);
+  const idle = stacked.layers
+    .filter((layer) => layer.kind === "overlay" && idleLayer(layer))
+    .map((layer) => layer.key);
   let derivation = stacked;
   let carry: TailoringCarry | null = null;
   if (tailoring) {

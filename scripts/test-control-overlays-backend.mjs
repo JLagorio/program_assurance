@@ -1,8 +1,10 @@
 /**
  * The overlay commands and program creation with overlays, against the local stack, as a member
- * through PostgREST: save_control_overlay, set_control_overlay_decisions, publish_control_overlay,
+ * through PostgREST: save_control_overlay, set_control_overlay_decisions,
+ * set_control_overlay_parameters, publish_control_overlay, create_control_overlay_version,
  * delete_control_overlay, create_program_wizard with `overlayIds`, and
- * set_program_baseline_overlays, which changes a program's stack after creation. Each runs in a
+ * set_program_baseline_overlays, which changes a program's stack after creation and takes a newer
+ * version of an overlay in place of the one it applies. Each runs in a
  * disposable @example.test workspace (and a second one for another workspace's records), which is
  * removed at the end. Needs `npm run local:start` with the pinned reference data.
  */
@@ -746,6 +748,196 @@ try {
 
   // An overlay a program's stack applies cannot be deleted, whatever its state says.
   await refused(remove(a, 3), "23514", "delete an applied overlay");
+
+  // ---------------------------------------------------------------------------------------------
+  // Parameter values: set on a draft, sent again, published with values alone, held once
+  // published, and applied as the layer's own settings, which program_control_parameters reads.
+  // ---------------------------------------------------------------------------------------------
+  const setValues = (overlayId, expectedRevision, parameters, removed = [], as = client) =>
+    as.rpc("set_control_overlay_parameters", {
+      p_tenant_id: tenantId,
+      p_overlay_id: overlayId,
+      p_expected_revision: expectedRevision,
+      p_parameters: parameters,
+      p_removed: removed,
+    });
+  const quarterly = [
+    { parameterId: parameter.id, values: [" every quarter "], rationale: "The overlay sets it." },
+  ];
+  const valuesId = randomUUID();
+  const valuesDraft = await ok(
+    save(valuesId, null, {
+      code: "OB-VALUES",
+      title: "Values overlay",
+      description: "",
+      catalogRevisionId: catalogId,
+    }),
+    "create a values overlay",
+  );
+  const valued = await ok(setValues(valuesId, valuesDraft.revision, quarterly), "set a value");
+  const valuedAgain = await ok(
+    setValues(valuesId, valuesDraft.revision, quarterly),
+    "the same values sent again",
+  );
+  assert.equal(valuedAgain.revision, valued.revision, "Values sent again wrote again");
+  await refused(
+    setValues(valuesId, valued.revision, [{ ...quarterly[0], values: [] }]),
+    "23514",
+    "a value set with no value",
+  );
+  await refused(
+    setValues(valuesId, valued.revision, quarterly, [], other.client),
+    "42501",
+    "a viewer sets a value",
+  );
+  const valuesPublished = await ok(
+    publish(valuesId, valued.revision),
+    "publish an overlay with values alone",
+  );
+  await refused(
+    setValues(valuesId, valuesPublished.revision, [{ ...quarterly[0], values: ["daily"] }]),
+    "23514",
+    "change a published overlay's value",
+  );
+  const valuesProgram = await ok(
+    client.rpc("create_program_wizard", {
+      p_tenant_id: tenantId,
+      p_draft: wizardDraft("OB-VALPROG", catalogId, {
+        baseResolutionId: baseId,
+        overlayIds: [valuesId],
+      }),
+    }),
+    "create a program with a values-only overlay",
+  );
+  const valuesChoice = await ok(
+    client
+      .from("program_reference_choices")
+      .select("id, revision, profile_resolution_id")
+      .eq("program_id", valuesProgram.programId)
+      .single(),
+    "read the values program's choice",
+  );
+  assert.deepEqual((await stack(valuesChoice.id)).layers, ["root", "OB-VALUES"]);
+  /** The values a resolution's own setting gives the test parameter. */
+  const settingOf = async (resolutionId) => {
+    const resolution = await ok(
+      client
+        .from("profile_resolutions")
+        .select("profile_revision_id")
+        .eq("id", resolutionId)
+        .single(),
+      "read a layer's profile",
+    );
+    const settings = await ok(
+      client
+        .from("profile_parameter_settings")
+        .select("id")
+        .eq("profile_revision_id", resolution.profile_revision_id)
+        .eq("parameter_id", parameter.id),
+      "read a layer's setting",
+    );
+    if (!settings[0]) return null;
+    const values = await ok(
+      client
+        .from("profile_parameter_values")
+        .select("value, ordinal")
+        .eq("setting_id", settings[0].id)
+        .order("ordinal"),
+      "read a setting's values",
+    );
+    return values.map((row) => row.value);
+  };
+  assert.deepEqual(await settingOf(valuesChoice.profile_resolution_id), ["every quarter"]);
+  const read = await ok(
+    client.rpc("program_control_parameters", {
+      p_program_id: valuesProgram.programId,
+      p_control_id: parameter.control_id,
+    }),
+    "read the program's values for the control",
+  );
+  const readValue = read.stacks[0]?.parameters.find((row) => row.parameter_id === parameter.id);
+  assert.deepEqual(readValue?.values, ["every quarter"]);
+  assert.equal(readValue?.source?.kind, "overlay");
+  assert.equal(readValue?.source?.title, "Values overlay");
+
+  // ---------------------------------------------------------------------------------------------
+  // Versions: the next version of a published overlay carries its values, a request sent again
+  // answers the same draft, a deleted draft version leaves the published one, and a program keeps
+  // the version it applied until its stack takes the newer one in its place.
+  // ---------------------------------------------------------------------------------------------
+  const nextVersion = (overlayId, versionId, as = client) =>
+    as.rpc("create_control_overlay_version", {
+      p_tenant_id: tenantId,
+      p_overlay_id: overlayId,
+      p_version_id: versionId,
+    });
+  const draftVersionId = randomUUID();
+  const draftVersion = await ok(nextVersion(valuesId, draftVersionId), "create version 2");
+  assert.equal(draftVersion.version, 2);
+  assert.equal(draftVersion.state, "draft");
+  assert.equal(draftVersion.code, "OB-VALUES");
+  assert.equal(await count("control_overlay_parameters", { overlay_id: draftVersionId }), 1);
+  const draftVersionAgain = await ok(
+    nextVersion(valuesId, draftVersionId),
+    "create version 2 again",
+  );
+  assert.equal(
+    draftVersionAgain.revision,
+    draftVersion.revision,
+    "A version sent again wrote again",
+  );
+  await refused(nextVersion(valuesId, randomUUID()), "23514", "a second next version");
+  await refused(nextVersion(draftVersionId, randomUUID()), "23514", "the next version of a draft");
+  await refused(
+    nextVersion(valuesId, randomUUID(), other.client),
+    "42501",
+    "a viewer creates a version",
+  );
+  assert.equal(
+    await ok(remove(draftVersionId, draftVersion.revision), "delete the draft version"),
+    true,
+  );
+  assert.equal(await count("control_overlays", { id: valuesId, state: "published" }), 1);
+  assert.equal(await count("control_overlay_parameters", { overlay_id: valuesId }), 1);
+  const secondId = randomUUID();
+  const second = await ok(nextVersion(valuesId, secondId), "create version 2 again, anew");
+  assert.equal(second.version, 2);
+  const monthly = await ok(
+    setValues(secondId, second.revision, [
+      {
+        parameterId: parameter.id,
+        values: ["every month"],
+        rationale: "Version 2 sets it monthly.",
+      },
+    ]),
+    "edit version 2's value",
+  );
+  await ok(publish(secondId, monthly.revision), "publish version 2");
+  // The program still applies version 1.
+  const stillFirst = await ok(
+    client
+      .from("profile_overlay_applications")
+      .select("overlay_id")
+      .eq("profile_resolution_id", valuesChoice.profile_resolution_id)
+      .single(),
+    "read the applied version",
+  );
+  assert.equal(stillFirst.overlay_id, valuesId, "Publishing version 2 moved the program's stack");
+  const taken = await ok(
+    restack(valuesChoice.id, valuesChoice.revision, randomUUID(), [secondId]),
+    "take version 2 into the program's stack",
+  );
+  assert.equal(taken.changed, true);
+  const takenApplication = await ok(
+    client
+      .from("profile_overlay_applications")
+      .select("overlay_id")
+      .eq("profile_resolution_id", taken.profileResolutionId)
+      .single(),
+    "read the version the stack applies now",
+  );
+  assert.equal(takenApplication.overlay_id, secondId);
+  assert.deepEqual(await settingOf(taken.profileResolutionId), ["every month"]);
   console.log("Control overlay commands and program stacks: all checks passed.");
 } finally {
   await other?.cleanup();

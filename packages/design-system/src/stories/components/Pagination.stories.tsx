@@ -229,26 +229,29 @@ export const AtTheEndOfARow: Story = {
   },
 };
 
-/** Too long for a 320px phone, the list wraps, and every line ends where the region ends: Next ends the last line, under the end of the line before, rather than sitting alone in the middle of a line of its own. */
+/** Too long for a 320px phone, in the 288px its 16px gutters leave, the list wraps, and every line ends where the region ends: Next ends the last line, under the end of the line before, rather than sitting alone in the middle of a line of its own. */
 export const WrappedOnAPhone: Story = {
   name: "Wrapped on a phone",
-  globals: { viewport: { value: "ledgerNarrow", isRotated: false } },
   render: () => (
-    <ResultPages
-      label="Activity pages"
-      pages={[1, "gap-start", 118, 119, 120, "gap-end", 240]}
-      current={119}
-    />
+    <div style={{ maxWidth: 288 }}>
+      <ResultPages
+        label="Activity pages"
+        pages={[1, "gap-start", 118, 119, 120, "gap-end", 240]}
+        current={119}
+      />
+    </div>
   ),
   play: async ({ canvasElement }) => {
-    await waitFor(() => expect(window.innerWidth).toBe(320));
     const nav = within(canvasElement).getByRole("navigation", { name: "Activity pages" });
     const list = nav.querySelector<HTMLElement>('[data-slot="pagination-content"]')!;
     const items = [...list.children] as HTMLElement[];
     const top = (item: HTMLElement) => Math.round(item.getBoundingClientRect().top);
-    // The lines the items sit on, from the first: the phone cannot hold them on one.
-    const lines = [...new Set(items.map(top))].sort((a, b) => a - b);
-    await expect(lines.length).toBeGreaterThan(1);
+    // The lines the items sit on, from the first: the phone cannot hold them on one, once the
+    // figures are drawn in the page's own font (the fallback's are narrower).
+    const tops = () => [...new Set(items.map(top))].sort((a, b) => a - b);
+    await canvasElement.ownerDocument.fonts.ready;
+    await waitFor(() => expect(tops().length).toBeGreaterThan(1));
+    const lines = tops();
     const next = within(nav).getByRole("link", { name: "Next page" });
     await expect(top(next.closest("li")!)).toBe(lines.at(-1));
     // Each line ends where the region ends, so Next ends the last one.

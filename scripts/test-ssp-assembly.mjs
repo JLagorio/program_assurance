@@ -233,7 +233,9 @@ try {
   assert.equal(await page.getByText(/ssp-test-v2/).count(), 0);
   await page.getByRole("button", { name: "Back to previous record", exact: true }).click();
   await page.getByRole("button", { name: "Edit control implementation", exact: true }).click();
-  await expect(page.getByRole("dialog")).toHaveCount(1);
+  await expect(page.getByRole("dialog").and(page.locator(':not([data-slot="toast"])'))).toHaveCount(
+    1,
+  );
   await page
     .getByRole("dialog")
     .getByRole("textbox", { name: "Control narrative", exact: true })
@@ -263,13 +265,17 @@ try {
     .click();
   await expect(page.getByText("No implementation record", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Create control implementation", exact: true }).click();
-  await expect(page.getByRole("dialog")).toHaveCount(1);
+  await expect(page.getByRole("dialog").and(page.locator(':not([data-slot="toast"])'))).toHaveCount(
+    1,
+  );
   await page
     .getByRole("dialog")
     .getByRole("textbox", { name: "Control narrative", exact: true })
     .fill("New recorded narrative for a selected control");
   await page.getByRole("button", { name: "Create control implementation", exact: true }).click();
-  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(page.getByRole("dialog").and(page.locator(':not([data-slot="toast"])'))).toHaveCount(
+    0,
+  );
   await expect(
     page
       .locator('[data-shell-area="panel"]')

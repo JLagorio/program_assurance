@@ -1814,9 +1814,106 @@ export const flowDown = {
   ],
 };
 
+/**
+ * What waits on a reviewer once the programs' work is in, written by the fifth step under its own
+ * dataset (a workspace whose fifth step ran before them is given them under the same batch).
+ *
+ * `productAssessment` is the G40 judged against a second baseline and not yet published: its
+ * assessor has started on what High adds to Moderate, element by element and for the terminal as
+ * a whole (a null element). Each line is [element code or null, controls, determination,
+ * rationale], recorded through record_product_determinations as the account. `startedOn` is a day
+ * counted from the as-of day.
+ *
+ * `package` is with the customer for a decision: Customer B's variant security plan approval gate
+ * is in review, and the package it decides on holds the variant's published SSP and its published
+ * delta assessment plan, the documents Customer B's draft acceptance package already holds. It is
+ * published and submitted by its owner and reviewed by the program's assessor, as the showcase's
+ * submitted packages are, and carries no authorization decision. Its days are counted from the
+ * as-of day the step laid the programs' work out from.
+ */
+export const reviewQueue = {
+  productAssessment: {
+    product: "G40",
+    version: 1,
+    baseline: high,
+    title: "G40 Ground Terminal version 1 against the High baseline",
+    description:
+      "The ground terminal against the High baseline, for a customer that requires it. Judged so far: what High adds on the planning workstation and the datalink relay, and for the terminal as a whole.",
+    assessor: "Elena Vasquez",
+    startedOn: -5,
+    determinations: [
+      [
+        "WS",
+        ["AC-2", "IA-2"],
+        "satisfied",
+        "As judged against the Moderate baseline: High asks nothing more of the workstation's claim.",
+      ],
+      [
+        "WS",
+        ["AC-2(12)"],
+        "other_than_satisfied",
+        "Sign-ins are logged, but nothing watches a planner account for atypical use.",
+      ],
+      [
+        "WS",
+        ["SC-3"],
+        "partially_satisfied",
+        "The planner shares the workstation's operating system with the security functions that guard it.",
+      ],
+      [
+        "WS",
+        ["SI-6"],
+        "satisfied",
+        "The workstation verifies its security functions at start-up and on request, and alarms on a failure.",
+      ],
+      [
+        "RLY",
+        ["SC-7(18)"],
+        "satisfied",
+        "The relay drops every link when a boundary check fails and passes nothing until it restarts clean.",
+      ],
+      [
+        null,
+        ["AU-10"],
+        "other_than_satisfied",
+        "A mission plan reaches the battery with no signature that ties it to the planner who sent it.",
+      ],
+      [
+        null,
+        ["AU-12(1)"],
+        "partially_satisfied",
+        "The workstation and the relay keep their own audit trails on clocks set by hand; nothing correlates them across the terminal.",
+      ],
+      [
+        null,
+        ["PE-3(1)"],
+        "satisfied",
+        "The equipment rack inside the shelter locks apart from the shelter door, under keys issued separately.",
+      ],
+    ],
+  },
+  package: {
+    key: "plan-approval",
+    program: "PRG-2102",
+    title: "Customer B security plan approval package",
+    owner: "Joel Barrantes",
+    description:
+      "The variant's SSP and the delta assessment plan, with Customer B for approval at the variant security plan approval gate.",
+    documents: ["ssp", "plan"],
+    submitted: -10,
+    review: [
+      "Ray Colston",
+      "accepted",
+      "The SSP and the delta assessment plan agree on what the variant owes; ready for Customer B's decision.",
+      -7,
+    ],
+  },
+};
+
 const taskStatuses = ["open", "in_progress", "waiting", "blocked", "done", "cancelled"];
 const priorities = ["low", "normal", "high", "urgent"];
 const determinations = ["met", "not_met", "blocked", "not_applicable"];
+const productDeterminations = ["satisfied", "partially_satisfied", "other_than_satisfied"];
 const levels = ["very_low", "low", "moderate", "high", "very_high"];
 const severities = ["low", "moderate", "high", "critical"];
 const riskStatuses = ["open", "investigating", "responding", "accepted", "closed"];
@@ -1851,6 +1948,30 @@ export function detailIssues() {
     if (!(assessment.wholeShare > 0 && assessment.wholeShare <= 100))
       say(`${assessment.product}'s whole-product share is out of range.`);
   }
+  const waiting = reviewQueue.productAssessment;
+  known(waiting.assessor, `${waiting.product}'s draft assessment`);
+  const waitingProduct = others.get(waiting.product);
+  if (!waitingProduct) say(`${waiting.product} is not a product of the scenario.`);
+  if (!day(waiting.startedOn)) say(`${waiting.product}'s draft assessment starts on no day.`);
+  for (const [element, controls, determination, rationale] of waiting.determinations) {
+    if (element !== null && !waitingProduct?.elements.some((item) => item[0] === element))
+      say(`${waiting.product}'s draft assessment judges ${element}, which it does not hold.`);
+    if (!controls.length || !productDeterminations.includes(determination) || !rationale.trim())
+      say(`${waiting.product}'s draft assessment records ${controls.join(", ")} without a reason.`);
+  }
+  const submitted = reviewQueue.package;
+  known(submitted.owner, `${submitted.title}`);
+  known(submitted.review[0], `${submitted.title}'s review`);
+  if (!work.workPrograms().some((program) => program.code === submitted.program))
+    say(`${submitted.title} belongs to the unknown program ${submitted.program}.`);
+  if (!submitted.documents.length || submitted.documents.some((d) => !["ssp", "plan"].includes(d)))
+    say(`${submitted.title} holds a document its program's draft package does not.`);
+  if (
+    !day(submitted.submitted) ||
+    !day(submitted.review[3]) ||
+    submitted.review[3] < submitted.submitted
+  )
+    say(`${submitted.title} is reviewed before it is submitted.`);
   const programs = new Map(work.workPrograms().map((program) => [program.code, program]));
   for (const variant of productDetail.variants) {
     const program = programs.get(variant.program);
