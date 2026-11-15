@@ -1,4 +1,5 @@
 import { useLayoutEffect, useState, type RefObject } from "react";
+import { flushSync } from "react-dom";
 
 /*
  * Where a block that fills the window starts. A `fill-window` block (layout.css) takes the rest of
@@ -7,6 +8,15 @@ import { useLayoutEffect, useState, type RefObject } from "react";
  * again whenever anything above it changes height: the observer watches the block's ancestors, not
  * the document, because the shell's grid keeps the document at the window's height while the
  * page's content shrinks.
+ *
+ * A change is measured on the frame after it and committed there at once, before that frame lays
+ * out, never inside the ResizeObserver loop that reported it. A state update left pending in that
+ * loop is rendered by the next synchronous render in it, since React renders pending default
+ * updates with sync ones, and a Base UI popup's positioner renders one (`flushSync`) when its own
+ * observer reports. The block then resized in the middle of the loop, and so did the body, which
+ * this observer had already been told about: "ResizeObserver loop completed with undelivered
+ * notifications" (Layout/Pages › Register, when Refresh closed the menu in the frame its
+ * positioner was observed again).
  */
 
 /**
@@ -37,18 +47,25 @@ export function useFillWindow(ref: RefObject<HTMLElement | null>, enabled = true
     if (!enabled || !el) return;
     const measure = () => setTop(documentTop(el));
     measure();
+    // Every later measure waits for the next frame and commits before it lays out, so nothing of
+    // the block's is left pending for another observer's synchronous render to apply mid-loop.
+    let frame = 0;
+    const later = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => flushSync(measure));
+    };
     // Only an animation on the block or a box around it (the page's entrance) can move its top
     // without a resize; a menu, tooltip or toast animating elsewhere does not, so it is not read.
     const settle = (event: AnimationEvent) => {
-      if (event.target instanceof Node && event.target.contains(el)) measure();
+      if (event.target instanceof Node && event.target.contains(el)) later();
     };
     document.addEventListener("animationend", settle);
-    const observer =
-      typeof ResizeObserver === "undefined" ? undefined : new ResizeObserver(measure);
+    const observer = typeof ResizeObserver === "undefined" ? undefined : new ResizeObserver(later);
     let node: HTMLElement | null = el;
     for (; node && node !== document.documentElement; node = node.parentElement)
       observer?.observe(node);
     return () => {
+      if (frame) cancelAnimationFrame(frame);
       observer?.disconnect();
       document.removeEventListener("animationend", settle);
     };
