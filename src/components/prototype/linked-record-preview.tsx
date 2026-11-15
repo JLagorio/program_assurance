@@ -131,7 +131,14 @@ function frameworkItemFacts(record: DataRecord): RecordSummaryField<DataRecord>[
   const code = wordsAt(record, "code");
   return [
     // The summary names the item that holds this one, under the label its kind gives the column.
-    ...(parentId ? [{ key: "parent_item_id" }] : []),
+    ...(parentId
+      ? [
+          {
+            key: "parent_item_id",
+            render: () => <RelationName table="framework_items" id={parentId} />,
+          },
+        ]
+      : []),
     // The holders above it are named through it.
     ...(parentId
       ? holders.slice(1).map((label, index) => ({
@@ -157,7 +164,7 @@ function frameworkItemFacts(record: DataRecord): RecordSummaryField<DataRecord>[
           },
         ]
       : []),
-    { key: "printed_in" },
+    { key: "printed_in", kind: "text" },
     {
       key: "framework_revision_id",
       label: "Framework",
@@ -194,6 +201,8 @@ function titleOf(record: DataRecord, fallback: string) {
 /**
  * The preview of a record that has no page of its own, opened by its name wherever the name is
  * drawn: an observation in an issue's facts, an organization as an owner, a procedure in a step.
+ * A framework item's facts each say what they are, so its preview reads no record schema; any
+ * other record's stored facts are told by the schema, which the preview reads as it opens.
  * A record with a curated body (an observation) shows it; a framework item shows the facts the
  * product has words for (`frameworkItemFacts`), under the name its kind gives it ("Security
  * outcome preview"), then its own text and what the publication prints beside it: the Discussion

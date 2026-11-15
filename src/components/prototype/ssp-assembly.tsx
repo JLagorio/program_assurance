@@ -971,9 +971,9 @@ function SspAssemblyPlan({
                 onSelect={(row) => setRequirementPreviewId(row.id)}
                 onClose={() => setRequirementPreviewId(undefined)}
                 fields={[
-                  { key: "title" },
-                  { key: "statement" },
-                  { key: "acceptance_criteria" },
+                  { key: "title", kind: "text" },
+                  { key: "statement", kind: "text" },
+                  { key: "acceptance_criteria", kind: "text" },
                   { key: "state" },
                 ]}
               />

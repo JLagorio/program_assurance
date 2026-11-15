@@ -303,7 +303,7 @@ export function RequirementAllocations({
             )
           }
           fields={[
-            { key: "targetType", label: "Target type" },
+            { key: "targetType", label: "Target type", kind: "text" },
             {
               key: "rationale",
               label: "Rationale",

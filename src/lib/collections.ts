@@ -25,12 +25,17 @@ const find = (name: string) => (collections: Collection[]) =>
  * query: its fields load under the operation's primary, not a read-only note. A register, a
  * record page or a tab that only needs to know whether the reader may write asks the workspace
  * role, and row-level security decides each write; the kinds and labels a register's columns
- * show are declared on its columns.
+ * show are declared on its columns. A surface that needs it only for some of what it shows (a
+ * preview whose facts all say what they are) passes `enabled: false` otherwise: it reads nothing
+ * then, and still gets the schema where another surface of the session has read it.
  */
-export function useCollection(name: string): UseQueryResult<Collection | null, Error> {
+export function useCollection(
+  name: string,
+  { enabled = true }: { enabled?: boolean | undefined } = {},
+): UseQueryResult<Collection | null, Error> {
   const workspace = useWorkspace();
   const select = useMemo(() => find(name), [name]);
-  return useQuery({ ...schemaCatalogOptions(workspace), select });
+  return useQuery({ ...schemaCatalogOptions(workspace), select, enabled });
 }
 
 /**

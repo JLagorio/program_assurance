@@ -366,9 +366,9 @@ export function ProductStructure({
           onSelect={setSelected}
           onClose={() => setSelected(null)}
           fields={[
-            { key: "code" },
-            { key: "description" },
-            { key: "typeLabel", label: "Type" },
+            { key: "code", kind: "text" },
+            { key: "description", kind: "text" },
+            { key: "typeLabel", label: "Type", kind: "text" },
             {
               key: "libraryLabel",
               label: "Library",

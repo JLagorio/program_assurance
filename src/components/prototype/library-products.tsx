@@ -291,13 +291,13 @@ function ProductsRegister() {
         <RecordSummaryPreview
           model="products"
           fields={[
-            { key: "code", label: "Code" },
+            { key: "code", label: "Code", kind: "text" },
             {
               key: "businessLine",
               label: "Business line",
               render: (row) => row.businessLine ?? <Absent label="No business line" />,
             },
-            { key: "description", label: "Description" },
+            { key: "description", label: "Description", kind: "text" },
             {
               key: "state",
               label: "Status",
@@ -319,9 +319,9 @@ function ProductsRegister() {
                 />
               ),
             },
-            { key: "configurations", label: "Configurations" },
-            { key: "elements", label: "Elements" },
-            { key: "variants", label: "Variants" },
+            { key: "configurations", label: "Configurations", kind: "number" },
+            { key: "elements", label: "Elements", kind: "number" },
+            { key: "variants", label: "Variants", kind: "number" },
           ]}
           record={selected}
           rows={displayed}
@@ -1029,13 +1029,13 @@ function ProductRevision({
         <RecordSummaryPreview
           model="systems"
           fields={[
-            { key: "code", label: "Code" },
-            { key: "description", label: "Description" },
-            { key: "programName", label: "Program" },
-            { key: "configurationName", label: "Configuration" },
-            { key: "productVersion", label: "Product version" },
-            { key: "inherited", label: "Inherited elements" },
-            { key: "added", label: "Added elements" },
+            { key: "code", label: "Code", kind: "text" },
+            { key: "description", label: "Description", kind: "text" },
+            { key: "programName", label: "Program", kind: "text" },
+            { key: "configurationName", label: "Configuration", kind: "text" },
+            { key: "productVersion", label: "Product version", kind: "number" },
+            { key: "inherited", label: "Inherited elements", kind: "number" },
+            { key: "added", label: "Added elements", kind: "number" },
           ]}
           record={variantPreview}
           rows={displayedVariants}
@@ -1239,15 +1239,15 @@ function ConfigurationsTab({
           readOnly={!editable}
           onEdit={() => setEditing(configurationPreview)}
           fields={[
-            { key: "code", label: "Code" },
-            { key: "description", label: "Description" },
+            { key: "code", label: "Code", kind: "text" },
+            { key: "description", label: "Description", kind: "text" },
             {
               key: "state",
               label: "Status",
               render: (row) => <StatusBadge statuses={recordLifecycleStates} value={row.state} />,
             },
-            { key: "elements", label: "Elements" },
-            { key: "variants", label: "Variants" },
+            { key: "elements", label: "Elements", kind: "number" },
+            { key: "variants", label: "Variants", kind: "number" },
           ]}
           record={configurationPreview}
           rows={displayedConfigurations}

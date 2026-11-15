@@ -228,7 +228,7 @@ export function ComponentLibraryIndex() {
           model="component_definitions"
           fields={[
             { key: "code", label: "Code", render: (row) => <Id>{row.code}</Id> },
-            { key: "categoryLabel", label: "Category" },
+            { key: "categoryLabel", label: "Category", kind: "text" },
             {
               key: "description",
               label: "Description",
@@ -256,7 +256,7 @@ export function ComponentLibraryIndex() {
               render: (row) =>
                 row.types.length ? row.types.join(", ") : <Absent label="None defined" />,
             },
-            { key: "controls", label: "Controls" },
+            { key: "controls", label: "Controls", kind: "number" },
           ]}
           record={rows.find((row) => row.id === selected.id) ?? selected}
           rows={displayed}
@@ -1165,7 +1165,13 @@ function ComponentRevision({
               render: (row) => row.description || <Absent />,
             },
             ...(claimPreview.consumer_responsibility
-              ? [{ key: "consumer_responsibility", label: "Consumer responsibility" }]
+              ? [
+                  {
+                    key: "consumer_responsibility",
+                    label: "Consumer responsibility",
+                    kind: "text" as const,
+                  },
+                ]
               : []),
           ]}
           record={claimPreview}
@@ -1384,7 +1390,7 @@ function ComponentTraceability({
               label: "Requirement",
               render: (row) => (row.code ? <Id>{row.code}</Id> : <Absent />),
             },
-            { key: "version_number", label: "Revision" },
+            { key: "version_number", label: "Revision", kind: "number" },
             {
               key: "state",
               label: "State",
@@ -1423,7 +1429,7 @@ function ComponentTraceability({
           model="evidence_versions"
           readOnly
           fields={[
-            { key: "version_number", label: "Version" },
+            { key: "version_number", label: "Version", kind: "number" },
             {
               key: "state",
               label: "State",

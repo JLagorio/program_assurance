@@ -417,14 +417,29 @@ export function ShellRoot({
 
   // The root's width, for the CSS that keeps Main at its minimum beside the side nav and the panel:
   // 100vw would count a classic scrollbar as room. Set on the element, so a resize re-renders nothing.
+  // Set before the first paint, then on the frame after a resize, and only when it changed: set
+  // inside the observer, it resized the side nav and Main while the page's observers were still
+  // running, and a change that reaches an element already notified (the root's own height on a
+  // page taller than the window) is a ResizeObserver loop with undelivered notifications.
   useLayoutEffect(() => {
     const root = rootRef.current;
     if (!root || typeof ResizeObserver === "undefined") return;
-    const update = () => root.style.setProperty("--shell-width", `${root.clientWidth}px`);
+    const update = () => {
+      const width = `${root.clientWidth}px`;
+      if (root.style.getPropertyValue("--shell-width") !== width)
+        root.style.setProperty("--shell-width", width);
+    };
     update();
-    const observer = new ResizeObserver(update);
+    let frame = 0;
+    const observer = new ResizeObserver(() => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(update);
+    });
     observer.observe(root);
-    return () => observer.disconnect();
+    return () => {
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+    };
   }, []);
 
   // A new page: close the overlay or the flyout, move focus to the page, then say where the reader is.

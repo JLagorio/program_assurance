@@ -141,9 +141,20 @@ export type FilterValue = string | number | boolean | null | readonly string[];
 /**
  * Equality filters by column. A key with dots filters through the record's references, which the
  * read joins on the server and leaves out of the rows: `{ "engineering_requirements.program_id":
- * programId }` reads a program's requirement revisions without their requirements.
+ * programId }` reads a program's requirement revisions without their requirements. A key named
+ * `or`, or ending in `.or` through a reference, holds a PostgREST logic tree the rows must meet:
+ * `{ or: "program_id.eq.…,program_id.is.null" }` reads a program's procedures and those of no
+ * program, and `{ "procedures.or": … }` those procedures' revisions.
  */
 export type Filters = Record<string, FilterValue>;
+
+/** A filter that is a logic tree: `or` on the record, or `<reference>.or` through a reference. */
+function logicTree(key: string, value: FilterValue) {
+  if (typeof value !== "string") return undefined;
+  if (key === "or") return { tree: value, through: undefined };
+  if (key.endsWith(".or")) return { tree: value, through: key.slice(0, -".or".length) };
+  return undefined;
+}
 
 type Client = Pick<SupabaseClient, "from">;
 /** Who reads: the workspace the rows are scoped to and the session's access token. */
@@ -172,7 +183,10 @@ export function selectClause(columns: readonly string[] | undefined, filters: Fi
   return [columns?.length ? columns.join(",") : "*", ...render(joins)].join(",");
 }
 
-/** One request's filters: the workspace, then each column's equality, emptiness or list. */
+/**
+ * One request's filters: the workspace, then each column's equality, emptiness or list, and each
+ * logic tree, which the request meets beside the workspace's.
+ */
 function scopedQuery(
   client: Client,
   context: ReadContext,
@@ -189,13 +203,18 @@ function scopedQuery(
     .retry(false);
   if (isTenantScoped(table))
     request = request.or(`tenant_id.eq.${context.tenantId},tenant_id.is.null`);
-  for (const [column, value] of Object.entries(filters))
-    request =
-      value === null
+  for (const [column, value] of Object.entries(filters)) {
+    const logic = logicTree(column, value);
+    request = logic
+      ? logic.through
+        ? request.or(logic.tree, { referencedTable: logic.through })
+        : request.or(logic.tree)
+      : value === null
         ? request.is(column, null)
         : Array.isArray(value)
           ? request.in(column, value as string[])
           : request.eq(column, value as string | number | boolean);
+  }
   return request;
 }
 

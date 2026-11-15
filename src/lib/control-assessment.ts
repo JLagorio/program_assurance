@@ -390,6 +390,71 @@ export function useControlAssessment(
   return { data, queries: [campaigns, plans, holdings] };
 }
 
+/** What Plan an assessment plans of a control: what an assessment takes, of the objectives it counts. */
+export type PlanTakes = AssessmentTakes & {
+  /** The assessment objectives the control counts; none for a control a plan takes as its statement. */
+  counted: number;
+};
+
+/**
+ * What Plan an assessment plans of a control, from how many assessment objectives it counts and
+ * how many of them the program's assessors have judged: the objectives an assessment takes
+ * (`assessmentTakes`) and the objectives the control counts, which the Dialog says before its
+ * primary runs.
+ */
+export function planTakes(
+  holdings: Pick<PlanHoldings, "objectives" | "objectivesAssessed">,
+): PlanTakes {
+  return { counted: holdings.objectives, ...assessmentTakes(holdings) };
+}
+
+/** No plan named: what an assessment takes of a control, whatever a plan holds of it. */
+const NO_PLANS: readonly string[] = [];
+
+/**
+ * What Plan an assessment would plan of one control, read as its Dialog opens so the Dialog says it
+ * before its primary runs: how many assessment objectives the control counts and what an
+ * assessment of it takes (`assessmentTakes`), from how many of them the program's assessors have
+ * judged, in one request that names no plan (`plan_control_holdings`). `query` is the read, for the
+ * Dialog's alert and its primary's reason while it loads or after it fails. A write to an
+ * objective, a finding or a results revision reads it again.
+ */
+export function usePlanTakes(
+  programId: string | null | undefined,
+  controlId: string | null | undefined,
+  { enabled = true }: { enabled?: boolean | undefined } = {},
+) {
+  const workspace = useWorkspace();
+  useStaleOnWrite(workspace.tenantId, HOLDING_MODELS, [
+    "models",
+    workspace.tenantId,
+    "plan_control_holdings",
+  ]);
+  const query = useQuery<PlanHoldings, Error>({
+    queryKey: [
+      "models",
+      workspace.tenantId,
+      "plan_control_holdings",
+      programId ?? null,
+      controlId ?? null,
+      NO_PLANS,
+    ],
+    enabled: enabled && !!programId && !!controlId,
+    retry: false,
+    queryFn: async ({ signal }) =>
+      readPlanControlHoldings(
+        database(),
+        { tenantId: workspace.tenantId, token: await requireIdentity(workspace) },
+        programId!,
+        controlId!,
+        NO_PLANS,
+        signal,
+      ),
+  });
+  const data = useMemo(() => (query.data ? planTakes(query.data) : undefined), [query.data]);
+  return { data, query };
+}
+
 /**
  * What a picker of draft plans says of each: how many objectives the plan holds, and whether its
  * SSP's control baseline selects the control, which the plan needs to take it.

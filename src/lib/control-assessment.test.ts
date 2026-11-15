@@ -10,6 +10,7 @@ const {
   controlAssessment,
   latestPlans,
   planControlAssessment,
+  planTakes,
   readPlanControlHoldings,
 } = await import("./control-assessment");
 const { controlNextStep, judgedInPart, nextStepLabel } = await import("./next-steps");
@@ -288,6 +289,32 @@ describe("what an assessment takes of a control", () => {
     );
   });
 
+  it("says what Plan an assessment plans, of the objectives the control counts", () => {
+    // Judged in part: the 23 of AC-2's 26 nobody has judged.
+    expect(planTakes({ objectives: 26, objectivesAssessed: 3 })).toEqual({
+      counted: 26,
+      objectives: 23,
+      unjudged: true,
+    });
+    // Nobody has judged it, or every objective is judged: all 26.
+    expect(planTakes({ objectives: 26, objectivesAssessed: 0 })).toEqual({
+      counted: 26,
+      objectives: 26,
+      unjudged: false,
+    });
+    expect(planTakes({ objectives: 26, objectivesAssessed: 26 })).toEqual({
+      counted: 26,
+      objectives: 26,
+      unjudged: false,
+    });
+    // A control that counts none: its statement.
+    expect(planTakes({ objectives: 0, objectivesAssessed: 0 })).toEqual({
+      counted: 0,
+      objectives: 0,
+      unjudged: false,
+    });
+  });
+
   it("reads what each campaign's plan holds against what the assessment takes", () => {
     // AC-2 with 3 of its 26 objectives judged: the annual plan holds 8 of its objectives, 5 of them
     // nobody has judged; continuous monitoring's holds the 23 nobody has judged, none of the 3.
@@ -391,6 +418,25 @@ describe("what the plans hold of a control", () => {
       holdsUnjudged: true,
       unjudgedHeld: 23,
     });
+  });
+
+  it("asks what an assessment takes of the control naming no plan, as Plan an assessment reads it", async () => {
+    const { client, calls } = fakeClient(() => ({
+      data: { control_id: uuid(40), objectives: 26, objectives_assessed: 3, plans: [] },
+      error: null,
+    }));
+    const answer = await readPlanControlHoldings(client, context, uuid(5), uuid(40), []);
+    expect(args(calls[0], "rpc")[0]).toEqual([
+      {
+        p_tenant_id: uuid(1),
+        p_program_id: uuid(5),
+        p_control_id: uuid(40),
+        p_plan_revision_ids: [],
+      },
+    ]);
+    expect(answer).toMatchObject({ objectives: 26, objectivesAssessed: 3 });
+    expect(answer.plans.size).toBe(0);
+    expect(planTakes(answer)).toEqual({ counted: 26, objectives: 23, unjudged: true });
   });
 
   it("fails rather than read an answer it cannot parse as holding nothing", async () => {

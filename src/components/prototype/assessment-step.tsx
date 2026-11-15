@@ -38,9 +38,11 @@ import {
   useDraftPlanDetails,
   usePlanControlAssessment,
   usePlanSspOptions,
+  usePlanTakes,
   type AddedObjectives,
   type AssessmentCampaignPlan,
   type AssessmentTakes,
+  type PlanTakes,
 } from "@/lib/control-assessment";
 import { campaignStatuses } from "@/lib/status";
 import { useCollectionTable } from "./collection-question";
@@ -107,6 +109,22 @@ function joinsAs(code: string, counted: number, takes: AssessmentTakes, formatNu
   if (counted === 1)
     return `${code} joins the campaign's draft plan as its one assessment objective.`;
   return `${code} joins the campaign's draft plan as its ${formatNumber(counted)} assessment objectives; a plan that holds some takes only the rest.`;
+}
+
+/**
+ * What Plan an assessment plans of the control, said before its primary runs, as the picker's line
+ * says what joining a draft plan writes: the assessment objectives it counts, or, of a control its
+ * assessors have judged in part, the ones nobody has judged; of a control that counts none, its
+ * statement.
+ */
+function plansAs(code: string, takes: PlanTakes, formatNumber: Format) {
+  if (takes.counted === 0) return `Plans ${code} as one objective, aimed at its statement.`;
+  if (takes.unjudged)
+    return takes.objectives === 1
+      ? `Plans the one of ${code}'s ${formatNumber(takes.counted)} assessment objectives nobody has judged.`
+      : `Plans the ${formatNumber(takes.objectives)} of ${code}'s ${formatNumber(takes.counted)} assessment objectives nobody has judged.`;
+  if (takes.counted === 1) return `Plans ${code}'s one assessment objective.`;
+  return `Plans ${code}'s ${formatNumber(takes.counted)} assessment objectives.`;
 }
 
 /**
@@ -344,8 +362,10 @@ const TITLE_LIMIT = 300;
  * Plan an assessment: a new campaign of the program, planned, whose first plan is a draft pinned
  * to a published SSP of one of the program's systems, holding the control as the assessment
  * objectives it counts (its statement, where it counts none; the objectives nobody has judged, of a
- * control its assessors have judged in part), which the toast says. One request writes all three,
- * or none; planning again after a failure plans no second campaign.
+ * control its assessors have judged in part). The Dialog says which before its primary runs, read
+ * as it opens (`usePlanTakes`): while that read loads or after it fails the primary waits with its
+ * reason, and a failure is the Dialog's alert with Retry. The toast says what was planned. One
+ * request writes all three, or none; planning again after a failure plans no second campaign.
  */
 function PlanAssessmentDialog({
   programId,
@@ -361,9 +381,11 @@ function PlanAssessmentDialog({
   onDone: () => void;
   finalFocus: () => HTMLElement | boolean;
 }) {
-  const { formatPlural } = useLedgerLocale();
+  const { formatNumber, formatPlural } = useLedgerLocale();
   const formId = useId();
   const options = usePlanSspOptions(programId, control.id);
+  // What the plan will hold of the control, said before the primary runs.
+  const taken = usePlanTakes(programId, control.id);
   const usable = useMemo(
     () => (options.data ?? []).filter((option) => option.selects),
     [options.data],
@@ -399,13 +421,19 @@ function PlanAssessmentDialog({
     feedback.submitted ? issues.map((issue) => [issue.field, issue.message] as const) : [],
   );
   const optionsFailed = options.queries.some((query) => query.isError && query.data === undefined);
+  // The reader is told what the plan will hold before it is planned: the primary waits on it.
+  const counting = taken.data
+    ? undefined
+    : taken.query.isError
+      ? "The objectives the plan will hold could not be counted. Retry counting them first."
+      : "The objectives the plan will hold are still being counted.";
   const unavailable = optionsFailed
     ? "The program's SSPs could not be loaded. Retry loading them first."
     : !options.data
       ? "The program's SSPs are still loading."
       : usable.length === 0
         ? `No published SSP of the program's systems selects ${control.code}.`
-        : undefined;
+        : counting;
   async function submit(event: FormEvent) {
     event.preventDefault();
     if (guard.busy || unavailable) return;
@@ -502,6 +530,15 @@ function PlanAssessmentDialog({
                   <AlertDescription>{failure}</AlertDescription>
                 </Alert>
               ) : null}
+              {/* What the plan will hold of the control, once counted: while it is, the line keeps
+                  its place, and a failure is this Dialog's alert with Retry. */}
+              <QueryState queries={[taken.query]} retryLabel="Retry counting objectives">
+                {taken.data && (
+                  <Text as="p" size="small" color="color.text.subtle">
+                    {plansAs(control.code, taken.data, formatNumber)}
+                  </Text>
+                )}
+              </QueryState>
               <ErrorSummary issues={feedback.summary} focusKey={feedback.attempts} />
               <FieldSet disabled={guard.busy}>
                 <Stack space="space.200">

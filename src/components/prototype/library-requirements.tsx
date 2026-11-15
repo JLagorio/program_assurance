@@ -215,7 +215,7 @@ export function RequirementLibraryIndex() {
               label: "Type",
               render: (row) => row.type ?? <Absent />,
             },
-            { key: "adopted", label: "Programs" },
+            { key: "adopted", label: "Programs", kind: "number" },
           ]}
           record={rows.find((row) => row.id === selected.id) ?? selected}
           rows={displayed}

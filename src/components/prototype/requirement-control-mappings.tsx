@@ -441,8 +441,8 @@ export function RequirementControlMappings({
           onSelect={(row) => setPreviewId(row.id)}
           onClose={() => setPreviewId(undefined)}
           fields={[
-            { key: "coverage" },
-            { key: "systemName", label: "System" },
+            { key: "coverage", kind: "text" },
+            { key: "systemName", label: "System", kind: "text" },
             {
               key: "relationship_type",
               label: "Relationship",

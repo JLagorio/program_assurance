@@ -13,11 +13,11 @@ import { useWorkspace } from "@/components/app/workspace";
 import { useCollection } from "@/lib/collections";
 import type { TableName } from "@/lib/models";
 import { labelFor, type DataRecord, type RecordValue } from "@/lib/records";
-import type { StatusVocabulary } from "@/lib/status";
+import { vocabularyFor, type StatusVocabulary } from "@/lib/status";
 import { productColumnLabel, productRecordNoun } from "@/lib/product-records";
 import { ProductRecordDialog } from "./product-record-dialog";
 import { RecordPreviewActions, RecordPreviewPanel } from "./record-preview";
-import { FactValue, RelationName } from "./record-tools";
+import { FactValue, RelationName, type DisplayColumn } from "./record-tools";
 import { ReportFailures } from "./work-common";
 
 /**
@@ -32,7 +32,20 @@ export type RecordSummaryField<T> = {
   render?: ((row: T) => ReactNode) | undefined;
   value?: ((row: T) => RecordValue | undefined) | undefined;
   statuses?: StatusVocabulary | undefined;
+  /**
+   * What the fact is, declared as a register's column declares it: a date, a number, a category,
+   * text, or a person, a party's id read by name. A fact that says what it is reads no schema.
+   */
+  kind?: DisplayColumn["kind"];
 };
+
+/**
+ * Whether a fact says what it is: it draws itself, has a vocabulary (its own, or the model's for
+ * its column) or declares its kind. Only a fact that does not reads the record schema, which then
+ * decides its kind and the record its id names.
+ */
+const saysWhatItIs = (model: TableName, field: RecordSummaryField<never>) =>
+  !!field.render || !!field.statuses || !!field.kind || !!vocabularyFor(model, field.key);
 
 /** Past this many characters a label no longer fits KeyValue's `default` label column. */
 const LONG_LABEL = 14;
@@ -92,9 +105,11 @@ export function RecordSummaryPreview<T extends { id: string }>({
   const [editing, setEditing] = useState(false);
   const data = record as unknown as DataRecord;
   const noun = called ?? productRecordNoun(model, data);
-  // The schema names the facts' kinds and the records their fields point at; it loads as the
-  // preview opens.
-  const schema = useCollection(model);
+  // The schema names the kinds of the facts that do not say them and the records their fields
+  // point at, and loads as the preview opens; a preview whose facts all say what they are reads
+  // none, and its Edit's form reads it as it opens.
+  const readsSchema = fields.some((field) => !saysWhatItIs(model, field));
+  const schema = useCollection(model, { enabled: readsSchema });
   const collection = schema.data ?? undefined;
   // Every member but a viewer edits the workspace's own records, and row-level security decides
   // each write: the role says it, so the edit never waits on the schema. Its form does, as it opens.
@@ -105,8 +120,6 @@ export function RecordSummaryPreview<T extends { id: string }>({
       (data["tenant_id"] === workspace.tenantId &&
         typeof data["revision"] === "number" &&
         data["state"] !== "published"));
-  // A field drawn from the stored value (not by its own render or vocabulary) reads the schema.
-  const readsSchema = fields.some((field) => !field.render && !field.statuses);
   /**
    * The foreign key a field belongs to, so the fact shows the related record by name. The field
    * is the key's column for the target's id, alone or beside the columns a composite key carries
@@ -129,8 +142,19 @@ export function RecordSummaryPreview<T extends { id: string }>({
           value={raw === null || raw === undefined ? null : String(raw)}
         />
       );
-    if (field.value)
-      return <FactValue table={model} field={field.key} value={raw} collection={collection} />;
+    // A person declared by a party's id reads as the party's name; a name a `value` gives as itself.
+    if (field.kind === "person" && !field.value && REFERENCE_KEY.test(field.key))
+      return <RelationName table="parties" id={typeof raw === "string" && raw ? raw : null} />;
+    if (field.value || field.kind)
+      return (
+        <FactValue
+          table={model}
+          field={field.key}
+          value={raw}
+          kind={field.kind}
+          collection={collection}
+        />
+      );
     const target = relation(field.key);
     if (target && (typeof raw === "string" || raw === null || raw === undefined)) {
       // A record of another schema (an account, a stored file) is one no reader can read by name.

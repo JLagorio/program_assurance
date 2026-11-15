@@ -224,15 +224,15 @@ function ProgramList() {
           onSelect={setPreview}
           onClose={() => setPreview(null)}
           fields={[
-            { key: "code", label: "Code" },
+            { key: "code", label: "Code", kind: "text" },
             {
               key: "status",
               label: "Status",
               render: (row) => <StatusBadge statuses={programStatuses} value={row.status} />,
             },
-            { key: "sponsor", label: "Sponsor" },
-            { key: "systemCount", label: "Systems" },
-            { key: "impacts", label: "System impacts" },
+            { key: "sponsor", label: "Sponsor", kind: "text" },
+            { key: "systemCount", label: "Systems", kind: "number" },
+            { key: "impacts", label: "System impacts", kind: "text" },
           ]}
         />
       )}

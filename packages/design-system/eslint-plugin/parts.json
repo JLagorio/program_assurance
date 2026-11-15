@@ -14819,7 +14819,7 @@
     "Shell.Aside": {
       "kind": "component",
       "file": "layout/shell/root.tsx",
-      "line": 723,
+      "line": 738,
       "root": {
         "min-w": ["min-w-0"],
         "pb": ["pb-200"]
@@ -14834,7 +14834,7 @@
     "Shell.Banner": {
       "kind": "component",
       "file": "layout/shell/root.tsx",
-      "line": 617,
+      "line": 632,
       "root": {
         "outline-style": ["outline-none"]
       },
@@ -14847,7 +14847,7 @@
     "Shell.Main": {
       "kind": "component",
       "file": "layout/shell/root.tsx",
-      "line": 666,
+      "line": 681,
       "root": {
         "outline-style": ["outline-none"],
         "pb": ["lg:pb-400", "pb-300"],

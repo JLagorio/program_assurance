@@ -100,6 +100,28 @@ describe("reading rows", () => {
     ).toBe(uuid(7));
   });
 
+  it("meets a logic tree on the record, or through a reference it joins", async () => {
+    const { client, calls } = fakeClient(() => ({ data: [], error: null, count: 0 }));
+    await readRows(client, context, "procedures", {
+      or: `program_id.eq.${uuid(5)},program_id.is.null`,
+    });
+    await readRows(client, context, "procedure_revisions", {
+      "procedures.or": `program_id.eq.${uuid(5)},program_id.is.null`,
+    });
+    // Beside the workspace's tree, never in place of it, and never as a column's value.
+    expect(args(calls[0], "or")).toEqual([
+      [`tenant_id.eq.${tenantId},tenant_id.is.null`],
+      [`program_id.eq.${uuid(5)},program_id.is.null`],
+    ]);
+    expect(args(calls[0], "eq")).toEqual([]);
+    expect(args(calls[0], "select")[0]?.[0]).toBe("*");
+    expect(args(calls[1], "select")[0]?.[0]).toBe("*,procedures!inner()");
+    expect(args(calls[1], "or")[1]).toEqual([
+      `program_id.eq.${uuid(5)},program_id.is.null`,
+      { referencedTable: "procedures" },
+    ]);
+  });
+
   it("pages past a thousand rows, the first page bringing the total", async () => {
     const page = (offset: number, size: number) =>
       Array.from({ length: size }, (_, index) => ({ id: uuid(offset + index) }));

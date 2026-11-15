@@ -194,8 +194,8 @@ function ProfilesIndex() {
         <RecordSummaryPreview
           model="profiles"
           fields={[
-            { key: "code", label: "Code" },
-            { key: "kind", label: "Source" },
+            { key: "code", label: "Code", kind: "text" },
+            { key: "kind", label: "Source", kind: "text" },
             {
               key: "version",
               label: "Latest revision",
