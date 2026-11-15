@@ -5,11 +5,16 @@ const {
   CAMPAIGN_RUN_COLUMNS,
   PROCEDURE_COLUMNS,
   PROCEDURE_REVISION_COLUMNS,
+  RUN_REVISION_COLUMNS,
+  campaignProcedureRead,
+  campaignProcedureRevisionRead,
+  campaignProcedureTree,
   campaignRunsTree,
   programOrShared,
-  revisionsOutside,
+  storedProcedure,
 } = await import("./campaign-procedures");
 const { readRows } = await import("./models");
+const { readServerPage } = await import("./server-table");
 
 const tenantId = uuid(900);
 const context = { tenantId, token: "token" };
@@ -92,31 +97,106 @@ describe("a campaign's procedures and runs", () => {
     expect(args(calls[0], "select")[0]?.[0]).toBe(CAMPAIGN_RUN_COLUMNS.join(","));
   });
 
-  it("finds the procedures the runs follow outside the program, through the revision", async () => {
-    const runs = [
-      { procedure_revision_id: uuid(10) },
-      { procedure_revision_id: uuid(12) },
-      { procedure_revision_id: uuid(12) },
-    ];
-    expect(revisionsOutside(runs, [{ id: uuid(10) }, { id: uuid(11) }])).toEqual([uuid(12)]);
-    expect(revisionsOutside(runs, [{ id: uuid(10) }, { id: uuid(12) }])).toEqual([]);
-    // None is asked while either read is on its way.
-    expect(revisionsOutside(undefined, [])).toEqual([]);
-    expect(revisionsOutside(runs, undefined)).toEqual([]);
+  it("lists the program's procedures, those no program owns and those the runs follow", async () => {
+    // A run's revision names its procedure, the program's own or another program's.
     const { client, calls } = fakeClient(() => ({ data: [], error: null, count: 0 }));
     await readRows(
       client,
       context,
-      "procedures",
-      { "procedure_revisions.id": [uuid(12)] },
-      { columns: PROCEDURE_COLUMNS },
+      "procedure_revisions",
+      { id: [uuid(12), uuid(10), uuid(12)] },
+      { columns: RUN_REVISION_COLUMNS },
     );
-    expect(args(calls[0], "select")[0]?.[0]).toBe(
-      `${PROCEDURE_COLUMNS.join(",")},procedure_revisions!inner()`,
+    expect(args(calls[0], "select")[0]?.[0]).toBe("id,procedure_id,title");
+    expect(filter(calls[0], "in", "id")).toEqual([uuid(10), uuid(12)]);
+    expect(campaignProcedureTree(uuid(5), [uuid(21), null, uuid(20), uuid(21)])).toBe(
+      `program_id.eq.${uuid(5)},program_id.is.null,id.in.(${uuid(20)},${uuid(21)})`,
     );
-    expect(filter(calls[0], "in", "procedure_revisions.id")).toEqual([uuid(12)]);
-    // Usually there is none, and nothing is asked.
-    await readRows(client, context, "procedures", { "procedure_revisions.id": [] });
+    // With no run, the program's and those of no program.
+    expect(campaignProcedureTree(uuid(5), [])).toBe(programOrShared(uuid(5)));
+  });
+
+  it("reads a page of the procedures with how many revisions each has, in one request", async () => {
+    const tree = campaignProcedureTree(uuid(5), [uuid(20)]);
+    const { client, calls } = fakeClient(() => ({ data: [], error: null, count: 420 }));
+    const result = await readServerPage(client, context, campaignProcedureRead(tree), {
+      pageIndex: 1,
+      pageSize: 25,
+      search: "access",
+    });
     expect(calls).toHaveLength(1);
+    expect(calls[0]!.table).toBe("procedure_rows");
+    expect(args(calls[0], "select")[0]).toEqual([
+      `${PROCEDURE_COLUMNS.join(",")},versions`,
+      { count: "exact", head: false },
+    ]);
+    // The workspace's scope, the procedures the tree names, then the search.
+    expect(args(calls[0], "or")).toEqual([
+      [`tenant_id.eq.${tenantId},tenant_id.is.null`],
+      [tree],
+      ['title.ilike."*access*",description.ilike."*access*"'],
+    ]);
+    // In id order, as the tab listed them, a page of 25.
+    expect(args(calls[0], "order")).toEqual([["id"]]);
+    expect(args(calls[0], "range")).toEqual([[25, 49]]);
+    expect(result.count).toBe(420);
+  });
+
+  it("reads a page of those procedures' revisions through the procedure", async () => {
+    const tree = campaignProcedureTree(uuid(5), []);
+    const { client, calls } = fakeClient(() => ({ data: [], error: null, count: 420 }));
+    await readServerPage(client, context, campaignProcedureRevisionRead(tree), {
+      pageIndex: 0,
+      pageSize: 25,
+      search: "examine",
+      sorting: [{ id: "method", desc: false }],
+    });
+    expect(calls).toHaveLength(1);
+    expect(calls[0]!.table).toBe("procedure_revisions");
+    // The procedure is joined to filter by, and left out of the rows.
+    expect(args(calls[0], "select")[0]?.[0]).toBe(
+      `${PROCEDURE_REVISION_COLUMNS.join(",")},procedures!inner()`,
+    );
+    expect(args(calls[0], "or")).toEqual([
+      [`tenant_id.eq.${tenantId},tenant_id.is.null`],
+      [tree, { referencedTable: "procedures" }],
+      // A method is found by its words, as its column shows them.
+      ['title.ilike."*examine*",method.in.("examine")'],
+    ]);
+    expect(args(calls[0], "order")).toEqual([
+      ["method", { ascending: true, nullsFirst: false }],
+      ["id"],
+    ]);
+  });
+
+  it("waits for the runs before it reads a page, and asks nothing", async () => {
+    const { client, calls } = fakeClient(() => ({ data: [], error: null, count: 0 }));
+    for (const read of [campaignProcedureRead(undefined), campaignProcedureRevisionRead(undefined)])
+      expect(
+        await readServerPage(client, context, read, { pageIndex: 0, pageSize: 25 }),
+      ).toMatchObject({ rows: [], count: 0 });
+    expect(calls).toHaveLength(0);
+  });
+
+  it("starts a procedure's preview and form from it as stored", () => {
+    const row = {
+      id: uuid(1),
+      tenant_id: tenantId,
+      program_id: uuid(5),
+      title: "Account review",
+      description: null,
+      owner_party_id: null,
+      revision: 3,
+      versions: 2,
+    };
+    expect(storedProcedure(row)).toEqual({
+      id: uuid(1),
+      tenant_id: tenantId,
+      program_id: uuid(5),
+      title: "Account review",
+      description: null,
+      owner_party_id: null,
+      revision: 3,
+    });
   });
 });

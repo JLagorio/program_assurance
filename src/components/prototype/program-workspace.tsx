@@ -80,7 +80,6 @@ import { RecordLink, useOpenRecord } from "./record-preview";
 import { ProgramPosture } from "./program-posture";
 import { ProgramResiliency } from "./program-resiliency";
 import type { PostureReading } from "@/lib/program-posture";
-import type { SystemElement } from "@/lib/system-tree";
 import type { RequirementTab } from "./requirement-record";
 import {
   ProgramCollection,
@@ -203,7 +202,7 @@ export function ProgramWorkspace({
   const workspace = useWorkspace();
   const navigate = useNavigate();
   const query = useRow("programs", programId);
-  const systems = useRows("systems", { program_id: programId });
+  const systems = useRows("systems", { program_id: programId }, { columns: SHELL_SYSTEM_COLUMNS });
   // What the tab strip counts: how many the program holds, counted on the server, never read.
   const requirementCount = useProgramCount("engineering_requirements", programId);
   const campaignCount = useProgramCount("assessment_campaigns", programId);
@@ -222,10 +221,7 @@ export function ProgramWorkspace({
   useProgramReferences(programId);
   const [editing, setEditing] = useState(false);
   const boundaries = useMemo(
-    () =>
-      ((systems.data ?? []) as SystemElement[]).filter(
-        (system) => system.is_authorization_boundary,
-      ),
+    () => (systems.data ?? []).filter((system) => system.is_authorization_boundary),
     [systems.data],
   );
   const systemIds = useMemo(
@@ -607,12 +603,26 @@ export function ProgramWorkspace({
 }
 
 /**
+ * What the program's shell reads of its systems on every tab, the Overview's boundaries and the
+ * rail's product variants among them: one read, never every column.
+ */
+const SHELL_SYSTEM_COLUMNS = [
+  "id",
+  "code",
+  "name",
+  "is_authorization_boundary",
+  "authorization_status",
+  "product_revision_id",
+  "product_configuration_id",
+] as const;
+
+/**
  * What the program adopted: its catalog and profile choices, the profiles and the product variants
  * its boundaries come from. The Overview rail loads these references when it mounts: of the
  * catalogs and profiles, only the fields that name them.
  */
 function useProgramReferences(programId: string) {
-  const systems = useRows("systems", { program_id: programId });
+  const systems = useRows("systems", { program_id: programId }, { columns: SHELL_SYSTEM_COLUMNS });
   const references = useRows("program_reference_choices", { program_id: programId });
   const products = useProductLookup();
   const variants = useMemo(

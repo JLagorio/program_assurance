@@ -56,20 +56,16 @@ import { QueryState } from "./work-common";
 
 /** What a row says of its artifact: the browser's columns, and whose evidence it is. */
 const artifactColumns = ["id", "title", "artifact_kind", "program_id", "owner_party_id"] as const;
-/** What a row says of its version: the browser's columns, and what a draft lacks to be published. */
-const versionColumns = [
-  "id",
-  "artifact_id",
-  "version_number",
-  "state",
-  "collected_at",
-  "external_uri",
-  "storage_object_id",
-] as const;
+/** What a row says of its version: the browser's columns, and its state. */
+const versionColumns = ["id", "artifact_id", "version_number", "state", "collected_at"] as const;
+/** What a draft lacks to be published, which the browser's empty state counts. */
+const draftSourceColumns = ["id", "external_uri", "storage_object_id"] as const;
 /** A linked version's preview draws its facts and its file too. */
 const linkedArtifactColumns = [...artifactColumns, "description"] as const;
 const linkedVersionColumns = [
   ...versionColumns,
+  "external_uri",
+  "storage_object_id",
   "published_at",
   "expires_at",
   "storage_object_name",
@@ -210,27 +206,24 @@ export function RequirementEvidence({
   const parties = useRows("parties", undefined, { columns: ["id", "name"] });
   const [surface, setSurface] = useState<"browse" | "create" | "prepare" | null>(null);
   // What the browser offers is read once it first opens: this program's evidence and the
-  // workspace's unscoped artifacts, each version with what the browser's columns draw.
+  // workspace's unscoped artifacts in one request each, each version with what the browser's
+  // columns draw, and only the drafts with where their file or reference would be.
   const [browsed, setBrowsed] = useState(false);
-  const programArtifacts = useRows(
+  const offeredScope = `program_id.eq.${programId},program_id.is.null`;
+  const offeredArtifacts = useRows(
     "evidence_artifacts",
-    { program_id: programId },
+    { or: offeredScope },
     { columns: artifactColumns, enabled: browsed },
   );
-  const workspaceArtifacts = useRows(
-    "evidence_artifacts",
-    { program_id: null },
-    { columns: artifactColumns, enabled: browsed },
-  );
-  const programVersions = useRows(
+  const offeredVersions = useRows(
     "evidence_versions",
-    { "evidence_artifacts.program_id": programId },
+    { "evidence_artifacts.or": offeredScope },
     { columns: versionColumns, enabled: browsed },
   );
-  const workspaceVersions = useRows(
+  const offeredDrafts = useRows(
     "evidence_versions",
-    { "evidence_artifacts.program_id": null },
-    { columns: versionColumns, enabled: browsed },
+    { "evidence_artifacts.or": offeredScope, state: "draft" },
+    { columns: draftSourceColumns, enabled: browsed },
   );
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [previewId, setPreviewId] = useState<string | null>(null);
@@ -254,7 +247,7 @@ export function RequirementEvidence({
   const loaded = queries.every((query) => query.data !== undefined);
   const loadFailed = queries.some((query) => query.data === undefined && query.isError);
   // The browser's reads beside the tab's: it waits on both and says either's failure.
-  const offered = [programArtifacts, workspaceArtifacts, programVersions, workspaceVersions];
+  const offered = [offeredArtifacts, offeredVersions, offeredDrafts];
   const browserQueries = [...queries, ...offered];
   // The browser's state: a failed load, or a failed refresh whose rows stay under the alert. The
   // alert stays while its Try again runs, so focus stays on it.
@@ -279,26 +272,15 @@ export function RequirementEvidence({
   );
   // Every version the browser can offer: this program's evidence and unscoped workspace artifacts.
   const availableVersions = useMemo(
-    () =>
-      evidenceChoices(
-        [...(programVersions.data ?? []), ...(workspaceVersions.data ?? [])],
-        [...(programArtifacts.data ?? []), ...(workspaceArtifacts.data ?? [])],
-        parties.data,
-      ),
-    [
-      programVersions.data,
-      workspaceVersions.data,
-      programArtifacts.data,
-      workspaceArtifacts.data,
-      parties.data,
-    ],
+    () => evidenceChoices(offeredVersions.data, offeredArtifacts.data, parties.data),
+    [offeredVersions.data, offeredArtifacts.data, parties.data],
   );
   const eligible = availableVersions.filter(
     (row) => row.version.state === "published" && !linkFor.has(row.id),
   );
   const draftVersions = availableVersions.filter((row) => row.version.state === "draft");
-  const draftsWithoutSource = draftVersions.filter(
-    (row) => !row.version.external_uri && !row.version.storage_object_id,
+  const draftsWithoutSource = (offeredDrafts.data ?? []).filter(
+    (row) => !row.external_uri && !row.storage_object_id,
   );
   const publishedVersions = availableVersions.filter((row) => row.version.state === "published");
   const preview = linked.find((row) => row.id === previewId);

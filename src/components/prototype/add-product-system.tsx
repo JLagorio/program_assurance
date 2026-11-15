@@ -34,6 +34,7 @@ import { useFormFeedback, type FormIssue } from "@/components/app/form-feedback"
 import { ProductConfigurationPicker } from "@/components/app/product-configuration-picker";
 import { useDraftGuard } from "@/components/app/use-draft-guard";
 import { QueryState } from "./work-common";
+import { currentOpener } from "./opener";
 
 const systemTypes = [
   { value: "information_system", label: "Information system" },
@@ -77,16 +78,6 @@ const variantFields = [
   "profile",
 ] as const;
 type VariantField = (typeof variantFields)[number];
-
-/** The control that opened the flow, read as it first renders, so focus can go back there. */
-function currentOpener(): HTMLElement | null {
-  if (typeof document === "undefined") return null;
-  const active = document.activeElement;
-  if (!(active instanceof HTMLElement) || active === document.body) return null;
-  if (active.closest('[role="menu"]'))
-    return document.querySelector<HTMLElement>('[aria-haspopup="menu"][aria-expanded="true"]');
-  return active;
-}
 
 /**
  * Create system from product, on an existing program: pick a published version and configuration,

@@ -23,6 +23,7 @@ import {
 import type { DataRecord } from "@/lib/records";
 import { useCollectionTable } from "./collection-question";
 import { QueryState, type QueryStatus } from "./work-common";
+import { currentOpener } from "./opener";
 
 /**
  * A Gate criteria row's Source: the life cycle process the criterion was drawn from ("System
@@ -40,17 +41,6 @@ export function CriterionSource({
   if (process) return process;
   // Drawn from an outcome whose process the reader cannot read; a written criterion has none.
   return criterion["outcome_item_id"] ? <Absent label="Not available" /> : <Absent />;
-}
-
-/** The control that opened the picker, read as it first renders, so focus can go back there. */
-function currentOpener(): HTMLElement | null {
-  if (typeof document === "undefined") return null;
-  const active = document.activeElement;
-  if (!(active instanceof HTMLElement) || active === document.body) return null;
-  // A menu item goes with its menu: the menu's trigger is the control that stays.
-  if (active.closest('[role="menu"]'))
-    return document.querySelector<HTMLElement>('[aria-haspopup="menu"][aria-expanded="true"]');
-  return active;
 }
 
 /**

@@ -948,3 +948,62 @@ export const LongNames: Story = {
     await gone();
   },
 };
+
+/** Where the header cannot hold the title and its count at their own width beside the action (a preview narrowed to 240px), the action takes the next row at the end and the title keeps whole words; where it can, both share one row. The header reads its own width, so a rail, a narrowed panel and a page follow the same rule. */
+export const NarrowHeader: Story = {
+  name: "A narrow header",
+  render: () => {
+    const cite = (
+      <Button size="small" variant="secondary">
+        Cite evidence passage
+      </Button>
+    );
+    return (
+      <Stack space="space.300">
+        <Box data-testid="narrow" style={{ width: 240, maxWidth: "100%" }}>
+          <Related title="Evidence citations" count={2} action={cite}>
+            {findings}
+          </Related>
+        </Box>
+        <Box data-testid="wide" style={{ width: 480, maxWidth: "100%" }}>
+          <Related title="Evidence citations" count={2} action={cite}>
+            {findings}
+          </Related>
+        </Box>
+      </Stack>
+    );
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const parts = (frame: string) => {
+      const card = within(canvas.getByTestId(frame));
+      return {
+        heading: card.getByRole("heading", { name: "Evidence citations" }),
+        action: card.getByRole("button", { name: "Cite evidence passage" }),
+      };
+    };
+    // The lines a heading's words take: one, whatever the frame, since the title fits its row.
+    const lines = (heading: HTMLElement) => {
+      const range = document.createRange();
+      range.selectNodeContents(heading);
+      return new Set([...range.getClientRects()].map((rect) => Math.round(rect.top))).size;
+    };
+    const narrow = parts("narrow");
+    await expect(lines(narrow.heading)).toBe(1);
+    // The action takes the next row, at the end, rather than squeezing the title beside it.
+    const title = narrow.heading.getBoundingClientRect();
+    const action = narrow.action.getBoundingClientRect();
+    await expect(action.top).toBeGreaterThanOrEqual(title.bottom - 1);
+    const header = narrow.heading.closest<HTMLElement>('[data-slot="related-header"]')!;
+    await expect(Math.abs(header.getBoundingClientRect().right - action.right)).toBeLessThanOrEqual(
+      parseFloat(getComputedStyle(header).paddingInlineEnd) + 1,
+    );
+    // Where the header holds both, they share one row.
+    const wide = parts("wide");
+    await expect(lines(wide.heading)).toBe(1);
+    if (canvas.getByTestId("wide").getBoundingClientRect().width >= 440) {
+      const wideTitle = wide.heading.getBoundingClientRect();
+      await expect(wide.action.getBoundingClientRect().top).toBeLessThan(wideTitle.bottom);
+    }
+  },
+};

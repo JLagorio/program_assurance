@@ -313,7 +313,8 @@ export function stackReversals(
   return reversals;
 }
 
-const ruleIds = (definition: Json): string[] => {
+/** The controls a tailoring rule names, by their source ids in the catalog (`with-ids`). */
+export const ruleIds = (definition: Json): string[] => {
   if (definition === null || typeof definition !== "object" || Array.isArray(definition)) return [];
   const ids = definition["with-ids"];
   return Array.isArray(ids) ? ids.filter((id): id is string => typeof id === "string") : [];

@@ -131,31 +131,68 @@ select pg_temp.expect_error($$select public.program_control_status('c5710000-000
 select set_config('request.jwt.claim.sub', 'c5700000-0000-0000-0000-000000000001', true);
 
 -- The counts of a few programs say the same of a program with no control baseline: nothing
--- stands. They refuse the same readers, a list with no program or a program left unnamed, never
--- answering a program as having no baseline, and more than 100 programs at once; a program named
--- twice is answered once.
+-- stands. They answer the programs the reader can read and leave the others out: a program that
+-- does not exist (one deleted since the list was made) or another workspace's is not in the answer,
+-- never refused with the rest nor answered as having no baseline, and the programs beside it are
+-- answered as alone. They refuse a session with no account, a list with no program or a program
+-- left unnamed, and more than 100 programs at once; a program named twice is answered once.
 do $$
-declare v_rows jsonb;
+declare
+  v_rows jsonb;
+  v_bare constant jsonb := '[{"program_id": "c5710000-0000-0000-0000-000000000001", "baseline": false, "controls": 0, "no_requirement": 0, "no_evidence": 0, "not_assessed": 0, "other_than_satisfied": 0, "partially_satisfied": 0, "satisfied": 0}]';
 begin
   select jsonb_agg(to_jsonb(c)) into v_rows
   from public.program_control_status_counts(array['c5710000-0000-0000-0000-000000000001'::uuid,
     'c5710000-0000-0000-0000-000000000001'::uuid]) c;
-  if v_rows <> '[{"program_id": "c5710000-0000-0000-0000-000000000001", "baseline": false, "controls": 0, "no_requirement": 0, "no_evidence": 0, "not_assessed": 0, "other_than_satisfied": 0, "partially_satisfied": 0, "satisfied": 0}]'::jsonb then
+  if v_rows <> v_bare then
     raise exception 'The counts of a program with no baseline read %', v_rows;
   end if;
+  -- A program that does not exist is left out, alone or beside one the reader can read.
+  select coalesce(jsonb_agg(to_jsonb(c)), '[]'::jsonb) into v_rows
+  from public.program_control_status_counts(array['c5710000-0000-0000-0000-00000000dead'::uuid]) c;
+  if v_rows <> '[]'::jsonb then
+    raise exception 'The counts answered a program that does not exist: %', v_rows;
+  end if;
+  select jsonb_agg(to_jsonb(c)) into v_rows
+  from public.program_control_status_counts(array['c5710000-0000-0000-0000-00000000dead'::uuid,
+    'c5710000-0000-0000-0000-000000000001'::uuid]) c;
+  if v_rows is distinct from v_bare then
+    raise exception 'The counts beside a program that does not exist read %', v_rows;
+  end if;
+  -- An empty list names no program, and is answered with none.
+  if exists (select 1 from public.program_control_status_counts(array[]::uuid[])) then
+    raise exception 'The counts answered an empty list';
+  end if;
 end $$;
-select pg_temp.expect_error($$select * from public.program_control_status_counts(array['c5710000-0000-0000-0000-00000000dead'::uuid])$$, '42501');
-select pg_temp.expect_error($$select * from public.program_control_status_counts(array['c5710000-0000-0000-0000-000000000001'::uuid, 'c5710000-0000-0000-0000-00000000dead'::uuid])$$, '42501');
 select pg_temp.expect_error($$select * from public.program_control_status_counts(array['c5710000-0000-0000-0000-000000000001'::uuid, null])$$, '42501');
 select pg_temp.expect_error($$select * from public.program_control_status_counts(null)$$, '42501');
 select pg_temp.expect_error($$select * from public.program_control_status_counts(array_fill('c5710000-0000-0000-0000-000000000001'::uuid, array[101]))$$, '22023');
+select pg_temp.expect_error($$select * from public.program_control_status_counts(array_fill('c5710000-0000-0000-0000-00000000dead'::uuid, array[101]))$$, '22023');
 select set_config('request.jwt.claim.sub', '', true);
 select pg_temp.expect_error($$select * from public.program_control_status_counts(array['c5710000-0000-0000-0000-000000000001'::uuid])$$, '42501');
 set local role anon;
 select pg_temp.expect_error($$select * from public.program_control_status_counts(array['c5710000-0000-0000-0000-000000000001'::uuid])$$, '42501');
 set local role authenticated;
+-- A reader of another workspace reads none of this one's programs: each is left out of the answer,
+-- and the program of their own beside them is answered.
 select set_config('request.jwt.claim.sub', 'c5700000-0000-0000-0000-000000000002', true);
-select pg_temp.expect_error($$select * from public.program_control_status_counts(array['c5710000-0000-0000-0000-000000000001'::uuid])$$, '42501');
+insert into public.programs(id, tenant_id, code, name) values
+  ('c5710000-0000-0000-0000-000000000002', current_setting('test.other_tenant')::uuid, 'STATUS-OTHER', 'Another workspace''s program');
+do $$
+declare v_rows jsonb;
+begin
+  select coalesce(jsonb_agg(to_jsonb(c)), '[]'::jsonb) into v_rows
+  from public.program_control_status_counts(array['c5710000-0000-0000-0000-000000000001'::uuid]) c;
+  if v_rows <> '[]'::jsonb then
+    raise exception 'A reader of another workspace read the counts %', v_rows;
+  end if;
+  select jsonb_agg(c.program_id) into v_rows
+  from public.program_control_status_counts(array['c5710000-0000-0000-0000-000000000001'::uuid,
+    'c5710000-0000-0000-0000-000000000002'::uuid]) c;
+  if v_rows is distinct from '["c5710000-0000-0000-0000-000000000002"]'::jsonb then
+    raise exception 'A reader of another workspace read the counts of %', v_rows;
+  end if;
+end $$;
 select pg_temp.expect_error($$select * from public.program_control_coverage('c5710000-0000-0000-0000-000000000001', array[]::uuid[])$$, '42501');
 select set_config('request.jwt.claim.sub', 'c5700000-0000-0000-0000-000000000001', true);
 

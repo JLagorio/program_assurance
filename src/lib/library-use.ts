@@ -200,13 +200,22 @@ export type LibraryRollupRow = {
   updateAvailable: { revisionId: string; version: number } | null;
 };
 
-export function libraryRollup(input: Omit<LibraryUseInput, "element" | "includeInside">) {
+/**
+ * The program's roll-up. Changed here counts, for each system component, its contributions whose
+ * description says otherwise than the library implementation it started from, counted on the
+ * server (`system_component_changes`) by the component's id.
+ */
+export function libraryRollup(
+  input: Omit<
+    LibraryUseInput,
+    "element" | "includeInside" | "contributions" | "implementations"
+  > & { changedHere: ReadonlyMap<string, number> },
+) {
   const rows = new Map<string, LibraryRollupRow>();
   const elementById = new Map(input.rows.map((row) => [row.id, row]));
   const definedById = new Map(input.definedComponents.map((row) => [row.id, row]));
   const revisionById = new Map(input.revisions.map((row) => [row.id, row]));
   const definitionById = new Map(input.definitions.map((row) => [row.id, row]));
-  const implementationById = new Map(input.implementations.map((row) => [row.id, row]));
   for (const component of input.components) {
     if (!component.defined_component_id) continue;
     const defined = definedById.get(component.defined_component_id);
@@ -234,13 +243,7 @@ export function libraryRollup(input: Omit<LibraryUseInput, "element" | "includeI
       name: element.name,
       systemComponentId: component.id,
     });
-    current.changedHere += input.contributions.filter((contribution) => {
-      if (contribution.system_component_id !== component.id) return false;
-      const origin = contribution.library_implementation_id
-        ? implementationById.get(contribution.library_implementation_id)
-        : undefined;
-      return !!origin && origin.description !== contribution.description;
-    }).length;
+    current.changedHere += input.changedHere.get(component.id) ?? 0;
     rows.set(key, current);
   }
   return [...rows.values()]

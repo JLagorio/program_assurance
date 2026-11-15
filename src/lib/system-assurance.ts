@@ -47,11 +47,14 @@ export type SystemAssuranceRow = SystemElement & {
   /** The effective resolution is a draft tailored profile authored for a system. */
   baselineDraft: boolean;
 };
-/** The columns the projection reads from each input, so a caller reads no more than these. */
+/**
+ * The columns the projection reads from each input, so a caller reads no more than these: the
+ * selections and allocations, which run to thousands of rows a program, without their own ids.
+ */
 export const systemAssuranceColumns = {
-  selections: ["id", "tenant_id", "profile_resolution_id", "control_id"],
+  selections: ["profile_resolution_id", "control_id"],
   scopeBaselines: ["id", "tenant_id", "scope_id", "profile_resolution_id", "adopted_at"],
-  allocations: ["id", "tenant_id", "system_id", "requirement_revision_id"],
+  allocations: ["system_id", "requirement_revision_id"],
   resolutions: ["id", "tenant_id", "profile_revision_id", "state"],
   profiles: ["id", "tenant_id", "profile_id", "title"],
   profileRecords: ["id", "tenant_id", "title"],
@@ -175,9 +178,10 @@ export function buildSystemAssuranceRows(input: SystemAssuranceInput): SystemAss
     adoptionsByScope.set(adoption.scope_id, current);
   }
   const revisionsBySystem = new Map<string, Set<string>>();
+  // An allocation keeps to its system's workspace: its key names the system with the workspace.
   for (const allocation of input.allocations ?? []) {
     const element = allocation.system_id ? byId.get(allocation.system_id) : undefined;
-    if (!element || element.tenant_id !== allocation.tenant_id) continue;
+    if (!element) continue;
     const current = revisionsBySystem.get(element.id) ?? new Set<string>();
     current.add(allocation.requirement_revision_id);
     revisionsBySystem.set(element.id, current);

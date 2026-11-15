@@ -59,6 +59,7 @@ import { elementTypeForComponent } from "@/lib/library-items";
 import { profileChoices, type ProfileChoice } from "./system-baseline";
 import { ProductCollection } from "./product-collection";
 import { QueryState } from "./work-common";
+import { currentOpener } from "./opener";
 
 type Source = "component" | "profile" | "requirement";
 const sourceLabels: Record<Source, string> = {
@@ -108,16 +109,6 @@ function inside(element: SystemAssuranceRow, rows: SystemAssuranceRow[]) {
     }
   }
   return out.sort((a, b) => a.code.localeCompare(b.code, undefined, { numeric: true }));
-}
-
-/** The control that opened the flow, read as it first renders, so focus can go back there. */
-function currentOpener(): HTMLElement | null {
-  if (typeof document === "undefined") return null;
-  const active = document.activeElement;
-  if (!(active instanceof HTMLElement) || active === document.body) return null;
-  if (active.closest('[role="menu"]'))
-    return document.querySelector<HTMLElement>('[aria-haspopup="menu"][aria-expanded="true"]');
-  return active;
 }
 
 /**

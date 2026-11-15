@@ -13059,7 +13059,7 @@
     "Related.Card": {
       "kind": "component",
       "file": "patterns/related.tsx",
-      "line": 179,
+      "line": 193,
       "root": {
         "bg-color": ["bg-surface-raised"],
         "border-color": ["border-default"],
@@ -13092,7 +13092,7 @@
     "RelatedCard": {
       "kind": "component",
       "file": "patterns/related.tsx",
-      "line": 179,
+      "line": 193,
       "root": {
         "bg-color": ["bg-surface-raised"],
         "border-color": ["border-default"],

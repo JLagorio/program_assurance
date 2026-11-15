@@ -48,6 +48,7 @@ import { StatusBadge } from "@/components/app/status";
 import { useDraftGuard } from "@/components/app/use-draft-guard";
 import { useWorkspace } from "@/components/app/workspace";
 import { useSelectedControls } from "@/lib/control-reads";
+import { useResolutionCounts } from "@/lib/profile-reads";
 import { useAdoptSystemBaseline, type BaselineSelection } from "@/lib/system-baseline";
 import { idSet, useRow, useRows, type Row } from "@/lib/models";
 import {
@@ -80,58 +81,90 @@ export type ProfileChoice = {
   depth: number;
 };
 
-/** Published, resolved profiles whose import chain ends at one catalog: the ones an element can adopt. */
-export function profileChoices(input: {
+/** A profile the baseline dialog offers, with how many controls it selects: its controls are read once it is chosen. */
+type ProfileOption = Omit<ProfileChoice, "controlIds"> & { controlCount: number };
+
+/** The records a profile choice is named and chained from. */
+type ProfileSources = {
   resolutions: Row<"profile_resolutions">[];
   profiles: Row<"profile_revisions">[];
   /** The stable profile records, whose `title` is the short name shown for every revision. */
   profileRecords: Row<"profiles">[];
   imports: Row<"profile_imports">[];
   catalogs: Row<"catalog_revisions">[];
-  /** What each resolution selects: only its id and control are read. */
-  selections: Pick<Row<"selected_controls">, "profile_resolution_id" | "control_id">[];
-}): ProfileChoice[] {
-  return input.resolutions
-    .flatMap((resolution) => {
-      if (resolution.state !== "published") return [];
-      const profile = input.profiles.find(
-        (row) => row.id === resolution.profile_revision_id && row.state === "published",
-      );
-      const chain = resolutionChain(resolution.id, {
-        resolutions: input.resolutions,
-        profiles: input.profiles,
-        profileRecords: input.profileRecords,
-        imports: input.imports,
-        catalogs: input.catalogs,
-      });
-      const catalog = input.catalogs.find(
-        (row) => row.id === chain.catalogRevisionId && row.state === "published",
-      );
-      if (!profile || chain.errors.length || !catalog) return [];
-      const controlIds = input.selections
-        .filter((row) => row.profile_resolution_id === resolution.id)
-        .map((row) => row.control_id);
-      // The chain's first hop is this resolution; its title is the short name.
-      const title = chain.hops[0]?.title ?? profile.title;
-      const base = chain.hops[1];
-      return controlIds.length
-        ? [
-            {
-              id: resolution.id,
-              label: `${title} · ${profile.version}${base ? ` · tailored from ${base.title}` : ""}`,
-              title,
-              documentTitle: profile.title,
-              version: profile.version,
-              catalogId: catalog.id,
-              documentId: profile.document_revision_id,
-              catalogDocumentId: catalog.document_revision_id,
-              controlIds,
-              kind: chain.kind,
-              baseLabel: base ? `${base.title} · ${base.version}` : null,
-              depth: chain.hops.length - 1,
-            },
-          ]
-        : [];
+};
+
+/** Published, resolved profiles whose import chain ends at one catalog, before their controls. */
+function adoptableProfiles(input: ProfileSources): Omit<ProfileChoice, "controlIds">[] {
+  return input.resolutions.flatMap((resolution) => {
+    if (resolution.state !== "published") return [];
+    const profile = input.profiles.find(
+      (row) => row.id === resolution.profile_revision_id && row.state === "published",
+    );
+    const chain = resolutionChain(resolution.id, {
+      resolutions: input.resolutions,
+      profiles: input.profiles,
+      profileRecords: input.profileRecords,
+      imports: input.imports,
+      catalogs: input.catalogs,
+    });
+    const catalog = input.catalogs.find(
+      (row) => row.id === chain.catalogRevisionId && row.state === "published",
+    );
+    if (!profile || chain.errors.length || !catalog) return [];
+    // The chain's first hop is this resolution; its title is the short name.
+    const title = chain.hops[0]?.title ?? profile.title;
+    const base = chain.hops[1];
+    return [
+      {
+        id: resolution.id,
+        label: `${title} · ${profile.version}${base ? ` · tailored from ${base.title}` : ""}`,
+        title,
+        documentTitle: profile.title,
+        version: profile.version,
+        catalogId: catalog.id,
+        documentId: profile.document_revision_id,
+        catalogDocumentId: catalog.document_revision_id,
+        kind: chain.kind,
+        baseLabel: base ? `${base.title} · ${base.version}` : null,
+        depth: chain.hops.length - 1,
+      },
+    ];
+  });
+}
+
+/** Published, resolved profiles whose import chain ends at one catalog: the ones an element can adopt. */
+export function profileChoices(
+  input: ProfileSources & {
+    /** What each resolution selects: only its id and control are read. */
+    selections: Pick<Row<"selected_controls">, "profile_resolution_id" | "control_id">[];
+  },
+): ProfileChoice[] {
+  const selected = new Map<string, string[]>();
+  for (const row of input.selections) {
+    const controls = selected.get(row.profile_resolution_id) ?? [];
+    controls.push(row.control_id);
+    selected.set(row.profile_resolution_id, controls);
+  }
+  return adoptableProfiles(input)
+    .flatMap((profile) => {
+      const controlIds = selected.get(profile.id) ?? [];
+      return controlIds.length ? [{ ...profile, controlIds }] : [];
+    })
+    .sort((a, b) => a.label.localeCompare(b.label));
+}
+
+/**
+ * The same profiles, each with how many controls it selects, counted on the server: the dialog
+ * lists them without reading every profile's selections, and reads a profile's once it is chosen.
+ */
+function profileOptions(
+  input: ProfileSources & { counts: ReadonlyMap<string, number> },
+): ProfileOption[] {
+  return adoptableProfiles(input)
+    .flatMap((profile) => {
+      const controlCount = input.counts.get(profile.id) ?? 0;
+      return controlCount ? [{ ...profile, controlCount }] : [];
     })
     .sort((a, b) => a.label.localeCompare(b.label));
 }
@@ -269,15 +302,9 @@ export function SystemControls({
     { columns: ["id", "selected_control_id", "implementation_status"] as const, enabled: !!plan },
   );
   const [editing, setEditing] = useState(false);
-  // The dialog's choices: what every published profile selects, read when the reader opens it.
-  const publishedIds = useMemo(
-    () => resolutions.data?.filter((row) => row.state === "published").map((row) => row.id),
-    [resolutions.data],
-  );
-  const choiceSelections = useSelectedControls(publishedIds, {
-    columns: ["profile_resolution_id", "control_id"],
-    enabled: editing,
-  });
+  // The dialog's choices: every published profile with how many controls it selects, counted on
+  // the server when the reader opens it. The dialog reads a profile's own controls once chosen.
+  const choiceCounts = useResolutionCounts({ enabled: editing });
   const [inspected, setInspected] = useState<ControlRow | null>(null);
   // The preview belongs to the tab: choosing another ends it, and coming back does not reopen it.
   useEndOnHide(() => setInspected(null));
@@ -302,14 +329,14 @@ export function SystemControls({
   );
   const dialogChoices = useMemo(
     () =>
-      choiceSelections.data
-        ? profileChoices({
+      choiceCounts.data
+        ? profileOptions({
             resolutions: resolutions.data ?? [],
             profiles: profiles.data ?? [],
             profileRecords: profileRecords.data ?? [],
             imports: imports.data ?? [],
             catalogs: catalogs.data ?? [],
-            selections: choiceSelections.data,
+            counts: new Map(choiceCounts.data.map((row) => [row.id, row.selections])),
           })
         : undefined,
     [
@@ -318,7 +345,7 @@ export function SystemControls({
       profileRecords.data,
       imports.data,
       catalogs.data,
-      choiceSelections.data,
+      choiceCounts.data,
     ],
   );
   // The effective revision may be a draft overlay absent from `choices`, so name it by its own record.
@@ -594,10 +621,10 @@ export function SystemControls({
       disabledReason={!ready || !system.data ? "The baseline is still loading." : undefined}
       // The dialog opens once its choices are read; a failed read is the tab's alert, and pressing
       // again asks again.
-      isLoading={editing && !dialogChoices && !choiceSelections.isError}
+      isLoading={editing && !dialogChoices && !choiceCounts.isError}
       onClick={() => {
         setEditing(true);
-        if (choiceSelections.isError) void choiceSelections.refetch();
+        if (choiceCounts.isError) void choiceCounts.refetch();
       }}
     >
       Change control baseline
@@ -660,7 +687,7 @@ export function SystemControls({
           onClose={() => setInspected(null)}
         />
       )}
-      <ReportFailures queries={editing ? [choiceSelections] : []} />
+      <ReportFailures queries={editing ? [choiceCounts] : []} />
       {editing && system.data && dialogChoices && (
         <BaselineDialog
           system={system.data}
@@ -668,6 +695,7 @@ export function SystemControls({
           initialMode={initialMode}
           initialProfileId={editorSource?.id ?? null}
           initialControlIds={editorSource ? [...selected] : []}
+          initialBaseControlIds={editorSource?.controlIds}
           current={
             currentProfile
               ? {
@@ -734,16 +762,19 @@ function BaselineDialog({
   initialMode,
   initialProfileId,
   initialControlIds,
+  initialBaseControlIds,
   current,
   canWrite,
   onClose,
 }: {
   system: Row<"systems">;
-  choices: ProfileChoice[];
+  choices: ProfileOption[];
   /** Where the element is today: adopting a profile itself, or inheriting. */
   initialMode: BaselineMode;
   initialProfileId: string | null;
   initialControlIds: string[];
+  /** What the initial profile selects, which the tab has read already. */
+  initialBaseControlIds?: readonly string[] | undefined;
   /** The element's baseline before anything changes, or null when it has none. */
   current: BaselineSummary | null;
   canWrite: boolean;
@@ -759,7 +790,8 @@ function BaselineDialog({
   const [open, setOpen] = useState(true);
   const [mode, setMode] = useState<BaselineMode>(initialMode);
   const [profileId, setProfileId] = useState<string | null>(initial?.id ?? null);
-  const [picked, setPicked] = useState(() => new Set(initialControlIds));
+  // The controls the reader keeps; null keeps the chosen profile's own, whatever they turn out to be.
+  const [kept, setKept] = useState<Set<string> | null>(() => new Set(initialControlIds));
   const [rationale, setRationale] = useState(system.baseline_rationale ?? "");
   const [filter, setFilter] = useState<PickerFilter>("all");
   const [dirty, setDirty] = useState(false);
@@ -776,49 +808,65 @@ function BaselineDialog({
     description: "The baseline choices you made will be lost.",
   });
   const chosen = choices.find((choice) => choice.id === profileId);
-  const base = useMemo(() => new Set(chosen?.controlIds ?? []), [chosen]);
-  const added = [...picked].filter((id) => !base.has(id)).length;
-  const removed = [...base].filter((id) => !picked.has(id)).length;
+  // What the chosen profile selects, read once it is chosen: the profile the element works from
+  // now is the tab's, read already. Its controls load under the picker's skeleton rows.
+  const seeded = chosen && chosen.id === initialProfileId ? initialBaseControlIds : undefined;
+  const chosenSelections = useSelectedControls(chosen && !seeded ? [chosen.id] : undefined, {
+    columns: ["control_id"],
+  });
+  const base = useMemo(
+    () =>
+      !chosen
+        ? new Set<string>()
+        : seeded
+          ? new Set(seeded)
+          : chosenSelections.data
+            ? new Set(chosenSelections.data.map((row) => row.control_id))
+            : undefined,
+    [chosen, seeded, chosenSelections.data],
+  );
+  const picked = kept ?? base;
+  const added = kept && base ? [...kept].filter((id) => !base.has(id)).length : 0;
+  const removed = kept && base ? [...base].filter((id) => !kept.has(id)).length : 0;
   const tailored = added + removed > 0;
   // The chosen profile's catalog, read when it is chosen: the controls the reader tailors from.
   // Another catalog's controls load under skeleton rows, never as an empty list.
   const catalog = useRows(
     "controls",
     { catalog_revision_id: chosen?.catalogId ?? NIL },
-    { columns: ["id", "code", "title", "catalog_revision_id"], enabled: !!chosen },
+    { columns: ["id", "code", "title"], enabled: !!chosen },
   );
   const catalogControls = useMemo(
-    () =>
-      (catalog.data ?? [])
-        .filter((control) => control.catalog_revision_id === chosen?.catalogId)
-        .sort(controlOrder),
-    [catalog.data, chosen?.catalogId],
+    () => [...(catalog.data ?? [])].sort(controlOrder),
+    [catalog.data],
   );
   // The selection filter narrows the rows before the table; the table's own search does the rest.
   // Each row carries only what the reader sees, so the search never matches a control's uuid.
   const shown = useMemo<PickerRow[]>(
     () =>
-      catalogControls.flatMap((control) => {
-        const isPicked = picked.has(control.id);
-        const inBase = base.has(control.id);
-        if (filter === "selected" && !isPicked) return [];
-        if (filter === "changed" && isPicked === inBase) return [];
-        return [
-          {
-            id: control.id,
-            code: control.code,
-            title: control.title,
-            selection:
-              isPicked !== inBase
-                ? isPicked
-                  ? "Added"
-                  : "Removed"
-                : inBase
-                  ? "From profile"
-                  : "Available",
-          },
-        ];
-      }),
+      !picked || !base
+        ? []
+        : catalogControls.flatMap((control) => {
+            const isPicked = picked.has(control.id);
+            const inBase = base.has(control.id);
+            if (filter === "selected" && !isPicked) return [];
+            if (filter === "changed" && isPicked === inBase) return [];
+            return [
+              {
+                id: control.id,
+                code: control.code,
+                title: control.title,
+                selection:
+                  isPicked !== inBase
+                    ? isPicked
+                      ? "Added"
+                      : "Removed"
+                    : inBase
+                      ? "From profile"
+                      : "Available",
+              },
+            ];
+          }),
     [catalogControls, filter, picked, base],
   );
   const pickerColumns = useMemo(
@@ -831,7 +879,7 @@ function BaselineDialog({
     [],
   );
   const rowSelection = useMemo(
-    () => Object.fromEntries([...picked].map((id) => [id, true as const])),
+    () => Object.fromEntries([...(picked ?? [])].map((id) => [id, true as const])),
     [picked],
   );
   const pickerTable = useDataTable({
@@ -846,7 +894,7 @@ function BaselineDialog({
     state: { rowSelection },
     onRowSelectionChange: (next) => {
       const changed = typeof next === "function" ? next(rowSelection) : next;
-      setPicked(new Set(Object.keys(changed).filter((id) => changed[id])));
+      setKept(new Set(Object.keys(changed).filter((id) => changed[id])));
       setDirty(true);
     },
   });
@@ -864,7 +912,7 @@ function BaselineDialog({
                 },
               ]
             : []),
-          ...(chosen && !picked.size
+          ...(chosen && picked && !picked.size
             ? [
                 {
                   field: "controls" as const,
@@ -907,15 +955,24 @@ function BaselineDialog({
     )
       return;
     setProfileId(value);
-    setPicked(new Set(next?.controlIds ?? []));
+    // The new profile's own controls, once they are read.
+    setKept(null);
     setFilter("all");
     setDirty(true);
   }
+  // Adopting waits for the chosen profile's controls; inheriting needs none.
+  const waiting =
+    mode === "adopt" && chosen && !picked
+      ? chosenSelections.isError
+        ? "The profile's controls could not be loaded. Retry loading them first."
+        : "The profile's controls are still loading."
+      : undefined;
   async function submit(event: FormEvent) {
     event.preventDefault();
     if (guard.busy || !canWrite) return;
     setFailure(null);
     if (!feedback.report(issues)) return;
+    if (mode === "adopt" && !picked) return;
     const selection: BaselineSelection =
       mode === "inherit"
         ? { mode }
@@ -923,7 +980,7 @@ function BaselineDialog({
             mode,
             catalogRevisionId: chosen!.catalogId,
             profileResolutionId: chosen!.id,
-            controlIds: [...picked].sort(),
+            controlIds: [...picked!].sort(),
             rationale: rationale.trim(),
           };
     const key = JSON.stringify(selection);
@@ -1100,8 +1157,8 @@ function BaselineDialog({
                         <Stack space="space.100">
                           <Inline alignBlock="center" spread="space-between" shouldWrap>
                             <Text as="p" size="small">
-                              {formatNumber(picked.size)} selected · {formatNumber(added)} added ·{" "}
-                              {formatNumber(removed)} removed
+                              {formatNumber(picked?.size ?? chosen.controlCount)} selected ·{" "}
+                              {formatNumber(added)} added · {formatNumber(removed)} removed
                             </Text>
                             <Button
                               ref={feedback.ref("controls")}
@@ -1111,7 +1168,7 @@ function BaselineDialog({
                                 errors.has("controls") ? `${formId}-controls-error` : undefined
                               }
                               onClick={() => {
-                                setPicked(new Set(chosen.controlIds));
+                                setKept(null);
                                 setDirty(true);
                               }}
                             >
@@ -1130,7 +1187,7 @@ function BaselineDialog({
                           )}
                           <ProductCollection
                             table={pickerTable}
-                            queries={[catalog]}
+                            queries={[catalog, chosenSelections]}
                             searchLabel="Find controls to tailor"
                             maxHeight={320}
                             keepQuestion={false}
@@ -1204,7 +1261,7 @@ function BaselineDialog({
             variant="primary"
             isLoading={guard.busy}
             disabledReason={
-              canWrite ? undefined : "An editor, admin, or owner can change the control baseline."
+              canWrite ? waiting : "An editor, admin, or owner can change the control baseline."
             }
           >
             {primaryLabel}

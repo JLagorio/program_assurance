@@ -1,5 +1,5 @@
 import { campaignTabs, type CampaignTab } from "./assessment-tabs";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   Absent,
   Alert,
@@ -44,7 +44,13 @@ import {
   Target,
 } from "lucide-react";
 import { storedObjective } from "@/lib/assessment-objectives";
-import { useCampaignProcedures, type CampaignRun } from "@/lib/campaign-procedures";
+import {
+  storedProcedure,
+  useCampaignProcedures,
+  type CampaignProcedureRow,
+  type CampaignRun,
+} from "@/lib/campaign-procedures";
+import { CampaignProcedureList, CampaignProcedureRevisionList } from "./campaign-procedures";
 import { idSet, useModelSave, useRow, useRows, type Row, type TableName } from "@/lib/models";
 import { labelFor, type DataRecord } from "@/lib/records";
 import { useWorkspace } from "@/components/app/workspace";
@@ -117,9 +123,10 @@ export function AssessmentCampaign({
   const inCampaign = { "assessment_plan_revisions.campaign_id": campaign.id };
   const activities = useRows("assessment_activities", inCampaign);
   const scheduled = useRows("scheduled_assessment_tasks", inCampaign);
-  // Only what the record shows, read on the server: the runs of its plans and events, the
-  // program's procedures, those no program owns and those its runs follow, with their revisions.
-  const { runs, procedures, revisions, procedureQueries, revisionQueries } = useCampaignProcedures({
+  // Only what the record shows, read on the server: the runs of its plans and events and the
+  // revisions they follow; its Procedures tab reads the program's procedures, those no program
+  // owns and those its runs follow, and their revisions, a page at a time.
+  const { runs, runRevisions, procedureTree, procedureQueries } = useCampaignProcedures({
     programId: campaign.program_id,
     planIds: (plans.data ?? []).map((plan) => plan.id),
     eventIds: (events.data ?? []).map((event) => event.id),
@@ -146,22 +153,24 @@ export function AssessmentCampaign({
   const scheduledRows = (scheduled.data ?? [])
     .filter((row) => inPlans(row.plan_revision_id))
     .map((row) => ({ ...row, owner: partyName(row.owner_party_id) }));
-  // The server reads exactly the campaign's runs and the procedures the tab lists, with their
-  // revisions: what is drawn here is only named.
+  // The server reads exactly the campaign's runs and the revisions they follow: what is drawn
+  // here is only named.
   const runRows = (runs.data ?? []).map((row) => ({
     ...row,
     procedure:
-      revisions?.find((revision) => revision.id === row.procedure_revision_id)?.title ?? null,
+      runRevisions.data?.find((revision) => revision.id === row.procedure_revision_id)?.title ??
+      null,
     assessor: partyName(row.assessor_party_id),
   }));
-  const procedureRows = (procedures ?? []).map((row) => ({
-    ...row,
-    versions: (revisions ?? []).filter((revision) => revision.procedure_id === row.id).length,
-  }));
-  const revisionRows = (revisions ?? []).map((row) => ({
-    ...row,
-    methodLabel: labelFor(row.method),
-  }));
+  // A procedure's preview and form start from it as stored, without the count its page derives.
+  const shownProcedures = displayed["procedures"];
+  const storedProcedures = useMemo(
+    () =>
+      shownProcedures?.map(
+        (row) => storedProcedure(row as unknown as CampaignProcedureRow) as unknown as DataRecord,
+      ),
+    [shownProcedures],
+  );
   const writable = workspace.role !== "viewer";
   const draftPlan = planRows.find((row) => row.state === "draft");
   // The preview reads the stored record, so an edit saved under it shows and the edit form gets no
@@ -172,8 +181,8 @@ export function AssessmentCampaign({
     assessment_objectives: displayed["assessment_objectives"],
     assessment_activities: activities.data as DataRecord[] | undefined,
     scheduled_assessment_tasks: scheduled.data as DataRecord[] | undefined,
-    procedures: procedures as DataRecord[] | undefined,
-    procedure_revisions: revisions as DataRecord[] | undefined,
+    procedures: storedProcedures,
+    procedure_revisions: displayed["procedure_revisions"],
     test_runs: runs.data as DataRecord[] | undefined,
   };
   const selected =
@@ -445,62 +454,41 @@ export function AssessmentCampaign({
           <QueryState region>
             <Stack space="space.300">
               <Section title="Procedures">
-                <AssessmentTable
+                <CampaignProcedureList
+                  tree={procedureTree}
+                  campaignId={campaign.id}
                   queries={[...procedureQueries, events, plans]}
-                  actions={add({
+                  action={add({
                     table: "procedures",
                     initialValues: { program_id: campaign.program_id },
                   })}
-                  model="procedures"
                   selectedId={
                     selection?.table === "procedures" ? selection.existing?.id : undefined
                   }
                   onDisplayedRowsChange={keep("procedures")}
-                  compact
-                  label="Procedures"
                   empty={{
                     icon: <ClipboardList />,
                     description:
                       "A procedure describes a repeatable test; its revisions hold the method and the steps.",
                   }}
-                  rows={procedureRows}
-                  columns={[
-                    { key: "title", label: "Procedure" },
-                    { key: "description", label: "Description" },
-                    { key: "versions", label: "Versions", kind: "number", width: 112 },
-                  ]}
                   onPreview={inspect("procedures")}
                 />
               </Section>
               <Section title="Procedure revisions">
-                <AssessmentTable
+                <CampaignProcedureRevisionList
+                  tree={procedureTree}
+                  campaignId={campaign.id}
                   queries={[...procedureQueries, events, plans]}
-                  actions={add({ table: "procedure_revisions" })}
-                  model="procedure_revisions"
+                  action={add({ table: "procedure_revisions" })}
                   selectedId={
                     selection?.table === "procedure_revisions" ? selection.existing?.id : undefined
                   }
                   onDisplayedRowsChange={keep("procedure_revisions")}
-                  compact
-                  label="Procedure revisions"
                   empty={{
                     icon: <History />,
                     description:
                       "A revision fixes a procedure's method, preconditions and steps for the runs that use it.",
                   }}
-                  rows={revisionRows}
-                  columns={[
-                    { key: "title", label: "Revision" },
-                    { key: "version_number", label: "Version", kind: "number", width: 100 },
-                    { key: "methodLabel", label: "Method", width: 140 },
-                    {
-                      key: "state",
-                      label: "State",
-                      statuses: revisionStates,
-                      width: 130,
-                      priority: 1,
-                    },
-                  ]}
                   onPreview={inspect("procedure_revisions")}
                 />
               </Section>
@@ -512,7 +500,7 @@ export function AssessmentCampaign({
             <AssessmentTable
               model="test_runs"
               fill
-              queries={[runs, events, plans, ...revisionQueries, parties]}
+              queries={[runs, events, plans, runRevisions, parties]}
               actions={add({ table: "test_runs" })}
               selectedId={selection?.table === "test_runs" ? selection.existing?.id : undefined}
               onDisplayedRowsChange={keep("test_runs")}

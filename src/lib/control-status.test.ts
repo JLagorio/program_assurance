@@ -284,6 +284,17 @@ describe("readProgramsControlStatusCounts", () => {
     expect(server.calls).toEqual([]);
   });
 
+  it("holds nothing for a program the answer leaves out, and reads the others", async () => {
+    // A program deleted since the widget listed it: the server answers the rest and leaves it out.
+    const gone = "00000000-0000-4000-8000-0000000000de";
+    const server = client({ data: [row(program, true)], error: null });
+    const answer = await readProgramsControlStatusCounts(server.client, context, [program, gone]);
+    expect(server.calls.map((call) => call.args)).toEqual([{ p_program_ids: [program, gone] }]);
+    expect([...answer.keys()]).toEqual([program]);
+    expect(answer.has(gone)).toBe(false);
+    expect(answer.get(program)?.total).toBe(5);
+  });
+
   it("says the server's refusal, and refuses an answer that is not counts", async () => {
     await expect(
       readProgramsControlStatusCounts(

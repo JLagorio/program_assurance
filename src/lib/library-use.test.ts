@@ -211,14 +211,15 @@ describe("library uses", () => {
     expect(newerRevision(revisions[0], revisions)).toEqual({ revisionId: "v2", version: 2 });
   });
   it("rolls the program up to one row per definition and version", () => {
+    // The server counts each component's contributions whose description differs from the
+    // library's: CMP-1's c2 here.
     const rollup = libraryRollup({
       rows,
       components,
       definedComponents,
       revisions,
       definitions,
-      contributions,
-      implementations,
+      changedHere: new Map([["cmp-child", 1]]),
     });
     expect(rollup).toHaveLength(1);
     expect(rollup[0]).toMatchObject({

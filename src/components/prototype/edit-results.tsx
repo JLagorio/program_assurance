@@ -34,6 +34,7 @@ import {
   type ResultsEdit,
 } from "@/lib/assessment-results";
 import { useRow } from "@/lib/models";
+import { currentOpener } from "./opener";
 
 /*
  * Edit assessment results: a draft results revision's title and description, from the overflow
@@ -41,17 +42,6 @@ import { useRow } from "@/lib/models";
  * campaign's Assessment results and the Review queue). Its findings are recorded elsewhere, and
  * published results no longer change. The draft is saved at the revision the reader opened it at.
  */
-
-/** The element that opened a dialog, read as the dialog first renders, before any field takes focus. */
-function currentOpener(): HTMLElement | null {
-  if (typeof document === "undefined") return null;
-  const active = document.activeElement;
-  if (!(active instanceof HTMLElement) || active === document.body) return null;
-  // A menu item goes with its menu: the menu's trigger is the control that stays.
-  if (active.closest('[role="menu"]'))
-    return document.querySelector<HTMLElement>('[aria-haspopup="menu"][aria-expanded="true"]');
-  return active;
-}
 
 /**
  * The overflow menu of a draft results preview's record header: Edit assessment results. The

@@ -277,7 +277,8 @@ const countsRowSchema = z.object({
 /**
  * Where each of a few programs stands on its control baseline, its counts alone, in one request:
  * `program_control_status_counts` counts them as `program_control_status` counts its totals. By
- * program id; a program the reader cannot read is refused.
+ * program id; a program the reader cannot read (gone since the list was made, or another
+ * workspace's) is left out of the answer, so the map holds nothing for it and the others are read.
  */
 export async function readProgramsControlStatusCounts(
   client: Client,
@@ -315,7 +316,8 @@ export async function readProgramsControlStatusCounts(
  * Where each of a few programs stands on its control baseline, its counts alone, in one request,
  * for a widget that lists a handful: the Portfolio's recently updated programs. Never a register's
  * every row: that is a column of its view. A screen that draws the controls themselves reads
- * `useProgramControlStatus`.
+ * `useProgramControlStatus`. A program the answer leaves out, one the reader can no longer read, has
+ * no counts in the map, which a row draws as Absent rather than failing the others.
  */
 export function useProgramsControlStatusCounts(
   programIds: readonly string[],

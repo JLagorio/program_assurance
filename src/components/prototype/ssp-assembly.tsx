@@ -428,7 +428,7 @@ function SspAssemblyPlan({
   // management"), so the code never folds away from a title that repeats across families.
   // Where the program's baseline gets each control, by the catalog control: the program's stack
   // is read once, and a program with no recorded baseline shows no Origin column.
-  const { baselines } = useProgramBaselines(programId);
+  const { baselines } = useProgramBaselines(programId, { only: "origins" });
   const origins = useMemo(() => {
     const map = new Map<string, string>();
     for (const baseline of baselines) {

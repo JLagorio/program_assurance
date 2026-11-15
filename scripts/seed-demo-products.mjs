@@ -162,6 +162,14 @@ export function readTarget(tenantId) {
     'seeded', exists (select 1 from public.demo_import_batches where tenant_id = ${tenant} and dataset_id = ${quote(scenario.datasetId)}),
     'workSeeded', exists (select 1 from public.demo_import_batches where tenant_id = ${tenant} and dataset_id = ${quote(workScenario.workDatasetId)}),
     'detailSeeded', exists (select 1 from public.demo_import_batches where tenant_id = ${tenant} and dataset_id = ${quote(detailScenario.detailDatasetId)}),
+    'detailEventsAlone', (select jsonb_build_object('tasks', count(*) filter (where e.task_id is not null),
+        'risks', count(*) filter (where e.risk_id is not null))
+      from public.demo_import_records x
+      join public.demo_import_batches b on b.id = x.import_batch_id
+      join public.activity_events e on e.tenant_id = x.tenant_id and e.id = x.destination_id
+      where x.tenant_id = ${tenant} and b.dataset_id = ${quote(detailScenario.detailDatasetId)}
+        and x.destination_table = 'activity_events' and e.program_id is null
+        and (e.task_id is not null or e.risk_id is not null)),
     'detailSystems', (select coalesce(jsonb_agg(code), '[]'::jsonb) from public.systems
       where tenant_id = ${tenant} and code in (${list(detailScenario.productDetail.variants.map((variant) => variant.code))})),
     'missingBaselines', (select coalesce(jsonb_agg(b.title), '[]'::jsonb) from unnest(array[${list(baselines)}]) b(title)
@@ -335,6 +343,17 @@ export function flowDownSummary() {
   };
 }
 
+/** The activity events the fifth step wrote for a task or a risk alone, naming no program. */
+const eventsAlone = (target) => {
+  const tasks = target.detailEventsAlone?.tasks ?? 0;
+  const risks = target.detailEventsAlone?.risks ?? 0;
+  return { tasks, risks, total: tasks + risks };
+};
+
+/** What the next run does to the fifth step's activity that names no program, as a reader sees it. */
+const eventProgramsSummary = ({ tasks, risks, total }) =>
+  `Names the program of ${total} activity events the fifth step wrote for a task or a risk alone (${tasks} of tasks, ${risks} of risks): each takes its record's program, so that program's Activity and the Portfolio's feed place it.`;
+
 /** The plan a reader sees before anything is written, and what would stop it. */
 export function buildPlan({ target, asOf }) {
   const issues = [
@@ -401,10 +420,14 @@ export function buildPlan({ target, asOf }) {
       target.flowDownSeeded && "the flow-down",
     ].filter(Boolean);
     const overlay = scenario.customerOverlay;
+    const alone = eventsAlone(target);
     return {
       issues,
       summary: {
         state: `This workspace already holds ${held.join(", ")}.`,
+        ...(target.detailSeeded && alone.total
+          ? { eventPrograms: eventProgramsSummary(alone) }
+          : {}),
         ...(target.requirementsSeeded ? {} : { customerRequirements }),
         ...(target.assessmentsSeeded ? {} : { deltaAssessments }),
         ...(target.workSeeded ? {} : { work }),
@@ -624,6 +647,10 @@ async function main() {
           }${
             result.overlay.maps?.mapped?.length
               ? ` Mapped ${result.overlay.maps.mapped.join(", ")}.`
+              : ""
+          }${
+            result.detail.eventPrograms?.named
+              ? ` Named the program of ${result.detail.eventPrograms.named} activity events (${result.detail.eventPrograms.tasks} of tasks, ${result.detail.eventPrograms.risks} of risks).`
               : ""
           }`
         : "Check passed; the transaction was rolled back and nothing was written.",

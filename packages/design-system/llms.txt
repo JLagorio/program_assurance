@@ -23223,7 +23223,7 @@ The header and the footer are the card's; the rows are [Item](?path=/docs/compon
 | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Title             | The kind of record, a noun, a heading in `font.body` semibold at the contextual level (an h3 when nothing sets one): "Linked findings", "Systems", "Team". A long one wraps.                                                |
 | Count             | After the title: how many are linked.                                                                                                                                                                                       |
-| Action            | At the end of the header's line: one small button, "Add" or "Link" with a plus, or a TextLink. The way to add one; it stays when the card is empty.                                                                         |
+| Action            | At the end of the header's line: one small button, "Add" or "Link" with a plus, or a TextLink. The way to add one; it stays when the card is empty. It takes the next row where the title would not fit beside it.          |
 | Row (`list`)      | An Item, flush: a mark or an id, the name as the link, and the state or the date at the end. The hairlines and the hover fill span the card; the text sits at its inset.                                                    |
 | Card (`cards`)    | A `Related.Card` in a grid: the mark, the name as the link, the status and the meta under it, the properties, the actions at the top end, a line of its own under.                                                          |
 | Card · Leading    | The mark before the name, 32px, spanning the name and the meta line: a medium Avatar, square for a thing, round for a person.                                                                                               |
@@ -23254,6 +23254,10 @@ Not built, and why: the whole card as the link, because a card that carries its 
 | --------- | ------------------------------- | ----------------------------------------------- |
 | `compact` | 28px for one line, the default. | The rail beside a record's overview.            |
 | `default` | 36px for one line.              | A list beside a page's body, in a wider column. |
+
+The header reads its own width. Where the line cannot hold the title and its count at their own width beside the action, the action takes the next row at the end, as a Tray's does, so the title never breaks mid-word beside it; a title too long for the line wraps on a line of its own. The same rule holds in a rail, in a preview narrowed to 240px and on a page.
+
+_Example: story `Stories.NarrowHeader`._
 
 The size is the list's; every row in one card is the same height. A card in the grid is at least 240px wide and as many share a row as fit; it is as tall as its properties, and four properties keep a row of cards one height. The inset is `space.150` in a card, `space.200` in the header.
 

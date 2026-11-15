@@ -107,6 +107,16 @@ type Schema = Omit<Tables, "composition_nodes" | "composition_nodes_archive_2026
     Insert: never;
     Update: never;
   };
+  /** A system component with how many of its contributions say otherwise than the library does. */
+  system_component_changes: {
+    Row: {
+      id: string;
+      tenant_id: string;
+      description_changed: number;
+    };
+    Insert: never;
+    Update: never;
+  };
   profile_resolution_catalogs: {
     Row: {
       id: string;
@@ -149,7 +159,7 @@ export type FilterValue = string | number | boolean | null | readonly string[];
 export type Filters = Record<string, FilterValue>;
 
 /** A filter that is a logic tree: `or` on the record, or `<reference>.or` through a reference. */
-function logicTree(key: string, value: FilterValue) {
+export function logicTree(key: string, value: FilterValue) {
   if (typeof value !== "string") return undefined;
   if (key === "or") return { tree: value, through: undefined };
   if (key.endsWith(".or")) return { tree: value, through: key.slice(0, -".or".length) };

@@ -210,6 +210,52 @@ test("the plan names only the steps a workspace still lacks", () => {
   assert.match(every.summary.state, /the records one click down\.$/);
   assert.equal(every.summary.detail, undefined);
   assert.equal(every.summary.reviewQueue, undefined);
+  assert.equal(every.summary.eventPrograms, undefined);
+});
+
+test("a workspace whose fifth step wrote activity for a task or a risk alone is given its program", () => {
+  const held = {
+    ...emptyTarget,
+    seeded: true,
+    requirementsSeeded: true,
+    assessmentsSeeded: true,
+    workSeeded: true,
+    detailSeeded: true,
+    reviewSeeded: true,
+  };
+  // The developer workspace's fifth step ran before its activity named the program.
+  const named = buildPlan({ target: { ...held, detailEventsAlone: { tasks: 99, risks: 56 } } });
+  assert.match(named.summary.state, /the records one click down\.$/);
+  assert.match(
+    named.summary.eventPrograms,
+    /^Names the program of 155 activity events .* \(99 of tasks, 56 of risks\)/,
+  );
+  assert.equal(named.issues.filter((issue) => issue.blocks).length, 0);
+  // Once they name it, or where the step wrote none, the plan says nothing of them.
+  for (const alone of [{ tasks: 0, risks: 0 }, undefined])
+    assert.equal(
+      buildPlan({ target: { ...held, detailEventsAlone: alone } }).summary.eventPrograms,
+      undefined,
+    );
+  // A workspace the fifth step has not run on has nothing of its to name.
+  const before = { ...held, detailSeeded: false, detailEventsAlone: { tasks: 3, risks: 1 } };
+  assert.equal(buildPlan({ target: before }).summary.eventPrograms, undefined);
+});
+
+test("the fifth step's activity names the program of the task or the risk it is about", () => {
+  // Read without a database: the transaction writes the record's program beside it, and its next
+  // run names the program of what it wrote before that, under the batch's provenance.
+  const sql = readFileSync(resolve("scripts/demo/seed-products-detail.sql"), "utf8");
+  assert.match(
+    sql,
+    /insert into public\.activity_events \(id, tenant_id, program_id, task_id, [^)]*\)\n  select pg_temp\.did\(t, 'tasks\/' \|\| k\.id \|\| '\/activity\/' \|\| x\.n\), t, k\.program_id, k\.id,/,
+  );
+  assert.match(
+    sql,
+    /insert into public\.activity_events \(id, tenant_id, program_id, risk_id, [^)]*\)\n  select pg_temp\.did\(t, 'risks\/' \|\| k\.id \|\| '\/activity\/' \|\| x\.n\), t, k\.program_id, k\.id,/,
+  );
+  assert.match(sql, /v_named := pg_temp\.name_product_event_programs\(p, v_batch\);/);
+  assert.match(sql, /x\.import_batch_id = p_batch and x\.destination_table = 'activity_events'/);
 });
 
 // The fourth step, the programs' work, as written.

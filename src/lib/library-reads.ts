@@ -156,3 +156,41 @@ export function useComponentTraceability(
     artifacts,
   } satisfies Record<string, UseQueryResult<unknown[], Error>>;
 }
+
+/** The component library as recorded: every column of each definition, version, component and claim. */
+export type ComponentLibraryRecords = {
+  definitions: Row<"component_definitions">[];
+  revisions: Row<"component_definition_revisions">[];
+  components: Row<"defined_components">[];
+  implementations: Row<"defined_component_implementations">[];
+};
+
+/**
+ * Every record of the component library, every column: what Export recorded JSON writes. The
+ * register reads only what it draws, so the export reads the records when the reader asks.
+ */
+export async function readComponentLibraryRecords(
+  client: Pick<SupabaseClient, "from">,
+  context: ReadContext,
+  signal?: AbortSignal | undefined,
+): Promise<ComponentLibraryRecords> {
+  const read = <T>(table: Parameters<typeof readRows>[2]) =>
+    readRows(client, context, table, {}, {}, signal) as Promise<T[]>;
+  const [definitions, revisions, components, implementations] = await Promise.all([
+    read<Row<"component_definitions">>("component_definitions"),
+    read<Row<"component_definition_revisions">>("component_definition_revisions"),
+    read<Row<"defined_components">>("defined_components"),
+    read<Row<"defined_component_implementations">>("defined_component_implementations"),
+  ]);
+  return { definitions, revisions, components, implementations };
+}
+
+/** Reads the component library as recorded, for its export, as the signed-in reader. */
+export function useComponentLibraryRecords() {
+  const workspace = useWorkspace();
+  return async () =>
+    readComponentLibraryRecords(database(), {
+      tenantId: workspace.tenantId,
+      token: await requireIdentity(workspace),
+    });
+}

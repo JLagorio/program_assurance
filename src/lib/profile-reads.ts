@@ -45,10 +45,13 @@ export async function readResolutionCounts(
 }
 
 /**
- * The profiles register's resolutions and their selection counts. Kept under the
- * `profile_resolutions` read key, so whatever refreshes the resolutions refreshes the counts.
+ * The profiles register's resolutions and their selection counts, and the profiles the baseline
+ * dialog offers (`enabled` reads them as it opens). Kept under the `profile_resolutions` read key,
+ * so whatever refreshes the resolutions refreshes the counts.
  */
-export function useResolutionCounts(): UseQueryResult<ResolutionCount[], Error> {
+export function useResolutionCounts({
+  enabled = true,
+}: { enabled?: boolean | undefined } = {}): UseQueryResult<ResolutionCount[], Error> {
   const workspace = useWorkspace();
   return useQuery({
     queryKey: [
@@ -57,6 +60,7 @@ export function useResolutionCounts(): UseQueryResult<ResolutionCount[], Error> 
       "profile_resolutions",
       { counts: "selected_controls" },
     ],
+    enabled,
     retry: false,
     queryFn: async ({ signal }) =>
       readResolutionCounts(

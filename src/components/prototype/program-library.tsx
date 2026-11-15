@@ -20,15 +20,18 @@ import {
   useDataTable,
   type Preset,
 } from "@ledger/design-system";
-import { idSet, useRows } from "@/lib/models";
+import { useWorkspace } from "@/components/app/workspace";
+import { idSet, useRows, type TableName } from "@/lib/models";
+import { useStaleOnWrite } from "@/lib/server-table";
 import { labelFor } from "@/lib/records";
-import {
-  CONTRIBUTION_FACTS,
-  IMPLEMENTATION_FACTS,
-  libraryRollup,
-  type LibraryRollupRow,
-} from "@/lib/library-use";
+import { libraryRollup, type LibraryRollupRow } from "@/lib/library-use";
 import { useSystemAssurance } from "./use-system-assurance";
+
+/** What Changed here is counted from: a write to either reads the counts again. */
+const CHANGE_MODELS: readonly TableName[] = [
+  "component_contributions",
+  "defined_component_implementations",
+];
 
 type Line = {
   id: string;
@@ -65,24 +68,29 @@ export function ProgramLibrary({
   // A preview belongs to its tab: it ends when the program's Library tab hides.
   useEndOnHide(() => setSelectedId(undefined));
   const { rows, queries: assuranceQueries } = useSystemAssurance(programId);
-  // The program's boundaries' components, what they contribute and the library implementations
-  // those contributions started from; the library's definitions are read whole, being the library.
+  // The program's boundaries' components and how many of their contributions changed what the
+  // library says; the library's definitions are read whole, being the library.
   const boundaryIds = useMemo(() => idSet(rows.map((row) => row.boundary_system_id)), [rows]);
   const components = useRows("system_components", { system_id: boundaryIds });
   const definedComponents = useRows("defined_components");
   const revisions = useRows("component_definition_revisions");
   const definitions = useRows("component_definitions");
-  // What each contribution says beside the implementation it started from, and nothing more: the
-  // rollup counts the ones changed here.
-  const contributions = useRows(
-    "component_contributions",
-    { system_component_id: idSet(components.data?.map((row) => row.id)) },
-    { columns: CONTRIBUTION_FACTS, enabled: components.isSuccess },
+  // How many of each component's contributions say otherwise than the library implementation
+  // they started from, counted on the server: the rollup's Changed here.
+  const changes = useRows(
+    "system_component_changes",
+    { id: idSet(components.data?.map((row) => row.id)) },
+    { columns: ["id", "description_changed"], enabled: components.isSuccess },
   );
-  const implementations = useRows(
-    "defined_component_implementations",
-    { id: idSet(contributions.data?.map((row) => row.library_implementation_id)) },
-    { columns: IMPLEMENTATION_FACTS, enabled: contributions.isSuccess },
+  const workspace = useWorkspace();
+  useStaleOnWrite(workspace.tenantId, CHANGE_MODELS, [
+    "models",
+    workspace.tenantId,
+    "system_component_changes",
+  ]);
+  const changedHere = useMemo(
+    () => new Map((changes.data ?? []).map((row) => [row.id, row.description_changed])),
+    [changes.data],
   );
   const data = useMemo<Line[]>(() => {
     const boundaries = new Set(rows.map((row) => row.boundary_system_id));
@@ -92,8 +100,7 @@ export function ProgramLibrary({
       definedComponents: definedComponents.data ?? [],
       revisions: revisions.data ?? [],
       definitions: definitions.data ?? [],
-      contributions: contributions.data ?? [],
-      implementations: implementations.data ?? [],
+      changedHere,
     }).map<Line>((row) => ({
       id: row.id,
       name: row.name,
@@ -141,8 +148,7 @@ export function ProgramLibrary({
     definedComponents.data,
     revisions.data,
     definitions.data,
-    contributions.data,
-    implementations.data,
+    changedHere,
   ]);
   const columns = useMemo(
     () =>
@@ -210,14 +216,7 @@ export function ProgramLibrary({
   });
   const displayed = useDisplayedRecords(table);
   const selected = data.find((row) => row.id === selectedId);
-  const queries = [
-    components,
-    definedComponents,
-    revisions,
-    definitions,
-    contributions,
-    implementations,
-  ];
+  const queries = [components, definedComponents, revisions, definitions, changes];
   return (
     <>
       <ProductCollection

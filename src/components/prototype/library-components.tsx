@@ -1,7 +1,11 @@
 import { StatusBadge } from "@/components/app/status";
 import { Page } from "@/components/app/shell";
 import { useWorkspace } from "@/components/app/workspace";
-import { useComponentTraceability, useLibraryComponentUses } from "@/lib/library-reads";
+import {
+  useComponentLibraryRecords,
+  useComponentTraceability,
+  useLibraryComponentUses,
+} from "@/lib/library-reads";
 import { idSet, useRow, useRows, type Row } from "@/lib/models";
 import { productCreateLabel, productRecordNoun } from "@/lib/product-records";
 import { labelFor, type DataRecord, type RecordValue } from "@/lib/records";
@@ -70,21 +74,53 @@ type ComponentRow = Row<"component_definitions"> & {
 
 const componentLabel = productCreateLabel("component_definitions");
 
+/** What the register reads of a definition's version: enough to find and describe its latest. */
+type LatestVersion = Pick<
+  Row<"component_definition_revisions">,
+  "id" | "component_definition_id" | "version_number" | "state"
+>;
+
 export function ComponentLibraryIndex() {
   const navigate = useNavigate();
   const workspace = useWorkspace();
+  // The definitions whole, since the preview's Edit starts from the row it shows.
   const definitions = useRows("component_definitions");
-  const revisions = useRows("component_definition_revisions");
-  const components = useRows("defined_components");
-  const claims = useRows("defined_component_implementations");
+  // Each definition's versions by number and state; the row describes its latest version.
+  const revisions = useRows("component_definition_revisions", undefined, {
+    columns: ["id", "component_definition_id", "version_number", "state"],
+  });
+  const latest = useMemo(() => {
+    const byDefinition = new Map<string, LatestVersion>();
+    for (const revision of revisions.data ?? []) {
+      const current = byDefinition.get(revision.component_definition_id);
+      if (!current || revision.version_number > current.version_number)
+        byDefinition.set(revision.component_definition_id, revision);
+    }
+    return byDefinition;
+  }, [revisions.data]);
+  const latestIds = useMemo(() => idSet([...latest.values()].map((row) => row.id)), [latest]);
+  // Only the latest versions' component types and claimed controls, which the row names and
+  // counts; Export recorded JSON reads every record when the reader asks for it.
+  const components = useRows(
+    "defined_components",
+    { component_definition_revision_id: latestIds },
+    {
+      columns: ["component_definition_revision_id", "component_type"],
+      enabled: revisions.isSuccess,
+    },
+  );
+  const claims = useRows(
+    "defined_component_implementations",
+    { component_definition_revision_id: latestIds },
+    { columns: ["component_definition_revision_id", "control_id"], enabled: revisions.isSuccess },
+  );
+  const readLibrary = useComponentLibraryRecords();
   const [creating, setCreating] = useState(false);
   const [selected, setSelected] = useState<ComponentRow | null>(null);
   const rows = useMemo(
     () =>
       (definitions.data ?? []).map((definition): ComponentRow => {
-        const revision = (revisions.data ?? [])
-          .filter((item) => item.component_definition_id === definition.id)
-          .sort((a, b) => b.version_number - a.version_number)[0];
+        const revision = latest.get(definition.id);
         const types = [
           ...new Set(
             (components.data ?? [])
@@ -105,7 +141,7 @@ export function ComponentLibraryIndex() {
           ).size,
         };
       }),
-    [definitions.data, revisions.data, components.data, claims.data],
+    [definitions.data, latest, components.data, claims.data],
   );
   const columns = useMemo(
     () =>
@@ -187,13 +223,18 @@ export function ComponentLibraryIndex() {
           {
             label: "Export recorded JSON",
             disabled: !definitions.data || !revisions.data || !components.data || !claims.data,
-            onSelect: () =>
-              downloadLibraryRecords("component-library.json", {
-                definitions: definitions.data,
-                revisions: revisions.data,
-                components: components.data,
-                implementations: claims.data,
-              }),
+            onSelect: () => {
+              readLibrary().then(
+                (records) => downloadLibraryRecords("component-library.json", records),
+                () =>
+                  toast.add({
+                    title: "The component library could not be exported",
+                    type: "error",
+                    timeout: 8000,
+                    description: "Its records could not be read. Try again.",
+                  }),
+              );
+            },
           },
         ]}
         table={table}

@@ -89,16 +89,30 @@ function RelatedRoot({
   const emptyIcon = "icon" in emptyProps ? emptyProps.icon : <Link2 />;
   return (
     <Card {...props} className={cn("flex flex-col", className)}>
-      <div className="flex items-center gap-100 border-b border-default px-200 py-100">
-        <HeadingTag
-          id={headingId}
-          className="min-w-0 break-words font-heading-section text-default"
-        >
-          {title}
-        </HeadingTag>
-        {count !== undefined ? <Count value={count} max={countMax} /> : null}
+      {/* As a Tray's header: where the row cannot hold the title and its count at their own width
+          beside the action, the action takes the next row at the end, so the title never breaks
+          mid-word beside it; a title too long for the row wraps on a row of its own. It reads the
+          header's own width, so the rule holds in a rail, in a narrowed panel and on a page. */}
+      <div
+        data-slot="related-header"
+        className="flex flex-wrap items-center gap-100 border-b border-default px-200 py-100"
+      >
+        <div data-slot="related-heading" className="flex min-w-0 items-center gap-100">
+          <HeadingTag
+            id={headingId}
+            className="min-w-0 break-words font-heading-section text-default"
+          >
+            {title}
+          </HeadingTag>
+          {count !== undefined ? <Count value={count} max={countMax} /> : null}
+        </div>
         {action ? (
-          <span className="ms-auto flex shrink-0 items-center gap-100">{action}</span>
+          <span
+            data-slot="related-action"
+            className="ms-auto flex max-w-full shrink-0 items-center gap-100"
+          >
+            {action}
+          </span>
         ) : null}
       </div>
       {!has ? (

@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import type { UseQueryResult } from "@tanstack/react-query";
-import { deriveSavedBaseline, type BaselineDerivation } from "./baseline-stack";
+import { deriveSavedBaseline, ruleIds, type BaselineDerivation } from "./baseline-stack";
 import { idSet, useRows, type Row } from "./models";
 import { resolutionChain, type ChainHop } from "./profile-chain";
 import type { DraftOverlay } from "./program-wizard-reference";
@@ -44,8 +44,17 @@ export type ProgramBaseline = {
  * baseline, one layer per overlay applied, then the program's own tailoring. Small reference
  * collections are read whole; the rules, the reference selection and the catalog's controls are
  * read for the chains this program adopted alone.
+ *
+ * `only: "origins"` reads what says where each control of the baseline comes from, as the SSP's
+ * Origin column does, and nothing else: the layers' include and exclude rules without their
+ * rationale, no parameter settings, and of the catalog only the controls those rules name, by id
+ * and source id. Its derivation's origins and layers are the full read's; its `controls` holds
+ * only the controls the layers decide on, and its rationales and parameter counts are empty.
  */
-export function useProgramBaselines(programId: string): {
+export function useProgramBaselines(
+  programId: string,
+  { only }: { only?: "origins" | undefined } = {},
+): {
   baselines: ProgramBaseline[];
   queries: Query[];
   /** Every read the stacks are drawn from has answered. */
@@ -131,11 +140,19 @@ export function useProgramBaselines(programId: string): {
       catalogs: unique((chains ?? []).map(({ choice }) => choice.catalog_revision_id)),
     };
   }, [chains]);
+  const origins = only === "origins";
+  // Each layer's decisions. Where only the origins are read, the rules that decide (include and
+  // exclude) without the rationale, which the origins never show.
   const rules = useRows(
     "profile_rules",
-    { profile_revision_id: scope.layerRevisions },
     {
-      columns: ["profile_revision_id", "kind", "definition", "rationale"],
+      profile_revision_id: scope.layerRevisions,
+      ...(origins ? { kind: ["exclude", "include"] } : {}),
+    },
+    {
+      columns: origins
+        ? ["profile_revision_id", "kind", "definition"]
+        : ["profile_revision_id", "kind", "definition", "rationale"],
       enabled: scope.layerRevisions.length > 0,
     },
   );
@@ -143,7 +160,7 @@ export function useProgramBaselines(programId: string): {
   const settings = useRows(
     "profile_parameter_settings",
     { profile_revision_id: scope.layerRevisions },
-    { columns: ["profile_revision_id"], enabled: scope.layerRevisions.length > 0 },
+    { columns: ["profile_revision_id"], enabled: !origins && scope.layerRevisions.length > 0 },
   );
   // The layer that combines a second reference baseline with the first, where a stack has one.
   const combinations = useRows(
@@ -172,21 +189,34 @@ export function useProgramBaselines(programId: string): {
     { profile_resolution_id: scope.references },
     { columns: ["profile_resolution_id", "control_id"], enabled: scope.references.length > 0 },
   );
+  // The catalog's controls; where only the origins are read, those the layers' rules name, which
+  // the derivation reads their source ids through, once the rules are read.
+  const decided = useMemo(
+    () => (origins ? idSet(rules.data?.flatMap((rule) => ruleIds(rule.definition))) : []),
+    [origins, rules.data],
+  );
   const controls = useRows(
     "controls",
-    { catalog_revision_id: scope.catalogs },
     {
-      columns: [
-        "id",
-        "source_id",
-        "code",
-        "title",
-        "catalog_revision_id",
-        "group_id",
-        "parent_control_id",
-        "status",
-      ],
-      enabled: scope.catalogs.length > 0,
+      catalog_revision_id: scope.catalogs,
+      ...(origins ? { source_id: decided } : {}),
+    },
+    {
+      columns: origins
+        ? ["id", "source_id", "catalog_revision_id"]
+        : [
+            "id",
+            "source_id",
+            "code",
+            "title",
+            "catalog_revision_id",
+            "group_id",
+            "parent_control_id",
+            "status",
+          ],
+      enabled:
+        scope.catalogs.length > 0 &&
+        (!origins || scope.layerRevisions.length === 0 || rules.isSuccess),
     },
   );
 
@@ -198,7 +228,7 @@ export function useProgramBaselines(programId: string): {
     (!hasLayers ||
       (rules.data !== undefined &&
         applications.data !== undefined &&
-        settings.data !== undefined &&
+        (origins || settings.data !== undefined) &&
         combinations.data !== undefined)) &&
     (!hasChoices || (referenceControls.data !== undefined && controls.data !== undefined));
   const baselines = useMemo((): ProgramBaseline[] => {
@@ -232,7 +262,8 @@ export function useProgramBaselines(programId: string): {
         adopted: chain.hops[0] ?? null,
         derivation: deriveSavedBaseline({
           hops: chain.hops,
-          rules: rules.data ?? [],
+          // Read for the origins alone, a rule comes without its rationale: it has none here.
+          rules: (rules.data ?? []).map((rule) => ({ ...rule, rationale: rule.rationale ?? null })),
           controls: [...catalogControls.values()],
           baselineControlIds: (referenceControls.data ?? [])
             .filter((row) => row.profile_resolution_id === reference?.resolutionId)
@@ -293,7 +324,7 @@ export function useProgramBaselines(programId: string): {
       catalogRevisions,
       catalogs,
       overlays,
-      ...(hasLayers ? [rules, applications, settings, combinations] : []),
+      ...(hasLayers ? [rules, applications, ...(origins ? [] : [settings]), combinations] : []),
       ...(hasChoices ? [referenceControls, controls] : []),
     ],
   };

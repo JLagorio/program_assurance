@@ -16398,6 +16398,52 @@ export type Database = {
           },
         ];
       };
+      procedure_rows: {
+        Row: {
+          created_at: string | null;
+          created_by: string | null;
+          description: string | null;
+          id: string | null;
+          owner_party_id: string | null;
+          program_id: string | null;
+          revision: number | null;
+          tenant_id: string | null;
+          title: string | null;
+          updated_at: string | null;
+          updated_by: string | null;
+          versions: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "procedures_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "procedures_tenant_id_owner_party_id_fkey";
+            columns: ["tenant_id", "owner_party_id"];
+            isOneToOne: false;
+            referencedRelation: "parties";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "procedures_tenant_id_program_id_fkey";
+            columns: ["tenant_id", "program_id"];
+            isOneToOne: false;
+            referencedRelation: "program_activity";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "procedures_tenant_id_program_id_fkey";
+            columns: ["tenant_id", "program_id"];
+            isOneToOne: false;
+            referencedRelation: "programs";
+            referencedColumns: ["tenant_id", "id"];
+          },
+        ];
+      };
       profile_resolution_catalogs: {
         Row: {
           base_profile_resolution_id: string | null;
@@ -16785,6 +16831,22 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "scopes";
             referencedColumns: ["tenant_id", "id"];
+          },
+        ];
+      };
+      system_component_changes: {
+        Row: {
+          description_changed: number | null;
+          id: string | null;
+          tenant_id: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "component_contributions_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
           },
         ];
       };

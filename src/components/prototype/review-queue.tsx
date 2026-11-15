@@ -440,6 +440,9 @@ function ReviewPreview({
       <RecordPreviewPanel
         title={record.name}
         label="Review preview"
+        // As wide as the record previews, the campaign's Assessment results preview among them, so
+        // the findings results to publish list keep their determination and control in the row.
+        defaultWidth={640}
         onClose={onClose}
         recordActions={actions}
         navigation={

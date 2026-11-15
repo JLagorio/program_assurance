@@ -11,6 +11,7 @@ import { useWorkspace } from "./workspace-context";
 import { database, requireIdentity } from "./database";
 import type { Database } from "./database.types";
 import {
+  logicTree,
   normalizeFilters,
   selectClause,
   type Filters,
@@ -230,15 +231,23 @@ function applyFilter(
   return request.in(column, values);
 }
 
-/** The scope's equality filters, as `useRows` applies them: `is` for empty, `in` for a list. */
+/**
+ * The scope's filters, as `useRows` applies them: `is` for empty, `in` for a list, equality, and a
+ * logic tree (`or` on the record, or `<reference>.or` through a reference) the rows must meet.
+ */
 function applyScope(request: Request, scope: Filters): Request {
-  for (const [column, value] of Object.entries(scope))
-    request =
-      value === null
+  for (const [column, value] of Object.entries(scope)) {
+    const logic = logicTree(column, value);
+    request = logic
+      ? logic.through
+        ? request.or(logic.tree, { referencedTable: logic.through })
+        : request.or(logic.tree)
+      : value === null
         ? request.is(column, null)
         : Array.isArray(value)
           ? request.in(column, value as string[])
           : request.eq(column, value as string | number | boolean);
+  }
   return request;
 }
 

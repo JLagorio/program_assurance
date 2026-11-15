@@ -490,17 +490,48 @@ describe("traceGapFixes", () => {
       });
     });
 
-    it("offers nothing where a finding stands, or the status says it is not waiting", () => {
-      const plans = { planned: null, drafts: 1 };
-      const finding = {
-        id: id(40),
-        title: "AC-2 determined",
+    describe("a control whose findings all say Not assessed", () => {
+      // Two published findings that judge nothing: no objective of AC-2 is judged yet.
+      const findings = [40, 41].map((n) => ({
+        id: id(n),
+        title: `AC-2 not assessed ${n - 39}`,
         determination: "not_assessed",
         determined_at: null,
         results_state: "published",
         program_id: PROGRAM,
-      };
-      expect(traceGapFixes(evidenced([finding]), PROGRAM, waiting, plans)).toEqual([]);
+      }));
+      const unjudged = { status: "not_assessed" as const, objectives: 26, objectivesAssessed: 0 };
+
+      it("carries the step its Details carry beside its findings", () => {
+        for (const [plans, fix] of [
+          // The campaign whose plan holds the control, a draft plan it is added to, or a new plan.
+          [
+            { planned: fy27, drafts: 1 },
+            { kind: "open_campaign", campaign: fy27 },
+          ],
+          [{ planned: null, drafts: 2 }, { kind: "assess" }],
+          [{ planned: null, drafts: 0 }, { kind: "plan_assessment" }],
+        ] as const) {
+          for (const standing of [unjudged, waiting]) {
+            const fixes = traceGapFixes(evidenced(findings), PROGRAM, standing, plans);
+            expect(fixes, fix.kind).toEqual([{ stage: "finding", ...fix }]);
+            // The words its Details say: the same step, from the same reads.
+            expect(nextStepLabel(fixes[0]!)).toBe(
+              nextStepLabel(controlNextStep(standing, undefined, plans)!),
+            );
+          }
+        }
+        // Nothing judged is not judged in part: the step is offered all the same.
+        expect(judgedInPart(unjudged)).toBe(false);
+      });
+
+      it("waits on what the campaigns hold", () => {
+        expect(traceGapFixes(evidenced(findings), PROGRAM, unjudged)).toEqual([]);
+      });
+    });
+
+    it("offers nothing where the status says it is not waiting, or outside a program", () => {
+      const plans = { planned: null, drafts: 1 };
       for (const status of ["satisfied", "partially_satisfied", "other_than_satisfied"] as const)
         expect(traceGapFixes(evidenced(), PROGRAM, { status }, plans), status).toEqual([]);
       expect(traceGapFixes(evidenced(), null, waiting, plans)).toEqual([]);

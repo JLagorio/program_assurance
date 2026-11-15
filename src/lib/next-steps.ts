@@ -343,8 +343,8 @@ export const isReaderFix = (fix: TraceGapFix) =>
  * The gaps of a trace that its record's reader can close, each with the stage it fills. A control
  * read inside a program offers a requirement where none maps it, where its requirements cite no
  * evidence, evidence for the first of them, and, where no assessor has determined that evidence,
- * an assessment that holds the control (beside the findings of one judged in part, an assessment
- * of the rest); a requirement offers a control and evidence of its own;
+ * an assessment that holds the control (beside findings that decide nothing yet, an assessment of
+ * what is left); a requirement offers a control and evidence of its own;
  * and an operational issue that names no requirement offers one, since the link is the issue's
  * own, made on its page. A stage with nothing wrong in it (no operational issue, no risk) is not a
  * gap, and otherwise a record further down the chain closes nothing upstream from its own page:
@@ -361,10 +361,11 @@ export const isReaderFix = (fix: TraceGapFix) =>
  * its Evidence stage still offers evidence for the first that cites none. Its
  * Assessment findings stage waits on `plans`, what the program's open campaigns hold of it: the
  * campaign whose plan holds it already is named, else the control is added to a draft plan or an
- * assessment is planned around it. A control its assessors have judged in part (some objectives,
- * not all: `judgedInPart`) stands at Not assessed with findings in the stage: the stage carries the
- * same step beside them, the one its Details carry, which assesses what is left (the campaign whose
- * plan holds the rest, a draft plan, or a new plan).
+ * assessment is planned around it. A control at Not assessed may hold findings in the stage that
+ * decide nothing yet: those of a control its assessors have judged in part (some objectives, not
+ * all: `judgedInPart`), or findings that all say Not assessed, which judge nothing. The stage carries
+ * the same step beside them, the one its Details carry, which assesses what is left (the campaign
+ * whose plan holds the rest, a draft plan, or a new plan).
  */
 export function traceGapFixes(
   trace: Pick<AssuranceTrace, "focus" | "controls" | "requirements" | "evidence" | "findings">,
@@ -403,13 +404,10 @@ export function traceGapFixes(
             kind: "link_evidence",
             requirement: stepRequirement(bare),
           });
-      } else if (
-        standing?.status === "not_assessed" &&
-        plans &&
-        // An empty stage, or one that holds the findings of a control judged in part, which decide
-        // nothing until the rest is judged: the step assesses what is left.
-        (trace.findings.length === 0 || judgedInPart(standing))
-      ) {
+      } else if (standing?.status === "not_assessed" && plans) {
+        // Whatever the stage holds decides nothing yet: no finding, the findings of a control
+        // judged in part, which wait on the rest, or findings that all say Not assessed, which judge
+        // nothing. The step is the one its Details carry, which assesses what is left.
         fixes.push({ stage: "finding", ...assessStep(plans) });
       }
     }

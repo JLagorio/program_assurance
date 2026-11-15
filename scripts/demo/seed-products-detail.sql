@@ -9,7 +9,9 @@
 -- system's inventory, each campaign's procedures and runs, and a variant of the two products no
 -- program had taken. Every record it writes is listed in demo_import_records under the dataset
 -- `products-detail-v1`; what it changes in a record another step wrote is counted in the batch's
--- summary. It runs once a workspace.
+-- summary. It runs once a workspace; a later run gives a workspace it ran on only what it has since
+-- learned to write, under the same batch: what waits on a reviewer, and the program its activity
+-- for a task or a risk names beside the record.
 
 create temp table product_detail_tracked (
   destination_table text not null, destination_id uuid not null, source_key text not null, section text not null
@@ -345,17 +347,21 @@ declare
   v_campaign uuid; v_plan_rev uuid; v_event uuid; v_baseline uuid; v_thread jsonb; v_status text; v_doc uuid; v_doc_version uuid;
   v_procedures jsonb; v_boundaries jsonb := '{}'; v_variants jsonb := '{}'; v_prefixes jsonb := '{}';
   v_job uuid; v_batch uuid; v_tables jsonb; v_updated jsonb; v_read jsonb := '{}'; v_skipped jsonb := '[]'; v_review jsonb;
+  v_named jsonb;
 begin
   perform pg_advisory_xact_lock(hashtextextended(t::text || '/demo-product-detail', 0));
   select id into v_batch from public.demo_import_batches where tenant_id = t and dataset_id = p->>'detailDatasetId';
   if v_batch is not null then
     -- A workspace that holds the records one click down is given only what waits on a reviewer, if
-    -- it lacks it, under the same batch.
+    -- it lacks it, and the program of the activity it wrote for a task or a risk alone, if that
+    -- names none, under the same batch.
     v_review := pg_temp.seed_product_review(p, v_batch);
-    if not (v_review->>'changed')::boolean then
+    v_named := pg_temp.name_product_event_programs(p, v_batch);
+    if not (v_review->>'changed')::boolean and not (v_named->>'changed')::boolean then
       return jsonb_build_object('changed', false, 'reason', 'This workspace already holds the records one click down.');
     end if;
-    return jsonb_build_object('changed', true, 'records', (v_review->>'records')::integer, 'review', v_review);
+    return jsonb_build_object('changed', true, 'records', (v_review->>'records')::integer, 'review', v_review,
+      'eventPrograms', v_named);
   end if;
   if not exists (select 1 from public.demo_import_batches where tenant_id = t and dataset_id = p->>'workDatasetId') then
     raise exception 'This workspace does not hold the programs'' work, which this step fills in.';
@@ -861,7 +867,9 @@ begin
     end loop;
   end loop;
 
-  -- Every task of the programs: a comment where it has none, and its activity.
+  -- Every task of the programs: a comment where it has none, and its activity. An event names the
+  -- task's program beside the task, as a publication's names the campaign's, so the program's
+  -- Activity and the Portfolio's feed place it (guard_activity_event_program checks it is the task's).
   insert into public.comments (id, tenant_id, task_id, author_party_id, body)
   select pg_temp.did(t, 'tasks/' || k.id || '/comment'), t, k.id,
     coalesce((select a.party_id from public.task_assignments a where a.task_id = k.id order by a.created_at, a.id limit 1),
@@ -870,8 +878,8 @@ begin
   from public.tasks k join public.programs g on g.id = k.program_id
   where k.tenant_id = t and g.code in (select jsonb_array_elements_text(p->'workOrder'))
     and not exists (select 1 from public.comments c where c.task_id = k.id);
-  insert into public.activity_events (id, tenant_id, task_id, actor_party_id, event_type, description, occurred_at)
-  select pg_temp.did(t, 'tasks/' || k.id || '/activity/' || x.n), t, k.id, a.party_id, x.event_type, x.description, x.occurred_at
+  insert into public.activity_events (id, tenant_id, program_id, task_id, actor_party_id, event_type, description, occurred_at)
+  select pg_temp.did(t, 'tasks/' || k.id || '/activity/' || x.n), t, k.program_id, k.id, a.party_id, x.event_type, x.description, x.occurred_at
   from public.tasks k join public.programs g on g.id = k.program_id
   left join lateral (select ta.party_id from public.task_assignments ta where ta.task_id = k.id order by ta.created_at, ta.id limit 1) a on true
   cross join lateral (
@@ -885,9 +893,9 @@ begin
   ) x
   where k.tenant_id = t and g.code in (select jsonb_array_elements_text(p->'workOrder'))
     and not exists (select 1 from public.activity_events e where e.task_id = k.id);
-  -- Every risk of the programs: its activity.
-  insert into public.activity_events (id, tenant_id, risk_id, actor_party_id, event_type, description, occurred_at)
-  select pg_temp.did(t, 'risks/' || k.id || '/activity/' || x.n), t, k.id, x.actor, x.event_type, x.description, x.occurred_at
+  -- Every risk of the programs: its activity, each event naming the risk's program beside it.
+  insert into public.activity_events (id, tenant_id, program_id, risk_id, actor_party_id, event_type, description, occurred_at)
+  select pg_temp.did(t, 'risks/' || k.id || '/activity/' || x.n), t, k.program_id, k.id, x.actor, x.event_type, x.description, x.occurred_at
   from public.risks k join public.programs g on g.id = k.program_id
   join lateral (select r.* from public.risk_revisions r where r.risk_id = k.id and r.state = 'published' order by r.version_number desc limit 1) r on true
   left join lateral (select x.* from public.risk_responses x where x.risk_revision_id = r.id order by x.created_at, x.id limit 1) s on true
@@ -1345,6 +1353,70 @@ begin
   end if;
   return jsonb_build_object('changed', jsonb_array_length(v_tracked) > 0, 'written', v_written,
     'records', jsonb_array_length(v_tracked));
+end;
+$seed$;
+
+-- The activity the fifth step writes for a task or a risk names the record's program beside it, as a
+-- publication's event names the campaign's (migration 20261114072513_publication_activity_event), so
+-- the program's Activity and the Portfolio's feed place it. A workspace whose fifth step wrote that
+-- activity before it named the program is given the program on its next run: each event the batch
+-- lists that names a task or a risk alone takes the program the record belongs to, and nothing else
+-- of it changes (its words, who and when keep what they said). Activity events are append-only, so
+-- the update sets that trigger aside for these rows alone, inside the run's transaction, as the
+-- shared seed's revert does for the rows it lists. The program is the record's own, the one
+-- guard_activity_event_program asks of an insert, and the run stops if an event of the batch still
+-- names a task or a risk alone. The batch's summary counts what was named (eventPrograms), and a
+-- workspace whose events name their program is left as it is.
+create function pg_temp.name_product_event_programs(p jsonb, p_batch uuid) returns jsonb language plpgsql as $seed$
+declare
+  t uuid := (p->>'tenantId')::uuid;
+  v_tasks integer; v_risks integer; v_wrong integer;
+begin
+  if not exists (
+    select 1 from public.demo_import_records x
+    join public.activity_events e on e.tenant_id = x.tenant_id and e.id = x.destination_id
+    where x.tenant_id = t and x.import_batch_id = p_batch and x.destination_table = 'activity_events'
+      and e.program_id is null and (e.task_id is not null or e.risk_id is not null))
+  then
+    return jsonb_build_object('changed', false, 'named', 0, 'records', 0);
+  end if;
+  alter table public.activity_events disable trigger append_only;
+  with listed as (
+    select e.id, e.task_id is not null as of_task,
+      coalesce(
+        (select k.program_id from public.tasks k where k.tenant_id = e.tenant_id and k.id = e.task_id),
+        (select r.program_id from public.risks r where r.tenant_id = e.tenant_id and r.id = e.risk_id)) as program_id
+    from public.demo_import_records x
+    join public.activity_events e on e.tenant_id = x.tenant_id and e.id = x.destination_id
+    where x.tenant_id = t and x.import_batch_id = p_batch and x.destination_table = 'activity_events'
+      and e.program_id is null
+      and num_nonnulls(e.task_id, e.risk_id) = 1
+      and num_nonnulls(e.issue_id, e.poam_item_id, e.assessment_campaign_id, e.evidence_artifact_id, e.package_id) = 0
+  ), named as (
+    update public.activity_events e set program_id = l.program_id
+    from listed l where e.tenant_id = t and e.id = l.id and l.program_id is not null
+    returning l.of_task
+  )
+  select count(*) filter (where of_task), count(*) filter (where not of_task) into v_tasks, v_risks from named;
+  alter table public.activity_events enable trigger append_only;
+  -- Every event of the batch that names a task or a risk now names its program too.
+  select count(*) into v_wrong
+  from public.demo_import_records x
+  join public.activity_events e on e.tenant_id = x.tenant_id and e.id = x.destination_id
+  where x.tenant_id = t and x.import_batch_id = p_batch and x.destination_table = 'activity_events'
+    and (e.task_id is not null or e.risk_id is not null) and e.program_id is null;
+  if v_wrong > 0 then
+    raise exception '% activity events of the batch still name a task or a risk alone; nothing was changed.', v_wrong;
+  end if;
+  update public.demo_import_batches set summary = summary || jsonb_build_object('eventPrograms',
+      coalesce(summary->'eventPrograms', '{}'::jsonb) || jsonb_build_object(
+        'named', coalesce((summary->'eventPrograms'->>'named')::integer, 0) + v_tasks + v_risks,
+        'tasks', coalesce((summary->'eventPrograms'->>'tasks')::integer, 0) + v_tasks,
+        'risks', coalesce((summary->'eventPrograms'->>'risks')::integer, 0) + v_risks,
+        'at', now()))
+    where id = p_batch;
+  return jsonb_build_object('changed', v_tasks + v_risks > 0, 'named', v_tasks + v_risks,
+    'tasks', v_tasks, 'risks', v_risks, 'records', 0);
 end;
 $seed$;
 

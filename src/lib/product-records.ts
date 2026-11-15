@@ -159,6 +159,8 @@ const nouns = {
   poam_revision_items: "POA&M plan item",
   poam_revisions: "POA&M revision",
   procedure_revisions: "procedure revision",
+  // A campaign record's Procedures: a procedure with how many revisions it has.
+  procedure_rows: "procedure",
   procedure_steps: "procedure step",
   procedures: "procedure",
   product_assessments: "product assessment",
@@ -233,6 +235,8 @@ const nouns = {
   step_result_evidence: "evidence citation",
   step_results: "step result",
   system_baseline_requests: "system baseline request",
+  // A system component with how many of its contributions say otherwise than the library does.
+  system_component_changes: "library change",
   system_component_element_links: "component element link",
   system_components: "system component",
   system_effective_baselines: "effective baseline",

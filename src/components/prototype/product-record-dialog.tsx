@@ -24,6 +24,7 @@ import { useWorkspace } from "@/components/app/workspace";
 import { useCollection } from "@/lib/collections";
 import { productRecordNoun } from "@/lib/product-records";
 import { recordTitle, type DataRecord } from "@/lib/records";
+import { currentOpener } from "./opener";
 
 export type ProductEditorState = RecordEditorState;
 export type ProductRecordFormProps = {
@@ -189,17 +190,6 @@ function FormContent({
       }}
     />
   );
-}
-
-/** The element that opened a dialog, read as the dialog first renders, before any field takes focus. */
-function currentOpener(): HTMLElement | null {
-  if (typeof document === "undefined") return null;
-  const active = document.activeElement;
-  if (!(active instanceof HTMLElement) || active === document.body) return null;
-  // A menu item goes with its menu: the menu's trigger is the control that stays.
-  if (active.closest('[role="menu"]'))
-    return document.querySelector<HTMLElement>('[aria-haspopup="menu"][aria-expanded="true"]');
-  return active;
 }
 
 /**
