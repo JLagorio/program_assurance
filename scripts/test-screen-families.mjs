@@ -545,7 +545,13 @@ try {
       const { pathname } = new URL(request.url());
       if (!pathname.startsWith("/rest/v1/")) return;
       inflight.set(request, Date.now());
-      if (opening && pathname === "/rest/v1/rpc/app_schema")
+      // Counted against the route being opened only when that page asked: the schema inspector,
+      // left as the sweep moves on, can still make its own read after the next route is named.
+      if (
+        opening &&
+        pathname === "/rest/v1/rpc/app_schema" &&
+        !readsSchema(new URL(request.frame().url()).pathname)
+      )
         schemaReads.push(`${width}px ${opening}: ${request.method()} ${request.url()}`);
     });
     for (const event of ["requestfinished", "requestfailed"])
