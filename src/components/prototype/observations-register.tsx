@@ -24,6 +24,7 @@ import { EntitySection, ModelFacts, RelationName, RevisionName } from "./record-
 import { StatusBadge } from "@/components/app/status";
 import { ProductCollection } from "./product-collection";
 import { useServerCollection, vocabularyOptions } from "./collection-question";
+import { NO_PROGRAM, useProgramOptions } from "./program-filter";
 
 /**
  * What an observation says, wherever it is previewed: what was observed, how and by whom, the
@@ -198,8 +199,8 @@ const observationRead = (programId: string | undefined) =>
     fields: {
       method: { labels: methodLabels },
       result: { labels: stepDeterminations, sort: "result_rank" },
-      // The program sorts, and is found, by its name.
-      program_id: { column: "program_name", filter: false },
+      // The program sorts, is filtered and is found by its name.
+      program_id: { column: "program_name", emptyLabel: NO_PROGRAM },
       observed_at: { filter: false },
     },
     order: [{ column: "updated_at", ascending: false }],
@@ -235,9 +236,7 @@ const observationColumns = (open: (row: ObservationRow) => void, withProgram: bo
           c.text("program_id", {
             header: "Program",
             cell: (row: ObservationRow) =>
-              row.program_name ?? (
-                <Absent label={row.program_id ? "Not available" : "Not recorded"} />
-              ),
+              row.program_name ?? <Absent label={row.program_id ? "Not available" : NO_PROGRAM} />,
           }),
         ]
       : []),
@@ -275,6 +274,7 @@ export function ObservationsRegister({
   });
   const { table } = collection;
   const displayed = useDisplayedRecords(table);
+  const programOptions = useProgramOptions({ none: true });
   // The preview reads the page's record, so a refreshed observation shows as it is now.
   const current = selected && (displayed.find((row) => row.id === selected.id) ?? selected);
   const content = (
@@ -300,6 +300,9 @@ export function ObservationsRegister({
               column="result"
               options={vocabularyOptions(stepDeterminations)}
             />
+            {!programId && (
+              <DataTable.Filter table={table} column="program_id" options={programOptions} />
+            )}
           </>
         }
       />

@@ -80,6 +80,7 @@ import {
   MissingRecord,
   QueryState,
   RecordActions,
+  RecordHeading,
   ReportFailures,
 } from "./work-common";
 
@@ -302,7 +303,12 @@ function CreateProductAssessmentDialog({
   );
 }
 
-type AssessmentLine = Row<"product_assessments"> & { name: string; baseline: string | null };
+type AssessmentLine = Row<"product_assessments"> & {
+  name: string;
+  baseline: string | null;
+  /** The assessor by name, which the column sorts, filters and searches by: never the party's id. */
+  assessor: string | null;
+};
 
 /**
  * The assessments of a product version, on its Assessment tab: each opens its own page, and a
@@ -318,6 +324,7 @@ export function ProductAssessmentsSection({
   const workspace = useWorkspace();
   const { query, assessments } = useProductAssessments(revision.id);
   const baselines = useBaselineOptions();
+  const parties = useRows("parties", undefined, { columns: ["id", "name"] });
   const [creating, setCreating] = useState(false);
   const openRecord = useOpenRecord();
   const canCreate = canAuthorLibrary(workspace.role) && revision.state === "published";
@@ -329,8 +336,10 @@ export function ProductAssessmentsSection({
         baseline:
           baselines.options.find((option) => option.value === assessment.profile_resolution_id)
             ?.label ?? null,
+        assessor:
+          parties.data?.find((party) => party.id === assessment.assessor_party_id)?.name ?? null,
       })),
-    [assessments, baselines.options],
+    [assessments, baselines.options, parties.data],
   );
   const columns = useMemo(
     () =>
@@ -348,7 +357,7 @@ export function ProductAssessmentsSection({
         }),
         c.status("state", { header: "State", width: 120, priority: 1, statuses: revisionStates }),
         c.text("baseline", { header: "Control baseline", width: 280, priority: 3 }),
-        c.person("assessor_party_id", { header: "Assessor", width: 180, priority: 4 }),
+        c.person("assessor", { header: "Assessor", width: 180, priority: 4 }),
         c.date("completed_on", { header: "Completed", priority: 2 }),
       ]),
     [],
@@ -376,7 +385,7 @@ export function ProductAssessmentsSection({
       <ProductCollection
         table={table}
         compact
-        queries={[query, ...baselines.queries]}
+        queries={[query, parties, ...baselines.queries]}
         onRowClick={(row) => openRecord("product_assessments", row)}
         searchLabel="Find product assessments"
         action={create("small")}
@@ -792,11 +801,13 @@ export function ProductAssessmentRecord({
                   </TrailLink>
                 )}
               </RecordTrail>
-              <PageHeader.Heading>
-                <PageHeader.Title>{sheet.assessment.title}</PageHeader.Title>
-              </PageHeader.Heading>
+              <RecordHeading
+                status={<StatusBadge statuses={revisionStates} value={sheet.assessment.state} />}
+              >
+                {sheet.assessment.title}
+              </RecordHeading>
               <PageHeader.Actions>
-                <RecordActions table="product_assessments" id={sheet.assessment.id}>
+                <RecordActions table="product_assessments">
                   {draft && canAuthor && (
                     <DropdownMenuItem
                       onClick={() => void publishAssessment()}

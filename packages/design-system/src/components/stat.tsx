@@ -4,7 +4,6 @@ import type { ComponentProps, ReactElement, ReactNode } from "react";
 
 import { cn } from "../lib/cn";
 import { useLedgerLocale } from "../lib/locale";
-import { Heading } from "../primitives/heading";
 import { VisuallyHidden } from "../primitives/visually-hidden";
 import { toneClasses, type Tone } from "./badge";
 import { Skeleton } from "./skeleton";
@@ -45,15 +44,14 @@ export type StatGridProps = ComponentProps<"div"> & {
 
 const isZero = (value: ReactNode) => value === 0 || value === "0";
 
-/** The figure: a Heading at `page` (24/30 semibold) as a div, since a number is not a title, with
-    tabular numerals. Zero reads muted; a tone colours a number that is a status. */
+/** The figure: `font.figure` (20/26 semibold), a step under the page title, as a div, since a
+    number is not a title, with tabular numerals. Zero reads muted; a tone colours a number that is
+    a status. */
 function Figure({ value, tone, children }: { value: ReactNode; tone: Tone; children: ReactNode }) {
   return (
-    <Heading
-      size="page"
-      as="div"
+    <div
       className={cn(
-        "tabular-nums",
+        "font-figure tabular-nums",
         isZero(value)
           ? "text-subtlest"
           : tone === "neutral"
@@ -62,7 +60,7 @@ function Figure({ value, tone, children }: { value: ReactNode; tone: Tone; child
       )}
     >
       {children}
-    </Heading>
+    </div>
   );
 }
 

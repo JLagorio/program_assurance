@@ -178,8 +178,14 @@ export function usePostureTrend(
   });
 }
 
-/** How many days a row's trend shows, a point each: a sparkline's six to twelve. */
+/** How many days a row's trend shows, a point each: a sparkline's seven to twelve. */
 export const RECENT_POSTURE_DAYS = 12;
+
+/**
+ * The fewest days a trend is drawn from: fewer are not yet a trend, and the number beside the
+ * chart or the sparkline says where the program stands today.
+ */
+export const MIN_TREND_DAYS = 7;
 
 /**
  * The named programs' last twelve days (today's and the eleven before it), read once for all of

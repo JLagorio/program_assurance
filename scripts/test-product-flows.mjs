@@ -62,8 +62,8 @@ try {
   await page.screenshot({ path: "/tmp/product-risk-dialog.png" });
   await save("Create risk");
   assert.equal((await records("risks"))[0].title, "Supply dependency review");
-  await page.getByRole("button", { name: "Actions", exact: true }).click();
-  await page.getByRole("menuitem", { name: "Edit risk", exact: true }).click();
+  // The record's edit is its header's one primary.
+  await page.getByRole("button", { name: "Edit risk", exact: true }).click();
   await page
     .getByRole("dialog")
     .getByRole("textbox", { name: "Title", exact: true })

@@ -35,7 +35,13 @@ import { ProductRecordDialog } from "./product-record-dialog";
 import { RecordLink, useDisplayedRecords, useOpenRecord } from "./record-preview";
 import { RecordSummaryPreview } from "./record-summary-preview";
 import { RecordTrail, TrailLink } from "./record-trail";
-import { EmptyMessage, MissingRecord, QueryState, RecordActions } from "./work-common";
+import {
+  EmptyMessage,
+  MissingRecord,
+  QueryState,
+  RecordActions,
+  RecordHeading,
+} from "./work-common";
 
 /** A definition with what its versions say: the latest version and state, the published text. */
 type LibraryRow = Row<"requirement_definitions"> & {
@@ -410,14 +416,18 @@ export function RequirementLibraryRecord({
           <RecordTrail current={record.title}>
             <TrailLink to="/library/requirements">Requirements</TrailLink>
           </RecordTrail>
-          <PageHeader.Heading>
-            <PageHeader.Title>{record.title}</PageHeader.Title>
-          </PageHeader.Heading>
+          {/* The state of the version the page reads, as its Details say it. */}
+          <RecordHeading
+            status={
+              current ? <StatusBadge statuses={revisionStates} value={current.state} /> : undefined
+            }
+          >
+            {record.title}
+          </RecordHeading>
           <PageHeader.Actions>
-            {/* Every library record's one menu: a viewer keeps Inspect record alone. */}
+            {/* The edit is the primary; a reader who authors nothing here sees no menu. */}
             <RecordActions
               table="requirement_definitions"
-              id={record.id}
               editLabel="Edit requirement"
               {...(editable
                 ? {

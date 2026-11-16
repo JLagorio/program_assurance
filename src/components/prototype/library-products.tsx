@@ -77,6 +77,7 @@ import {
   MissingRecord,
   QueryState,
   RecordActions,
+  RecordHeading,
   ReportFailures,
 } from "./work-common";
 
@@ -491,14 +492,18 @@ export function ProductLibraryRecord({
         <RecordTrail current={product.data.name}>
           <TrailLink to="/library/products">Products</TrailLink>
         </RecordTrail>
-        <PageHeader.Heading>
-          <PageHeader.Title>{product.data.name}</PageHeader.Title>
-        </PageHeader.Heading>
+        {/* The state of the version the page reads, as its Details say it. */}
+        <RecordHeading
+          status={
+            current ? <StatusBadge statuses={revisionStates} value={current.state} /> : undefined
+          }
+        >
+          {product.data.name}
+        </RecordHeading>
         <PageHeader.Actions>
-          {/* Every library record's one menu: a viewer keeps Inspect record alone. */}
+          {/* The edit is the primary; a reader who authors nothing here sees no menu. */}
           <RecordActions
             table="products"
-            id={product.data.id}
             editLabel="Edit product"
             {...(editable ? { onEdit: () => setEditProduct(true) } : {})}
           >

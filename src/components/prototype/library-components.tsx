@@ -59,6 +59,7 @@ import {
   MissingRecord,
   QueryState,
   RecordActions,
+  RecordHeading,
   ReportFailures,
 } from "./work-common";
 
@@ -415,14 +416,18 @@ export function ComponentLibraryRecord({
         <RecordTrail current={record.name}>
           <TrailLink to="/library/components">Components</TrailLink>
         </RecordTrail>
-        <PageHeader.Heading>
-          <PageHeader.Title>{record.name}</PageHeader.Title>
-        </PageHeader.Heading>
+        {/* The state of the version the page reads, as its Details say it. */}
+        <RecordHeading
+          status={
+            current ? <StatusBadge statuses={revisionStates} value={current.state} /> : undefined
+          }
+        >
+          {record.name}
+        </RecordHeading>
         <PageHeader.Actions>
-          {/* Every library record's one menu: a viewer keeps Inspect record alone. */}
+          {/* The edit is the primary; a reader who authors nothing here sees no menu. */}
           <RecordActions
             table="component_definitions"
-            id={record.id}
             editLabel="Edit component"
             {...(editable
               ? {

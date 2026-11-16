@@ -57,6 +57,17 @@ export function useRecordTitle(type: string, name: string | null | undefined) {
   useBrowserTitle(trimmed ? [trimmed, type] : null);
 }
 
+/**
+ * A record's focused view once its record loads: `useViewTitle("Posture", program?.name)` reads
+ * "Posture — Atlas ground segment — Program Assurance". The view comes first, as the
+ * page's h1 names it. While the record loads, and when it is missing, the route's title ("Posture —
+ * Program Assurance") stands.
+ */
+export function useViewTitle(view: string, name: string | null | undefined) {
+  const trimmed = name?.trim();
+  useBrowserTitle(trimmed ? [view, trimmed] : null);
+}
+
 /** The title a screen has set, or null for the route's own; the server always has none. */
 export function useScreenTitle(): string | null {
   return useSyncExternalStore(

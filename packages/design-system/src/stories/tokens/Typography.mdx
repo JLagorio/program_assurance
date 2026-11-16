@@ -36,13 +36,13 @@ The bundler copies the font files with the rest of the build, so the page needs 
 
 ## Scale
 
-`font.body` is the UI size. The heading ramp is the four titles the kit draws, each a Heading `size` of the same name; weight 600 marks a title (a page's, a record's, a section's, a panel's) and a Stat's figure, never running text.
+`font.body` is the UI size. The heading ramp is the four titles the kit draws, each a Heading `size` of the same name; weight 600 marks a title (a page's, a record's, a section's, a panel's, a card's) and a figure, never running text.
 
 | Token | Utility | Size | Weight | Use |
 | --- | --- | --- | --- | --- |
 | `font.heading.display` | `font-heading-display` | 32/40 | semibold | Heading `display`: a figure bigger than a Stat's, the one title of a screen with nothing else (sign-in). Not a page or record title. |
-| `font.heading.page` | `font-heading-page` | 24/30 | semibold | Heading `page`: the page and record title (PageHeader.Title, on a page and as a preview's record name) and a Stat's figure. |
-| `font.heading.overlay` | `font-heading-overlay` | 17/24 | semibold | Heading `overlay`: an overlay's title (DialogTitle, SheetTitle, AlertDialogTitle, DrawerTitle), a card's title, a group inside an overlay. |
+| `font.heading.page` | `font-heading-page` | 24/30 | semibold | Heading `page`: the page and record title (PageHeader.Title, on a page and as a preview's record name). |
+| `font.heading.overlay` | `font-heading-overlay` | 17/24 | semibold | Heading `overlay`: an overlay's title (DialogTitle, SheetTitle, AlertDialogTitle, DrawerTitle), a group inside an overlay. |
 | `font.heading.section` | `font-heading-section` | 15/22 | semibold | Heading `section`: a section's title (Section.Title), a step above the body at semibold. |
 | `font.heading.xxsmall` | `font-heading-xxsmall` | 11/14 | medium | Eyebrows, group headings, menu section labels. The component adds the uppercase. |
 | `font.figure` | `font-figure` | 20/26 | semibold | A figure that stands for its row: the count in a table cell or a card read first (234 to assess). Not a title. Add `tabular-nums` beside it. |

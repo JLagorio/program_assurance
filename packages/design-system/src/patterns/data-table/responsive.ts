@@ -14,6 +14,11 @@ export type ResponsiveColumn = {
    * then its least. With no flexible column drawn, the identity takes the spare width.
    */
   flexible?: boolean | undefined;
+  /**
+   * The column goes into each row's More fields whatever the width (DataTable's `fold`), and the
+   * width it held goes to the identity. The identity and the row's actions never fold.
+   */
+  folded?: boolean | undefined;
 };
 
 /** What ranks a column: its `priority`, and whether it is the row's actions. */
@@ -44,15 +49,45 @@ export const identityOf = <T extends Ranked>(columns: readonly T[]): T | undefin
  * columns stay in the row in priority order, and the first that does not fit folds with every
  * column after it, so a lower-priority column never outlasts a higher one. The spare width goes to
  * the flexible columns drawn (`flexible`, which the renderer shares out); with none, it goes to the
- * identity, in `widths`.
+ * identity, in `widths`. A `folded` column then leaves the row for its More fields, and the width
+ * it held goes to the identity: no other column comes or goes because it folded.
  */
 export function fitColumns(columns: readonly ResponsiveColumn[], available: number, leading = 0) {
+  const fitted = fitByPriority(columns, available, leading);
+  const identity = fitted.identity;
+  const folded = columns.filter(
+    (column) =>
+      column.folded && !column.action && column.id !== identity && fitted.ids.has(column.id),
+  );
+  if (!identity || folded.length === 0) return fitted;
+  const ids = new Set([...fitted.ids].filter((id) => !folded.some((column) => column.id === id)));
+  const widths = new Map(fitted.widths);
+  // The width the folded columns held, less the More fields control's where the row had none.
+  const freed =
+    folded.reduce((sum, column) => sum + (fitted.widths.get(column.id) ?? column.width), 0) -
+    (fitted.collapsed ? 0 : 32);
+  widths.set(identity, Math.max(1, (widths.get(identity) ?? 0) + freed));
+  return {
+    ...fitted,
+    ids,
+    widths,
+    collapsed: true,
+    flexible: fitted.flexible.filter((id) => ids.has(id)),
+  };
+}
+
+/** The fit by width and priority alone, before any column the author folds leaves the row. */
+function fitByPriority(columns: readonly ResponsiveColumn[], available: number, leading: number) {
   const widths = new Map(columns.map((column) => [column.id, column.width]));
   const ids = new Set(columns.map((column) => column.id));
   const ordered = rankColumns(columns);
   const identity = ordered[0];
+  // The identity, where it is flexible, is the last of them: the renderer draws the last without a
+  // width, so the name takes the spare width and the others keep their least (`shareSlack`).
   const flexibleOf = (drawn: ReadonlySet<string>) =>
-    columns.filter((column) => column.flexible && !column.action && drawn.has(column.id));
+    columns
+      .filter((column) => column.flexible && !column.action && drawn.has(column.id))
+      .sort((a, b) => Number(a.id === identity?.id) - Number(b.id === identity?.id));
   const total = columns.reduce((sum, column) => sum + column.width, leading);
   if (available <= 0 || total <= available) {
     const flexible = flexibleOf(ids);
@@ -102,16 +137,20 @@ export function fitColumns(columns: readonly ResponsiveColumn[], available: numb
 }
 
 /**
- * The widths of the flexible columns in a frame: each its least width and a share of what the
- * other drawn columns leave, in proportion to that least width. The renderer leaves the last one
- * without a width, so it also takes any rounding.
+ * The widths of the flexible columns in a frame. Where the identity is one of them, it takes what
+ * the other drawn columns leave and the others keep their least width: names take the flexible
+ * width. Otherwise each takes its least width and a share of what is left, in proportion to that
+ * least width. The renderer leaves the last one without a width, so it also takes any rounding.
  */
 export function shareSlack(
-  layout: Pick<ReturnType<typeof fitColumns>, "ids" | "widths" | "collapsed" | "flexible">,
+  layout: Pick<ReturnType<typeof fitColumns>, "ids" | "widths" | "collapsed" | "flexible"> & {
+    identity?: string | undefined;
+  },
   frame: number,
   leading = 0,
 ): Map<string, number> {
   const flexible = layout.flexible;
+  const named = layout.identity !== undefined && flexible.includes(layout.identity);
   const shares = new Map<string, number>();
   const least = flexible.reduce((sum, id) => sum + (layout.widths.get(id) ?? 0), 0);
   const fixed = [...layout.ids]
@@ -120,6 +159,10 @@ export function shareSlack(
   const slack = Math.max(0, frame - fixed - least);
   for (const id of flexible) {
     const width = layout.widths.get(id) ?? 0;
+    if (named) {
+      shares.set(id, id === layout.identity ? Math.floor(width + slack) : width);
+      continue;
+    }
     shares.set(
       id,
       Math.floor(width + (least > 0 ? (slack * width) / least : slack / flexible.length)),

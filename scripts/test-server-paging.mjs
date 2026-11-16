@@ -70,6 +70,26 @@ function expectPagedReads(source) {
     assert.ok(limit > 0 && limit <= PAGE, `${source} reads one page at a time: ${url.search}`);
   }
 }
+/**
+ * A column the question leaves one value on every row of the page folds into each row's More
+ * fields, its width going to the name: its header is gone, and the first row's More fields say it.
+ */
+async function foldedValue(table, header, value) {
+  await expect(
+    table
+      .getByRole("columnheader")
+      .filter({ has: page.getByRole("button", { name: header, exact: true }) }),
+  ).toHaveCount(0);
+  const more = table
+    .locator("tbody tr[data-row-id]")
+    .first()
+    .locator('[data-slot="data-table-more-fields"]');
+  await more.click();
+  const fields = page.locator(`[id="${await more.getAttribute("aria-controls")}"]`);
+  await expect(fields).toContainText(header);
+  await expect(fields).toContainText(value);
+  await more.click();
+}
 /** A register reached with no question asks the one this tab last asked: start from none. */
 async function fresh(path) {
   await page.evaluate(() => sessionStorage.clear());
@@ -634,13 +654,18 @@ try {
   await page.getByRole("checkbox", { name: "Technical", exact: true }).click();
   await page.keyboard.press("Escape");
   await expect(range(cciLabel)).toContainText(`of ${number(technical)}`);
-  const types = await cciTable
-    .locator("tbody tr[data-row-id]")
-    .evaluateAll((elements) => elements.map((row) => row.textContent ?? ""));
+  // Every row shown is technical, so the Type column says one thing and folds.
+  const shownTypes = await data(
+    client
+      .from("cci_item_rows")
+      .select("id,types")
+      .in("id", await rowIds(cciTable)),
+  );
   assert.ok(
-    types.every((text) => text.includes("Technical")),
+    shownTypes.length === PAGE && shownTypes.every((row) => row.types.includes("technical")),
     "Every row is a technical CCI",
   );
+  await foldedValue(cciTable, "Type", "Technical");
   await expect.poll(() => question().get("live-catalog-ccis.filters")).toContain("technical");
   console.log(`PASS CCIs filter by type on the server (${technical} technical)`);
 
@@ -793,21 +818,20 @@ try {
   await page.getByRole("checkbox", { name: "No published profile", exact: true }).click();
   await page.keyboard.press("Escape");
   await expect(range(controlLabel)).toContainText(`of ${number(unselected)}`);
-  await expect(controlTable.locator("tbody tr[data-row-id]").first()).toContainText(
-    "No published profile",
-  );
+  await foldedValue(controlTable, "Selected by", "No published profile");
   console.log(`PASS Controls filter by a derived column on the server (${unselected} unselected)`);
 
   await fresh(`/catalog?edition=${edition.id}`);
   await expect(rows(controlTable)).toHaveCount(Math.min(PAGE, controlTotal));
   if (controlTotal > PAGE) {
     await eye(controlTable, controls[PAGE - 1].id).click();
+    // A control's preview is titled by its code and its title together.
     await expect(status()).toHaveText(
-      `${controls[PAGE - 1].title}, ${PAGE} of ${number(controlTotal)} records`,
+      `${controls[PAGE - 1].code} ${controls[PAGE - 1].title}, ${PAGE} of ${number(controlTotal)} records`,
     );
     await step("Next record").click();
     await expect(status()).toHaveText(
-      `${controls[PAGE].title}, ${PAGE + 1} of ${number(controlTotal)} records`,
+      `${controls[PAGE].code} ${controls[PAGE].title}, ${PAGE + 1} of ${number(controlTotal)} records`,
     );
     await expect(eye(controlTable, controls[PAGE].id)).toHaveAttribute("aria-pressed", "true");
     await escapePreview();
@@ -883,13 +907,8 @@ try {
   await page.getByRole("checkbox", { name: "Unallocated", exact: true }).click();
   await page.keyboard.press("Escape");
   await expect(range(requirementLabel)).toContainText(`of ${number(unallocated)}`);
-  const allocations = await rows(requirementTable).evaluateAll((elements) =>
-    elements.map((row) => row.textContent ?? ""),
-  );
-  assert.ok(
-    allocations.every((text) => text.includes("Unallocated")),
-    "Every requirement shown is unallocated",
-  );
+  // Every requirement shown is unallocated, so the Allocation column says one thing and folds.
+  await foldedValue(requirementTable, "Allocated to", "Unallocated");
   await expect
     .poll(() => question().get(`${requirementQuestion}.filters`))
     .toContain("Unallocated");
@@ -1360,9 +1379,10 @@ try {
     `1–${PAGE} of ${number(observations.length)}`,
   );
   expectPagedReads("observation_rows");
+  // The programs are read for their names alone, the Program filter's values.
   expectNoBaseReads(
-    ["observations", "step_results", "programs"],
-    "The register reads its view, not the observations, their step results and programs",
+    ["observations", "step_results"],
+    "The register reads its view, not the observations and their step results",
   );
   console.log(`PASS Observations read one page with the whole count (${observations.length})`);
 

@@ -51,6 +51,7 @@ import {
   useServerPresetCounts,
   vocabularyOptions,
 } from "./collection-question";
+import { NO_PROGRAM, useProgramOptions } from "./program-filter";
 import { MoreHorizontal, Plus } from "lucide-react";
 import { useRow, useRows, type Row, type TableName } from "@/lib/models";
 import { labelFor, type DataRecord } from "@/lib/records";
@@ -76,6 +77,7 @@ import {
   ModelForm,
   QueryState,
   RecordActions,
+  RecordHeading,
   type FormTarget,
 } from "./work-common";
 
@@ -122,7 +124,8 @@ const evidenceColumns = (inProgram: boolean) =>
           c.text("program", {
             header: "Program",
             width: 170,
-            cell: (row) => row.program ?? <Absent label={missing(row.program_id)} />,
+            cell: (row) =>
+              row.program ?? <Absent label={row.program_id ? "Not available" : NO_PROGRAM} />,
           }),
         ]),
     c.text("kind", { header: "Kind", width: 120, cell: (row) => labelFor(row.kind) }),
@@ -234,7 +237,8 @@ const evidenceRead = (programId: string | undefined) =>
     scope: programId ? { program_id: programId } : {},
     search: ["title", "program_name", "owner_name"],
     fields: {
-      program: { column: "program_name", filter: false },
+      // The program sorts, is filtered and is found by its name.
+      program: { column: "program_name", emptyLabel: NO_PROGRAM },
       kind: { column: "artifact_kind", labels: kindLabels },
       owner: ownerField,
       version: { column: "latest_version_number", filter: false },
@@ -413,6 +417,7 @@ function EvidenceRegister({
     result: useServerResult(read),
   });
   const ownerOptions = useOwnerOptions(read, "owner");
+  const programOptions = useProgramOptions({ none: true });
   const displayed = useDisplayedRecords(table);
   const onPage = displayed.find((row) => row.id === selectedId);
   const kept = held?.id === selectedId ? held : undefined;
@@ -467,6 +472,9 @@ function EvidenceRegister({
               options={vocabularyOptions(latestReviewStatuses)}
             />
             <DataTable.Filter table={table} column="kind" options={kindOptions} />
+            {!programId && (
+              <DataTable.Filter table={table} column="program" options={programOptions} />
+            )}
             <DataTable.Filter table={table} column="owner" options={ownerOptions} />
           </>
         }
@@ -789,13 +797,19 @@ export function EvidenceRecord({
               <RecordTrail current={artifact.title}>
                 <TrailLink to="/evidence">Evidence</TrailLink>
               </RecordTrail>
-              <PageHeader.Heading>
-                <PageHeader.Title>{artifact.title}</PageHeader.Title>
-              </PageHeader.Heading>
+              {/* Its latest review, as the Details say it, once the trace has read it. */}
+              <RecordHeading
+                status={
+                  latest ? (
+                    <StatusBadge statuses={latestReviewStatuses} value={latest.review} />
+                  ) : undefined
+                }
+              >
+                {artifact.title}
+              </RecordHeading>
               <PageHeader.Actions>
                 <RecordActions
                   table="evidence_artifacts"
-                  id={id}
                   onEdit={() =>
                     setForm({ table: "evidence_artifacts", existing: artifact as DataRecord })
                   }

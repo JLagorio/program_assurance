@@ -45,7 +45,13 @@ import {
   type DisplayColumn,
 } from "./record-tools";
 import { RecordTrail, TrailLink } from "./record-trail";
-import { DetailFacts, MissingRecord, QueryState, RecordActions } from "./work-common";
+import {
+  DetailFacts,
+  MissingRecord,
+  QueryState,
+  RecordActions,
+  RecordHeading,
+} from "./work-common";
 
 /*
  * Business lines: the level above products (Air Defense holds the X800 Missile), which a program
@@ -419,13 +425,14 @@ export function BusinessLineRecord({ lineId }: { lineId: string }) {
               <RecordTrail current={line.name}>
                 <TrailLink to="/library/business-lines">Business lines</TrailLink>
               </RecordTrail>
-              <PageHeader.Heading>
-                <PageHeader.Title>{line.name}</PageHeader.Title>
-              </PageHeader.Heading>
+              <RecordHeading
+                status={<StatusBadge statuses={recordLifecycleStates} value={line.state} />}
+              >
+                {line.name}
+              </RecordHeading>
               <PageHeader.Actions>
                 <RecordActions
                   table="business_lines"
-                  id={line.id}
                   editLabel="Edit business line"
                   onEdit={() => {
                     if (!editing) setEditing(true);

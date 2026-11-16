@@ -9,9 +9,10 @@ import {
 import { ProductCollection } from "./product-collection";
 import { useOwnerAssignment, useOwnerOptions } from "./assign-owner";
 import { useServerCollection, vocabularyOptions } from "./collection-question";
+import { useProgramNames, useProgramOptions } from "./program-filter";
 import { RecordSummaryPreview, type RecordSummaryField } from "./record-summary-preview";
 import { LibrarySelect } from "./library-shared";
-import { DueDate, EmptyMessage, MissingRecord, RecordActions } from "./work-common";
+import { DueDate, EmptyMessage, MissingRecord, RecordActions, RecordHeading } from "./work-common";
 import { useMemo, useRef, useState, type ReactNode } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import {
@@ -254,8 +255,8 @@ const riskRead = serverRead({
   ],
   search: ["title", "program_name", "owner_name"],
   fields: {
-    // The program and the owner sort, and are found, by their names.
-    program_id: { column: "program_name", filter: false },
+    // The program and the owner sort, are filtered and are found by their names.
+    program_id: { column: "program_name" },
     owner_party_id: ownerField,
     status: { labels: riskStatuses, sort: "status_rank" },
     severity: { labels: severityLevels, sort: "severity_rank" },
@@ -378,6 +379,7 @@ export function RiskList({ headingScope = "page" }: { headingScope?: "page" | "s
     result: readResult,
   });
   const ownerOptions = useOwnerOptions(riskRead);
+  const programOptions = useProgramOptions();
   const [exporting, setExporting] = useState(false);
   /** Every risk the question leaves, across its pages, as the register shows them. */
   const exportRisks = () => {
@@ -459,6 +461,7 @@ export function RiskList({ headingScope = "page" }: { headingScope?: "page" | "s
               column="impact"
               options={vocabularyOptions(riskLevels)}
             />
+            <DataTable.Filter table={table} column="program_id" options={programOptions} />
             <DataTable.Filter table={table} column="owner_party_id" options={ownerOptions} />
           </>
         }
@@ -535,13 +538,12 @@ export function RiskRecord({
           <>
             <PageHeader>
               <RegisterTrail current={record.title} tab="risks" />
-              <PageHeader.Heading>
-                <PageHeader.Title>{record.title}</PageHeader.Title>
-              </PageHeader.Heading>
+              <RecordHeading status={<StatusBadge statuses={riskStatuses} value={record.status} />}>
+                {record.title}
+              </RecordHeading>
               <PageHeader.Actions>
                 <RecordActions
                   table="risks"
-                  id={id}
                   onEdit={() => setEditing(record as DataRecord)}
                   editLabel="Edit risk"
                 />
@@ -993,6 +995,28 @@ export function Register({
     if (onTabChange) onTabChange(next);
     else setLocalTab(next);
   };
+  // The registers hold every program's items and plans: each names its program, by which it
+  // sorts, searches and filters. A remediation item's program is its POA&M plan's.
+  const programs = useProgramNames();
+  const plans = useRows("poam_documents", {}, { columns: ["id", "program_id"] });
+  const programColumns = useMemo(() => {
+    const programOf = (id: unknown) => (typeof id === "string" ? programs.names.get(id) : null);
+    const planProgram = (row: DataRecord) =>
+      programOf(plans.data?.find((plan) => plan.id === row["poam_document_id"])?.program_id);
+    const column = (value: (row: DataRecord) => string | null | undefined): DisplayColumn => ({
+      key: "program",
+      label: "Program",
+      width: 200,
+      priority: 3,
+      filter: true,
+      value: (row) => value(row) ?? null,
+      render: (row) => value(row) ?? <Absent label="Not available" />,
+    });
+    return {
+      items: column(planProgram),
+      plans: column((row) => programOf(row["program_id"])),
+    };
+  }, [programs.names, plans.data]);
   return (
     <Page>
       <PageHeader>
@@ -1017,9 +1041,11 @@ export function Register({
                   fill
                   table="poam_items"
                   title="Remediation items"
+                  queries={[programs.query, plans]}
                   columns={[
                     { key: "title" },
                     status,
+                    programColumns.items,
                     party(),
                     {
                       key: "poam_document_id",
@@ -1041,9 +1067,10 @@ export function Register({
                   fill
                   table="poam_documents"
                   title="POA&M plans"
+                  queries={[programs.query]}
                   columns={[
                     { key: "title" },
-                    program,
+                    programColumns.plans,
                     {
                       key: "scope_id",
                       render: (row) => (
@@ -1081,13 +1108,14 @@ export function PoamRecord({ id }: { id: string }) {
           <>
             <PageHeader>
               <RegisterTrail current={record.title} tab="poam" />
-              <PageHeader.Heading>
-                <PageHeader.Title>{record.title}</PageHeader.Title>
-              </PageHeader.Heading>
+              <RecordHeading
+                status={<StatusBadge statuses={remediationStatuses} value={record.status} />}
+              >
+                {record.title}
+              </RecordHeading>
               <PageHeader.Actions>
                 <RecordActions
                   table="poam_items"
-                  id={id}
                   onEdit={() => setEditing(record as DataRecord)}
                   editLabel="Edit remediation item"
                 />
@@ -1322,15 +1350,10 @@ export function PoamDocument({ id }: { id: string }) {
           <>
             <PageHeader>
               <RegisterTrail current={query.data.title} tab="documents" />
-              <PageHeader.Heading>
-                <PageHeader.Title>{query.data.title}</PageHeader.Title>
-              </PageHeader.Heading>
+              {/* A POA&M plan records no status of its own: its name alone. */}
+              <RecordHeading>{query.data.title}</RecordHeading>
               <PageHeader.Actions>
-                <RecordActions
-                  table="poam_documents"
-                  id={id}
-                  onEdit={() => setEditingDocument(true)}
-                />
+                <RecordActions table="poam_documents" onEdit={() => setEditingDocument(true)} />
               </PageHeader.Actions>
             </PageHeader>
             {editingDocument && (

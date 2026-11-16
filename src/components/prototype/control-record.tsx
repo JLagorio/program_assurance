@@ -24,7 +24,7 @@ import { parameterReadings, useProgramControlParameters } from "@/lib/control-pa
 import { useProgramControlStatus } from "@/lib/control-status";
 import { idSet, useRow, useRows, type Row } from "@/lib/models";
 import { useParameterChoices } from "@/lib/parameter-reads";
-import { objectiveWords } from "@/lib/product-records";
+import { controlName, objectiveWords } from "@/lib/product-records";
 import { controlPublicationStatuses, controlStatuses } from "@/lib/status";
 import { TraceBand } from "./assurance-trace";
 import { ControlResiliency } from "./control-resiliency";
@@ -39,6 +39,7 @@ import {
   MissingRecord,
   QueryState,
   RecordActions,
+  RecordHeading,
   ReportFailures,
 } from "./work-common";
 
@@ -451,7 +452,7 @@ export function CatalogControlRecord({ id }: { id: string }) {
         {control ? (
           <>
             <PageHeader>
-              <RecordTrail current={control.title}>
+              <RecordTrail current={controlName(control)}>
                 <TrailLink to="/catalog">Catalog</TrailLink>
                 <TrailLink to="/catalog" search={{ edition: control.catalog_revision_id }}>
                   Controls
@@ -465,13 +466,15 @@ export function CatalogControlRecord({ id }: { id: string }) {
                   </TrailLink>
                 )}
               </RecordTrail>
-              <PageHeader.Heading>
-                <PageHeader.Title>{control.title}</PageHeader.Title>
-              </PageHeader.Heading>
-              <PageHeader.Actions>
-                {/* A catalog control is shared reference data: nobody in the workspace edits it. */}
-                <RecordActions table="controls" id={id} readOnly />
-              </PageHeader.Actions>
+              {/* A catalog control is shared reference data: nobody in the workspace edits it, so
+                  its header holds no action. */}
+              <RecordHeading
+                status={
+                  <StatusBadge statuses={controlPublicationStatuses} value={control.status} />
+                }
+              >
+                {controlName(control)}
+              </RecordHeading>
             </PageHeader>
             <AsideLayout aside={<ControlDetails control={control} />}>
               <Stack space="space.300" className="min-w-0">
@@ -514,7 +517,7 @@ export function ProgramControl({ programId, controlId }: { programId: string; co
         {control && program.data ? (
           <>
             <PageHeader>
-              <RecordTrail current={control.title}>
+              <RecordTrail current={controlName(control)}>
                 <TrailLink to="/programs">Programs</TrailLink>
                 <TrailLink to="/programs/$programId" params={{ programId }}>
                   {`${program.data.code} · ${program.data.name}`}
@@ -527,11 +530,17 @@ export function ProgramControl({ programId, controlId }: { programId: string; co
                   Controls
                 </TrailLink>
               </RecordTrail>
-              <PageHeader.Heading>
-                <PageHeader.Title>{control.title}</PageHeader.Title>
-              </PageHeader.Heading>
+              <RecordHeading
+                status={
+                  standing ? (
+                    <StatusBadge statuses={controlStatuses} value={standing.status} />
+                  ) : undefined
+                }
+              >
+                {controlName(control)}
+              </RecordHeading>
               <PageHeader.Actions>
-                <RecordActions table="controls" id={controlId} readOnly>
+                <RecordActions table="controls" readOnly>
                   <DropdownMenuLinkItem
                     closeOnClick
                     render={<Link to="/catalog/controls/$controlId" params={{ controlId }} />}

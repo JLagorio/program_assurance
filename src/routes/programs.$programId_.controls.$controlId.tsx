@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { RecordPending } from "@/components/app/shell";
 import { useRecordTitle } from "@/components/app/browser-title";
 import { useRow } from "@/lib/models";
+import { controlName } from "@/lib/product-records";
 import { ProgramControl } from "@/components/prototype/control-record";
 import { ProgramControlRecord } from "@/components/prototype/program-record";
 export const Route = createFileRoute("/programs/$programId_/controls/$controlId")({
@@ -21,7 +22,9 @@ function ProgramRecord() {
   const control = useRow("controls", catalog ? controlId : selected.data?.control_id);
   useRecordTitle(
     "Program control",
-    catalog || system.data?.program_id === programId ? control.data?.title : null,
+    (catalog || system.data?.program_id === programId) && control.data
+      ? controlName(control.data)
+      : null,
   );
   return catalog ? (
     <ProgramControl programId={programId} controlId={controlId} />

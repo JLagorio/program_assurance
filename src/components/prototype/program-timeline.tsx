@@ -16,10 +16,15 @@ import {
   type StepState,
 } from "@ledger/design-system";
 import { Check, CircleDashed, Clock3, Minus, TriangleAlert, X } from "lucide-react";
-import { lifecycleGateDate, programTimeline, type LifecycleGate } from "@/lib/program-timeline";
+import {
+  lifecycleGateDate,
+  lifecycleGateDue,
+  programTimeline,
+  type LifecycleGate,
+} from "@/lib/program-timeline";
 import { lifecycleGateStatuses, statusLabel } from "@/lib/status";
 import { StatusBadge } from "@/components/app/status";
-import { EmptyMessage } from "./work-common";
+import { DueDate, EmptyMessage } from "./work-common";
 import { ProgramRecordDialog } from "./program-shared";
 import { useEndOnHide } from "./record-preview";
 
@@ -32,10 +37,19 @@ function gateIcon(status: string) {
   return <CircleDashed aria-hidden />;
 }
 
-/** When a gate falls due or was decided, in the reader's words; the preview holds the full value. */
+/**
+ * When a gate falls due or was decided, in the reader's words; the preview holds the full value. A
+ * gate still to decide says where its due day stands (overdue, due today, due soon), as a DueDate.
+ */
 function gateTime(gate: LifecycleGate) {
   const date = lifecycleGateDate(gate);
   if (!date) return "Date not set";
+  if (date.label === "Due")
+    return (
+      <>
+        Due <DueDate value={gate.due_on} {...lifecycleGateDue(gate)} />
+      </>
+    );
   return (
     <>
       {date.label} <DateTime value={date.value} format="date" focusable={false} />

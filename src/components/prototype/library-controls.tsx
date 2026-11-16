@@ -9,6 +9,7 @@ import {
 } from "@/lib/control-parameters";
 import { idSet, useRow, useRows, type Row } from "@/lib/models";
 import { useParameterChoices } from "@/lib/parameter-reads";
+import { controlName } from "@/lib/product-records";
 import { labelFor } from "@/lib/records";
 import { controlPublicationStatuses } from "@/lib/status";
 import {
@@ -651,7 +652,7 @@ export function ControlInspector<C extends ControlSummary>({
     locale.formatPlural(count, { one: "{count} profile", other: "{count} profiles" });
   return (
     <RecordPreviewPanel
-      title={control.title}
+      title={controlName(control)}
       label={task ?? "Control preview"}
       defaultWidth={640}
       onClose={onClose}

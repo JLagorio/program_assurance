@@ -9,6 +9,18 @@ export function lifecycleGateDate(gate: Pick<GateOrder, "due_on" | "decided_at">
   return null;
 }
 
+/**
+ * Whether a gate's due day still stands, as DueDate takes it: a decided gate (completed, passed,
+ * failed, or with a decision recorded) is done, so its day reads plainly, and a waived gate's day
+ * has no state at all.
+ */
+export function lifecycleGateDue(gate: Pick<LifecycleGate, "status" | "decided_at">) {
+  return {
+    done: ["completed", "passed", "failed"].includes(gate.status) || !!gate.decided_at,
+    cancelled: gate.status === "waived",
+  };
+}
+
 /** An explicit workflow order and a date schedule are different sources of order. */
 export function programTimeline<T extends GateOrder>(gates: readonly T[]) {
   const sequenced: T[] = [];

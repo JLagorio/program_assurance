@@ -12,10 +12,12 @@ export function typeOf(element: Element) {
   };
 }
 
-/** The ramp's four styles as they render at the browser's default text size. */
+/** The ramp's four styles, and a Stat's figure, as they render at the browser's default text size. */
 export const ramp = {
   display: { size: "32px", lineHeight: "40px", weight: "600", tracking: -0.64 },
   page: { size: "24px", lineHeight: "30px", weight: "600", tracking: -0.36 },
   overlay: { size: "17px", lineHeight: "24px", weight: "600", tracking: -0.255 },
   section: { size: "15px", lineHeight: "22px", weight: "600", tracking: -0.225 },
+  /** Not a title: `font.figure`, a Stat's number. */
+  figure: { size: "20px", lineHeight: "26px", weight: "600", tracking: -0.3 },
 } as const;

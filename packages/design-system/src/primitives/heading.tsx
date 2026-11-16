@@ -60,7 +60,7 @@ export type HeadingProps = {
   as?: HeadingElement | undefined;
   ref?: Ref<HTMLElement> | undefined;
   children?: ReactNode | undefined;
-  /** The title it matches: `page` (font.heading.page, 24/30 semibold: the page and record title, and a Stat's figure as a div) · `overlay` (font.heading.overlay, 17/24 semibold: an overlay's title, a card's title, a group inside an overlay) · `section` (font.heading.section, 15/22 semibold: a section's title) · `display` (font.heading.display, 32/40 semibold: a figure bigger than a Stat's, or the sign-in screen's title). `large`, `medium`, `small` and `xsmall` are deprecated. */
+  /** The title it matches: `page` (font.heading.page, 24/30 semibold: the page and record title) · `overlay` (font.heading.overlay, 17/24 semibold: an overlay's title, a group inside an overlay) · `section` (font.heading.section, 15/22 semibold: a section's title) · `display` (font.heading.display, 32/40 semibold: a figure bigger than a Stat's, or the sign-in screen's title). `large`, `medium`, `small` and `xsmall` are deprecated. */
   size: HeadingSize;
   /** `color.text` by default; `color.text.inverse` on a bold fill, which a Box with a bold background sets for you. A tone is not a heading colour. */
   color?: HeadingColorToken | undefined;

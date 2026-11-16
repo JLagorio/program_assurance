@@ -594,7 +594,7 @@ function DecisionTable({
       />
       {selected && (
         <RecordPreviewPanel
-          title={selected.title}
+          title={`${selected.code} ${selected.title}`}
           label="Tailoring decision preview"
           onClose={() => setSelected(null)}
           navigation={

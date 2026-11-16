@@ -5377,7 +5377,7 @@
             "unit": "px"
           }
         },
-        "$description": "Heading `page`: the page and record title, which PageHeader.Title draws on a page and as a preview's record name, and a Stat's figure.",
+        "$description": "Heading `page`: the page and record title, which PageHeader.Title draws on a page and as a preview's record name.",
         "$extensions": {
           "org.ledger.css": {
             "sourceLineHeight": "1.875rem",
@@ -5400,7 +5400,7 @@
             "unit": "px"
           }
         },
-        "$description": "Heading `overlay`: an overlay's title, which DialogTitle, SheetTitle, AlertDialogTitle and DrawerTitle draw; a card's title and a group heading inside an overlay take it too.",
+        "$description": "Heading `overlay`: an overlay's title, which DialogTitle, SheetTitle, AlertDialogTitle and DrawerTitle draw; a group heading inside an overlay takes it too.",
         "$extensions": {
           "org.ledger.css": {
             "sourceLineHeight": "1.5rem",
@@ -5575,7 +5575,7 @@
             "unit": "px"
           }
         },
-        "$description": "A figure that stands for its row: the count in a table cell or a card that the reader reads first, 20/26 semibold. Not a title. The part adds tabular numerals, since the font shorthand resets them.",
+        "$description": "A figure that stands for its row: a Stat's number, or the count in a table cell or a card that the reader reads first, 20/26 semibold. Not a title. The part adds tabular numerals, since the font shorthand resets them.",
         "$extensions": {
           "ledger": {
             "introduced": "0.8.0"

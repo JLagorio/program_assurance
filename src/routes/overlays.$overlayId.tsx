@@ -43,6 +43,7 @@ import {
   MissingRecord,
   QueryState,
   RecordActions,
+  RecordHeading,
   ReportFailures,
 } from "@/components/prototype/work-common";
 import {
@@ -240,9 +241,9 @@ function OverlayRecord({ overlayId }: { overlayId: string }) {
               <RecordTrail current={overlay.title}>
                 <TrailLink to="/overlays">Overlays</TrailLink>
               </RecordTrail>
-              <PageHeader.Heading>
-                <PageHeader.Title>{overlay.title}</PageHeader.Title>
-              </PageHeader.Heading>
+              <RecordHeading status={<StatusBadge statuses={revisionStates} value={state} />}>
+                {overlay.title}
+              </RecordHeading>
               <PageHeader.Actions>
                 {/* The version every part of the page reads, named and chosen here. */}
                 {versions.length > 0 && (
@@ -260,7 +261,6 @@ function OverlayRecord({ overlayId }: { overlayId: string }) {
                 )}
                 <RecordActions
                   table="control_overlays"
-                  id={overlay.id}
                   editLabel="Edit overlay"
                   readOnly={!draft}
                   onEdit={() => {

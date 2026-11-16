@@ -258,6 +258,22 @@ export const authorizationDecisions = vocabulary([
   ["denied", "Denied", "danger"],
   ["revoked", "Revoked", "danger"],
 ]);
+/**
+ * A program's authorization standing in RMF's short words, as its header says it beside its
+ * categorization: the newest decision on its packages (an expired authorization reads ATO expired,
+ * a denial DATO, a revocation ATD), or, with none, what the program has instead. Derived by
+ * `programStanding` in program-standing; no column stores it.
+ */
+export const authorizationStandings = vocabulary([
+  ["ato_expired", "ATO expired", "danger"],
+  ["dato", "DATO", "danger"],
+  ["atd", "ATD", "danger"],
+  ["no_package", "No authorization package", "neutral"],
+  ["package_draft", "Package in draft", "neutral"],
+  ["package_submitted", "Package submitted", "information"],
+  ["ato_with_conditions", "ATO with conditions", "warning"],
+  ["ato", "ATO", "success"],
+]);
 export const evidenceReviewDecisions = vocabulary([
   ["pending", "Pending", "neutral"],
   ["accepted", "Accepted", "success"],

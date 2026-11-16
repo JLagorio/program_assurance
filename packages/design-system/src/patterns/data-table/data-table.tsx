@@ -192,6 +192,14 @@ export type DataTableOwnProps<TData extends RowData> = {
    * and scrolls the frame sideways, for a wide comparison or a table whose cells hold drafts.
    */
   responsive?: boolean | undefined;
+  /**
+   * Columns, by id, that a responsive table puts in each row's More fields whatever the width, and
+   * whose width goes to the row's name: a column that holds one value on every row tells no row
+   * from another. No other column comes or goes because one folds. Layout only, as the fit is: the
+   * reader's visibility, sorting, filters, pins and export do not change, and the name and the
+   * row's actions never fold. The caller decides which; none unsaid.
+   */
+  fold?: readonly string[] | undefined;
   className?: string | undefined;
 };
 
@@ -1550,6 +1558,7 @@ function DataTableRoot<TData extends RowData>({
   maxHeight,
   fill,
   responsive = true,
+  fold,
   className,
   style,
   ref,
@@ -1628,6 +1637,7 @@ function DataTableRoot<TData extends RowData>({
             action,
             pin: column.getIsPinned(),
             flexible: !sized && !action,
+            ...(fold?.includes(column.id) ? { folded: true } : {}),
           };
         }),
         lead,

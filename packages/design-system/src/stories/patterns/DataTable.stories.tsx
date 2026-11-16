@@ -2832,6 +2832,47 @@ export const ResponsiveContainers: Story = {
   },
 };
 
+/** Three findings of one family: the Family column says one thing on every row. */
+const oneFamily = findings.slice(0, 3).map((finding) => ({ ...finding, family: "Access control" }));
+function FoldedRegister() {
+  const table = useDataTable({
+    data: oneFamily,
+    columns: defineColumns<Finding>((c) => [
+      c.text("name", { header: "Finding", minWidth: 200, priority: 0 }),
+      c.status("status", {
+        header: "Status",
+        width: 120,
+        priority: 1,
+        tone: (row) => statusTone[row.status],
+      }),
+      c.text("family", { header: "Family", width: 160, priority: 2 }),
+      c.text("owner", { header: "Owner", width: 160, priority: 3 }),
+    ]),
+    getRowId: (row) => row.id,
+    label: "Findings of one family",
+  });
+  // The caller decides what folds: here the column whose value is the same on every row.
+  return <DataTable table={table} fold={["family"]} />;
+}
+
+/** `fold` puts a column in each row's More fields whatever the width, and gives the row's name its width: a column that holds one value on every row tells no row from another. */
+export const FoldedColumns: Story = {
+  name: "Folded columns",
+  render: () => <FoldedRegister />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const table = canvas.getByRole("table", { name: "Findings of one family" });
+    await waitFor(() =>
+      expect(within(table).queryByRole("columnheader", { name: "Family" })).toBeNull(),
+    );
+    const more = await canvas.findByRole("button", { name: moreFieldsFor(oneFamily[0]!.name) });
+    await userEvent.click(more);
+    const fields = canvasElement.ownerDocument.getElementById(more.getAttribute("aria-controls")!);
+    await expect(within(fields!).getByText("Family", { exact: true })).toBeVisible();
+    await expect(within(fields!).getByText("Access control", { exact: true })).toBeVisible();
+  },
+};
+
 function ResponsiveGroups() {
   const table = useDataTable({
     data: findings.slice(0, 2),
@@ -5141,14 +5182,14 @@ const slackColumns = defineColumns<Finding>((c) => [
   c.status("status", { header: "Status", width: 120, tone: (r) => statusTone[r.status] }),
   c.text("family", { header: "Family", minWidth: 120 }),
 ]);
-/** A name drawn by the id kind: with a `minWidth` and no `width` it grows with the other unsized columns. */
+/** A name drawn by the id kind: with a `minWidth` and no `width` it is unsized, and takes the spare width. */
 const slackNamedColumns = defineColumns<Finding>((c) => [
   c.id("name", { header: "Named finding", minWidth: 200, priority: 0 }),
   c.status("status", { header: "Status", width: 120, tone: (r) => statusTone[r.status] }),
   c.text("family", { header: "Family", minWidth: 100 }),
 ]);
 
-/** A responsive table that fits: the author's widths hold, and the spare width goes to the columns the author left unsized, in proportion to their minimums. With every column sized, the identity takes it. An id with only a `minWidth` is a name, and grows. */
+/** A responsive table that fits: the author's widths hold, and the spare width goes to the columns the author left unsized, in proportion to their minimums. An unsized name takes it all and the others keep their minimums; with every column sized, the identity takes it. An id with only a `minWidth` is a name, and grows. */
 function UnsizedSlack() {
   const [width, setWidth] = useState(1100);
   const table = useDataTable({
@@ -5197,13 +5238,14 @@ export const UnsizedColumnsTakeTheSlack: Story = {
     await expect(Math.round(width("ID"))).toBe(120);
     await expect(width("Family")).toBeGreaterThan(300);
     await expect(width("Finding") / width("Family")).toBeCloseTo(160 / 120, 1);
-    // An id with only a minimum is a name: it shares the slack as the unsized text does.
+    // An id with only a minimum is a name, unsized: it takes the slack, and the unsized Family
+    // keeps its minimum.
     const named = canvas.getByRole("table", { name: "Findings, named by the id" });
     const namedWidth = (name: string) =>
       headerNamed(named, name)?.getBoundingClientRect().width ?? 0;
     await waitFor(() => expect(namedWidth("Named finding")).toBeGreaterThan(400));
     await expect(Math.round(namedWidth("Status"))).toBe(120);
-    await expect(namedWidth("Named finding") / namedWidth("Family")).toBeCloseTo(2, 1);
+    await expect(Math.round(namedWidth("Family"))).toBe(100);
     await userEvent.click(canvas.getByRole("button", { name: "700 wide" }));
     await waitFor(() => expect(width("Finding")).toBeLessThan(300));
     await expect(Math.round(width("ID"))).toBe(120);

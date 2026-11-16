@@ -1,16 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { RecordPending } from "@/components/app/shell";
-import { useRecordTitle } from "@/components/app/browser-title";
+import { useViewTitle } from "@/components/app/browser-title";
 import { useRow } from "@/lib/models";
 import { ProgramWorkspace } from "@/components/prototype/program-workspace";
 export const Route = createFileRoute("/programs/$programId_/conmon")({
-  head: () => ({ meta: [{ title: "Program — Program Assurance" }] }),
+  head: () => ({ meta: [{ title: "Continuous monitoring — Program Assurance" }] }),
   pendingComponent: RecordPending,
   component: ProgramView,
 });
 function ProgramView() {
   const { programId } = Route.useParams();
   const record = useRow("programs", programId);
-  useRecordTitle("Program", record.data?.name);
-  return <ProgramWorkspace programId={programId} tab="Schedule" view="Continuous monitoring" />;
+  useViewTitle("Continuous monitoring", record.data?.name);
+  return <ProgramWorkspace programId={programId} view="Continuous monitoring" />;
 }

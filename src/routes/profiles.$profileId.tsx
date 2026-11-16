@@ -16,6 +16,7 @@ import {
   MissingRecord,
   QueryState,
   RecordActions,
+  RecordHeading,
   ReportFailures,
 } from "@/components/prototype/work-common";
 import { useSelectedControls } from "@/lib/control-reads";
@@ -86,6 +87,10 @@ function profileTab(value: unknown): ProfileTab | undefined {
   return profileTabs.find((tab) => tab === value);
 }
 
+/** An import's reference that is an OSCAL document's uuid (`urn:uuid:…` or `#…`), not words. */
+const UUID_REFERENCE =
+  /^(?:urn:uuid:|#)?[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export const Route = createFileRoute("/profiles/$profileId")({
   head: () => ({ meta: [{ title: "Profile — Program Assurance" }] }),
   pendingComponent: RecordPending,
@@ -131,16 +136,21 @@ function ProfilePage() {
         <RecordTrail current={record.title}>
           <TrailLink to="/profiles">Profiles</TrailLink>
         </RecordTrail>
-        <PageHeader.Heading>
-          <PageHeader.Title>{record.title}</PageHeader.Title>
-        </PageHeader.Heading>
+        {/* The state of the revision every tab reads, as its Details say it. */}
+        <RecordHeading
+          status={
+            current ? <StatusBadge statuses={revisionStates} value={current.state} /> : undefined
+          }
+        >
+          {record.title}
+        </RecordHeading>
         <PageHeader.Actions>
           {/* The revision every tab reads, named and chosen here on every tab. */}
           {current && (
             <RevisionMenu versions={versions} current={current} onVersion={goToRevision} />
           )}
-          {/* Every library record's one menu: a viewer keeps Inspect record alone. */}
-          <RecordActions table="profiles" id={record.id}>
+          {/* A reader who authors nothing here, as of a shared reference profile, sees no menu. */}
+          <RecordActions table="profiles">
             {editable && (
               <DropdownMenuItem
                 {...(revisions.data
@@ -302,6 +312,9 @@ function ProfileRevision({
     () => [...(imports.data ?? [])].sort((a, b) => a.ordinal - b.ordinal),
     [imports.data],
   );
+  // An OSCAL import names its source by the document's uuid, which the Source column names in
+  // words: the Reference column stays only for a reference a reader can read, such as an address.
+  const readableReferences = orderedImports.some((item) => !UUID_REFERENCE.test(item.href));
   const catalogOf = (item: Row<"profile_imports">) =>
     catalogRevisions.data?.find((catalog) => catalog.id === item.catalog_revision_id);
   const catalogTitle = (catalog: Pick<Row<"catalog_revisions">, "catalog_id" | "title">) =>
@@ -570,7 +583,7 @@ function ProfileRevision({
                           </Table.Header>
                           <Table.Header>Source</Table.Header>
                           <Table.Header>Selection</Table.Header>
-                          <Table.Header>Reference</Table.Header>
+                          {readableReferences && <Table.Header>Reference</Table.Header>}
                         </tr>
                       </thead>
                       <tbody>
@@ -602,13 +615,16 @@ function ProfileRevision({
                                     · {imported.version}
                                   </TextLink>
                                 ) : (
-                                  <Absent />
+                                  // A source the workspace does not hold, by its reference alone.
+                                  <Id className="break-all">{item.href}</Id>
                                 )}
                               </Table.Cell>
                               <Table.Cell wrap>{importSelection(item)}</Table.Cell>
-                              <Table.Cell wrap>
-                                <Id className="break-all">{item.href}</Id>
-                              </Table.Cell>
+                              {readableReferences && (
+                                <Table.Cell wrap>
+                                  <Id className="break-all">{item.href}</Id>
+                                </Table.Cell>
+                              )}
                             </Table.Row>
                           );
                         })}

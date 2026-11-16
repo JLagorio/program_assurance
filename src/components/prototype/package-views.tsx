@@ -1,5 +1,11 @@
 import { RecordPreviewActions, RecordPreviewPanel } from "./record-preview";
-import { MissingRecord, QueryState, RecordActions, VersionName } from "./work-common";
+import {
+  MissingRecord,
+  QueryState,
+  RecordActions,
+  RecordHeading,
+  VersionName,
+} from "./work-common";
 import { useCallback, useMemo, useState, type ReactNode } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
@@ -27,6 +33,7 @@ import { Page } from "@/components/app/shell";
 import { type DataRecord } from "@/lib/records";
 import { revisionStates } from "@/lib/status";
 import { RecordTrail, TrailLink } from "./record-trail";
+import { useProgramNames } from "./program-filter";
 import {
   EntityEditor,
   EntitySection,
@@ -63,6 +70,9 @@ const packageFacts: DisplayColumn[] = [
 export function Packages() {
   const query = useRows("authorization_packages"),
     versions = useRows("package_revisions");
+  // The register holds every program's packages: the Program column names each by name, by which
+  // it sorts, searches and filters.
+  const programs = useProgramNames();
   const workspace = useWorkspace(),
     navigate = useNavigate();
   const [creating, setCreating] = useState(false),
@@ -95,9 +105,24 @@ export function Packages() {
       },
     ];
   }, [versions.data]);
+  const program = useMemo<DisplayColumn>(
+    () => ({
+      key: "program_id",
+      label: "Program",
+      filter: true,
+      value: (row) => programs.names.get(String(row["program_id"])) ?? null,
+      render: (row) => <RelationName table="programs" id={row["program_id"] as string} />,
+    }),
+    [programs.names],
+  );
   const columns = useMemo<DisplayColumn[]>(
-    () => [{ key: "title", label: "Package" }, ...packageFacts, ...derived],
-    [derived],
+    () => [
+      { key: "title", label: "Package" },
+      program,
+      ...packageFacts.filter((fact) => fact.key !== "program_id"),
+      ...derived,
+    ],
+    [program, derived],
   );
   const writable = workspace.role !== "viewer";
   const create = (size: "small" | "medium") =>
@@ -138,7 +163,7 @@ export function Packages() {
         model="authorization_packages"
         fill
         rows={(query.data ?? []) as DataRecord[]}
-        queries={[query, versions]}
+        queries={[query, versions, programs.query]}
         columns={columns}
         onPreview={setPreview}
         selectedId={preview?.id}
@@ -216,13 +241,11 @@ export function PackageRecord({ id }: { id: string }) {
               <RecordTrail current={row.title}>
                 <TrailLink to="/packages">Authorization packages</TrailLink>
               </RecordTrail>
-              <PageHeader.Heading>
-                <PageHeader.Title>{row.title}</PageHeader.Title>
-              </PageHeader.Heading>
+              {/* A package records no status of its own: each version keeps its state. */}
+              <RecordHeading>{row.title}</RecordHeading>
               <PageHeader.Actions>
                 <RecordActions
                   table="authorization_packages"
-                  id={id}
                   onEdit={() => setEditing(row as DataRecord)}
                   editLabel="Edit authorization package"
                 />

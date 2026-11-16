@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { RecordPending } from "@/components/app/shell";
-import { useRecordTitle } from "@/components/app/browser-title";
+import { useViewTitle } from "@/components/app/browser-title";
 import { useRow } from "@/lib/models";
 import { POSTURE_READINGS, type PostureReading } from "@/lib/program-posture";
 import { ProgramWorkspace } from "@/components/prototype/program-workspace";
@@ -28,7 +28,7 @@ export const Route = createFileRoute("/programs/$programId_/posture")({
       techniques: byTechnique && search["techniques"] === "all" ? "all" : undefined,
     };
   },
-  head: () => ({ meta: [{ title: "Program — Program Assurance" }] }),
+  head: () => ({ meta: [{ title: "Posture — Program Assurance" }] }),
   pendingComponent: RecordPending,
   component: ProgramView,
 });
@@ -37,11 +37,10 @@ function ProgramView() {
   const { reading } = Route.useSearch();
   const navigate = Route.useNavigate();
   const record = useRow("programs", programId);
-  useRecordTitle("Program", record.data?.name);
+  useViewTitle("Posture", record.data?.name);
   return (
     <ProgramWorkspace
       programId={programId}
-      tab="Controls"
       view="Posture"
       postureReading={reading}
       onPostureReading={(next) =>

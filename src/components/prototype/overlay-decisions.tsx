@@ -200,7 +200,7 @@ export function OverlayDecisions({
     toast.add({
       type: "success",
       title: "Decision removed",
-      description: `${overlay.code} no longer decides on ${row.code}.`,
+      description: `${overlay.code} no longer decides on ${row.name}.`,
     });
   }
   removeRow.current = (row) => void removeDecision(row);

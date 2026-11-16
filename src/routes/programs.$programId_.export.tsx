@@ -1,7 +1,8 @@
-import { useRecordTitle } from "@/components/app/browser-title";
+import { useViewTitle } from "@/components/app/browser-title";
 import { Page, RecordPending } from "@/components/app/shell";
 import { QueryValue } from "@/components/prototype/library-shared";
 import { ProgramQueryState } from "@/components/prototype/program-shared";
+import { programViewTab } from "@/components/prototype/program-views";
 import { RecordTrail, TrailLink } from "@/components/prototype/record-trail";
 import { MissingRecord } from "@/components/prototype/work-common";
 import { useRow, useRows } from "@/lib/models";
@@ -19,7 +20,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Download } from "lucide-react";
 
 export const Route = createFileRoute("/programs/$programId_/export")({
-  head: () => ({ meta: [{ title: "Program — Program Assurance" }] }),
+  head: () => ({ meta: [{ title: "Program transfer — Program Assurance" }] }),
   pendingComponent: RecordPending,
   component: ProgramExport,
 });
@@ -28,7 +29,7 @@ function ProgramExport() {
   const { programId } = Route.useParams();
   const locale = useLedgerLocale();
   const program = useRow("programs", programId);
-  useRecordTitle("Program", program.data?.name);
+  useViewTitle("Program transfer", program.data?.name);
   const systems = useRows("systems", { program_id: programId });
   const requirements = useRows("engineering_requirements", { program_id: programId });
   const plans = useRows("ssp_revisions");
@@ -103,9 +104,16 @@ function ProgramExport() {
           <TrailLink to="/programs/$programId" params={{ programId }}>
             {record.code} · {record.name}
           </TrailLink>
+          <TrailLink
+            to="/programs/$programId"
+            params={{ programId }}
+            search={{ tab: programViewTab("Program transfer") }}
+          >
+            {programViewTab("Program transfer")}
+          </TrailLink>
         </RecordTrail>
         <PageHeader.Heading>
-          <PageHeader.Title>{record.name}</PageHeader.Title>
+          <PageHeader.Title>Program transfer</PageHeader.Title>
         </PageHeader.Heading>
         <PageHeader.Actions>
           <Button

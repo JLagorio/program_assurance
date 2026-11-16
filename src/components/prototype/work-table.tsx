@@ -6,6 +6,7 @@ import {
   useServerPresetCounts,
   vocabularyOptions,
 } from "./collection-question";
+import { useProgramOptions } from "./program-filter";
 import { useMemo, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import {
@@ -190,7 +191,8 @@ const taskRead = (programId: string | undefined, workstreamId: string | undefine
       priority: { labels: taskPriorities, sort: "priority_rank" },
       // A task holds anyone chosen; one nobody holds is Unassigned. It sorts by the names in turn.
       assignees: { filter: "list", emptyLabel: UNASSIGNED, sort: "assignee_names" },
-      program: { column: "program_name", filter: false },
+      // The program sorts, is filtered and is found by its name.
+      program: { column: "program_name" },
       due: { column: "due_on", filter: "range" },
       role: { column: "assignment" },
     },
@@ -234,6 +236,7 @@ export function WorkTable({
     ],
     [people.data],
   );
+  const programOptions = useProgramOptions();
   const [adding, setAdding] = useState(false);
   const [preview, setPreview] = useState<TaskRow | null>(null);
   useEndOnHide(() => setPreview(null));
@@ -330,6 +333,9 @@ export function WorkTable({
               options={vocabularyOptions(taskStatuses)}
             />
             <DataTable.Filter table={table} column="assignees" options={assigneeOptions} />
+            {!programId && (
+              <DataTable.Filter table={table} column="program" options={programOptions} />
+            )}
           </>
         }
         action={create("small")}

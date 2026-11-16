@@ -188,6 +188,65 @@ test("several unsized columns share the slack in proportion to their least width
   assert.ok(shares.get("statement") >= 300 && shares.get("rationale") >= 150);
 });
 
+test("a flexible name takes the slack, and the other unsized columns keep their least width", () => {
+  // The risk register at 1440: the risk (least 180) and the owner (least 160) are unsized.
+  const columns = [
+    { id: "title", width: 180, priority: 0, flexible: true },
+    { id: "program", width: 200, priority: 3 },
+    { id: "owner", width: 160, priority: 4, flexible: true },
+    { id: "status", width: 140, priority: 2 },
+  ];
+  const fit = fitFrame(columns, 1100, 32);
+  // The name is the last of the flexible columns, which the renderer draws without a width.
+  assert.deepEqual(fit.layout.flexible, ["owner", "title"]);
+  const shares = shareSlack(fit.layout, 1100, 32);
+  assert.equal(shares.get("owner"), 160);
+  assert.equal(shares.get("title"), 1100 - 32 - 200 - 160 - 140);
+});
+
+test("a folded column leaves the row, and its width goes to the name", () => {
+  const columns = [
+    { id: "title", width: 180, priority: 0 },
+    { id: "program", width: 200, priority: 3 },
+    { id: "updated", width: 112, priority: 5 },
+    { id: "status", width: 140, priority: 2 },
+    { id: "impact", width: 140, priority: 7 },
+    { id: "actions", width: 32, action: true },
+  ];
+  const before = fitColumns(columns, 800, 32);
+  const after = fitColumns(
+    columns.map((column) => (column.id === "updated" ? { ...column, folded: true } : column)),
+    800,
+    32,
+  );
+  // 800 - 32 leading - 32 More = 736: Updated is drawn and Impact folds. No other column comes or
+  // goes because Updated folded: Impact stays folded, Program stays.
+  assert.deepEqual([...after.ids].sort(), [...before.ids].filter((id) => id !== "updated").sort());
+  assert.ok(before.ids.has("updated") && !before.ids.has("impact"));
+  assert.equal(after.collapsed, true);
+  assert.equal(
+    after.widths.get("title"),
+    before.widths.get("title") + before.widths.get("updated"),
+  );
+  // Where nothing folded before, the More fields control takes its 32 from what the column held.
+  const roomy = fitColumns(columns, 1400, 32);
+  const folded = fitColumns(
+    columns.map((column) => (column.id === "program" ? { ...column, folded: true } : column)),
+    1400,
+    32,
+  );
+  assert.equal(roomy.collapsed, false);
+  assert.equal(folded.collapsed, true);
+  assert.equal(folded.widths.get("title"), roomy.widths.get("title") + 200 - 32);
+  // The name and the row's actions never fold.
+  const kept = fitColumns(
+    columns.map((column) => ({ ...column, folded: true })),
+    1400,
+    32,
+  );
+  assert.ok(kept.ids.has("title") && kept.ids.has("actions"));
+});
+
 test("with every column sized, the identity takes the slack as before", () => {
   const columns = [
     { id: "name", width: 200, priority: 0 },

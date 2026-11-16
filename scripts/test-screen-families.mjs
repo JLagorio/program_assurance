@@ -530,6 +530,11 @@ try {
     assert.ifError(result.error);
     fixtures[model] = result.data;
   }
+  // A control's record is titled by its code and its title together: AC-2 Account Management.
+  fixtures.controls = fixtures.controls.map((control) => ({
+    ...control,
+    name: `${control.code} ${control.title}`,
+  }));
   browser = await chromium.launch({ headless: true });
   for (const width of [1440, 390]) {
     const context = await browser.newContext({
@@ -569,17 +574,23 @@ try {
       await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
       await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
       const fixture = fixtures[screen.model]?.[0];
+      const view = screen.family === "program-view";
       const named = ["record", "program-view", "schema-record"].includes(screen.family);
-      // A loaded record leads its browser title with its name; a missing one keeps the type.
+      // A loaded record leads its browser title with its name; a missing one keeps the type. A
+      // program's focused view leads with the view, its h1, then names its program.
       if (screen.family !== "redirect")
         await expect(page).toHaveTitle(
           named && fixture
-            ? `${name(fixture)} — ${screen.title} — Program Assurance`
+            ? view
+              ? `${screen.title} — ${name(fixture)} — Program Assurance`
+              : `${name(fixture)} — ${screen.title} — Program Assurance`
             : `${screen.title} — Program Assurance`,
         );
       if (named) {
         if (fixture)
-          await expect(page.getByRole("heading", { level: 1 })).toHaveText(name(fixture));
+          await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+            view ? screen.title : name(fixture),
+          );
         else await verifyMissingRecord(screen);
       }
       if (screen.family === "redirect") {
@@ -628,10 +639,10 @@ try {
     await expect(controlLink).toHaveText(`${implementedControl.code} ${implementedControl.title}`);
     await controlLink.click();
     await expect(page).toHaveURL(`${origin}${controlPath}`);
-    await expect(page).toHaveTitle(
-      `${implementedControl.title} — Program control — Program Assurance`,
-    );
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText(implementedControl.title);
+    // The record is titled by the control's code and title together, in its h1 and its tab.
+    const implementedName = `${implementedControl.code} ${implementedControl.title}`;
+    await expect(page).toHaveTitle(`${implementedName} — Program control — Program Assurance`);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(implementedName);
     await bounds(width, controlPath);
     console.log(`PASS ${width}px program Controls name link opens ${controlPath}`);
     // A control with no implementation names no schema row: its name opens its preview.
@@ -651,12 +662,63 @@ try {
         .locator("[data-record-preview-header]")
         .filter({ visible: true })
         .getByRole("heading", { level: 2 }),
-    ).toHaveText(unimplementedControl.title);
+    ).toHaveText(`${unimplementedControl.code} ${unimplementedControl.title}`);
     await expect(page).toHaveURL(new RegExp(`/programs/${program.id}\\?tab=Controls`));
     await page.getByRole("button", { name: "Close SSP control preview", exact: true }).click();
     console.log(
       `PASS ${width}px program Controls name without an implementation opens its preview`,
     );
+    // Every focused view is a link in the row of views on one tab of the program's record, never
+    // only inside a menu. A view that applies to some programs alone is listed where it applies:
+    // the swept program has no variant and no requirements document, so Product delta and the
+    // Compliance matrix are left out of its rows.
+    const record = inventory.find((screen) => screen.path === "/programs/$programId");
+    const listed = new Map();
+    for (const tabName of [...record.collectionTabs, ...Object.keys(record.tabExceptions)]) {
+      await page.goto(`${origin}/programs/${program.id}?tab=${encodeURIComponent(tabName)}`);
+      await expect(page.getByRole("tabpanel").filter({ visible: true })).toHaveCount(1);
+      await settled(inflight);
+      const links = page
+        .getByRole("navigation", { name: `${tabName} views`, exact: true })
+        .getByRole("link");
+      for (const link of await links.all())
+        listed.set(await link.getAttribute("href"), {
+          tab: tabName,
+          name: (await link.textContent()).trim(),
+        });
+    }
+    const conditional = new Set([
+      "/programs/$programId/product-delta",
+      "/programs/$programId/compliance",
+    ]);
+    for (const screen of inventory.filter((item) => item.family === "program-view")) {
+      const href = routePath(screen);
+      if (conditional.has(screen.path)) {
+        assert.ok(!listed.has(href), `${screen.path} is listed only where it applies`);
+        continue;
+      }
+      assert.equal(listed.get(href)?.name, screen.title, `${screen.path} is in a row of views`);
+    }
+    // A view's page is named by its h1 and trailed through the tab that lists it.
+    const posture = routePath(inventory.find((screen) => screen.title === "Posture"));
+    const postureTab = listed.get(posture).tab;
+    await page.goto(`${origin}/programs/${program.id}?tab=${encodeURIComponent(postureTab)}`);
+    await page
+      .getByRole("navigation", { name: `${postureTab} views`, exact: true })
+      .getByRole("link", { name: "Posture", exact: true })
+      .click();
+    await expect(page).toHaveURL(`${origin}${posture}`);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Posture");
+    await expect(
+      page
+        .getByRole("navigation", { name: "breadcrumb" })
+        .getByRole("link", { name: postureTab, exact: true }),
+    ).toHaveAttribute(
+      "href",
+      `/programs/${program.id}?tab=${encodeURIComponent(postureTab).replace(/%20/g, "+")}`,
+    );
+    await bounds(width, posture);
+    console.log(`PASS ${width}px every program view is in a row of views on its tab`);
     await context.close();
   }
   assert.deepEqual(errors, [], "Every declared product route renders without a browser exception");

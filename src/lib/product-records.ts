@@ -402,6 +402,14 @@ export const objectiveWords = {
 /** A count of a control's objectives out of all of them, as a fact or a cell says it: "12 of 26". */
 export const objectivesOf = (count: string, total: string) => `${count} of ${total}`;
 
+/**
+ * A control named by itself, as a record title, a trail, a preview title or a toast names it: its
+ * code and its title together ("AC-2 Account Management"), since titles repeat across families and
+ * assessors look a control up by its code. A control with no title stored keeps its code alone.
+ */
+export const controlName = (control: { code: string; title?: string | null | undefined }) =>
+  control.title?.trim() ? `${control.code} ${control.title.trim()}` : control.code;
+
 /** What the control's picker says of a requirement that maps some of its objectives already. */
 export const mapsObjectives = (count: string, total: string) =>
   `Maps ${count} of ${total} objectives`;

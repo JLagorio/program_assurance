@@ -271,56 +271,56 @@
   {
     "file": "programs.$programId_.authorization.tsx",
     "path": "/programs/$programId/authorization",
-    "title": "Program",
+    "title": "Authorization",
     "family": "program-view",
     "model": "programs"
   },
   {
     "file": "programs.$programId_.baseline.tsx",
     "path": "/programs/$programId/baseline",
-    "title": "Program",
+    "title": "Configuration baseline",
     "family": "program-view",
     "model": "programs"
   },
   {
     "file": "programs.$programId_.control-baseline.tsx",
     "path": "/programs/$programId/control-baseline",
-    "title": "Program",
+    "title": "Control baseline",
     "family": "program-view",
     "model": "programs"
   },
   {
     "file": "programs.$programId_.compliance.tsx",
     "path": "/programs/$programId/compliance",
-    "title": "Program",
+    "title": "Compliance matrix",
     "family": "program-view",
     "model": "programs"
   },
   {
     "file": "programs.$programId_.control-status.tsx",
     "path": "/programs/$programId/control-status",
-    "title": "Program",
+    "title": "Control status",
     "family": "program-view",
     "model": "programs"
   },
   {
     "file": "programs.$programId_.posture.tsx",
     "path": "/programs/$programId/posture",
-    "title": "Program",
+    "title": "Posture",
     "family": "program-view",
     "model": "programs"
   },
   {
     "file": "programs.$programId_.product-delta.tsx",
     "path": "/programs/$programId/product-delta",
-    "title": "Program",
+    "title": "Product delta",
     "family": "program-view",
     "model": "programs"
   },
   {
     "file": "programs.$programId_.resiliency.tsx",
     "path": "/programs/$programId/resiliency",
-    "title": "Program",
+    "title": "Cyber resiliency",
     "family": "program-view",
     "model": "programs"
   },
@@ -348,7 +348,7 @@
   {
     "file": "programs.$programId_.conmon.tsx",
     "path": "/programs/$programId/conmon",
-    "title": "Program",
+    "title": "Continuous monitoring",
     "family": "program-view",
     "model": "programs"
   },
@@ -376,21 +376,21 @@
   {
     "file": "programs.$programId_.export.tsx",
     "path": "/programs/$programId/export",
-    "title": "Program",
+    "title": "Program transfer",
     "family": "program-view",
     "model": "programs"
   },
   {
     "file": "programs.$programId_.ingestion.tsx",
     "path": "/programs/$programId/ingestion",
-    "title": "Program",
+    "title": "Scanner ingestion",
     "family": "program-view",
     "model": "programs"
   },
   {
     "file": "programs.$programId_.inheritance.tsx",
     "path": "/programs/$programId/inheritance",
-    "title": "Program",
+    "title": "Inheritance resolution",
     "family": "program-view",
     "model": "programs"
   },
@@ -409,14 +409,14 @@
   {
     "file": "programs.$programId_.risk.tsx",
     "path": "/programs/$programId/risk",
-    "title": "Program",
+    "title": "Residual risk",
     "family": "program-view",
     "model": "programs"
   },
   {
     "file": "programs.$programId_.sctm.tsx",
     "path": "/programs/$programId/sctm",
-    "title": "Program",
+    "title": "Traceability matrix",
     "family": "program-view",
     "model": "programs"
   },
@@ -445,7 +445,7 @@
   {
     "file": "programs.$programId_.workbook.tsx",
     "path": "/programs/$programId/workbook",
-    "title": "Program",
+    "title": "Workbook",
     "family": "program-view",
     "model": "programs",
     "reason": "Program workbook: editable source grids, analysis sheets, and reviewed atomic changes, following the workbook contract."

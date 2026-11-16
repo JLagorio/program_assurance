@@ -10611,7 +10611,7 @@
     "\"src/patterns/data-table/data-table\".DataTableOwnProps": [
       {
         "source": "src/patterns/data-table/data-table.d.ts",
-        "declaration": "export type DataTableOwnProps<TData extends RowData> = {\n    table: DataTableInstance<TData>;\n    toolbar?: ReactNode;\n    state?: DataTableState | undefined;\n    empty?: DataTableEmpty | undefined;\n    narrowed?: boolean | undefined;\n    noun?: DataTableNoun | undefined;\n    error?: ReactNode;\n    onRetry?: (() => void) | undefined;\n    onRowClick?: ((row: TData, event: MouseEvent<HTMLTableRowElement>) => void) | undefined;\n    rowHref?: ((row: TData) => string | undefined) | undefined;\n    loadingRows?: number | undefined;\n    maxHeight?: number | undefined;\n    fill?: boolean | undefined;\n    responsive?: boolean | undefined;\n    className?: string | undefined;\n};"
+        "declaration": "export type DataTableOwnProps<TData extends RowData> = {\n    table: DataTableInstance<TData>;\n    toolbar?: ReactNode;\n    state?: DataTableState | undefined;\n    empty?: DataTableEmpty | undefined;\n    narrowed?: boolean | undefined;\n    noun?: DataTableNoun | undefined;\n    error?: ReactNode;\n    onRetry?: (() => void) | undefined;\n    onRowClick?: ((row: TData, event: MouseEvent<HTMLTableRowElement>) => void) | undefined;\n    rowHref?: ((row: TData) => string | undefined) | undefined;\n    loadingRows?: number | undefined;\n    maxHeight?: number | undefined;\n    fill?: boolean | undefined;\n    responsive?: boolean | undefined;\n    fold?: readonly string[] | undefined;\n    className?: string | undefined;\n};"
       }
     ],
     "\"src/patterns/data-table/data-table\".DataTableProps": [
@@ -12663,7 +12663,7 @@
     "src/patterns/data-table/data-table.d.ts#DataTableRoot": [
       {
         "source": "src/patterns/data-table/data-table.d.ts",
-        "declaration": "declare function DataTableRoot<TData extends RowData>({ table, toolbar, state, empty, narrowed: narrowedOutside, noun, error, onRetry, onRowClick, rowHref, loadingRows, maxHeight, fill, responsive, className, style, ref, ...native }: DataTableProps<TData>): import(\"react\").JSX.Element;"
+        "declaration": "declare function DataTableRoot<TData extends RowData>({ table, toolbar, state, empty, narrowed: narrowedOutside, noun, error, onRetry, onRowClick, rowHref, loadingRows, maxHeight, fill, responsive, fold, className, style, ref, ...native }: DataTableProps<TData>): import(\"react\").JSX.Element;"
       }
     ],
     "src/patterns/data-table/filter.d.ts#FilterProps": [

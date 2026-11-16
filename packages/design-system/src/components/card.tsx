@@ -141,7 +141,7 @@ export type CardTitleProps = useRender.ComponentProps<"div"> & {
     | undefined;
 };
 
-/** The card's title. A div by default, which chooses no heading level: set the heading with `render={<h2 />}`, or compose one inside. With `link`, the title's text is the card's one link. */
+/** The card's title, in `font.body` at semibold: a step under a Section's title (`font.heading.section`), so a card inside a Section never outranks its heading. A div by default, which chooses no heading level: set the heading with `render={<h2 />}`, or compose one inside. With `link`, the title's text is the card's one link. */
 export function CardTitle({ className, render, ref, link, children, ...props }: CardTitleProps) {
   // `static` keeps the overlay stretched over the card when the link is a positioned part.
   const linked = useRender({
@@ -162,7 +162,7 @@ export function CardTitle({ className, render, ref, link, children, ...props }: 
     props: mergeProps<"div">(props, {
       ...{ "data-slot": "card-title" },
       className: cn(
-        "col-span-full min-w-0 break-words font-heading-overlay text-default @3xs/card-header:col-auto group-data-[action=beside]/card-header:col-auto",
+        "col-span-full min-w-0 break-words font-body font-semibold text-default @3xs/card-header:col-auto group-data-[action=beside]/card-header:col-auto",
         className,
       ),
       children: link ? linked : children,

@@ -19,9 +19,23 @@ A snapshot of all four is in `docs/ux-proposal-2026-11/` on `design-system`. Boa
 - [x] All 40 decisions made (2026-11-16): the control work at the centre, Phase 0 first, a short contract and a lab lane; the standing as one header fact; a role-true slot; the Authorization view in two lanes; signing held to roles; on shared components an inherited determination stands, sourced, a version that lists nothing is shown and confirmed, an inherited control leads to the component, and a CVE stays open until every consumer moves
 - [x] The shared-component work (seven migrations, the seed, typed modules) is committed on `design-system`
 
-Phase 0 first (D8): Ledger, then the contract and words, then data, then screens.
+Phase 0 first (D8): one week of ten quick fixes visible on every screen, then Phase 1 (the kit and the contract), then the spine and the workspaces. The Ledger parts below are Phase 1 work, built first on this branch at Josef's choice (2026-11-16).
 
-## 1. Ledger first (`packages/design-system`)
+## Phase 0: ten quick fixes (week 1)
+
+- [x] Inspect record leaves record menus, so Edit can be the primary (24 record pages)
+- [x] The 15 program views move into a visible row, each with its own title
+- [x] Status beside every record h1; a program's standing is one header fact beside its categorization (WS-X90: ATO with conditions · CDR 46d late)
+- [x] Zero lines and trends under 7 points are hidden
+- [x] One Tally in place of the 560-mark strip
+- [x] Due dates flagged on bands, gates and remediation (a program's remediation list still has no Due column: it needs a read)
+- [x] Names take the flexible width; constant columns fold (a column folds only when every row holds one value)
+- [x] A Program column and filter on 11 registers; assessment findings, Unrolled findings, system assets and Objectives wait on a program name in their views
+- [x] Controls titled by code and name ("AC-2 Account Management"); names, never ids
+- [x] Stat figures at 20px (`font.figure`); card titles below sections
+- [ ] The demo loses its test programs, the "kk" gate and the 8 test overlays (writes to the local database: asked first)
+
+## 1. Ledger (`packages/design-system`), Phase 1
 
 Twelve parts, each built on one that ships, through `/ledger-add-part`; the sheet on the mocks canvas is the spec. Building them accepts the sheets as Ledger's next scope. Each new part starts Experimental.
 

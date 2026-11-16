@@ -1,4 +1,4 @@
-import { useCallback, useMemo, type ReactElement, type ReactNode } from "react";
+import { useMemo, type ReactElement, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import {
   Card,
@@ -23,9 +23,8 @@ import {
   type StatusVocabulary,
 } from "@/lib/status";
 import { questionSearch } from "./collection-question";
-import { ControlStatusKey, ControlStatusMap } from "./control-status";
+import { ControlStatusKey, ControlStatusTally } from "./control-status";
 import { controlStatusLink } from "./control-status-link";
-import { useOpenRecord } from "./record-preview";
 import { QueryState, ReportFailures, type QueryStatus } from "./work-common";
 
 /** The program tabs that hold open work. */
@@ -58,7 +57,8 @@ const openIssueStatuses = Object.keys(operationalIssueStatuses).filter(openIssue
  * The program's open work as three counted groups: each a Tray whose heading is the count and
  * opens the tab that holds it, over the parts a reader acts on first, one line each. Tasks and
  * risks break down by status, operational issues by severity, worst first. A line that counts
- * something opens its tab's register asked for exactly those records; a zero opens nothing.
+ * something opens its tab's register asked for exactly those records; a zero is left out, since
+ * the heading's count says the whole.
  */
 export function ProgramOpenWork({
   programId,
@@ -165,12 +165,24 @@ export function ProgramOpenWork({
     },
   ];
   return (
-    <Grid templateColumns="repeat(auto-fit, minmax(min(100%, 208px), 1fr))" gap="space.200">
+    // Each tray as tall as its lines: one whose lines are all zero is its heading alone.
+    <Grid
+      templateColumns="repeat(auto-fit, minmax(min(100%, 208px), 1fr))"
+      gap="space.200"
+      alignItems="start"
+    >
       {/* A No owner count that could not be read is said by the page's one alert. */}
       <ReportFailures queries={[unowned.issues, unowned.risks]} />
       {queues.map((queue) => {
         const failed = queue.open === undefined && queue.query.isError;
         const loading = queue.open === undefined && !failed;
+        // While the counts load every line holds its place; once read, a zero leaves the tray.
+        const shown = loading ? queue.lines : queue.lines.filter((line) => line.value > 0);
+        const unowned = queue.unowned?.count;
+        const unownedShown =
+          !!unowned &&
+          !(unowned.isError && unowned.data === undefined) &&
+          (loading || unowned.data === undefined || unowned.data > 0);
         return (
           <Tray
             key={queue.title}
@@ -180,9 +192,9 @@ export function ProgramOpenWork({
               ? { title: `Could not load ${queue.title}` }
               : { title: queue.title, value: queue.open ?? null, isLoading: loading })}
           >
-            {failed ? null : (
+            {failed || (shown.length === 0 && !unownedShown) ? null : (
               <Stat.List aria-label={`${queue.title}, in parts`}>
-                {queue.lines.map((line) => (
+                {shown.map((line) => (
                   <Stat.Row
                     key={line.key}
                     label={line.label}
@@ -194,11 +206,10 @@ export function ProgramOpenWork({
                       : {})}
                   />
                 ))}
-                {/* The open records nobody owns: a count opens exactly those, and a zero nothing.
-                    A count that could not be read draws no line, never a zero: the page's alert
-                    says it, with Retry. */}
-                {queue.unowned &&
-                !(queue.unowned.count.isError && queue.unowned.count.data === undefined) ? (
+                {/* The open records nobody owns: a count opens exactly those, and a zero is
+                    left out. A count that could not be read draws no line, never a zero: the
+                    page's alert says it, with Retry. */}
+                {queue.unowned && unownedShown ? (
                   <Stat.Row
                     label={NO_OWNER}
                     value={queue.unowned.count.data ?? 0}
@@ -219,9 +230,9 @@ export function ProgramOpenWork({
 
 /**
  * Where the program stands on every control of its control baseline: a Tray whose heading counts
- * the controls and opens the Control status view, over the whole baseline as one strip of marks,
- * each coloured by its status, under a key that counts each. A count of the key opens the view's
- * List at that status, and a mark opens its control, so no number here is a dead end. A program
+ * the controls and opens the Control status view, over the whole baseline as one Tally, each status
+ * its share in the map's marks, under a key that counts each. A count of the key opens the view's
+ * List at that status, so no number here is a dead end; the view draws a mark a control. A program
  * with no baseline draws nothing here: the Control baseline section under it says so.
  */
 export function ProgramControlStatusTray({
@@ -233,12 +244,7 @@ export function ProgramControlStatusTray({
 }) {
   const { formatNumber } = useLedgerLocale();
   const status = useProgramControlStatus(programId);
-  const openRecord = useOpenRecord();
   const statusLink = useMemo(() => controlStatusLink(programId), [programId]);
-  const openControl = useCallback(
-    (controlId: string) => openRecord("controls", { id: controlId, program_id: programId }),
-    [openRecord, programId],
-  );
   if (status.data && !status.data.baseline) return null;
   const view = <Link to="/programs/$programId/control-status" params={{ programId }} />;
   return (
@@ -258,15 +264,14 @@ export function ProgramControlStatusTray({
             {status.data ? (
               <Stack space="space.150">
                 <ControlStatusKey counts={status.data.counts} link={statusLink} />
-                <ControlStatusMap
+                <ControlStatusTally
                   status={status.data}
-                  layout="strip"
-                  label={`Controls in the control baseline of ${programName}, each coloured by where the program stands on it`}
-                  onSelect={openControl}
+                  size="xlarge"
+                  label={`Controls in the control baseline of ${programName}, by where the program stands on them`}
                 />
               </Stack>
             ) : (
-              <Skeleton shape="block" height={96} />
+              <Skeleton shape="block" height={48} />
             )}
           </CardContent>
         </Card>

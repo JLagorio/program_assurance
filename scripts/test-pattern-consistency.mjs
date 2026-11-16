@@ -525,7 +525,7 @@ try {
   await expect(
     page
       .locator('[data-shell-area="panel"]')
-      .getByRole("heading", { name: control.title, exact: true }),
+      .getByRole("heading", { name: `${control.code} ${control.title}`, exact: true }),
   ).toBeVisible();
   console.log("PASS Catalog keyboard preview opens the selected record in its panel");
 
@@ -712,7 +712,7 @@ try {
     .click();
   const sspPanel = page.locator('[data-shell-area="panel"]');
   await expect(
-    sspPanel.getByRole("heading", { name: sspControl.title, exact: true }),
+    sspPanel.getByRole("heading", { name: `${sspControl.code} ${sspControl.title}`, exact: true }),
   ).toBeVisible();
   const editImplementation = sspPanel.getByRole("button", {
     name: "Edit control implementation",

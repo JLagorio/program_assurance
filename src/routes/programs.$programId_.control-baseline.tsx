@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { RecordPending } from "@/components/app/shell";
-import { useRecordTitle } from "@/components/app/browser-title";
+import { useViewTitle } from "@/components/app/browser-title";
 import { layersOffParam } from "@/lib/baseline-stack";
 import { techniqueParam } from "@/lib/control-resiliency";
 import { useRow } from "@/lib/models";
@@ -37,13 +37,13 @@ export const Route = createFileRoute("/programs/$programId_/control-baseline")({
       off: layersOffParam(search["off"]),
     };
   },
-  head: () => ({ meta: [{ title: "Program — Program Assurance" }] }),
+  head: () => ({ meta: [{ title: "Control baseline — Program Assurance" }] }),
   pendingComponent: RecordPending,
   component: ProgramView,
 });
 function ProgramView() {
   const { programId } = Route.useParams();
   const record = useRow("programs", programId);
-  useRecordTitle("Program", record.data?.name);
-  return <ProgramWorkspace programId={programId} tab="Controls" view="Control baseline" />;
+  useViewTitle("Control baseline", record.data?.name);
+  return <ProgramWorkspace programId={programId} view="Control baseline" />;
 }

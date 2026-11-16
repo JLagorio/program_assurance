@@ -1,17 +1,19 @@
-import { productRecordNoun } from "@/lib/product-records";
-import { EmptyMessage, MissingRecord, ReportFailures, type QueryStatus } from "./work-common";
+import { controlName, productRecordNoun } from "@/lib/product-records";
+import {
+  EmptyMessage,
+  MissingRecord,
+  RecordActions,
+  RecordHeading,
+  ReportFailures,
+  type QueryStatus,
+} from "./work-common";
 import { useState, type ReactNode } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
   Absent,
   AsideLayout,
-  Button,
   DateTime,
-  DropdownMenu,
-  DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLinkItem,
-  DropdownMenuTrigger,
   Id,
   Inline,
   Inspector,
@@ -29,8 +31,8 @@ import {
   TextLink,
   VisuallyHidden,
 } from "@ledger/design-system";
-import { ChevronDown } from "lucide-react";
 import { useAssuranceTrace } from "@/lib/assurance-trace";
+import { useProgramControlStatus } from "@/lib/control-status";
 import { useRow } from "@/lib/models";
 import { useProductLookup } from "@/lib/product-items";
 import type { SystemElement } from "@/lib/system-tree";
@@ -39,6 +41,7 @@ import type { SystemAssuranceRow } from "@/lib/system-assurance";
 import {
   authorizationStatuses,
   componentStatuses,
+  controlStatuses,
   implementationStatuses,
   revisionStates,
   systemLifecycleStatuses,
@@ -113,6 +116,7 @@ function ProgramRecordFrame({
   band,
   properties,
   summary,
+  status,
   queries,
 }: {
   programId: string;
@@ -128,7 +132,7 @@ function ProgramRecordFrame({
   collection: { label: string; tab: "System" | "Controls" };
   /** Levels between the collection and this record, outermost first: TrailLinks to the containing elements. */
   trail?: ReactNode[] | undefined;
-  /** Header actions beside Edit. */
+  /** The record's other commands, as menu items, in the Actions menu after its Edit primary. */
   actions?: ReactNode;
   /** A chain record's band and trace, across the page between the header and the body. */
   band?: ReactNode;
@@ -136,6 +140,8 @@ function ProgramRecordFrame({
   properties?: ReactNode;
   /** The record's state as its status badge, for the Details disclosure's row on a phone. */
   summary?: ReactNode | undefined;
+  /** The record's status or state as its StatusBadge, beside its name. */
+  status?: ReactNode | undefined;
   /**
    * The reads the record is drawn from, the record itself first: a failed refresh of any of them
    * is said in the page's one alert, over the record as it last loaded.
@@ -143,7 +149,6 @@ function ProgramRecordFrame({
   queries: QueryStatus[];
 }) {
   const program = useRow("programs", programId);
-  const workspace = useWorkspace();
   const [editing, setEditing] = useState(false);
   return (
     <Page>
@@ -166,35 +171,19 @@ function ProgramRecordFrame({
             </TrailLink>
             {trail}
           </RecordTrail>
-          <PageHeader.Heading>
-            <PageHeader.Title>{title}</PageHeader.Title>
-          </PageHeader.Heading>
+          <RecordHeading status={status}>{title}</RecordHeading>
           <PageHeader.Actions>
-            <DropdownMenu>
-              <DropdownMenuTrigger render={<Button iconAfter={<ChevronDown />}>Actions</Button>} />
-              <DropdownMenuContent align="end">
-                {!readOnly &&
-                  !editing &&
-                  workspace.role !== "viewer" &&
-                  row["state"] !== "published" && (
-                    <DropdownMenuItem onClick={() => setEditing(true)}>
-                      {`Edit ${productRecordNoun(table, row)}`}
-                    </DropdownMenuItem>
-                  )}
-                {actions}
-                <DropdownMenuLinkItem
-                  closeOnClick
-                  render={
-                    <Link
-                      to="/records/$collection/$recordId"
-                      params={{ collection: table, recordId: row.id }}
-                    />
-                  }
-                >
-                  Inspect record
-                </DropdownMenuLinkItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <RecordActions
+              table={table}
+              editLabel={`Edit ${productRecordNoun(table, row)}`}
+              readOnly={readOnly || row["state"] === "published"}
+              onEdit={() => {
+                // The primary stays enabled while its dialog is open; a second press opens nothing new.
+                if (!editing) setEditing(true);
+              }}
+            >
+              {actions}
+            </RecordActions>
           </PageHeader.Actions>
         </PageHeader>
         {band}
@@ -310,17 +299,23 @@ export function ProgramSystemRecord({
           {ancestor.name}
         </TrailLink>
       ))}
-      actions={
-        <>
-          {workspace.role !== "viewer" && row && (
-            <DropdownMenuItem onClick={() => setAddingLibrary({})}>
-              Add from library
-            </DropdownMenuItem>
-          )}
-          {canCreate && (
-            <DropdownMenuItem onClick={() => setAddingChild(true)}>Create system</DropdownMenuItem>
-          )}
-        </>
+      // A viewer has neither command, so no menu.
+      actions={[
+        workspace.role !== "viewer" && row && (
+          <DropdownMenuItem key="library" onClick={() => setAddingLibrary({})}>
+            Add from library
+          </DropdownMenuItem>
+        ),
+        canCreate && (
+          <DropdownMenuItem key="system" onClick={() => setAddingChild(true)}>
+            Create system
+          </DropdownMenuItem>
+        ),
+      ]}
+      status={
+        boundary ? (
+          <StatusBadge statuses={authorizationStatuses} value={system.authorization_status} />
+        ) : undefined
       }
       renderEditor={(onClose) => (
         <SystemElementDialog programId={programId} existing={system} onClose={onClose} />
@@ -641,6 +636,7 @@ export function ProgramComponentRecord({
       readOnly
       collection={{ label: "System", tab: "System" }}
       summary={<StatusBadge statuses={componentStatuses} value={record.status} />}
+      status={<StatusBadge statuses={componentStatuses} value={record.status} />}
       trail={[
         <TrailLink
           key={system.data.id}
@@ -734,6 +730,9 @@ export function ProgramControlRecord({
   const system = useRow("systems", plan.data?.system_id);
   const selected = useRow("selected_controls", implementation.data?.selected_control_id);
   const control = useRow("controls", selected.data?.control_id);
+  // The control status the Details read: one read for the whole baseline, shared with them.
+  const statuses = useProgramControlStatus(programId);
+  const standing = statuses.data?.controls.find((item) => item.id === control.data?.id);
   // The control's chain in this program: the requirements that meet it here, and what follows.
   const trace = useAssuranceTrace(
     control.data ? { kind: "control", id: control.data.id, programId } : null,
@@ -766,9 +765,13 @@ export function ProgramControlRecord({
       recordType="Control"
       readOnly={plan.data?.state === "published"}
       row={row as DataRecord}
-      title={control.data?.title ?? "Control implementation"}
+      title={control.data ? controlName(control.data) : "Control implementation"}
       collection={{ label: "Controls", tab: "Controls" }}
       summary={<StatusBadge statuses={implementationStatuses} value={row.implementation_status} />}
+      // Where the program stands on the control, as its record outside the SSP says it.
+      status={
+        standing ? <StatusBadge statuses={controlStatuses} value={standing.status} /> : undefined
+      }
       actions={
         control.data && (
           <DropdownMenuItem onClick={() => setShowSource(true)}>

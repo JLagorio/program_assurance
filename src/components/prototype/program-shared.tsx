@@ -80,6 +80,7 @@ import {
 } from "@/components/prototype/record-tools";
 import { linkedName } from "@/lib/link-name";
 import { useGateCriterionSources } from "@/lib/gate-criteria";
+import { lifecycleGateDue } from "@/lib/program-timeline";
 import { isOwnedCollection, NO_OWNER } from "@/lib/owner-assign";
 import { AddSecurityOutcomes, CriterionSource } from "./gate-criteria-outcomes";
 import { ownerFilterOptions, useOwnerAssignment } from "./assign-owner";
@@ -346,6 +347,29 @@ function previewTitle(row: DataRecord, collection: ColumnNames, table: string) {
   return capitalize(productRecordNoun(table));
 }
 
+/**
+ * The facts of a preview that are a day its record's work falls due, which read as a DueDate
+ * (overdue, due today or soon while the work is open), with what says the work is done or will not
+ * happen: a gate's due day until it is decided, a scheduled assessment's until it is completed.
+ */
+const DUE_FACTS: Partial<
+  Record<string, Record<string, (row: DataRecord) => { done: boolean; cancelled: boolean }>>
+> = {
+  lifecycle_gates: {
+    due_on: (row) =>
+      lifecycleGateDue({
+        status: String(row["status"]),
+        decided_at: typeof row["decided_at"] === "string" ? row["decided_at"] : null,
+      }),
+  },
+  scheduled_assessment_tasks: {
+    due_on: (row) => ({
+      done: row["status"] === "completed",
+      cancelled: row["status"] === "cancelled",
+    }),
+  },
+};
+
 /** A noun at the start of a name: "Lifecycle gate", while "POA&M plan" keeps its case. */
 const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
 
@@ -442,9 +466,12 @@ function ProgramRecordDialogSurface({
               <KeyValue.Group labelWidth="wide">
                 {facts.map(({ name, relation }) => {
                   const value = row[name];
+                  const due = DUE_FACTS[table]?.[name];
                   return (
                     <KeyValue key={name} label={labels?.[name] ?? factLabel(table, name)} wrap>
-                      {relation && value ? (
+                      {due ? (
+                        <DueDate value={value} {...due(row)} />
+                      ) : relation && value ? (
                         <RelationName
                           table={relation.target_table as TableName}
                           id={String(value)}

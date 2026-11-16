@@ -44,6 +44,7 @@ import {
   type AssessmentTakes,
   type PlanTakes,
 } from "@/lib/control-assessment";
+import { controlName } from "@/lib/product-records";
 import { campaignStatuses } from "@/lib/status";
 import { useCollectionTable } from "./collection-question";
 import type { StepControl, StepSurfaceProps } from "./map-requirement";
@@ -288,9 +289,9 @@ function AddToAssessmentPicker({
         answer.added > 0
           ? {
               type: "success",
-              title: `${addedOf(answer, control.code, formatPlural)} added to ${chosen.title}`,
+              title: `${addedOf(answer, controlName(control), formatPlural)} added to ${chosen.title}`,
             }
-          : { type: "information", title: `${chosen.title} already holds ${control.code}` },
+          : { type: "information", title: `${chosen.title} already holds ${controlName(control)}` },
       );
       guard.finish();
       guard.complete();
@@ -475,7 +476,7 @@ function PlanAssessmentDialog({
         if (planned)
           toast.add({
             type: "success",
-            title: `${addedOf(planned.answer, control.code, formatPlural)} planned in ${planned.title}`,
+            title: `${addedOf(planned.answer, controlName(control), formatPlural)} planned in ${planned.title}`,
           });
         onClose();
         if (planned) onDone();

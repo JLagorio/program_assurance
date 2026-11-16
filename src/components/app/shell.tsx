@@ -327,7 +327,7 @@ function PrototypeLayout({ children }: { children: ReactNode }) {
                   <ModeSwitch showLabels />
                 </KeyValue>
                 {/* The stored records as the database holds them: a diagnostic view, off the
-                    product's navigation. A record's Actions menu opens its own schema record. */}
+                    product's navigation. No record's menu links into it: this is the way in. */}
                 <KeyValue label="Diagnostics">
                   <Inline>
                     <LinkButton

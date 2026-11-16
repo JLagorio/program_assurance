@@ -4,6 +4,7 @@ import {
   MissingRecord,
   QueryState,
   RecordActions,
+  RecordHeading,
   ReportFailures,
 } from "@/components/prototype/work-common";
 import { campaignTabs, type CampaignTab } from "@/components/prototype/assessment-tabs";
@@ -76,16 +77,17 @@ function CampaignDetail() {
                   <RelationName table="programs" id={campaign.program_id} peek={false} />
                 </TrailLink>
               </RecordTrail>
-              <PageHeader.Heading>
-                <PageHeader.Title>{campaign.title}</PageHeader.Title>
-              </PageHeader.Heading>
+              <RecordHeading
+                status={<StatusBadge statuses={campaignStatuses} value={campaign.status} />}
+              >
+                {campaign.title}
+              </RecordHeading>
               <PageHeader.Actions>
-                {/* One Actions menu, as on the other records: the edit, Publish assessment results
-                    (which stays in place and says why while there is nothing to publish), then
-                    Inspect record. */}
+                {/* As on the other records: the edit as the primary, then the Actions menu with
+                    Publish assessment results, which stays in place and says why while there is
+                    nothing to publish. */}
                 <RecordActions
                   table="assessment_campaigns"
-                  id={campaign.id}
                   editLabel="Edit assessment campaign"
                   onEdit={() => setEditing(true)}
                 >

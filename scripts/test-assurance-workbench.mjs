@@ -1300,7 +1300,7 @@ try {
     if (dismissal === "escape") await page.keyboard.press("Escape");
     else {
       const headingBounds = await page
-        .getByRole("heading", { name: "Workbook browser validation", exact: true })
+        .getByRole("heading", { level: 1, name: "Workbook", exact: true })
         .boundingBox();
       assert.ok(headingBounds);
       // Select owns a dismissal backdrop; click the outside point, not the covered target.

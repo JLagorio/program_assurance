@@ -14,7 +14,6 @@ import {
   SheetContent,
   SheetTitle,
   SheetTrigger,
-  Stat,
 } from "../../components";
 import { PageHeader, Section } from "../../layout";
 import {
@@ -170,13 +169,6 @@ function KitTitlesDemo() {
         </Heading>
       </Stack>
       <Stack space="space.100">
-        <Label>A Stat&apos;s figure, then a Heading at page</Label>
-        <Stat label="Open findings" value={12} />
-        <Heading size="page" as="div" data-testid="figure">
-          12
-        </Heading>
-      </Stack>
-      <Stack space="space.100">
         <Label>An overlay&apos;s title, and a preview&apos;s record name</Label>
         <Inline space="space.100" shouldWrap>
           <Dialog>
@@ -210,7 +202,7 @@ function KitTitlesDemo() {
   );
 }
 
-/** Every title the kit draws is a Heading at one size, so a title set with Heading matches the screen around it: PageHeader.Title at `page`, Section.Title at `section`, a Stat's figure at `page` as a div, and an overlay's title at `overlay`. A PageHeader.Title rendered as a sheet's title, a preview's record name, keeps `page`. */
+/** Every title the kit draws is a Heading at one size, so a title set with Heading matches the screen around it: PageHeader.Title at `page`, Section.Title at `section`, and an overlay's title at `overlay`. A PageHeader.Title rendered as a sheet's title, a preview's record name, keeps `page`. */
 export const KitTitles: Story = {
   name: "Titles the kit draws",
   tags: ["!manifest"],
@@ -228,9 +220,6 @@ export const KitTitles: Story = {
       ...ramp.section,
     });
     await expect(typeOf(canvas.getByTestId("section"))).toEqual({ tag: "DIV", ...ramp.section });
-    const figure = canvasElement.querySelector('[data-slot="stat"]')!.firstElementChild!;
-    await expect(typeOf(figure)).toEqual({ tag: "DIV", ...ramp.page });
-    await expect(typeOf(canvas.getByTestId("figure"))).toEqual({ tag: "DIV", ...ramp.page });
 
     const dialogTrigger = canvas.getByRole("button", { name: "Schedule assessment" });
     await userEvent.click(dialogTrigger);

@@ -127,15 +127,19 @@ export function ControlStatusKey({
 /**
  * A program's control baseline as one bar: each status its share of the baseline, in the key's
  * order and the map's marks, so the key that explains the map explains the bar. For a table cell
- * beside the number it stands for; the bar is named, and says each status with its count.
+ * beside the number it stands for, or under the key in the Overview's tray; the bar is named, and
+ * says each status with its count.
  */
 export function ControlStatusTally({
   status,
   label,
+  size = "large",
 }: {
   status: Pick<ProgramControlStatus, "total" | "counts">;
   /** The bar's name: whose baseline it is. */
   label: string;
+  /** `large` beside a number in a cell; `xlarge` where the bar is the reading, as in a tray. */
+  size?: "large" | "xlarge" | undefined;
 }) {
   const { formatNumber } = useLedgerLocale();
   const segments = KEY_ORDER.map((key): TallySegment => ({
@@ -144,7 +148,7 @@ export function ControlStatusTally({
     label: `${formatNumber(status.counts[key])} ${controlStatuses[key].label.toLowerCase()}`,
     ...marks[key],
   }));
-  return <Tally segments={segments} total={status.total} size="large" label={label} />;
+  return <Tally segments={segments} total={status.total} size={size} label={label} />;
 }
 
 /**

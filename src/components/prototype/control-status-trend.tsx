@@ -9,6 +9,7 @@ import {
 } from "@ledger/design-system";
 import { useProgramControlStatus, type ProgramControlStatus } from "@/lib/control-status";
 import {
+  MIN_TREND_DAYS,
   RECENT_POSTURE_DAYS,
   calendarDay,
   postureSeries,
@@ -38,9 +39,9 @@ function usePercent() {
 /**
  * The program Overview's trend, under the Control status tray: a Chart frame whose line is the
  * share of the control baseline satisfied, a point a day, with its table twin one toggle away and a
- * description that says since when it is tracked. One day is a point, and says so. A program with
- * no control baseline draws nothing. It loads as the plot's skeleton; a failure is the region's one
- * alert with Retry, and a failed first load says Could not load in the plot's place.
+ * description that says since when it is tracked. It draws nothing until it holds seven days (the
+ * tray above says today's share), nor while it loads, nor for a program with no control baseline;
+ * a failure is the region's one alert with Retry.
  */
 export function ProgramControlStatusTrend({ programId }: { programId: string }) {
   const { formatNumber, formatDay } = useLedgerLocale();
@@ -60,40 +61,26 @@ export function ProgramControlStatusTrend({ programId }: { programId: string }) 
     ];
   }, [formatNumber]);
   if (status.data && !status.data.baseline) return null;
-  // Nothing says whether the program has a baseline: say nothing of its trend.
-  if (status.isError && !status.data && points.length === 0) return null;
-  const failed = trend.isError && trend.data === undefined;
-  const loading = !failed && (trend.isPending || (status.isPending && points.length === 0));
+  // Under seven days, loading or failed, there is no trend to draw: the tray says the share, and
+  // the region's alert a failure.
+  if (points.length < MIN_TREND_DAYS || trend.data === undefined || status.data === undefined)
+    return <ReportFailures queries={[trend]} />;
   const day = (value: string) =>
     formatDay(calendarDay(value), { day: "numeric", month: "long", year: "numeric" });
-  const first = points[0];
-  const last = points.at(-1);
+  const first = points[0]!;
+  const last = points.at(-1)!;
   const summary =
-    first?.share == null || last?.share == null
+    first.share == null || last.share == null
       ? undefined
-      : points.length === 1
-        ? `${percent(last.share)} of the control baseline satisfied on ${day(last.day)}, the first day tracked.`
-        : `The share satisfied went from ${percent(first.share)} on ${day(first.day)} to ${percent(last.share)} on ${day(last.day)}.`;
+      : `The share satisfied went from ${percent(first.share)} on ${day(first.day)} to ${percent(last.share)} on ${day(last.day)}.`;
   return (
     <Stack space="space.150" className="min-w-0">
       <ReportFailures queries={[trend]} />
       <Chart
         title="Controls satisfied over time"
         titleLevel={2}
-        description={
-          first
-            ? `Share of the control baseline, tracked since ${day(first.day)}.`
-            : "Share of the control baseline, a point a day."
-        }
+        description={`Share of the control baseline, tracked since ${day(first.day)}.`}
         summary={summary}
-        // A failed first load stands in the plot's place under the alert, which carries Retry.
-        state={failed ? "empty" : loading ? "loading" : "ready"}
-        statusTitle={failed ? "Could not load" : "No snapshot yet"}
-        statusText={
-          failed
-            ? "The trend appears here once its snapshots load."
-            : "The share satisfied is recorded once a day, from the first day it is read."
-        }
         data={points}
         x="day"
         xLabel="Day"
@@ -101,11 +88,11 @@ export function ProgramControlStatusTrend({ programId }: { programId: string }) 
         columns={columns}
       >
         <Chart.Line
-          // The days are spaced by time, from the plot's loading, failed or empty state on.
+          // The days are spaced by time.
           scale="time"
           series={SERIES}
           domain={[0, 1]}
-          // A marker on each day while there are few of them: a lone day is a point.
+          // A marker on each day while there are few of them.
           dots={points.length <= 31}
           labels="end"
         />
@@ -133,9 +120,9 @@ export function ControlStatusTrends({
 /**
  * A program's share satisfied over its last twelve days, beside the number it trends, read from
  * the trends `ControlStatusTrends` holds. Its last point is the live standing, so the line ends at
- * the number. Unnamed, so a screen reader hears the number once. A lone day draws nothing, since
- * the number beside it says it; nor does a trend that could not be read, which the widget's alert
- * says.
+ * the number. Unnamed, so a screen reader hears the number once. Under seven days it draws
+ * nothing, since the number beside it says where the program stands; nor does a trend that could
+ * not be read, which the widget's alert says.
  */
 export function ControlStatusSparkline({
   programId,
@@ -149,7 +136,7 @@ export function ControlStatusSparkline({
     () => postureSeries(trend?.data?.get(programId) ?? [], status).slice(-RECENT_POSTURE_DAYS),
     [trend?.data, programId, status],
   );
-  if (points.length < 2) return null;
+  if (points.length < MIN_TREND_DAYS) return null;
   return (
     <Chart.Sparkline data={points} x="day" y="share" tone="success" width={80} height={20} endDot />
   );

@@ -1,4 +1,10 @@
-import { EmptyMessage, MissingRecord, RecordActions, type QueryStatus } from "./work-common";
+import {
+  EmptyMessage,
+  MissingRecord,
+  RecordActions,
+  RecordHeading,
+  type QueryStatus,
+} from "./work-common";
 import { useMemo, useState } from "react";
 import { FileText, Plus } from "lucide-react";
 import {
@@ -40,6 +46,7 @@ import { RetainedTabPanels } from "./program-shared";
 import { ProductCollection } from "./product-collection";
 import { useOwnerAssignment, useOwnerOptions } from "./assign-owner";
 import { useServerCollection, vocabularyOptions } from "./collection-question";
+import { useProgramOptions } from "./program-filter";
 import {
   RecordLink,
   useDisplayedRecords,
@@ -121,8 +128,8 @@ const issueRead = serverRead({
   ],
   search: ["title", "program_name", "owner_name"],
   fields: {
-    // The program and the owner sort, and are found, by their names.
-    program_id: { column: "program_name", filter: false },
+    // The program and the owner sort, are filtered and are found by their names.
+    program_id: { column: "program_name" },
     owner_party_id: ownerField,
     status: { labels: operationalIssueStatuses, sort: "status_rank" },
     severity: { labels: severityLevels, sort: "severity_rank" },
@@ -228,6 +235,7 @@ function OperationalIssueRegister() {
     result: useServerResult(issueRead),
   });
   const ownerOptions = useOwnerOptions(issueRead);
+  const programOptions = useProgramOptions();
   const create = (size: "small" | "medium") =>
     workspace.role !== "viewer" ? (
       <Button size={size} variant="primary" iconBefore={<Plus />} onClick={() => setCreating(true)}>
@@ -276,6 +284,7 @@ function OperationalIssueRegister() {
               column="status"
               options={vocabularyOptions(operationalIssueStatuses)}
             />
+            <DataTable.Filter table={table} column="program_id" options={programOptions} />
             <DataTable.Filter table={table} column="owner_party_id" options={ownerOptions} />
           </>
         }
@@ -594,13 +603,18 @@ export function FindingRecord({ id }: { id: string }) {
               <RecordTrail current={row.title}>
                 <TrailLink to="/findings">Findings & assets</TrailLink>
               </RecordTrail>
-              <PageHeader.Heading>
-                <PageHeader.Title>{row.title}</PageHeader.Title>
-              </PageHeader.Heading>
+              <RecordHeading
+                status={
+                  row.determination ? (
+                    <StatusBadge statuses={determinations} value={row.determination} />
+                  ) : undefined
+                }
+              >
+                {row.title}
+              </RecordHeading>
               <PageHeader.Actions>
                 <RecordActions
                   table="assessment_findings"
-                  id={id}
                   onEdit={() => setEditing(row as DataRecord)}
                   editLabel="Edit assessment finding"
                   readOnly={readOnly}
@@ -878,13 +892,14 @@ export function IssueRecord({
               <RecordTrail current={row.title}>
                 <TrailLink to="/findings">Findings & assets</TrailLink>
               </RecordTrail>
-              <PageHeader.Heading>
-                <PageHeader.Title>{row.title}</PageHeader.Title>
-              </PageHeader.Heading>
+              <RecordHeading
+                status={<StatusBadge statuses={operationalIssueStatuses} value={row.status} />}
+              >
+                {row.title}
+              </RecordHeading>
               <PageHeader.Actions>
                 <RecordActions
                   table="operational_issues"
-                  id={id}
                   onEdit={() => setEditing(row as DataRecord)}
                   editLabel="Edit operational issue"
                 />
@@ -1003,13 +1018,11 @@ export function AssetRecord({ id }: { id: string }) {
               <RecordTrail current={row.name}>
                 <TrailLink to="/findings">Findings & assets</TrailLink>
               </RecordTrail>
-              <PageHeader.Heading>
-                <PageHeader.Title>{row.name}</PageHeader.Title>
-              </PageHeader.Heading>
+              {/* An asset records no status: its name alone. */}
+              <RecordHeading>{row.name}</RecordHeading>
               <PageHeader.Actions>
                 <RecordActions
                   table="inventory_items"
-                  id={id}
                   onEdit={() => setEditing(row as DataRecord)}
                   editLabel="Edit inventory item"
                 />

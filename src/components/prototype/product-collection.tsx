@@ -7,6 +7,7 @@ import {
   isValidElement,
   useCallback,
   useEffect,
+  useMemo,
   useState,
   type ReactNode,
 } from "react";
@@ -27,6 +28,7 @@ import {
   tableQueryToSearch,
   tableQueryToString,
   useTableQuery,
+  useLedgerLocale,
   type DataTableInstance,
   type DataTableProps,
   type TableQueryParams,
@@ -104,6 +106,56 @@ export type ProductCollectionProps<T extends { id: string }> = Omit<
    */
   compact?: boolean | undefined;
 };
+
+/** A register folds a column once its result holds this many rows: two share a value by chance. */
+const FOLD_FROM_ROWS = 3;
+
+/** A cell's value as the reader reads it, to compare rows by: an empty value is none. */
+function sameness(value: unknown): string {
+  if (value === null || value === undefined || value === "") return "";
+  if (Array.isArray(value) && value.length === 0) return "";
+  return JSON.stringify(value);
+}
+
+/**
+ * The columns of a register whose every row says one thing: the same value, or none, on each row
+ * of its result (every row a client table's search and filters leave, a server register's page),
+ * once it holds three rows. A date says its day in the reader's zone, so a column of one day's
+ * moments folds. Such a column tells no row from another: the table puts it in each row's More
+ * fields and gives its width to the name. Only a column whose value is its cell's is weighed: the
+ * row's name, its actions, a column the reader pinned and a custom cell never fold.
+ */
+function useFoldedColumns<T extends { id: string }>(table: DataTableInstance<T>, on: boolean) {
+  const { formatDate } = useLedgerLocale();
+  // The row model's own list, which keeps its identity while the result does.
+  const rows = table.getPrePaginatedRowModel().rows;
+  const columns = table.getVisibleLeafColumns();
+  // The columns the reader pinned keep their place: a pin says the reader wants the column there.
+  const { start, end } = table.state.columnPinning;
+  const pinned = [...(start ?? []), ...(end ?? [])].join(" ");
+  return useMemo(() => {
+    const held = new Set(pinned.split(" "));
+    if (!on || rows.length < FOLD_FROM_ROWS) return undefined;
+    const day = (value: unknown) => {
+      if (typeof value !== "string" || /^\d{4}-\d{2}-\d{2}$/.test(value)) return sameness(value);
+      const moment = new Date(value);
+      return Number.isNaN(moment.getTime())
+        ? sameness(value)
+        : formatDate(moment, { year: "numeric", month: "numeric", day: "numeric" });
+    };
+    const folded = columns
+      .filter((column) => {
+        const meta = column.columnDef.meta;
+        if (!meta || !column.accessorFn || held.has(column.id)) return false;
+        if (meta.priority === 0 || ["id", "actions", "custom"].includes(meta.kind)) return false;
+        const read = meta.kind === "date" ? day : sameness;
+        const first = read(rows[0]!.getValue(column.id));
+        return rows.every((row) => read(row.getValue(column.id)) === first);
+      })
+      .map((column) => column.id);
+    return folded.length ? folded : undefined;
+  }, [on, rows, columns, pinned, formatDate]);
+}
 
 /** A query is loading while it fetches with nothing to show. A disabled query (TanStack keeps it
  * pending with an idle fetch status, as when it waits on another that failed) is not loading. */
@@ -225,6 +277,8 @@ export function ProductCollection<T extends { id: string }>({
   ...props
 }: ProductCollectionProps<T>) {
   const { table } = props;
+  // A register gives the width of a column that says one thing on every row to the names.
+  const fold = useFoldedColumns(table, !compact);
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const namedViewScope =
     !compact &&
@@ -284,6 +338,7 @@ export function ProductCollection<T extends { id: string }>({
     <DataTable
       {...props}
       {...(compact ? { loadingRows: loadingRows ?? 3 } : loadingRows ? { loadingRows } : {})}
+      fold={fold}
       responsive
       state={loading ? "loading" : refreshing ? "refreshing" : "ready"}
       empty={{

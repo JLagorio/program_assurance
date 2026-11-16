@@ -101,12 +101,12 @@ export const StatMatrix: Story = {
   ),
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    // A figure is Heading's `page` size as a div, with tabular numerals, in a Stat and a tile alike.
+    // A figure is `font.figure` as a div, with tabular numerals, in a Stat and a tile alike.
     for (const figure of [
       canvasElement.querySelector('[data-slot="stat"]')!.firstElementChild!,
       canvasElement.querySelector('[data-slot="stat-tile"]')!.children[1]!,
     ]) {
-      await expect(typeOf(figure)).toEqual({ tag: "DIV", ...ramp.page });
+      await expect(typeOf(figure)).toEqual({ tag: "DIV", ...ramp.figure });
       await expect(getComputedStyle(figure).fontVariantNumeric).toBe("tabular-nums");
     }
     for (const [name, cols] of [

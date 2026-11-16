@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { RecordPending } from "@/components/app/shell";
-import { useRecordTitle } from "@/components/app/browser-title";
+import { useViewTitle } from "@/components/app/browser-title";
 import { useRow } from "@/lib/models";
 import { ProgramWorkspace } from "@/components/prototype/program-workspace";
 export const Route = createFileRoute("/programs/$programId_/compliance")({
@@ -9,13 +9,13 @@ export const Route = createFileRoute("/programs/$programId_/compliance")({
   validateSearch: (search: Record<string, unknown>): { document?: string | undefined } => ({
     ...(typeof search["document"] === "string" ? { document: search["document"] } : {}),
   }),
-  head: () => ({ meta: [{ title: "Program — Program Assurance" }] }),
+  head: () => ({ meta: [{ title: "Compliance matrix — Program Assurance" }] }),
   pendingComponent: RecordPending,
   component: ProgramView,
 });
 function ProgramView() {
   const { programId } = Route.useParams();
   const record = useRow("programs", programId);
-  useRecordTitle("Program", record.data?.name);
-  return <ProgramWorkspace programId={programId} tab="Requirements" view="Compliance matrix" />;
+  useViewTitle("Compliance matrix", record.data?.name);
+  return <ProgramWorkspace programId={programId} view="Compliance matrix" />;
 }

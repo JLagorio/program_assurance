@@ -8,14 +8,9 @@ import {
   AlertTitle,
   AsideLayout,
   Box,
-  Button,
   Composer,
   DateTime,
-  DropdownMenu,
-  DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLinkItem,
-  DropdownMenuTrigger,
   Editable,
   Empty,
   EmptyDescription,
@@ -33,7 +28,7 @@ import {
   toast,
   useLedgerLocale,
 } from "@ledger/design-system";
-import { AlertCircle, ChevronDown, History, MessageSquare } from "lucide-react";
+import { AlertCircle, History, MessageSquare } from "lucide-react";
 import { useModelSave, useRow, useRows, type Row } from "@/lib/models";
 import { useSetTaskDue } from "@/lib/due-dates";
 import { usePostTaskComment } from "@/lib/task-comments";
@@ -52,6 +47,8 @@ import {
   MissingRecord,
   ModelForm,
   QueryState,
+  RecordActions,
+  RecordHeading,
   type FormTarget,
 } from "@/components/prototype/work-common";
 
@@ -224,7 +221,9 @@ function TaskDetail({ taskId }: { taskId: string }) {
   // opened now would carry the old one and fail as a stale write, so the menu items wait and say
   // why, and so does the due day.
   const saving = save.isPending || setDue.isPending;
-  const pending = saving ? { disabledReason: "The task is being saved." } : {};
+  const pending: { disabledReason?: string } = saving
+    ? { disabledReason: "The task is being saved." }
+    : {};
   function open(target: FormTarget) {
     // The trigger stays enabled while its dialog is open; a second press opens nothing new.
     if (!form) setForm(target);
@@ -263,41 +262,22 @@ function TaskDetail({ taskId }: { taskId: string }) {
                   <RelationName table="programs" id={task.program_id} peek={false} />
                 </TrailLink>
               </RecordTrail>
-              <PageHeader.Heading>
-                <PageHeader.Title>{task.title}</PageHeader.Title>
-              </PageHeader.Heading>
+              <RecordHeading status={<StatusBadge statuses={taskStatuses} value={task.status} />}>
+                {task.title}
+              </RecordHeading>
               <PageHeader.Actions>
-                <DropdownMenu>
-                  <DropdownMenuTrigger
-                    render={<Button iconAfter={<ChevronDown />}>Actions</Button>}
-                  />
-                  <DropdownMenuContent align="end">
-                    {canEdit && (
-                      <>
-                        <DropdownMenuItem
-                          onClick={() => open({ table: "tasks", existing: task as DataRecord })}
-                          {...pending}
-                        >
-                          Edit task
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => void toggleDone()} {...pending}>
-                          {task.status === "done" ? "Reopen task" : "Complete task"}
-                        </DropdownMenuItem>
-                      </>
-                    )}
-                    <DropdownMenuLinkItem
-                      closeOnClick
-                      render={
-                        <Link
-                          to="/records/$collection/$recordId"
-                          params={{ collection: "tasks", recordId: task.id }}
-                        />
-                      }
-                    >
-                      Inspect record
-                    </DropdownMenuLinkItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <RecordActions
+                  table="tasks"
+                  editLabel="Edit task"
+                  onEdit={() => open({ table: "tasks", existing: task as DataRecord })}
+                  editDisabledReason={pending.disabledReason}
+                >
+                  {canEdit && (
+                    <DropdownMenuItem onClick={() => void toggleDone()} {...pending}>
+                      {task.status === "done" ? "Reopen task" : "Complete task"}
+                    </DropdownMenuItem>
+                  )}
+                </RecordActions>
               </PageHeader.Actions>
             </PageHeader>
             {error && (

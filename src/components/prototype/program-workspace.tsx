@@ -1,23 +1,23 @@
 import { ControlBaselineSummary, ProgramControlBaseline } from "./control-baseline";
 import { ProgramInheritance } from "./program-inheritance";
-import { DueDate, EmptyMessage, MissingRecord, type QueryStatus } from "./work-common";
+import { ProgramViewRow, programViewTab, type ProgramViewName } from "./program-views";
+import {
+  DueDate,
+  EmptyMessage,
+  MissingRecord,
+  RecordActions,
+  type QueryStatus,
+} from "./work-common";
+import { ProgramStandingFacts } from "./program-standing";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
   Absent,
   AsideLayout,
   Badge,
-  Button,
   Count,
   DateTime,
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuLinkItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
   Empty,
   EmptyDescription,
   EmptyHeader,
@@ -41,7 +41,6 @@ import {
   DataTable,
   defineColumns,
 } from "@ledger/design-system";
-import { ChevronDown } from "lucide-react";
 import { useRows, useRow, type Row } from "@/lib/models";
 import { useProductLookup } from "@/lib/product-items";
 import { labelFor, type DataRecord } from "@/lib/records";
@@ -80,6 +79,7 @@ import { RecordLink, useOpenRecord } from "./record-preview";
 import { ProgramPosture } from "./program-posture";
 import { ProgramResiliency } from "./program-resiliency";
 import type { PostureReading } from "@/lib/program-posture";
+import { lifecycleGateDue } from "@/lib/program-timeline";
 import type { RequirementTab } from "./requirement-record";
 import {
   ProgramCollection,
@@ -155,29 +155,6 @@ export function programTab(value: unknown): ProgramTab {
   return programTabs.find((tab) => tab.toLowerCase() === text) ?? alias[text] ?? "Overview";
 }
 
-/**
- * The program's focused views, each a page of its own under the program that shows what its name
- * says. A view that repeats a tab ("Cyber T&E phases", the Assessment campaigns tab) or lands back
- * on the Overview (the old dashboard address) is not offered here.
- */
-const programViews = [
-  ["Posture", "/programs/$programId/posture"],
-  ["Control status", "/programs/$programId/control-status"],
-  ["Product delta", "/programs/$programId/product-delta"],
-  ["Compliance matrix", "/programs/$programId/compliance"],
-  ["Control baseline", "/programs/$programId/control-baseline"],
-  ["Cyber resiliency", "/programs/$programId/resiliency"],
-  ["Workbook", "/programs/$programId/workbook"],
-  ["Configuration baseline", "/programs/$programId/baseline"],
-  ["Traceability matrix", "/programs/$programId/sctm"],
-  ["Inheritance resolution", "/programs/$programId/inheritance"],
-  ["Authorization", "/programs/$programId/authorization"],
-  ["Residual risk", "/programs/$programId/risk"],
-  ["Continuous monitoring", "/programs/$programId/conmon"],
-  ["Scanner ingestion", "/programs/$programId/ingestion"],
-  ["Program transfer", "/programs/$programId/export"],
-] as const;
-
 export function ProgramWorkspace({
   programId,
   tab: tabName = "Overview",
@@ -190,7 +167,8 @@ export function ProgramWorkspace({
   programId: string;
   /** The tab; a retired name shows the tab its content moved to. */
   tab?: ProgramTab | RetiredProgramTab | undefined;
-  view?: string;
+  /** A focused view, which the page shows in place of the tabs, named by its h1. */
+  view?: ProgramViewName | undefined;
   requirementId?: string | undefined;
   requirementTab?: RequirementTab | undefined;
   /** The Assessment campaigns tab's own tab, which the address keeps. */
@@ -273,6 +251,8 @@ export function ProgramWorkspace({
           // closed disclosure above it whose row says the status. They leave with the tab.
           <AsideLayout aside={<ProgramDetailsAside program={program} />}>
             <Stack space="space.300" className="min-w-0">
+              {/* The Overview's views lead its body, so the Details stay under the tab strip. */}
+              <ProgramViewRow programId={programId} tab="Overview" />
               {queues.some((queue) => queue.isError) && <ProgramQueryState queries={queues} />}
               <ProgramOpenWork
                 programId={programId}
@@ -411,7 +391,22 @@ export function ProgramWorkspace({
                 { key: "title", title: "Gate" },
                 { key: "sequence_number", title: "Sequence" },
                 { key: "status", title: "Status" },
-                { key: "due_on", title: "Due" },
+                // A day the gate falls due, overdue, due today or soon while it is still to decide.
+                {
+                  key: "due_on",
+                  title: "Due",
+                  minWidth: 200,
+                  render: (row) => (
+                    <DueDate
+                      value={row["due_on"]}
+                      {...lifecycleGateDue({
+                        status: String(row["status"]),
+                        decided_at:
+                          typeof row["decided_at"] === "string" ? row["decided_at"] : null,
+                      })}
+                    />
+                  ),
+                },
               ]}
             />
             <ProgramCollection
@@ -481,6 +476,8 @@ export function ProgramWorkspace({
             has no tabs, so its blocks' failures read as the page's one alert. */}
         <ProgramQueryState queries={[query]} region>
           <PageHeader>
+            {/* A focused view is a page of its own, named by its h1 and trailed through the tab
+                that lists it. */}
             <RecordTrail current={view ?? programName}>
               <TrailLink to="/programs">Programs</TrailLink>
               {view && (
@@ -488,51 +485,36 @@ export function ProgramWorkspace({
                   {programName}
                 </TrailLink>
               )}
+              {view && (
+                <TrailLink
+                  to="/programs/$programId"
+                  params={{ programId }}
+                  search={{ tab: programViewTab(view) }}
+                >
+                  {programViewTab(view)}
+                </TrailLink>
+              )}
             </RecordTrail>
+            {/* The program's name, then its categorization and its standing as one fact. */}
             <PageHeader.Heading>
-              <PageHeader.Title>{program.name}</PageHeader.Title>
+              <Stack space="space.050">
+                <PageHeader.Title>{view ?? program.name}</PageHeader.Title>
+                {/* The program's standing on its own page; a focused view is named by its h1 alone. */}
+                {!view && (
+                  <ProgramStandingFacts
+                    programId={programId}
+                    boundaries={boundaries}
+                    gates={gates}
+                  />
+                )}
+              </Stack>
             </PageHeader.Heading>
             <PageHeader.Actions>
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  render={<Button iconAfter={<ChevronDown />}>Actions</Button>}
-                />
-                <DropdownMenuContent align="end">
-                  {canEditProgram && (
-                    <>
-                      <DropdownMenuItem onClick={() => setEditing(true)}>
-                        Edit program
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                    </>
-                  )}
-                  <DropdownMenuGroup>
-                    <DropdownMenuLabel>Views</DropdownMenuLabel>
-                    {programViews.map(([label, to]) => (
-                      <DropdownMenuLinkItem
-                        key={to}
-                        closeOnClick
-                        render={<Link to={to} params={{ programId }} />}
-                      >
-                        {label}
-                      </DropdownMenuLinkItem>
-                    ))}
-                  </DropdownMenuGroup>
-                  <DropdownMenuSeparator />
-                  {/* The schema record, last, as on every record's Actions menu. */}
-                  <DropdownMenuLinkItem
-                    closeOnClick
-                    render={
-                      <Link
-                        to="/records/$collection/$recordId"
-                        params={{ collection: "programs", recordId: program.id }}
-                      />
-                    }
-                  >
-                    Inspect record
-                  </DropdownMenuLinkItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <RecordActions
+                table="programs"
+                editLabel="Edit program"
+                onEdit={() => setEditing(true)}
+              />
             </PageHeader.Actions>
           </PageHeader>
           {view ? (
@@ -585,7 +567,14 @@ export function ProgramWorkspace({
                 ))}
               </TabsList>
               <RetainedTabPanels tabs={programTabs} value={tab}>
-                {(name) => tabContent(name)}
+                {(name) => (
+                  <>
+                    {/* The tab's views, first: each a page of its own that reads the tab's work.
+                        The Overview's lead its body, beside the program's Details. */}
+                    {name !== "Overview" && <ProgramViewRow programId={programId} tab={name} />}
+                    {tabContent(name)}
+                  </>
+                )}
               </RetainedTabPanels>
             </Tabs>
           )}
@@ -612,6 +601,10 @@ const SHELL_SYSTEM_COLUMNS = [
   "name",
   "is_authorization_boundary",
   "authorization_status",
+  // The header's categorization, from each boundary's recorded impacts.
+  "confidentiality_impact",
+  "integrity_impact",
+  "availability_impact",
   "product_revision_id",
   "product_configuration_id",
 ] as const;

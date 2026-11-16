@@ -2,7 +2,7 @@ import { RequirementChangeReview } from "./requirement-change-review";
 import { AssuranceReviewPanel } from "./assurance-review";
 import { AssuranceCitations } from "./assurance-review-citations";
 import { ProductRecordDialog } from "./product-record-dialog";
-import { MissingRecord, RecordActions, ReportFailures } from "./work-common";
+import { MissingRecord, RecordActions, RecordHeading, ReportFailures } from "./work-common";
 import { useCallback, useMemo, useRef, useState, type ComponentProps, type ReactNode } from "react";
 import { Link, useBlocker } from "@tanstack/react-router";
 import { useConfirmation, discardChanges } from "@/components/app/confirmation";
@@ -79,8 +79,10 @@ export type RequirementRecordFrame = {
   title: string;
   /** The preview's record actions: the identity's edit as one small primary, or none. */
   actions: ReactNode;
-  /** Opens the identity's edit, where the reader may make it; the page's Actions menu offers it. */
+  /** Opens the identity's edit, where the reader may make it; the page's primary offers it. */
   onEdit: (() => void) | undefined;
+  /** The current details' state as its StatusBadge, which the page draws beside the name. */
+  status: ReactNode;
 };
 
 type RequirementRecordProps = {
@@ -166,8 +168,7 @@ export function RequirementRecordContent({
   // One rule for the page and the preview: the identity is edited where the revisions are.
   const canEditIdentity = canWrite;
   const onEdit = canEditIdentity ? () => setEditingIdentity(true) : undefined;
-  // The preview's inner header takes the edit as its one small primary; the page puts it in its
-  // Actions menu, before Inspect record.
+  // The preview's inner header takes the edit as its one small primary; the page as its primary.
   const actions = onEdit ? (
     <Button size="small" variant="primary" onClick={onEdit}>
       Edit engineering requirement
@@ -180,6 +181,7 @@ export function RequirementRecordContent({
           title: active?.title ?? requirement.data?.code ?? "Requirement",
           actions,
           onEdit,
+          status: active ? <StatusBadge statuses={revisionStates} value={active.state} /> : null,
         })
       : content;
 
@@ -748,7 +750,7 @@ export function ProgramRequirementRecord({
       requirementId={requirementId}
       tab={tab}
       onTabChange={onTabChange}
-      renderFrame={({ content, title, onEdit }) => (
+      renderFrame={({ content, title, onEdit, status }) => (
         <Page>
           {/* The page is one failure region, and each of its tabs another: an outage reads as one
               alert where it happened, whose Retry reloads every failed read in it. */}
@@ -768,13 +770,10 @@ export function ProgramRequirementRecord({
                   Requirements
                 </TrailLink>
               </RecordTrail>
-              <PageHeader.Heading>
-                <PageHeader.Title>{title}</PageHeader.Title>
-              </PageHeader.Heading>
+              <RecordHeading status={status}>{title}</RecordHeading>
               <PageHeader.Actions>
                 <RecordActions
                   table="engineering_requirements"
-                  id={requirementId}
                   onEdit={onEdit}
                   editLabel="Edit engineering requirement"
                 />

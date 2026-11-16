@@ -2,6 +2,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
+  controlName,
   isAdditionalProductField,
   productCollectionNoun,
   productCreateLabel,
@@ -216,5 +217,20 @@ describe("product field order", () => {
       false,
     );
     expect(isAdditionalProductField(column("title"))).toBe(false);
+  });
+});
+
+describe("control names", () => {
+  it("names a control by its code and its title together", () => {
+    expect(controlName({ code: "AC-2", title: "Account Management" })).toBe(
+      "AC-2 Account Management",
+    );
+    expect(controlName({ code: "AC-2(1)", title: " Automated System Account Management " })).toBe(
+      "AC-2(1) Automated System Account Management",
+    );
+  });
+  it("keeps the code alone for a control with no title", () => {
+    expect(controlName({ code: "AC-2", title: null })).toBe("AC-2");
+    expect(controlName({ code: "AC-2", title: "  " })).toBe("AC-2");
   });
 });

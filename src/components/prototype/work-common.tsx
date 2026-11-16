@@ -1,5 +1,6 @@
 import { productRecordNoun } from "@/lib/product-records";
 import {
+  Children,
   useCallback,
   useContext,
   useEffect,
@@ -21,8 +22,6 @@ import {
   DateTime,
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLinkItem,
   DropdownMenuTrigger,
   Empty,
   EmptyContent,
@@ -31,6 +30,7 @@ import {
   EmptyIllustration,
   EmptyMedia,
   EmptyTitle,
+  Inline,
   KeyValue,
   LinkButton,
   PageHeader,
@@ -40,6 +40,7 @@ import {
   TextLink,
   VisuallyHidden,
   announce,
+  useLedgerLocale,
   type EmptyIllustrationKind,
   type KeyValueLabelWidth,
 } from "@ledger/design-system";
@@ -492,53 +493,82 @@ export function DetailFacts({
     </KeyValue.Group>
   );
 }
+
 /**
- * A record page's one header menu: "Actions" with a chevron, the record's edit first, its other
- * commands after it, and Inspect record (the schema record) last. A viewer and a read-only record
- * keep the menu with Inspect record alone; `children` are drawn as given, so the caller decides
- * who sees a command (Create version, Publish version, Export OSCAL).
+ * A record page's name, its h1, with the record's status or state beside it where it has one, as a
+ * StatusBadge from the same vocabulary its Details use (a control's is its control status). The
+ * badge follows the name: on the name's line while the line holds both, else under it.
+ */
+export function RecordHeading({
+  children,
+  status,
+}: {
+  /** The record's name, in the words of the browser title. */
+  children: ReactNode;
+  /** The record's StatusBadge; a record with no status or state passes none. */
+  status?: ReactNode | undefined;
+}) {
+  return (
+    <PageHeader.Heading>
+      {status ? (
+        <Inline space="space.100" alignBlock="center" shouldWrap>
+          <PageHeader.Title>{children}</PageHeader.Title>
+          {status}
+        </Inline>
+      ) : (
+        <PageHeader.Title>{children}</PageHeader.Title>
+      )}
+    </PageHeader.Heading>
+  );
+}
+
+/**
+ * A record page's header actions: the record's edit as its one primary, for a reader who may edit,
+ * then its other commands in one Actions menu. `children` are drawn as given, so the caller decides
+ * who sees a command (Create version, Publish version, Export OSCAL); a reader with no command sees
+ * no menu, and a viewer of a record with none sees nothing. The schema record is not here: Settings
+ * opens the schema inspector, under Diagnostics.
  */
 export function RecordActions({
   onEdit,
   table,
-  id,
   editLabel,
+  editDisabledReason,
   readOnly = false,
   children,
 }: {
-  /** Opens the record's edit; without it the menu has no edit. */
+  /** Opens the record's edit; without it the header has no primary. */
   onEdit?: (() => void) | undefined;
   table: string;
-  id: string;
   editLabel?: string | undefined;
+  /** Why the edit cannot open just now (the record is saving): it keeps its place and says so. */
+  editDisabledReason?: string | undefined;
   readOnly?: boolean | undefined;
-  /** The record's other commands, as DropdownMenuItems, between the edit and Inspect record. */
+  /** The record's other commands, as DropdownMenuItems and DropdownMenuLinkItems. */
   children?: ReactNode | undefined;
 }) {
   const workspace = useWorkspace();
+  const canEdit = onEdit && !readOnly && workspace.role !== "viewer";
+  // A command the caller leaves out is `false` or `null`, which draws nothing and counts for none.
+  const commands = Children.toArray(children).length > 0;
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger render={<Button iconAfter={<ChevronDown />}>Actions</Button>} />
-      <DropdownMenuContent align="end">
-        {onEdit && !readOnly && workspace.role !== "viewer" && (
-          <DropdownMenuItem onClick={onEdit}>
-            {editLabel ?? `Edit ${productRecordNoun(table)}`}
-          </DropdownMenuItem>
-        )}
-        {children}
-        <DropdownMenuLinkItem
-          closeOnClick
-          render={
-            <Link
-              to="/records/$collection/$recordId"
-              params={{ collection: table, recordId: id }}
-            />
-          }
+    <>
+      {canEdit && (
+        <Button
+          variant="primary"
+          onClick={onEdit}
+          {...(editDisabledReason ? { disabledReason: editDisabledReason } : {})}
         >
-          Inspect record
-        </DropdownMenuLinkItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+          {editLabel ?? `Edit ${productRecordNoun(table)}`}
+        </Button>
+      )}
+      {commands && (
+        <DropdownMenu>
+          <DropdownMenuTrigger render={<Button iconAfter={<ChevronDown />}>Actions</Button>} />
+          <DropdownMenuContent align="end">{children}</DropdownMenuContent>
+        </DropdownMenu>
+      )}
+    </>
   );
 }
 
@@ -562,6 +592,35 @@ export function DueDate({
   const due = typeof value === "string" && value !== "" ? value : null;
   if (cancelled) return <DateTime value={due} format="date" absentLabel="No due date" />;
   return <DateLabel value={due} complete={done} format="date" absentLabel="No due date" />;
+}
+
+/** Where an open due day stands, in DateLabel's words and tone: "Overdue", "Due tomorrow". */
+export type DueSaying = { words: string; tone: "danger" | "warning" };
+
+/**
+ * DueDate's words, for a place that takes text alone (a Stat tile's note, a trace node's line):
+ * given a calendar day of open work ("2026-10-06"), "Overdue" in the danger tone before the
+ * reader's today, "Due today", "Due tomorrow" and "Due in 2 days" in the warning tone, and null for
+ * a later day or no day. The words are the kit's, so a band says what a DateLabel beside it says.
+ */
+export function useDueSaying() {
+  const { t, locale, zonedParts } = useLedgerLocale();
+  const { year, month, day } = zonedParts(Date.now());
+  return useCallback(
+    (value: string | null | undefined): DueSaying | null => {
+      const [y, m, d] = (value ?? "").slice(0, 10).split("-").map(Number);
+      if (!y || !m || !d) return null;
+      const days = Math.round(
+        (Date.UTC(y, m - 1, d) - Date.UTC(year, month - 1, day)) / 86_400_000,
+      );
+      if (days < 0) return { words: t("dateOverdue"), tone: "danger" };
+      if (days === 0) return { words: t("dateDueToday"), tone: "warning" };
+      if (days > 2) return null;
+      const relative = new Intl.RelativeTimeFormat(locale, { numeric: "auto" }).format(days, "day");
+      return { words: t("dateDueSoon", { relative }), tone: "warning" };
+    },
+    [t, locale, year, month, day],
+  );
 }
 
 /**

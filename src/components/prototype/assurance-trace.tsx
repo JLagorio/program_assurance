@@ -53,7 +53,7 @@ import { useWorkspace } from "@/components/app/workspace";
 import { NextStep, StepSurfaceHost } from "./next-step";
 import { ProductCollection } from "./product-collection";
 import { RecordLink, recordLink, useOpenRecord } from "./record-preview";
-import { DueDate, QueryState, type QueryStatus } from "./work-common";
+import { DueDate, QueryState, useDueSaying, type QueryStatus } from "./work-common";
 
 /*
  * A record's story band: what the record reaches, in numbers, then the chain it sits on, drawn.
@@ -78,6 +78,9 @@ function dayOf(value: string) {
   const [year = 0, month = 1, day = 1] = value.slice(0, 10).split("-").map(Number);
   return { year, month, day };
 }
+
+/** A remediation item that will not be done: its planned day is no longer due. */
+const stopped = (status: string) => status === "cancelled" || status === "risk_accepted";
 
 /** A severity and a status on one line: "Critical · Open". */
 const standing = (severity: string | null, status: string, statuses: StatusVocabulary) =>
@@ -130,6 +133,7 @@ function useTraceStages(
   canWrite: boolean,
 ) {
   const { formatDate, formatDay } = useLedgerLocale();
+  const dueSaying = useDueSaying();
   return useMemo(() => {
     if (!trace) return null;
     // A control opens inside the program its requirements belong to, when they share one; with no
@@ -209,21 +213,29 @@ function useTraceStages(
         meta: standing(risk.severity, risk.status, riskStatuses),
         link: recordLink("risks", { id: risk.id }),
       })),
-      remediation: trace.remediation.map((item) => ({
-        id: traceKey("remediation", item.id),
-        title: item.title,
-        meta: [
-          statusLabel(remediationStatuses, item.status),
-          item.completed_on
-            ? `Done ${day(item.completed_on)}`
-            : item.planned_on
-              ? `Due ${day(item.planned_on)}`
-              : null,
-        ]
-          .filter(Boolean)
-          .join(" · "),
-        link: recordLink("poam_items", { id: item.id }),
-      })),
+      remediation: trace.remediation.map((item) => {
+        // An open item's planned day says where it stands, as a DueDate does: overdue, due today
+        // or soon, in words and in the mark's tone.
+        const open = item.status !== "completed" && !item.completed_on && !stopped(item.status);
+        const due = open ? dueSaying(item.planned_on) : null;
+        return {
+          id: traceKey("remediation", item.id),
+          title: item.title,
+          ...(due ? { mark: <Dot tone={due.tone} /> } : {}),
+          meta: [
+            statusLabel(remediationStatuses, item.status),
+            item.completed_on
+              ? `Done ${day(item.completed_on)}`
+              : item.planned_on
+                ? `Due ${day(item.planned_on)}`
+                : null,
+            due?.words,
+          ]
+            .filter(Boolean)
+            .join(" · "),
+          link: recordLink("poam_items", { id: item.id }),
+        };
+      }),
     };
     // A gap the reader can close from this record carries its fix, for a reader who may make it: a
     // link to where it is made, or, for a fix made on the control itself, the button that opens it
@@ -291,7 +303,7 @@ function useTraceStages(
       links: traceLinks(trace),
       focus: traceKey(trace.focus.kind, trace.focus.id),
     };
-  }, [trace, programId, controlStanding, canWrite, formatDate, formatDay]);
+  }, [trace, programId, controlStanding, canWrite, formatDate, formatDay, dueSaying]);
 }
 
 /** The highest severity among records, by the product's order. */
@@ -331,6 +343,7 @@ function useTiles(
   objectives: ObjectiveTally,
 ): Tile[] {
   const { formatDate, formatDay, formatNumber, formatPlural } = useLedgerLocale();
+  const dueSaying = useDueSaying();
   return useMemo(() => {
     if (!trace) return [];
     const reach = traceReach(trace);
@@ -372,20 +385,27 @@ function useTiles(
         ...(level ? { tone: statusTone(severityLevels, level) } : {}),
       };
     };
+    // When the open remediation is due, and where that day stands, as a DueDate says it beside a
+    // date: "Due Oct 6, 2026 · Overdue". The note is one line of text, so the words stand in for
+    // the DateLabel, and the number takes their tone.
+    const due = dueSaying(treatment.dueOn);
+    const dueNote = treatment.dueOn
+      ? [
+          `Due ${formatDay(dayOf(treatment.dueOn), { month: "short", day: "numeric", year: "numeric" })}`,
+          due?.words,
+        ]
+          .filter(Boolean)
+          .join(" · ")
+      : undefined;
+    const dueTone = treatment.late || due?.tone === "danger" ? "danger" : due?.tone;
     const milestones: Tile = treatment.milestones
       ? {
           label: "Milestones done",
           value: `${treatment.completed}/${treatment.milestones}`,
           note:
-            [
-              treatment.dueOn
-                ? `Due ${formatDay(dayOf(treatment.dueOn), { month: "short", day: "numeric", year: "numeric" })}`
-                : "",
-              treatment.late ? `${treatment.late} late` : "",
-            ]
-              .filter(Boolean)
-              .join(" · ") || undefined,
-          ...(treatment.late || treatment.overdue ? { tone: "danger" as const } : {}),
+            [dueNote, treatment.late ? `${treatment.late} late` : ""].filter(Boolean).join(" · ") ||
+            undefined,
+          ...(dueTone ? { tone: dueTone } : {}),
         }
       : {
           label: "Remediation items",
@@ -555,13 +575,13 @@ function useTiles(
           : {
               label: "Milestones",
               value: 0,
-              note: finished ?? (treatment.dueOn ? `Due ${day(treatment.dueOn)}` : undefined),
-              ...(treatment.overdue ? { tone: "danger" as const } : {}),
+              note: finished ?? dueNote,
+              ...(dueTone ? { tone: dueTone } : {}),
             };
         return [own, issues("Open issues it answers"), risks("Open risks"), reached];
       }
     }
-  }, [trace, today, objectives, formatDate, formatDay, formatNumber, formatPlural]);
+  }, [trace, today, objectives, formatDate, formatDay, formatNumber, formatPlural, dueSaying]);
 }
 
 /** The band's labels for each kind of record, which hold their place while its trace loads. */

@@ -27,18 +27,18 @@ A title. The size is the title it matches and the level is the page's: `size` pi
 
 | Heading   | The title it matches                                                                                                                                                                                                                          |
 | --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `page`    | The page and record title, the one `h1`: what PageHeader.Title draws on a page, and as a preview's record name at the level its outline gives it. A Stat's figure is this size as a `div`.                                                    |
-| `overlay` | An overlay's title: what DialogTitle, SheetTitle, AlertDialogTitle and DrawerTitle draw, each its overlay's `h2`. A group heading inside an overlay takes it, an `h3` there; a card's title is the same style, and CardTitle draws it itself. |
+| `page`    | The page and record title, the one `h1`: what PageHeader.Title draws on a page, and as a preview's record name at the level its outline gives it. A Stat's figure is `font.figure`, a step under it.                                        |
+| `overlay` | An overlay's title: what DialogTitle, SheetTitle, AlertDialogTitle and DrawerTitle draw, each its overlay's `h2`. A group heading inside an overlay takes it, an `h3` there. A card's title is under a section's, and CardTitle draws it itself.  |
 | `section` | A section's title: what Section.Title draws, an `h2` under the page's title and one level below inside a titled Section. A step's heading in a wizard and a rail's group heading take it at their level.                                      |
 | `display` | A figure bigger than a Stat's, or the one title of a screen with nothing else on it (sign-in) given `as="h1"`. A `div` by default and in every context, because a number is not a title. Never a page or record title.                        |
 
-Not built, and why: a size between `display` and `page` (the page title is the biggest title the product sets, and nothing in it is a hero); a size for the Eyebrow (it is uppercase and subtle, `font.heading.xxsmall` on the Typography page, and not a title); a separate size for a Stat's figure (it is the page title's size, so the two stay level); a subtitle slot (the line under a title is a Text, and the PageHeader draws it); an icon before (a Heading is words; the mark beside a record's title is the PageHeader's); a tone (a red heading says the word is the problem; the count beside it is).
+Not built, and why: a size between `display` and `page` (the page title is the biggest title the product sets, and nothing in it is a hero); a size for the Eyebrow (it is uppercase and subtle, `font.heading.xxsmall` on the Typography page, and not a title); a Heading size for a Stat's figure (a number is not a title: it is `font.figure`, a step under the page title); a subtitle slot (the line under a title is a Text, and the PageHeader draws it); an icon before (a Heading is words; the mark beside a record's title is the PageHeader's); a tone (a red heading says the word is the problem; the count beside it is).
 
 ## Sizes
 
 | Size      | Token                  | Size / leading / weight | Element | Drawn by                                                       |
 | --------- | ---------------------- | ----------------------- | ------- | -------------------------------------------------------------- |
-| `page`    | `font.heading.page`    | 20 / 26 / semibold      | `h1`    | PageHeader.Title; a Stat's figure, as a `div`.                 |
+| `page`    | `font.heading.page`    | 20 / 26 / semibold      | `h1`    | PageHeader.Title.                                              |
 | `overlay` | `font.heading.overlay` | 15 / 22 / medium        | `h3`    | DialogTitle, SheetTitle, AlertDialogTitle, DrawerTitle (`h2`). |
 | `section` | `font.heading.section` | 13 / 18 / semibold      | `h2`    | Section.Title.                                                 |
 | `display` | `font.heading.display` | 28 / 34 / semibold      | `div`   | A figure bigger than a Stat's.                                 |
@@ -47,7 +47,7 @@ Not built, and why: a size between `display` and `page` (the page title is the b
 
 ## The titles the kit draws
 
-PageHeader.Title, Section.Title, the overlays' titles and a Stat's figure render a Heading at their size, so changing a size on the ramp changes every title drawn at it, and a Heading beside one of them is the same type. A part that renders as another through `render` keeps its own size: a PageHeader.Title rendered as SheetTitle, a preview's record name, stays at `page` as the sheet's `h2`.
+PageHeader.Title, Section.Title and the overlays' titles render a Heading at their size, so changing a size on the ramp changes every title drawn at it, and a Heading beside one of them is the same type. A part that renders as another through `render` keeps its own size: a PageHeader.Title rendered as SheetTitle, a preview's record name, stays at `page` as the sheet's `h2`.
 
 <Canvas of={Stories.KitTitles} />
 

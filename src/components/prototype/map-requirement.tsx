@@ -25,7 +25,12 @@ import {
 } from "@/lib/control-objectives";
 import { idSet, useRows } from "@/lib/models";
 import type { StepSystem } from "@/lib/next-steps";
-import { mapsChosenObjectives, mapsObjectives, objectivesOf } from "@/lib/product-records";
+import {
+  controlName,
+  mapsChosenObjectives,
+  mapsObjectives,
+  objectivesOf,
+} from "@/lib/product-records";
 import { labelFor } from "@/lib/records";
 import {
   WHOLE_CONTROL_CHOICE,
@@ -632,7 +637,7 @@ function MapRequirementPicker({
       });
       toast.add({
         type: "success",
-        title: `${formatPlural(requirementIds.size, REQUIREMENTS)} mapped to ${control.code}`,
+        title: `${formatPlural(requirementIds.size, REQUIREMENTS)} mapped to ${controlName(control)}`,
       });
       guard.finish();
       guard.complete();

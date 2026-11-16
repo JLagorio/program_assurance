@@ -918,7 +918,7 @@ function SspAssemblyPlan({
       {selected && (
         // The preview stays open under a dialog opened from it, so focus returns to its trigger.
         <RecordPreviewPanel
-          title={selected.title}
+          title={selected.name}
           label="SSP control preview"
           recordActions={previewActions(selected)}
           defaultWidth={640}

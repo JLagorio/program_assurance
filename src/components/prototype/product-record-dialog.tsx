@@ -221,9 +221,9 @@ export function ProductRecordDialog({
     setNoun(state.noun);
   }, []);
   const heading = props.operationLabel ?? `${props.existing ? "Edit" : "Create"} ${noun}`;
-  const context =
-    description ??
-    (props.existing && collection ? recordTitle(props.existing, collection) : undefined);
+  // The record's name under the title; a record with no stored name has none, never its id.
+  const named = props.existing && collection ? recordTitle(props.existing, collection) : undefined;
+  const context = description ?? (named !== props.existing?.id ? named : undefined);
   const { onClose } = props;
   return (
     <Dialog

@@ -10,6 +10,7 @@ import {
   ModelForm,
   QueryState,
   RecordActions,
+  RecordHeading,
 } from "@/components/prototype/work-common";
 import { useRow } from "@/lib/models";
 import type { DataRecord } from "@/lib/records";
@@ -67,15 +68,13 @@ function WorkstreamDetail({ workstreamId }: { workstreamId: string }) {
                   )}
                 </TrailLink>
               </RecordTrail>
-              <PageHeader.Heading>
-                <PageHeader.Title>{row.title}</PageHeader.Title>
-              </PageHeader.Heading>
+              <RecordHeading
+                status={<StatusBadge statuses={workstreamStatuses} value={row.status} />}
+              >
+                {row.title}
+              </RecordHeading>
               <PageHeader.Actions>
-                <RecordActions
-                  table="workstreams"
-                  id={row.id}
-                  onEdit={() => setEditing(row as DataRecord)}
-                />
+                <RecordActions table="workstreams" onEdit={() => setEditing(row as DataRecord)} />
               </PageHeader.Actions>
             </PageHeader>
             {/* The body beside the workstream's Details: the rail at its end where it fits, else

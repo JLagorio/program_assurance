@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { RecordPending } from "@/components/app/shell";
-import { useRecordTitle } from "@/components/app/browser-title";
+import { useViewTitle } from "@/components/app/browser-title";
 import { useRow } from "@/lib/models";
 import { ProgramWorkspace } from "@/components/prototype/program-workspace";
 export const Route = createFileRoute("/programs/$programId_/workbook")({
-  head: () => ({ meta: [{ title: "Program — Program Assurance" }] }),
+  head: () => ({ meta: [{ title: "Workbook — Program Assurance" }] }),
   validateSearch: (
     search: Record<string, unknown>,
   ): {
@@ -22,6 +22,6 @@ export const Route = createFileRoute("/programs/$programId_/workbook")({
 function ProgramView() {
   const { programId } = Route.useParams();
   const record = useRow("programs", programId);
-  useRecordTitle("Program", record.data?.name);
-  return <ProgramWorkspace programId={programId} tab="Requirements" view="Workbook" />;
+  useViewTitle("Workbook", record.data?.name);
+  return <ProgramWorkspace programId={programId} view="Workbook" />;
 }

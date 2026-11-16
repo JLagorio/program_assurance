@@ -211,6 +211,8 @@ export function AssessmentBrowser({
     .map((event) => ({
       ...event,
       campaign: campaignName(event.campaign_id),
+      // Every program's events, on the page: each names its campaign's program.
+      program: campaignRows.find((campaign) => campaign.id === event.campaign_id)?.program ?? null,
       plan: planOf(event.plan_revision_id)?.version_number ?? null,
     }));
   // The Objectives' Campaign filter offers every campaign by its title: one page's rows are not
@@ -381,7 +383,7 @@ export function AssessmentBrowser({
       view="assessment-campaigns"
       rows={campaignRows}
       queries={[campaigns, programs, parties, events]}
-      filters={["status"]}
+      filters={programId ? ["status"] : ["status", "program"]}
       actions={add("Campaigns", "small")}
       selectedId={selection?.table === "assessment_campaigns" ? selection.existing?.id : undefined}
       onDisplayedRowsChange={(rows) =>
@@ -484,8 +486,8 @@ export function AssessmentBrowser({
       view="assessment-events"
       keepQuestion={`assessment-events-${campaignId ?? "all"}`}
       rows={eventRows}
-      queries={[events, campaigns, plans]}
-      filters={["campaign", "status"]}
+      queries={[events, campaigns, plans, ...(programId ? [] : [programs])]}
+      filters={programId ? ["campaign", "status"] : ["campaign", "status", "program"]}
       initialFilters={campaignFilter}
       actions={add("Events", "small")}
       empty={{
@@ -503,6 +505,18 @@ export function AssessmentBrowser({
           width: 190,
           priority: 3,
         },
+        ...(programId
+          ? []
+          : [
+              {
+                label: "Program",
+                key: "program" as const,
+                value: (row: (typeof eventRows)[number]) =>
+                  row.program ?? <Absent label="Not available" />,
+                width: 180,
+                priority: 4,
+              },
+            ]),
         { label: "Plan version", key: "plan", kind: "number", width: 135, priority: 5 },
         {
           label: "Status",

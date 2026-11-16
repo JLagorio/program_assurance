@@ -3835,7 +3835,8 @@
           "col-span-full",
           "group-data-[action=beside]/card-header:col-auto"
         ],
-        "font-family": ["font-heading-overlay"],
+        "font-family": ["font-body"],
+        "font-weight": ["font-semibold"],
         "min-w": ["min-w-0"],
         "text-color": ["text-default"]
       },
@@ -3844,7 +3845,7 @@
       "sets": {
         "layout": ["break", "col-start-end", "min-w"],
         "color": ["text-color"],
-        "typography": ["font-family"]
+        "typography": ["font-family", "font-weight"]
       }
     },
     "ChangeReview": {
@@ -5869,7 +5870,7 @@
     "DataTable": {
       "kind": "component",
       "file": "patterns/data-table/data-table.tsx",
-      "line": 1538,
+      "line": 1546,
       "root": {},
       "props": {
         "fill": {
@@ -17924,7 +17925,7 @@
     "Stat": {
       "kind": "component",
       "file": "components/stat.tsx",
-      "line": 155,
+      "line": 153,
       "root": {
         "display": ["flex"],
         "flex-direction": ["flex-col"],
@@ -17941,7 +17942,7 @@
     "Stat.Grid": {
       "kind": "component",
       "file": "components/stat.tsx",
-      "line": 325,
+      "line": 323,
       "root": {
         "utility:stagger-children": ["stagger-children"],
         "utility:stat-grid": ["stat-grid"]
@@ -18003,7 +18004,7 @@
     "Stat.List": {
       "kind": "component",
       "file": "components/stat.tsx",
-      "line": 301,
+      "line": 299,
       "root": {
         "display": ["flex"],
         "flex-direction": ["flex-col"],
@@ -18020,7 +18021,7 @@
     "Stat.Row": {
       "kind": "component",
       "file": "components/stat.tsx",
-      "line": 193,
+      "line": 191,
       "root": {
         "bg-color": ["bg-surface-raised"],
         "border-color": ["border-default"],
@@ -18068,7 +18069,7 @@
     "Stat.Tile": {
       "kind": "component",
       "file": "components/stat.tsx",
-      "line": 85,
+      "line": 83,
       "root": {
         "bg-color": ["bg-surface-current"],
         "display": ["flex"],
@@ -18099,7 +18100,7 @@
     "StatGrid": {
       "kind": "component",
       "file": "components/stat.tsx",
-      "line": 325,
+      "line": 323,
       "root": {
         "utility:stagger-children": ["stagger-children"],
         "utility:stat-grid": ["stat-grid"]
@@ -18161,7 +18162,7 @@
     "StatList": {
       "kind": "component",
       "file": "components/stat.tsx",
-      "line": 301,
+      "line": 299,
       "root": {
         "display": ["flex"],
         "flex-direction": ["flex-col"],
@@ -18178,7 +18179,7 @@
     "StatRow": {
       "kind": "component",
       "file": "components/stat.tsx",
-      "line": 193,
+      "line": 191,
       "root": {
         "bg-color": ["bg-surface-raised"],
         "border-color": ["border-default"],
@@ -18226,7 +18227,7 @@
     "StatTile": {
       "kind": "component",
       "file": "components/stat.tsx",
-      "line": 85,
+      "line": 83,
       "root": {
         "bg-color": ["bg-surface-current"],
         "display": ["flex"],

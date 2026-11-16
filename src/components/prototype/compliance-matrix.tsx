@@ -161,17 +161,21 @@ function DocumentTrays({
               isLoading: loading,
             })}
       >
-        {failed ? null : (
+        {/* A zero line is left out: the heading's count says the whole. */}
+        {failed ||
+        (data && ANSWER_LINES.every((answer) => answerCount(data, answer) === 0)) ? null : (
           <Stat.List aria-label={`Requirements in ${source.code}, by the program's answer`}>
-            {ANSWER_LINES.map((answer) => (
-              <Stat.Row
-                key={answer}
-                label={complianceAnswers[answer].label}
-                value={data ? answerCount(data, answer) : 0}
-                tone={answer === "non_compliant" ? "danger" : "neutral"}
-                isLoading={loading}
-              />
-            ))}
+            {ANSWER_LINES.filter((answer) => !data || answerCount(data, answer) > 0).map(
+              (answer) => (
+                <Stat.Row
+                  key={answer}
+                  label={complianceAnswers[answer].label}
+                  value={data ? answerCount(data, answer) : 0}
+                  tone={answer === "non_compliant" ? "danger" : "neutral"}
+                  isLoading={loading}
+                />
+              ),
+            )}
           </Stat.List>
         )}
       </Tray>
@@ -185,16 +189,18 @@ function DocumentTrays({
               isLoading: loading,
             })}
       >
-        {failed ? null : (
+        {failed || (data && metLines.every((line) => line.value === 0)) ? null : (
           <Stat.List aria-label={`What meets the requirements in ${source.code}`}>
-            {metLines.map((line) => (
-              <Stat.Row
-                key={line.label}
-                label={line.label}
-                value={line.value}
-                isLoading={loading}
-              />
-            ))}
+            {metLines
+              .filter((line) => !data || line.value > 0)
+              .map((line) => (
+                <Stat.Row
+                  key={line.label}
+                  label={line.label}
+                  value={line.value}
+                  isLoading={loading}
+                />
+              ))}
           </Stat.List>
         )}
       </Tray>

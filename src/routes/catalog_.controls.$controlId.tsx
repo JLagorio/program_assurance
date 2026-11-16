@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { RecordPending } from "@/components/app/shell";
 import { useRecordTitle } from "@/components/app/browser-title";
 import { useRow } from "@/lib/models";
+import { controlName } from "@/lib/product-records";
 import { CatalogControlRecord } from "@/components/prototype/control-record";
 
 export const Route = createFileRoute("/catalog_/controls/$controlId")({
@@ -12,6 +13,6 @@ export const Route = createFileRoute("/catalog_/controls/$controlId")({
 function Page() {
   const { controlId } = Route.useParams();
   const record = useRow("controls", controlId);
-  useRecordTitle("Control", record.data?.title);
+  useRecordTitle("Control", record.data ? controlName(record.data) : undefined);
   return <CatalogControlRecord id={controlId} />;
 }

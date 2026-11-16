@@ -242,6 +242,11 @@ export type DisplayColumn = {
    * reads for it. `render` then draws the fact (ModelFacts) and the table draws the person.
    */
   kind?: "date" | "number" | "category" | "text" | "person" | undefined;
+  /**
+   * Offered as a filter whatever its kind, after the status and category chips: a register's
+   * Program, whose `value` is the program's name.
+   */
+  filter?: boolean | undefined;
 };
 export type ModelTableEmpty = {
   title?: string;
@@ -613,15 +618,16 @@ export function ModelTable({
       ),
     [columns, primaryIndex, kinds, vocabularies, model, peopleKeys, links],
   );
-  const chips =
-    filters ??
-    columns
+  const chips = filters ?? [
+    ...columns
       .filter((column, index) => {
         const kind = kinds.get(column.key);
-        return index > 0 && (kind === "status" || kind === "category");
+        return index > 0 && !column.filter && (kind === "status" || kind === "category");
       })
       .map((column) => column.key)
-      .slice(0, 3);
+      .slice(0, 3),
+    ...columns.filter((column) => column.filter).map((column) => column.key),
+  ];
   const table = useCollectionTable({
     columns: tableColumns,
     data,

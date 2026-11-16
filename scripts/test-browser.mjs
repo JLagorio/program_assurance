@@ -126,11 +126,12 @@ try {
   const programId = await save("programs");
   await page.goto(`${origin}/programs/${programId}`);
   await page.getByRole("heading", { name: "Browser validation program", exact: true }).waitFor();
-  await action(page, "Edit program");
+  // The program's edit is its header's one primary; the dialog's primary says the same words.
+  await page.getByRole("button", { name: "Edit program", exact: true }).click();
   await control("Description").fill(
     "Saved through the original prototype using the Supabase model.",
   );
-  await page.getByRole("button", { name: "Edit program", exact: true }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Edit program", exact: true }).click();
   await page.getByRole("dialog").waitFor({ state: "hidden" });
   const prototypeSave = await client
     .from("programs")
@@ -219,7 +220,7 @@ try {
   await page.getByRole("button", { name: "Edit program", exact: true }).click();
   await page
     .getByRole("alert")
-    .filter({ hasText: "This record changed in another session" })
+    .filter({ hasText: "This program changed in another session" })
     .waitFor();
   assert.equal(await control("Name").inputValue(), "Unsaved stale draft");
   await page.getByRole("button", { name: "Cancel", exact: true }).click();
