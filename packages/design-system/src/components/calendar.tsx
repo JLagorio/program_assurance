@@ -4,8 +4,12 @@ import { createContext, useContext, useEffect, useRef, type ComponentProps } fro
 import {
   DayPicker,
   getDefaultClassNames,
+  UI,
+  useDayPicker,
+  type CaptionLabel,
   type DateRange,
   type DayButton,
+  type DropdownProps,
   type Modifiers,
   type Root,
   type Chevron as DayPickerChevron,
@@ -22,6 +26,15 @@ import { Button, buttonVariants, type ButtonProps } from "./button";
    one and a max-content of the other, so a month sized to its content keeps 32px days while a
    column narrower than seven of them shrinks every day alike instead of painting past its edge. */
 const dayColumn = `minmax(${token("space.300")}, ${token("space.400")})`;
+/* The month's inline padding, `space.150`, as a column on each side that gives way as the days do:
+   the root is a grid of the two and the month between them, so a month sized to its content keeps
+   its 12px, and a column narrower than that gives up the padding before the month paints past it.
+   A month then fits any column at least seven 24px days wide, 168px (192px with week numbers). */
+const gutter = `minmax(0, ${token("space.150")})`;
+/* The caption's words on one line, ending in an ellipsis where the caption is too narrow for them.
+   They may break anywhere and show their first line, rather than never breaking, so they do not
+   hold the month wider than its column: what they need is their room, not their whole width. */
+const CAPTION_WORDS = "min-w-0 line-clamp-1 whitespace-normal wrap-anywhere";
 
 export type CalendarProps = ComponentProps<typeof DayPicker> & {
   buttonVariant?: ButtonProps["variant"];
@@ -156,7 +169,7 @@ export function Calendar({
         labelGridcell: (date, modifiers) => dayLabel(date, modifiers ?? {}),
         ...labels,
       }}
-      className={cn("w-fit p-150", className)}
+      className={cn("grid w-fit py-150 *:col-start-2", className)}
       classNames={{
         root: cn(base.root, "font-body text-default"),
         // Below the `sm` window the months always stack: the window is the space there, and a
@@ -165,12 +178,16 @@ export function Calendar({
         // side by side when it holds them, wrapped under each other when it does not.
         months: "relative flex flex-col gap-200 sm:flex-row sm:flex-wrap sm:justify-center",
         month: cn("flex flex-col gap-150", navLayout === "around" && "relative"),
-        month_caption: "flex h-control-small items-center justify-center px-400",
-        // One line, so a narrow month never folds its caption over the weekdays.
-        caption_label: "inline-flex items-center gap-050 whitespace-nowrap font-body font-medium",
-        dropdowns: "flex h-control-medium items-center justify-center gap-100",
+        month_caption: "flex min-h-control-small min-w-0 items-center justify-center px-400",
+        // One line, so a narrow month never folds its caption over the weekdays; in a column too
+        // narrow for its words (a long month name at seven 24px days) they end in an ellipsis.
+        caption_label:
+          "inline-flex min-w-0 items-center gap-050 whitespace-nowrap font-body font-medium",
+        // The month and the year side by side, and the year under the month where the caption
+        // between the navigation buttons cannot hold both.
+        dropdowns: "flex min-h-control-small min-w-0 flex-wrap items-center justify-center gap-100",
         dropdown_root:
-          "relative flex h-control-small items-center rounded-medium border border-input px-075 focus-within:border-focused focus-within:outline-field-focused",
+          "relative flex h-control-small min-w-0 items-center rounded-medium border border-input px-075 focus-within:border-focused focus-within:outline-field-focused",
         dropdown: "absolute inset-0 w-full cursor-pointer opacity-0",
         week_number_header: "p-0",
         week_number: "text-center font-body-xsmall text-subtle",
@@ -196,6 +213,7 @@ export function Calendar({
       }}
       styles={{
         ...styles,
+        root: { gridTemplateColumns: `${gutter} auto ${gutter}`, ...styles?.root },
         weekdays: { gridAutoColumns: dayColumn, ...styles?.weekdays },
         week: { gridAutoColumns: dayColumn, ...styles?.week },
       }}
@@ -206,6 +224,9 @@ export function Calendar({
         ),
         DayButton: CalendarDayButton,
         WeekNumber: CalendarWeekNumber,
+        CaptionLabel: CalendarCaptionLabel,
+        Dropdown: CalendarDropdown,
+        MonthsDropdown: CalendarMonthsDropdown,
         ...components,
       }}
       {...pickerProps}
@@ -235,6 +256,52 @@ function CalendarChevron({
       {...props}
     />
   );
+}
+/** The caption's words, cut with an ellipsis in a column too narrow for them. */
+function CalendarCaptionLabel({ children, ...props }: ComponentProps<typeof CaptionLabel>) {
+  return (
+    <span {...props}>
+      <span className={CAPTION_WORDS}>{children}</span>
+    </span>
+  );
+}
+/* DayPicker's month or year select, a native select under its own label. The month's gives way
+   in a caption too narrow for it, its name ending in an ellipsis; the year's keeps its digits. */
+function CalendarDropdown({
+  options,
+  className,
+  givesWay = false,
+  ...selectProps
+}: DropdownProps & { givesWay?: boolean | undefined }) {
+  const { classNames, components, styles } = useDayPicker();
+  const selected = options?.find(({ value }) => value === selectProps.value);
+  return (
+    <span
+      data-disabled={selectProps.disabled}
+      className={cn(classNames[UI.DropdownRoot], !givesWay && "shrink-0")}
+      style={styles?.[UI.DropdownRoot]}
+    >
+      <components.Select className={cn(classNames[UI.Dropdown], className)} {...selectProps}>
+        {options?.map(({ value, label, disabled }) => (
+          <components.Option key={value} value={value} disabled={disabled}>
+            {label}
+          </components.Option>
+        ))}
+      </components.Select>
+      <span className={classNames[UI.CaptionLabel]} style={styles?.[UI.CaptionLabel]} aria-hidden>
+        <span className={CAPTION_WORDS}>{selected?.label}</span>
+        <components.Chevron
+          orientation="down"
+          size={18}
+          className={classNames[UI.Chevron]}
+          {...(styles?.[UI.Chevron] ? { style: styles[UI.Chevron] } : {})}
+        />
+      </span>
+    </span>
+  );
+}
+function CalendarMonthsDropdown(props: DropdownProps) {
+  return <CalendarDropdown {...props} givesWay />;
 }
 function CalendarWeekNumber({
   children,

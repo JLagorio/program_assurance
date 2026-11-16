@@ -65,6 +65,7 @@ import {
   TablePinsGiveWay,
   headerTrailingWidth,
   previewValueClass,
+  useRowArmed,
 } from "../../components/table";
 import { token, tokenLiterals } from "../../generated/tokens";
 import { cn } from "../../lib/cn";
@@ -212,6 +213,8 @@ const ResponsiveLayoutContext = createContext<ResponsiveLayout | null>(null);
  */
 type SharedPopups = {
   actions: MenuPrimitive.Handle<string>;
+  /** What a row's actions point at until the row is armed: a handle no menu attaches to. */
+  dormantActions: MenuPrimitive.Handle<string>;
   glance: PreviewCardPrimitive.Handle<GlancePayload>;
 };
 /** Which glance a trigger opens: the row, and the id column whose `glance` draws it. */
@@ -780,22 +783,11 @@ function BodyCell<TData extends RowData>({
         edge={pin.edge}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* The menu is the table's one row menu; the row carries only its trigger. */}
-        <DropdownMenuTrigger
+        <RowActionsTrigger
           handle={popups.actions}
-          payload={row.id}
-          render={
-            <IconButton
-              label={label ? t("rowActionsFor", { label }) : t("rowActions")}
-              variant="subtle"
-              // Its name says it; a row mounts no tooltip of its own.
-              isTooltipDisabled
-              // The column is as wide as the button, and its cell cuts what overflows, so the
-              // ring is drawn inside the button's edge, where the cell cannot clip it.
-              className="opacity-0 focus-visible:opacity-100 focus-visible:outline-field-focused group-hover/row:opacity-100 data-popup-open:opacity-100 any-pointer-coarse:opacity-100"
-              icon={<MoreHorizontal />}
-            />
-          }
+          dormant={popups.dormantActions}
+          rowId={row.id}
+          label={label ? t("rowActionsFor", { label }) : t("rowActions")}
         />
       </Table.Cell>
     );
@@ -854,6 +846,45 @@ function BodyCell<TData extends RowData>({
         body
       )}
     </Table.Cell>
+  );
+}
+
+/**
+ * A row's actions button. The menu is the table's one row menu and the row carries only its
+ * trigger, which points at a dormant handle, one no menu ever attaches to, until the row is armed
+ * (Table's `useRowArmed`), so a register coming back into view does not render it again. Arming
+ * keeps the element: the same button, named, focusable and saying it opens a menu throughout.
+ */
+function RowActionsTrigger({
+  handle,
+  dormant,
+  rowId,
+  label,
+}: {
+  handle: SharedPopups["actions"];
+  dormant: SharedPopups["actions"];
+  rowId: string;
+  label: string;
+}) {
+  const armed = useRowArmed();
+  return (
+    <DropdownMenuTrigger
+      handle={armed ? handle : dormant}
+      payload={rowId}
+      render={
+        <IconButton
+          label={label}
+          variant="subtle"
+          // Its name says it; a row mounts no tooltip of its own.
+          isTooltipDisabled
+          // The column is as wide as the button, and its cell cuts what overflows, so the ring is
+          // drawn inside the button's edge, where the cell cannot clip it.
+          className="opacity-0 focus-visible:opacity-100 focus-visible:outline-field-focused group-hover/row:opacity-100 data-popup-open:opacity-100 any-pointer-coarse:opacity-100"
+          icon={<MoreHorizontal />}
+          data-row-control="actions"
+        />
+      }
+    />
   );
 }
 
@@ -1835,6 +1866,7 @@ function DataTableRoot<TData extends RowData>({
   const rowClickHandler = onRowClick || single ? rowClick : undefined;
   const [popups] = useState<SharedPopups>(() => ({
     actions: MenuPrimitive.createHandle<string>(),
+    dormantActions: MenuPrimitive.createHandle<string>(),
     glance: PreviewCardPrimitive.createHandle<GlancePayload>(),
   }));
 

@@ -25,9 +25,10 @@ const phone = { value: "ledgerPhone", isRotated: false };
 /** Story files of these families only, for a gate that concerns them. */
 const onlyFamilies = (families: string[]) => [`**/stories/**/!(${families.join("|")}).stories.tsx`];
 /** The families whose layout or keys follow the writing direction, rendered right to left by
-    storybook-rtl: tables, trees and lists, the side nav's icon rail, paths and timelines, fields
-    in place, toasts, tabs and toolbars. Their plays measure starts and ends and press sideways
-    arrows through src/stories/_lib/direction.ts, so each passes either way the page reads. */
+    storybook-rtl: tables, trees and lists, the shell and its side nav's icon rail, paths and
+    timelines, fields in place, toasts, tabs and toolbars. Their plays measure starts and ends
+    and press sideways arrows through src/stories/_lib/direction.ts, so each passes either way
+    the page reads. */
 const RTL_FAMILIES = [
   "ContextMenu",
   "FindBar",
@@ -49,6 +50,7 @@ const RTL_FAMILIES = [
   "Item",
   "NumberField",
   "Pagination",
+  "Shell",
   "ShellIconRail",
   "Stepper",
   "Spreadsheet",

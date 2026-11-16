@@ -59,7 +59,7 @@ const AUTO_STACKS =
      cannot take it at the value's start;
    - a link that is the whole value is cut to the value's width, so its ellipsis and its ring are
      its own; the value's reveal measures it. A link inside a composed value (a code and a title)
-     stays inline, since a cut inline block would drop out whole beside the ellipsis;
+     is cut too, to the room the rest leaves it (LINK_IN_A_COMPOSITION);
    - an Editable truncates its own text and keeps its reach inside its box at the end, so a value
      that is an Editable does not clip, and the Editable's tint, ring and field reach past the
      value's start as they do everywhere, on the text column with the plain values around it. */
@@ -67,6 +67,28 @@ const VALUE_CLIP =
   "pe-050 text-default [&_a:not([data-slot^=link-]):focus-visible]:outline-field-focused has-[>[data-slot=editable]]:overflow-x-visible has-[>[data-slot=editable]]:pe-0";
 const LINK_IS_THE_VALUE =
   "[&>a:not([data-slot^=link-])]:inline-block [&>a:not([data-slot^=link-])]:min-w-0 [&>a:not([data-slot^=link-])]:max-w-full [&>a:not([data-slot^=link-])]:overflow-x-clip [&>a:not([data-slot^=link-])]:text-ellipsis [&>a:not([data-slot^=link-])]:whitespace-nowrap [&>a:not([data-slot^=link-])]:align-top";
+/* A composed value that holds a link (a code and a title) lays its parts out in a row: the text
+   and other parts keep their width and the link takes what is left, cut there with its own
+   ellipsis, so its end and its ring stay inside the value. An inline link would run past the
+   value's end and lose that side of its ring, and a cut inline block would drop out whole beside
+   the ellipsis. The row keeps the spaces of its text (`pre`, which a value on one line never
+   breaks), and a space between two parts is a part of its own (`spaced`), since a row drops a
+   run of white space between elements. The value's reveal measures the cut link. */
+const LINK_IN_A_COMPOSITION =
+  "has-[>a:not([data-slot^=link-])]:flex has-[>a:not([data-slot^=link-])]:whitespace-pre [&>a:not([data-slot^=link-])]:min-w-0 [&>a:not([data-slot^=link-])]:overflow-x-clip [&>a:not([data-slot^=link-])]:text-ellipsis [&>a:not([data-slot^=link-])]:whitespace-nowrap";
+
+/** A composed value with every run of white space between two parts kept as a part of its own. */
+const spaced = (children: ReactNode) =>
+  Children.toArray(children).map((child, index, all) =>
+    typeof child === "string" &&
+    child.trim() === "" &&
+    isValidElement(all[index - 1]) &&
+    isValidElement(all[index + 1]) ? (
+      <span key={`space-${index}`}>{child}</span>
+    ) : (
+      child
+    ),
+  );
 
 /** Whether the value is one element (a TextLink, an Editable, a Person) rather than text or a composition. */
 const isOneElement = (children: ReactNode) => {
@@ -140,19 +162,22 @@ function KeyValueRoot({
   const valueStyle =
     flowing && !subgrid && layout === "auto" ? { flex: `999 1 ${MIN_VALUE_WIDTH}` } : undefined;
   // The group ends at the value: a KeyValue inside it (a peek's facts, portaled or not) is its own
-  // definition list again, not a row of a list it does not sit in.
-  const content = <GroupContext.Provider value={null}>{children}</GroupContext.Provider>;
+  // definition list again, not a row of a list it does not sit in. A cut composed value keeps the
+  // spaces between its parts for the row a link inside it lays them out in.
+  const oneElement = isOneElement(children);
   const value = wrap ? (
     <dd className="min-w-0 break-words text-default" style={valueStyle}>
-      {content}
+      <GroupContext.Provider value={null}>{children}</GroupContext.Provider>
     </dd>
   ) : (
     <Truncate
       render={<dd />}
-      className={cn(VALUE_CLIP, isOneElement(children) && LINK_IS_THE_VALUE)}
+      className={cn(VALUE_CLIP, oneElement ? LINK_IS_THE_VALUE : LINK_IN_A_COMPOSITION)}
       style={valueStyle}
     >
-      {content}
+      <GroupContext.Provider value={null}>
+        {oneElement ? children : spaced(children)}
+      </GroupContext.Provider>
     </Truncate>
   );
 

@@ -2695,7 +2695,7 @@
     "BreadcrumbEllipsis": {
       "kind": "component",
       "file": "components/breadcrumb.tsx",
-      "line": 703,
+      "line": 807,
       "root": {
         "align-items": ["items-center"],
         "display": ["inline-flex"],
@@ -2712,7 +2712,7 @@
     "BreadcrumbItem": {
       "kind": "component",
       "file": "components/breadcrumb.tsx",
-      "line": 517,
+      "line": 603,
       "root": {
         "align-items": ["items-center"],
         "display": ["inline", "inline-flex"],
@@ -2729,7 +2729,7 @@
     "BreadcrumbLink": {
       "kind": "component",
       "file": "components/breadcrumb.tsx",
-      "line": 601,
+      "line": 705,
       "root": {
         "duration": ["duration-fast"],
         "ease": ["ease-standard"],
@@ -2755,7 +2755,7 @@
     "BreadcrumbList": {
       "kind": "component",
       "file": "components/breadcrumb.tsx",
-      "line": 323,
+      "line": 403,
       "root": {
         "font-family": ["font-body-small"],
         "text-color": ["text-subtle"]
@@ -2797,7 +2797,7 @@
     "BreadcrumbPage": {
       "kind": "component",
       "file": "components/breadcrumb.tsx",
-      "line": 650,
+      "line": 754,
       "root": {
         "font-weight": ["font-regular"],
         "min-w": ["min-w-0"],
@@ -2815,7 +2815,7 @@
     "BreadcrumbSeparator": {
       "kind": "component",
       "file": "components/breadcrumb.tsx",
-      "line": 679,
+      "line": 783,
       "root": {
         "display": ["inline"],
         "px": ["px-075"],
@@ -3126,22 +3126,23 @@
     "Calendar": {
       "kind": "component",
       "file": "components/calendar.tsx",
-      "line": 47,
+      "line": 60,
       "root": {
-        "p": ["p-150"],
+        "display": ["grid"],
+        "py": ["py-150"],
         "w": ["w-fit"]
       },
       "props": {},
       "derived": {},
       "sets": {
-        "layout": ["w"],
-        "spacing": ["p"]
+        "layout": ["display", "w"],
+        "spacing": ["py"]
       }
     },
     "CalendarDayButton": {
       "kind": "component",
       "file": "components/calendar.tsx",
-      "line": 253,
+      "line": 320,
       "root": {
         "align-items": ["items-center"],
         "bg-color": [
@@ -3261,7 +3262,7 @@
         "effects": ["shadow"],
         "motion": ["duration", "ease", "transition"]
       },
-      "unread": ["a member: getDefaultClassNames().day_button (calendar.tsx:280)"]
+      "unread": ["a member: getDefaultClassNames().day_button (calendar.tsx:347)"]
     },
     "Card": {
       "kind": "component",
@@ -5414,7 +5415,7 @@
     "DataTable": {
       "kind": "component",
       "file": "patterns/data-table/data-table.tsx",
-      "line": 1507,
+      "line": 1538,
       "root": {},
       "props": {
         "fill": {
@@ -11251,7 +11252,7 @@
     "KeyValue": {
       "kind": "component",
       "file": "components/key-value.tsx",
-      "line": 104,
+      "line": 126,
       "root": {
         "align-items": ["items-baseline"],
         "display": ["flex", "grid"],
@@ -11315,7 +11316,7 @@
     "KeyValue.Group": {
       "kind": "component",
       "file": "components/key-value.tsx",
-      "line": 226,
+      "line": 251,
       "root": {},
       "props": {
         "labelWidth": {
@@ -11367,7 +11368,7 @@
     "KeyValueGroup": {
       "kind": "component",
       "file": "components/key-value.tsx",
-      "line": 226,
+      "line": 251,
       "root": {},
       "props": {
         "labelWidth": {
@@ -14614,7 +14615,7 @@
     "Shell.AppSwitcher": {
       "kind": "component",
       "file": "layout/shell/top-nav.tsx",
-      "line": 627,
+      "line": 626,
       "root": {
         "align-items": ["items-center"],
         "display": ["inline-flex"],
@@ -15401,7 +15402,7 @@
     "Shell.Profile": {
       "kind": "component",
       "file": "layout/shell/top-nav.tsx",
-      "line": 659,
+      "line": 658,
       "root": {
         "align-items": ["items-center"],
         "display": ["flex"],
@@ -15494,7 +15495,7 @@
     "Shell.SideNav.Expandable": {
       "kind": "component",
       "file": "layout/shell/side-nav.tsx",
-      "line": 441,
+      "line": 442,
       "root": {
         "align-items": ["items-center"],
         "display": ["flex"],
@@ -16813,7 +16814,7 @@
     "Table": {
       "kind": "component",
       "file": "components/table.tsx",
-      "line": 489,
+      "line": 523,
       "root": {
         "border-collapse": ["border-collapse"],
         "font-family": ["font-body"],
@@ -16831,7 +16832,7 @@
     "Table.Cell": {
       "kind": "component",
       "file": "components/table.tsx",
-      "line": 1038,
+      "line": 1080,
       "root": {
         "h": ["h-row"],
         "max-w": ["max-w-0"],
@@ -16940,7 +16941,7 @@
     "Table.Detail": {
       "kind": "component",
       "file": "components/table.tsx",
-      "line": 1686,
+      "line": 1794,
       "root": {
         "px": ["px-200"],
         "py": ["py-150"],
@@ -16956,7 +16957,7 @@
     "Table.Disclosure": {
       "kind": "component",
       "file": "components/table.tsx",
-      "line": 1627,
+      "line": 1735,
       "root": {
         "h": ["h-row"],
         "max-w": ["max-w-0", "max-w-none"],
@@ -17065,7 +17066,7 @@
     "Table.Group": {
       "kind": "component",
       "file": "components/table.tsx",
-      "line": 1408,
+      "line": 1516,
       "root": {
         "border-color": ["border-default"],
         "border-w-t": ["border-t"]
@@ -17080,7 +17081,7 @@
     "Table.Handle": {
       "kind": "component",
       "file": "components/table.tsx",
-      "line": 1713,
+      "line": 1821,
       "root": {
         "align-items": ["items-center"],
         "bg-color": ["hover:bg-neutral-subtle-hovered"],
@@ -17124,7 +17125,7 @@
     "Table.Header": {
       "kind": "component",
       "file": "components/table.tsx",
-      "line": 817,
+      "line": 859,
       "root": {
         "bg-color": ["bg-surface-current"],
         "class:group/th": ["group/th"],
@@ -17249,7 +17250,7 @@
     "Table.Id": {
       "kind": "component",
       "file": "components/table.tsx",
-      "line": 1245,
+      "line": 1353,
       "root": {
         "h": ["h-row"],
         "max-w": ["max-w-0", "max-w-none"],
@@ -17358,7 +17359,7 @@
     "Table.List": {
       "kind": "component",
       "file": "components/table.tsx",
-      "line": 1779,
+      "line": 1887,
       "root": {
         "align-items": ["items-center"],
         "display": ["flex"],
@@ -17398,7 +17399,7 @@
     "Table.Name": {
       "kind": "component",
       "file": "components/table.tsx",
-      "line": 1951,
+      "line": 2059,
       "root": {
         "align-items": ["items-center"],
         "display": ["flex"],
@@ -17416,7 +17417,7 @@
     "Table.Row": {
       "kind": "component",
       "file": "components/table.tsx",
-      "line": 1118,
+      "line": 1160,
       "root": {
         "border-color": ["border-default"],
         "border-w-b": ["border-b", "last:border-b-0"],
@@ -17451,7 +17452,7 @@
     "Table.Selection": {
       "kind": "component",
       "file": "components/table.tsx",
-      "line": 1325,
+      "line": 1433,
       "root": {},
       "props": {
         "header": {
@@ -17473,7 +17474,7 @@
     "Table.Tree": {
       "kind": "component",
       "file": "components/table.tsx",
-      "line": 1570,
+      "line": 1678,
       "root": {
         "h": ["h-row"],
         "max-w": ["max-w-0", "max-w-none"],
@@ -18970,7 +18971,7 @@
     "Truncate": {
       "kind": "component",
       "file": "components/truncate.tsx",
-      "line": 134,
+      "line": 156,
       "root": {},
       "props": {
         "maxLines": {

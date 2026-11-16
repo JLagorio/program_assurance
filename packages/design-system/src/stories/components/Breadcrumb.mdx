@@ -124,7 +124,7 @@ With `overflow="collapse"` (the default) the trail stays on one line. When it do
 
 A shortened name keeps its full text as its title, and a link never shrinks below 80px (or its whole name, when that is shorter). The ellipsis menu lists the folded levels as links in order, and every level returns when the space does. The line never starts or ends with a separator.
 
-Only `BreadcrumbPage` and a `BreadcrumbLink` whose children are text shorten. A level composed from other content, such as an icon beside the name or a plain `span` for a level the reader cannot go back to, keeps its whole width or folds; folded, it appears in the ellipsis menu under its link's name, or as a disabled item when it has no link. The line keeps the height of its tallest level whether that level shows or folds, so the page below does not move as levels fold.
+Only `BreadcrumbPage` and a `BreadcrumbLink` whose children are text shorten. A level composed from other content, such as an icon beside the name or a plain `span` for a level the reader cannot go back to, keeps its whole width or folds; folded, it appears in the ellipsis menu under its link's name, or as a disabled item when it has no link. The line keeps the height of its tallest level whether that level shows or folds, so the page below does not move as levels fold. The levels are measured when their content changes (a name, a font arriving) or the fold does; a resize that leaves the trail as it was, such as a panel opening beside a page whose trail still fits, is decided from those widths and measures nothing.
 
 <Canvas of={Stories.CollapsesToFit} />
 

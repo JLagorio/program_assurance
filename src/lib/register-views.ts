@@ -27,6 +27,10 @@ export const registerViews = {
   programOperationalIssues: "program-operational_issues",
   /** A program's POA&M & risk tab: its risks. */
   programRisks: "program-risks",
+  /** The Components register: the library's shared components, each at its latest version. */
+  components: "library-components",
+  /** A component record's offers: what programs offered its owner, across its versions. */
+  componentOffers: "component-offers",
 } as const;
 
 /**

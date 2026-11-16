@@ -83,12 +83,16 @@ import {
 } from "../../components";
 import { ModeSwitch } from "../../mode";
 import { Box, Heading, Inline, Text } from "../../primitives";
+import * as direction from "../_lib/direction";
 import * as storyLayout from "../_lib/matrix";
 import * as pairLayout from "../_lib/pair";
 
 // Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
 const { Specimens } = storyLayout;
 const { Pair, halves } = pairLayout;
+// The plays measure starts and ends and press sideways arrows the way the page reads, so each
+// passes left to right and in storybook-rtl.
+const { along, arrows, towardsEnd } = direction;
 
 const meta = {
   title: "Layout/Shell",
@@ -463,12 +467,14 @@ export const Frame: Story = {
     await waitFor(() => expect(Number(splitter.getAttribute("aria-valuenow"))).toBeGreaterThan(0));
     const initialWidth = Number(splitter.getAttribute("aria-valuenow"));
     splitter.focus();
-    await userEvent.keyboard("{ArrowRight}");
+    // The side nav sits at the line's start, so the arrow towards its end widens it: the right
+    // arrow left to right, the left one right to left.
+    await userEvent.keyboard(arrows(splitter).next);
     await waitFor(() =>
       expect(Number(splitter.getAttribute("aria-valuenow"))).toBe(initialWidth + 16),
     );
     await expect(splitter).toHaveAttribute("aria-valuetext", `${initialWidth + 16} pixels wide`);
-    await userEvent.keyboard("{ArrowLeft}");
+    await userEvent.keyboard(arrows(splitter).previous);
     await waitFor(() => expect(Number(splitter.getAttribute("aria-valuenow"))).toBe(initialWidth));
     // Home is the narrowest the side nav goes; End is the widest, half the window.
     await userEvent.keyboard("{Home}");
@@ -508,10 +514,11 @@ export const NarrowSearch: Story = {
     await expect(search).toHaveAttribute("aria-haspopup", "dialog");
     const create = within(topNav).getByRole("button", { name: "Create" });
     const more = within(topNav).getByRole("button", { name: "More" });
-    const [s, c, m] = [search, create, more].map((el) => el.getBoundingClientRect());
-    await expect(s!.right).toBeLessThanOrEqual(c!.left);
-    await expect(c!.right).toBeLessThanOrEqual(m!.left);
-    await expect(m!.right).toBeLessThanOrEqual(window.innerWidth);
+    const [s, c, m] = [search, create, more].map((el) => along(el));
+    await expect(s!.end).toBeLessThanOrEqual(c!.start);
+    await expect(c!.end).toBeLessThanOrEqual(m!.start);
+    await expect(more.getBoundingClientRect().right).toBeLessThanOrEqual(window.innerWidth);
+    await expect(more.getBoundingClientRect().left).toBeGreaterThanOrEqual(0);
     await expect(topNav.scrollWidth).toBeLessThanOrEqual(topNav.clientWidth);
 
     await userEvent.click(search);
@@ -731,10 +738,10 @@ export const WithBannerAndPanel: Story = {
       const topNavBox = topNav.getBoundingClientRect();
       const headerBox = header.getBoundingClientRect();
       expect(bannerBox.top).toBe(0);
-      expect(Math.abs(bannerBox.right - box.right)).toBeLessThanOrEqual(1);
+      expect(Math.abs(along(banner, bannerBox).end - along(panel, box).end)).toBeLessThanOrEqual(1);
       expect(Math.abs(box.top - bannerBox.bottom)).toBeLessThanOrEqual(1);
       expect(Math.abs(box.bottom - window.innerHeight)).toBeLessThanOrEqual(1);
-      expect(topNavBox.right).toBeLessThanOrEqual(box.left + 1);
+      expect(along(topNav, topNavBox).end).toBeLessThanOrEqual(along(panel, box).start + 1);
       // The two header rules meet: the panel's header is the top nav's row, beside it.
       expect(Math.abs(headerBox.top - topNavBox.top)).toBeLessThanOrEqual(1);
       expect(Math.abs(headerBox.bottom - topNavBox.bottom)).toBeLessThanOrEqual(1);
@@ -1412,10 +1419,14 @@ export const PanelBack: Story = {
       const closeBox = close.getBoundingClientRect();
       const padding = parseFloat(getComputedStyle(header).paddingInlineStart);
       // At the start of the bar, on the same line as the navigation and Close at its end.
-      expect(Math.abs(backBox.left - (headerBox.left + padding))).toBeLessThanOrEqual(1);
+      expect(
+        Math.abs(along(back, backBox).start - (along(header, headerBox).start + padding)),
+      ).toBeLessThanOrEqual(1);
       expect(Math.abs(backBox.top - actionsBox.top)).toBeLessThanOrEqual(8);
-      expect(actionsBox.left - backBox.right).toBeGreaterThanOrEqual(32);
-      expect(actionsBox.right).toBeLessThanOrEqual(closeBox.left);
+      expect(along(actions, actionsBox).start - along(back, backBox).end).toBeGreaterThanOrEqual(
+        32,
+      );
+      expect(along(actions, actionsBox).end).toBeLessThanOrEqual(along(close, closeBox).start);
     });
     // First in the tab order: the next stop is the navigation.
     back.focus();
@@ -1453,11 +1464,11 @@ export const PanelBackNarrow: Story = {
       const padding = parseFloat(getComputedStyle(header).paddingInlineStart);
       expect(Math.abs(panel.getBoundingClientRect().width - 240)).toBeLessThanOrEqual(1);
       expect(titleBox.bottom).toBeLessThanOrEqual(backBox.top);
-      expect(Math.abs(backBox.left - (headerBox.left + padding))).toBeLessThanOrEqual(1);
-      expect(backBox.right).toBeLessThan(actions.getBoundingClientRect().left);
-      expect(actions.getBoundingClientRect().right).toBeLessThanOrEqual(
-        close.getBoundingClientRect().left,
-      );
+      expect(
+        Math.abs(along(back, backBox).start - (along(header, headerBox).start + padding)),
+      ).toBeLessThanOrEqual(1);
+      expect(along(back, backBox).end).toBeLessThan(along(actions).start);
+      expect(along(actions).end).toBeLessThanOrEqual(along(close).start);
       expect(header.scrollWidth).toBeLessThanOrEqual(header.clientWidth);
     });
   },
@@ -1871,7 +1882,7 @@ async function checkPanelHeaderWidth(canvasElement: HTMLElement, width: number, 
     const closeBox = close.getBoundingClientRect();
     expect(Math.abs(panel.getBoundingClientRect().width - width)).toBeLessThanOrEqual(1);
     expect(header.scrollWidth).toBeLessThanOrEqual(header.clientWidth);
-    expect(actionBox.right).toBeLessThanOrEqual(closeBox.left);
+    expect(along(actions, actionBox).end).toBeLessThanOrEqual(along(close, closeBox).start);
     expect(
       Math.abs((actionBox.top + actionBox.bottom) / 2 - (closeBox.top + closeBox.bottom) / 2),
     ).toBeLessThanOrEqual(1);
@@ -1886,7 +1897,7 @@ async function checkPanelHeaderWidth(canvasElement: HTMLElement, width: number, 
         parseFloat(getComputedStyle(heading).lineHeight) * 3,
       );
     } else {
-      expect(titleBox.right).toBeLessThanOrEqual(actionBox.left);
+      expect(along(heading, titleBox).end).toBeLessThanOrEqual(along(actions, actionBox).start);
       expect(
         Math.abs((titleBox.top + titleBox.bottom) / 2 - (closeBox.top + closeBox.bottom) / 2),
       ).toBeLessThanOrEqual(1);
@@ -1967,7 +1978,7 @@ export const TitleOnlyAt240: Story = {
       const closeBox = close.getBoundingClientRect();
       expect(Math.abs(panel.getBoundingClientRect().width - 240)).toBeLessThanOrEqual(1);
       expect(titleBox.width).toBeGreaterThanOrEqual(160);
-      expect(titleBox.right).toBeLessThanOrEqual(closeBox.left);
+      expect(along(heading, titleBox).end).toBeLessThanOrEqual(along(close, closeBox).start);
       expect(
         Math.abs((titleBox.top + titleBox.bottom) / 2 - (closeBox.top + closeBox.bottom) / 2),
       ).toBeLessThanOrEqual(1);
@@ -2009,13 +2020,13 @@ async function checkPanelRecordHeaderWidth(canvasElement: HTMLElement, width: nu
     const panelBox = panel.getBoundingClientRect();
     expect(Math.abs(panelBox.width - width)).toBeLessThanOrEqual(1);
     expect(header.scrollWidth).toBeLessThanOrEqual(header.clientWidth);
-    expect(actionBox.right).toBeLessThanOrEqual(panelBox.right);
+    expect(along(actions, actionBox).end).toBeLessThanOrEqual(along(panel, panelBox).end);
     if (width < 400) {
       expect(titleBox.width).toBeGreaterThanOrEqual(width - 36);
       expect(titleBox.bottom).toBeLessThanOrEqual(actionBox.top);
     } else {
       expect(titleBox.width).toBeGreaterThanOrEqual(100);
-      expect(titleBox.right).toBeLessThanOrEqual(actionBox.left);
+      expect(along(heading, titleBox).end).toBeLessThanOrEqual(along(actions, actionBox).start);
       expect(titleBox.top).toBe(actionBox.top);
     }
   });
@@ -2292,9 +2303,9 @@ async function checkRailInTab(canvasElement: HTMLElement, details: HTMLElement) 
   await expect(canvas.getByRole("main")).toContainElement(details);
   const tablist = canvas.getByRole("tablist", { name: "Record" });
   await expect(box(details).top).toBeGreaterThanOrEqual(box(tablist).bottom - 1);
-  await expect(Math.abs(box(details).right - box(tablist).right)).toBeLessThanOrEqual(1);
-  await expect(box(details).left).toBeGreaterThanOrEqual(
-    box(canvas.getByRole("heading", { name: "Overview" })).right,
+  await expect(Math.abs(along(details).end - along(tablist).end)).toBeLessThanOrEqual(1);
+  await expect(along(details).start).toBeGreaterThanOrEqual(
+    along(canvas.getByRole("heading", { name: "Overview" })).end,
   );
 }
 
@@ -3018,11 +3029,7 @@ export const PanelBesideMain: Story = {
     await waitFor(() => expect(nav).toHaveAttribute("data-collapsed", "icons"));
     await waitFor(() => expect(width(nav)).toBe(56));
     await expect(main).toBeVisible();
-    await waitFor(() =>
-      expect(main.getBoundingClientRect().right).toBeLessThanOrEqual(
-        panel.getBoundingClientRect().left + 1,
-      ),
-    );
+    await waitFor(() => expect(along(main).end).toBeLessThanOrEqual(along(panel).start + 1));
     await expect(width(main)).toBeGreaterThanOrEqual(mainMinimum());
     // The toggle offers to expand it (over the mark, on hover or focus, as in the rail).
     await expect(canvas.getByRole("button", { name: "Expand side navigation" })).toHaveAttribute(
@@ -3401,7 +3408,7 @@ export const DefaultWidths: Story = {
     await expect(stored().sideNavWidth).toBeUndefined();
     const splitter = canvas.getByRole("separator", { name: "Resize side navigation" });
     splitter.focus();
-    await userEvent.keyboard("{ArrowRight}");
+    await userEvent.keyboard(arrows(splitter).next);
     await waitFor(() => expect(stored().sideNavWidth).toBe(336));
     await expect(Math.round(nav.getBoundingClientRect().width)).toBe(336);
   },
@@ -3627,18 +3634,23 @@ export const PanelWidths: Story = {
 
     const splitter = within(control).getByRole("separator", { name: "Resize Control preview" });
     await expect(splitter).toHaveAttribute("aria-controls", control.id);
-    await expect(splitter).toHaveAttribute("aria-valuenow", "640");
+    // The separator says the width it last measured, a frame after the box: while the panel eases
+    // to 640 its box rounds to 640 a frame before the separator says it (CI run 43808037654).
+    await waitFor(() => expect(splitter).toHaveAttribute("aria-valuenow", "640"));
     const resizes = canvas.getByTestId("resizes");
     // Read once: a probe added inside waitFor would wake its observer forever.
     const highlight = systemColour("Highlight");
 
-    // A key step lands on the next frame, not after the columns' 240ms ease.
+    // A key step lands on the next frame, not after the columns' 240ms ease. The panel sits at the
+    // line's end, so the arrow towards its start widens it: the left arrow left to right, the
+    // right one right to left.
     splitter.focus();
-    await userEvent.keyboard("{ArrowLeft}");
+    const wider = arrows(splitter).previous;
+    await userEvent.keyboard(wider);
     await expect(splitter).toHaveAttribute("aria-valuenow", "656");
     await nextFrames();
     await expect(width(control)).toBe(656);
-    await userEvent.keyboard("{Shift>}{ArrowLeft}{/Shift}");
+    await userEvent.keyboard(`{Shift>}${wider}{/Shift}`);
     await nextFrames();
     await expect(width(control)).toBe(720);
     await userEvent.keyboard("{PageDown}");
@@ -3660,10 +3672,11 @@ export const PanelWidths: Story = {
     await expect(width(control)).toBe(240);
     await waitFor(() => expect(stored().panelWidth).toBe(240));
 
-    // A drag follows the pointer: the width is the pointer's as soon as it moves.
+    // A drag follows the pointer: the width is the pointer's as soon as it moves, towards the
+    // line's start.
     const box = splitter.getBoundingClientRect();
     const start = { clientX: box.x + box.width / 2, clientY: box.y + 200 };
-    const end = { ...start, clientX: start.clientX - 200 };
+    const end = { ...start, clientX: start.clientX - towardsEnd(splitter, 200) };
     // One session, so the button is still held for the second call.
     const user = userEvent.setup();
     await user.pointer([

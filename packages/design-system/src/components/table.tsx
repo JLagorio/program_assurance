@@ -1,7 +1,9 @@
 import { PreviewCard as PreviewCardPrimitive } from "@base-ui/react/preview-card";
 import { Tooltip as TooltipPrimitive } from "@base-ui/react/tooltip";
 import { useRender } from "@base-ui/react/use-render";
+import { flushSync } from "react-dom";
 import { useLedgerLocale } from "../lib/locale";
+import { useTouch } from "../lib/touch";
 import {
   ArrowDown,
   ArrowUp,
@@ -199,6 +201,38 @@ function revealFocused(frame: HTMLElement, target: EventTarget | null) {
  * keeps its own.
  */
 const RowTipContext = createContext<TooltipPrimitive.Handle<string> | null>(null);
+
+/**
+ * The eyes' tooltip handle while their row is not armed: no root ever attaches to it, so a trigger
+ * that points at it renders once and is never told that a root came or went.
+ */
+const DormantTipContext = createContext<TooltipPrimitive.Handle<string> | null>(null);
+
+/*
+ * A row's eye and its actions are triggers of the table's one tooltip and one menu, and a trigger
+ * follows its handle's root: whenever the root mounts again (the register's tab panel coming back)
+ * every trigger that points at it renders again, twice. So a row's triggers point at a dormant
+ * handle, one no root attaches to, until the row is armed: the first time the pointer enters it,
+ * focus enters it or one of its controls is pressed. Then they point at the table's own, on the
+ * same element, so nothing a reader sees, hears or has focus on changes. A row stays armed. Where
+ * some pointer is coarse every row is armed at once. Outside a row nothing waits.
+ */
+const RowArmContext = createContext(true);
+/** Every row of this table points its triggers at the table's popups at once: some pointer is coarse. */
+const ArmsEveryRow = createContext(false);
+
+/** Package-internal: whether the row a control sits in points its triggers at the table's popups (true outside a row). */
+export function useRowArmed() {
+  return useContext(RowArmContext);
+}
+
+const focusVisible = (element: Element) => {
+  try {
+    return element.matches(":focus-visible");
+  } catch {
+    return false;
+  }
+};
 
 /** The table shows the whole of a cut cell itself (CutReveal), so a cell carries no `title`. */
 const RevealsCutContext = createContext(false);
@@ -589,6 +623,10 @@ function TableRoot({
   });
   // The rows' one eye tooltip; its root renders nothing until an eye opens it.
   const [rowTip] = useState(() => TooltipPrimitive.createHandle<string>());
+  // The eyes' tooltip handle until their row is armed, and where a pointer cannot hover every row
+  // is armed from the start.
+  const [dormantTip] = useState(() => TooltipPrimitive.createHandle<string>());
+  const touch = useTouch();
   // The list cells' one card, likewise.
   const [listCard] = useState(() => PreviewCardPrimitive.createHandle<ReactNode>());
   const frameElement = useRender({
@@ -624,7 +662,11 @@ function TableRoot({
           <RevealsCutContext.Provider value={true}>
             {/* A table nested in a cell works out its own pins, whatever holds this one. */}
             <PinsYieldContext.Provider value={pinsYield}>
-              <TablePinsGiveWay.Provider value={true}>{frameElement}</TablePinsGiveWay.Provider>
+              <TablePinsGiveWay.Provider value={true}>
+                <DormantTipContext.Provider value={dormantTip}>
+                  <ArmsEveryRow.Provider value={touch}>{frameElement}</ArmsEveryRow.Provider>
+                </DormantTipContext.Provider>
+              </TablePinsGiveWay.Provider>
             </PinsYieldContext.Provider>
           </RevealsCutContext.Provider>
         </ListCardContext.Provider>
@@ -1116,9 +1158,61 @@ export type TrProps = ComponentProps<"tr"> & {
 
 /** A row. `isStatic` is for rows that are not records: a form laid out as a table, a totals row. They do not light up on hover. */
 export function Tr({ ref, className, isSelected, isStatic, ...props }: TrProps) {
+  const { onPointerEnter, onFocus, onClickCapture, children, ...rest } = props;
+  const everyRow = useContext(ArmsEveryRow);
+  const tip = useContext(RowTipContext);
+  const [own, setOwn] = useState(false);
+  const armed = own || everyRow;
+  const arm = useCallback(() => setOwn(true), []);
+  // An eye the keyboard reached before its row was armed: its tooltip opens once the eye points at
+  // the table's, as it opens on any eye that takes focus by keyboard.
+  const tipOnArm = useRef<HTMLElement | null>(null);
+  useLayoutEffect(() => {
+    const eye = tipOnArm.current;
+    tipOnArm.current = null;
+    if (!armed || !eye || !tip || eye !== document.activeElement || !eye.id) return;
+    try {
+      tip.open(eye.id);
+    } catch {
+      // The eye is not one of this table's triggers after all; it opens on the next focus.
+    }
+  }, [armed, tip]);
   return (
     <tr
       ref={ref}
+      // The pointer arms the row as it enters, in the pointer events that come before the mouse
+      // events of the same move, so a control it lands on hears them at the table's popups.
+      onPointerEnter={(event) => {
+        onPointerEnter?.(event);
+        if (!armed) flushSync(arm);
+      }}
+      onFocus={(event) => {
+        onFocus?.(event);
+        if (armed) return;
+        const target = event.target;
+        if (
+          target.getAttribute("data-row-control") === "eye" &&
+          target.closest("tr") === event.currentTarget &&
+          focusVisible(target)
+        )
+          tipOnArm.current = target;
+        arm();
+      }}
+      // A press that reaches a control of a row not yet armed (assistive technology clicking it
+      // without focus or a pointer first) arms the row and presses the same control again.
+      onClickCapture={(event) => {
+        onClickCapture?.(event);
+        if (armed) return;
+        const control =
+          event.target instanceof Element
+            ? event.target.closest<HTMLElement>("[data-row-control]")
+            : null;
+        if (!control || control.closest("tr") !== event.currentTarget) return;
+        event.stopPropagation();
+        event.preventDefault();
+        flushSync(arm);
+        control.click();
+      }}
       data-selected={isSelected ? "" : undefined}
       className={cn(
         "border-b border-default transition-colors duration-fast ease-standard last:border-b-0 motion-reduce:transition-none",
@@ -1129,8 +1223,10 @@ export function Tr({ ref, className, isSelected, isStatic, ...props }: TrProps) 
         isSelected && "bg-selected hover:bg-selected-hovered",
         className,
       )}
-      {...props}
-    />
+      {...rest}
+    >
+      <RowArmContext.Provider value={armed}>{children}</RowArmContext.Provider>
+    </tr>
   );
 }
 
@@ -1153,6 +1249,8 @@ export function PreviewButton({ onPreview, isActive, label, className }: Preview
   const { t } = useLedgerLocale();
   // In a Table the eye opens the table's one tooltip, so a row mounts none of its own.
   const tip = useContext(RowTipContext);
+  const dormant = useContext(DormantTipContext);
+  const armed = useContext(RowArmContext);
   const eye = (
     <IconButton
       label={label ?? t("previewRow")}
@@ -1169,9 +1267,19 @@ export function PreviewButton({ onPreview, isActive, label, className }: Preview
         isActive ? "border border-selected" : "text-subtlest group-hover/row:text-subtle",
         className,
       )}
+      data-row-control="eye"
     />
   );
-  return tip ? <TooltipTrigger handle={tip} payload={t("preview")} render={eye} /> : eye;
+  if (!tip) return eye;
+  // One element whatever the row's state: until its row is armed the trigger points at a handle
+  // no root attaches to.
+  return (
+    <TooltipTrigger
+      handle={armed || !dormant ? tip : dormant}
+      payload={t("preview")}
+      render={eye}
+    />
+  );
 }
 
 /** While the eye shows: on the row's hover, on focus in the cell, and always where any pointer is coarse. */

@@ -57,12 +57,34 @@ const nouns = {
   cci_revisions: "CCI list revision",
   change_requests: "change request",
   comments: "comment",
+  component_assessment_requests: "component assessment publication request",
+  // One assessment of a published component version; its determinations judge that version's
+  // defined components.
+  component_assessments: "component assessment",
   component_contributions: "component contribution",
   component_definition_revisions: "component version",
   // The library's reusable component; the parts its versions define are defined components.
   component_definitions: "component",
+  component_determinations: "component determination",
+  // A program's offer of a finding or of determinations to a shared component's owner, what it
+  // holds, each program's own issue once a finding is accepted, and the commands' receipts.
+  component_offer_issues: "linked operational issue",
+  component_offer_items: "offer item",
+  component_offer_requests: "offer request",
+  component_offer_rows: "offer",
+  component_offers: "offer",
+  // The named owner of one component of a component set, over the set's owner.
+  component_owners: "component owner",
   component_pins: "component pin",
   component_relationships: "component relationship",
+  // The components register: a defined component of each definition's latest version, with its
+  // owner, who uses it and where it stands.
+  component_rows: "defined component",
+  // What a component of a version changes against the version before, a control that change
+  // affects, and the receipts of Take version.
+  component_version_change_controls: "affected control",
+  component_version_changes: "component version change",
+  component_version_requests: "component version request",
   composition_nodes: "system element",
   configuration_baselines: "configuration baseline",
   control_links: "control link",
@@ -123,6 +145,7 @@ const nouns = {
   issue_poams: "linked remediation item",
   // A requirement an operational issue is about.
   issue_requirements: "linked requirement",
+  issue_vulnerabilities: "linked CVE",
   library_apply_requests: "library apply request",
   library_assignment_targets: "library assignment target",
   library_assignments: "library assignment",
@@ -170,6 +193,8 @@ const nouns = {
   product_configurations: "configuration",
   product_determinations: "product determination",
   product_elements: "product element",
+  // The controls of a product version that only integration can show.
+  product_integration_controls: "integration control",
   product_revisions: "product version",
   products: "product",
   profile_baseline_combinations: "baseline combination",
@@ -229,6 +254,13 @@ const nouns = {
   risks: "risk",
   scheduled_assessment_tasks: "scheduled assessment task",
   scope_baselines: "scope baseline",
+  // A software bill of materials of a library component version or an asset, its components and
+  // the CVEs recorded on them.
+  sbom_component_rows: "SBOM component",
+  sbom_component_vulnerabilities: "SBOM component CVE",
+  sbom_components: "SBOM component",
+  sbom_import_requests: "SBOM import request",
+  sboms: "SBOM",
   scopes: "scope",
   security_processes: "security process",
   selected_controls: "selected control",
@@ -260,6 +292,12 @@ const nouns = {
   tenants: "workspace",
   test_run_evidence: "evidence citation",
   test_runs: "test run",
+  // One record a CVE in a workspace, the controls it bears on, and the receipts of the command
+  // that opens its operational issue in every program built from an affected component.
+  vulnerabilities: "CVE",
+  vulnerability_controls: "CVE control",
+  vulnerability_issue_requests: "CVE issue request",
+  vulnerability_rows: "CVE",
   workstreams: "workstream",
 } as const satisfies Partial<Record<TableName | RegisterView, string>>;
 
@@ -416,7 +454,7 @@ const columnLabels: Record<string, Record<string, string>> = {
   // A criterion drawn from NIST SP 800-160 Vol. 1 names the security outcome it came from.
   gate_criteria: { outcome_item_id: "Security outcome" },
   // A delta assessment's campaign names the product variant it assesses.
-  assessment_campaigns: { variant_system_id: "Variant" },
+  assessment_campaigns: { variant_system_id: "Variant", cyber_test_phase: "Cyber T&E phase" },
   // What a program changed in an element it inherited from a product, and why.
   systems: {
     product_change_kinds: "Changed here",

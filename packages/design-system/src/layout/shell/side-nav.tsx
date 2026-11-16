@@ -21,7 +21,7 @@ import {
 import { IconButton, type IconButtonProps } from "../../components/button";
 import { KbdShortcut, useFormatShortcut } from "../../components/kbd";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../../components/tooltip";
-import { useIsTruncated } from "../../components/truncate";
+import { openWhileCut } from "../../components/truncate";
 import { Eyebrow } from "../../components/typography";
 import { token } from "../../generated/tokens";
 import { cn } from "../../lib/cn";
@@ -383,7 +383,6 @@ export function SideNavItem({
   const shell = useShell();
   const rail = useSideNavRail();
   const labelRef = useRef<HTMLSpanElement>(null);
-  const cut = useIsTruncated(labelRef, { enabled: !rail });
   const element = useRender({
     defaultTagName: "a",
     render,
@@ -415,8 +414,10 @@ export function SideNavItem({
       ),
     }),
   });
+  // The name is measured as the tooltip is about to open: it opens in the icon rail, and wherever
+  // the side nav's width cuts the name.
   return (
-    <Tooltip disabled={!rail && !cut}>
+    <Tooltip onOpenChange={openWhileCut(() => [labelRef.current], rail)}>
       <TooltipTrigger render={element} />
       <TooltipContent side="inline-end">{children}</TooltipContent>
     </Tooltip>
@@ -456,7 +457,6 @@ export function SideNavExpandable({
   const rail = useSideNavRail();
   const levelId = useId();
   const labelRef = useRef<HTMLSpanElement>(null);
-  const cut = useIsTruncated(labelRef, { enabled: !rail });
   const [own, setOwn] = useState(defaultOpen ?? Boolean(isActive));
   const isOpen = open ?? own;
   // The current page is out of view: the group is closed, or the rail hides its items.
@@ -467,7 +467,7 @@ export function SideNavExpandable({
   };
   return (
     <div data-slot="shell-sidenav-expandable" className="flex flex-col gap-025">
-      <Tooltip disabled={!rail && !cut}>
+      <Tooltip onOpenChange={openWhileCut(() => [labelRef.current], rail)}>
         <TooltipTrigger
           render={
             <button

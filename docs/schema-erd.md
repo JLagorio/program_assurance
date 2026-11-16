@@ -97,9 +97,55 @@ erDiagram
     requirement_sources |o--o{ engineering_requirements : source_paragraph
     engineering_requirements ||--o| requirement_compliance : program_answer
     programs ||--o{ requirement_import_requests : import_receipts
+    business_lines |o--o{ component_definitions : holds
+    parties |o--o{ component_definitions : owns
+    component_definition_revisions ||--o{ component_assessments : judged_by
+    profile_resolutions ||--o{ component_assessments : against_baseline
+    component_assessments ||--o{ component_determinations : records
+    defined_components ||--o{ component_determinations : component
+    controls ||--o{ component_determinations : control
+    assessment_findings |o--o{ component_determinations : optional_finding
+    component_assessments ||--o| component_assessment_requests : publication_receipt
+    component_definitions ||--o{ component_owners : component_owner
+    parties ||--o{ component_owners : owns_component
+    defined_components ||--o{ component_offers : offered_on
+    programs ||--o{ component_offers : offers
+    system_components ||--o{ component_offers : found_on
+    parties |o--o{ component_offers : offered_or_reviewed_by
+    component_offers ||--o{ component_offer_items : holds
+    operational_issues |o--o{ component_offer_items : offered_issue
+    assessment_findings |o--o{ component_offer_items : offered_finding
+    controls |o--o{ component_offer_items : judged_control
+    component_offers |o--o| component_assessments : published_as
+    component_offer_items ||--o{ component_offer_issues : stands_as
+    operational_issues ||--o{ component_offer_issues : program_row
+    component_offers ||--o{ component_offer_requests : command_receipts
+    defined_components |o--o{ sboms : described_by
+    inventory_items |o--o{ sboms : described_by
+    evidence_artifacts |o--o{ sboms : document
+    sboms ||--o{ sbom_components : lists
+    sbom_components |o--o{ sbom_components : contains
+    sboms ||--o{ sbom_import_requests : import_receipt
+    sbom_components ||--o{ sbom_component_vulnerabilities : carries
+    vulnerabilities ||--o{ sbom_component_vulnerabilities : found_in
+    vulnerabilities ||--o{ vulnerability_controls : bears_on
+    controls ||--o{ vulnerability_controls : control
+    vulnerabilities ||--o{ issue_vulnerabilities : program_row
+    operational_issues ||--o{ issue_vulnerabilities : answers_cve
+    defined_components |o--o{ product_elements : pinned_element
+    defined_components |o--o{ system_components : built_from
+    product_revisions ||--o{ product_integration_controls : integration_set
+    controls ||--o{ product_integration_controls : only_integration_shows
+    component_definition_revisions ||--o{ component_version_changes : version_changes
+    defined_components ||--o| component_version_changes : changed_in_this_version
+    component_version_changes ||--o{ component_version_change_controls : affects
+    controls ||--o{ component_version_change_controls : affected_control
+    system_components ||--o{ component_version_requests : take_version_receipt
 ```
 
-A product is judged once and read by configuration. A `product_assessments` row judges one published product version against one published control baseline, and each `product_determinations` row is an assessor's determination on one control for one element of that version, or for the product as a whole (no element). A configuration's standing on a control is the worst determination among the elements it includes. A variant is a program system created from a configuration: its boundary names the version and configuration it took, each inherited element names its product element, and what the program changed in one (`systems.product_change_kinds`, software, firmware, hardware or data, with its rationale) is written only by `declare_product_element_change`. A delta assessment is an assessment campaign that names its variant (`assessment_campaigns.variant_system_id`, set only by `plan_delta_assessment`). A customer's requirements document is a `requirement_sources` row; a requirement names its source and its paragraph (`engineering_requirements.source_id`, `source_reference`), and the program's answer to it is one `requirement_compliance` row. `requirement_import_requests` keeps each import's receipt, so the same request sent again answers what it answered. The reads and commands over them are in [Products, configurations and variants](products.md). [Product assurance migration](../supabase/migrations/20261112130000_product_assurance.sql) · [Customer requirements migration](../supabase/migrations/20261112140000_customer_requirements.sql)
+A product is judged once and read by configuration. A `product_assessments` row judges one published product version against one published control baseline, and each `product_determinations` row is an assessor's determination on one control for one element of that version, or for the product as a whole (no element). A configuration's standing on a control is the worst determination among the elements it includes. A variant is a program system created from a configuration: its boundary names the version and configuration it took, each inherited element names its product element, and what the program changed in one (`systems.product_change_kinds`, software, firmware, hardware or data, with its rationale) is written only by `declare_product_element_change`. A delta assessment is an assessment campaign that names its variant (`assessment_campaigns.variant_system_id`, set only by `plan_delta_assessment`). A customer's requirements document is a `requirement_sources` row; a requirement names its source and its paragraph (`engineering_requirements.source_id`, `source_reference`), and the program's answer to it is one `requirement_compliance` row. `requirement_import_requests` keeps each import's receipt, so the same request sent again answers what it answered. A library component is assessed once: a `component_assessments` row judges one published component version (a `component_definition_revisions` row) against one published control baseline, and each `component_determinations` row is a determination on one control for one `defined_components` row of that version; `component_assessment_requests` keeps each publication's receipt. A component definition names its owner and its business line, and one component of a set may name its own (`component_owners`, by the component's name), which is then its effective owner. Who is built from a component is read from `product_elements.defined_component_id` and `system_components.defined_component_id`. What a program finds on a shared component flows up: a `component_offers` row offers operational issues or the determinations of published assessment findings (`component_offer_items`) on the component version a system component is built from to that component's owner; accepted, a finding opens one operational issue in every other program built from that version (`component_offer_issues`, the offering program's as the source) and determinations are published as one `component_assessments` row; `component_offer_requests` keeps each command's receipt. A software bill of materials is an `sboms` row of exactly one subject, a library component version or an asset, with its `sbom_components` (each optionally inside another of the same SBOM); a subject's standing SBOM is its latest by the day it was generated, and `sbom_import_requests` keeps each import's receipt. A CVE is one `vulnerabilities` row a workspace, tied to the SBOM components it is found in with its state (`sbom_component_vulnerabilities`), to the controls it bears on (`vulnerability_controls`) and to the operational issue that is a program's row for it (`issue_vulnerabilities`), which its POA&M item answers. An assessment campaign and a component assessment each say their kind (`kind`: a control assessment or a cyber test, the campaign with its `cyber_test_phase`). What a component version was judged on stands for everything built from it, unmodified: on a product element pinned to it that the product's own assessment did not judge on the control, and for a program on each objective its requirements place only on elements whose every system component is built from a judged component version and that the program has not declared modified. `product_integration_controls` names the controls of a product version that only integration can show, one row a version and control with why: a component's determination on one does not stand on the product's elements, and it reads not assessed until the product judges it. No table stores what is inherited; the status reads derive it ([What a consumer inherits](products.md#what-a-consumer-inherits)). The reads and commands over them are in [Products, configurations and variants](products.md). [Product assurance migration](../supabase/migrations/20261112130000_product_assurance.sql) · [Customer requirements migration](../supabase/migrations/20261112140000_customer_requirements.sql) · [Component assessments migration](../supabase/migrations/20261115070043_component_assessments.sql) · [Component offers migration](../supabase/migrations/20261115082948_component_offers.sql) · [SBOMs, CVEs and cyber tests migration](../supabase/migrations/20261115090429_sboms_vulnerabilities_and_cyber_tests.sql) · [Component inheritance migration](../supabase/migrations/20261115140023_component_inheritance.sql)
+
+A component's versions say what they change (migration `20261115172957_component_versions`). A `component_version_changes` row belongs to one component of one version of its set and says what that version changes against the version before, as kinds (software, firmware, hardware, data) and a summary, once a component version; `component_version_change_controls` lists the controls the change affects. Both are written while the version is a draft and frozen with it. Nothing stores what carries forward: `component_standing_lines` derives it (a version's own determination, else the nearest earlier published version's, carried, unless a change between lists the control, which then reads not assessed and to review), and every read of a component's standing, and what a product element or a program's element inherits, counts from it. `take_component_version` moves one system component to a newer published version of the component it is built from and keeps a private receipt (`component_version_requests`); `component_version_review` is the read it is reviewed with. [A component's versions](products.md#a-components-versions) says what each answers.
 
 ## Assessment conclusions and evidence
 

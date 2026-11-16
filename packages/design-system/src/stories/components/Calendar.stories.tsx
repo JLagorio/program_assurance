@@ -198,6 +198,128 @@ export const InAPanelAtItsNarrowest: Story = {
   },
 };
 
+/** A caption's words shown whole: on their one line, with nothing past its end or under it. */
+const expectWhole = async (words: HTMLElement) => {
+  await expect(words.scrollWidth).toBeLessThanOrEqual(words.clientWidth);
+  await expect(words.scrollHeight).toBeLessThanOrEqual(words.clientHeight + 1);
+};
+/** Every part of a calendar inside its column: the grid, the days, the caption and its controls. */
+const expectInside = async (column: HTMLElement) => {
+  const bounds = column.getBoundingClientRect();
+  const calendar = column.querySelector<HTMLElement>('[data-slot="calendar"]')!;
+  for (const part of calendar.querySelectorAll<HTMLElement>("*")) {
+    const box = part.getBoundingClientRect();
+    if (box.width === 0) continue;
+    await expect(box.left).toBeGreaterThanOrEqual(bounds.left - 0.5);
+    await expect(box.right).toBeLessThanOrEqual(bounds.right + 0.5);
+  }
+};
+
+/** In a column only seven 24px days wide (168px), the narrowest any month can be and keep the touch minimum, the month's 12px padding gives way first and every day stands at 24px, inside the column. Its caption stays whole on one line. Narrower than that the days keep their 24px and the month is wider than its column. */
+export const AtSevenTouchDays: Story = {
+  name: "At seven 24px days",
+  render: () => (
+    <section aria-label="Narrowest column" style={{ maxWidth: 168 }}>
+      <SingleDemo />
+    </section>
+  ),
+  play: async ({ canvasElement }) => {
+    const column = within(canvasElement).getByRole("region", { name: "Narrowest column" });
+    await expectInside(column);
+    await expectNoSidewaysScroll(canvasElement);
+    for (const day of within(column).getAllByRole("button", { name: /2026/ })) {
+      const box = day.getBoundingClientRect();
+      await expect(Math.round(box.width)).toBe(24);
+      await expect(box.height).toBeGreaterThanOrEqual(24);
+    }
+    // The caption reads whole, on one line.
+    const caption = within(column).getByRole("status");
+    await expect(caption).toHaveTextContent("September 2026");
+    await expectWhole(caption.firstElementChild as HTMLElement);
+    const selected = within(column).getByRole("button", { name: /September 14, 2026/ });
+    selected.focus();
+    await userEvent.keyboard("{ArrowDown}");
+    await waitFor(() =>
+      expect(within(column).getByRole("button", { name: /September 21, 2026/ })).toHaveFocus(),
+    );
+  },
+};
+
+/** A caption too long for seven 24px days (Spanish says "septiembre de 2026") ends in an ellipsis between the navigation buttons rather than pushing the month past its column; the grid's name and the caption's status still say the whole month. */
+export const LongCaptionAtSevenTouchDays: Story = {
+  name: "Long caption at seven 24px days",
+  render: () => (
+    <LedgerProvider locale="es-ES">
+      <section aria-label="Columna estrecha" style={{ maxWidth: 168 }}>
+        <Calendar mode="single" defaultMonth={new Date(2026, 8, 1)} />
+      </section>
+    </LedgerProvider>
+  ),
+  play: async ({ canvasElement }) => {
+    const column = within(canvasElement).getByRole("region", { name: "Columna estrecha" });
+    await expectInside(column);
+    await expectNoSidewaysScroll(canvasElement);
+    const caption = within(column).getByRole("status");
+    await expect(caption).toHaveTextContent("septiembre de 2026");
+    // One line of it shows, ending in an ellipsis.
+    const words = caption.firstElementChild as HTMLElement;
+    await expect(getComputedStyle(words).webkitLineClamp).toBe("1");
+    await expect(words.scrollHeight).toBeGreaterThan(words.clientHeight + 1);
+    // The caption clears the navigation buttons at both ends.
+    const [previous, next] = within(column).getAllByRole("button", { name: /month/i });
+    const box = caption.getBoundingClientRect();
+    await expect(box.left).toBeGreaterThanOrEqual(previous!.getBoundingClientRect().right - 0.5);
+    await expect(box.right).toBeLessThanOrEqual(next!.getBoundingClientRect().left + 0.5);
+    await expect(within(column).getByRole("grid")).toHaveAccessibleName("septiembre de 2026");
+  },
+};
+
+function NarrowDropdownsDemo() {
+  const [date, setDate] = useState<Date | undefined>(new Date(2026, 8, 14));
+  return (
+    <section aria-label="Narrowest column" style={{ maxWidth: 168 }}>
+      <Calendar
+        mode="single"
+        selected={date}
+        onSelect={setDate}
+        defaultMonth={new Date(2026, 8, 1)}
+        startMonth={new Date(2020, 0, 1)}
+        endMonth={new Date(2030, 11, 1)}
+        captionLayout="dropdown"
+      />
+    </section>
+  );
+}
+/** The month and year selects in a column seven 24px days wide: where the caption between the navigation buttons cannot hold both, the year goes under the month, each whole, and the grid moves down to make room. Both still choose. */
+export const DropdownsAtSevenTouchDays: Story = {
+  name: "Dropdowns at seven 24px days",
+  render: () => <NarrowDropdownsDemo />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const column = canvas.getByRole("region", { name: "Narrowest column" });
+    await expectInside(column);
+    await expectNoSidewaysScroll(canvasElement);
+    const month = canvas.getByRole("combobox", { name: "Month" });
+    const year = canvas.getByRole("combobox", { name: "Year" });
+    const monthBox = month.parentElement!.getBoundingClientRect();
+    const yearBox = year.parentElement!.getBoundingClientRect();
+    // The year under the month, and both read whole.
+    await expect(yearBox.top).toBeGreaterThanOrEqual(monthBox.bottom);
+    for (const select of [month, year])
+      await expectWhole(select.parentElement!.querySelector<HTMLElement>("[aria-hidden] > span")!);
+    await expect(month.parentElement).toHaveTextContent("September");
+    await expect(year.parentElement).toHaveTextContent("2026");
+    // The weekdays start under the caption.
+    const grid = canvas.getByRole("grid");
+    await expect(grid.getBoundingClientRect().top).toBeGreaterThan(yearBox.bottom);
+    for (const day of within(grid).getAllByRole("button")) {
+      await expect(Math.round(day.getBoundingClientRect().width)).toBe(24);
+    }
+    await userEvent.selectOptions(year, "2027");
+    await expect(canvas.getByRole("button", { name: /September 14, 2027/ })).toBeVisible();
+  },
+};
+
 function RangePopoverDemo() {
   const [range, setRange] = useState<DateRange | undefined>({
     from: new Date(2026, 8, 7),
@@ -300,6 +422,22 @@ export const DropdownsAndWeekNumbers: Story = {
   ),
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
+    // Where the caption holds them, the month and the year sit side by side, each whole, between
+    // the navigation buttons.
+    const month = canvas.getByRole("combobox", { name: "Month" }).parentElement!;
+    const year = canvas.getByRole("combobox", { name: "Year" }).parentElement!;
+    await expect(
+      Math.abs(month.getBoundingClientRect().top - year.getBoundingClientRect().top),
+    ).toBe(0);
+    for (const root of [month, year])
+      await expectWhole(root.querySelector<HTMLElement>("[aria-hidden] > span")!);
+    const [previous, next] = canvas.getAllByRole("button", { name: /month/i });
+    await expect(month.getBoundingClientRect().left).toBeGreaterThanOrEqual(
+      Math.min(previous!.getBoundingClientRect().right, next!.getBoundingClientRect().right) - 0.5,
+    );
+    await expect(year.getBoundingClientRect().right).toBeLessThanOrEqual(
+      Math.max(previous!.getBoundingClientRect().left, next!.getBoundingClientRect().left) + 0.5,
+    );
     await userEvent.selectOptions(canvas.getByRole("combobox", { name: "Month" }), "9");
     await expect(canvas.getByRole("button", { name: /October 14, 2026/ })).toHaveAttribute(
       "title",

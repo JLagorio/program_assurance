@@ -100,14 +100,17 @@ export function defaultValue(column: Column): string {
  * system's boundary on insert and keeps it immutable on update; the outcome a gate criterion was
  * drawn from is recorded by Add security outcomes, what a program changed in a product element by
  * Mark as modified, and the variant a campaign assesses by Plan delta assessment; a direct write of
- * any of them is refused.
+ * any of them is refused. A campaign's kind and Cyber T&E phase are left to the database too: every
+ * campaign a form creates is a control assessment, and no form asks for a cyber test until the
+ * Assessments screens plan one, kind and phase together.
  */
 export function isDerivedRecordField(table: string, column: string): boolean {
   return (
     (table === "systems" &&
       (column === "boundary_system_id" || productChangeColumns.has(column))) ||
     (table === "gate_criteria" && column === "outcome_item_id") ||
-    (table === "assessment_campaigns" && column === "variant_system_id")
+    (table === "assessment_campaigns" &&
+      (column === "variant_system_id" || column === "kind" || column === "cyber_test_phase"))
   );
 }
 

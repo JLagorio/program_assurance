@@ -70,6 +70,28 @@ function isCut(el: HTMLElement, maxLines: TruncateLines) {
 
 const fullTextOf = (el: HTMLElement) => (el.textContent ?? "").replace(/\s+/g, " ").trim();
 
+/**
+ * Package-internal: whether an element's text is cut right now, read once when it is asked, as a
+ * reveal about to open asks it. Nothing is observed between asks. A hidden element is never cut.
+ */
+export function isTextCut(el: HTMLElement | null | undefined, maxLines: TruncateLines = 1) {
+  return Boolean(el && isCut(el, maxLines));
+}
+
+/**
+ * Package-internal: a tooltip's `onOpenChange` that lets it open only while one of the elements
+ * is cut, or always while `always` holds (an icon rail, where the words are not drawn at all).
+ * The reveal measures when it is about to open, not after every render.
+ */
+export function openWhileCut(
+  elements: () => readonly (HTMLElement | null | undefined)[],
+  always = false,
+) {
+  return (open: boolean, details: { cancel: () => void }) => {
+    if (open && !always && !elements().some((el) => isTextCut(el))) details.cancel();
+  };
+}
+
 export type UseIsTruncatedOptions = {
   /** The clamp the element carries, as Text's `maxLines`: 1 compares widths, 2 and 3 heights as well. 1 by default. */
   maxLines?: TruncateLines | undefined;

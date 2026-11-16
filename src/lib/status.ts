@@ -64,8 +64,8 @@ export const attentionStates = vocabulary([
 /**
  * What a record in the Review queue waits on a reviewer for (`review_queue_rows.kind`), in the
  * order the assurance chain reaches it: evidence first, then the determinations made on it, then
- * the decisions they lead to, and the discussions about any of them. A kind is not a judgment, so
- * every one is neutral.
+ * the decisions they lead to, and the discussions about any of them; an offer of a program's result
+ * to a shared component's owner comes last. A kind is not a judgment, so every one is neutral.
  */
 export const reviewQueueKinds = vocabulary([
   ["evidence", "Evidence to accept", "neutral"],
@@ -74,6 +74,7 @@ export const reviewQueueKinds = vocabulary([
   ["gate", "Gate to decide", "neutral"],
   ["package", "Package to decide", "neutral"],
   ["discussion", "Discussion to resolve", "neutral"],
+  ["component_offer", "Offer to review", "neutral"],
 ]);
 export const taskStatuses = vocabulary([
   ["open", "Open", "neutral"],
@@ -96,6 +97,25 @@ export const campaignStatuses = vocabulary([
   ["active", "Active", "information"],
   ["completed", "Completed", "success"],
   ["cancelled", "Cancelled", "neutral"],
+]);
+/**
+ * What kind of assessment a campaign or a component assessment is (`assessment_campaigns.kind`,
+ * `component_assessments.kind`): a control assessment, as one is unless it says otherwise, or a
+ * cyber test. A kind is not a judgment, so both are neutral.
+ */
+export const assessmentKinds = vocabulary([
+  ["control_assessment", "Control assessment", "neutral"],
+  ["cyber_test", "Cyber T&E", "neutral"],
+]);
+/**
+ * The Cyber T&E phase a cyber test campaign names (`assessment_campaigns.cyber_test_phase`), in
+ * the order a program runs them. A phase is not a judgment, so every one is neutral.
+ */
+export const cyberTestPhases = vocabulary([
+  ["cvi", "Cooperative vulnerability identification", "neutral"],
+  ["acd", "Adversarial cybersecurity DT&E", "neutral"],
+  ["cvpa", "Cooperative vulnerability and penetration assessment", "neutral"],
+  ["aa", "Adversarial assessment", "neutral"],
 ]);
 export const workstreamStatuses = vocabulary([
   ["planned", "Planned", "neutral"],
@@ -178,6 +198,17 @@ export const milestoneStatuses = vocabulary([
   ["completed", "Completed", "success"],
   ["cancelled", "Cancelled", "neutral"],
 ]);
+/**
+ * A CVE on a component of an SBOM (`sbom_component_vulnerabilities.state`), in VEX's words and in
+ * the order a reader acts on them: the component carries it, nobody knows yet, this version holds
+ * the fix, or it never applied.
+ */
+export const vulnerabilityStates = vocabulary([
+  ["affected", "Affected", "danger"],
+  ["under_investigation", "Under investigation", "warning"],
+  ["fixed", "Fixed", "success"],
+  ["not_affected", "Not affected", "neutral"],
+]);
 
 /* ——— Assessment and authorization ——————————————————————————————————————————————————————————— */
 
@@ -232,6 +263,13 @@ export const evidenceReviewDecisions = vocabulary([
   ["accepted", "Accepted", "success"],
   ["needs_revision", "Needs revision", "warning"],
   ["rejected", "Rejected", "danger"],
+]);
+/** An offer of a program's result to a shared component's owner (`component_offers.state`). */
+export const componentOfferStates = vocabulary([
+  ["offered", "Offered", "neutral"],
+  ["accepted", "Accepted", "success"],
+  ["returned", "Returned", "warning"],
+  ["withdrawn", "Withdrawn", "neutral"],
 ]);
 export const evidenceUseDecisions = vocabulary([
   ["pending", "Pending", "neutral"],
@@ -465,6 +503,7 @@ const revisionTables = [
   "assessment_results_revisions",
   "catalog_revisions",
   "cci_revisions",
+  "component_assessments",
   "component_definition_revisions",
   "configuration_baselines",
   "control_overlays",
@@ -503,6 +542,8 @@ export const fieldVocabularies: Readonly<
   cci_references: { resolution_status: referenceResolutionStatuses },
   change_requests: { status: changeRequestStatuses },
   component_contributions: { implementation_status: implementationStatuses },
+  component_determinations: { determination: determinations },
+  component_offers: { state: componentOfferStates },
   control_overlay_decisions: { action: overlayDecisionActions },
   controls: { status: controlPublicationStatuses },
   defined_component_implementations: { implementation_status: implementationStatuses },
@@ -533,6 +574,7 @@ export const fieldVocabularies: Readonly<
     impact: riskLevels,
   },
   risks: { status: riskStatuses },
+  sbom_component_vulnerabilities: { state: vulnerabilityStates },
   scheduled_assessment_tasks: { status: scheduledTaskStatuses },
   scopes: {
     confidentiality_impact: impactLevels,
@@ -550,6 +592,7 @@ export const fieldVocabularies: Readonly<
   },
   tasks: { status: taskStatuses, priority: taskPriorities },
   test_runs: { status: testRunStatuses },
+  vulnerabilities: { severity: severityLevels },
   workstreams: { status: workstreamStatuses },
 };
 

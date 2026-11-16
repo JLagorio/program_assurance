@@ -26,8 +26,7 @@
   "focus": {
     "about": "Stories whose focus stops lost half or more of their ring when the gate landed (audit G3). The number is how many stops may; fix the part and lower it.",
     "stories": {
-      "components-attachment--group": 1,
-      "components-keyvalue--cut-value-and-label": 1
+      "components-attachment--group": 1
     }
   },
   "touch": {

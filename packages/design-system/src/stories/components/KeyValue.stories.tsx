@@ -388,8 +388,21 @@ export const CutValueAndLabel: Story = {
   ),
   play: async ({ canvas }) => {
     const link = canvas.getByRole("link");
+    const dd = link.closest("dd")!;
+    // The link takes the room the code leaves it and is cut there, with its own ellipsis, a space
+    // after the code.
+    await expect(getComputedStyle(link).textOverflow).toBe("ellipsis");
+    await expect(link.scrollWidth).toBeGreaterThan(link.clientWidth);
+    const code = document.createRange();
+    code.selectNodeContents(dd.firstChild!);
+    await expect(link.getBoundingClientRect().left).toBeGreaterThan(
+      code.getBoundingClientRect().right - 0.5,
+    );
+    await expect(dd.textContent).toBe("REQ-001 · AC enforcement requirement for the tactical edge");
     await userEvent.tab();
     await expect(link).toHaveFocus();
+    // Focused, its whole ring is inside the value's clip, its end included.
+    ringInside(link, dd.getBoundingClientRect());
     const value = await revealed();
     await expect(value).toHaveTextContent(
       "REQ-001 · AC enforcement requirement for the tactical edge",

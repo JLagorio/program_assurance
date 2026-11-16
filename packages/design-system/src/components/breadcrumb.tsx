@@ -140,7 +140,97 @@ type Fit = {
    * that comes back shows on that ancestor, not on the list.
    */
   bound: HTMLElement | null;
+  /** What the fit measured, which a later resize decides from without measuring the levels again. */
+  measure: TrailMeasure | null;
+  /** What it decided. */
+  decision: Decision;
 };
+
+/** The levels' natural widths and the list's own, as one fit measured them. */
+type TrailMeasure = {
+  /** Each level's name, and what the whole level adds to the line: the name, its separators and the gap after each. */
+  names: number[];
+  spans: number[];
+  ellipsis: number;
+  gap: number;
+  /** The list's padding and border across. */
+  inset: number;
+  pageFloor: number;
+  parentFloor: number;
+  /** The list's height after the fit, which a fold never changes. */
+  height: number;
+  /** Its drawn width over its layout width: a scale on an ancestor (a dialog zooming in) changes it. */
+  ratio: number;
+};
+
+/** Levels from..to fold (none when to < from); `shorten`: the parent and the page share the rest. */
+type Decision = { from: number; to: number; shorten: boolean };
+
+/**
+ * What folds with `available` pixels of room, from the levels' natural widths: 1. Every level at
+ * its full name. 2. The middle levels fold, nearest the root first. 3. With the middle folded, the
+ * parent and the page share the rest down to their floors. 4. The root folds too. 5. The parent
+ * folds, and the page takes the rest. Also the room the parent's and the page's names have.
+ */
+function decide(m: TrailMeasure, available: number): { decision: Decision; room: number } {
+  const { names, spans, ellipsis, gap, pageFloor, parentFloor } = m;
+  const n = names.length;
+  const pageAt = n - 1;
+  const parentAt = n - 2;
+  const page = names[pageAt] ?? 0;
+  const parent = names[parentAt] ?? 0;
+  const whole = page + parent;
+  const floors = pageFloor + parentFloor;
+  // The width left for the parent's and the page's names with levels from..to folded. The
+  // separators after the last folded level stay, after the ellipsis.
+  const room = (from: number, to: number) => {
+    let line = -gap;
+    for (let i = 0; i < n; i++) if (i < from || i > to) line += spans[i] ?? 0;
+    if (to >= from) line += ellipsis + (spans[to] ?? 0) - (names[to] ?? 0) - gap;
+    const parentShown = parentAt >= 0 && (parentAt < from || parentAt > to);
+    return available + 0.01 - (line - page - (parentShown ? parent : 0));
+  };
+  let from = 1;
+  let to = 0;
+  let shorten = false;
+  if (room(1, 0) < whole) {
+    let k = 1;
+    while (k <= n - 3 && room(1, k) < whole) k++;
+    if (k <= n - 3) to = k;
+    else if (room(1, n - 3) >= floors) {
+      to = n - 3;
+      shorten = true;
+    } else if (n >= 3 && room(0, n - 3) >= floors) {
+      from = 0;
+      to = n - 3;
+      shorten = true;
+    } else {
+      from = 0;
+      to = n - 2;
+    }
+  }
+  return { decision: { from, to, shorten }, room: room(from, to) };
+}
+
+/**
+ * Whether a resize leaves the last fit as it is, decided from the widths that fit measured and the
+ * list's new width, without touching the levels: read in the resize callback, where the layout is
+ * already done, so it costs no layout of its own. Only for a list that fills its room (no `bound`)
+ * at the height and scale it was measured at, and only where the fit folds or shortens nothing
+ * new; anything else measures the trail again.
+ */
+function fitsAsBefore(list: HTMLElement, last: Fit | null) {
+  const m = last?.measure;
+  if (!last || !m || last.bound || last.decision.shorten) return false;
+  const rect = list.getBoundingClientRect();
+  if (Math.abs(rect.height - m.height) >= 0.5) return false;
+  const ratio = list.offsetWidth > 0 ? rect.width / list.offsetWidth : 1;
+  if (Math.abs(ratio - m.ratio) > 0.01) return false;
+  const { decision } = decide(m, rect.width - m.inset);
+  return (
+    !decision.shorten && decision.from === last.decision.from && decision.to === last.decision.to
+  );
+}
 
 /**
  * Measures every level at its natural width in one synchronous pass, decides what folds and how
@@ -163,7 +253,7 @@ function fitTrail(list: HTMLOListElement): Fit {
     else levels.push([el]);
   }
   const n = levels.length;
-  if (n === 0) return { folded: [], bound: null };
+  if (n === 0) return { folded: [], bound: null, measure: null, decision: NOTHING_FOLDS };
 
   list.setAttribute("data-measuring", "");
   const width = (el: Element | undefined) => (el ? el.getBoundingClientRect().width : 0);
@@ -197,42 +287,21 @@ function fitTrail(list: HTMLOListElement): Fit {
   const parentAt = n - 2;
   const page = names[pageAt] ?? 0;
   const parent = names[parentAt] ?? 0;
-  const whole = page + parent;
   const pageFloor = shortens(levels[pageAt]?.[0]) ? Math.min(page, floor) : page;
   const parentFloor = shortens(levels[parentAt]?.[0]) ? Math.min(parent, floor) : parent;
-  const floors = pageFloor + parentFloor;
-  // The width left for the parent's and the page's names with levels from..to folded. The
-  // separators after the last folded level stay, after the ellipsis.
-  const room = (from: number, to: number) => {
-    let line = -gap;
-    for (let i = 0; i < n; i++) if (i < from || i > to) line += spans[i] ?? 0;
-    if (to >= from) line += ellipsis + (spans[to] ?? 0) - (names[to] ?? 0) - gap;
-    const parentShown = parentAt >= 0 && (parentAt < from || parentAt > to);
-    return available + 0.01 - (line - page - (parentShown ? parent : 0));
+  const measure: TrailMeasure = {
+    names,
+    spans,
+    ellipsis,
+    gap,
+    inset: measured - available,
+    pageFloor,
+    parentFloor,
+    height: 0,
+    ratio: 1,
   };
-
-  // 1. Every level at its full name. 2. The middle levels fold, nearest the root first. 3. With
-  // the middle folded, the parent and the page share the rest down to their floors. 4. The root
-  // folds too. 5. The parent folds, and the page takes the rest.
-  let from = 1;
-  let to = 0;
-  let shorten = false;
-  if (room(1, 0) < whole) {
-    let k = 1;
-    while (k <= n - 3 && room(1, k) < whole) k++;
-    if (k <= n - 3) to = k;
-    else if (room(1, n - 3) >= floors) {
-      to = n - 3;
-      shorten = true;
-    } else if (n >= 3 && room(0, n - 3) >= floors) {
-      from = 0;
-      to = n - 3;
-      shorten = true;
-    } else {
-      from = 0;
-      to = n - 2;
-    }
-  }
+  const { decision, room } = decide(measure, available);
+  const { from, to, shorten } = decision;
 
   const folded = levels.slice(from, to + 1);
   const hidden = new Set(
@@ -250,7 +319,7 @@ function fitTrail(list: HTMLOListElement): Fit {
   });
   const parentItem = levels[parentAt]?.[0];
   if (shorten && parentItem && !hidden.has(parentItem)) {
-    const fitted = share(parent, page, room(from, to), parentFloor, pageFloor);
+    const fitted = share(parent, page, room, parentFloor, pageFloor);
     if (fitted < parent - 0.5) {
       parentItem.setAttribute("data-shortened", "");
       parentItem.style.maxWidth = `${Math.floor(fitted * 100) / 100}px`;
@@ -265,16 +334,27 @@ function fitTrail(list: HTMLOListElement): Fit {
   // are hidden from assistive technology, so the reading order is unchanged.
   ellipsisItem?.toggleAttribute("data-leading", hidden.size > 0 && from === 0);
   list.setAttribute("data-fit", "");
-  if (losesFocus) ellipsisItem?.querySelector<HTMLElement>("button")?.focus({ preventScroll: true });
+  if (losesFocus)
+    ellipsisItem?.querySelector<HTMLElement>("button")?.focus({ preventScroll: true });
   // A list that ends narrower than its room sizes to its content; its container bounds it. A box
   // without width (display: contents) never reports a resize, so it is passed over.
+  const after = list.getBoundingClientRect();
   const bound =
-    width(list) < measured - 0.5
+    after.width < measured - 0.5
       ? (ancestors.find(([el, before]) => before > 0 && Math.abs(width(el) - before) < 0.5)?.[0] ??
         null)
       : null;
-  return { folded: folded.flatMap((level) => (level[0] ? [level[0]] : [])), bound };
+  measure.height = after.height;
+  measure.ratio = list.offsetWidth > 0 ? after.width / list.offsetWidth : 1;
+  return {
+    folded: folded.flatMap((level) => (level[0] ? [level[0]] : [])),
+    bound,
+    measure,
+    decision,
+  };
 }
+
+const NOTHING_FOLDS: Decision = { from: 1, to: 0, shorten: false };
 
 const warned = new WeakSet<Element>();
 /**
@@ -346,7 +426,8 @@ function BreadcrumbList({
 
   // The container's width and the levels' content (text, fonts as they load) decide the fold. Each
   // check runs before paint (layout effect, ResizeObserver, MutationObserver microtask), so a fold
-  // never shows a frame of the wrong layout.
+  // never shows a frame of the wrong layout. The levels are measured when their content changes or
+  // the fold does; a resize that leaves the fold as it was decides so from those widths alone.
   React.useLayoutEffect(() => {
     const list = listRef.current;
     if (!collapse || !list) return;
@@ -355,10 +436,12 @@ function BreadcrumbList({
     let watched: HTMLElement | null = null;
     let listObserved = true;
     let frame = 0;
+    let last: Fit | null = null;
     const fit = () => {
       const fitted = fitTrail(list);
       foldedRef.current = fitted.folded;
       bound = fitted.bound;
+      last = fitted;
     };
     // Resizing an observed element inside its own resize callback, along either axis, or observing
     // a new one there, queues a notification the browser reports as a loop error. A fold changes
@@ -378,6 +461,9 @@ function BreadcrumbList({
       });
     };
     const resize = new ResizeObserver(() => {
+      // Most resizes (a panel opening, the side nav folding) leave the trail as it was: decided
+      // from the widths the last fit measured, they measure nothing and change nothing.
+      if (!watched && fitsAsBefore(list, last)) return;
       const targets = watched ? [list, watched] : [list];
       const size = (el: HTMLElement) => {
         const rect = el.getBoundingClientRect();
@@ -530,7 +616,9 @@ function BreadcrumbItem({ className, ...props }: BreadcrumbItemProps) {
 
 /**
  * Keeps a shortened label's full text in `title` on its host while it is cut, unless the caller
- * set a title of its own.
+ * set a title of its own. The label is measured when it resizes (a fold shortens it, a panel
+ * narrows the trail) and after a render that changed its words or the host's title; a render that
+ * changed neither (the page re-rendering around the trail) reads no layout.
  */
 function useFullTextTitle(
   host: React.RefObject<HTMLElement | null>,
@@ -538,11 +626,18 @@ function useFullTextTitle(
   enabled: boolean,
 ) {
   const owned = React.useRef<string | null>(null);
+  // What the last measure saw: the label's words, the host's title and whether it was enabled.
+  const seen = React.useRef<{
+    words: string | null;
+    title: string | null;
+    enabled: boolean;
+  } | null>(null);
   const sync = React.useCallback(() => {
     const el = host.current;
     const label = text.current;
     if (!el) return;
     const current = el.getAttribute("title");
+    seen.current = { words: label?.textContent ?? null, title: current, enabled };
     if (current !== null && current !== owned.current) {
       owned.current = null;
       return;
@@ -556,8 +651,17 @@ function useFullTextTitle(
       el.removeAttribute("title");
       owned.current = null;
     }
+    seen.current = { words: label?.textContent ?? null, title: el.getAttribute("title"), enabled };
   }, [enabled, host, text]);
   React.useLayoutEffect(() => {
+    const last = seen.current;
+    if (
+      last &&
+      last.enabled === enabled &&
+      last.words === (text.current?.textContent ?? null) &&
+      last.title === (host.current?.getAttribute("title") ?? null)
+    )
+      return;
     sync();
   });
   React.useLayoutEffect(() => {

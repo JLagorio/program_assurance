@@ -54,9 +54,10 @@ const line = (
         | "objectives"
         | "objectives_mapped"
         | "objectives_evidenced"
-        | "objectives_assessed",
+        | "objectives_assessed"
+        | "objectives_inherited",
         number
-      > & { product_assessments: unknown[] }
+      > & { product_assessments: unknown[]; component_assessments: unknown[] }
   > = {},
 ) => ({
   id: code.toLowerCase(),
@@ -167,8 +168,10 @@ describe("readProgramControlStatus", () => {
       objectivesMapped: 4,
       objectivesEvidenced: 0,
       objectivesAssessed: 0,
+      objectivesInherited: 0,
       determinedBy: null,
       productAssessments: [],
+      componentAssessments: [],
     });
     // How many of its assessment objectives an assessor judged: some of them decide nothing yet.
     expect(answer.controls[1]).toMatchObject({
@@ -198,6 +201,65 @@ describe("readProgramControlStatus", () => {
     });
   });
 
+  it("reads what a control inherits from the library components its elements are built from", async () => {
+    const component = {
+      id: "00000000-0000-4000-8000-000000000080",
+      title: "X800 Missile component set version 1 component assessment",
+    };
+    const server = client({
+      data: {
+        program_id: program,
+        baseline: true,
+        totals,
+        controls: [
+          // Decided through its objectives, three of the four judged by inheritance: the program's.
+          line("AC-1", "partially_satisfied", {
+            objectives_inherited: 3,
+            component_assessments: [{ ...component, determination: "partially_satisfied" }],
+          }),
+          // Judged in part by inheritance: counted as assessed, and no determination yet.
+          line("AC-2", "not_assessed", {
+            objectives_assessed: 2,
+            objectives_inherited: 2,
+            component_assessments: [{ ...component, determination: "satisfied" }],
+          }),
+          // The product's determination, which a component's stands behind: no objective of the
+          // program's own is inherited.
+          line("AU-2", "satisfied", {
+            determined_by: "product",
+            objectives_assessed: 0,
+            objectives_inherited: 0,
+            component_assessments: [{ ...component, determination: "satisfied" }],
+          }),
+          // No component's determination stands behind it: the answer writes neither key.
+          line("AU-3", "satisfied"),
+        ],
+      },
+      error: null,
+    });
+    const answer = await readProgramControlStatus(server.client, context, program);
+    expect(answer.controls[0]).toMatchObject({
+      status: "partially_satisfied",
+      determinedBy: "program",
+      objectivesAssessed: 4,
+      objectivesInherited: 3,
+      componentAssessments: [{ ...component, determination: "partially_satisfied" }],
+    });
+    expect(answer.controls[1]).toMatchObject({
+      status: "not_assessed",
+      determinedBy: null,
+      objectivesAssessed: 2,
+      objectivesInherited: 2,
+      componentAssessments: [{ ...component, determination: "satisfied" }],
+    });
+    expect(answer.controls[2]).toMatchObject({
+      determinedBy: "product",
+      objectivesInherited: 0,
+      componentAssessments: [{ ...component, determination: "satisfied" }],
+    });
+    expect(answer.controls[3]).toMatchObject({ objectivesInherited: 0, componentAssessments: [] });
+  });
+
   it("says the server's refusal, and refuses a status or a source it does not know", async () => {
     await expect(
       readProgramControlStatus(
@@ -212,6 +274,11 @@ describe("readProgramControlStatus", () => {
       line("AC-1", "satisfied", {
         determined_by: "product",
         product_assessments: [{ ...assessment, determination: "not_assessed" }],
+      }),
+      // A component assessment decides with a determination, never with not assessed.
+      line("AC-1", "satisfied", {
+        objectives_inherited: 4,
+        component_assessments: [{ ...assessment, determination: "not_assessed" }],
       }),
     ])
       await expect(
@@ -333,8 +400,10 @@ describe("controlStatusFamilies", () => {
     objectivesMapped: 0,
     objectivesEvidenced: 0,
     objectivesAssessed: 0,
+    objectivesInherited: 0,
     determinedBy: null,
     productAssessments: [],
+    componentAssessments: [],
   });
 
   it("groups by family in the order given, an enhancement under its control", () => {

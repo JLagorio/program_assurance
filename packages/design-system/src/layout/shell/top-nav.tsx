@@ -37,7 +37,7 @@ import {
 } from "../../components/kbd";
 import { LinkIconButton } from "../../components/link-button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../../components/tooltip";
-import { Truncate, useIsTruncated } from "../../components/truncate";
+import { Truncate, isTextCut, openWhileCut } from "../../components/truncate";
 import { cn } from "../../lib/cn";
 import { useLedgerLocale } from "../../lib/locale";
 import { mergeRefs, slot, useShell, useSideNavRail, useSkipLink } from "./context";
@@ -565,9 +565,6 @@ export function AppLogo({
 }: AppLogoProps) {
   const nameRef = useRef<HTMLSpanElement>(null);
   const secondaryRef = useRef<HTMLSpanElement>(null);
-  // Hidden below the large breakpoint, the names measure as uncut there, so nothing is revealed.
-  const nameCut = useIsTruncated(nameRef);
-  const secondaryCut = useIsTruncated(secondaryRef, { enabled: Boolean(secondaryName) });
   const element = useRender({
     defaultTagName: "span",
     render,
@@ -606,9 +603,11 @@ export function AppLogo({
       ),
     }),
   });
-  // A visual copy of words already in the document, so it names nothing twice.
+  // A visual copy of words already in the document, so it names nothing twice. The names are
+  // measured as it is about to open; hidden below the large breakpoint, they measure as uncut there,
+  // so nothing is revealed.
   return (
-    <Tooltip disabled={!nameCut && !secondaryCut}>
+    <Tooltip onOpenChange={openWhileCut(() => [nameRef.current, secondaryRef.current])}>
       <TooltipTrigger render={element} />
       <TooltipContent side="bottom" className="flex-col items-start gap-0">
         <span>{name}</span>
@@ -674,9 +673,9 @@ export function Profile({
   const nameRef = useRef<HTMLSpanElement>(null);
   const detailRef = useRef<HTMLSpanElement>(null);
   // The name shows whole in a tooltip in the icon rail, and wherever the side nav's width cuts it;
-  // a cut description shows whole under it.
-  const cut = useIsTruncated(nameRef, { enabled: interactive && !rail });
-  const detailCut = useIsTruncated(detailRef, { enabled: interactive && !rail && Boolean(detail) });
+  // a cut description shows whole under it. Both are measured as the tooltip is about to open.
+  const [detailCut, setDetailCut] = useState(false);
+  const reveal = openWhileCut(() => [nameRef.current, detailRef.current], rail);
   const chevron = interactive && (indicator ?? opensMenu(props["aria-haspopup"]));
   const element = useRender({
     defaultTagName: interactive ? "button" : "div",
@@ -720,7 +719,13 @@ export function Profile({
     }),
   });
   return (
-    <Tooltip disabled={!interactive || (!rail && !cut && !detailCut)}>
+    <Tooltip
+      disabled={!interactive}
+      onOpenChange={(open, details) => {
+        reveal(open, details);
+        if (open && !details.isCanceled) setDetailCut(!rail && isTextCut(detailRef.current));
+      }}
+    >
       <TooltipTrigger render={element} />
       <TooltipContent side="inline-end" className="flex-col items-start gap-0">
         <span>{name}</span>

@@ -26,9 +26,12 @@ import { controlDeterminers, controlStatuses } from "./status";
  * decides it. A control judged in part has no program determination and reads the ladder. Where
  * there is none and every product variant of the program inherits the control with a
  * determination (its delta is inherited), it is the worst of the product's, and the control names
- * the product assessments it was taken from. The words and their order are `controlStatuses` and
- * `controlDeterminers` in status. This module also rolls the controls up by family, for a map of
- * the baseline and its counts.
+ * the product assessments it was taken from. An objective the program's assessors have not judged
+ * is judged by inheritance where the program's mappings place it only on elements that inherit the
+ * control from the library components they are built from, unmodified: such an objective counts as
+ * assessed, and the control says how many it inherits and the component assessments they came
+ * from. The words and their order are `controlStatuses` and `controlDeterminers` in status. This
+ * module also rolls the controls up by family, for a map of the baseline and its counts.
  */
 
 /** A control's status: a key of `controlStatuses`, in the ladder's order. */
@@ -51,6 +54,14 @@ const determinerSchema = z.enum(
   Object.keys(controlDeterminers) as [ControlDeterminer, ...ControlDeterminer[]],
 );
 
+const determinationSchema = z.enum(["other_than_satisfied", "partially_satisfied", "satisfied"]);
+/** An assessment a control's standing was taken from, with its worst determination on the control. */
+const sourceSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  determination: determinationSchema,
+});
+
 const controlSchema = z.object({
   id: z.string(),
   code: z.string(),
@@ -66,13 +77,11 @@ const controlSchema = z.object({
   objectives_evidenced: z.number(),
   objectives_assessed: z.number(),
   determined_by: determinerSchema.nullable(),
-  product_assessments: z.array(
-    z.object({
-      id: z.string(),
-      title: z.string(),
-      determination: z.enum(["other_than_satisfied", "partially_satisfied", "satisfied"]),
-    }),
-  ),
+  product_assessments: z.array(sourceSchema),
+  // Answered only on a control a component's determination stands behind: neither key is written
+  // on any other control.
+  objectives_inherited: z.number().optional(),
+  component_assessments: z.array(sourceSchema).optional(),
 });
 
 const answerSchema = z.object({
@@ -92,6 +101,16 @@ const answerSchema = z.object({
 
 /** A product assessment a control's status was taken from, with its determination on the control. */
 export type ControlProductAssessment = {
+  id: string;
+  title: string;
+  determination: ControlDetermination;
+};
+
+/**
+ * A component assessment a control's standing rests on, with the worst it determined there: one
+ * the control's inherited objectives were judged by, or one behind the product's determination.
+ */
+export type ControlComponentAssessment = {
   id: string;
   title: string;
   determination: ControlDetermination;
@@ -122,9 +141,16 @@ export type ControlStanding = {
    * Those an assessor of the program has judged: a published determination on the objective, on an
    * objective above it, or on the control's statement, the latest of which decides the objective.
    * The program's assessors decide the control once every one is judged; until then it reads the
-   * ladder below.
+   * ladder below. An objective judged by inheritance counts among them.
    */
   objectivesAssessed: number;
+  /**
+   * Those of the objectives assessed that are judged by inheritance: the program's assessors have
+   * not judged them, and its mappings place them only on elements that inherit the control from
+   * the library components they are built from, unmodified. None on a control no component's
+   * determination stands behind.
+   */
+  objectivesInherited: number;
   /**
    * Whose determination the status is: the program's own assessors, once they have judged every
    * objective the control counts, or the product assessment every variant of the program inherits
@@ -136,6 +162,12 @@ export type ControlStanding = {
    * first. Empty unless the product determined the status.
    */
   productAssessments: ControlProductAssessment[];
+  /**
+   * The component assessments a component's determination on the control came from, the worst
+   * first: those behind its inherited objectives and, where the product's determination decides
+   * it, those behind the product's. Empty on a control no component's determination stands behind.
+   */
+  componentAssessments: ControlComponentAssessment[];
 };
 
 /** How many controls stand at each status. */
@@ -197,8 +229,10 @@ export async function readProgramControlStatus(
       objectivesMapped: control.objectives_mapped,
       objectivesEvidenced: control.objectives_evidenced,
       objectivesAssessed: control.objectives_assessed,
+      objectivesInherited: control.objectives_inherited ?? 0,
       determinedBy: control.determined_by,
       productAssessments: control.product_assessments,
+      componentAssessments: control.component_assessments ?? [],
     })),
   };
 }
@@ -208,7 +242,10 @@ export async function readProgramControlStatus(
  * resolution the program's reference choice names; a requirement's mapping and its evidence, and
  * an assessor's findings and the results revision that publishes them, decide the rest, with what
  * the program's variants inherit: their elements, the product versions they stand on and those
- * versions' product assessments.
+ * versions' product assessments; and with what its elements inherit from the library components
+ * they are built from: the system components, the component assessments of the versions taken and
+ * of the earlier ones they carry from, what each version's change affects and the controls a
+ * product marks for integration.
  */
 const STATUS_MODELS = [
   "program_reference_choices",
@@ -227,6 +264,12 @@ const STATUS_MODELS = [
   "defined_component_implementations",
   "product_assessments",
   "product_determinations",
+  "product_integration_controls",
+  "system_components",
+  "component_assessments",
+  "component_determinations",
+  "component_version_changes",
+  "component_version_change_controls",
 ] as const satisfies readonly TableName[];
 
 /**
