@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WS-X90 · Monitoring</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="ledger.css">
+<style>body{margin:0;background:var(--ds-elevation-surface-sunken)}</style>
+</head>
+<body>
+<div class="lx k-app b-monitoring" data-shell="programs" data-reader="PR">
+<header class="k-topnav"><div class="k-topnav-start"><span class="k-mark"></span><span class="k-app-name grow truncate">Program Assurance</span><span class="k-btn is-subtle is-icon"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/></svg></span></div><div class="k-topnav-middle"><div class="k-search"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg><span class="grow truncate">Search or jump to…</span><span class="k-kbd">⌘</span><span class="k-kbd">K</span></div></div><div class="k-topnav-end"><span class="k-btn is-subtle is-icon"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg></span><span class="k-avatar">PR</span></div></header>
+<nav class="k-sidenav" aria-label="Main"><div class="k-nav-body"><div class="k-nav-section"><a class="k-nav-item" href="home.html"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Home</a><a class="k-nav-item" aria-current="page" href="programs.html"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/><path d="M8 10v4"/><path d="M12 10v2"/><path d="M16 10v6"/></svg>Programs</a><a class="k-nav-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 5h8"/><path d="M13 12h8"/><path d="M13 19h8"/><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/></svg>Registers</a><a class="k-nav-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 12h4"/><path d="M10 8h4"/><path d="M14 21v-3a2 2 0 0 0-4 0v3"/><path d="M6 10H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2"/><path d="M6 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16"/></svg>Business lines</a><a class="k-nav-item" href="product.html"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"/><path d="M12 22V12"/><polyline points="3.29 7 12 12 20.71 7"/><path d="m7.5 4.27 9 5.15"/></svg>Products</a><a class="k-nav-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/></svg>Library</a></div></div><div class="k-nav-footer"><div class="k-profile"><span class="k-avatar">PR</span><div class="col g-0 grow"><span class="truncate w-500">Priya Raghavan</span><span class="t-small c-subtle">Program manager</span></div><svg class="i s-14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></svg></div></div></nav>
+  <main class="k-main">
+    <div class="k-pagehead">
+      <nav class="k-trail"><a href="programs.html">Programs</a><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg><span aria-current="page">WS-X90</span></nav>
+      <div class="k-titlebar">
+        <h1 class="k-title truncate">WS-X90 Sentinel Mission System</h1>
+        <span class="nx-state t-success">ATO with conditions</span>
+        <div class="nx-slot">
+          <span class="nx-wait"><span class="k-avatar s-xs">JB</span><b>Waiting on Joel Barrantes</b><span class="c-subtle">STIG scan · 3d late</span></span>
+          <a class="k-btn is-secondary s-lg">Remind</a>
+          <button class="k-btn is-subtle is-icon s-lg" aria-label="More actions"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button>
+        </div>
+      </div>
+    </div>
+    <div class="k-tabs" role="tablist"><a class="k-tab" role="tab" aria-selected="false" href="program.html">Overview</a><a class="k-tab" role="tab" aria-selected="false" href="system.html">System</a><a class="k-tab" role="tab" aria-selected="false" href="controls.html">Controls</a><a class="k-tab" role="tab" aria-selected="false">Requirements</a><a class="k-tab" role="tab" aria-selected="true">Assessments</a><a class="k-tab" role="tab" aria-selected="false" href="poam-items.html">Risk &amp; POA&amp;M</a><a class="k-tab" role="tab" aria-selected="false" href="decisions.html">Decisions</a></div>
+    <div class="l-view">
+      <div class="row">
+        <div class="k-toggle" role="group" aria-label="Assessments views">
+          <a class="k-toggle-item" aria-pressed="false">Campaigns</a>
+          <a class="k-toggle-item" aria-pressed="false">Findings</a>
+          <a class="k-toggle-item" aria-pressed="true">Monitoring</a>
+        </div>
+      </div>
+      <p class="l-figure"><span class="t-figure"><span class="c-danger">1 late</span> <span class="of">of 10</span></span><span class="t-unit">scheduled tasks</span></p>
+
+      <section class="nx-cadence" aria-label="Scheduled tasks of continuous monitoring, FY2027">
+        <div class="nx-cadence__head">
+          <span></span>
+          <span class="nx-cadence__axis" aria-hidden="true"><span>Oct</span><b>Today</b><span>Dec</span><span>Jan 2027</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span><span>Jul</span><span>Aug</span><span>Sep</span></span>
+        </div>
+        <div class="nx-cadence__row">
+          <span class="nx-cadence__name"><a class="k-name">Monthly STIG compliance scan</a><span class="c-subtle">Blocked</span></span>
+          <span class="nx-cadence__strip" role="img" aria-label="October done. November blocked, 3 days late."><i class="is-done"></i><i class="is-blocked"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+          <span class="nx-cadence__who">Joel Barrantes</span>
+          <span class="nx-cadence__when nx-late">3d late</span>
+        </div>
+        <div class="nx-cadence__row">
+          <span class="nx-cadence__name"><a class="k-name">Monthly vulnerability scan — mission network</a></span>
+          <span class="nx-cadence__strip" role="img" aria-label="October done. November in progress."><i class="is-done"></i><i class="is-now"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+          <span class="nx-cadence__who">Joel Barrantes</span>
+          <span class="nx-cadence__when">Nov 15</span>
+        </div>
+        <div class="nx-cadence__row">
+          <span class="nx-cadence__name"><a class="k-name">Monthly POA&amp;M review</a></span>
+          <span class="nx-cadence__strip" role="img" aria-label="October done. November ready."><i class="is-done"></i><i class="is-now"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+          <span class="nx-cadence__who">Priya Raghavan</span>
+          <span class="nx-cadence__when">Nov 21</span>
+        </div>
+        <div class="nx-cadence__row">
+          <span class="nx-cadence__name"><a class="k-name">Quarterly privileged account review (AC-2, AC-6)</a></span>
+          <span class="nx-cadence__strip" role="img" aria-label="In progress, due in December."><b></b><b></b><i class="is-now"></i><b></b><b></b><i></i><b></b><b></b><i></i><b></b><b></b><i></i></span>
+          <span class="nx-cadence__who">Victor Amsel</span>
+          <span class="nx-cadence__when">Dec 1</span>
+        </div>
+        <div class="nx-cadence__row">
+          <span class="nx-cadence__name"><a class="k-name">Quarterly audit log review sampling (AU-6)</a></span>
+          <span class="nx-cadence__strip" role="img" aria-label="Planned for December."><b></b><b></b><i class="is-next"></i><b></b><b></b><i></i><b></b><b></b><i></i><b></b><b></b><i></i></span>
+          <span class="nx-cadence__who">Nadia Fournier</span>
+          <span class="nx-cadence__when">Dec 23</span>
+        </div>
+        <div class="nx-cadence__row">
+          <span class="nx-cadence__name"><a class="k-name">Quarterly configuration baseline audit (CM-2, CM-3)</a></span>
+          <span class="nx-cadence__strip" role="img" aria-label="Planned for December."><b></b><b></b><i class="is-next"></i><b></b><b></b><i></i><b></b><b></b><i></i><b></b><b></b><i></i></span>
+          <span class="nx-cadence__who">Ingrid Solberg</span>
+          <span class="nx-cadence__when">Dec 28</span>
+        </div>
+        <div class="nx-cadence__row">
+          <span class="nx-cadence__name"><a class="k-name">Annual control subset assessment — AC and IA families</a></span>
+          <span class="nx-cadence__strip" role="img" aria-label="Planned for February."><b></b><b></b><b></b><b></b><i class="is-next"></i><b></b><b></b><b></b><b></b><b></b><b></b><b></b></span>
+          <span class="nx-cadence__who">Nadia Fournier</span>
+          <span class="nx-cadence__when">Feb 11, 2027</span>
+        </div>
+        <div class="nx-cadence__row">
+          <span class="nx-cadence__name"><a class="k-name">Incident response tabletop (IR-3)</a></span>
+          <span class="nx-cadence__strip" role="img" aria-label="Planned for March."><b></b><b></b><b></b><b></b><b></b><i class="is-next"></i><b></b><b></b><b></b><b></b><b></b><b></b></span>
+          <span class="nx-cadence__who">Priya Raghavan</span>
+          <span class="nx-cadence__when">Mar 13, 2027</span>
+        </div>
+        <div class="nx-cadence__row">
+          <span class="nx-cadence__name"><a class="k-name">Contingency plan test on a whole article (CP-4)</a></span>
+          <span class="nx-cadence__strip" role="img" aria-label="Planned for April."><b></b><b></b><b></b><b></b><b></b><b></b><i class="is-next"></i><b></b><b></b><b></b><b></b><b></b></span>
+          <span class="nx-cadence__who">Amara Bell</span>
+          <span class="nx-cadence__when">Apr 12, 2027</span>
+        </div>
+        <div class="nx-cadence__row">
+          <span class="nx-cadence__name"><a class="k-name">Cyber resiliency exercise — Redundancy and Non-Persistence (SA-24)</a></span>
+          <span class="nx-cadence__strip" role="img" aria-label="Planned for June."><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><i class="is-next"></i><b></b><b></b><b></b></span>
+          <span class="nx-cadence__who">Wes Duarte</span>
+          <span class="nx-cadence__when">Jun 1, 2027</span>
+        </div>
+        <div class="nx-cadence__row is-note">
+          <span class="nx-cadence__name"><a><b>42</b> evidence versions expire within 90 days</a></span>
+          <span class="nx-cadence__strip" role="img" aria-label="The first expires February 1, 2027."><i class="is-lead" style="left: 12.083%; width: 21.25%"></i><i class="is-expiry" style="left: 33.333%; width: 3.274%"></i></span>
+          <span></span>
+          <span class="nx-cadence__when">Feb 1, 2027</span>
+        </div>
+      </section>
+
+      <section class="l-imports" aria-label="Scan imports">
+        <div class="l-import is-head"><span class="t-label">Scan imports</span></div>
+        <div class="l-import">
+          <a class="k-name truncate">Container image scan — telemetry services</a>
+          <span class="l-import__state"><span class="nx-late">Failed</span> Oct 30 · SARIF validation failed</span>
+          <a class="k-link l-import__end">Retry import</a>
+        </div>
+        <div class="l-import is-fold">
+          <span class="l-import__more"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg><b>7 more</b></span>
+          <span class="nx-facts"><span><b>3</b> in flight</span><span><b>3</b> completed · latest Oct 14</span><span><b>1</b> cancelled</span></span>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+</body>
+</html>

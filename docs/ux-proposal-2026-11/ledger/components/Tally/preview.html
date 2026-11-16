@@ -1,0 +1,45 @@
+<!-- @dsCard group="Measures" height=192 -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Tally</title>
+<style>
+body { margin: 0; background: var(--ds-elevation-surface); }
+.lx.l-card { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+.lx .l-spec { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 12px 16px; align-items: center; }
+.lx .l-spec > .t-label { align-self: center; }
+.lx .l-spec > .is-top { align-self: start; padding-top: 6px; }
+.lx .l-stage { position: relative; overflow: hidden; border: 1px solid var(--ds-color-border); border-radius: 10px; background: var(--ds-elevation-surface); }
+.lx .k-tally.l-tall { height: 8px; }
+.lx .k-tally.l-row { width: 160px; flex: none; }
+.lx .l-key { display: flex; flex-wrap: wrap; gap: 4px 16px; font: 400 12px/16px var(--font-sans); color: var(--ds-color-text-subtle); }
+.lx .l-key > span { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.lx .l-key b { font-weight: 500; color: var(--ds-color-text); }
+.lx .l-key .k-mark-sq { width: 10px; height: 10px; }
+</style>
+</head>
+<body style="margin:0">
+<div class="lx l-card">
+  <div class="col g-100">
+    <div class="row between"><span class="k-label">Control status · 560 controls</span><span class="c-subtle">31% satisfied</span></div>
+    <div class="k-tally l-tall" role="img" aria-label="Other than satisfied 13, Partially satisfied 34, Satisfied 174, Not assessed 90, No evidence 235, No requirement 14"><i class="st-other" style="flex: 13"></i><i class="st-part" style="flex: 34"></i><i class="st-sat" style="flex: 174"></i><i class="st-na" style="flex: 90"></i><i class="st-noev" style="flex: 235"></i><i class="st-noreq" style="flex: 14"></i></div>
+    <div class="l-key">
+      <span><i class="k-mark-sq st-other"></i>Other than satisfied <b>13</b></span>
+      <span><i class="k-mark-sq st-part"></i>Partially satisfied <b>34</b></span>
+      <span><i class="k-mark-sq st-sat"></i>Satisfied <b>174</b></span>
+      <span><i class="k-mark-sq st-na"></i>Not assessed <b>90</b></span>
+      <span><i class="k-mark-sq st-noev"></i>No evidence <b>235</b></span>
+      <span><i class="k-mark-sq st-noreq"></i>No requirement <b>14</b></span>
+    </div>
+  </div>
+  <hr class="k-divider">
+  <div class="l-spec">
+    <span class="t-label">In a row</span>
+    <div class="row g-150"><a class="k-name">WS-X90 Sentinel Mission System</a><span class="nowrap">31%</span><span class="k-tally l-row" role="img" aria-label="Control status of 560 controls"><i class="st-other" style="flex: 13"></i><i class="st-part" style="flex: 34"></i><i class="st-sat" style="flex: 174"></i><i class="st-na" style="flex: 90"></i><i class="st-noev" style="flex: 235"></i><i class="st-noreq" style="flex: 14"></i></span></div>
+    <span class="t-label">All one part</span>
+    <div class="row g-150"><a class="k-name">Legacy billing gateway</a><span class="nowrap">0%</span><span class="k-tally l-row" role="img" aria-label="No requirement 149"><i class="st-noreq" style="flex: 149"></i></span></div>
+  </div>
+</div>
+</body>
+</html>

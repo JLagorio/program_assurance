@@ -1,0 +1,58 @@
+<!-- @dsCard group="Actions" height=244 -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Button</title>
+<style>
+body { margin: 0; background: var(--ds-elevation-surface); }
+.lx.l-card { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+.lx .l-spec { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 12px 16px; align-items: center; }
+.lx .l-spec > .t-label { align-self: center; }
+.lx .l-spec > .is-top { align-self: start; padding-top: 6px; }
+.lx .l-stage { position: relative; overflow: hidden; border: 1px solid var(--ds-color-border); border-radius: 10px; background: var(--ds-elevation-surface); }
+</style>
+</head>
+<body style="margin:0">
+<div class="lx l-card">
+  <div class="l-spec">
+    <span class="t-label">Variants</span>
+    <div class="row wrap">
+      <a class="k-btn is-primary">Create task</a>
+      <a class="k-btn is-secondary">Link requirement</a>
+      <a class="k-btn is-subtle">Cancel</a>
+      <a class="k-btn is-danger">Remove allocation</a>
+      <a class="k-btn is-danger-subtle">Unlink evidence</a>
+      <a class="k-btn is-link k-link">Map a requirement</a>
+    </div>
+    <span class="t-label">Sizes</span>
+    <div class="row wrap">
+      <a class="k-btn is-secondary s-xs">24 · s-xs</a>
+      <a class="k-btn is-secondary">28 · default</a>
+      <a class="k-btn is-secondary s-md">32 · s-md</a>
+      <a class="k-btn is-secondary s-lg">36 · s-lg</a>
+    </div>
+    <span class="t-label">With an icon</span>
+    <div class="row wrap">
+      <a class="k-btn is-primary"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg>Create risk</a>
+      <a class="k-btn is-secondary"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m17 8-5-5-5 5"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/></svg>Import requirements</a>
+      <a class="k-btn is-subtle"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21 16-4 4-4-4"/><path d="M17 20V4"/><path d="m3 8 4-4 4 4"/><path d="M7 4v16"/></svg>Catalog order</a>
+      <a class="k-btn is-secondary">Revision 3<svg class="i s-14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></a>
+    </div>
+    <span class="t-label">Icon only</span>
+    <div class="row wrap">
+      <a class="k-btn is-subtle is-icon s-xs" aria-label="Close Operational issue preview"><svg class="i s-14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></a>
+      <a class="k-btn is-subtle is-icon" aria-label="Actions"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></a>
+      <a class="k-btn is-secondary is-icon s-md" aria-label="Columns"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="M15 3v18"/></svg></a>
+      <a class="k-btn is-secondary is-icon s-lg" aria-label="Settings"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 17H5"/><path d="M19 7h-9"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg></a>
+    </div>
+    <span class="t-label">Disabled</span>
+    <div class="row wrap">
+      <a class="k-btn is-primary" aria-disabled="true">Publish assessment results</a>
+      <a class="k-btn is-secondary" aria-disabled="true">Assign owner</a>
+      <span class="c-subtle">Its draft results hold no finding yet.</span>
+    </div>
+  </div>
+</div>
+</body>
+</html>

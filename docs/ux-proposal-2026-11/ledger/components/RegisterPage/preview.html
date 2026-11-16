@@ -1,0 +1,105 @@
+<!-- @dsCard group="Proposed" height=900 width=1440 page -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Page type: Register</title>
+<style>
+body { margin: 0; background: var(--ds-elevation-surface); }
+.lx.l-card { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+.lx .l-spec { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 12px 16px; align-items: center; }
+.lx .l-spec > .t-label { align-self: center; }
+.lx .l-spec > .is-top { align-self: start; padding-top: 6px; }
+.lx .l-stage { position: relative; overflow: hidden; border: 1px solid var(--ds-color-border); border-radius: 10px; background: var(--ds-elevation-surface); }
+/* Register starter: layout only. The zones are shared parts (ds/next.css, "Pass three: page types"):
+   header and total, nx-counts, k-toolbar, k-table with nx-group and nx-folded rows, nx-split + nx-preview. */
+.b-starter-register .l-rows th:nth-child(2) { min-width: 124px; }
+</style>
+</head>
+<body style="margin:0">
+<div class="lx k-app b-starter-register">
+<header class="k-topnav"><div class="k-topnav-start"><span class="k-mark"></span><span class="k-app-name grow truncate">Program Assurance</span><span class="k-btn is-subtle is-icon"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/></svg></span></div><div class="k-topnav-middle"><div class="k-search"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg><span class="grow truncate">Search or jump to…</span><span class="k-kbd">⌘</span><span class="k-kbd">K</span></div></div><div class="k-topnav-end"><span class="k-btn is-subtle is-icon"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg></span><span class="k-avatar">IS</span></div></header>
+<nav class="k-sidenav nx-sysnav" aria-label="Main"><div class="k-nav-body"><div class="k-nav-section"><a class="k-nav-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span class="grow truncate">Home</span></a></div><a class="nx-sysswitch" aria-label="Change scope"><span class="nx-sysswitch__mark">WS</span><span class="nx-sysswitch__text"><span class="nx-sysswitch__id"><b>WS-X90</b><span>High</span></span><span class="nx-sysswitch__name truncate">Sentinel Mission System</span></span><svg class="i s-14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></svg></a><div class="k-nav-section nx-sysnav__chain"><a class="k-nav-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg><span class="grow truncate">Overview</span></a><a class="k-nav-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.97 12.92A2 2 0 0 0 2 14.63v3.24a2 2 0 0 0 .97 1.71l3 1.8a2 2 0 0 0 2.06 0L12 19v-5.5l-5-3-4.03 2.42Z"/><path d="m7 16.5-4.74-2.85"/><path d="m7 16.5 5-3"/><path d="M7 16.5v5.17"/><path d="M12 13.5V19l3.97 2.38a2 2 0 0 0 2.06 0l3-1.8a2 2 0 0 0 .97-1.71v-3.24a2 2 0 0 0-.97-1.71L17 10.5l-5 3Z"/><path d="m17 16.5-5-3"/><path d="m17 16.5 4.74-2.85"/><path d="M17 16.5v5.17"/><path d="M7.97 4.42A2 2 0 0 0 7 6.13v4.37l5 3 5-3V6.13a2 2 0 0 0-.97-1.71l-3-1.8a2 2 0 0 0-2.06 0l-3 1.8Z"/><path d="M12 8 7.26 5.15"/><path d="m12 8 4.74-2.85"/><path d="M12 13.5V8"/></svg><span class="grow truncate">System</span></a><a class="k-nav-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z"/><path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12"/><path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17"/></svg><span class="grow truncate">Baseline</span></a><a class="k-nav-item" aria-current="page"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg><span class="grow truncate">Controls</span></a><a class="k-nav-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 5h8"/><path d="M13 12h8"/><path d="M13 19h8"/><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/></svg><span class="grow truncate">Requirements</span></a><a class="k-nav-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.5 22H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.706.706l3.588 3.588A2.4 2.4 0 0 1 20 8v6"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="m14 20 2 2 4-4"/></svg><span class="grow truncate">Evidence</span><span class="k-count">54</span></a><a class="k-nav-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><circle cx="12" cy="12" r="3"/><path d="m16 16-1.9-1.9"/></svg><span class="grow truncate">Findings</span></a><a class="k-nav-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg><span class="grow truncate">POA&amp;M</span></a><a class="k-nav-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg><span class="grow truncate">Risks</span></a></div><div class="k-nav-section nx-sysnav__quiet"><span class="k-nav-heading">Assess and authorize</span><a class="k-nav-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="m9 14 2 2 4-4"/></svg><span class="grow truncate">Assessments</span></a><a class="k-nav-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 13V8.5C14 7 15 7 15 5a3 3 0 0 0-6 0c0 2 1 2 1 3.5V13"/><path d="M20 15.5a2.5 2.5 0 0 0-2.5-2.5h-11A2.5 2.5 0 0 0 4 15.5V17a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1z"/><path d="M5 22h14"/></svg><span class="grow truncate">Authorization</span></a></div></div><div class="k-nav-footer"><div class="k-nav-section"><a class="k-nav-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/></svg><span class="grow truncate">Library</span></a></div><div class="k-profile"><span class="k-avatar">IS</span><div class="col g-0 grow"><span class="truncate w-500">Ingrid Solberg</span><span class="t-small c-subtle truncate">System security engineer</span></div></div></div></nav>
+  <main class="k-main is-flush">
+    <div class="nx-split">
+      <div class="nx-split__main">
+        <div class="k-pagehead">
+          <div class="k-titlebar">
+            <h1 class="k-title truncate">Controls</h1>
+            <span class="nx-total">560</span>
+            <div class="nx-slot"><button class="k-btn is-subtle is-icon s-lg" aria-label="More actions"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button></div>
+          </div>
+        </div>
+        <div class="nx-counts" role="group" aria-label="Implementation">
+          <a class="nx-count">Not implemented <b>38</b></a>
+          <a class="nx-count">Planned <b>144</b></a>
+          <a class="nx-count">Partial <b>216</b></a>
+          <a class="nx-count">Implemented <b>162</b></a>
+          <a class="nx-count t-warning">Judged short <b>11</b></a>
+        </div>
+        <div class="k-toolbar">
+          <span class="k-field is-search"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg><span class="truncate">Find controls</span></span>
+          <a class="k-chip">Family</a>
+          <a class="k-chip">Determination</a>
+          <a class="k-btn is-subtle"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21 16-4 4-4-4"/><path d="M17 20V4"/><path d="m3 8 4-4 4 4"/><path d="M7 4v16"/></svg>Catalog order</a>
+          <span class="grow"></span>
+          <a class="k-btn is-primary">Import SSP</a>
+        </div>
+        <table class="k-table l-rows">
+          <thead>
+            <tr><th class="is-fill">Control</th><th>Implementation</th><th class="is-num">Requirements</th><th>Evidence verified</th><th>Determination</th></tr>
+          </thead>
+          <tbody>
+            <tr class="nx-folded"><td colspan="5"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg><b>15 inherited</b> · Corporate identity provider · AC 5 · IA 9 · SC 1</td></tr>
+            <tr class="nx-group"><td colspan="5"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg><b>AC</b> Access Control<span class="nx-group__n">52</span></td></tr>
+            <tr class="nx-group"><td colspan="5"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg><b>AT</b> Awareness and Training<span class="nx-group__n">12</span></td></tr>
+            <tr class="nx-group is-on"><td colspan="5"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg><b>AU</b> Audit and Accountability<span class="nx-group__n">35</span></td></tr>
+            <tr><td class="is-fill"><span class="nx-code">AU-1</span><a class="k-name">Policy and Procedures</a></td><td><span class="nx-claim is-partial">Partial</span></td><td class="is-num">1</td><td>0 of 1</td><td><span class="nx-det is-part">Partially satisfied</span></td></tr>
+            <tr><td class="is-fill"><span class="nx-code">AU-2</span><a class="k-name">Event Logging</a></td><td><span class="nx-claim is-partial">Partial</span></td><td class="is-num">2</td><td>4 of 4</td><td><span class="nx-det is-sat">Satisfied</span></td></tr>
+            <tr><td class="is-fill"><span class="nx-code">AU-3</span><a class="k-name">Content of Audit Records</a></td><td><span class="nx-claim is-implemented">Implemented</span></td><td class="is-num">2</td><td>1 of 1</td><td><span class="nx-det is-sat">Satisfied</span></td></tr>
+            <tr><td class="is-fill"><span class="nx-code">AU-3(1)</span><a class="k-name">Additional Audit Information</a></td><td><span class="nx-claim is-implemented">Implemented</span></td><td class="is-num">1</td><td>1 of 1</td><td><span class="nx-det is-sat">Satisfied</span></td></tr>
+            <tr class="is-open"><td class="is-fill"><span class="nx-code">AU-4</span><a class="k-name">Audit Log Storage Capacity</a></td><td><span class="nx-claim is-implemented">Implemented</span></td><td class="is-num">3</td><td>2 of 2</td><td><span class="nx-pair is-short"><span class="nx-claim is-implemented"></span><span class="nx-det is-not">Not satisfied</span></span></td></tr>
+            <tr><td class="is-fill"><span class="nx-code">AU-4(1)</span><a class="k-name">Transfer to Alternate Storage</a></td><td><span class="nx-claim is-implemented">Implemented</span></td><td class="is-num">1</td><td>1 of 1</td><td><span class="nx-det is-sat">Satisfied</span></td></tr>
+            <tr><td class="is-fill"><span class="nx-code">AU-5</span><a class="k-name">Response to Audit Logging Process Failures</a></td><td><span class="nx-claim is-partial">Partial</span></td><td class="is-num">2</td><td>1 of 1</td><td><span class="nx-det is-sat">Satisfied</span></td></tr>
+            <tr><td class="is-fill"><span class="nx-code">AU-6</span><a class="k-name">Audit Record Review, Analysis, and Reporting</a></td><td><span class="nx-claim is-partial">Partial</span></td><td class="is-num">2</td><td>1 of 2</td><td><span class="nx-det is-part">Partially satisfied</span></td></tr>
+            <tr><td class="is-fill"><span class="nx-code">AU-6(4)</span><a class="k-name">Central Review and Analysis</a></td><td><span class="nx-claim is-partial">Partial</span></td><td class="is-num">1</td><td></td><td><span class="nx-det is-noev">No evidence</span></td></tr>
+            <tr><td class="is-fill"><span class="nx-code">AU-6(5)</span><a class="k-name">Integrated Analysis of Audit Records</a></td><td><span class="nx-claim is-planned">Planned</span></td><td class="is-num">1</td><td></td><td><span class="nx-det is-noev">No evidence</span></td></tr>
+            <tr class="nx-folded"><td colspan="5"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg><b>25 more</b> in AU</td></tr>
+            <tr class="nx-group"><td colspan="5"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg><b>CA</b> Assessment, Authorization, and Monitoring<span class="nx-group__n">18</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <aside class="k-panel nx-preview" aria-label="Control preview">
+        <div class="k-panel-head">
+          <button class="k-btn is-subtle is-icon s-xs" aria-label="Previous control"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m18 15-6-6-6 6"/></svg></button>
+          <button class="k-btn is-subtle is-icon s-xs" aria-label="Next control"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+          <span class="nx-preview__pos">5 of 35</span>
+          <span class="nx-preview__end">
+            <a class="k-btn is-subtle is-icon s-xs" aria-label="Open in a new tab"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg></a>
+            <button class="k-btn is-subtle is-icon s-xs" aria-label="Close Control preview"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+          </span>
+        </div>
+        <div class="k-panel-body">
+          <div class="col g-100">
+            <h2 class="nx-preview__title">AU-4 Audit Log Storage Capacity</h2>
+            <span class="nx-pair is-short"><span class="nx-claim is-implemented">Implemented</span><span class="nx-det is-not">Not satisfied</span></span>
+          </div>
+          <div class="nx-preview__part"><span class="t-label">Control</span><p>Allocate audit log storage capacity to accommodate <span class="c-subtle nowrap">[au-04_odp]</span>.</p></div>
+          <div class="nx-preview__part"><span class="t-label">Narrative</span><p>The SYS-WSX90 satisfies the tailored intent of AU-4 through a combination of system-level procedures and mapped component implementations.</p></div>
+          <div class="nx-preview__part"><span class="t-label">Evidence</span>
+            <div class="row between"><a class="k-link truncate">Evidence for REQ-013</a><span class="nx-verif is-verified">Verified</span></div>
+            <div class="row between"><a class="k-link truncate">Evidence for REQ-087</a><span class="nx-verif is-verified">Verified</span></div>
+          </div>
+          <dl class="k-kv is-wide">
+            <dt>Requirements</dt><dd><a class="k-link">REQ-008</a> · <a class="k-link">REQ-013</a> · <a class="k-link">REQ-087</a></dd>
+            <dt>Finding</dt><dd>Aug 10 · Nadia Fournier</dd>
+            <dt>Responsible role</dt><dd><span class="nx-unowned">No owner</span></dd>
+          </dl>
+        </div>
+        <div class="nx-preview__foot"><a class="k-btn is-secondary">Open control</a></div>
+      </aside>
+    </div>
+  </main>
+</div>
+</body>
+</html>

@@ -1,0 +1,35 @@
+<!-- @dsCard group="Status" height=212 -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Avatar</title>
+<style>
+body { margin: 0; background: var(--ds-elevation-surface); }
+.lx.l-card { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+.lx .l-spec { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 12px 16px; align-items: center; }
+.lx .l-spec > .t-label { align-self: center; }
+.lx .l-spec > .is-top { align-self: start; padding-top: 6px; }
+.lx .l-stage { position: relative; overflow: hidden; border: 1px solid var(--ds-color-border); border-radius: 10px; background: var(--ds-elevation-surface); }
+.lx .l-profile { width: 204px; border: 1px solid var(--ds-color-border); }
+</style>
+</head>
+<body style="margin:0">
+<div class="lx l-card">
+  <div class="l-spec">
+    <span class="t-label">Sizes</span>
+    <div class="row wrap g-200"><span class="k-avatar s-xs">PR</span><span class="k-avatar">PR</span><span class="k-avatar s-md">PR</span></div>
+    <span class="t-label">With a name</span>
+    <div class="row wrap g-250">
+      <span class="row g-075"><span class="k-avatar">PR</span>Priya Raghavan</span>
+      <span class="row g-075"><span class="k-avatar">NF</span>Nadia Fournier</span>
+      <span class="row g-075"><span class="k-avatar">RC</span>R. Calloway</span>
+    </div>
+    <span class="t-label">Nobody</span>
+    <div class="row wrap g-250"><span class="row g-075 c-subtle"><span class="k-avatar is-empty"><svg class="i s-12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>No owner</span><span class="k-avatar s-xs is-empty"></span><span class="k-avatar s-md is-empty"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span></div>
+    <span class="t-label">Account</span>
+    <div class="k-profile l-profile"><span class="k-avatar">IS</span><div class="col g-0 grow"><span class="truncate w-500">Ingrid Solberg</span><span class="t-small c-subtle">Control engineer</span></div><svg class="i s-14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></svg></div>
+  </div>
+</div>
+</body>
+</html>

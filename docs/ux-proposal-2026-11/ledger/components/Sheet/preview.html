@@ -1,0 +1,53 @@
+<!-- @dsCard group="Overlays" height=560 -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sheet</title>
+<style>
+body { margin: 0; background: var(--ds-elevation-surface); }
+.lx.l-card { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+.lx .l-spec { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 12px 16px; align-items: center; }
+.lx .l-spec > .t-label { align-self: center; }
+.lx .l-spec > .is-top { align-self: start; padding-top: 6px; }
+.lx .l-stage { position: relative; overflow: hidden; border: 1px solid var(--ds-color-border); border-radius: 10px; background: var(--ds-elevation-surface); }
+.lx .l-sheet-stage { height: 520px; }
+.lx .l-under { padding: 24px; display: flex; flex-direction: column; gap: 8px; }
+.lx .l-sheet-head { padding: 16px 20px 12px; }
+.lx .l-sheet-pad { padding: 0 20px 12px; }
+.lx .l-sheet-table td:first-child, .lx .l-sheet-table th:first-child { padding-inline-start: 20px; }
+.lx .l-sheet-table .l-sel { width: 44px; padding-inline-end: 0; }
+.lx .l-sheet-table + .l-sheet-pad { padding-top: 16px; }
+.lx .l-sheet-foot { padding: 12px 20px 16px; border-top: 1px solid var(--ds-color-border); }
+.lx .k-field.l-wide { width: 100%; }
+</style>
+</head>
+<body style="margin:0">
+<div class="lx l-card">
+  <div class="l-stage l-sheet-stage">
+    <div class="l-under" aria-hidden="true">
+      <span class="k-title">AC-2 Account Management</span>
+      <span class="c-subtle">Programs › WS-X90 Sentinel Mission System › Controls</span>
+    </div>
+    <div class="k-blanket is-end">
+      <div class="k-sheet" role="dialog" aria-modal="true" aria-label="Map a requirement">
+        <div class="k-dialog-head l-sheet-head"><div class="col g-025 grow"><h2 class="k-dialog-title">Map a requirement</h2><span class="c-subtle">AC-2 Account Management · 12 of 26 objectives mapped</span></div><a class="k-btn is-subtle is-icon" aria-label="Close"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></a></div>
+        <div class="k-toolbar l-sheet-pad"><span class="k-field is-search grow"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg><span class="truncate">Find requirements</span></span><a class="k-chip">Allocation</a></div>
+        <table class="k-table l-sheet-table">
+          <thead><tr><th class="l-sel"><span class="k-check is-on" role="checkbox" aria-checked="mixed" aria-label="Select all requirements"><svg class="i s-12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/></svg></span></th><th class="is-fill">Requirement</th><th>Allocation</th></tr></thead>
+          <tbody>
+            <tr class="is-selected"><td class="l-sel"><span class="k-check is-on"><svg class="i s-12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span></td><td class="is-fill"><span class="k-name">REQ-008 AC Monitoring Requirement 008</span></td><td>2 systems</td></tr>
+            <tr class="is-selected"><td class="l-sel"><span class="k-check is-on"><svg class="i s-12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span></td><td class="is-fill"><span class="k-name">REQ-039 Privileged account review</span></td><td>1 system</td></tr>
+            <tr><td class="l-sel"><span class="k-check"></span></td><td class="is-fill"><span class="k-name">REQ-064 Flaw remediation timeliness</span></td><td>1 system</td></tr>
+            <tr><td class="l-sel"><span class="k-check"></span></td><td class="is-fill"><span class="k-name">REQ-068 Session termination</span> <span class="k-badge s-xs">Maps AC-2</span></td><td>3 systems</td></tr>
+          </tbody>
+        </table>
+        <div class="col g-050 l-sheet-pad"><span class="k-label">Rationale</span><span class="k-field is-area l-wide"><span>Both requirements define the account types allowed on the system.</span></span></div>
+        <span class="grow"></span>
+        <div class="k-dialog-foot l-sheet-foot"><span class="c-subtle grow">2 of 368 requirements chosen</span><a class="k-btn is-subtle s-md">Cancel</a><a class="k-btn is-primary s-md">Map 2 requirements</a></div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

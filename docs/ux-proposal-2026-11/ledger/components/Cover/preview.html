@@ -1,0 +1,92 @@
+<!-- @dsCard height=288 -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Ledger</title>
+<style>
+body { margin: 0; background: var(--ds-elevation-surface); }
+.cover { position: relative; width: 960px; height: 288px; overflow: hidden; background: var(--ds-elevation-surface); color: var(--ds-color-text); font-family: var(--font-sans); }
+.cover svg { position: absolute; inset: 0; }
+.ink { fill: var(--ds-color-background-neutral-bold); }
+.brand { fill: var(--ds-color-background-brand-bold); }
+.ok-block { fill: var(--ds-color-chart-success); }
+.r-lg { rx: var(--ds-radius-large); }
+.mark { rx: var(--ds-radius-small); }
+.m-ok { fill: var(--ds-color-chart-success); }
+.m-part { fill: var(--ds-color-chart-warning); }
+.m-other { fill: var(--ds-color-chart-danger); }
+.m-none { fill: none; stroke: var(--ds-color-border-inverse); stroke-width: 1.5px; }
+.words { position: absolute; left: 40px; bottom: 32px; max-width: 440px; display: flex; flex-direction: column; gap: 8px; }
+.name { margin: 0; font-family: var(--font-sans); font-weight: 600; font-size: 120px; line-height: 0.92; letter-spacing: -0.045em; color: var(--ds-color-text); }
+.tagline { margin: 0; font-family: var(--font-sans); font-size: 14px; line-height: 20px; color: var(--ds-color-text-subtle); }
+</style>
+</head>
+<body>
+<div class="cover">
+  <svg width="960" height="288" viewBox="0 0 960 288" aria-hidden="true">
+    <!--
+      blocks: ds-color-background-neutral-bold 224x288 (a slab bleeding off the top, right and bottom), ds-color-background-brand-bold 128x128 (bleeding off the top), ds-color-chart-success 192x96.
+      arrangement: one tall ink slab with two satellites to its left, all right of x = 480; the name bottom-left on the ground.
+      pattern: Ledger's control-status map (a mark a control, coloured by its status, a not-assessed control hollow), the one literal motif of a system whose colour belongs to statuses; 48 marks on the slab.
+      scales: marks 14px at ds-space-050 (4px) apart, mark corners ds-radius-small, block corners ds-radius-large, edges on ds-space-400 and ds-space-800 steps.
+    -->
+    <rect class="ink" x="736" y="0" width="224" height="288"/>
+    <rect class="brand r-lg" x="576" y="-16" width="128" height="144"/>
+    <rect class="ok-block r-lg" x="512" y="160" width="192" height="96"/>
+    <rect class="mark m-ok" x="768" y="120" width="14" height="14"/>
+    <rect class="mark m-ok" x="786" y="120" width="14" height="14"/>
+    <rect class="mark m-ok" x="804" y="120" width="14" height="14"/>
+    <rect class="mark m-ok" x="822" y="120" width="14" height="14"/>
+    <rect class="mark m-ok" x="840" y="120" width="14" height="14"/>
+    <rect class="mark m-ok" x="858" y="120" width="14" height="14"/>
+    <rect class="mark m-part" x="876" y="120" width="14" height="14"/>
+    <rect class="mark m-ok" x="894" y="120" width="14" height="14"/>
+    <rect class="mark m-ok" x="768" y="138" width="14" height="14"/>
+    <rect class="mark m-ok" x="786" y="138" width="14" height="14"/>
+    <rect class="mark m-ok" x="804" y="138" width="14" height="14"/>
+    <rect class="mark m-other" x="822" y="138" width="14" height="14"/>
+    <rect class="mark m-ok" x="840" y="138" width="14" height="14"/>
+    <rect class="mark m-ok" x="858" y="138" width="14" height="14"/>
+    <rect class="mark m-ok" x="876" y="138" width="14" height="14"/>
+    <rect class="mark m-ok" x="894" y="138" width="14" height="14"/>
+    <rect class="mark m-ok" x="768" y="156" width="14" height="14"/>
+    <rect class="mark m-ok" x="786" y="156" width="14" height="14"/>
+    <rect class="mark m-part" x="804" y="156" width="14" height="14"/>
+    <rect class="mark m-ok" x="822" y="156" width="14" height="14"/>
+    <rect class="mark m-ok" x="840" y="156" width="14" height="14"/>
+    <rect class="mark m-none" x="858" y="156" width="14" height="14"/>
+    <rect class="mark m-ok" x="876" y="156" width="14" height="14"/>
+    <rect class="mark m-ok" x="894" y="156" width="14" height="14"/>
+    <rect class="mark m-ok" x="768" y="174" width="14" height="14"/>
+    <rect class="mark m-ok" x="786" y="174" width="14" height="14"/>
+    <rect class="mark m-ok" x="804" y="174" width="14" height="14"/>
+    <rect class="mark m-ok" x="822" y="174" width="14" height="14"/>
+    <rect class="mark m-ok" x="840" y="174" width="14" height="14"/>
+    <rect class="mark m-ok" x="858" y="174" width="14" height="14"/>
+    <rect class="mark m-none" x="876" y="174" width="14" height="14"/>
+    <rect class="mark m-none" x="894" y="174" width="14" height="14"/>
+    <rect class="mark m-ok" x="768" y="192" width="14" height="14"/>
+    <rect class="mark m-part" x="786" y="192" width="14" height="14"/>
+    <rect class="mark m-ok" x="804" y="192" width="14" height="14"/>
+    <rect class="mark m-ok" x="822" y="192" width="14" height="14"/>
+    <rect class="mark m-other" x="840" y="192" width="14" height="14"/>
+    <rect class="mark m-ok" x="858" y="192" width="14" height="14"/>
+    <rect class="mark m-ok" x="876" y="192" width="14" height="14"/>
+    <rect class="mark m-none" x="894" y="192" width="14" height="14"/>
+    <rect class="mark m-ok" x="768" y="210" width="14" height="14"/>
+    <rect class="mark m-ok" x="786" y="210" width="14" height="14"/>
+    <rect class="mark m-ok" x="804" y="210" width="14" height="14"/>
+    <rect class="mark m-none" x="822" y="210" width="14" height="14"/>
+    <rect class="mark m-ok" x="840" y="210" width="14" height="14"/>
+    <rect class="mark m-ok" x="858" y="210" width="14" height="14"/>
+    <rect class="mark m-none" x="876" y="210" width="14" height="14"/>
+    <rect class="mark m-none" x="894" y="210" width="14" height="14"/>
+  </svg>
+  <div class="words">
+    <h1 class="name">Ledger</h1>
+    <p class="tagline">The design system of Program Assurance: dense, quiet and exact.</p>
+  </div>
+</div>
+</body>
+</html>

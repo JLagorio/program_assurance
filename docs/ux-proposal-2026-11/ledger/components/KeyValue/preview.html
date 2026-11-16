@@ -1,0 +1,45 @@
+<!-- @dsCard group="Surfaces" height=232 -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KeyValue</title>
+<style>
+body { margin: 0; background: var(--ds-elevation-surface); }
+.lx.l-card { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+.lx .l-spec { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 12px 16px; align-items: center; }
+.lx .l-spec > .t-label { align-self: center; }
+.lx .l-spec > .is-top { align-self: start; padding-top: 6px; }
+.lx .l-stage { position: relative; overflow: hidden; border: 1px solid var(--ds-color-border); border-radius: 10px; background: var(--ds-elevation-surface); }
+.lx .l-kvs { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px 40px; align-items: start; }
+</style>
+</head>
+<body style="margin:0">
+<div class="lx l-card">
+  <div class="l-kvs">
+    <div class="col g-100">
+      <span class="t-label">Details</span>
+      <dl class="k-kv">
+        <dt>Status</dt><dd><span class="k-badge">Open</span></dd>
+        <dt>Severity</dt><dd><span class="row g-075"><span class="k-dot t-danger"></span>High</span></dd>
+        <dt>Owner</dt><dd><span class="c-subtle" role="img" aria-label="No owner">—</span></dd>
+        <dt>Opened</dt><dd>Aug 10, 2026</dd>
+        <dt>Program</dt><dd><a class="k-link">WS-X90 Sentinel Mission System</a></dd>
+        <dt>Requirement</dt><dd><a class="k-link">REQ-008</a></dd>
+      </dl>
+    </div>
+    <div class="col g-100">
+      <span class="t-label">Wide labels</span>
+      <dl class="k-kv is-wide">
+        <dt>Control status</dt><dd><span class="k-badge t-warning">No evidence</span></dd>
+        <dt>Objectives mapped</dt><dd>26 of 26</dd>
+        <dt>Objectives with evidence</dt><dd>12 of 26</dd>
+        <dt>Objectives assessed</dt><dd>3 of 26</dd>
+        <dt>Determined by</dt><dd><span class="c-subtle" role="img" aria-label="Not recorded">—</span></dd>
+        <dt>Next step</dt><dd><a class="k-link">Link evidence to REQ-064</a></dd>
+      </dl>
+    </div>
+  </div>
+</div>
+</body>
+</html>

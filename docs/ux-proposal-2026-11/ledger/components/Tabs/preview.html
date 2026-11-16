@@ -1,0 +1,38 @@
+<!-- @dsCard group="Page" height=166 -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Tabs</title>
+<style>
+body { margin: 0; background: var(--ds-elevation-surface); }
+.lx.l-card { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+.lx .l-spec { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 12px 16px; align-items: center; }
+.lx .l-spec > .t-label { align-self: center; }
+.lx .l-spec > .is-top { align-self: start; padding-top: 6px; }
+.lx .l-stage { position: relative; overflow: hidden; border: 1px solid var(--ds-color-border); border-radius: 10px; background: var(--ds-elevation-surface); }
+</style>
+</head>
+<body style="margin:0">
+<div class="lx l-card">
+  <div class="col g-100">
+    <span class="t-label">Record tabs</span>
+    <div class="k-tabs" role="tablist">
+      <a class="k-tab" role="tab" aria-selected="true">Overview</a>
+      <a class="k-tab" role="tab" aria-selected="false">Systems<span class="k-count">28</span></a>
+      <a class="k-tab" role="tab" aria-selected="false">Controls<span class="k-count">560</span></a>
+      <a class="k-tab" role="tab" aria-selected="false">Requirements<span class="k-count">368</span></a>
+      <a class="k-tab" role="tab" aria-selected="false">Assessment campaigns<span class="k-count">3</span></a>
+      <a class="k-tab" role="tab" aria-selected="false">POA&amp;M &amp; risk</a>
+    </div>
+  </div>
+  <div class="col g-100">
+    <span class="t-label">Register page with two collections</span>
+    <div class="k-tabs" role="tablist">
+      <a class="k-tab" role="tab" aria-selected="false">Tasks<span class="k-count">7</span></a>
+      <a class="k-tab" role="tab" aria-selected="true">Attention<span class="k-count">0</span></a>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,705 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+</head>
+<body>
+<title>A Path, Not a Page</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a reading column beside a sticky path of sections; the mocks take the full work width.
+   The palette and the faces are Ledger's own, so the page speaks the system it proposes for:
+   ink for state and place, blue only for what can be pressed, colour only as a judgement. */
+:root {
+  --bg: oklch(0.985 0.002 258);
+  --surface: oklch(1 0 0);
+  --tray: oklch(0.962 0.004 258);
+  --ink: oklch(0.22 0.024 258);
+  --ink-2: oklch(0.44 0.02 258);
+  --ink-3: oklch(0.525 0.018 258);
+  --line: oklch(0.22 0.024 258 / 0.1);
+  --line-bold: oklch(0.6 0.014 258 / 0.6);
+  --act: oklch(0.54 0.19 254);
+  --good: oklch(0.46 0.105 162);
+  --good-bg: oklch(0.935 0.04 162);
+  --warn: oklch(0.5 0.12 60);
+  --bad: oklch(0.47 0.17 26);
+  --shade: oklch(0.22 0.024 258 / 0.1);
+  --scrim: oklch(0.16 0.02 258);
+  --on-scrim: oklch(0.96 0.005 258);
+  --on-scrim-2: oklch(0.78 0.012 258);
+  --scrim-line: oklch(1 0 0 / 0.16);
+  --sans: "Geist", "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "Geist Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: oklch(0.15 0.014 285);
+    --surface: oklch(0.196 0.015 285);
+    --tray: oklch(0.225 0.016 285);
+    --ink: oklch(0.945 0.008 285);
+    --ink-2: oklch(0.81 0.015 285);
+    --ink-3: oklch(0.7 0.02 285);
+    --line: oklch(1 0 0 / 0.11);
+    --line-bold: oklch(0.6 0.02 285 / 0.7);
+    --act: oklch(0.73 0.145 254);
+    --good: oklch(0.84 0.09 162);
+    --good-bg: oklch(0.32 0.07 162);
+    --warn: oklch(0.86 0.11 70);
+    --bad: oklch(0.84 0.1 26);
+    --shade: oklch(0 0 0 / 0.4);
+    --scrim: oklch(0.1 0.012 285);
+    --on-scrim: oklch(0.96 0.005 285);
+    --on-scrim-2: oklch(0.78 0.012 285);
+    --scrim-line: oklch(1 0 0 / 0.16);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: oklch(0.15 0.014 285);
+  --surface: oklch(0.196 0.015 285);
+  --tray: oklch(0.225 0.016 285);
+  --ink: oklch(0.945 0.008 285);
+  --ink-2: oklch(0.81 0.015 285);
+  --ink-3: oklch(0.7 0.02 285);
+  --line: oklch(1 0 0 / 0.11);
+  --line-bold: oklch(0.6 0.02 285 / 0.7);
+  --act: oklch(0.73 0.145 254);
+  --good: oklch(0.84 0.09 162);
+  --good-bg: oklch(0.32 0.07 162);
+  --warn: oklch(0.86 0.11 70);
+  --bad: oklch(0.84 0.1 26);
+  --shade: oklch(0 0 0 / 0.4);
+  --scrim: oklch(0.1 0.012 285);
+  --on-scrim: oklch(0.96 0.005 285);
+  --on-scrim-2: oklch(0.78 0.012 285);
+  --scrim-line: oklch(1 0 0 / 0.16);
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 24px; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body { background: var(--bg); color: var(--ink); font: 400 15px/24px var(--sans); letter-spacing: -0.006em; font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased; }
+h1, h2, h3, p, ul, ol, dl, dd, figure { margin: 0; padding: 0; }
+ul, ol { list-style: none; }
+a { color: inherit; }
+button { font: inherit; color: inherit; letter-spacing: inherit; background: none; border: 0; padding: 0; cursor: pointer; text-align: start; }
+:focus-visible { outline: 2px solid var(--act); outline-offset: 2px; border-radius: 4px; }
+s { color: var(--ink-3); text-decoration-thickness: 1px; font-weight: 400; }
+
+.wrap { max-width: 1360px; margin-inline: auto; padding-block: 56px 96px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 56px; }
+
+/* ---------- the top ---------- */
+.top { display: flex; flex-direction: column; gap: 16px; max-width: 880px; }
+.eyebrow { font: 500 12px/16px var(--mono); letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-3); }
+h1 { font: 600 clamp(36px, 6vw, 60px)/1.04 var(--sans); letter-spacing: -0.035em; text-wrap: balance; }
+.thesis { font: 400 clamp(17px, 2vw, 20px)/1.5 var(--sans); color: var(--ink-2); max-width: 62ch; text-wrap: pretty; }
+.status { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; font: 400 13px/20px var(--sans); color: var(--ink-2); padding-top: 8px; }
+.status b { font-weight: 600; color: var(--ink); }
+.status a { color: var(--act); text-decoration: underline; text-underline-offset: 3px; font-weight: 500; }
+.status__dot { width: 8px; height: 8px; border-radius: 50%; background: var(--warn); margin-inline-end: -8px; }
+.status__dot.is-done { background: var(--good); }
+
+/* ---------- columns: the path of sections, then the work ---------- */
+.cols { display: grid; grid-template-columns: minmax(0, 1fr); gap: 48px; align-items: start; }
+.toc { display: none; }
+@media (min-width: 1120px) {
+  .cols { grid-template-columns: 184px minmax(0, 1fr); }
+  .toc { display: block; position: sticky; top: calc(24px + env(safe-area-inset-top, 0px)); }
+}
+.toc li { position: relative; padding-inline-start: 24px; }
+.toc li::before { content: ""; position: absolute; inset-inline-start: 5px; inset-block: 0; width: 2px; background: var(--line); }
+.toc li:first-child::before { top: 14px; }
+.toc li:last-child::before { bottom: calc(100% - 14px); }
+.toc li::after { content: ""; position: absolute; inset-inline-start: 1px; top: 9px; width: 10px; height: 10px; border-radius: 50%; background: var(--bg); box-shadow: inset 0 0 0 2px var(--line-bold); }
+.toc li.is-here::after { background: var(--ink); box-shadow: 0 0 0 3px var(--bg); }
+.toc a { display: block; padding: 4px 0; font: 400 13px/20px var(--sans); color: var(--ink-2); text-decoration: none; }
+.toc a:hover { color: var(--ink); }
+.toc li.is-here a { color: var(--ink); font-weight: 500; }
+
+.main { display: flex; flex-direction: column; gap: 96px; min-width: 0; }
+.sec { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.sec > h2 { font: 600 clamp(24px, 3.2vw, 32px)/1.2 var(--sans); letter-spacing: -0.025em; max-width: 26ch; text-wrap: balance; }
+.sec > .lede { color: var(--ink-2); max-width: 66ch; text-wrap: pretty; }
+.note { font: 400 13px/20px var(--sans); color: var(--ink-3); max-width: 70ch; }
+.sub { font: 600 20px/28px var(--sans); letter-spacing: -0.015em; color: var(--ink); padding-top: 40px; }
+
+/* ---------- a mock, pressable ---------- */
+.shot { display: block; width: 100%; border-radius: 10px; overflow: hidden; background: var(--surface); box-shadow: 0 0 0 1px var(--line), 0 1px 2px var(--shade), 0 12px 32px -16px var(--shade); cursor: zoom-in; }
+.shot img { display: block; width: 100%; height: auto; }
+.shot.is-crop { aspect-ratio: 16 / 10; }
+.shot.is-crop img { height: 100%; object-fit: cover; object-position: top; }
+.fig { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.fig figcaption { font: 400 13px/20px var(--sans); color: var(--ink-2); }
+.fig figcaption b { font-weight: 500; color: var(--ink); }
+
+/* ---------- today beside proposed ---------- */
+.compare { display: flex; flex-direction: column; gap: 16px; padding-top: 16px; }
+.compare__bar { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px 32px; }
+.seg { display: inline-flex; padding: 2px; border-radius: 8px; background: var(--tray); box-shadow: inset 0 0 0 1px var(--line); }
+.seg__b { height: 30px; padding: 0 14px; border-radius: 6px; font: 500 13px/30px var(--sans); color: var(--ink-2); white-space: nowrap; }
+.seg__b[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 0 0 1px var(--line), 0 1px 2px var(--shade); }
+.facts { display: flex; flex-wrap: wrap; gap: 8px 40px; }
+.facts dt { font: 500 11px/14px var(--mono); letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-3); }
+.facts dd { font: 600 22px/28px var(--sans); letter-spacing: -0.02em; }
+.facts dd s { font-size: 15px; margin-inline-end: 4px; }
+.reads { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 16px 32px; padding-top: 16px; }
+.reads li { display: flex; flex-direction: column; gap: 2px; padding-top: 12px; border-top: 1px solid var(--line); }
+.reads b { font: 600 15px/22px var(--sans); }
+.reads span { font: 400 13px/20px var(--sans); color: var(--ink-2); }
+
+/* ---------- what the check found ---------- */
+.findings { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: 0 48px; padding-top: 8px; }
+.findings li { display: grid; grid-template-columns: 104px minmax(0, 1fr); gap: 16px; padding-block: 16px; border-top: 1px solid var(--line); align-items: baseline; }
+.findings__n { font: 600 24px/28px var(--sans); letter-spacing: -0.025em; }
+.findings b { font: 600 15px/22px var(--sans); }
+.findings p { font: 400 13px/20px var(--sans); color: var(--ink-2); }
+
+/* ---------- the rules ---------- */
+.rules { counter-reset: rule; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: 0 48px; padding-top: 8px; }
+.rules li { counter-increment: rule; position: relative; padding: 12px 0 12px 40px; border-top: 1px solid var(--line); font: 400 14px/22px var(--sans); color: var(--ink-2); }
+.rules li::before { content: counter(rule); position: absolute; inset-inline-start: 0; top: 12px; font: 500 12px/22px var(--mono); color: var(--ink-3); }
+.rules b { font-weight: 600; color: var(--ink); }
+
+/* ---------- a job, walked ---------- */
+.story { display: flex; flex-direction: column; gap: 12px; padding-top: 24px; min-width: 0; }
+.story__head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 16px; padding-top: 16px; border-top: 1px solid var(--line-bold); }
+.story__head h3 { font: 600 20px/26px var(--sans); letter-spacing: -0.02em; }
+.who { font: 400 13px/20px var(--sans); color: var(--ink-3); }
+.story__count { margin-inline-start: auto; font: 500 12px/16px var(--mono); letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-3); }
+.story__job { color: var(--ink-2); max-width: 70ch; font: 400 14px/22px var(--sans); }
+.frames { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 28px 20px; padding-top: 8px; }
+.frame { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.frame.is-strip { grid-column: 1 / -1; }
+.frame.is-phone .shot, .frame.is-phone .frame__pending { max-width: 240px; }
+.frame__step { display: flex; align-items: center; gap: 8px; min-height: 22px; min-width: 0; }
+.frame__step b { display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: var(--ink); color: var(--bg); font: 600 11px/1 var(--sans); flex: none; }
+.frame__step span { font: 500 12px/16px var(--sans); color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 2px 8px; border-radius: 6px; box-shadow: inset 0 0 0 1px var(--line-bold); }
+.frame__title { font: 400 13px/18px var(--sans); color: var(--ink-2); }
+.frame__draft { margin-inline-start: auto; flex: none; font: 500 11px/16px var(--mono); font-style: normal; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-3); }
+.frame__pending { aspect-ratio: 16 / 10; border-radius: 10px; border: 1px dashed var(--line-bold); display: grid; place-items: center; font: 500 12px/16px var(--mono); letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-3); }
+.frame.is-strip .frame__pending { aspect-ratio: auto; height: 72px; }
+.frame.is-phone .frame__pending { aspect-ratio: 390 / 844; }
+
+/* ---------- sheets and takes ---------- */
+.sheetgrid, .takes { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 32px 20px; padding-top: 16px; }
+.take { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.take figcaption { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; font: 400 13px/20px var(--sans); color: var(--ink-2); }
+.take figcaption b { font: 600 15px/22px var(--sans); color: var(--ink); }
+.take figcaption span { flex: 1 1 100%; }
+.take figcaption .tag { flex: none; padding: 0 8px; border-radius: 9999px; background: var(--good-bg); color: var(--good); font: 500 12px/20px var(--sans); }
+.take .kept { color: var(--ink-3); }
+
+/* ---------- tables ---------- */
+.tablebox { overflow-x: auto; min-width: 0; }
+table { border-collapse: collapse; width: 100%; font: 400 13px/20px var(--sans); }
+th { text-align: start; font: 500 11px/14px var(--mono); letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-3); padding: 8px 16px 8px 0; border-bottom: 1px solid var(--line-bold); white-space: nowrap; }
+td { padding: 10px 16px 10px 0; border-bottom: 1px solid var(--line); vertical-align: top; color: var(--ink-2); }
+td:first-child { color: var(--ink); font-weight: 500; }
+td a { color: var(--ink); text-decoration: underline; text-decoration-color: var(--line-bold); text-underline-offset: 3px; }
+td a:hover { text-decoration-color: currentColor; }
+code { font: 400 12px/18px var(--mono); padding: 1px 5px; border-radius: 4px; background: var(--tray); color: var(--ink); }
+.plain { display: flex; flex-direction: column; gap: 10px; max-width: 70ch; color: var(--ink-2); font: 400 14px/22px var(--sans); }
+.plain b { color: var(--ink); font-weight: 600; }
+.asks { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: 0 48px; }
+.asks li { padding: 14px 0; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 2px; font: 400 13px/20px var(--sans); color: var(--ink-2); }
+.asks b { font: 600 15px/22px var(--sans); color: var(--ink); }
+.asks em { font-style: normal; color: var(--ink); }
+
+/* ---------- the viewer ---------- */
+.lb { position: fixed; inset: 0; z-index: 50; display: flex; flex-direction: column; background: var(--scrim); color: var(--on-scrim); }
+.lb__bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 24px; padding-block: calc(10px + env(safe-area-inset-top, 0px)) 10px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); border-bottom: 1px solid var(--scrim-line); }
+.lb__what { display: flex; flex-direction: column; min-width: 0; flex: 1 1 240px; }
+.lb__what b { font: 600 15px/22px var(--sans); }
+.lb__what span { font: 400 13px/18px var(--sans); color: var(--on-scrim-2); }
+.lb__tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.lb__count { font: 400 12px/16px var(--mono); color: var(--on-scrim-2); padding-inline: 4px; }
+.lb__btn { height: 32px; min-width: 32px; padding: 0 10px; border-radius: 6px; font: 500 13px/32px var(--sans); text-align: center; color: var(--on-scrim); box-shadow: inset 0 0 0 1px var(--scrim-line); white-space: nowrap; }
+.lb__btn:hover, .lb__btn[aria-pressed="true"] { background: var(--scrim-line); }
+.lb .seg { background: transparent; box-shadow: inset 0 0 0 1px var(--scrim-line); }
+.lb .seg__b { color: var(--on-scrim-2); }
+.lb .seg__b[aria-pressed="true"] { background: var(--scrim-line); color: var(--on-scrim); box-shadow: none; }
+.lb__stage { flex: 1 1 0; min-height: 0; overflow: auto; padding: 24px max(16px, env(safe-area-inset-right, 0px)) calc(24px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); display: flex; }
+.lb__stage img { display: block; margin: auto; max-width: 100%; height: auto; border-radius: 8px; cursor: zoom-in; box-shadow: 0 0 0 1px var(--scrim-line); }
+.lb__stage.is-actual img { max-width: none; cursor: zoom-out; }
+
+</style>
+<div class="wrap">
+  <header class="top">
+    <p class="eyebrow">Program Assurance · UX proposal · pass six</p>
+    <h1>Assess once, use everywhere</h1>
+    <p class="thesis">An organization builds products from shared components. A component version is assessed once; products, configurations and programs inherit the result, offer what they find back up, and are told when it changes. Under that sits the engineer's control work on one system: select, implement, map, prove, find, fix.</p>
+    <div class="status"><span class="status__dot is-done"></span><b>Complete</b><span>89 of 89 boards drawn</span><span>updated Nov 16, 7:59 AM</span><a href="https://claude.ai/artifact/3MbdfEKz2n7AfNCXvLkAjz">Live boards</a><a href="https://claude.ai/artifact/Eex7ChpJq9WyjiA3MDpBGV">Pass one</a></div>
+  </header>
+  <div class="cols">
+    <nav class="toc" aria-label="Sections"><ol><li><a href="#organization">Assess once</a></li><li><a href="#decided">What you decided</a></li><li><a href="#control-work">The control work</a></li><li><a href="#heard">Your review</a></li><li><a href="#patterns">One platform</a></li><li><a href="#work">The work, drawn</a></li><li><a href="#earlier">Pass two, kept</a></li><li><a href="#program">The program page</a></li><li><a href="#check">What the check found</a></li><li><a href="#rules">Ten rules</a></li><li><a href="#jobs">The jobs, walked</a></li><li><a href="#ledger">Ledger next</a></li><li><a href="#boxed">Where Ledger boxed us in</a></li><li><a href="#borrowed">Borrowed from</a></li><li><a href="#explorations">Six takes on one page</a></li><li><a href="#decisions">Decisions for you</a></li><li><a href="#method">How this was made</a></li></ol></nav>
+    <main class="main">
+<section id="organization" class="sec">
+  <p class="eyebrow">Pass four · the organization</p>
+  <h2>Assess once, use everywhere</h2>
+  <p class="lede">You said the product is the hierarchy: business lines, their products, each product's configurations, and the components they share. A flight computer is judged once at the top, or in a program and reviewed at the top, and every product and program that uses it inherits the result and is told when it changes.</p>
+  <div class="compare">
+    <div class="compare__bar">
+      <div class="seg" role="group" aria-label="Which version">
+        <button type="button" class="seg__b" aria-pressed="false" data-src="null" data-zoomsrc="null">Today</button>
+        <button type="button" class="seg__b" aria-pressed="true" data-src="img/t/portfolio.png" data-zoomsrc="img/x/portfolio.png">Proposed</button>
+      </div>
+    </div>
+    <button class="shot" type="button" data-zoom="img/x/portfolio.png" data-title="Portfolio" data-group="p4hero" data-before="null" data-note="What does the organization build, where does each product stand, and what waits on me?"><img src="img/t/portfolio.png" alt="The proposed Portfolio: business lines, products, configurations and the programs that take them"></button>
+  </div>
+  <ul class="reads"><li><b>Assess once</b><span>A determination is recorded on a component version. A configuration and a product are built from their components, plus what only integration can show.</span></li><li><b>Use everywhere</b><span>Anyone on that version, unmodified, inherits the result. An inherited row says where it comes from and is not entered again.</span></li><li><b>Found below, reviewed above</b><span>A program's finding on a shared component is offered to its owner, reviewed once, and then shows for every consumer.</span></li><li><b>Changes, both ways</b><span>A consumer stays on the version it took and reads Behind when a newer one is published. The new version carries forward every determination except on the controls its owner lists as affected. A source sees who uses it, at which version, and who changed it.</span></li></ul>
+</section>
+<section id="decided" class="sec">
+  <p class="eyebrow">Answered by question</p>
+  <h2>Nineteen decided on Nov 16, now drawn</h2>
+  <p class="lede">Every decision still open was answered on Nov 16, all as recommended. Most confirm what the boards drew; where one did not, the board is redrawn: the Authorization view in two lanes, publishing a version with its confirmation (a new board), Customer A owing 261, programs that say whether they operate, objectives judged Satisfied or Other than satisfied, and acts held by the role that takes them.</p>
+  <ul class="findings"><li><span class="findings__n">Direction</span><div><b>The control work is the centre</b><p>A system opens on the state of its controls (D1). The pass-one path to the next decision is its Authorization view.</p></div></li><li><span class="findings__n">Centre</span><div><b>Controls first</b><p>Closed with the direction: the pass-three centre stands for every system.</p></div></li><li><span class="findings__n">Path</span><div><b>Not the front door</b><p>The dated path is the Authorization view, not the page a system opens on.</p></div></li><li><span class="findings__n">Standing</span><div><b>One fact in the header</b><p>ATO with conditions · PDR 35d late sits beside the categorization. No 32px headline.</p></div></li><li><span class="findings__n">Timeline</span><div><b>Two lanes</b><p>Authorization events and acquisition gates on two lanes over one time axis; gates stay diamonds.</p></div></li><li><span class="findings__n">Slot</span><div><b>Role-true</b><p>Top right holds this reader's next step, or who it waits on. Each program records its roles.</p></div></li><li><span class="findings__n">Words</span><div><b>RMF's short words</b><p>ATO, ATO with conditions, IATT, ATU, DATO, ATD, defined once in the vocabulary.</p></div></li><li><span class="findings__n">Signing</span><div><b>Held to roles</b><p>The assessor judges, the lead assessor publishes, only the authorizing official signs. The demo's two risk acceptances are signed by R. Calloway.</p></div></li><li><span class="findings__n">Types</span><div><b>IATT and ATU (D5)</b><p>They join ATO, ATO with conditions, DATO and ATD, as SP 800-37 allows.</p></div></li><li><span class="findings__n">Operating</span><div><b>Programs say whether they operate (D6)</b><p>In development reads apart from operating without authorization, and lapsed authority apart from never authorized.</p></div></li><li><span class="findings__n">Owed</span><div><b>A variant owes its part (D3)</b><p>A Shared control counts as owed: Customer A owes 261 of 374, not 234.</p></div></li><li><span class="findings__n">Partial</span><div><b>From mixed objectives (D4)</b><p>An objective is Satisfied or Other than satisfied; a control with both reads Partially satisfied.</p></div></li><li><span class="findings__n">Inherited</span><div><b>It stands, sourced</b><p>SI-4(2) reads Satisfied through the Audit Log Collector, its row saying where that comes from, though WS-X90 cites no evidence of its own.</p></div></li><li><span class="findings__n">Versions</span><div><b>Show the count, confirm it</b><p>Publishing a version shows how many determinations carry forward and asks the owner to confirm, a version that lists nothing affected included.</p></div></li><li><span class="findings__n">Next step</span><div><b>To the component</b><p>An inherited control's next step and its chain lead to the component's assessment, where the judgment lives.</p></div></li><li><span class="findings__n">CVEs</span><div><b>Open until all move</b><p>A CVE is counted while any consumer runs an affected version, after the fix is published.</p></div></li><li><span class="findings__n">Parts</span><div><b>Ledger's next scope</b><p>The component sheets and their seven tokens are built after approval, through the kit's checklist.</p></div></li><li><span class="findings__n">Contract</span><div><b>A short one, and a lab lane (D7)</b><p>Under 4,000 words with its budgets in the tests, and 30 days to try a form before it becomes a kit part.</p></div></li><li><span class="findings__n">Start</span><div><b>Phase 0 first (D8)</b><p>One week of ten quick fixes visible on every screen, once you approve these artifacts.</p></div></li></ul>
+  <h3 class="sub">Twenty-one decided on Nov 14 and 15</h3>
+  <ul class="findings"><li><span class="findings__n">Judgment</span><div><b>A determination names a whole control</b><p>On a component, never one objective. The control's objectives are what the assessor reads, not rows to judge.</p></div></li><li><span class="findings__n">Inherit</span><div><b>Per element, automatically</b><p>A component's determination stands for the element built from it. In a program, an objective counts as judged where its requirements place it only on inherited, unmodified elements. Nobody presses anything.</p></div></li><li><span class="findings__n">Precedence</span><div><b>The product's own determination stands</b><p>Where a product assessment and the component's both judge one element and control, the product's is the one shown.</p></div></li><li><span class="findings__n">Versions</span><div><b>A new version carries forward</b><p>Every determination stands on the next version except on the controls its owner lists as affected. Those read To review until that version is judged on them.</p></div></li><li><span class="findings__n">Register</span><div><b>One row a component</b><p>The Components register lists single components, and the set each belongs to is a column. What groups them is a component set.</p></div></li><li><span class="findings__n">Offers</span><div><b>Reviewed in two places, one Accept</b><p>On the row where it waits and on the component's Findings tab. Return asks for a note.</p></div></li><li><span class="findings__n">Counting</span><div><b>Satisfied, out of every control claimed</b><p>42 of 61 for Mission Computer 2, with the tally showing what nobody judged. Never out of the controls judged.</p></div></li><li><span class="findings__n">From above</span><div><b>The Library tab of System</b><p>What a system takes from the library is a tab of its System page. There is no Upstream destination in the side nav.</p></div></li><li><span class="findings__n">Navigation</span><div><b>Two scopes, one side nav</b><p>An organization scope (Home, Portfolio, Programs, Library) and a work scope that opens under a product or a program's system. A product is assessed on the screens a program uses.</p></div></li><li><span class="findings__n">Unit</span><div><b>The component version is assessed once</b><p>Not the product as a whole. A product's standing is built from its components, plus what only integration can show.</p></div></li><li><span class="findings__n">Up</span><div><b>Offered up, reviewed once</b><p>A program's result on an unmodified shared component goes to the component's owner. Accepted, it stands for every consumer.</p></div></li><li><span class="findings__n">Down</span><div><b>Pinned, flagged, findings at once</b><p>Nothing moves by itself. Affected controls are flagged; Take version reviews before it writes. A new CVE shows for every consumer at once.</p></div></li><li><span class="findings__n">T&E</span><div><b>Cyber T&E is a kind of assessment</b><p>Under Assessments, on the same chain, and reusable on a component like an RMF determination.</p></div></li><li><span class="findings__n">Pass two</span><div><b>Carry the working boards</b><p>The assessor's workspace, evidence review, POA&M and inheritance move to the new navigation; the dated path and signing brief go under Authorization.</p></div></li><li><span class="findings__n">Page types</span><div><b>Seven page types are the contract</b><p>Every screen is one of the seven. A screen that fits none gets a written exception first.</p></div></li><li><span class="findings__n">Evidence</span><div><b>Reviewed evidence reads Verified</b><p>Satisfied stays the assessor's word, so green on evidence never reads as a control being met.</p></div></li><li><span class="findings__n">Findings</span><div><b>A row per fix</b><p>The register opens grouped by the fix that closes the findings. One POA&M item answers one row.</p></div></li><li><span class="findings__n">Records</span><div><b>CVEs and SBOM components are records</b><p>Each tied to its asset, controls and POA&M item, so a new CVE can be matched to every product and program that carries the component.</p></div></li><li><span class="findings__n">Owner</span><div><b>A named owner for each shared component</b><p>It starts as the owner of the business line that publishes the component and can be handed on.</p></div></li><li><span class="findings__n">Integration</span><div><b>Component first, then a marked integration set</b><p>Controls are judged on a component by default. The product's assessor marks, and judges on the product, those no single component can show.</p></div></li><li><span class="findings__n">Next</span><div><b>The proposal first</b><p>These two artifacts are approved before anything is built. The schema and the seeded records drafted behind the reuse story stay parked until then.</p></div></li></ul>
+</section>
+<section id="control-work" class="sec">
+  <p class="eyebrow">Pass three · one system</p>
+  <h2>The control work, not the next gate</h2>
+  <p class="lede">You said pass two is built around stages and gates, and that the people who live in this product are system security engineers, then ISSMs and ISSOs. Pass three opens a system on the state of its controls and gives each link of that work its own place, drawn from one small set of page types.</p>
+  <div class="compare">
+    <div class="compare__bar">
+      <div class="seg" role="group" aria-label="Which version">
+        <button type="button" class="seg__b" aria-pressed="false" data-src="null" data-zoomsrc="null">Today</button>
+        <button type="button" class="seg__b" aria-pressed="true" data-src="img/t/sys-overview.png" data-zoomsrc="img/x/sys-overview.png">Proposed</button>
+      </div>
+      <dl class="facts"><div><dt>Words</dt><dd><s>352</s> 127</dd></div><div><dt>Things to press</dt><dd><s>607</s> 60</dd></div></dl>
+    </div>
+    <button class="shot" type="button" data-zoom="img/x/sys-overview.png" data-title="WS-X90 · Overview" data-group="p3hero" data-before="null" data-note="Where do this system's controls stand, and what do I fix next?"><img src="img/t/sys-overview.png" alt="The proposed system overview: the state of WS-X90's controls along the chain"></button>
+  </div>
+  <ul class="reads"><li><b>Select</b><span>Categorization, the baseline, each overlay and the tailoring as one stack, with what every layer added and removed.</span></li><li><b>Implement</b><span>The security plan as a register: a claim, a narrative and a responsible role for each control, part by part.</span></li><li><b>Map</b><span>Each requirement with the controls and the objectives it covers.</span></li><li><b>Prove</b><span>Artifacts with what they support, who verified them and when they expire.</span></li><li><b>Find</b><span>Assessment findings, scan results, STIG checks and SBOM vulnerabilities in one register, a row a fix.</span></li><li><b>Fix</b><span>POA&M items with their milestones. What remains is carried as risk.</span></li></ul>
+</section>
+<section id="heard" class="sec">
+  <p class="eyebrow">What you said</p>
+  <h2>Your review, and what changed</h2>
+  <ul class="findings"><li><span class="findings__n">Centre</span><div><b>“Focused around the stages and lifecycle gates”</b><p>The dated path leaves the front door. Authorization is one line in a system's header and one destination of its own. No other screen is framed by a gate.</p></div></li><li><span class="findings__n">Reader</span><div><b>“The primary user is the system security engineer”</b><p>Every pass-three board is read as Ingrid Solberg, the engineer on WS-X90. The authorizing official's desk and the signing brief stay below as supporting views.</p></div></li><li><span class="findings__n">Work</span><div><b>“How controls get selected, implemented, mapped, evidenced; findings, remediation, risk”</b><p>Each is a place in the side nav, in the order of the work: Baseline, Controls, Requirements, Evidence, Findings, POA&M, Risks.</p></div></li><li><span class="findings__n">Patterns</span><div><b>“Similar patterns across the board; feels like a software platform”</b><p>Seven page types with fixed zones, one shell, and three status families that never share a word. A register is a table again, done well.</p></div></li><li><span class="findings__n">Data</span><div><b>“The current app presents data well; too much text”</b><p>Dense tables, status marks and the baseline stack stay. So do the word budgets: rows are one line and numbers do the talking.</p></div></li><li><span class="findings__n">Hierarchy</span><div><b>“Business lines > Products > Configurations > Components”</b><p>Portfolio draws the organization as that tree with each product's standing and consumers. A product's Structure puts its configurations and components on one screen.</p></div></li><li><span class="findings__n">Libraries</span><div><b>“Frameworks, Overlays, supplemental guidance like NIST 800-160”</b><p>The Library holds four places: Frameworks, Overlays, Guidance and Components, each saying who uses what.</p></div></li><li><span class="findings__n">Reuse</span><div><b>“Assess once, use everywhere, monitor changes both upstream and downstream”</b><p>A component version carries its determinations. Every system shows what it takes from the library on its System page; every source has Where used.</p></div></li><li><span class="findings__n">Blend</span><div><b>The other session's proposal</b><p>Carried in: its seven page types, one home for each kind of action, “the fix is the unit of work”, “a claim is not a judgement”, and the security plan as a register with Publish as its act. Left behind: the gate path as the spine.</p></div></li></ul>
+</section>
+<section id="patterns" class="sec">
+  <p class="eyebrow">The same parts on every screen</p>
+  <h2>One platform: a shell, seven page types, three status families</h2>
+  <p class="lede">A reader should know where the name, the counts, the filter, the table, the details and the one filled button are before reading a word. Every pass-three board is exactly one page type.</p>
+  <div class="tablebox"><table>
+    <thead><tr><th>Page type</th><th>The question it answers</th><th>Zones, top to bottom</th><th>The one filled button</th></tr></thead>
+    <tbody><tr><td><b>Overview</b></td><td>Where do this system's controls stand, and what do I fix next?</td><td>Header · a band of at most five tiles · one chart · five next fixes</td><td>The first ranked fix, in the header</td></tr><tr><td><b>Register</b></td><td>Which records, and which first?</td><td>Header with the total · counts that are the filters · toolbar · a table of at most seven one-line columns · a preview panel</td><td>Create or Import in the toolbar; the selection bar's first verb while rows are chosen</td></tr><tr><td><b>Record</b></td><td>What is it, what state, what next?</td><td>Trail, name, state, four facts · the chain line · up to five tabs · body beside a details rail</td><td>The computed next step, in the header</td></tr><tr><td><b>Workspace</b></td><td>One job over many records</td><td>Header · list, detail and decision panes · footer bar</td><td>The job's finalizing verb, in the footer bar</td></tr><tr><td><b>Flow</b></td><td>One decision</td><td>A dialog titled with its trigger's words · at most eight fields</td><td>The footer's primary</td></tr><tr><td><b>Home</b></td><td>What needs me?</td><td>Tiers of work rows</td><td>The top row's verb</td></tr><tr><td><b>Library</b></td><td>Reference data</td><td>Reference content</td><td>None</td></tr></tbody>
+  </table></div>
+  <div class="tablebox"><table>
+    <thead><tr><th>Status family</th><th>Who sets it</th><th>Its words</th><th>How it is drawn</th></tr></thead>
+    <tbody><tr><td><b>Implementation</b></td><td>The engineer's claim in the security plan</td><td>Implemented · Partial · Planned · Not implemented · Inherited · Not applicable</td><td>Neutral. A claim is never green.</td></tr><tr><td><b>Verification</b></td><td>A reviewer, on evidence</td><td>Verified · In review · Needs revision · Expired</td><td>Green only for Verified.</td></tr><tr><td><b>Determination</b></td><td>An assessor, on a control or an objective</td><td>Satisfied · Partially satisfied · Not satisfied · Not assessed</td><td>Green, amber, red, grey.</td></tr></tbody>
+  </table></div>
+  <p class="note">Two scopes share one side nav. The organization scope holds Home, Portfolio, Programs and the Library (Frameworks, Overlays, Guidance, Components). The work scope opens under a product or a program's system and holds the same places for both. What a system takes from above is the Library tab of its System page; Where used sits on everything that gives below.</p>
+  <div class="sheetgrid"><figure class="fig"><button class="shot is-crop" type="button" data-zoom="img/t/_starter-register.png" data-title="The Register page type" data-group="starters"><img src="img/t/_starter-register.png" alt="The Register page type" loading="lazy"></button><figcaption><b>The Register page type</b></figcaption></figure><figure class="fig"><button class="shot is-crop" type="button" data-zoom="img/t/_starter-record.png" data-title="The Record page type" data-group="starters"><img src="img/t/_starter-record.png" alt="The Record page type" loading="lazy"></button><figcaption><b>The Record page type</b></figcaption></figure></div>
+</section>
+<section id="work" class="sec">
+  <p class="eyebrow">58 of 58 boards of passes three and four drawn</p>
+  <h2>Ten jobs, from the organization to one control</h2>
+  <p class="lede">The first four are the organization: its hierarchy, assessing a component once, what flows up and down, and the libraries. The next five are the engineer's work on one system. The tenth is the part of pass two you kept, moved onto the same navigation: the assessor's workspace, evidence review, the POA&amp;M register and item, and the path, package and signing brief under Authorization. All are drawn over the demo's own records, with what is illustrative said in the method. Press any board to zoom; where today's screen exists, the viewer switches to it.</p>
+  <section class="story" id="job-t">
+  <header class="story__head"><h3>1 · The organization</h3><span class="who">Priya Raghavan, business line owner</span></header>
+  <p class="story__job">The organization as its hierarchy: two business lines, four products, their configurations and the programs that take them. Then one product's configurations and components on one screen, the components register with a row a component, and one component's record tab by tab: where it stands, what it was judged on, everyone who uses it, its two versions and its bill of materials.</p>
+  <ol class="frames"><li class="frame"><span class="frame__step"><b>1</b><span>Start: the organization</span></span><button class="shot" type="button" data-zoom="img/x/portfolio.png" data-title="Portfolio" data-group="flow-T" data-note="What does the organization build, where does each product stand, and what waits on me?"><img src="img/t/portfolio.png" alt="Portfolio" loading="lazy"></button><span class="frame__title">Portfolio</span></li><li class="frame"><span class="frame__step"><b>2</b><span>Open X800 Missile</span></span><button class="shot" type="button" data-zoom="img/x/prod-structure.png" data-title="X800 Missile · Structure" data-group="flow-T" data-note="Which components make up each configuration, and which are shared?"><img src="img/t/prod-structure.png" alt="X800 Missile · Structure" loading="lazy"></button><span class="frame__title">X800 Missile · Structure</span></li><li class="frame"><span class="frame__step"><b>3</b><span>Library › Components</span></span><button class="shot" type="button" data-zoom="img/x/lib-components.png" data-title="Library · Components" data-group="flow-T" data-note="Which components does the organization hold, who owns each, and where does it stand?"><img src="img/t/lib-components.png" alt="Library · Components" loading="lazy"></button><span class="frame__title">Library · Components</span></li><li class="frame"><span class="frame__step"><b>4</b><span>Open Mission Computer</span></span><button class="shot" type="button" data-zoom="img/x/component--overview.png" data-title="Mission Computer · Overview" data-group="flow-T" data-note="Where does this component stand, who uses it, and what waits on its owner?"><img src="img/t/component--overview.png" alt="Mission Computer · Overview" loading="lazy"></button><span class="frame__title">Mission Computer · Overview</span></li><li class="frame"><span class="frame__step"><b>5</b><span>Assessment</span></span><button class="shot" type="button" data-zoom="img/x/component--assessment.png" data-title="Mission Computer · Assessment" data-group="flow-T" data-note="What does this version stand on, control by control, and what is left to judge?"><img src="img/t/component--assessment.png" alt="Mission Computer · Assessment" loading="lazy"></button><span class="frame__title">Mission Computer · Assessment</span></li><li class="frame"><span class="frame__step"><b>6</b><span>Where used</span></span><button class="shot" type="button" data-zoom="img/x/component.png" data-title="Mission Computer · Where used" data-group="flow-T" data-note="Who uses this component, at which version, and who is behind?"><img src="img/t/component.png" alt="Mission Computer · Where used" loading="lazy"></button><span class="frame__title">Mission Computer · Where used</span></li><li class="frame"><span class="frame__step"><b>7</b><span>Versions</span></span><button class="shot" type="button" data-zoom="img/x/component--versions.png" data-title="Mission Computer · Versions" data-group="flow-T" data-note="What does the new version change, and what still stands on it?"><img src="img/t/component--versions.png" alt="Mission Computer · Versions" loading="lazy"></button><span class="frame__title">Mission Computer · Versions</span></li><li class="frame"><span class="frame__step"><b>8</b><span>Publish version 2</span></span><button class="shot" type="button" data-zoom="img/x/component--versions--publish.png" data-title="Mission Computer · Publish version 2" data-group="flow-T" data-note="What carries forward to version 2, and does its owner confirm it?"><img src="img/t/component--versions--publish.png" alt="Mission Computer · Publish version 2" loading="lazy"></button><span class="frame__title">Mission Computer · Publish version 2</span></li><li class="frame"><span class="frame__step"><b>9</b><span>SBOM</span></span><button class="shot" type="button" data-zoom="img/x/component--sbom.png" data-title="Mission Computer · SBOM" data-group="flow-T" data-note="What is inside this component, and which programs are exposed?"><img src="img/t/component--sbom.png" alt="Mission Computer · SBOM" loading="lazy"></button><span class="frame__title">Mission Computer · SBOM</span></li></ol>
+</section>
+<section class="story" id="job-u">
+  <header class="story__head"><h3>2 · Assess once, use everywhere</h3><span class="who">Elena Vasquez, assessor; Nadia Fournier, ISSM of Customer A; Ingrid Solberg in WS-X90</span></header>
+  <p class="story__job">The Mission Computer is judged once, control by control. A system inherits that result element by element, beside its own RMF assessments and Cyber T&E events. On the Library tab of its System page a system sees what it takes from the library and what changed there, and reviews a newer version before taking it: what carries forward, and what is left to review. A control decided by inheritance opens as its own record, with nothing to do and where the judgment lives.</p>
+  <ol class="frames"><li class="frame"><span class="frame__step"><b>1</b><span>Component assessment</span></span><button class="shot" type="button" data-zoom="img/x/component-assess.png" data-title="Assess Mission Computer 1" data-group="flow-U" data-note="How is a component judged once for everyone who uses it?"><img src="img/t/component-assess.png" alt="Assess Mission Computer 1" loading="lazy"></button><span class="frame__title">Assess Mission Computer 1</span></li><li class="frame"><span class="frame__step"><b>2</b><span>WS-X90 › Assessments</span></span><button class="shot" type="button" data-zoom="img/x/assessments.png" data-title="WS-X90 · Assessments" data-group="flow-U" data-note="Which assessments and test events bear on this system, and which does it reuse?"><img src="img/t/assessments.png" alt="WS-X90 · Assessments" loading="lazy"></button><span class="frame__title">WS-X90 · Assessments</span></li><li class="frame"><span class="frame__step"><b>3</b><span>Customer A › System › Library</span></span><button class="shot" type="button" data-zoom="img/x/upstream.png" data-title="Customer A · System · Library" data-group="flow-U" data-note="What does this variant take from its product, and what changed there?"><img src="img/t/upstream.png" alt="Customer A · System · Library" loading="lazy"></button><span class="frame__title">Customer A · System · Library</span></li><li class="frame"><span class="frame__step"><b>4</b><span>Take X800 Missile 2</span></span><button class="shot" type="button" data-zoom="img/x/upstream--take.png" data-title="Library · Take X800 Missile 2" data-group="flow-U" data-note="What would taking the newer product version change, before it is taken?"><img src="img/t/upstream--take.png" alt="Library · Take X800 Missile 2" loading="lazy"></button><span class="frame__title">Library · Take X800 Missile 2</span></li><li class="frame"><span class="frame__step"><b>5</b><span>WS-X90 › System › Library</span></span><button class="shot" type="button" data-zoom="img/x/sys-library.png" data-title="WS-X90 · System · Library" data-group="flow-U" data-note="What does WS-X90 take from the library, and what waits there?"><img src="img/t/sys-library.png" alt="WS-X90 · System · Library" loading="lazy"></button><span class="frame__title">WS-X90 · System · Library</span></li><li class="frame"><span class="frame__step"><b>6</b><span>Take version 2</span></span><button class="shot" type="button" data-zoom="img/x/sys-library--take.png" data-title="Library · Take version 2" data-group="flow-U" data-note="What would taking Mission Computer 2 change, before it is taken?"><img src="img/t/sys-library--take.png" alt="Library · Take version 2" loading="lazy"></button><span class="frame__title">Library · Take version 2</span></li><li class="frame"><span class="frame__step"><b>7</b><span>Open AU-7</span></span><button class="shot" type="button" data-zoom="img/x/control-inherited.png" data-title="AU-7 · decided by inheritance" data-group="flow-U" data-note="Why is this control already judged, and is there anything for me to do?"><img src="img/t/control-inherited.png" alt="AU-7 · decided by inheritance" loading="lazy"></button><span class="frame__title">AU-7 · decided by inheritance</span></li></ol>
+</section>
+<section class="story" id="job-v">
+  <header class="story__head"><h3>3 · Found below, reviewed above</h3><span class="who">Ingrid Solberg in WS-X90; then Priya Raghavan</span></header>
+  <p class="story__job">A scan in one program finds a CVE on the shared Mission Computer. The engineer offers it to the component's owner, who reviews it once, on the component's Findings tab or from Home. Accepted, it opens for every other program on that version, and the after-state says who holds it now.</p>
+  <ol class="frames"><li class="frame"><span class="frame__step"><b>1</b><span>Offer to owner</span></span><button class="shot" type="button" data-zoom="img/x/finding-cve--offer.png" data-title="CVE-2024-6387 · Offer to owner" data-group="flow-V" data-note="Who owns this shared component, and what would accepting the finding reach?"><img src="img/t/finding-cve--offer.png" alt="CVE-2024-6387 · Offer to owner" loading="lazy"></button><span class="frame__title">CVE-2024-6387 · Offer to owner</span></li><li class="frame"><span class="frame__step"><b>2</b><span>Home, as the owner</span></span><button class="shot" type="button" data-zoom="img/x/home-org.png" data-title="Home · the offer waits" data-group="flow-V" data-note="What waits on me across the organization?"><img src="img/t/home-org.png" alt="Home · the offer waits" loading="lazy"></button><span class="frame__title">Home · the offer waits</span></li><li class="frame"><span class="frame__step"><b>3</b><span>Findings › the offer</span></span><button class="shot" type="button" data-zoom="img/x/review-up.png" data-title="Mission Computer · Findings · the offer" data-group="flow-V" data-note="Should this finding stand for every program on that version?"><img src="img/t/review-up.png" alt="Mission Computer · Findings · the offer" loading="lazy"></button><span class="frame__title">Mission Computer · Findings · the offer</span></li><li class="frame is-strip"><span class="frame__step"><b>4</b><span>Accept</span></span><button class="shot" type="button" data-zoom="img/x/review-up-after.png" data-title="The offer · after Accept" data-group="flow-V" data-note="What did accepting open, and who holds it now?"><img src="img/t/review-up-after.png" alt="The offer · after Accept" loading="lazy"></button><span class="frame__title">The offer · after Accept</span></li></ol>
+</section>
+<section class="story" id="job-w">
+  <header class="story__head"><h3>4 · The libraries</h3><span class="who">Anyone</span></header>
+  <p class="story__job">The libraries the whole organization draws from: control frameworks, overlays, and supplemental guidance, each with who uses it.</p>
+  <ol class="frames"><li class="frame"><span class="frame__step"><b>1</b><span>Library › Frameworks</span></span><button class="shot" type="button" data-zoom="img/x/lib-frameworks.png" data-title="Library · Frameworks" data-group="flow-W" data-note="Which control frameworks do we hold, and who uses them?"><img src="img/t/lib-frameworks.png" alt="Library · Frameworks" loading="lazy"></button><span class="frame__title">Library · Frameworks</span></li><li class="frame"><span class="frame__step"><b>2</b><span>Library › Overlays</span></span><button class="shot" type="button" data-zoom="img/x/lib-overlays.png" data-title="Library · Overlays" data-group="flow-W" data-note="Which overlays exist, what does each add and remove, and who applies it?"><img src="img/t/lib-overlays.png" alt="Library · Overlays" loading="lazy"></button><span class="frame__title">Library · Overlays</span></li><li class="frame"><span class="frame__step"><b>3</b><span>Library › Guidance</span></span><button class="shot" type="button" data-zoom="img/x/lib-guidance.png" data-title="Library · Guidance" data-group="flow-W" data-note="Which supplemental guidance do we hold, and where does it reach?"><img src="img/t/lib-guidance.png" alt="Library · Guidance" loading="lazy"></button><span class="frame__title">Library · Guidance</span></li></ol>
+</section>
+<section class="story" id="job-k">
+  <header class="story__head"><h3>5 · Know the system</h3><span class="who">Ingrid Solberg, system security engineer</span></header>
+  <p class="story__job">What is this system, how is it categorized, and where do its controls stand today? The overview, the 28 elements inside the boundary, and one unit's software bill of materials.</p>
+  <ol class="frames"><li class="frame"><span class="frame__step"><b>1</b><span>Start: open WS-X90</span></span><button class="shot" type="button" data-zoom="img/x/sys-overview.png" data-title="WS-X90 · Overview" data-group="flow-K" data-note="Where do WS-X90's controls stand, and what do I fix next?"><img src="img/t/sys-overview.png" alt="WS-X90 · Overview" loading="lazy"></button><span class="frame__title">WS-X90 · Overview</span></li><li class="frame"><span class="frame__step"><b>2</b><span>System</span></span><button class="shot" type="button" data-zoom="img/x/assets.png" data-title="WS-X90 · System" data-group="flow-K" data-note="What is inside the boundary, and which units carry findings?"><img src="img/t/assets.png" alt="WS-X90 · System" loading="lazy"></button><span class="frame__title">WS-X90 · System</span></li><li class="frame"><span class="frame__step"><b>3</b><span>Open the Payload Interface Controller</span></span><button class="shot" type="button" data-zoom="img/x/asset.png" data-title="Payload Interface Controller · Components" data-group="flow-K" data-note="What software is on this unit, and what is known to be wrong with it?"><img src="img/t/asset.png" alt="Payload Interface Controller · Components" loading="lazy"></button><span class="frame__title">Payload Interface Controller · Components</span></li></ol>
+</section>
+<section class="story" id="job-l">
+  <header class="story__head"><h3>6 · Select the baseline</h3><span class="who">Ingrid Solberg, system security engineer</span></header>
+  <p class="story__job">Why does WS-X90 owe 560 controls? High, High, Moderate selects NIST's High baseline of 370; an allocation, two overlays and two tailorings take it to 560. Then what one more overlay would change, read before it is applied.</p>
+  <ol class="frames"><li class="frame"><span class="frame__step"><b>1</b><span>Baseline</span></span><button class="shot" type="button" data-zoom="img/x/baseline.png" data-title="WS-X90 · Baseline" data-group="flow-L" data-note="Why does this system owe these 560 controls?"><img src="img/t/baseline.png" alt="WS-X90 · Baseline" loading="lazy"></button><span class="frame__title">WS-X90 · Baseline</span></li><li class="frame"><span class="frame__step"><b>2</b><span>Add overlay</span></span><button class="shot" type="button" data-zoom="img/x/baseline--overlay.png" data-title="Baseline · Add overlay" data-group="flow-L" data-note="What would one more overlay change, before it is applied?"><img src="img/t/baseline--overlay.png" alt="Baseline · Add overlay" loading="lazy"></button><span class="frame__title">Baseline · Add overlay</span></li></ol>
+</section>
+<section class="story" id="job-m">
+  <header class="story__head"><h3>7 · Implement and map</h3><span class="who">Ingrid Solberg, system security engineer</span></header>
+  <p class="story__job">The security plan as work: 560 controls, each with a claim, a narrative and the requirements that map it. Then one control, part by part.</p>
+  <ol class="frames"><li class="frame"><span class="frame__step"><b>1</b><span>Controls</span></span><button class="shot" type="button" data-zoom="img/x/impl.png" data-title="WS-X90 · Controls" data-group="flow-M" data-note="Which controls still lack a claim, a narrative or a responsible role?"><img src="img/t/impl.png" alt="WS-X90 · Controls" loading="lazy"></button><span class="frame__title">WS-X90 · Controls</span></li><li class="frame"><span class="frame__step"><b>2</b><span>Publish SSP 3</span></span><button class="shot" type="button" data-zoom="img/x/impl--publish.png" data-title="Controls · Publish SSP 3" data-group="flow-M" data-note="What does publishing this security plan freeze?"><img src="img/t/impl--publish.png" alt="Controls · Publish SSP 3" loading="lazy"></button><span class="frame__title">Controls · Publish SSP 3</span></li><li class="frame"><span class="frame__step"><b>3</b><span>Open SI-2</span></span><button class="shot" type="button" data-zoom="img/x/impl-control.png" data-title="SI-2 · Implementation" data-group="flow-M" data-note="How is SI-2 implemented, part by part, and what is missing?"><img src="img/t/impl-control.png" alt="SI-2 · Implementation" loading="lazy"></button><span class="frame__title">SI-2 · Implementation</span></li><li class="frame"><span class="frame__step"><b>4</b><span>Requirements</span></span><button class="shot" type="button" data-zoom="img/x/reqs.png" data-title="WS-X90 · Requirements" data-group="flow-M" data-note="Which requirements cover which controls, and which have no evidence?"><img src="img/t/reqs.png" alt="WS-X90 · Requirements" loading="lazy"></button><span class="frame__title">WS-X90 · Requirements</span></li></ol>
+</section>
+<section class="story" id="job-n">
+  <header class="story__head"><h3>8 · Prove with evidence</h3><span class="who">Ingrid Solberg, system security engineer</span></header>
+  <p class="story__job">368 artifacts, 226 verified. What each supports, who checked it, and one that came back for revision.</p>
+  <ol class="frames"><li class="frame"><span class="frame__step"><b>1</b><span>Evidence</span></span><button class="shot" type="button" data-zoom="img/x/evidence.png" data-title="WS-X90 · Evidence" data-group="flow-N" data-note="Which artifacts are verified, waiting or expiring?"><img src="img/t/evidence.png" alt="WS-X90 · Evidence" loading="lazy"></button><span class="frame__title">WS-X90 · Evidence</span></li><li class="frame"><span class="frame__step"><b>2</b><span>Open an artifact</span></span><button class="shot" type="button" data-zoom="img/x/evidence-item.png" data-title="Evidence artifact · Needs revision" data-group="flow-N" data-note="What does this artifact support, who checked it, and what did they find?"><img src="img/t/evidence-item.png" alt="Evidence artifact · Needs revision" loading="lazy"></button><span class="frame__title">Evidence artifact · Needs revision</span></li><li class="frame"><span class="frame__step"><b>3</b><span>Upload version 2</span></span><button class="shot" type="button" data-zoom="img/x/evidence-item--upload.png" data-title="Evidence · Upload version 2" data-group="flow-N" data-note="What does a new version carry over, and who checks it?"><img src="img/t/evidence-item--upload.png" alt="Evidence · Upload version 2" loading="lazy"></button><span class="frame__title">Evidence · Upload version 2</span></li></ol>
+</section>
+<section class="story" id="job-o">
+  <header class="story__head"><h3>9 · Find and fix</h3><span class="who">Ingrid Solberg, system security engineer</span></header>
+  <p class="story__job">Everything found, by an assessor or a scanner, a row a fix. One CVE from the scan to its POA&M item. Then the 40 risks that remain.</p>
+  <ol class="frames"><li class="frame"><span class="frame__step"><b>1</b><span>Findings</span></span><button class="shot" type="button" data-zoom="img/x/findings.png" data-title="WS-X90 · Findings" data-group="flow-O" data-note="What was found, by whom, and which fix closes the most?"><img src="img/t/findings.png" alt="WS-X90 · Findings" loading="lazy"></button><span class="frame__title">WS-X90 · Findings</span></li><li class="frame"><span class="frame__step"><b>2</b><span>Import scan</span></span><button class="shot" type="button" data-zoom="img/x/findings--import.png" data-title="Findings · Import scan" data-group="flow-O" data-note="What will this scan create, and where?"><img src="img/t/findings--import.png" alt="Findings · Import scan" loading="lazy"></button><span class="frame__title">Findings · Import scan</span></li><li class="frame"><span class="frame__step"><b>3</b><span>Open the CVE</span></span><button class="shot" type="button" data-zoom="img/x/finding-cve.png" data-title="CVE-2024-6387 · Vulnerability" data-group="flow-O" data-note="Where is this vulnerability, what fixes it, and who owns the fix?"><img src="img/t/finding-cve.png" alt="CVE-2024-6387 · Vulnerability" loading="lazy"></button><span class="frame__title">CVE-2024-6387 · Vulnerability</span></li><li class="frame"><span class="frame__step"><b>4</b><span>Create POA&amp;M item</span></span><button class="shot" type="button" data-zoom="img/x/finding-cve--poam.png" data-title="CVE-2024-6387 · Create POA&amp;M item" data-group="flow-O" data-note="What will fix it, by when, and who holds it?"><img src="img/t/finding-cve--poam.png" alt="CVE-2024-6387 · Create POA&amp;M item" loading="lazy"></button><span class="frame__title">CVE-2024-6387 · Create POA&amp;M item</span></li><li class="frame"><span class="frame__step"><b>5</b><span>Risks</span></span><button class="shot" type="button" data-zoom="img/x/risks.png" data-title="WS-X90 · Risks" data-group="flow-O" data-note="Which risks are worst, and which responses are late?"><img src="img/t/risks.png" alt="WS-X90 · Risks" loading="lazy"></button><span class="frame__title">WS-X90 · Risks</span></li></ol>
+</section>
+<section class="story" id="job-x">
+  <header class="story__head"><h3>10 · Assess, remediate, authorize</h3><span class="who">Nadia Fournier, assessor; Joel Barrantes, ISSM; R. Calloway, authorizing official</span></header>
+  <p class="story__job">The work around the chain, for the assessor, the ISSM and the authorizing official: judge 58 objectives by key, review evidence, give 11 late POA&amp;M items an owner, record a milestone, then the authorization's decisions, schedule, package and signing brief.</p>
+  <ol class="frames"><li class="frame"><span class="frame__step"><b>1</b><span>Start: the workspace</span></span><button class="shot" type="button" data-zoom="img/x/assess.png" data-title="WS-X90 · Assess, increment 2" data-group="flow-X" data-note="What is left to judge, and what did I find?"><img src="img/t/assess.png" alt="WS-X90 · Assess, increment 2" loading="lazy"></button><span class="frame__title">WS-X90 · Assess, increment 2</span></li><li class="frame"><span class="frame__step"><b>2</b><span>Send to lead</span></span><button class="shot" type="button" data-zoom="img/x/assess--send.png" data-title="Assess · Send to lead" data-group="flow-X"><img src="img/t/assess--send.png" alt="Assess · Send to lead" loading="lazy"></button><span class="frame__title">Assess · Send to lead</span></li><li class="frame is-strip"><span class="frame__step"><b>3</b><span>Send to lead</span></span><button class="shot" type="button" data-zoom="img/x/assess-after.png" data-title="Assess · after" data-group="flow-X"><img src="img/t/assess-after.png" alt="Assess · after" loading="lazy"></button><span class="frame__title">Assess · after</span></li><li class="frame"><span class="frame__step"><b>4</b></span><button class="shot" type="button" data-zoom="img/x/evidence-review.png" data-title="WS-X90 · Evidence to review" data-group="flow-X" data-note="Does this version prove what it is cited for?"><img src="img/t/evidence-review.png" alt="WS-X90 · Evidence to review" loading="lazy"></button><span class="frame__title">WS-X90 · Evidence to review</span></li><li class="frame"><span class="frame__step"><b>5</b><span>Assign owner</span></span><button class="shot" type="button" data-zoom="img/x/poam-items.png" data-title="WS-X90 · POA&amp;M" data-group="flow-X" data-note="Which remediation is late or unowned, and who takes it?"><img src="img/t/poam-items.png" alt="WS-X90 · POA&amp;M" loading="lazy"></button><span class="frame__title">WS-X90 · POA&amp;M</span></li><li class="frame"><span class="frame__step"><b>6</b><span>Assign owner</span></span><button class="shot" type="button" data-zoom="img/x/poam-items--assign.png" data-title="POA&amp;M items · Assign owner" data-group="flow-X"><img src="img/t/poam-items--assign.png" alt="POA&amp;M items · Assign owner" loading="lazy"></button><span class="frame__title">POA&amp;M items · Assign owner</span></li><li class="frame is-strip"><span class="frame__step"><b>7</b><span>Assign owner</span></span><button class="shot" type="button" data-zoom="img/x/poam-items-after.png" data-title="POA&amp;M items · after" data-group="flow-X"><img src="img/t/poam-items-after.png" alt="POA&amp;M items · after" loading="lazy"></button><span class="frame__title">POA&amp;M items · after</span></li><li class="frame"><span class="frame__step"><b>8</b><span>The item, weeks later</span></span><button class="shot" type="button" data-zoom="img/x/poam-item.png" data-title="WS-X90 · POA&amp;M item" data-group="flow-X" data-note="Will it close in time, and what closes it?"><img src="img/t/poam-item.png" alt="WS-X90 · POA&amp;M item" loading="lazy"></button><span class="frame__title">WS-X90 · POA&amp;M item</span></li><li class="frame"><span class="frame__step"><b>9</b><span>Record milestone</span></span><button class="shot" type="button" data-zoom="img/x/poam-item--milestone.png" data-title="POA&amp;M item · Record milestone" data-group="flow-X"><img src="img/t/poam-item--milestone.png" alt="POA&amp;M item · Record milestone" loading="lazy"></button><span class="frame__title">POA&amp;M item · Record milestone</span></li><li class="frame is-strip"><span class="frame__step"><b>10</b><span>Record milestone</span></span><button class="shot" type="button" data-zoom="img/x/poam-item-after.png" data-title="POA&amp;M item · to closed" data-group="flow-X"><img src="img/t/poam-item-after.png" alt="POA&amp;M item · to closed" loading="lazy"></button><span class="frame__title">POA&amp;M item · to closed</span></li><li class="frame"><span class="frame__step"><b>11</b></span><button class="shot" type="button" data-zoom="img/x/decisions.png" data-title="WS-X90 · Authorization" data-group="flow-X" data-note="What was decided, on what conditions, and are we ready for the next decision?"><img src="img/t/decisions.png" alt="WS-X90 · Authorization" loading="lazy"></button><span class="frame__title">WS-X90 · Authorization</span></li><li class="frame"><span class="frame__step"><b>12</b><span>or open WS-X90</span></span><button class="shot" type="button" data-zoom="img/x/program.png" data-title="WS-X90 · Authorization · Schedule" data-group="flow-X" data-note="Where does WS-X90 stand on the way to its next decision, and what do I do now?"><img src="img/t/program.png" alt="WS-X90 · Authorization · Schedule" loading="lazy"></button><span class="frame__title">WS-X90 · Authorization · Schedule</span></li><li class="frame"><span class="frame__step"><b>13</b><span>Add security outcomes</span></span><button class="shot" type="button" data-zoom="img/x/program--outcomes.png" data-title="Authorization · Add security outcomes" data-group="flow-X"><img src="img/t/program--outcomes.png" alt="Authorization · Add security outcomes" loading="lazy"></button><span class="frame__title">Authorization · Add security outcomes</span></li><li class="frame is-strip"><span class="frame__step"><b>14</b><span>Add 4 security outcomes</span></span><button class="shot" type="button" data-zoom="img/x/program-after.png" data-title="Authorization · after" data-group="flow-X"><img src="img/t/program-after.png" alt="Authorization · after" loading="lazy"></button><span class="frame__title">Authorization · after</span></li><li class="frame"><span class="frame__step"><b>15</b><span>Customer B</span></span><button class="shot" type="button" data-zoom="img/x/package.png" data-title="Customer B · Authorization · Package" data-group="flow-X" data-note="Is the package complete, and who has it?"><img src="img/t/package.png" alt="Customer B · Authorization · Package" loading="lazy"></button><span class="frame__title">Customer B · Authorization · Package</span></li><li class="frame"><span class="frame__step"><b>16</b><span>Review plan</span></span><button class="shot" type="button" data-zoom="img/x/decide.png" data-title="Customer B · Plan approval brief" data-group="flow-X" data-note="What am I approving, and what does approving it commit to?"><img src="img/t/decide.png" alt="Customer B · Plan approval brief" loading="lazy"></button><span class="frame__title">Customer B · Plan approval brief</span></li><li class="frame"><span class="frame__step"><b>17</b><span>Approve security plan</span></span><button class="shot" type="button" data-zoom="img/x/decide--sign.png" data-title="Plan approval · Sign" data-group="flow-X"><img src="img/t/decide--sign.png" alt="Plan approval · Sign" loading="lazy"></button><span class="frame__title">Plan approval · Sign</span></li><li class="frame is-strip"><span class="frame__step"><b>18</b><span>Approve security plan</span></span><button class="shot" type="button" data-zoom="img/x/decide-after.png" data-title="Plan approval · after" data-group="flow-X"><img src="img/t/decide-after.png" alt="Plan approval · after" loading="lazy"></button><span class="frame__title">Plan approval · after</span></li></ol>
+</section>
+</section>
+<section id="earlier" class="sec">
+  <p class="eyebrow">Pass two · unchanged</p>
+  <h2>The way to a decision, kept as supporting views</h2>
+  <p class="lede">Everything below is pass two as it was finished: the dated path, the assessor's and reviewer's workspaces, the POA&amp;M item, the signing brief, inheritance. It still holds for the people who decide. It is no longer the front door.</p>
+</section>
+<section id="program" class="sec">
+  <p class="eyebrow">Pass two · the first screen as it was proposed</p>
+  <h2>From a dashboard of everything to the path to one decision</h2>
+  <p class="lede">Today's program page answers every question at once. The proposed one answers two: where the program stands on the way to its next decision, and what you do now.</p>
+  <div class="compare">
+    <div class="compare__bar">
+      <div class="seg" role="group" aria-label="Which version">
+        <button type="button" class="seg__b" aria-pressed="false" data-src="null" data-zoomsrc="null">Today</button>
+        <button type="button" class="seg__b" aria-pressed="true" data-src="img/t/program.png" data-zoomsrc="img/x/program.png">Proposed</button>
+      </div>
+      <dl class="facts">
+        <div><dt>Words</dt><dd><s>352</s> 144</dd></div>
+        <div><dt>Things to press</dt><dd><s>607</s> 26</dd></div>
+        <div><dt>Screens tall</dt><dd><s>2.1</s> 1</dd></div>
+      </dl>
+    </div>
+    <button class="shot" type="button" id="hero-shot" data-zoom="img/x/program.png" data-title="WS-X90 · Overview" data-group="hero" data-before="null" data-note="Where does WS-X90 stand on the way to its next decision, and what do I do now?"><img id="hero-img" src="img/t/program.png" alt="The proposed program overview: a dated path with one stage open"></button>
+  </div>
+  
+  <ul class="reads"><li><b>One loud fact</b><span>The standing, in two beats: what is signed, and how late the next decision is. The only 32px type on the page.</span></li><li><b>One picture</b><span>The dated path: what is signed, what is open, what comes next, with today ruled across it.</span></li><li><b>One act</b><span>Top right, always. It is the reader's own next step, and it says why.</span></li><li><b>One home per fact</b><span>The headline says the standing; the path says the dates. Nothing is said twice.</span></li></ul>
+</section>
+<section id="check" class="sec">
+  <p class="eyebrow">Pass one, checked by seven critics</p>
+  <h2>Pass one drew the right map. It did not push the screens.</h2>
+  <ul class="findings"><li><span class="findings__n">12 of 15</span><div><b>A table was still the picture</b><p>On twelve of fifteen wireframes the largest thing was a table. Now every surface has one drawn form that carries its standing, and a table is never it.</p></div></li><li><span class="findings__n">0 jobs</span><div><b>No job could be walked end to end</b><p>Pass one drew destinations. Each job is now drawn as the screen, the dialog its button opens, and the state after.</p></div></li><li><span class="findings__n">85 repeats</span><div><b>The same fact, said again</b><p>Counts and states sat in a tab, a chip, a heading and a footer at once. Each fact now has one home, and each board a word budget the renderer counts.</p></div></li><li><span class="findings__n">6 of 10</span><div><b>Parts Ledger already ships</b><p>Six of the ten parts pass one called new exist in Ledger today. The product's own pattern contract forbids using them.</p></div></li><li><span class="findings__n">2 timelines</span><div><b>What a practitioner missed</b><p>Gates and authorization ran on separate timelines, with no brief to sign and no worksheet for a control. Now: one path, a decision brief, a control ladder.</p></div></li><li><span class="findings__n">Grey</span><div><b>Wireframes hid the real problem</b><p>Hierarchy, colour and type are where the product is unclear. Pass two is drawn in Ledger's tokens at full fidelity, in light and dark.</p></div></li></ul>
+</section>
+<section id="rules" class="sec">
+  <p class="eyebrow">What every board follows</p>
+  <h2>Ten rules, enforced on every board</h2>
+  <ol class="rules"><li><b>One loud fact a surface.</b> The standing, set at 32px. Nothing else on the surface is that size.</li><li><b>One picture a surface.</b> A path, a ladder, a strip of marks, the chain. A table is never the picture.</li><li><b>One action slot.</b> Header right on a record, the footer bar in a workspace, a dialog's footer. Nowhere else.</li><li><b>Role-true.</b> The slot holds the reader's own next step. When the ball is in someone else's court it says who, and for how long.</li><li><b>Blue is the act.</b> One advance button. Ink marks state and place: the current tab, today's rule.</li><li><b>A signature is its own button.</b> Ink, with the signer's name. Never batched, never in a table row.</li><li><b>Colour is a judgement.</b> Green only for what is signed, published or satisfied. Red late or denied. Amber at risk or unowned.</li><li><b>Say it once.</b> One home per fact. A count in a heading is not repeated in a chip, a legend and a footer.</li><li><b>Absence is silent.</b> No empty tier, no column of dashes, no row of zeros. A missing owner that blocks work is the one exception.</li><li><b>A path, not a page.</b> Every check ends in the verb that fixes it. Every button leads somewhere that is drawn.</li></ol>
+</section>
+<section id="jobs" class="sec">
+  <p class="eyebrow">31 of 31 pass-two boards drawn</p>
+  <h2>Earlier explorations, on the old navigation</h2>
+  <p class="lede">A job is the screen at rest, the dialog its one button opens, and the state after, which names who it now waits on. Press any board to zoom; where today's screen exists, the viewer switches to it.</p>
+  <section class="story" id="job-a">
+  <header class="story__head"><h3>A · Clear the blocker</h3><span class="who">Joel Barrantes, ISSM of WS-X90</span></header>
+  <p class="story__job">The ISSM's desk from pass two: PDR is 35 days late because it has no criteria, and the desk leads to the fix. Its path and POA&amp;M boards moved to job 10.</p>
+  <ol class="frames"><li class="frame"><span class="frame__step"><b>1</b><span>Start: the ISSM's desk</span></span><button class="shot" type="button" data-zoom="img/x/home.png" data-title="Home · ISSM" data-group="flow-A" data-note="What needs me today?"><img src="img/t/home.png" alt="Home · ISSM" loading="lazy"></button><span class="frame__title">Home · ISSM</span></li><li class="frame"><span class="frame__step"><b>2</b><span>Add security outcomes</span></span><button class="shot" type="button" data-zoom="img/x/home--outcomes.png" data-title="Home · Add security outcomes" data-group="flow-A"><img src="img/t/home--outcomes.png" alt="Home · Add security outcomes" loading="lazy"></button><span class="frame__title">Home · Add security outcomes</span></li></ol>
+</section>
+<section class="story" id="job-b">
+  <header class="story__head"><h3>B · Climb the ladder</h3><span class="who">Ingrid Solberg, control engineer</span></header>
+  <p class="story__job">235 controls have no evidence. Find one, add evidence, and watch it climb its ladder to Satisfied.</p>
+  <ol class="frames"><li class="frame"><span class="frame__step"><b>1</b><span>Start: Controls</span></span><button class="shot" type="button" data-zoom="img/x/controls.png" data-title="WS-X90 · Controls › Status" data-group="flow-B" data-note="Where is the baseline stuck?"><img src="img/t/controls.png" alt="WS-X90 · Controls › Status" loading="lazy"></button><span class="frame__title">WS-X90 · Controls › Status</span></li><li class="frame"><span class="frame__step"><b>2</b><span>SI-2</span></span><button class="shot" type="button" data-zoom="img/x/control.png" data-title="SI-2 Flaw Remediation" data-group="flow-B" data-note="Where does WS-X90 stand on SI-2, and what moves it up a rung?"><img src="img/t/control.png" alt="SI-2 Flaw Remediation" loading="lazy"></button><span class="frame__title">SI-2 Flaw Remediation</span></li><li class="frame"><span class="frame__step"><b>3</b><span>Add evidence</span></span><button class="shot" type="button" data-zoom="img/x/control--evidence.png" data-title="SI-2 · Add evidence" data-group="flow-B"><img src="img/t/control--evidence.png" alt="SI-2 · Add evidence" loading="lazy"></button><span class="frame__title">SI-2 · Add evidence</span></li><li class="frame is-strip"><span class="frame__step"><b>4</b><span>Add evidence</span></span><button class="shot" type="button" data-zoom="img/x/control-after.png" data-title="SI-2 · up the ladder" data-group="flow-B"><img src="img/t/control-after.png" alt="SI-2 · up the ladder" loading="lazy"></button><span class="frame__title">SI-2 · up the ladder</span></li></ol>
+</section>
+<section class="story" id="job-d">
+  <header class="story__head"><h3>D · Answer a finding</h3><span class="who">Dan Whitfield and Ingrid Solberg, owners</span></header>
+  <p class="story__job">58 findings on Customer A have no POA&M item. Answer one, then walk the rest without going back to a list. The item itself moved to job 10.</p>
+  <ol class="frames"><li class="frame"><span class="frame__step"><b>1</b><span>Start: a finding</span></span><button class="shot" type="button" data-zoom="img/x/finding.png" data-title="Finding · Customer A" data-group="flow-D" data-note="What did the assessor find, and how is it being answered?"><img src="img/t/finding.png" alt="Finding · Customer A" loading="lazy"></button><span class="frame__title">Finding · Customer A</span></li><li class="frame"><span class="frame__step"><b>2</b><span>Create POA&amp;M item</span></span><button class="shot" type="button" data-zoom="img/x/finding--poam.png" data-title="Finding · Create POA&amp;M item" data-group="flow-D"><img src="img/t/finding--poam.png" alt="Finding · Create POA&amp;M item" loading="lazy"></button><span class="frame__title">Finding · Create POA&amp;M item</span></li><li class="frame is-strip"><span class="frame__step"><b>3</b><span>Create POA&amp;M item</span></span><button class="shot" type="button" data-zoom="img/x/finding-after.png" data-title="Finding · after" data-group="flow-D"><img src="img/t/finding-after.png" alt="Finding · after" loading="lazy"></button><span class="frame__title">Finding · after</span></li></ol>
+</section>
+<section class="story" id="job-f">
+  <header class="story__head"><h3>F · Decide</h3><span class="who">R. Calloway, authorizing official</span></header>
+  <p class="story__job">The authorizing official's desk, set aside for now: what waits on a signature, and one risk acceptance. The brief and the signature moved to job 10.</p>
+  <ol class="frames"><li class="frame"><span class="frame__step"><b>1</b><span>The authorizing official's desk</span></span><button class="shot" type="button" data-zoom="img/x/home-ao.png" data-title="Home · authorizing official" data-group="flow-F" data-note="What waits on my signature?"><img src="img/t/home-ao.png" alt="Home · authorizing official" loading="lazy"></button><span class="frame__title">Home · authorizing official</span></li><li class="frame"><span class="frame__step"><b>2</b><span>Review acceptance</span></span><button class="shot" type="button" data-zoom="img/x/home-ao--accept.png" data-title="Home · Accept risk" data-group="flow-F"><img src="img/t/home-ao--accept.png" alt="Home · Accept risk" loading="lazy"></button><span class="frame__title">Home · Accept risk</span></li></ol>
+</section>
+<section class="story" id="job-g">
+  <header class="story__head"><h3>G · Inherit</h3><span class="who">Dan Whitfield, system owner of Customer A</span></header>
+  <p class="story__job">Pass two's inheritance, kept for comparison. Job 2's Library tab replaces it on the new navigation.</p>
+  <ol class="frames"><li class="frame"><span class="frame__step"><b>1</b></span><button class="shot" type="button" data-zoom="img/x/product.png" data-title="Products › X800 Missile" data-group="flow-G" data-note="What does the product give every variant, and which variant is behind?"><img src="img/t/product.png" alt="Products › X800 Missile" loading="lazy"></button><span class="frame__title">Products › X800 Missile</span></li><li class="frame"><span class="frame__step"><b>2</b><span>Customer A</span></span><button class="shot" type="button" data-zoom="img/x/inheritance.png" data-title="Customer A · Inheritance" data-group="flow-G" data-note="What do we owe an assessment on, and how far along is it?"><img src="img/t/inheritance.png" alt="Customer A · Inheritance" loading="lazy"></button><span class="frame__title">Customer A · Inheritance</span></li><li class="frame"><span class="frame__step"><b>3</b><span>Review version 2</span></span><button class="shot" type="button" data-zoom="img/x/inheritance--take.png" data-title="Inheritance · Take version 2" data-group="flow-G"><img src="img/t/inheritance--take.png" alt="Inheritance · Take version 2" loading="lazy"></button><span class="frame__title">Inheritance · Take version 2</span></li></ol>
+</section>
+<section class="story" id="job-h">
+  <header class="story__head"><h3>H · Watch, and start</h3><span class="who">Priya Raghavan, program manager</span></header>
+  <p class="story__job">Is the system still watched as its ATO requires? And a program before any work, drawn as a path instead of a page of zeros.</p>
+  <ol class="frames"><li class="frame"><span class="frame__step"><b>1</b></span><button class="shot" type="button" data-zoom="img/x/monitoring.png" data-title="WS-X90 · Monitoring" data-group="flow-H" data-note="Is the system still being watched as its ATO requires?"><img src="img/t/monitoring.png" alt="WS-X90 · Monitoring" loading="lazy"></button><span class="frame__title">WS-X90 · Monitoring</span></li><li class="frame"><span class="frame__step"><b>2</b></span><button class="shot" type="button" data-zoom="img/x/system.png" data-title="WS-X90 · System" data-group="flow-H" data-note="What is inside the authorization boundary, and where is it weak?"><img src="img/t/system.png" alt="WS-X90 · System" loading="lazy"></button><span class="frame__title">WS-X90 · System</span></li><li class="frame"><span class="frame__step"><b>3</b></span><button class="shot" type="button" data-zoom="img/x/program-empty.png" data-title="Field operations mobile · Overview" data-group="flow-H" data-note="What is the path, and what is the first step?"><img src="img/t/program-empty.png" alt="Field operations mobile · Overview" loading="lazy"></button><span class="frame__title">Field operations mobile · Overview</span></li></ol>
+</section>
+<section class="story" id="job-i">
+  <header class="story__head"><h3>I · Portfolio and a risk</h3><span class="who">Anyone</span></header>
+  <p class="story__job">Which program needs attention first, and one risk from threat to response.</p>
+  <ol class="frames"><li class="frame"><span class="frame__step"><b>1</b></span><button class="shot" type="button" data-zoom="img/x/programs.png" data-title="Programs" data-group="flow-I"><img src="img/t/programs.png" alt="Programs" loading="lazy"></button><span class="frame__title">Programs</span></li><li class="frame"><span class="frame__step"><b>2</b></span><button class="shot" type="button" data-zoom="img/x/risk.png" data-title="Risk record" data-group="flow-I" data-note="How bad is it, who owns it, and what is the response?"><img src="img/t/risk.png" alt="Risk record" loading="lazy"></button><span class="frame__title">Risk record</span></li></ol>
+</section>
+<section class="story" id="job-p">
+  <header class="story__head"><h3>P · On a phone</h3><span class="who">Priya Raghavan, program manager</span></header>
+  <p class="story__job">What is late and who holds it, read on a phone, with one reminder sent from it. Signing stays at a desk.</p>
+  <ol class="frames"><li class="frame is-phone"><span class="frame__step"><b>1</b></span><button class="shot" type="button" data-zoom="img/x/phone-home.png" data-title="Phone · Home" data-group="flow-P"><img src="img/t/phone-home.png" alt="Phone · Home" loading="lazy"></button><span class="frame__title">Phone · Home</span></li><li class="frame is-phone"><span class="frame__step"><b>2</b></span><button class="shot" type="button" data-zoom="img/x/phone-program.png" data-title="Phone · WS-X90" data-group="flow-P"><img src="img/t/phone-program.png" alt="Phone · WS-X90" loading="lazy"></button><span class="frame__title">Phone · WS-X90</span></li><li class="frame is-phone"><span class="frame__step"><b>3</b></span><button class="shot" type="button" data-zoom="img/x/phone-step.png" data-title="Phone · a step" data-group="flow-P"><img src="img/t/phone-step.png" alt="Phone · a step" loading="lazy"></button><span class="frame__title">Phone · a step</span></li><li class="frame is-phone"><span class="frame__step"><b>4</b></span><button class="shot" type="button" data-zoom="img/x/phone-after.png" data-title="Phone · after" data-group="flow-P"><img src="img/t/phone-after.png" alt="Phone · after" loading="lazy"></button><span class="frame__title">Phone · after</span></li></ol>
+</section>
+</section>
+<section id="ledger" class="sec">
+  <p class="eyebrow">The design system</p>
+  <h2>What Ledger needs next</h2>
+  <p class="lede">Eight sheets specify the parts these screens are built from: what each is for, its states, what it extends in Ledger today and what it retires. The eighth sets the type, colour and surfaces under them all.</p>
+  <div class="sheetgrid"><figure class="fig"><button class="shot is-crop" type="button" data-zoom="img/x/sheet-header.png" data-title="Record header and buttons" data-group="sheets"><img src="img/t/sheet-header.png" alt="Record header and buttons" loading="lazy"></button><figcaption><b>Record header and buttons</b></figcaption></figure><figure class="fig"><button class="shot is-crop" type="button" data-zoom="img/x/sheet-rail.png" data-title="Time: rail, path cell, clocks" data-group="sheets"><img src="img/t/sheet-rail.png" alt="Time: rail, path cell, clocks" loading="lazy"></button><figcaption><b>Time: rail, path cell, clocks</b></figcaption></figure><figure class="fig"><button class="shot is-crop" type="button" data-zoom="img/x/sheet-checks.png" data-title="Readiness, seats and signatures" data-group="sheets"><img src="img/t/sheet-checks.png" alt="Readiness, seats and signatures" loading="lazy"></button><figcaption><b>Readiness, seats and signatures</b></figcaption></figure><figure class="fig"><button class="shot is-crop" type="button" data-zoom="img/x/sheet-marks.png" data-title="Counting: bars, rungs, marks" data-group="sheets"><img src="img/t/sheet-marks.png" alt="Counting: bars, rungs, marks" loading="lazy"></button><figcaption><b>Counting: bars, rungs, marks</b></figcaption></figure><figure class="fig"><button class="shot is-crop" type="button" data-zoom="img/x/sheet-trace.png" data-title="The chain" data-group="sheets"><img src="img/t/sheet-trace.png" alt="The chain" loading="lazy"></button><figcaption><b>The chain</b></figcaption></figure><figure class="fig"><button class="shot is-crop" type="button" data-zoom="img/x/sheet-rows.png" data-title="Rows" data-group="sheets"><img src="img/t/sheet-rows.png" alt="Rows" loading="lazy"></button><figcaption><b>Rows</b></figcaption></figure><figure class="fig"><button class="shot is-crop" type="button" data-zoom="img/x/sheet-bench.png" data-title="Review workspace" data-group="sheets"><img src="img/t/sheet-bench.png" alt="Review workspace" loading="lazy"></button><figcaption><b>Review workspace</b></figcaption></figure><figure class="fig"><button class="shot is-crop" type="button" data-zoom="img/x/sheet-foundations.png" data-title="Type, colour and surfaces" data-group="sheets"><img src="img/t/sheet-foundations.png" alt="Type, colour and surfaces" loading="lazy"></button><figcaption><b>Type, colour and surfaces</b></figcaption></figure></div>
+  <h3 class="sub">Twelve parts, each built on one that ships</h3>
+  <p class="lede">The engineer judge went through every part the six concepts invented and named its duplicates. What is left is short, and none of it starts from nothing.</p>
+  <div class="tablebox"><table>
+    <thead><tr><th>Part</th><th>Built on</th><th>What changes</th></tr></thead>
+    <tbody>
+      <tr><td>Standing headline</td><td><code>PageHeader</code></td><td>The name stays the h1. The standing is one line of two beats on an Overview, one beat on a phone.</td></tr>
+      <tr><td>Action slot</td><td><code>PageHeader.Actions</code>, <code>ActionBar</code></td><td>Four forms and no others: advance, sign, waiting on a name with Remind, none.</td></tr>
+      <tr><td>Sign button</td><td><code>Button</code></td><td><code>intent="sign"</code>, the signer’s name, ink, 36px. Command and Enter, never a bare Enter.</td></tr>
+      <tr><td>Path</td><td><code>Stepper</code>, <code>Timeline</code></td><td>Vertical, dated or laddered, one stage open. No filled button inside it.</td></tr>
+      <tr><td>Work row</td><td><code>Item</code>, the task row</td><td>Verb, target, why, who it waits on, when. One line.</td></tr>
+      <tr><td>Meter</td><td><code>Tally</code></td><td>A neutral tone, always beside “N of M”, late told by shape as well as colour.</td></tr>
+      <tr><td>Climb</td><td><code>Ladder</code>, <code>Progress</code></td><td>The baseline’s four rungs with the gaps to scale. Three pixels at least a segment, and a table twin.</td></tr>
+      <tr><td>Objective cells</td><td><code>Table</code>, <code>TileMap</code></td><td>The control’s grid: rungs by objectives. Not links at this size; a table twin.</td></tr>
+      <tr><td>Empty seat</td><td><code>Avatar</code>, <code>Absent</code></td><td>“No owner” is drawn dashed and can be pressed.</td></tr>
+      <tr><td>Decision keys</td><td><code>RadioGroup</code>, <code>Kbd</code></td><td>Cards with a shortcut, in workspaces only, asleep inside a text field.</td></tr>
+      <tr><td>Chain rail</td><td><code>Trace</code></td><td>Seven fixed stations. A gap breaks the line.</td></tr>
+      <tr><td>Due rail</td><td><code>Chart</code></td><td>Dated items as dots on one axis above their table, today ruled across.</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">Dropped after judging: the multi-lane tape as a first screen, the lamp board, the river, the key bar and the fanned objective staircase.</p>
+</section>
+<section id="boxed" class="sec">
+  <p class="eyebrow">The honest part</p>
+  <h2>Ledger is not what boxes the product in. Its contract is.</h2>
+  <p class="lede">The kit is wide: 130 families, 26 never used by the product and 31 used in one file. Six of the ten parts pass one called new already ship. What stops a screen from using them is <code>docs/guides/product-patterns.md</code>, written to stop drift, and the lint that enforces it. Each line below was checked against the file on Nov 14.</p>
+  <div class="tablebox"><table>
+    <thead><tr><th>The rule today</th><th>Where</th><th>What it forbids</th><th>The change</th></tr></thead>
+    <tbody>
+      <tr><td>The header has no “status badge … or second action row”; state lives in the Details rail</td><td>contract L53, L55</td><td>The state label beside the name and the action slot: the header every board here depends on</td><td><code>PageHeader.Standing</code>, <code>.Facts</code>, <code>.Next</code>; ActionBar and the rail’s status rows retire</td></tr>
+      <tr><td>Every chain record opens with a four-number band and the wired Trace; evidence, a finding, a risk and a remediation item “offer nothing”</td><td>L67</td><td>One picture a record, and a next step on four of the seven kinds of record</td><td>The chain as seven fixed stations; a computed next step on every record</td></tr>
+      <tr><td>An Overview is trays with “a zero muted”; a dashboard is a stat band, a chart and five-row tables</td><td>L61, L79</td><td>The path, a desk of work rows, and silence where there is nothing</td><td>Path and work-row parts; a zero is not drawn</td></tr>
+      <tr><td>Line tabs only; “a record’s tab holds no second strip”; focused views “show no tab strip”</td><td>L89, L91, L171</td><td>Seven tabs with their views under them. Today fifteen views hide in an Actions menu</td><td>View tabs: a tab’s own views, drawn unlike a filter</td></tr>
+      <tr><td>A closed list of surfaces; any other form is “a Dialog, never a Sheet”</td><td>L153, L163</td><td>The review workspace and its footer bar</td><td>ReviewPane and FooterBar join the list</td></tr>
+      <tr><td>Every empty collection draws an Empty; an empty cell “draws Absent”</td><td>L29, L167</td><td>Silent absence, and No owner as warning words that can be pressed</td><td>Silence by default; the one loud absence is a blocker</td></tr>
+      <tr><td>An unlisted shape waits for a written recommendation; the boundary test rejects an unlisted route</td><td>L3, L215</td><td>Trying anything</td><td>A lab lane: trial routes with an expiry date</td></tr>
+      <tr><td>No local variant of a kit part: “a different look for a part is a change to the part”; no rule can be switched off</td><td>Lint.mdx L26, L41, L73, L40</td><td>A trial of any part costs stories, a docs page, a changelog entry and the API baseline first</td><td>Parts marked Experimental may be composed in the lab lane</td></tr>
+      <tr><td><code>product-line-tabs</code></td><td>Lint.mdx L45</td><td>The filled tabs the kit itself ships</td><td>Allowed for view tabs</td></tr>
+      <tr><td>Button has no large size; 32/40 is “reserved for hero forms”; a stat’s figure sits at the h1’s size; the current step wears the primary’s blue</td><td>button.tsx, dimension.json:19, stat.tsx:48, phase-bar.tsx:41</td><td>One loud fact, a 36px slot, and blue kept for the act</td><td><code>size="large"</code>, <code>intent="sign"</code>, a figure style, <code>background.current</code></td></tr>
+    </tbody>
+  </table></div>
+  <div class="plain">
+    <p><b>Keep the contract; give it a way to change.</b> It is why the product is consistent and testable. But it only grows: it gained 1,553 words while pass one was being researched. The proposal is a short contract, the rules above amended, and a lab lane where a new shape can be tried before it is specified.</p>
+    <p><b>Seven tokens to mint.</b> <code>text.link</code> · <code>background.current</code> · <code>border.current</code> · <code>icon.changed</code> · <code>chart.changed</code> · <code>figure.default</code> · <code>layout.footer</code>. Three ink tints and two bands used by the drawn forms are mixed from existing tokens in the mocks and would be named.</p>
+  </div>
+</section>
+<section id="borrowed" class="sec">
+  <p class="eyebrow">Other platforms</p>
+  <h2>Eighteen ideas, and where each was taken from</h2>
+  <p class="lede">Researchers read how review, release, audit and remediation tools solve the same problems. These are the patterns the boards use. The links are the researchers’ sources.</p>
+  <div class="tablebox"><table>
+    <thead><tr><th>The idea</th><th>Taken from</th><th>Where it shows</th></tr></thead>
+    <tbody>
+      <tr><td>A gate in the header: the state, then one verb computed from it</td><td><a href="https://github.blog/changelog/2025-03-04-improved-pull-request-merge-experience-is-now-generally-available/">GitHub pull requests</a></td><td>Every record: the state label beside the name, the action slot top right</td></tr>
+      <tr><td>The button names where the record lands</td><td><a href="https://support.zendesk.com/hc/en-us/articles/4408832151834-Updating-and-solving-tickets">Zendesk, PagerDuty, Jira</a></td><td>“Add 4 security outcomes”, “Record 3 reviews”, never “Submit”</td></tr>
+      <tr><td>Whose turn it is</td><td><a href="https://gerrit-review.googlesource.com/Documentation/user-attention-set.html">Gerrit’s attention set, Procore’s Ball In Court</a></td><td>“Waiting on Priya Raghavan · gate chair”, in place of a disabled button</td></tr>
+      <tr><td>The stage holds what it needs</td><td><a href="https://trailhead.salesforce.com/content/learn/modules/leads_opportunities_lightning_experience/visualize-success-with-path-and-kanban">Salesforce Path, Dynamics 365</a></td><td>The open stage of the path: its checks, and who decides</td></tr>
+      <tr><td>A chain spaced by time, with a moving now</td><td><a href="https://github.com/sbb-design-systems/lyne-components/tree/main/src/elements/pearl-chain">SBB’s pearl chain, Linear</a></td><td>The dated path and its Today rule</td></tr>
+      <tr><td>The gate is a joint: checks first, then the signer</td><td><a href="https://learn.microsoft.com/en-us/azure/devops/pipelines/release/approvals/gates?view=azure-devops">Azure Pipelines approvals and gates</a></td><td>PDR: criteria, then the gate chair</td></tr>
+      <tr><td>Lateness as a number</td><td><a href="https://www.flightaware.com/about/faq">Flight status boards, Microsoft Project</a></td><td>“35d late” in the date’s place; the due clock in a POA&M row</td></tr>
+      <tr><td>Failing first; done is quiet</td><td><a href="https://design-system.service.gov.uk/components/task-list/">GitHub’s merge box, GOV.UK task list</a></td><td>Decisions: unmet checks lead, each ending in the verb that fixes it; met ones fold</td></tr>
+      <tr><td>The concurrence chain on one page</td><td><a href="https://human.libretexts.org/Bookshelves/Composition/Specialized_Composition/The_Tongue_and_Quill_(U.S._Air_Force)/18%3A_The_Staff_Package/18.1%3A_SSS_Fundamentals">USAF Staff Summary Sheet (AF Form 1768)</a></td><td>The seats on a package: who had it, who has it, for how long</td></tr>
+      <tr><td>A signature carries its meaning and its signer</td><td><a href="https://www.law.cornell.edu/cfr/text/21/11.50">21 CFR 11.50, Veeva Vault</a></td><td>The ink sign button with the signer’s name, and its dialog</td></tr>
+      <tr><td>One key judges and moves</td><td><a href="https://www.browserstack.com/docs/test-management/overview/keyboard-shortcuts">TestRail FastTrack, BrowserStack, Relativity</a></td><td>The assessor’s workspace: S, O, N on keycaps, J and K to move</td></tr>
+      <tr><td>Drafts until one publish</td><td><a href="https://docs.reviewable.io/reviews.html">GitHub reviews, Reviewable</a></td><td>The footer bar: “Send to lead”, “Record 3 reviews”</td></tr>
+      <tr><td>Count-led rows; the verb comes from state and role</td><td><a href="https://help.expensify.com/articles/new-expensify/getting-started/Expensify-Home-Overview">Expensify Home</a></td><td>The desk: one row anatomy, verb first</td></tr>
+      <tr><td>A selection bar that counts; bulk edit as one reviewed change</td><td><a href="https://carbondesignsystem.com/components/data-table/usage/">Carbon, Polaris, Linear</a></td><td>POA&M items: 11 chosen, Assign owner</td></tr>
+      <tr><td>Typed cells and a one-colour row spine</td><td><a href="https://grafana.com/docs/grafana/latest/panels-visualizations/visualizations/table/">Grafana, Notion, GitHub Projects</a></td><td>Register rows: severity as a spine, one small drawn form a row</td></tr>
+      <tr><td>Milestones and the line they cannot cross</td><td><a href="https://mitre.github.io/emasser/docs/features.html">eMASS, from MITRE’s published API notes</a></td><td>A POA&M item’s path against the Condition 1 line</td></tr>
+      <tr><td>The day strip</td><td><a href="https://support.atlassian.com/statuspage/docs/display-historical-uptime-of-components">Atlassian Statuspage</a></td><td>Monitoring: one mark a period, a scheduled task a strip</td></tr>
+      <tr><td>Stage marks that open; a link has a state of its own</td><td><a href="https://docs.gitlab.com/ci/pipelines/">GitLab’s pipeline mini graph, IBM DOORS Next</a></td><td>The chain: seven fixed stations, and a gap that carries its fix</td></tr>
+    </tbody>
+  </table></div>
+  <h3 class="sub">Ten ideas that would change the product most</h3>
+  <p class="lede">Ranked by the researchers, most product-changing first. Most are on the boards; what is only partly drawn is the case for a third pass.</p>
+  <div class="tablebox"><table>
+    <thead><tr><th>The idea</th><th>Seen in</th><th>In this pass</th></tr></thead>
+    <tbody>
+      <tr><td>The checks choose the verb. Each check is Required, AO may accept, or Advisory, and the one button’s label is computed from what is still open.</td><td><a href="https://developer.hashicorp.com/terraform/cloud-docs/workspaces/policy-enforcement/view-results">HCP Terraform</a>, <a href="https://gerrit-review.googlesource.com/Documentation/config-submit-requirements.html">Gerrit</a>, <a href="https://docs.datadoghq.com/internal_developer_portal/scorecards/scorecard_configuration/">Datadog Scorecards</a></td><td>Drawn. Decisions lists the reader’s own checks first and folds the advisory ones. The signing brief makes the decision one choice of three keys, signed with one ink button. The button’s label is not yet computed from the open checks.</td></tr>
+      <tr><td>One gate in every record header: the state, and a verb named for where the record lands and for who is reading.</td><td><a href="https://github.blog/changelog/2026-11-05-new-pull-request-overview-page-in-public-preview/">GitHub pull requests</a>, <a href="https://support.zendesk.com/hc/en-us/articles/4408832151834-Updating-and-solving-tickets">Zendesk</a></td><td>Drawn. The action slot.</td></tr>
+      <tr><td>Registers open folded. Two thousand rows read as six counted lines, and the stat band goes.</td><td><a href="https://www.ag-grid.com/javascript-data-grid/grouping/">AG Grid</a>, <a href="https://linear.app/docs/display-options">Linear</a></td><td>Drawn on the rows sheet as the group band. No register opens folded yet.</td></tr>
+      <tr><td>Covered is a row state. Judging a heading folds the objectives under it, so 1,800 objectives run as the determinations owed.</td><td><a href="https://help.relativity.com/RelativityOne/Content/Mobile/Coding_documents.htm">Relativity</a>, <a href="https://stig-manager.readthedocs.io/en/latest/user-guide/user-guide.html">STIG Manager</a></td><td>Drawn on the review workspace sheet: a key pressed on a heading covers the six objectives under it.</td></tr>
+      <tr><td>Every fix prints its gain: “Add evidence · REQ-064 · +10 objectives”.</td><td><a href="https://support.google.com/google-ads/answer/9061546?hl=en">Google Ads recommendations</a></td><td>Drawn on Controls: each control with no evidence shows the objectives it would add.</td></tr>
+      <tr><td>Connectors carry the news. A link holds, is suspect or is missing, and opens its fix.</td><td>IBM DOORS Next, Jama, <a href="https://docs.gitlab.com/ci/pipelines/">GitLab</a></td><td>Partly. The chain rail breaks at a gap. A suspect link is not drawn.</td></tr>
+      <tr><td>Batch the context, not the click. A section of Home opens as one stack, and each act folds its record to a receipt. Signatures never batch.</td><td><a href="https://hey.com/how-it-works">HEY</a></td><td>Partly. The review workspaces keep the reader in one place.</td></tr>
+      <tr><td>Lateness is a rung, on three clocks. First date, date now, actual; late items climb to named desks.</td><td><a href="https://docs.pagerduty.com/incident-management/schedules/escalation-policies">PagerDuty</a>, <a href="https://confluence.atlassian.com/servicemanagementserver102/sla-display-formats-and-time-frames-1473873983.html">Jira Service Management</a>, flight status boards</td><td>Partly. Lateness is a number and a red length. The struck first date and the escalation ladder are not drawn.</td></tr>
+      <tr><td>Arrivals fill the beats. A monitoring line is an expectation with a grace period, and nobody ticks a task.</td><td><a href="https://raw.githubusercontent.com/louislam/uptime-kuma/master/src/components/HeartbeatBar.vue">Uptime Kuma</a>, <a href="https://healthchecks.io/docs/configuring_checks/">Healthchecks.io</a></td><td>On the Monitoring board.</td></tr>
+      <tr><td>A variant is a branch: ahead and behind, plus and minus, Take version read as a plan before it runs.</td><td><a href="https://git-scm.com/book/en/v2/Git-Branching-Remote-Branches">Git</a>, <a href="https://developer.hashicorp.com/terraform/cli/commands/plan">Terraform plan</a>, <a href="https://docs.unity.com/en-us/engine/current/manual/working-with-gameobjects/prefabs/override/prefab-instance-overrides">Unity prefabs</a></td><td>Drawn. Product shows which variants are behind, and Take version 2 opens as a plan: 18 kept, 1 added, 1 stays removed.</td></tr>
+    </tbody>
+  </table></div>
+  <h3 class="sub">Ten things the same research says to stop</h3>
+  <ol class="rules">
+    <li><b>One Actions menu</b> as a header’s only control.</li>
+    <li><b>Silence shown as health:</b> no data drawn as met.</li>
+    <li><b>Done as loud as open,</b> and statuses that look like buttons.</li>
+    <li><b>A wizard stepper</b> or one “current” pointer over parallel work.</li>
+    <li><b>An event inbox</b> as the work queue; Home padded with history.</li>
+    <li><b>A count its list contradicts;</b> a trace silently capped.</li>
+    <li><b>A score that rises without work:</b> dismissals, averages of averages.</li>
+    <li><b>Acceptances that hide the risk</b> or never end.</li>
+    <li><b>Origin stored as a status,</b> such as Inherited in the status list.</li>
+    <li><b>Bulk Satisfied:</b> a determination made on sight, or by the page.</li>
+  </ol>
+  <p class="note">Thirteen research reports, 91 patterns, 90 with a source. Nine more research threads (navigation, copy, the empty program, the phone, the portfolio and others) stopped when usage credits ran out and were not rerun; those boards are drawn from the rules and the fact book.</p>
+</section>
+<section id="explorations" class="sec">
+  <p class="eyebrow">The concept round</p>
+  <h2>Six designers, one page, six answers</h2>
+  <p class="lede">Before the set was drawn, six designers each took the program overview in a different direction, and four judges scored them: a founder, an RMF practitioner, an art director and an engineer. Three ranked the brief first; the founder ranked the path first. All four asked for the same graft, and it is the first screen above: the brief's standing as the headline, the path as the picture, the flight deck's cells on the control.</p>
+  <div class="takes"><figure class="take is-chosen"><button class="shot" type="button" data-zoom="img/c/path.png" data-title="The path" data-group="concepts" data-note="Kept as the picture of every record page. Judges: 30, 20, 20 and 18."><img src="img/c/path.png" alt="The path: The page is a dated path with one stage open." loading="lazy"></button><figcaption><b>The path</b><span class="tag">The picture</span><span>The page is a dated path with one stage open.</span><span class="kept">Kept as the picture of every record page. Judges: 30, 20, 20 and 18.</span></figcaption></figure><figure class="take is-chosen"><button class="shot" type="button" data-zoom="img/c/brief.png" data-title="The brief" data-group="concepts" data-note="Kept as the headline, the work rows and the baseline's climb. Three of four judges ranked it first."><img src="img/c/brief.png" alt="The brief: The standing as one sentence, the baseline as one line." loading="lazy"></button><figcaption><b>The brief</b><span class="tag">The headline</span><span>The standing as one sentence, the baseline as one line.</span><span class="kept">Kept as the headline, the work rows and the baseline's climb. Three of four judges ranked it first.</span></figcaption></figure><figure class="take"><button class="shot" type="button" data-zoom="img/c/desk.png" data-title="The desk" data-group="concepts" data-note="Kept: it became the review workspace and its keycaps."><img src="img/c/desk.png" alt="The desk: A numbered list of next acts, decided in place by key." loading="lazy"></button><figcaption><b>The desk</b><span>A numbered list of next acts, decided in place by key.</span><span class="kept">Kept: it became the review workspace and its keycaps.</span></figcaption></figure><figure class="take is-chosen"><button class="shot" type="button" data-zoom="img/c/flightdeck.png" data-title="The flight deck" data-group="concepts" data-note="Kept: its objective cells are the control's picture. The tape is too dense for a first screen."><img src="img/c/flightdeck.png" alt="The flight deck: Everything dated, on one time axis." loading="lazy"></button><figcaption><b>The flight deck</b><span class="tag">The control</span><span>Everything dated, on one time axis.</span><span class="kept">Kept: its objective cells are the control's picture. The tape is too dense for a first screen.</span></figcaption></figure><figure class="take"><button class="shot" type="button" data-zoom="img/c/map.png" data-title="The map" data-group="concepts" data-note="Not kept: striking, and false. Satisfied controls do not flow into a design review."><img src="img/c/map.png" alt="The map: The baseline as a flow that narrows toward the decision." loading="lazy"></button><figcaption><b>The map</b><span>The baseline as a flow that narrows toward the decision.</span><span class="kept">Not kept: striking, and false. Satisfied controls do not flow into a design review.</span></figcaption></figure><figure class="take"><button class="shot" type="button" data-zoom="img/c/purist.png" data-title="The purist" data-group="concepts" data-note="Kept as the control: how far today's kit goes with no new part."><img src="img/c/purist.png" alt="The purist: Only the parts Ledger ships today." loading="lazy"></button><figcaption><b>The purist</b><span>Only the parts Ledger ships today.</span><span class="kept">Kept as the control: how far today's kit goes with no new part.</span></figcaption></figure></div>
+</section>
+<section id="decisions" class="sec">
+  <p class="eyebrow">Yours to make</p>
+  <h2>Forty decided. None open.</h2>
+  <p class="lede">Every decision the proposal raised is answered: nineteen on Nov 16, listed at the top of the page, and twenty-one before them. What is left is yours: approve these artifacts. Then Phase 0, one week of ten quick fixes, and nothing in the product is built before that.</p>
+</section>
+<section id="method" class="sec">
+  <p class="eyebrow">Method</p>
+  <h2>How this was made, and what is real</h2>
+  <div class="plain">
+    <p><b>Who drew it.</b> Seven critics checked pass one: a founder, an RMF practitioner, a flow critic, a systems critic, an art director, a writer and a forms designer. Thirteen researchers mined other platforms for patterns. Six designers explored the first screen and four judges scored them. Twenty-nine designers were then set to draw the set, each followed by an art director.</p>
+    <p><b>How it was finished.</b> Usage credits ran out three times in the first run, which stopped at 41 boards, 24 of them unreviewed drafts. A second, slower run finished the set with sixteen agents, three at a time: five drew the eight missing boards, eleven took the drafts through an art director’s pass, and the lead looked at every board before it went on the page. All 89 boards are final. Nine research threads stopped in the first run and were not rerun.</p>
+    <p><b>Pass three.</b> After the founder's review the lead rewrote the brief around the control work and read a second session's proposal page for what fits. One designer built the shared shell and the page types; five more drew the boards from them, three at a time, and the lead looked at each before it went on the page. The 49 pass-two boards are unchanged.</p>
+    <p><b>Pass four.</b> The founder asked for the organization's hierarchy and its libraries, and for assess once, use everywhere. He answered six decisions by question, and the lead wrote the brief from his answers. One designer extended the navigation to the organization scope; five more drew the boards, three at a time. The lead moved eighteen pass-two boards onto the new navigation; their content is unchanged. The demo has no component shared between two products, so the sharing itself is illustrative: the Mission Computer as a library component at versions 3.0 and 3.1, WS-X90 as its consumer, the finding offered upstream, its POA&amp;M milestones and the Cyber T&E events. The business lines, products, configurations, elements, variants, standings, what each program modified, every library count and the Mission Computer's 54 determinations are the demo's own.</p>
+    <p><b>Pass five.</b> On Nov 15 the founder answered eight more decisions by question and asked for them on the boards. Five designers, in two waves, redrew the reuse boards and drew nine new ones, and the lead looked at each. The reuse story now stands on records drafted in the demo database: the Mission Computer and the Audit Log Collector as library components with a named owner and one published assessment each (61 controls claimed, 54 judged: 44, 6, 4), the Mission Computer's bill of materials of 13 components, CVE-2024-6387 as a record, WS-X90's issue and its offer to the owner, the POA&amp;M item with its three milestones, what WS-X90 inherits element by element (50 and 14 controls) and the two controls that decides in its status (176 of 560). Version 2 is a draft there. Its publication on Nov 12, its two controls to review and every Behind count are drawn from the decisions and are illustrative, as are the Home row, Customer A's and Customer B's finding counts and the Cyber T&amp;E rows beyond the one recorded.</p>
+    <p><b>Pass six.</b> On Nov 16 the founder answered the nineteen decisions still open, all as recommended, and asked for them on the page and its boards. Three designers, at once and on separate boards, drew what the answers change, and the lead looked at each: the Authorization view in two lanes on one time axis, the standing as one header fact, Publish version 2 with the owner's confirmation (a new board), AU-7's next step leading to the component, SI-4(2) sourced with no evidence of its own, open CVEs counted while a consumer stays on version 1, Customer A owing 261 of 374 and Customer B 218 of 370, the Programs list saying which programs operate, the assessor judging an objective Satisfied or Other than satisfied, and the two risk acceptances signed by R. Calloway. Illustrative: which programs operate, Milestone C, the owner's confirmation and how the mixed objectives split. No board picks a decision type, so IATT and ATU are decided on this page only; the phone frames, kept from pass two, still draw one path.</p>
+    <p><b>What is real.</b> Names, numbers and dates are the demo workspace’s own, read from the local database on Nov 14, 2026. WS-X90 records no roles and no owners, so its cast’s titles are illustrative, and its emptiness is drawn, not hidden. Verbs the product does not have yet, such as Request extension, Remind and Unblock scan, are proposals. The demo records scan imports and their summaries but no single CVE and no SBOM component, so those rows are illustrative; the CVE identifiers on them are real. It also holds one summary narrative a control and none by part, so SI-2’s narratives for parts a and b, and the Narrative column of the controls register, are illustrative.</p>
+    <p><b>What it is not.</b> These are mocks: HTML and CSS over Ledger’s real tokens. No screen was built. A schema and a seed for the reuse story were drafted in the repository and the local database on Nov 15; they are uncommitted and parked until this proposal is approved.</p>
+  </div>
+</section>
+    </main>
+  </div>
+</div>
+<div class="lb" id="lb" hidden role="dialog" aria-modal="true" aria-label="Board viewer">
+  <div class="lb__bar">
+    <div class="lb__what"><b id="lb-title"></b><span id="lb-note"></span></div>
+    <div class="lb__tools">
+      <div class="seg" id="lb-seg" role="group" aria-label="Which version" hidden><button type="button" class="seg__b" id="lb-before" aria-pressed="false">Today</button><button type="button" class="seg__b" id="lb-after" aria-pressed="true">Proposed</button></div>
+      <span class="lb__count" id="lb-count"></span>
+      <button type="button" class="lb__btn" id="lb-prev" aria-label="Previous board">←</button>
+      <button type="button" class="lb__btn" id="lb-next" aria-label="Next board">→</button>
+      <button type="button" class="lb__btn" id="lb-fit" aria-pressed="false">Actual size</button>
+      <button type="button" class="lb__btn" id="lb-close" aria-label="Close">Close</button>
+    </div>
+  </div>
+  <div class="lb__stage" id="lb-stage"><img id="lb-img" alt=""></div>
+</div>
+<script>
+(function () {
+  var lb = document.getElementById("lb");
+  var img = document.getElementById("lb-img");
+  var stage = document.getElementById("lb-stage");
+  var title = document.getElementById("lb-title");
+  var note = document.getElementById("lb-note");
+  var count = document.getElementById("lb-count");
+  var seg = document.getElementById("lb-seg");
+  var bBefore = document.getElementById("lb-before");
+  var bAfter = document.getElementById("lb-after");
+  var fit = document.getElementById("lb-fit");
+  var group = [];
+  var at = 0;
+  var opener = null;
+
+  // A board is drawn at 1440 CSS px; its image holds two pixels a px. "Actual size" shows it at 1440.
+  function size() {
+    var actual = stage.classList.contains("is-actual");
+    var scale = img.getAttribute("src").indexOf("img/x/") === 0 ? 2 : 1;
+    var natural = img.naturalWidth ? img.naturalWidth / scale : 1440;
+    img.style.width = actual ? natural + "px" : Math.min(natural, 1440) + "px";
+  }
+  function show(which) {
+    var el = group[at];
+    var before = el.getAttribute("data-before");
+    var useBefore = which === "before" && before;
+    img.setAttribute("src", useBefore ? before : el.getAttribute("data-zoom"));
+    img.setAttribute("alt", el.getAttribute("data-title") + (useBefore ? ", today" : ""));
+    title.textContent = el.getAttribute("data-title");
+    note.textContent = el.getAttribute("data-note") || "";
+    count.textContent = group.length > 1 ? at + 1 + " of " + group.length : "";
+    seg.hidden = !before;
+    bBefore.setAttribute("aria-pressed", useBefore ? "true" : "false");
+    bAfter.setAttribute("aria-pressed", useBefore ? "false" : "true");
+    document.getElementById("lb-prev").hidden = group.length < 2;
+    document.getElementById("lb-next").hidden = group.length < 2;
+    stage.scrollTop = 0;
+    stage.scrollLeft = 0;
+    size();
+  }
+  function open(el) {
+    opener = el;
+    var name = el.getAttribute("data-group");
+    group = Array.prototype.slice.call(document.querySelectorAll('.shot[data-group="' + name + '"]'));
+    at = Math.max(0, group.indexOf(el));
+    stage.classList.remove("is-actual");
+    fit.setAttribute("aria-pressed", "false");
+    lb.hidden = false;
+    document.documentElement.style.overflow = "hidden";
+    show("after");
+    document.getElementById("lb-close").focus();
+  }
+  function close() {
+    lb.hidden = true;
+    document.documentElement.style.overflow = "";
+    if (opener) opener.focus();
+  }
+  function step(d) {
+    if (group.length < 2) return;
+    at = (at + d + group.length) % group.length;
+    show("after");
+  }
+  function toggleActual() {
+    var on = !stage.classList.contains("is-actual");
+    stage.classList.toggle("is-actual", on);
+    fit.setAttribute("aria-pressed", on ? "true" : "false");
+    size();
+  }
+
+  document.addEventListener("click", function (e) {
+    var shot = e.target.closest && e.target.closest(".shot[data-zoom]");
+    if (shot) open(shot);
+  });
+  img.addEventListener("load", size);
+  img.addEventListener("click", toggleActual);
+  fit.addEventListener("click", toggleActual);
+  bBefore.addEventListener("click", function () { show("before"); });
+  bAfter.addEventListener("click", function () { show("after"); });
+  document.getElementById("lb-prev").addEventListener("click", function () { step(-1); });
+  document.getElementById("lb-next").addEventListener("click", function () { step(1); });
+  document.getElementById("lb-close").addEventListener("click", close);
+  stage.addEventListener("click", function (e) { if (e.target === stage) close(); });
+  document.addEventListener("keydown", function (e) {
+    if (lb.hidden) return;
+    if (e.key === "Escape") close();
+    else if (e.key === "ArrowLeft") step(-1);
+    else if (e.key === "ArrowRight") step(1);
+  });
+
+  // The first screen: today beside proposed, in place.
+  var heroImg = document.getElementById("hero-img");
+  Array.prototype.forEach.call(document.querySelectorAll(".compare .seg__b"), function (b) {
+    b.addEventListener("click", function () {
+      Array.prototype.forEach.call(b.parentNode.children, function (x) { x.setAttribute("aria-pressed", x === b ? "true" : "false"); });
+      var box = b.closest ? b.closest(".compare") : null; var img = (box && box.querySelector(".shot img")) || heroImg; if (img) img.setAttribute("src", b.getAttribute("data-src"));
+    });
+  });
+
+  // The path of sections marks where the reader is.
+  var links = Array.prototype.slice.call(document.querySelectorAll(".toc a"));
+  if (links.length && "IntersectionObserver" in window) {
+    var byId = {};
+    links.forEach(function (a) { byId[a.getAttribute("href").slice(1)] = a.parentNode; });
+    var seen = {};
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) { seen[en.target.id] = en.isIntersecting; });
+      var here = null;
+      links.forEach(function (a) { var id = a.getAttribute("href").slice(1); if (!here && seen[id]) here = id; });
+      if (here) links.forEach(function (a) { a.parentNode.classList.toggle("is-here", a.parentNode === byId[here]); });
+    }, { rootMargin: "-10% 0px -60% 0px" });
+    links.forEach(function (a) { var s = document.getElementById(a.getAttribute("href").slice(1)); if (s) io.observe(s); });
+    links[0].parentNode.classList.add("is-here");
+  }
+})();
+
+</script>
+
+</body>
+</html>

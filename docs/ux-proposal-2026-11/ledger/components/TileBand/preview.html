@@ -1,0 +1,46 @@
+<!-- @dsCard group="Proposed" height=162 -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>TileBand</title>
+<style>
+body { margin: 0; background: var(--ds-elevation-surface); }
+.lx.l-card { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+.lx .l-spec { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 12px 16px; align-items: center; }
+.lx .l-spec > .t-label { align-self: center; }
+.lx .l-spec > .is-top { align-self: start; padding-top: 6px; }
+.lx .l-stage { position: relative; overflow: hidden; border: 1px solid var(--ds-color-border); border-radius: 10px; background: var(--ds-elevation-surface); }
+</style>
+</head>
+<body style="margin:0">
+<div class="lx l-card">
+  <div class="nx-tiles" role="group" aria-label="The chain, in numbers">
+    <a class="nx-tile">
+      <span class="nx-tile__label">Controls implemented<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span>
+      <span class="nx-tile__figure">162 <span class="of">of 560</span></span>
+      <span class="nx-tile__meter" aria-hidden="true"><i class="m-ink" style="flex: 162"></i><i class="m-na" style="flex: 216"></i><b style="flex: 182"></b></span>
+      <span class="nx-tile__sub">Partial <b>216</b></span>
+    </a>
+    <a class="nx-tile is-hover">
+      <span class="nx-tile__label">Evidence verified<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span>
+      <span class="nx-tile__figure">226 <span class="of">of 368</span></span>
+      <span class="nx-tile__meter" aria-hidden="true"><i class="m-sat" style="flex: 226"></i><i class="m-part" style="flex: 54"></i><b style="flex: 88"></b></span>
+      <span class="nx-tile__sub t-warning">Needs revision <b>54</b></span>
+    </a>
+    <a class="nx-tile">
+      <span class="nx-tile__label">Controls satisfied<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span>
+      <span class="nx-tile__figure">174 <span class="of">of 560</span></span>
+      <span class="nx-tile__meter" aria-hidden="true"><i class="m-sat" style="flex: 174"></i><i class="m-other" style="flex: 13"></i><b style="flex: 373"></b></span>
+      <span class="nx-tile__sub t-danger">Not satisfied <b>13</b></span>
+    </a>
+    <a class="nx-tile">
+      <span class="nx-tile__label">Open findings<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span>
+      <span class="nx-tile__figure">43</span>
+      <span class="nx-tile__meter" aria-hidden="true"><i class="m-crit" style="flex: 2"></i><i class="m-other" style="flex: 11"></i><b style="flex: 30"></b></span>
+      <span class="nx-tile__sub t-danger">High+ <b>13</b></span>
+    </a>
+  </div>
+</div>
+</body>
+</html>

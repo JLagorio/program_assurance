@@ -1,0 +1,31 @@
+<!-- @dsCard group="Status" height=100 -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Kbd</title>
+<style>
+body { margin: 0; background: var(--ds-elevation-surface); }
+.lx.l-card { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+.lx .l-spec { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 12px 16px; align-items: center; }
+.lx .l-spec > .t-label { align-self: center; }
+.lx .l-spec > .is-top { align-self: start; padding-top: 6px; }
+.lx .l-stage { position: relative; overflow: hidden; border: 1px solid var(--ds-color-border); border-radius: 10px; background: var(--ds-elevation-surface); }
+</style>
+</head>
+<body style="margin:0">
+<div class="lx l-card">
+  <div class="l-spec">
+    <span class="t-label">Keys</span>
+    <div class="row wrap g-200">
+      <span class="row g-050"><span class="k-kbd">⌘</span><span class="k-kbd">K</span></span>
+      <span class="k-kbd">Esc</span>
+      <span class="k-kbd">↵</span>
+      <span class="row g-050"><span class="k-kbd">⇧</span><span class="k-kbd">Tab</span></span>
+    </div>
+    <span class="t-label">In the search</span>
+    <div class="k-search"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg><span class="grow truncate">Search or jump to…</span><span class="k-kbd">⌘</span><span class="k-kbd">K</span></div>
+  </div>
+</div>
+</body>
+</html>

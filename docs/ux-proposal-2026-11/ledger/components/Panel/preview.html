@@ -1,0 +1,49 @@
+<!-- @dsCard group="Overlays" height=440 -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Panel</title>
+<style>
+body { margin: 0; background: var(--ds-elevation-surface); }
+.lx.l-card { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+.lx .l-spec { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 12px 16px; align-items: center; }
+.lx .l-spec > .t-label { align-self: center; }
+.lx .l-spec > .is-top { align-self: start; padding-top: 6px; }
+.lx .l-stage { position: relative; overflow: hidden; border: 1px solid var(--ds-color-border); border-radius: 10px; background: var(--ds-elevation-surface); }
+.lx .l-panel-stage { height: 400px; display: flex; }
+.lx .l-under { padding: 24px; display: flex; flex-direction: column; gap: 8px; flex: 1 1 0; min-width: 0; }
+</style>
+</head>
+<body style="margin:0">
+<div class="lx l-card">
+  <div class="l-stage l-panel-stage">
+    <div class="l-under" aria-hidden="true">
+      <span class="k-title">Operational issues</span>
+      <span class="c-subtle">The register stays mounted beside its preview.</span>
+    </div>
+    <aside class="k-panel" aria-label="Operational issue preview">
+      <div class="k-panel-head">
+        <a class="k-btn is-subtle is-icon s-xs" aria-label="Previous operational issue"><svg class="i s-14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m18 15-6-6-6 6"/></svg></a>
+        <a class="k-btn is-subtle is-icon s-xs" aria-label="Next operational issue"><svg class="i s-14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></a>
+        <span class="t-small">3 of 43 records</span>
+        <span class="grow"></span>
+        <a class="k-btn is-subtle is-icon s-xs" aria-label="Open in a new tab"><svg class="i s-14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg></a>
+        <a class="k-btn is-subtle is-icon s-xs" aria-label="Close Operational issue preview"><svg class="i s-14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></a>
+      </div>
+      <div class="k-panel-body">
+        <div class="row top"><h2 class="t-overlay grow">Unmet requirement REQ-008</h2><a class="k-btn is-primary s-xs">Edit operational issue</a><a class="k-btn is-subtle is-icon s-xs" aria-label="More actions"><svg class="i s-14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></a></div>
+        <dl class="k-kv">
+          <dt>Status</dt><dd><span class="k-badge">Open</span></dd>
+          <dt>Severity</dt><dd><span class="row g-075"><span class="k-dot t-danger"></span>High</span></dd>
+          <dt>Owner</dt><dd><span class="c-subtle" role="img" aria-label="No owner">—</span></dd>
+          <dt>Opened</dt><dd>Aug 10, 2026</dd>
+          <dt>Program</dt><dd><a class="k-link">WS-X90 Sentinel Mission System</a></dd>
+        </dl>
+        <div class="col g-050"><span class="k-label">Description</span><p>Assessment identified that REQ-008 is not fully satisfied on one or more mapped components.</p></div>
+      </div>
+    </aside>
+  </div>
+</div>
+</body>
+</html>

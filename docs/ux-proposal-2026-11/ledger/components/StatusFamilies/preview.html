@@ -1,0 +1,41 @@
+<!-- @dsCard group="Proposed" height=359 -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>StatusFamilies</title>
+<style>
+body { margin: 0; background: var(--ds-elevation-surface); }
+.lx.l-card { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+.lx .l-spec { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 12px 16px; align-items: center; }
+.lx .l-spec > .t-label { align-self: center; }
+.lx .l-spec > .is-top { align-self: start; padding-top: 6px; }
+.lx .l-stage { position: relative; overflow: hidden; border: 1px solid var(--ds-color-border); border-radius: 10px; background: var(--ds-elevation-surface); }
+.lx .l-fam { grid-template-columns: 132px minmax(0, 1fr); }
+</style>
+</head>
+<body style="margin:0">
+<div class="lx l-card">
+  <div class="l-spec l-fam">
+    <span class="t-label">Implementation</span>
+    <div class="row wrap g-250"><span class="nx-claim is-implemented">Implemented</span><span class="nx-claim is-partial">Partial</span><span class="nx-claim is-planned">Planned</span><span class="nx-claim is-none">Not implemented</span><span class="nx-claim is-inherited">Inherited</span><span class="nx-claim is-na">Not applicable</span></div>
+    <span class="t-label">Verification</span>
+    <div class="row wrap"><span class="nx-verif is-verified">Verified</span><span class="nx-verif is-review">In review</span><span class="nx-verif is-revision">Needs revision</span><span class="nx-verif is-expiring">Expires in 12d</span><span class="nx-verif is-expired">Expired</span></div>
+    <span class="t-label">Determination</span>
+    <div class="row wrap g-250"><span class="nx-det is-sat">Satisfied</span><span class="nx-det is-part">Partially satisfied</span><span class="nx-det is-not">Not satisfied</span><span class="nx-det is-none">Not assessed</span><span class="nx-det is-noev">No evidence</span><span class="nx-det is-noreq">No requirement</span></div>
+    <span class="t-label">Claim and judgment</span>
+    <div class="row wrap g-300"><span class="nx-pair"><span class="nx-claim is-partial">Partial</span><span class="nx-det is-sat">Satisfied</span></span><span class="nx-pair is-short"><span class="nx-claim is-implemented">Implemented</span><span class="nx-det is-not">Not satisfied</span></span></div>
+    <span class="t-label">Source</span>
+    <div class="row wrap"><span class="nx-src">Assessment</span><span class="nx-src">ACAS</span><span class="nx-src">STIG</span><span class="nx-src">SCAP</span><span class="nx-src">SBOM</span></div>
+  </div>
+  <table class="k-table">
+    <thead><tr><th class="is-fill">Control</th><th>Implementation</th><th>Evidence</th><th>Determination</th></tr></thead>
+    <tbody>
+      <tr><td class="is-fill"><span class="nx-code">AU-2</span><a class="k-name">Event Logging</a></td><td><span class="nx-claim is-partial">Partial</span></td><td><span class="nx-verif is-verified">Verified</span></td><td><span class="nx-det is-sat">Satisfied</span></td></tr>
+      <tr><td class="is-fill"><span class="nx-code">AU-4</span><a class="k-name">Audit Log Storage Capacity</a></td><td><span class="nx-claim is-implemented">Implemented</span></td><td><span class="nx-verif is-revision">Needs revision</span></td><td><span class="nx-pair is-short"><span class="nx-claim is-implemented"></span><span class="nx-det is-not">Not satisfied</span></span></td></tr>
+      <tr><td class="is-fill"><span class="nx-code">AU-6(5)</span><a class="k-name">Integrated Analysis of Audit Records</a></td><td><span class="nx-claim is-planned">Planned</span></td><td></td><td><span class="nx-det is-noev">No evidence</span></td></tr>
+    </tbody>
+  </table>
+</div>
+</body>
+</html>

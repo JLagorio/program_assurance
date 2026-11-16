@@ -1,0 +1,47 @@
+<!-- @dsCard group="Shell" height=480 width=1440 -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>AppShell</title>
+<style>
+body { margin: 0; background: var(--ds-elevation-surface); }
+.lx.l-card { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+.lx .l-spec { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 12px 16px; align-items: center; }
+.lx .l-spec > .t-label { align-self: center; }
+.lx .l-spec > .is-top { align-self: start; padding-top: 6px; }
+.lx .l-stage { position: relative; overflow: hidden; border: 1px solid var(--ds-color-border); border-radius: 10px; background: var(--ds-elevation-surface); }
+.lx.k-app.l-shell { min-height: 480px; }
+</style>
+</head>
+<body style="margin:0">
+<div class="lx k-app l-shell">
+<header class="k-topnav"><div class="k-topnav-start"><span class="k-mark"></span><span class="k-app-name grow truncate">Program Assurance</span><span class="k-btn is-subtle is-icon"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/></svg></span></div><div class="k-topnav-middle"><div class="k-search"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg><span class="grow truncate">Search or jump to…</span><span class="k-kbd">⌘</span><span class="k-kbd">K</span></div></div><div class="k-topnav-end"><span class="k-btn is-subtle is-icon"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg></span><span class="k-avatar">PR</span></div></header>
+<nav class="k-sidenav" aria-label="Main"><div class="k-nav-body"><div class="k-nav-section"><a class="k-nav-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Home</a><a class="k-nav-item" aria-current="page"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/><path d="M8 10v4"/><path d="M12 10v2"/><path d="M16 10v6"/></svg>Programs</a><a class="k-nav-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 5h8"/><path d="M13 12h8"/><path d="M13 19h8"/><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/></svg>Registers</a><a class="k-nav-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 12h4"/><path d="M10 8h4"/><path d="M14 21v-3a2 2 0 0 0-4 0v3"/><path d="M6 10H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2"/><path d="M6 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16"/></svg>Business lines</a><a class="k-nav-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"/><path d="M12 22V12"/><polyline points="3.29 7 12 12 20.71 7"/><path d="m7.5 4.27 9 5.15"/></svg>Products</a><a class="k-nav-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/></svg>Library</a></div></div><div class="k-nav-footer"><div class="k-profile"><span class="k-avatar">PR</span><div class="col g-0 grow"><span class="truncate w-500">Priya Raghavan</span><span class="t-small c-subtle">Program manager</span></div><svg class="i s-14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></svg></div></div></nav>
+  <main class="k-main">
+    <div class="k-pagehead">
+      <div class="k-titlebar"><h1 class="k-title truncate">Programs</h1></div>
+    </div>
+    <div class="k-toolbar">
+      <span class="k-field is-search"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg><span class="truncate">Find programs</span></span>
+      <a class="k-chip">Status</a>
+      <a class="k-chip">Business line</a>
+      <span class="grow"></span>
+      <a class="k-btn is-primary">Create program</a>
+    </div>
+    <table class="k-table">
+      <thead>
+        <tr><th class="is-fill">Program</th><th>Status</th><th>Next gate</th><th class="is-num">Controls</th><th class="is-num">Open risks</th><th class="is-num">Open issues</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="is-fill"><a class="k-name">WS-X90 Sentinel Mission System</a></td><td><span class="k-badge t-success">Active</span></td><td>PDR <span class="k-date is-overdue"><svg class="i s-12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>Oct 10, 2026 · <b class="w-500">Overdue</b></span></td><td class="is-num">560</td><td class="is-num">40</td><td class="is-num">43</td></tr>
+        <tr class="is-hover"><td class="is-fill"><a class="k-name">Customer A · X800 Rail Integration</a></td><td><span class="k-badge t-success">Active</span></td><td>Customer cryptographic suite integration review <span class="k-date">Nov 23, 2026</span></td><td class="is-num">374</td><td class="is-num">7</td><td class="is-num">7</td></tr>
+        <tr><td class="is-fill"><a class="k-name">Customer B · X800 Palletized Integration</a></td><td><span class="k-badge t-success">Active</span></td><td>Variant security plan approval <span class="k-date is-soon"><svg class="i s-12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Nov 16, 2026 · <b class="w-500">Due tomorrow</b></span></td><td class="is-num">370</td><td class="is-num">6</td><td class="is-num">6</td></tr>
+        <tr><td class="is-fill"><a class="k-name">Customer C · G25 Battery Control Fielding</a></td><td><span class="k-badge t-success">Active</span></td><td>Customer configuration review <span class="k-date">Nov 19, 2026</span></td><td class="is-num">287</td><td class="is-num">3</td><td class="is-num">3</td></tr>
+        <tr><td class="is-fill"><a class="k-name">Field operations mobile</a></td><td><span class="k-badge">Planned</span></td><td>Initial Operational Capability <span class="k-date">Nov 19, 2026</span></td><td class="is-num">287</td><td class="is-num">0</td><td class="is-num">0</td></tr>
+      </tbody>
+    </table>
+  </main>
+</div>
+</body>
+</html>

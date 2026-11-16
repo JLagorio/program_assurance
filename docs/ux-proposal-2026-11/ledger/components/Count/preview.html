@@ -1,0 +1,28 @@
+<!-- @dsCard group="Status" height=145 -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Count</title>
+<style>
+body { margin: 0; background: var(--ds-elevation-surface); }
+.lx.l-card { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+.lx .l-spec { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 12px 16px; align-items: center; }
+.lx .l-spec > .t-label { align-self: center; }
+.lx .l-spec > .is-top { align-self: start; padding-top: 6px; }
+.lx .l-stage { position: relative; overflow: hidden; border: 1px solid var(--ds-color-border); border-radius: 10px; background: var(--ds-elevation-surface); }
+</style>
+</head>
+<body style="margin:0">
+<div class="lx l-card">
+  <div class="l-spec">
+    <span class="t-label">Values</span>
+    <div class="row wrap"><span class="k-count">0</span><span class="k-count">7</span><span class="k-count">43</span><span class="k-count">560</span><span class="k-count">1,791</span><span class="k-count">9999+</span></div>
+    <span class="t-label">On a tab</span>
+    <div class="k-tabs" role="tablist"><a class="k-tab" role="tab" aria-selected="true">Requirements<span class="k-count">368</span></a><a class="k-tab" role="tab" aria-selected="false">Evidence<span class="k-count">54</span></a><a class="k-tab" role="tab" aria-selected="false">Findings<span class="k-count">0</span></a></div>
+    <span class="t-label">On a section</span>
+    <div class="k-section-head"><h2 class="k-section-title">Assessment findings</h2><span class="k-count">20</span></div>
+  </div>
+</div>
+</body>
+</html>
