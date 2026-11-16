@@ -1,6 +1,6 @@
 import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
-import { Stepper } from "../../components";
+import { Stepper, StepperStage, StepperToday } from "../../components";
 import * as Stories from "./Stepper.stories";
 
 <Meta of={Stories} />
@@ -27,13 +27,15 @@ A path is fixed and has three or more steps. Two steps are a [Badge](?path=/docs
 
 ## Variants
 
-| Variant      | Use                                                                                                                                                                                                                                                              |
-| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `horizontal` | Labels under markers on one line: a record's milestone header, the top of a form.                                                                                                                                                                                |
-| `vertical`   | Markers down the start edge with labels beside them: a wizard's rail, a panel. Preferred wherever it fits, because the labels and metas can wrap.                                                                                                                |
-| `responsive` | Follows its own container: vertical while the container is narrower than `@md` (`dimension.container.md`, 448px), horizontal from there. A wizard whose path sits in a rail beside the form on a wide screen and above the form on a narrow one.                 |
-| `numbered`   | The marker shows the step's number; done and blocked keep their icon: numbers make the order plain on a long path.                                                                                                                                               |
-| Interactive  | A step with `onSelect` is a button the reader can move to; a step without one only reports. Mix them: done steps open, the rest do not. While any step takes `onSelect`, the current step is a button too, and activating it runs its own `onSelect` or nothing. |
+| Variant            | Use                                                                                                                                                                                                                                                              |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `horizontal`       | Labels under markers on one line: a record's milestone header, the top of a form.                                                                                                                                                                                |
+| `vertical`         | Markers down the start edge with labels beside them: a wizard's rail, a panel. Preferred wherever it fits, because the labels and metas can wrap.                                                                                                                |
+| `responsive`       | Follows its own container: vertical while the container is narrower than `@md` (`dimension.container.md`, 448px), horizontal from there. A wizard whose path sits in a rail beside the form on a wide screen and above the form on a narrow one.                 |
+| `numbered`         | The marker shows the step's number; done and blocked keep their icon: numbers make the order plain on a long path.                                                                                                                                               |
+| Interactive        | A step with `onSelect` is a button the reader can move to; a step without one only reports. Mix them: done steps open, the rest do not. While any step takes `onSelect`, the current step is a button too, and activating it runs its own `onSelect` or nothing. |
+| `variant="dated"`  | A record's path down the page (experimental): a program's decisions, gates and dated work, each stop's day before the rail and Stepper.Today ruled among them. See A record's path.                                                                              |
+| `variant="ladder"` | A control's climb, rung by rung (experimental): numbered rungs, each with its measure ("10 of 10") before the rail, the open rung's drawn as a figure. See A record's path.                                                                                      |
 
 Not built, and why: a disabled state, because a step the reader cannot reach is `upcoming` without `onSelect`; a skeleton, because the steps are known before the data is.
 
@@ -70,12 +72,41 @@ One size: the marker 16px, the label `font.body.small`, the meta `font.body.xsma
 - **`meta`** for the date, the owner or the reason under the label. It may wrap; the label does not.
 - **`children`** for what a milestone carries under its label. Anything interactive in it is its own stop beside the step's button.
 - **`onSelect`** on the steps the reader may move to. On a wizard that is every done step and the next one; on a milestone header, every step, to open the milestone.
+- **`variant`**, `dated` or `ladder`, for a record's path; then **`when`**, **`node`** (dated), **`tone`**, **`signed`** and **`end`** on each step, as in A record's path. A path's steps only report: `onSelect` and `orientation` have no part in it.
 
 ## A wizard's rail
 
 A wizard gives `onSelect` to every done step and to the next one. The step the reader activates in the rail becomes current and keeps focus, since the current step stays a button. When the step changes from outside the rail (Continue, Back, a link in the step), the wizard moves focus to the new step's heading, rendered with `tabIndex={-1}`, so a keyboard reader lands on the step they opened and a screen reader hears its name. The Stepper does not move focus itself: where the new step's content starts is the wizard's to say.
 
 <Canvas of={Stories.Wizard} />
+
+## A record's path
+
+**Experimental.** `variant="dated"` and `variant="ladder"` draw a record's path rather than a path the reader moves along: where a program stands on the way to its next decision, how far a control has climbed. The API may change before it is stable.
+
+<Canvas of={Stories.DatedPath} />
+
+A path is read down the page on one grid: each stop's `when` in a column before the rail, its node on the rail, and its name, `meta` and `end` on one line that wraps. The steps keep their states (`done`, `current`, `upcoming`, `blocked`) and their spoken words.
+
+| Part  | What it is                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| When  | A dated stop's day ("Sep 18", "After PDR", "3d late") or a rung's measure ("10 of 10"), `font.body.small` in `color.text.subtle`, end-aligned before the rail; in the tone of a stop at risk or late; on the open rung, `font.figure` in `color.text`. Under a container narrower than `@md` (448px) it moves above the name and the column closes.                                                                                                                                                                                                   |
+| Node  | What the stop is and how it stands. Dated: a decision is a ring, a gate a diamond, a piece of work a small dot, the end a ring round a dot (`node`), drawn in `color.border.bold`, or in the warning or danger tone (`tone`) for a stop ahead that is at risk or late. Every done stop is a check on `color.background.neutral.bold`, one `signed` on `color.background.success.bold`; the open stop is filled in ink, a gate's with a diamond cut in it; a blocked one is a cross on `color.background.danger.bold`. Ladder: every rung is numbered. |
+| Rail  | `border.width.selected`. Walked, in `color.border.current`: everything above Stepper.Today, or, with no today, below a done rung. Ahead, dotted in `color.border.bold`.                                                                                                                                                                                                                                                                                                                                                                               |
+| Today | `Stepper.Today`: the words in the when column and a rule in `color.border.current` from the rail across the row. One a path, between the last stop behind and the first ahead. Under `@md` its words stand at the rule's end.                                                                                                                                                                                                                                                                                                                         |
+| Stage | `Stepper.Stage`, the first current step's children: the surface's one tray, on `color.background.current` at `radius.large`. Its head is the step's `label` as a heading at the contextual level (an h2 outside every provider), its `meta` and, at the end, `figure` (a Meter of its checks) and `end`; its body what closes it (a Gates list); its `foot` who it waits on and what the reader may do about it, a secondary Button.                                                                                                                  |
+
+**One stage is open.** The first `current` step opens: its Stepper.Stage takes the step's line, and the node moves down to the stage's title. Every other step is one closed line, and its children are not drawn; a settled path, with no current step, opens nothing.
+
+**No filled button inside the path.** The page's one primary is its header's. A stage's action is a secondary (Remind) or a link Button named for the check (Record criteria).
+
+<Canvas of={Stories.Ladder} />
+
+<Canvas of={Stories.PathNodes} />
+
+<Canvas of={Stories.DatedPathOnAPhone} />
+
+Accessibility: the path is the same named ordered list, every stop an `li` read with its state first ("Current: PDR"), the open one `aria-current="step"`; the when is read before the name, and the node is decoration, since the words say what it draws. The stage is a group named by its heading, so a screen reader finds it among the page's headings, and a keyboard reader reaches it with Tab: the stops that only report are no stops, so after any linked names the next stop is the stage's first control. Tone is never alone: the words that say why a stop is at risk or late are the caller's, in `when` or `meta`.
 
 ## Content
 
@@ -122,6 +153,14 @@ Native `ol` props and refs reach Stepper; native `li` props and refs reach Stepp
 ### Stepper.Item
 
 <ArgTypes of={Stepper.Item} />
+
+### Stepper.Stage
+
+<ArgTypes of={StepperStage} />
+
+### Stepper.Today
+
+<ArgTypes of={StepperToday} />
 
 ### Playground
 

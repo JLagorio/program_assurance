@@ -11,13 +11,17 @@ import {
   Collapsible,
   CollapsibleContent,
   CollapsibleHeader,
+  EmptySeat,
+  Meter,
   Person,
   Stepper,
+  TextLink,
 } from "../../components";
+import { Gates } from "../../patterns";
 import { type Meta, type StoryObj } from "@storybook/react-vite";
 import { createRef, useRef, useState } from "react";
 import { expect, fn, userEvent, waitFor, within } from "storybook/test";
-import { Box, Heading, Inline, Stack, Text } from "../../primitives";
+import { Box, Grid, Heading, Inline, Stack, Text } from "../../primitives";
 import * as storyLayout from "../_lib/matrix";
 import * as pairLayout from "../_lib/pair";
 
@@ -712,5 +716,335 @@ export const Wizard: Story = {
       "aria-current",
       "step",
     );
+  },
+};
+
+/* ---------- a record's path: dated and laddered ---------- */
+
+/** A program's path, as its Schedule draws it: the decisions, gates and dated work around today. */
+function ProgramPath() {
+  return (
+    <Stepper label="WS-X90 path" variant="dated">
+      <Stepper.Item
+        state="done"
+        signed
+        when="Sep 18"
+        label={<TextLink href="#authorization-decision">Authorization decision</TextLink>}
+        meta="SYS-WSX90 · signed"
+        end={<Person name="R. Calloway" />}
+      />
+      <Stepper.Item
+        state="current"
+        node="gate"
+        tone="danger"
+        when="Oct 10"
+        label="PDR"
+        meta="In review"
+      >
+        <Stepper.Stage
+          figure={<Meter value={0} max={2} label="Criteria met" />}
+          foot={
+            <>
+              <Inline space="space.075" alignBlock="center" shouldWrap>
+                <Text size="small" weight="medium">
+                  Waiting on Priya Raghavan
+                </Text>
+                <Text size="small" color="color.text.subtle">
+                  gate chair
+                </Text>
+              </Inline>
+              <Button size="small" variant="secondary">
+                Remind
+              </Button>
+            </>
+          }
+        >
+          <Gates aria-label="PDR criteria">
+            <Gates.Item
+              met={false}
+              tone="danger"
+              label="Criteria"
+              reason="0 recorded · yours"
+              action={
+                <Button size="small" variant="link">
+                  Record criteria
+                </Button>
+              }
+            />
+            <Gates.Item met={false} label="Decision" reason="After criteria · Priya Raghavan" />
+          </Gates>
+        </Stepper.Stage>
+      </Stepper.Item>
+      <Stepper.Item state="upcoming" node="gate" when="After PDR" label="CDR" />
+      <Stepper.Item
+        state="done"
+        node="work"
+        when="Oct 14"
+        label="SCAP compliance scan — maintenance laptop (Windows 11)"
+        meta="completed"
+        end={<Person name="Joel Barrantes" />}
+      />
+      <Stepper.Item
+        state="upcoming"
+        node="work"
+        tone="danger"
+        when="3d late"
+        label="Monthly STIG compliance scan"
+        meta="Blocked"
+        end={<Person name="Joel Barrantes" />}
+      />
+      <Stepper.Item
+        state="done"
+        signed
+        node="work"
+        when="Nov 12"
+        label="Expanded control set assessment, increment 1"
+        meta="published"
+        end={<Person name="D. Okafor" />}
+      />
+      <Stepper.Today />
+      <Stepper.Item
+        state="upcoming"
+        node="work"
+        when="Nov 20"
+        label="Expanded control set assessment, increment 2"
+        meta="56 of 58 judged"
+        end={<Person name="D. Okafor" />}
+      />
+      <Stepper.Item
+        state="upcoming"
+        tone="warning"
+        when="Dec 17"
+        label="Condition 1"
+        meta={
+          <Inline space="space.100" alignBlock="center" shouldWrap>
+            <Meter value={1} max={12} late={3} />
+            <Text size="small" color="color.text.warning">
+              8 planned after it
+            </Text>
+          </Inline>
+        }
+        end={<EmptySeat label="No owner" />}
+      />
+      <Stepper.Item
+        state="upcoming"
+        when="Sep 18, 2027"
+        label="Annual authorization review"
+        meta={<Meter value={2} max={10} />}
+      />
+      <Stepper.Item state="upcoming" node="end" when="Sep 17, 2029" label="ATD" />
+    </Stepper>
+  );
+}
+
+/** The one stage a path opens, and the rows that stay closed. */
+const stageOf = (path: HTMLElement) => {
+  const stages = path.querySelectorAll<HTMLElement>('[data-slot="stepper-stage"]');
+  return { stages, open: stages[0]!, row: stages[0]!.closest<HTMLElement>("li")! };
+};
+
+/**
+ * `variant="dated"`: a record's path down the page. Each stop's day stands before the rail, its
+ * node says what it is (a decision, a gate, a piece of work, the end) and how it stands, and its
+ * name, what it holds and who holds it share one line. Stepper.Today rules across between the
+ * stops behind and those ahead: the rail is solid to it and dotted after. One stage is open, the
+ * current step's Stepper.Stage: its name as a heading, its checks (a Gates list) and who it waits
+ * on, with Remind, a secondary. No filled button stands inside the path.
+ */
+export const DatedPath: Story = {
+  render: () => (
+    <Box style={{ maxWidth: 880 }}>
+      <ProgramPath />
+    </Box>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const path = canvas.getByRole("list", { name: "WS-X90 path" });
+    // Exactly one stage is open, in the current step, and every other stop is one closed line.
+    const { stages, open, row } = stageOf(path);
+    await expect(stages).toHaveLength(1);
+    await expect(row).toHaveAttribute("aria-current", "step");
+    await expect(open).toHaveAccessibleName("Current: PDR");
+    await expect(within(open).getByRole("heading", { level: 2 })).toHaveTextContent("PDR");
+    const rows = path.querySelectorAll<HTMLElement>(':scope > [data-slot="stepper-item"]');
+    await expect(rows).toHaveLength(10);
+    for (const other of rows)
+      if (other !== row)
+        await expect(other.querySelector('[data-slot="stepper-stage"]')).toBeNull();
+    // Each stop is read with its state first.
+    await expect(
+      within(path).getByText("Monthly STIG compliance scan").closest('[data-slot="stepper-label"]'),
+    ).toHaveTextContent("Not started: Monthly STIG compliance scan");
+    // No filled button inside the path: Remind is a secondary.
+    await expect(path.querySelectorAll('[data-button-variant="primary"]')).toHaveLength(0);
+    await expect(within(open).getByRole("button", { name: "Remind" })).toHaveAttribute(
+      "data-button-variant",
+      "secondary",
+    );
+    // The rail is walked up to today and dotted after it.
+    const today = path.querySelector('[data-slot="stepper-today"] [data-slot="stepper-rail"]')!;
+    await expect(today).toHaveAttribute("data-above", "walked");
+    await expect(today).toHaveAttribute("data-below", "ahead");
+    const first = rows[0]!.querySelector('[data-slot="stepper-rail"]')!;
+    await expect(first).not.toHaveAttribute("data-above");
+    await expect(
+      rows[rows.length - 1]!.querySelector('[data-slot="stepper-rail"]'),
+    ).not.toHaveAttribute("data-below");
+    // A keyboard reader reaches the open stage: the stops that only report are no stops, so
+    // after the one linked name the next Tab lands inside the stage.
+    (document.activeElement as HTMLElement | null)?.blur();
+    await userEvent.tab();
+    await expect(canvas.getByRole("link", { name: /Authorization decision/ })).toHaveFocus();
+    await userEvent.tab();
+    await expect(open.contains(document.activeElement)).toBe(true);
+    await expect(document.activeElement).toHaveAccessibleName("Record criteria");
+    await userEvent.tab();
+    await expect(document.activeElement).toHaveAccessibleName("Remind");
+  },
+};
+
+/**
+ * `variant="ladder"`: a control's climb, rung by rung. The rungs are numbered; each `when` is the
+ * rung's measure, and the open rung's is the figure the reader came for. The rail is solid below
+ * a done rung and dotted ahead. A settled control has no open rung, so no stage: its last rung is
+ * signed, on the success fill.
+ */
+export const Ladder: Story = {
+  render: () => (
+    <Grid templateColumns="repeat(auto-fit, minmax(min(100%, 320px), 1fr))" gap="space.400">
+      <Stepper label="SI-2 Flaw Remediation" variant="ladder">
+        <Stepper.Item state="done" when="10 of 10" label="Mapped" meta="REQ-064" />
+        <Stepper.Item state="current" when="0 of 10" label="Evidence">
+          <Stepper.Stage>
+            <Gates aria-label="Evidence to link">
+              <Gates.Item
+                met={false}
+                label="REQ-064"
+                reason="Cites none · yours"
+                action={
+                  <Button size="small" variant="link">
+                    Link evidence
+                  </Button>
+                }
+              />
+            </Gates>
+          </Stepper.Stage>
+        </Stepper.Item>
+        <Stepper.Item state="upcoming" label="Assessed" />
+        <Stepper.Item state="upcoming" label="Satisfied" />
+      </Stepper>
+      <Stepper label="AC-2 Account Management" variant="ladder">
+        <Stepper.Item state="done" label="Mapped" meta="REQ-001 · REQ-075" />
+        <Stepper.Item state="done" label="Evidence" meta="2 accepted" />
+        <Stepper.Item
+          state="done"
+          label="Assessed"
+          meta="Aug 20"
+          end={<Person name="Nadia Fournier" />}
+        />
+        <Stepper.Item
+          state="done"
+          signed
+          when="26 of 26"
+          label="Satisfied"
+          meta="published Aug 28"
+          end={<Person name="D. Okafor" />}
+        />
+      </Stepper>
+    </Grid>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const climbing = canvas.getByRole("list", { name: "SI-2 Flaw Remediation" });
+    const settled = canvas.getByRole("list", { name: "AC-2 Account Management" });
+    const { stages, open, row } = stageOf(climbing);
+    await expect(stages).toHaveLength(1);
+    await expect(row).toHaveAttribute("aria-current", "step");
+    await expect(open).toHaveAccessibleName("Current: Evidence");
+    // The rungs are numbered; a done rung is a check, and the open rung's measure is a figure.
+    const nodes = climbing.querySelectorAll('[data-slot="stepper-node"]');
+    await expect(nodes[1]).toHaveTextContent("2");
+    await expect(nodes[3]).toHaveTextContent("4");
+    await expect(nodes[0]!.querySelector("svg")).not.toBeNull();
+    const loud = row.querySelector('[data-slot="stepper-when"]')!;
+    const quiet = climbing.querySelector('[data-slot="stepper-when"]')!;
+    await expect(parseFloat(getComputedStyle(loud).fontSize)).toBeGreaterThan(
+      parseFloat(getComputedStyle(quiet).fontSize),
+    );
+    // Walked below a done rung, dotted ahead of the open one.
+    const rails = climbing.querySelectorAll('[data-slot="stepper-rail"]');
+    await expect(rails[0]).toHaveAttribute("data-below", "walked");
+    await expect(rails[1]).toHaveAttribute("data-below", "ahead");
+    // A settled control opens nothing: no current rung, no stage, and its last rung is signed.
+    await expect(settled.querySelector('[data-slot="stepper-stage"]')).toBeNull();
+    await expect(settled.querySelector("[aria-current]")).toBeNull();
+    await expect(settled.querySelectorAll("[data-signed]")).toHaveLength(1);
+    // The open stage is reached with Tab: its action is the first stop on the page.
+    (document.activeElement as HTMLElement | null)?.blur();
+    await userEvent.tab();
+    await expect(document.activeElement).toHaveAccessibleName("Link evidence");
+    await expect(open.contains(document.activeElement)).toBe(true);
+  },
+};
+
+/** Every node a dated path draws: each kind ahead, at risk and late, then open, done and signed. */
+export const PathNodes: Story = {
+  tags: ["!manifest"],
+  render: () => (
+    <Grid templateColumns="repeat(auto-fit, minmax(min(100%, 320px), 1fr))" gap="space.400">
+      <Stepper label="Nodes ahead" variant="dated">
+        <Stepper.Item state="upcoming" when="Decision" label="Ahead" />
+        <Stepper.Item state="upcoming" tone="warning" when="Decision" label="At risk" />
+        <Stepper.Item state="upcoming" tone="danger" when="Decision" label="Late" />
+        <Stepper.Item state="upcoming" node="gate" when="Gate" label="Ahead" />
+        <Stepper.Item state="upcoming" node="gate" tone="warning" when="Gate" label="At risk" />
+        <Stepper.Item state="upcoming" node="gate" tone="danger" when="Gate" label="Late" />
+        <Stepper.Item state="upcoming" node="work" when="Work" label="Ahead" />
+        <Stepper.Item state="upcoming" node="work" tone="warning" when="Work" label="At risk" />
+        <Stepper.Item state="upcoming" node="work" tone="danger" when="Work" label="Late" />
+        <Stepper.Item state="upcoming" node="end" when="End" label="Ahead" />
+      </Stepper>
+      <Stepper label="Nodes behind" variant="dated">
+        <Stepper.Item state="done" when="Done" label="A decision" />
+        <Stepper.Item state="done" signed when="Signed" label="A decision" />
+        <Stepper.Item state="done" node="work" when="Done" label="A piece of work" />
+        <Stepper.Item state="done" signed node="work" when="Published" label="Results" />
+        <Stepper.Item state="blocked" node="gate" when="Blocked" label="A gate" />
+        <Stepper.Today />
+        <Stepper.Item state="current" node="gate" when="Open" label="A gate" />
+        <Stepper.Item state="upcoming" when="Ahead" label="A decision" />
+      </Stepper>
+    </Grid>
+  ),
+};
+
+/**
+ * On a phone the `when` column gives way: each stop's day stands above its name, today's words
+ * sit at the rule's end, and the open stage takes the width.
+ */
+export const DatedPathOnAPhone: Story = {
+  globals: { viewport: { value: "ledgerSmall", isRotated: false } },
+  render: () => <ProgramPath />,
+  play: async ({ canvasElement }) => {
+    await waitFor(() => expect(window.innerWidth).toBe(340));
+    const path = within(canvasElement).getByRole("list", { name: "WS-X90 path" });
+    const frame = path.closest<HTMLElement>('[data-slot="stepper-frame"]')!;
+    await expect(frame.scrollWidth).toBeLessThanOrEqual(frame.clientWidth);
+    const cell = path.querySelector<HTMLElement>('[data-slot="stepper-when-cell"]')!;
+    await expect(getComputedStyle(cell).display).toBe("none");
+    // The day shows once, above the name.
+    const days = within(path)
+      .getAllByText("Sep 18")
+      .filter((day) => day.checkVisibility());
+    await expect(days).toHaveLength(1);
+    await expect(days[0]!.closest('[data-slot="stepper-when-cell"]')).toBeNull();
+    // Today's words stand at the rule's end, once.
+    const today = path.querySelector<HTMLElement>('[data-slot="stepper-today"]')!;
+    const words = within(today)
+      .getAllByText("Today")
+      .filter((word) => word.checkVisibility());
+    await expect(words).toHaveLength(1);
+    const rule = today.querySelector('[data-slot="stepper-today-rule"]')!;
+    await expect(rule.compareDocumentPosition(words[0]!)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
   },
 };

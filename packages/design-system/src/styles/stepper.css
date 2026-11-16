@@ -1,0 +1,184 @@
+/* Stepper's record path (`variant="dated"` and `"ladder"`): the rail, the nodes and today's rule.
+   The rows share one grid (when · node · body), and each row draws the rail's piece above its node
+   and below it in the node column: walked in the current place's ink, ahead dotted in the bold
+   border. A node is drawn over the rail, on the surface the path sits on. */
+[data-slot="stepper"][data-variant] {
+  grid-template-columns: auto auto minmax(0, 1fr);
+}
+[data-slot="stepper-item"],
+[data-slot="stepper-today"] {
+  /* How far the node sits below the row's top: an open stage's title is a line lower. */
+  --path-node-top: 0px;
+}
+[data-slot="stepper-item"][data-staged] {
+  --path-node-top: var(--ds-space-150);
+}
+[data-slot="stepper-when-cell"] {
+  padding-block-start: var(--path-node-top);
+}
+/* Under a narrow container the day stands above the stage, so the node stays on the day's line. */
+@container stepper (width < theme(--container-md)) {
+  [data-slot="stepper-item"][data-staged] {
+    --path-node-top: 0px;
+  }
+}
+
+/* ---------- the rail ---------- */
+[data-slot="stepper-rail"] {
+  --path-rail: var(--ds-border-width-selected);
+  position: relative;
+  padding-block-start: var(--path-node-top);
+}
+[data-slot="stepper-rail"]::before,
+[data-slot="stepper-rail"]::after {
+  position: absolute;
+  inset-inline-start: calc(50% - var(--path-rail) / 2);
+  border-inline-start: var(--path-rail) solid var(--ds-color-border-current);
+}
+[data-slot="stepper-rail"][data-above]::before {
+  content: "";
+  inset-block-start: 0;
+  block-size: calc(var(--path-node-top) + var(--ds-space-150));
+}
+[data-slot="stepper-rail"][data-below]::after {
+  content: "";
+  inset-block: calc(var(--path-node-top) + var(--ds-space-150)) 0;
+}
+[data-slot="stepper-rail"][data-above="ahead"]::before,
+[data-slot="stepper-rail"][data-below="ahead"]::after {
+  border-inline-start-style: dotted;
+  border-inline-start-color: var(--ds-color-border-bold);
+}
+
+/* ---------- today: a rule from the rail across the row ---------- */
+[data-slot="stepper-node-box"] {
+  position: relative;
+}
+[data-slot="stepper-rail"][data-today] > [data-slot="stepper-node-box"]::before {
+  content: "";
+  position: absolute;
+  inset-inline: 50% 0;
+  inset-block-start: calc(50% - var(--path-rail) / 2);
+  border-block-start: var(--path-rail) solid var(--ds-color-border-current);
+}
+[data-slot="stepper-today-rule"] {
+  border-block-start: var(--ds-border-width-selected) solid var(--ds-color-border-current);
+}
+
+/* ---------- the nodes ----------
+   A decision is a ring, a gate a diamond, a piece of work a small dot, the end a ring round a dot,
+   and a ladder's rung a numbered ring. Ahead they are drawn in the bold border, or in the tone of a
+   stop at risk or late. Every done node is a check in ink, a signed one on the success fill; the
+   open node is filled in ink, a gate's with a diamond cut in it. */
+[data-slot="stepper-node"] {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  inline-size: var(--ds-space-200);
+  block-size: var(--ds-space-200);
+  border: var(--path-rail) solid var(--ds-color-border-bold);
+  border-radius: var(--ds-radius-full);
+  background-color: var(--ds-utility-elevation-surface-current);
+  color: var(--ds-color-text-subtle);
+  font: var(--ds-font-body-xsmall);
+  font-weight: var(--ds-font-weight-medium);
+  font-variant-numeric: tabular-nums;
+}
+[data-slot="stepper-node"][data-node="gate"] {
+  inline-size: var(--ds-space-150);
+  block-size: var(--ds-space-150);
+  border-radius: var(--ds-radius-xsmall);
+  rotate: 45deg;
+}
+[data-slot="stepper-node"][data-node="work"] {
+  inline-size: var(--ds-space-100);
+  block-size: var(--ds-space-100);
+  border-color: transparent;
+  background-color: var(--ds-color-border-bold);
+}
+[data-slot="stepper-node"][data-node="end"]::after {
+  content: "";
+  inline-size: var(--ds-space-050);
+  block-size: var(--ds-space-050);
+  border-radius: var(--ds-radius-full);
+  background-color: var(--ds-color-border-bold);
+}
+[data-slot="stepper-node"][data-node="rung"] {
+  inline-size: var(--ds-space-250);
+  block-size: var(--ds-space-250);
+  border-width: var(--ds-border-width);
+}
+
+/* At risk and late, on a stop ahead. */
+[data-slot="stepper-node"][data-tone="warning"] {
+  border-color: var(--ds-color-border-warning);
+  color: var(--ds-color-text-warning);
+}
+[data-slot="stepper-node"][data-tone="danger"] {
+  border-color: var(--ds-color-border-danger);
+  color: var(--ds-color-text-danger);
+}
+[data-slot="stepper-node"][data-node="work"][data-tone="warning"],
+[data-slot="stepper-node"][data-node="end"][data-tone="warning"]::after {
+  border-color: transparent;
+  background-color: var(--ds-color-border-warning);
+}
+[data-slot="stepper-node"][data-node="work"][data-tone="danger"],
+[data-slot="stepper-node"][data-node="end"][data-tone="danger"]::after {
+  border-color: transparent;
+  background-color: var(--ds-color-border-danger);
+}
+
+/* Open, done, signed and blocked are filled discs of one size, whatever the stop is. The edge stays
+   transparent, so forced colours, which drop the fill, still draw the disc. */
+[data-slot="stepper-node"]:is([data-state="current"], [data-state="done"], [data-state="blocked"]) {
+  inline-size: var(--ds-space-250);
+  block-size: var(--ds-space-250);
+  border-width: var(--ds-border-width);
+  border-color: transparent;
+  border-radius: var(--ds-radius-full);
+  rotate: none;
+  background-color: var(--ds-color-background-neutral-bold);
+  color: var(--ds-color-text-inverse);
+}
+[data-slot="stepper-node"]:is(
+    [data-state="current"],
+    [data-state="done"],
+    [data-state="blocked"]
+  )::after {
+  content: none;
+}
+[data-slot="stepper-node"][data-state="current"][data-node="gate"]::after {
+  content: "";
+  inline-size: var(--ds-space-100);
+  block-size: var(--ds-space-100);
+  rotate: 45deg;
+  background-color: var(--ds-utility-elevation-surface-current);
+}
+[data-slot="stepper-node"][data-signed] {
+  background-color: var(--ds-color-background-success-bold);
+}
+[data-slot="stepper-node"][data-state="blocked"] {
+  background-color: var(--ds-color-background-danger-bold);
+}
+
+@media (forced-colors: active) {
+  [data-slot="stepper-rail"]::before,
+  [data-slot="stepper-rail"]::after,
+  [data-slot="stepper-rail"][data-today] > [data-slot="stepper-node-box"]::before,
+  [data-slot="stepper-today-rule"] {
+    border-color: CanvasText;
+  }
+  [data-slot="stepper-node"][data-state="current"] {
+    forced-color-adjust: none;
+    background-color: CanvasText;
+    color: Canvas;
+  }
+  [data-slot="stepper-node"][data-state="current"][data-node="gate"]::after {
+    background-color: Canvas;
+  }
+}

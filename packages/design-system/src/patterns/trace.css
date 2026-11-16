@@ -249,3 +249,337 @@ a[data-slot="trace-node-body"][aria-current]:hover {
     outline-color: Highlight;
   }
 }
+
+/* ==========================================================================
+   Trace.Rail: a chain as one line of fixed stations. A station's dot says what stands there, the
+   record's own is ringed, and each leg of the line is solid where its link holds, dashed where it
+   waits on a draft and broken in the warning colour beside a gap. The stations abut, so a leg
+   runs from its dot to the edge of its station and on into the next. The fills under a count are
+   the bold backgrounds with their inverse text, each held at 4.5:1 for the count and 3:1 as a
+   mark (the warning fill takes an edge for the second); the rings and legs are borders held at
+   3:1. At `medium` the rail measures its own width and, in less than 36rem, runs down the page.
+   ========================================================================== */
+[data-slot="trace-rail"] {
+  --trace-rail-dot: var(--ds-space-250);
+  --trace-rail-line: var(--ds-border-width-selected);
+  /* The record's own dot: smaller, inside a ring of the surface and then of its tone. */
+  --trace-rail-here: var(--ds-space-150);
+  --trace-rail-here-gap: var(--ds-space-025);
+  --trace-rail-none: var(--ds-space-075);
+  min-inline-size: 0;
+  font: var(--ds-font-body-small);
+  letter-spacing: var(--ds-font-body-small-letter-spacing);
+  color: var(--ds-color-text);
+}
+[data-slot="trace-rail"][data-size="medium"] {
+  container: trace-rail / inline-size;
+}
+[data-slot="trace-rail"][data-size="small"] {
+  --trace-rail-dot: var(--ds-space-200);
+  --trace-rail-here: var(--ds-space-100);
+}
+[data-slot="trace-rail"][data-size="xsmall"] {
+  --trace-rail-dot: var(--ds-space-100);
+  --trace-rail-line: var(--ds-border-width);
+  --trace-rail-here: var(--ds-space-050);
+  --trace-rail-here-gap: var(--ds-border-width);
+  --trace-rail-none: var(--ds-space-050);
+  display: inline-block;
+  vertical-align: middle;
+}
+[data-slot="trace-rail-stops"] {
+  display: grid;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  min-inline-size: 0;
+}
+/* Small and row sizes keep a fixed pitch, so a column of rails lines its stations up. */
+[data-slot="trace-rail"][data-size="small"] [data-slot="trace-rail-stops"] {
+  grid-auto-columns: minmax(0, var(--ds-space-1000));
+  justify-content: start;
+}
+[data-slot="trace-rail"][data-size="xsmall"] [data-slot="trace-rail-stops"] {
+  grid-auto-columns: var(--ds-space-200);
+}
+
+/* ---------- a station ---------- */
+[data-slot="trace-rail-stop"] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-075);
+  min-inline-size: 0;
+}
+[data-slot="trace-rail-label"] {
+  overflow: hidden;
+  font: var(--ds-font-body-xsmall);
+  font-weight: var(--ds-font-weight-medium);
+  letter-spacing: var(--ds-font-body-xsmall-letter-spacing);
+  color: var(--ds-color-text-subtle);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+[data-slot="trace-rail-stop"][data-state="current"] [data-slot="trace-rail-label"] {
+  color: var(--ds-color-text);
+}
+[data-slot="trace-rail-stop"][data-state="gap"] [data-slot="trace-rail-label"] {
+  color: var(--ds-color-text-warning);
+}
+[data-slot="trace-rail-value"] {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ds-space-025) var(--ds-space-100);
+  min-inline-size: 0;
+  font: var(--ds-font-body);
+  font-weight: var(--ds-font-weight-medium);
+  letter-spacing: var(--ds-font-body-letter-spacing);
+  overflow-wrap: anywhere;
+}
+[data-slot="trace-rail-stop"][data-state="gap"] [data-slot="trace-rail-value"] {
+  color: var(--ds-color-text-warning);
+}
+[data-slot="trace-rail-meta"] {
+  min-inline-size: 0;
+  color: var(--ds-color-text-subtle);
+  overflow-wrap: anywhere;
+}
+/* The words keep clear of the next station's dot. */
+:is([data-slot="trace-rail-label"], [data-slot="trace-rail-value"], [data-slot="trace-rail-meta"]) {
+  padding-inline-end: var(--ds-space-100);
+}
+
+/* ---------- the line ---------- */
+[data-slot="trace-rail-track"] {
+  display: flex;
+  align-items: center;
+  block-size: var(--trace-rail-dot);
+  min-inline-size: 0;
+}
+[data-slot="trace-rail-leg"] {
+  flex: 1 1 0%;
+  min-inline-size: 0;
+  border-block-start: var(--trace-rail-line) solid var(--ds-color-border-bold);
+}
+[data-slot="trace-rail-leg"][data-state="waiting"] {
+  border-block-start-style: dashed;
+}
+[data-slot="trace-rail-leg"][data-state="broken"] {
+  border-block-start-style: dashed;
+  border-block-start-color: var(--ds-color-border-warning);
+}
+/* A leg that meets nothing on one side: a hairline, quiet. */
+[data-slot="trace-rail-leg"][data-state="none"] {
+  border-block-start-width: var(--ds-border-width);
+  border-block-start-color: var(--ds-color-border);
+}
+/* The first station has no leg in and the last none out; their room keeps the dots in place. */
+[data-slot="trace-rail-leg"]:not([data-state]) {
+  visibility: hidden;
+}
+
+/* ---------- a dot ---------- */
+[data-slot="trace-rail-dot"] {
+  --trace-rail-fill: var(--ds-color-background-neutral-bold);
+  --trace-rail-ink: var(--ds-color-text-inverse);
+  --trace-rail-ring: var(--ds-color-border-current);
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-inline-size: var(--trace-rail-dot);
+  block-size: var(--trace-rail-dot);
+  padding-inline: var(--ds-space-050);
+  border-radius: var(--ds-radius-full);
+  background-color: var(--trace-rail-fill);
+  color: var(--trace-rail-ink);
+  font: var(--ds-font-body-xsmall);
+  font-weight: var(--ds-font-weight-medium);
+  letter-spacing: var(--ds-font-body-xsmall-letter-spacing);
+  font-variant-numeric: tabular-nums;
+}
+[data-slot="trace-rail-stop"][data-tone="success"] [data-slot="trace-rail-dot"] {
+  --trace-rail-fill: var(--ds-color-background-success-bold);
+  --trace-rail-ring: var(--ds-color-border-success);
+}
+[data-slot="trace-rail-stop"][data-tone="danger"] [data-slot="trace-rail-dot"] {
+  --trace-rail-fill: var(--ds-color-background-danger-bold);
+  --trace-rail-ring: var(--ds-color-border-danger);
+}
+/* The warning fill carries dark text and is under 3:1 on the surface: an edge in the warning
+   border holds the mark. */
+[data-slot="trace-rail-stop"][data-tone="warning"] [data-slot="trace-rail-dot"] {
+  --trace-rail-fill: var(--ds-color-background-warning-bold);
+  --trace-rail-ink: var(--ds-color-text-warning-inverse);
+  --trace-rail-ring: var(--ds-color-border-warning);
+  box-shadow: inset 0 0 0 var(--ds-border-width) var(--ds-color-border-warning);
+}
+/* The record's own: a smaller dot of its tone inside a ring of the surface and a ring of the tone. */
+[data-slot="trace-rail-stop"][data-state="current"] [data-slot="trace-rail-dot"] {
+  min-inline-size: var(--trace-rail-here);
+  block-size: var(--trace-rail-here);
+  padding: 0;
+  box-shadow:
+    0 0 0 var(--trace-rail-here-gap) var(--ds-utility-elevation-surface-current),
+    0 0 0 calc(var(--trace-rail-here-gap) + var(--trace-rail-line)) var(--trace-rail-ring);
+}
+/* Drafts only, and a gap: a hollow ring, dashed; a gap's in the warning colour. */
+:is([data-state="draft"], [data-state="gap"])
+  > [data-slot="trace-rail-track"]
+  [data-slot="trace-rail-dot"] {
+  inline-size: var(--trace-rail-dot);
+  padding: 0;
+  border: var(--trace-rail-line) dashed var(--ds-color-border-bold);
+  background-color: var(--ds-utility-elevation-surface-current);
+  box-shadow: none;
+}
+[data-state="gap"] > [data-slot="trace-rail-track"] [data-slot="trace-rail-dot"] {
+  border-color: var(--ds-color-border-warning);
+}
+/* Nothing recorded: a small hollow mark. */
+[data-state="none"] > [data-slot="trace-rail-track"] [data-slot="trace-rail-dot"] {
+  min-inline-size: var(--trace-rail-none);
+  block-size: var(--trace-rail-none);
+  padding: 0;
+  border: var(--ds-border-width) solid var(--ds-color-border-bold);
+  background-color: var(--ds-utility-elevation-surface-current);
+  box-shadow: none;
+}
+
+/* ---------- medium: names over the line, words under it ----------
+   Each dot leads its station and the line runs on to the next; the last station stands at the
+   end, its words with it, so the line spans the width. Only the medium rail is a container, so
+   these and the narrow rules below are the medium rail's alone. */
+@container trace-rail (width >= theme(--container-xl)) {
+  [data-slot="trace-rail-leg"][data-side="in"] {
+    display: none;
+  }
+  [data-slot="trace-rail-stop"]:last-child {
+    align-items: flex-end;
+    text-align: end;
+  }
+  [data-slot="trace-rail-stop"]:last-child [data-slot="trace-rail-track"] {
+    align-self: stretch;
+  }
+  [data-slot="trace-rail-stop"]:last-child [data-slot="trace-rail-leg"][data-side="out"] {
+    display: none;
+  }
+  [data-slot="trace-rail-stop"]:last-child:not(:first-child)
+    [data-slot="trace-rail-leg"][data-side="in"] {
+    display: block;
+  }
+  [data-slot="trace-rail-stop"]:last-child
+    :is(
+      [data-slot="trace-rail-label"],
+      [data-slot="trace-rail-value"],
+      [data-slot="trace-rail-meta"]
+    ) {
+    justify-content: flex-end;
+    padding-inline-end: 0;
+  }
+}
+
+/* ---------- small and xsmall: each dot centred in its station, its name under it ---------- */
+[data-slot="trace-rail"]:not([data-size="medium"]) [data-slot="trace-rail-stop"] {
+  align-items: stretch;
+  gap: var(--ds-space-050);
+  text-align: center;
+}
+[data-slot="trace-rail"]:not([data-size="medium"]) [data-slot="trace-rail-label"] {
+  order: 1;
+  padding-inline: var(--ds-space-025);
+}
+
+/* ---------- medium in a narrow box: the stations run down the page ----------
+   A station is two columns: its dot over a leg that runs down to the next station's dot, and its
+   name, words and fact beside it, then the room to the next station, which the leg crosses. */
+@container trace-rail (width < theme(--container-xl)) {
+  [data-slot="trace-rail-stops"] {
+    grid-auto-flow: row;
+    grid-auto-columns: auto;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  [data-slot="trace-rail-stop"] {
+    display: grid;
+    grid-template-columns: var(--trace-rail-dot) minmax(0, 1fr);
+    grid-template-rows: auto auto auto var(--ds-space-200);
+    align-items: start;
+    gap: 0 var(--ds-space-150);
+    text-align: start;
+  }
+  [data-slot="trace-rail-stop"]:last-child {
+    grid-template-rows: auto auto auto 0;
+  }
+  [data-slot="trace-rail-stop"] > :not([data-slot="trace-rail-track"]) {
+    grid-column: 2;
+    justify-content: flex-start;
+    padding-inline-end: 0;
+  }
+  [data-slot="trace-rail-label"] {
+    grid-row: 1;
+    align-self: center;
+  }
+  [data-slot="trace-rail-value"] {
+    grid-row: 2;
+    padding-block-start: var(--ds-space-025);
+  }
+  [data-slot="trace-rail-meta"] {
+    grid-row: 3;
+    padding-block-start: var(--ds-space-025);
+  }
+  /* The line runs down from each dot to the next station's. */
+  [data-slot="trace-rail-track"] {
+    grid-column: 1;
+    grid-row: 1 / -1;
+    flex-direction: column;
+    align-self: stretch;
+    block-size: auto;
+    min-block-size: var(--trace-rail-dot);
+  }
+  [data-slot="trace-rail-leg"] {
+    display: none;
+  }
+  [data-slot="trace-rail-stop"]:not(:last-child) [data-slot="trace-rail-leg"][data-side="out"] {
+    display: block;
+    border-block-start: 0;
+    border-inline-start: var(--trace-rail-line) solid var(--ds-color-border-bold);
+  }
+  [data-slot="trace-rail-leg"][data-side="out"][data-state="waiting"] {
+    border-inline-start-style: dashed;
+  }
+  [data-slot="trace-rail-leg"][data-side="out"][data-state="broken"] {
+    border-inline-start-style: dashed;
+    border-inline-start-color: var(--ds-color-border-warning);
+  }
+  [data-slot="trace-rail-leg"][data-side="out"][data-state="none"] {
+    border-inline-start-width: var(--ds-border-width);
+    border-inline-start-color: var(--ds-color-border);
+  }
+}
+
+@media (forced-colors: active) {
+  [data-slot="trace-rail-dot"] {
+    forced-color-adjust: none;
+    background-color: CanvasText;
+    color: Canvas;
+  }
+  [data-slot="trace-rail-stop"][data-state="current"] [data-slot="trace-rail-dot"] {
+    box-shadow:
+      0 0 0 var(--trace-rail-here-gap) Canvas,
+      0 0 0 calc(var(--trace-rail-here-gap) + var(--trace-rail-line)) Highlight;
+  }
+  :is([data-state="draft"], [data-state="gap"], [data-state="none"])
+    > [data-slot="trace-rail-track"]
+    [data-slot="trace-rail-dot"] {
+    background-color: Canvas;
+    border-color: CanvasText;
+  }
+  [data-slot="trace-rail-leg"] {
+    border-color: CanvasText;
+  }
+  [data-slot="trace-rail-leg"][data-state="none"] {
+    border-color: GrayText;
+  }
+}

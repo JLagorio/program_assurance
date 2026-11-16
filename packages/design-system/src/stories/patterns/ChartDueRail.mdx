@@ -1,0 +1,96 @@
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
+
+import { Chart } from "../..";
+import * as Stories from "./ChartDueRail.stories";
+
+<Meta of={Stories} />
+
+# Due rail
+
+**Status: Experimental.**
+
+Dated items as dots on one time axis, above the table that lists them, with today ruled across: a program's POA&M items by the day each is due, the evidence by the day it expires. The reader sees at a glance how much is late, how much is due this week and how the rest spreads over the months ahead; the table under it says which and opens each record. The API may change before it is stable.
+
+<Canvas of={Stories.AboveItsTable} />
+
+## Anatomy
+
+| Part  | What it is                                                                                                                                                                                                                                                                             |
+| ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Axis  | A hairline in `color.border.bold` from the first item's day to the last, today among them, with a little room at each end. Its ticks fall on the starts of days or months by the span, labelled in `font.body.xsmall` in `color.text.subtlest`.                                        |
+| Today | A rule in `color.border.current` at `border.width.selected` across the dots and the axis, with "Today" above it in `font.body.xsmall` medium: after the rule, or before it near the rail's end.                                                                                        |
+| Dot   | An item, 8px, on its day. Neutral (`color.chart.neutral`) when it is not due yet; ringed in the warning tone (`color.chart.warning`) when it is due today or within two days; hollow and hatched in the danger tone (`color.chart.danger`) when it is late, as a Meter's late mark is. |
+| Stack | Dots that would touch stand on one another, a pitch (`space.150`) apart, so the rail is as tall as its busiest stretch. A late dot always stands before the rule and a dot not yet late after it.                                                                                      |
+
+Late and soon are told by shape as well as colour, and by place: a late dot is hatched and stands before today's rule; a soon dot is ringed and stands just after it.
+
+## The rail and its table
+
+The rail is never the only way to a date. Put it above the table that lists the same items, one row a dot, keyed by the dot's `id`, and say each day there with a [DateLabel](?path=/docs/components-datetime--docs), which uses the same words (Overdue, Due today, Due tomorrow). In a Frame the rail is a chart like any other: its Table toggle lays the items out as the table twin (the item, then its day with those words), and the CSV holds the ISO days. The Frame's `xLabel` names the item column ("POA&M item").
+
+A dot does not open anything: at 8px it is no target, and the row under it is the way to the record. Its title shows its name on hover.
+
+<Canvas of={Stories.InAFrame} />
+
+## Sizes
+
+One size. The width is the container's; the height follows the tallest stack, from about 56px for one dot a column. On a phone the dots stand closer and on one another more, and the tick labels thin out so none runs past the rail's end.
+
+<Canvas of={Stories.Narrow} />
+
+## States
+
+| State   | What changes                                                                       |
+| ------- | ---------------------------------------------------------------------------------- |
+| Hover   | A dot's title: its item, its day and, when late or soon, the words.                |
+| Loading | A skeleton block in the rail's place, `aria-busy`; the Frame sets it from `state`. |
+| Empty   | The Frame's `state="empty"`, with why and what to do.                              |
+
+## Modifiers
+
+- **`items`**: each `{ id, label, due }`, `due` an ISO day ("2026-12-13"). An item with no ISO day is left off the rail; list it in the table.
+- **`now`**: the moment today is judged from, in the provider's zone. By default the clock at render; pass it where the page already holds one, so the rail and the table's DateLabels agree.
+- **`label`** names the dots' list outside a Frame; inside one, the Frame's title does.
+- **`loading`** draws the skeleton; the Frame sets it from `state="loading"`.
+- Native props and a ref reach its box.
+
+## Content
+
+- **Open items only.** A done item has no due; it leaves the rail and stays in the register.
+- **One kind of item a rail**: POA&M items, or evidence, not both. The table under it is that kind's register.
+- **The Frame's description counts what matters**: "12 open · 4 late".
+
+## Style
+
+| Element | Token                                                                                            |
+| ------- | ------------------------------------------------------------------------------------------------ |
+| Dot     | `space.100` · `radius.full` · `color.chart.neutral`                                              |
+| Soon    | `color.chart.warning` · a ring of the surface, then of the tone, `border.width` each             |
+| Late    | the surface · an inset `border.width` edge and a hatch every `space.025` in `color.chart.danger` |
+| Pitch   | `space.150`                                                                                      |
+| Today   | `color.border.current` · `border.width.selected` · "Today" `font.body.xsmall` medium             |
+| Axis    | `color.border.bold` · `border.width` · ticks `font.body.xsmall` in `color.text.subtlest`         |
+
+## Accessibility
+
+- **The dots are a list in date order**, named by the Frame's title or `label`; a screen reader hears "POA&M items by due date, list, 12 items".
+- **Each dot is an image named by its item, its day and, when late or soon, the words**: "Withdraw the password-only local logon, Oct 28, 2026, Overdue"; "Ship the offline credential verifier, due Nov 25, 2026".
+- **Not a tab stop.** The dots open nothing; the table's rows are the stops.
+- **Colour is never alone.** Late is hatched and before the rule, soon is ringed; in forced colours the hatch, the ring and the rule stay in the system's text colour.
+
+## Props
+
+<ArgTypes of={Chart.DueRail} />
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+- [Chart](?path=/docs/patterns-chart-overview--docs): the Frame, its table twin and its states.
+- [DateLabel](?path=/docs/components-datetime--docs): the same day, in a row, with the same words.
+- [Meter](?path=/docs/components-meter--docs): the hatch a late item wears.
+- [Stepper](?path=/docs/components-stepper--docs): a record's dated path, `variant="dated"`, where each stop is a decision or a piece of work in order.

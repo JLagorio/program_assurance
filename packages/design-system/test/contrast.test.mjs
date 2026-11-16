@@ -554,6 +554,27 @@ for (const surface of surfaces) {
 }
 for (const text of ["color.text", "color.text.subtle", "color.text.link"])
   add(text, "color.background.current", 4.5, "words on the current place's fill");
+// CHAIN RAIL AND OBJECTIVE CELLS: a Trace.Rail station's count on its dot, each bold fill with its
+// inverse words, at 4.5:1 (the proposal's mock put the count on the danger chart mark, 3.9:1 in
+// dark); the dots, the record's ring, a gap's or a draft's ring and the legs at 3:1, and the ink of
+// an ObjectiveCells rung reached, on every surface a record page, a card or a table sits on.
+for (const fill of ["neutral", "success", "danger"])
+  add("color.text.inverse", `color.background.${fill}.bold`, 4.5, "rail count on its dot");
+add("color.text.warning.inverse", "color.background.warning.bold", 4.5, "rail count on its dot");
+for (const surface of surfaces) {
+  if (surface === "color.background.input") continue;
+  for (const mark of [
+    "color.background.neutral.bold",
+    "color.background.success.bold",
+    "color.background.danger.bold",
+    "color.border.current",
+    "color.border.success",
+    "color.border.danger",
+    "color.border.warning",
+    "color.border.bold",
+  ])
+    add(mark, surface, 3, "rail dot, ring and leg, and a rung reached", surface);
+}
 
 const results = [];
 for (const mode of modes) {

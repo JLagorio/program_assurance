@@ -545,3 +545,13 @@
     color: GrayText;
   }
 }
+
+/* DECISION KEYS: forced colours take a chosen card's tone fill away, so its doubled edge (the
+   card's border and the line inside it) is drawn in Highlight, and the answer is still told from
+   the cards beside it. */
+@media (forced-colors: active) {
+  [data-slot="decision-key"][data-checked],
+  [data-slot="decision-key"][data-checked]::before {
+    border-color: Highlight;
+  }
+}

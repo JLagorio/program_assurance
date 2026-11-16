@@ -1,0 +1,85 @@
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
+
+import { ObjectiveCells } from "../../components";
+import * as Stories from "./ObjectiveCells.stories";
+
+<Meta of={Stories} />
+
+# ObjectiveCells
+
+**Status: Experimental.** New with the November 2026 UX proposal's counting forms, for a control's assessment objectives on its own record; no product screen has used it yet, so the first one may still change its props. Owned by the design system.
+
+A control's assessment objectives, rung by rung: a row a rung (mapped, evidence, assessed, satisfied) and a cell an objective in every row, so a column is one objective and the row where its cells turn hollow is where it stopped. Each row ends in how many reached it, and the same cells are a table one toggle away. Where a [Climb](?path=/docs/components-climb--docs) counts a baseline's controls through the rungs, the cells show one control's objectives one by one.
+
+<Canvas of={Stories.Playground} />
+
+## Cells, Meter, Climb or TileMap
+
+|               | [Meter](?path=/docs/components-meter--docs) | [Climb](?path=/docs/components-climb--docs) | ObjectiveCells                                                     | [TileMap](?path=/docs/patterns-tilemap--docs) |
+| ------------- | ------------------------------------------- | ------------------------------------------- | ------------------------------------------------------------------ | --------------------------------------------- |
+| What it shows | N of M, one mark an item                    | A whole through ordered rungs, to scale     | A few dozen items through ordered rungs, one by one                | Every item of a large set, grouped            |
+| A mark        | Met, open or late                           | What stopped under a rung                   | An item on a rung: reached, the gap, waiting, a judgement, not yet | An item in its state                          |
+| Interaction   | None                                        | The table toggle                            | The table toggle                                                   | A mark can open its item                      |
+
+The cells are a component: they describe a standing and own no workflow. They are not links: at this size a cell is a picture of the whole, and the reader acts on an objective from the page around it.
+
+## Rungs and objectives
+
+`rungs` are the rows, from the first, each with the `label` reaching it means. Each of `objectives` has a `label` (SI-02a.[01]), the `group` it belongs to (the statement part, a) and how many rungs it `reached`. On each rung its cell is:
+
+| Cell              | When                                                      | Paint                       |
+| ----------------- | --------------------------------------------------------- | --------------------------- |
+| Reached           | a rung below how far it got                               | ink, solid                  |
+| Missing (the gap) | the rung it stopped under, owed                           | hollow, a 2px edge          |
+| Waiting           | the rung it stopped under, with `waiting`: on an assessor | grey, solid                 |
+| A judgement       | the rung its `judgement` lands on                         | the judgement's tone, solid |
+| Not yet           | a rung past the one it stopped under                      | a faint slot                |
+
+Hue is spent only on a judgement. A `judgement` lands on the rung the objective stopped under (other than satisfied, under Satisfied) or, where it reached every rung, on the last (satisfied). A row's count is how many reached its rung of those that reached the rung before, of all for the first: SI-4(13) with three of six mapped reads 3 of 6, then 0 of 3, and a rung nothing has reached the one before of draws no count.
+
+<Canvas of={Stories.Judged} />
+
+<Canvas of={Stories.PartlyMapped} />
+
+The objectives of one `group` stand together, with a wider gap before the next, so a statement's parts read apart. Where the cells wrap, every row wraps at the same place, so a column stays one objective.
+
+## Sizes
+
+`small` is 8px cells beside body text, `medium` 12px and `large` 20px, on a control's own page.
+
+<Canvas of={Stories.Sizes} />
+
+## The table twin
+
+The Table toggle shows the same cells as a [Table](?path=/docs/components-table--docs): a row an objective, named by its label, and a column a rung, each cell its state in words. The toggle keeps its name and says by `aria-pressed` whether the table shows, as a [Chart](?path=/docs/patterns-chart-overview--docs)'s does.
+
+<Canvas of={Stories.TableTwin} />
+
+## Accessibility
+
+- **A named figure.** The cells are a `figure` named by `label`. Each rung is a group named by the rung and its count ("Evidence 0 of 10"), and each cell an image named by its objective and its state there ("SI-02a.[01], Missing"; a judgement in its own words). The table twin is a table named "…, as a table".
+- **Not colour alone.** Reached, the gap, waiting and not yet differ by fill and edge as well as colour; a judgement is said in its words.
+- **Not links.** Nothing in the grid takes focus; the toggle is the one control.
+- **Forced colours.** A rung reached and a judgement are the system's text colour, waiting its grey, the gap a hollow edge and not yet a grey hairline.
+- **Right to left.** The rows run from the inline start, so the cells mirror.
+
+## Style
+
+| Element | Token                                                                                                                                                                                                       |
+| ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Cell    | `space.100`, `space.150` or `space.250` square · `radius.xsmall` (`radius.small` at `large`) · `space.025` apart (`space.050` at `large`)                                                                   |
+| Run     | `space.075`, `space.100` or `space.150` from the next                                                                                                                                                       |
+| Paint   | reached: `color.background.neutral.bold` · gap: an edge of `color.chart.neutral` at `border.width.selected` · waiting: `color.chart.neutral` · judged: `color.chart.*` · not yet: a `color.border` hairline |
+| Rung    | the name in `font.body.small` medium (`font.body` at `large`) · the count in `font.body.small`, its value medium in `color.text`                                                                            |
+
+## Props
+
+The figure's native props and ref reach its box.
+
+<ArgTypes of={ObjectiveCells} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+[Climb](?path=/docs/components-climb--docs) · [Meter](?path=/docs/components-meter--docs) · [Tally](?path=/docs/components-tally--docs) · [TileMap](?path=/docs/patterns-tilemap--docs) · [Table](?path=/docs/components-table--docs)

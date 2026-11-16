@@ -16,6 +16,7 @@ export {
 } from "./_shared";
 export { ChartBar, type ChartBarProps } from "./bar";
 export { Chart } from "./chart";
+export { ChartDueRail, type ChartDueItem, type ChartDueRailProps } from "./due-rail";
 export { ChartDonut, type ChartDonutProps, type DonutSlice, type DonutSelection } from "./donut";
 export {
   ChartFrame,

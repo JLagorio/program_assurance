@@ -1,0 +1,82 @@
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
+
+import { WorkRow, WorkRowGroup, WorkRowTier } from "../../patterns";
+import * as Stories from "./WorkRow.stories";
+
+<Meta of={Stories} />
+
+# WorkRow
+
+**Status: Experimental.** New with the November 2026 proposal's desks (Home's Waiting on you and Waiting on others, a program's next fixes); the props may change while its first screens try it. Owned by the design system.
+
+One line of open work: the verb, what it is done to, why it waits, who it waits on and when. The verb leads, as a button where the reader can press it and as words where the work is someone else's. Rows stack in `WorkRow.Group`, ranked into `WorkRow.Tier`s ("Late", "Next", "Waiting on others"), and their cells make one set of columns across every row and every tier.
+
+<Canvas of={Stories.Desk} />
+
+## Anatomy
+
+| Cell | Prop        | What it holds                                                                                                                                                |
+| ---- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Verb | `verb`      | `onAction`: a small secondary Button. `link`: a LinkButton that goes where the act is done. Neither: the verb as words in the subtle colour, someone else's. |
+| What | `title`     | The record's name at medium weight in the text colour, a link with `link`; `meta` after it, muted (the program).                                             |
+| Why  | `reason`    | Why it waits, subtle: "no criteria", or an EmptySeat ("No owner").                                                                                           |
+| Who  | `waitingOn` | A Person, an EmptySeat where nobody holds the role, or a few words. Empty where it waits on the reader.                                                      |
+| When | `when`      | A DateLabel for a due day, a RelativeTime for how long it has waited.                                                                                        |
+
+The verb is described by what it is done to, so five Assign owner buttons are told apart ("Assign owner", described by "11 POA&M items under Condition 1 WS-X90"); the name is described by its meta and its reason.
+
+## The next act
+
+`isNext` marks the desk's first row, the reader's next act: its verb is the one primary, at 36px, its name steps up to the section size, and the row sits in the tray with no hairline around it. One a list; every other verb is a small secondary.
+
+## One line at every width
+
+A row never wraps. Each cell narrower than its words cuts them with an ellipsis and shows them whole on hover, and on keyboard focus of the link or button they sit in; a screen reader reads them whole. The group reads its own width, so a panel beside it narrows it as a phone does. From 48rem the verb and the who are as wide as their widest (a quarter and a fifth of the list at most), the what and the why share the rest three to two, and the when is as wide as its words. In less, the when keeps its words and the other four share what is left by weight, the name the most, then the verb. Give the when a short form: a DateLabel with `format={{ month: "short", day: "numeric" }}`, or a narrow RelativeTime.
+
+<Canvas of={Stories.OneLine} />
+
+## Next fixes
+
+A program's next fixes are one list with no tiers, each verb a link to where the fix is made.
+
+<Canvas of={Stories.NextFixes} />
+
+## Content
+
+- **The verb is a verb and no object:** "Add security outcomes", "Assign owner", "Retry import". The object is the title.
+- **The title is the record's name, never coloured.** Status and lateness belong to the when (DateLabel's tone and words) and the reason.
+- **The reason is a few words, not a sentence:** "maintenance window slipped".
+- **Nobody is an EmptySeat**, said in words ("No owner", "No authorizing official"), never a dash or "Unassigned".
+- **No second line.** What does not fit is cut, never moved under.
+
+## Accessibility
+
+- A group of rows is one list (`ol`) named by `aria-label` or `aria-labelledby`; a group of tiers is a named group, each tier a heading at the contextual level (an h3 outside every HeadingLevelProvider) and the list it names.
+- The verb and the title are separate Tab stops; someone else's verb is text and no stop.
+- A cut cell's reveal is a visual copy of text already read; the when's tone is said in DateLabel's words.
+
+## Props
+
+WorkRow is an `li` that forwards native props and its ref; its cells carry `data-slot` (`work-row-verb`, `work-row-title`, `work-row-reason`, `work-row-waiting-on`, `work-row-when`), and the next row carries `data-next`.
+
+<ArgTypes of={WorkRow} />
+
+`WorkRow.Group`, also `WorkRowGroup`, is the grid every row shares; it holds rows or tiers.
+
+<ArgTypes of={WorkRowGroup} />
+
+`WorkRow.Tier`, also `WorkRowTier`, is a heading and its rows.
+
+<ArgTypes of={WorkRowTier} />
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+- [Item](?path=/docs/components-item--docs): a row of a list that is not a desk, a name first.
+- [TaskRow](?path=/docs/patterns-taskrow--docs): a checklist row that completes in place.
+- [EmptySeat](?path=/docs/components-emptyseat--docs): a role nobody holds.
+- [DateTime](?path=/docs/components-datetime--docs): DateLabel and RelativeTime for the when.
+- [PageHeader](?path=/docs/layout-pageheader--docs): the slot's advance, one record's next act.

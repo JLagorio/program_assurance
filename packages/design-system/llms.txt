@@ -215,9 +215,11 @@ The catalog is organised by family. This page is organised by need: find the row
 | A keyboard shortcut                                                                        | **KbdShortcut** with `keys="Mod+K"`: the platform's glyphs and one spoken name. **useFormatShortcut** or **formatShortcut** for the same shortcut as text or `aria-keyshortcuts`. **Kbd** and **KbdGroup** for caps composed by hand. | A ⌘ or Ctrl cap chosen per screen, or a branch on the platform.                               |
 | Events in order                                                                            | **Timeline**.                                                                                                                                                                                                                         | A Table of dates.                                                                             |
 | Steps through an ordered path                                                              | **Stepper**.                                                                                                                                                                                                                          | Tabs.                                                                                         |
+| A record's path down the page, dated or rung by rung, with the one stage open              | **Stepper** `variant="dated"` or `"ladder"` (experimental): **Stepper.Stage** in the current step, **Stepper.Today** among the stops.                                                                                                 | A Timeline, which is events, newest first; a filled button in the stage.                      |
 | What an action or a step waits on: the checks before a create, the conflicts before a save | **Gates**: each condition met or not, with what is missing and the one action that meets it; a list, never a score.                                                                                                                   | Progress, or reasons in a bordered Box or a grey line beside a disabled button.               |
 | A completion fraction                                                                      | **Progress**; **ProgressStacked** for parts of a whole.                                                                                                                                                                               | A Stat with a percentage, unless it is the headline.                                          |
 | Numbers drawn                                                                              | **Chart** and one of its kinds: Bar, Line, Area, Donut, Scatter, Heatmap, Treemap, Sparkline. **Chart.Frame** holds the data, size and format once, for a bare part inside.                                                           | A hand-drawn SVG, or the same props on the Frame and the part.                                |
+| Dated items on one time axis, today ruled across                                           | **Chart.DueRail** (experimental), above the table that lists the same items: late hatched, soon ringed.                                                                                                                               | The rail as the only way to a date; dots that open records.                                   |
 | A chart's numbers as a table                                                               | **Chart.Frame** around the part: its Table toggle and its CSV lay out what the part draws. Name the columns with `xLabel`, `columns`, Scatter `zLabel` and Treemap `levels`. A colour-scale Heatmap in a Frame also offers Values.    | A separate Table beside the chart, or a `title` on hover.                                     |
 | Every item of a large set at once, by group, coloured by its state                         | **TileMap** (experimental): `grid`, a row a group, `skyline`, one street, or `strip`, the whole set in one run for a card; **TileMap.Key** for what each colour means. A table of the same items stays on the page.                   | A Heatmap, whose rows and columns are both scales, or a table of a thousand rows to scan.     |
 | A record's chain, several hops at once: what it answers, what proves it, what was found    | **Trace** (experimental): the stages as columns of records joined by wires, read outward from one record. A stage with nothing in it says so. A collection the reader works through stays a table.                                    | A table per hop, or a network graph: a trace is a chain.                                      |
@@ -315,7 +317,9 @@ Body copy is **Text**; titles are **Heading** with the size from the design and 
 | A summary of linked records in a rail or a card: how many, a way to add one, the few that matter                                                             | **Related**: a card with a Count, a way to add one, a row or card per record. Linked records the reader works through are an embedded **DataTable**.          |
 | One compact record row with aligned parts                                                                                                                    | **Item**.                                                                                                                                                     |
 | A checklist or work queue row                                                                                                                                | **TaskRow**.                                                                                                                                                  |
+| Open work on a desk, the verb first: what to do, to what, why, who it waits on and when, one line a row                                                      | **WorkRow** in a **WorkRow.Group**, ranked by **WorkRow.Tier**.                                                                                               |
 | A long list decided one record at a time, the chosen record's detail beside it: tailoring controls, setting parameters                                       | **WorkPane**: side by side when wide, a drill-in with Back to the row when narrow. A list the reader scans, sorts and filters is a DataTable.                 |
+| A judgement made record after record in a workspace, by key, and the workspace's one finalizing act                                                          | **DecisionKeys** in the workspace's **CommandScope**; **FootBar** under the work for what is judged and the act. One answer in a form is a RadioGroup.        |
 | The next record without leaving the list                                                                                                                     | **PreviewNavigation** in a **Shell.Panel**; **PreviewSheet** only when the task must hold focus.                                                              |
 | A record's summary on hover                                                                                                                                  | **HoverCard** holding a **Glance**.                                                                                                                           |
 | Search, views, filters and actions above a table                                                                                                             | **Toolbar**: search, `views`, `filters`, children, `actions`.                                                                                                 |
@@ -14364,6 +14368,94 @@ A NumberField holds a quantity the reader steps. An identifier made of digits is
 
 _Example: story `Stories.Dont`._
 
+<!-- page: Components/ObjectiveCells (src/stories/components/ObjectiveCells.mdx) -->
+
+# ObjectiveCells
+
+**Status: Experimental.** New with the November 2026 UX proposal's counting forms, for a control's assessment objectives on its own record; no product screen has used it yet, so the first one may still change its props. Owned by the design system.
+
+A control's assessment objectives, rung by rung: a row a rung (mapped, evidence, assessed, satisfied) and a cell an objective in every row, so a column is one objective and the row where its cells turn hollow is where it stopped. Each row ends in how many reached it, and the same cells are a table one toggle away. Where a [Climb](?path=/docs/components-climb--docs) counts a baseline's controls through the rungs, the cells show one control's objectives one by one.
+
+_Example: story `Stories.Playground`._
+
+## Cells, Meter, Climb or TileMap
+
+|               | [Meter](?path=/docs/components-meter--docs) | [Climb](?path=/docs/components-climb--docs) | ObjectiveCells                                                     | [TileMap](?path=/docs/patterns-tilemap--docs) |
+| ------------- | ------------------------------------------- | ------------------------------------------- | ------------------------------------------------------------------ | --------------------------------------------- |
+| What it shows | N of M, one mark an item                    | A whole through ordered rungs, to scale     | A few dozen items through ordered rungs, one by one                | Every item of a large set, grouped            |
+| A mark        | Met, open or late                           | What stopped under a rung                   | An item on a rung: reached, the gap, waiting, a judgement, not yet | An item in its state                          |
+| Interaction   | None                                        | The table toggle                            | The table toggle                                                   | A mark can open its item                      |
+
+The cells are a component: they describe a standing and own no workflow. They are not links: at this size a cell is a picture of the whole, and the reader acts on an objective from the page around it.
+
+## Rungs and objectives
+
+`rungs` are the rows, from the first, each with the `label` reaching it means. Each of `objectives` has a `label` (SI-02a.[01]), the `group` it belongs to (the statement part, a) and how many rungs it `reached`. On each rung its cell is:
+
+| Cell              | When                                                      | Paint                       |
+| ----------------- | --------------------------------------------------------- | --------------------------- |
+| Reached           | a rung below how far it got                               | ink, solid                  |
+| Missing (the gap) | the rung it stopped under, owed                           | hollow, a 2px edge          |
+| Waiting           | the rung it stopped under, with `waiting`: on an assessor | grey, solid                 |
+| A judgement       | the rung its `judgement` lands on                         | the judgement's tone, solid |
+| Not yet           | a rung past the one it stopped under                      | a faint slot                |
+
+Hue is spent only on a judgement. A `judgement` lands on the rung the objective stopped under (other than satisfied, under Satisfied) or, where it reached every rung, on the last (satisfied). A row's count is how many reached its rung of those that reached the rung before, of all for the first: SI-4(13) with three of six mapped reads 3 of 6, then 0 of 3, and a rung nothing has reached the one before of draws no count.
+
+_Example: story `Stories.Judged`._
+
+_Example: story `Stories.PartlyMapped`._
+
+The objectives of one `group` stand together, with a wider gap before the next, so a statement's parts read apart. Where the cells wrap, every row wraps at the same place, so a column stays one objective.
+
+## Sizes
+
+`small` is 8px cells beside body text, `medium` 12px and `large` 20px, on a control's own page.
+
+_Example: story `Stories.Sizes`._
+
+## The table twin
+
+The Table toggle shows the same cells as a [Table](?path=/docs/components-table--docs): a row an objective, named by its label, and a column a rung, each cell its state in words. The toggle keeps its name and says by `aria-pressed` whether the table shows, as a [Chart](?path=/docs/patterns-chart-overview--docs)'s does.
+
+_Example: story `Stories.TableTwin`._
+
+## Accessibility
+
+- **A named figure.** The cells are a `figure` named by `label`. Each rung is a group named by the rung and its count ("Evidence 0 of 10"), and each cell an image named by its objective and its state there ("SI-02a.[01], Missing"; a judgement in its own words). The table twin is a table named "…, as a table".
+- **Not colour alone.** Reached, the gap, waiting and not yet differ by fill and edge as well as colour; a judgement is said in its words.
+- **Not links.** Nothing in the grid takes focus; the toggle is the one control.
+- **Forced colours.** A rung reached and a judgement are the system's text colour, waiting its grey, the gap a hollow edge and not yet a grey hairline.
+- **Right to left.** The rows run from the inline start, so the cells mirror.
+
+## Style
+
+| Element | Token                                                                                                                                                                                                       |
+| ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Cell    | `space.100`, `space.150` or `space.250` square · `radius.xsmall` (`radius.small` at `large`) · `space.025` apart (`space.050` at `large`)                                                                   |
+| Run     | `space.075`, `space.100` or `space.150` from the next                                                                                                                                                       |
+| Paint   | reached: `color.background.neutral.bold` · gap: an edge of `color.chart.neutral` at `border.width.selected` · waiting: `color.chart.neutral` · judged: `color.chart.*` · not yet: a `color.border` hairline |
+| Rung    | the name in `font.body.small` medium (`font.body` at `large`) · the count in `font.body.small`, its value medium in `color.text`                                                                            |
+
+## Props
+
+The figure's native props and ref reach its box.
+
+_Props of `ObjectiveCells`, generated from its types:_
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `label` (required) | `string` |  | The figure's name: whose objectives and what the cells say ("SI-2 objectives by rung"). It names the table twin too. |
+| `rungs` (required) | `readonly ObjectiveCellsRung[]` |  | The rungs in order, from the first: a row each. |
+| `objectives` (required) | `readonly ObjectiveCellsObjective[]` |  | The objectives in order, grouped by `group`: a cell each in every row, so a column is one objective. |
+| `size` | `"large" \| "medium" \| "small"` | `medium` | `small` 8px cells beside body text, `medium` 12px, `large` 20px on a control's own page. |
+
+_Rendered in the Storybook: Controls._
+
+## Related
+
+[Climb](?path=/docs/components-climb--docs) · [Meter](?path=/docs/components-meter--docs) · [Tally](?path=/docs/components-tally--docs) · [TileMap](?path=/docs/patterns-tilemap--docs) · [Table](?path=/docs/components-table--docs)
+
 <!-- page: Components/Overlays (src/stories/components/Overlays.mdx) -->
 
 # Overlays
@@ -16153,13 +16245,15 @@ _Example: story `Stories.StepperMatrix`._
 
 ## Variants
 
-| Variant      | Use                                                                                                                                                                                                                                                              |
-| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `horizontal` | Labels under markers on one line: a record's milestone header, the top of a form.                                                                                                                                                                                |
-| `vertical`   | Markers down the start edge with labels beside them: a wizard's rail, a panel. Preferred wherever it fits, because the labels and metas can wrap.                                                                                                                |
-| `responsive` | Follows its own container: vertical while the container is narrower than `@md` (`dimension.container.md`, 448px), horizontal from there. A wizard whose path sits in a rail beside the form on a wide screen and above the form on a narrow one.                 |
-| `numbered`   | The marker shows the step's number; done and blocked keep their icon: numbers make the order plain on a long path.                                                                                                                                               |
-| Interactive  | A step with `onSelect` is a button the reader can move to; a step without one only reports. Mix them: done steps open, the rest do not. While any step takes `onSelect`, the current step is a button too, and activating it runs its own `onSelect` or nothing. |
+| Variant            | Use                                                                                                                                                                                                                                                              |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `horizontal`       | Labels under markers on one line: a record's milestone header, the top of a form.                                                                                                                                                                                |
+| `vertical`         | Markers down the start edge with labels beside them: a wizard's rail, a panel. Preferred wherever it fits, because the labels and metas can wrap.                                                                                                                |
+| `responsive`       | Follows its own container: vertical while the container is narrower than `@md` (`dimension.container.md`, 448px), horizontal from there. A wizard whose path sits in a rail beside the form on a wide screen and above the form on a narrow one.                 |
+| `numbered`         | The marker shows the step's number; done and blocked keep their icon: numbers make the order plain on a long path.                                                                                                                                               |
+| Interactive        | A step with `onSelect` is a button the reader can move to; a step without one only reports. Mix them: done steps open, the rest do not. While any step takes `onSelect`, the current step is a button too, and activating it runs its own `onSelect` or nothing. |
+| `variant="dated"`  | A record's path down the page (experimental): a program's decisions, gates and dated work, each stop's day before the rail and Stepper.Today ruled among them. See A record's path.                                                                              |
+| `variant="ladder"` | A control's climb, rung by rung (experimental): numbered rungs, each with its measure ("10 of 10") before the rail, the open rung's drawn as a figure. See A record's path.                                                                                      |
 
 Not built, and why: a disabled state, because a step the reader cannot reach is `upcoming` without `onSelect`; a skeleton, because the steps are known before the data is.
 
@@ -16196,12 +16290,41 @@ _Example: story `Stories.Responsive`._
 - **`meta`** for the date, the owner or the reason under the label. It may wrap; the label does not.
 - **`children`** for what a milestone carries under its label. Anything interactive in it is its own stop beside the step's button.
 - **`onSelect`** on the steps the reader may move to. On a wizard that is every done step and the next one; on a milestone header, every step, to open the milestone.
+- **`variant`**, `dated` or `ladder`, for a record's path; then **`when`**, **`node`** (dated), **`tone`**, **`signed`** and **`end`** on each step, as in A record's path. A path's steps only report: `onSelect` and `orientation` have no part in it.
 
 ## A wizard's rail
 
 A wizard gives `onSelect` to every done step and to the next one. The step the reader activates in the rail becomes current and keeps focus, since the current step stays a button. When the step changes from outside the rail (Continue, Back, a link in the step), the wizard moves focus to the new step's heading, rendered with `tabIndex={-1}`, so a keyboard reader lands on the step they opened and a screen reader hears its name. The Stepper does not move focus itself: where the new step's content starts is the wizard's to say.
 
 _Example: story `Stories.Wizard`._
+
+## A record's path
+
+**Experimental.** `variant="dated"` and `variant="ladder"` draw a record's path rather than a path the reader moves along: where a program stands on the way to its next decision, how far a control has climbed. The API may change before it is stable.
+
+_Example: story `Stories.DatedPath`._
+
+A path is read down the page on one grid: each stop's `when` in a column before the rail, its node on the rail, and its name, `meta` and `end` on one line that wraps. The steps keep their states (`done`, `current`, `upcoming`, `blocked`) and their spoken words.
+
+| Part  | What it is                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| When  | A dated stop's day ("Sep 18", "After PDR", "3d late") or a rung's measure ("10 of 10"), `font.body.small` in `color.text.subtle`, end-aligned before the rail; in the tone of a stop at risk or late; on the open rung, `font.figure` in `color.text`. Under a container narrower than `@md` (448px) it moves above the name and the column closes.                                                                                                                                                                                                   |
+| Node  | What the stop is and how it stands. Dated: a decision is a ring, a gate a diamond, a piece of work a small dot, the end a ring round a dot (`node`), drawn in `color.border.bold`, or in the warning or danger tone (`tone`) for a stop ahead that is at risk or late. Every done stop is a check on `color.background.neutral.bold`, one `signed` on `color.background.success.bold`; the open stop is filled in ink, a gate's with a diamond cut in it; a blocked one is a cross on `color.background.danger.bold`. Ladder: every rung is numbered. |
+| Rail  | `border.width.selected`. Walked, in `color.border.current`: everything above Stepper.Today, or, with no today, below a done rung. Ahead, dotted in `color.border.bold`.                                                                                                                                                                                                                                                                                                                                                                               |
+| Today | `Stepper.Today`: the words in the when column and a rule in `color.border.current` from the rail across the row. One a path, between the last stop behind and the first ahead. Under `@md` its words stand at the rule's end.                                                                                                                                                                                                                                                                                                                         |
+| Stage | `Stepper.Stage`, the first current step's children: the surface's one tray, on `color.background.current` at `radius.large`. Its head is the step's `label` as a heading at the contextual level (an h2 outside every provider), its `meta` and, at the end, `figure` (a Meter of its checks) and `end`; its body what closes it (a Gates list); its `foot` who it waits on and what the reader may do about it, a secondary Button.                                                                                                                  |
+
+**One stage is open.** The first `current` step opens: its Stepper.Stage takes the step's line, and the node moves down to the stage's title. Every other step is one closed line, and its children are not drawn; a settled path, with no current step, opens nothing.
+
+**No filled button inside the path.** The page's one primary is its header's. A stage's action is a secondary (Remind) or a link Button named for the check (Record criteria).
+
+_Example: story `Stories.Ladder`._
+
+_Example: story `Stories.PathNodes`._
+
+_Example: story `Stories.DatedPathOnAPhone`._
+
+Accessibility: the path is the same named ordered list, every stop an `li` read with its state first ("Current: PDR"), the open one `aria-current="step"`; the when is read before the name, and the node is decoration, since the words say what it draws. The stage is a group named by its heading, so a screen reader finds it among the page's headings, and a keyboard reader reaches it with Tab: the stops that only report are no stops, so after any linked names the next stop is the stage's first control. Tone is never alone: the words that say why a stop is at risk or late are the caller's, in `when` or `meta`.
 
 ## Content
 
@@ -16247,7 +16370,8 @@ _Props of `Stepper`, generated from its types:_
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `orientation` | `"horizontal" \| "responsive" \| "vertical"` |  | `horizontal` puts labels under markers on one line, for a header; `vertical` stacks them down the start edge, preferred wherever it fits: a wizard's rail, a panel. `responsive` reads its own container: vertical while it is narrower than `@md` (`dimension.container.md`, 448px), horizontal from there, for a wizard whose path sits in a rail beside the form on a wide screen and above it on a narrow one. |
+| `orientation` | `"horizontal" \| "responsive" \| "vertical"` |  | `horizontal` puts labels under markers on one line, for a header; `vertical` stacks them down the start edge, preferred wherever it fits: a wizard's rail, a panel. `responsive` reads its own container: vertical while it is narrower than `@md` (`dimension.container.md`, 448px), horizontal from there, for a wizard whose path sits in a rail beside the form on a wide screen and above it on a narrow one. A dated or ladder path is always read down the page. |
+| `variant` | `"dated" \| "ladder" \| "steps"` |  | `steps`, the default, is a path the reader moves along: a wizard, the RMF steps. `dated` and `ladder` are a record's path, down the page: each step's `when` in a column before the rail, its name, what it holds and who holds it on one line, and the first `current` step open with its Stepper.Stage. `dated` stops are days (a gate's day, a decision's) of a `node` each, with a Stepper.Today rule among them: the rail is solid before today and dotted after. `ladder` rungs are numbered, and their `when` is a measure ("10 of 10"), drawn as a figure on the open rung: the rail is solid below a done rung and dotted ahead. Experimental. |
 | `numbered` | `boolean` |  | Markers show the step's number in place of the dot; done and blocked keep their icon: numbers make the order plain. The number is drawn, not read: the list already says "3 of 6". |
 | `label` (required) | `string` |  | The list's accessible name, required so the path is never an unnamed list: "RMF steps", "Program setup". An `aria-label` overrides it. |
 
@@ -16261,6 +16385,29 @@ _Props of `Stepper.Item`, generated from its types:_
 | `label` (required) | `ReactNode` |  | One or two words, sentence case: "Categorize", "Select controls". Sixteen characters at most. A longer label is cut to one line and shows whole on hover and while its step has keyboard focus. |
 | `meta` | `ReactNode` |  | Helper text under the label: a date, who has it, why it is blocked. It may wrap. |
 | `onSelect` | `(() => void)` |  | Makes the step a button the reader can move to. Without it the step only reports, except the current step of a list where some step takes `onSelect`: it stays a button, which does nothing. |
+| `when` | `ReactNode` |  | In a dated or ladder path: the column before the rail. A stop's day ("Sep 18", "After PDR", "3d late"), or a rung's measure ("10 of 10"), which the open rung draws as a figure. Under a narrow container it moves above the name. |
+| `node` | `"decision" \| "end" \| "gate" \| "work"` |  | In a dated path: what the stop is, which draws its node. `decision` (a circle), the default; `gate` (a diamond); `work` (a small dot); `end` (a ring round a dot). Every done stop is a check, and the open stop is filled. |
+| `tone` | `"danger" \| "warning"` |  | In a dated or ladder path: `warning` for a stop at risk, `danger` for one that is late. The node of a stop ahead and its `when` take the tone; the words that say why (at risk, 3d late) are the caller's, in `when` or `meta`. |
+| `signed` | `boolean` |  | In a dated or ladder path: a done stop someone signed or published (an authorization decision, published results, a satisfied rung), its check on the success fill. Other done stops are a check in ink. |
+| `end` | `ReactNode` |  | In a dated or ladder path: at the end of the stop's line, who holds it: a Person, an EmptySeat, a role. |
+
+### Stepper.Stage
+
+_Props of `StepperStage`, generated from its types:_
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `figure` | `ReactNode` |  | At the end of the stage's head, beside the name: a Meter of its checks, a count. |
+| `children` | `ReactNode` |  | What closes it: a Gates list of its checks, or what the step needs, as a list. |
+| `foot` | `ReactNode` |  | Under the checks: who the stage waits on, then what the reader may do about it, a secondary Button (Remind). Never a filled button: the page's one primary is the header's. |
+
+### Stepper.Today
+
+_Props of `StepperToday`, generated from its types:_
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `label` | `ReactNode` |  | The words in the `when` column, and at the rule's end under a narrow container. The locale's "Today" when unsaid; a day may follow it ("Today · Nov 16"). |
 
 ### Playground
 
@@ -17292,7 +17439,7 @@ _Example: story `Stories.Dont`._
 
 Events in order along one rail: a record's activity, a scope's history, an audit trail, a pipeline, a line of releases, a feed of what people did. Each event is a marker on the rail, what happened, who and when, and under it what the event carries: a sentence, a file, a note, two buttons. Vertical reads down, newest first, with sticky group labels over a week or a month; horizontal reads across, oldest first. The anatomy follows [Item](?path=/docs/components-item--docs): a row that opens is its title stretched over the row, and everything beside it is a separate stop.
 
-A timeline is for events; things with a date are an Item list, and a fixed path with a current step is a [Stepper](?path=/docs/components-stepper--docs).
+A timeline is for events; things with a date are an Item list, and a fixed path with a current step is a [Stepper](?path=/docs/components-stepper--docs): a record's dated path, with its one stage open, is a Stepper `variant="dated"`.
 
 _Example: story `Stories.TimelineMatrix`._
 
@@ -18544,6 +18691,71 @@ _Example: story `Stories.NativeAttributes`._
 - [StickyRail](?path=/docs/layout-stickyrail--docs): a column that stays in view beside a long page, for anything but a record's Details.
 - [Upgrading](?path=/docs/guidance-upgrading--docs#asidelayout): from an Aside beside the page to an AsideLayout.
 
+<!-- page: Layout/FootBar (src/stories/layout/FootBar.mdx) -->
+
+# FootBar
+
+**Status: Experimental.** New with the November 2026 proposal's workspaces; the props may change while its first screens try it. Owned by the design system.
+
+A workspace's one finalizing act, docked under the work: what is judged and what it found at the start, what is left and the act at the end. It takes [DataTable](?path=/docs/patterns-data-table--docs)'s SelectionBar anatomy (the count, then the verbs) at the 60px of `dimension.layout.footer`, and sticks to the foot of the window, or of the scroller it sits in, while the work scrolls above it.
+
+_Example: story `Stories.Playground`._
+
+## Anatomy
+
+| Part    | Prop      | What it is                                                                                                           |
+| ------- | --------- | -------------------------------------------------------------------------------------------------------------------- |
+| Summary | `summary` | What is judged, a count in its words, at medium weight: "56 of 58 recorded", "3 decided".                            |
+| Detail  | `detail`  | After the summary, subtle: what the work found ("5 controls not satisfied") or what is left ("85 left").             |
+| Reason  | `reason`  | Before the act, what is left and so why it waits: "To judge" and a link to each record left.                         |
+| Act     | `actions` | The one act: a 36px primary Button, a sign Button with Return beside it, or a PageHeader.Slot that waits on someone. |
+
+## States
+
+The bar is the same in every state; only what it holds changes. While work is left, `reason` links to what is left and the act keeps its place with Button's `disabledReason`. Ready, the act is the 36px primary. Under way, the act shows `isLoading`. If it fails, `failed` draws the summary in the danger tone with its icon ("Not sent"), the detail says the draft is kept ("58 determinations kept as a draft"), and the act retries ("Send again"). Sent, the end is a [PageHeader.Slot](?path=/docs/layout-pageheader--docs) `waitingOn` the person who acts next, with Remind. A signature is Return beside a Button with `intent="sign"`, whose Command+Enter signs.
+
+_Example: story `Stories.States`._
+
+## Counts read
+
+The summary and its detail are said whenever they change, politely, so a reader who judges by key hears the count move without looking down; a failure is said at once. Nothing is said as the bar first draws.
+
+_Example: story `Stories.CountsRead`._
+
+## Content
+
+- **The summary is a count with its noun:** "56 of 58 recorded", never a percentage alone.
+- **One act.** The bar never holds two primaries; the record's other commands stay in its header.
+- **Say what was kept** when the act fails, so the reader knows nothing was lost.
+
+## Accessibility
+
+- The bar is not a landmark; it comes after the work in reading order, and its act is a Tab stop like any other.
+- A waiting act keeps its place and is described by its `disabledReason`; the records left are links.
+- In a narrow bar the end takes the next line, and a wait and its Remind take a line each.
+
+## Props
+
+FootBar is a `div` that forwards native props and its ref, and names itself with `data-slot` (`foot-bar`, with `foot-bar-summary`, `foot-bar-end`, `foot-bar-reason` and `foot-bar-actions` inside). A failed bar carries `data-failed`.
+
+_Props of `FootBar`, generated from its types:_
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `summary` (required) | `ReactNode` |  | What is judged, at medium weight, a count in its words: "56 of 58 recorded", "3 decided". Said whenever it changes. With `failed`, what did not go: "Not sent". |
+| `detail` | `ReactNode` |  | After the summary, in the subtle colour: "5 controls not satisfied", "85 left", "58 determinations kept as a draft". Said with it. |
+| `reason` | `ReactNode` |  | Before the act, what is left and so why it waits: "To judge" and a link to each record left. The act itself waits with Button's `disabledReason`. |
+| `actions` | `ReactNode` |  | The one act, at the bar's end: a 36px primary Button, a sign Button with Return beside it, or a PageHeader.Slot that waits on someone, with Remind. Never two primaries. |
+| `failed` | `boolean` | `false` | The act did not go through: the summary takes the danger tone and its icon, and is said at once. Keep the draft and say so in `detail`; the act retries ("Send again"). |
+
+_Rendered in the Storybook: Controls._
+
+## Related
+
+- [DecisionKeys](?path=/docs/patterns-decisionkeys--docs): the judgement the bar counts.
+- [PageHeader](?path=/docs/layout-pageheader--docs): the slot's wait and sign, a record's one act at its head.
+- [Button](?path=/docs/components-button--docs): `disabledReason`, `isLoading` and `intent="sign"`.
+
 <!-- page: Layout/PageHeader (src/stories/layout/PageHeader.mdx) -->
 
 # PageHeader
@@ -19503,7 +19715,7 @@ _Rendered in the Storybook: Controls._
 
 **Status: Stable.**
 
-Data drawn on the chart tokens. `Chart` is the Frame: the figure that names a plot, keys it, holds its states, keeps the way back from a drill-down, and lays the same numbers out as a table one toggle away. Each kind of plot is its own part with its own page: [Bar](?path=/docs/patterns-chart-bar--docs), [Line](?path=/docs/patterns-chart-line--docs), [Area](?path=/docs/patterns-chart-area--docs), [Donut](?path=/docs/patterns-chart-donut--docs), [Sparkline](?path=/docs/patterns-chart-sparkline--docs), [Scatter](?path=/docs/patterns-chart-scatter--docs), [Treemap](?path=/docs/patterns-chart-treemap--docs) and [Heatmap](?path=/docs/patterns-chart-heatmap--docs). Recharts draws; the kit decides the paint, the marks, the grid, the tooltip, the legend and the motion, so a chart reads like the rest of the page in both modes. The colour rules follow the data-visualization method, and the categorical order is validated, not eyeballed.
+Data drawn on the chart tokens. `Chart` is the Frame: the figure that names a plot, keys it, holds its states, keeps the way back from a drill-down, and lays the same numbers out as a table one toggle away. Each kind of plot is its own part with its own page: [Bar](?path=/docs/patterns-chart-bar--docs), [Line](?path=/docs/patterns-chart-line--docs), [Area](?path=/docs/patterns-chart-area--docs), [Donut](?path=/docs/patterns-chart-donut--docs), [Sparkline](?path=/docs/patterns-chart-sparkline--docs), [Scatter](?path=/docs/patterns-chart-scatter--docs), [Treemap](?path=/docs/patterns-chart-treemap--docs), [Heatmap](?path=/docs/patterns-chart-heatmap--docs) and, experimental, [Due rail](?path=/docs/patterns-chart-duerail--docs). Recharts draws; the kit decides the paint, the marks, the grid, the tooltip, the legend and the motion, so a chart reads like the rest of the page in both modes. The colour rules follow the data-visualization method, and the categorical order is validated, not eyeballed.
 
 _Example: story `Stories.Framed`._
 
@@ -19527,6 +19739,7 @@ The data's job picks the kind, and sometimes the right kind is not a chart: one 
 | Read how much across two dimensions        | [`Chart.Heatmap`](?path=/docs/patterns-chart-heatmap--docs)     | `sequential`: one hue, light to dark    |
 | Read above and below across two dimensions | `Chart.Heatmap` `scale="diverging"`                             | Two hues around grey                    |
 | Read status by place                       | `Chart.Heatmap` with a tone function                            | The Badge's fills, values printed       |
+| See what is due when, and what is late     | [`Chart.DueRail`](?path=/docs/patterns-chart-duerail--docs)     | Neutral; late hatched, soon ringed      |
 
 Not built, and why: no pie (a ring with the number in the middle says more, and a two-slice pie is a Stat); no second value axis (two measures of different scale are two charts, or one indexed; a dual axis invents a correlation); no gauge with a needle (the half ring reads the same and its number is text); no radar, boxplot, histogram, lollipop, alluvial, word cloud, circle pack or map (none of the four products has asked, and a histogram is a bar chart of bins the data layer makes); no zoom, brush or export toolbar (a range is a control in the Frame's `actions`, a drill-down is the Frame's `path`, and the chart's own export is one Download menu: the table twin as CSV and the plot as PNG; a register's export stays the register's).
 
@@ -20233,6 +20446,105 @@ _Rendered in the Storybook: Controls._
 One number is a Stat, five sources compared are bars, and a score against its scale is `value` and `max`, never a ring of two slices, five slices or a made-up remainder slice.
 
 _Example: story `Stories.Dont`._
+
+<!-- page: Patterns/Chart/DueRail (src/stories/patterns/ChartDueRail.mdx) -->
+
+# Due rail
+
+**Status: Experimental.**
+
+Dated items as dots on one time axis, above the table that lists them, with today ruled across: a program's POA&M items by the day each is due, the evidence by the day it expires. The reader sees at a glance how much is late, how much is due this week and how the rest spreads over the months ahead; the table under it says which and opens each record. The API may change before it is stable.
+
+_Example: story `Stories.AboveItsTable`._
+
+## Anatomy
+
+| Part  | What it is                                                                                                                                                                                                                                                                             |
+| ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Axis  | A hairline in `color.border.bold` from the first item's day to the last, today among them, with a little room at each end. Its ticks fall on the starts of days or months by the span, labelled in `font.body.xsmall` in `color.text.subtlest`.                                        |
+| Today | A rule in `color.border.current` at `border.width.selected` across the dots and the axis, with "Today" above it in `font.body.xsmall` medium: after the rule, or before it near the rail's end.                                                                                        |
+| Dot   | An item, 8px, on its day. Neutral (`color.chart.neutral`) when it is not due yet; ringed in the warning tone (`color.chart.warning`) when it is due today or within two days; hollow and hatched in the danger tone (`color.chart.danger`) when it is late, as a Meter's late mark is. |
+| Stack | Dots that would touch stand on one another, a pitch (`space.150`) apart, so the rail is as tall as its busiest stretch. A late dot always stands before the rule and a dot not yet late after it.                                                                                      |
+
+Late and soon are told by shape as well as colour, and by place: a late dot is hatched and stands before today's rule; a soon dot is ringed and stands just after it.
+
+## The rail and its table
+
+The rail is never the only way to a date. Put it above the table that lists the same items, one row a dot, keyed by the dot's `id`, and say each day there with a [DateLabel](?path=/docs/components-datetime--docs), which uses the same words (Overdue, Due today, Due tomorrow). In a Frame the rail is a chart like any other: its Table toggle lays the items out as the table twin (the item, then its day with those words), and the CSV holds the ISO days. The Frame's `xLabel` names the item column ("POA&M item").
+
+A dot does not open anything: at 8px it is no target, and the row under it is the way to the record. Its title shows its name on hover.
+
+_Example: story `Stories.InAFrame`._
+
+## Sizes
+
+One size. The width is the container's; the height follows the tallest stack, from about 56px for one dot a column. On a phone the dots stand closer and on one another more, and the tick labels thin out so none runs past the rail's end.
+
+_Example: story `Stories.Narrow`._
+
+## States
+
+| State   | What changes                                                                       |
+| ------- | ---------------------------------------------------------------------------------- |
+| Hover   | A dot's title: its item, its day and, when late or soon, the words.                |
+| Loading | A skeleton block in the rail's place, `aria-busy`; the Frame sets it from `state`. |
+| Empty   | The Frame's `state="empty"`, with why and what to do.                              |
+
+## Modifiers
+
+- **`items`**: each `{ id, label, due }`, `due` an ISO day ("2026-12-13"). An item with no ISO day is left off the rail; list it in the table.
+- **`now`**: the moment today is judged from, in the provider's zone. By default the clock at render; pass it where the page already holds one, so the rail and the table's DateLabels agree.
+- **`label`** names the dots' list outside a Frame; inside one, the Frame's title does.
+- **`loading`** draws the skeleton; the Frame sets it from `state="loading"`.
+- Native props and a ref reach its box.
+
+## Content
+
+- **Open items only.** A done item has no due; it leaves the rail and stays in the register.
+- **One kind of item a rail**: POA&M items, or evidence, not both. The table under it is that kind's register.
+- **The Frame's description counts what matters**: "12 open · 4 late".
+
+## Style
+
+| Element | Token                                                                                            |
+| ------- | ------------------------------------------------------------------------------------------------ |
+| Dot     | `space.100` · `radius.full` · `color.chart.neutral`                                              |
+| Soon    | `color.chart.warning` · a ring of the surface, then of the tone, `border.width` each             |
+| Late    | the surface · an inset `border.width` edge and a hatch every `space.025` in `color.chart.danger` |
+| Pitch   | `space.150`                                                                                      |
+| Today   | `color.border.current` · `border.width.selected` · "Today" `font.body.xsmall` medium             |
+| Axis    | `color.border.bold` · `border.width` · ticks `font.body.xsmall` in `color.text.subtlest`         |
+
+## Accessibility
+
+- **The dots are a list in date order**, named by the Frame's title or `label`; a screen reader hears "POA&M items by due date, list, 12 items".
+- **Each dot is an image named by its item, its day and, when late or soon, the words**: "Withdraw the password-only local logon, Oct 28, 2026, Overdue"; "Ship the offline credential verifier, due Nov 25, 2026".
+- **Not a tab stop.** The dots open nothing; the table's rows are the stops.
+- **Colour is never alone.** Late is hatched and before the rule, soon is ringed; in forced colours the hatch, the ring and the rule stay in the system's text colour.
+
+## Props
+
+_Props of `Chart.DueRail`, generated from its types:_
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `items` (required) | `ChartDueItem[]` |  | The dated items, in any order: the rail draws them by day, and lists them in that order to a screen reader. |
+| `now` | `number \| Date` |  | The moment today is judged from, in the provider's zone; by default the clock at render. |
+| `label` | `string` |  | The rail's name outside a Frame: "POA&M items by due date". Inside one, the Frame's title. |
+| `loading` | `boolean` |  | Draws the rail's skeleton in place of the dots. The Frame sets it from `state="loading"`. |
+
+### Playground
+
+_Example: story `Stories.Playground`._
+
+_Rendered in the Storybook: Controls._
+
+## Related
+
+- [Chart](?path=/docs/patterns-chart-overview--docs): the Frame, its table twin and its states.
+- [DateLabel](?path=/docs/components-datetime--docs): the same day, in a row, with the same words.
+- [Meter](?path=/docs/components-meter--docs): the hatch a late item wears.
+- [Stepper](?path=/docs/components-stepper--docs): a record's dated path, `variant="dated"`, where each stop is a decision or a piece of work in order.
 
 <!-- page: Patterns/Chart/Heatmap (src/stories/patterns/ChartHeatmap.mdx) -->
 
@@ -21907,6 +22219,85 @@ _Props of `HeaderMenu`, generated from its types:_
 | `table` (required) | `DataTableInstance<TData>` |  |  |
 | `column` (required) | `Column<{ rowSortingFeature: TableFeature; columnFilteringFeature: TableFeature; globalFilteringFeature: TableFeature; columnFacetingFeature: TableFeature; ... 23 more ...; tableMeta: DataTableMeta; }, TData, unknown>` |  |  |
 | `drawn` | `ReadonlySet<string>` |  | The columns the header row draws, when a responsive table moves the rest into More fields. Move left and Move right step over the rest, so every move shows. |
+
+<!-- page: Patterns/DecisionKeys (src/stories/patterns/DecisionKeys.mdx) -->
+
+# DecisionKeys
+
+**Status: Experimental.** New with the November 2026 proposal's workspaces (judging objectives, reviewing evidence, deciding a package); the props may change while its first screens try it. Owned by the design system.
+
+A judgement chosen from cards that are keys. Each card is one answer and carries the one key that chooses it, drawn on the card as on a keycap, so the reader learns the key by seeing it: Satisfied (S), Partially satisfied (P), Other than satisfied (O), Not assessed (N). It is a [RadioGroup](?path=/docs/components-radiogroup--docs): one Tab stop, the arrow keys between cards, Space to choose, and it takes RadioGroup's `value`, `defaultValue`, `onValueChange`, `readOnly` and `disabled`.
+
+_Example: story `Stories.Playground`._
+
+## In a workspace only
+
+The keys are for a workspace, a page that judges records one at a time, where a reader presses S forty times in a row. Put the workspace in a [CommandScope](?path=/docs/patterns-commandscope--docs), the focus-owned boundary its other commands share (J and K to move, U to clear): the keys then answer from anywhere in it, the list, the evidence or the cards, and focus stays where the reader is. A key is a click on its card, so it chooses exactly as a press does, and `onValueChange` records it and may move on to the next record. A reader whose focus is not on the card hears what the key chose ("Other than satisfied chosen", the locale's `decisionKeysChosen`). Outside a CommandScope the keys answer only while focus is on the cards.
+
+The keys sleep in a field that takes text, where the letter is the field's (the finding's text), with Control, Command, Option or Shift held, on a repeat, while text is composed, once another handler has taken the key, and while the group is read-only or disabled. Nothing outside the workspace hears them.
+
+_Example: story `Stories.InAWorkspace`._
+
+Elsewhere, a form or a dialog, one answer from visible choices is a RadioGroup, with choice cards where each answer needs a line of explanation; never decision keys.
+
+## Answers
+
+Each option has a `value`, a `shortcut` (one letter or digit, drawn in capitals and the card's `aria-keyshortcuts`), a `label` (the card's name) and a `tone`, the colour of the answer's mark and of the card once chosen: the colour the record's strip paints it in. An answer with no tone has no mark and is chosen in the neutral fill. Give each answer the same key on every record, so the hand learns it.
+
+_Example: story `Stories.OtherDecisions`._
+
+On a heading the answer also judges what is under it: `covers` draws "+6" on every card and says it ("Satisfied and 6 under it", the locale's `decisionKeysCovers`).
+
+_Example: story `Stories.OnAHeading`._
+
+## Locked
+
+For a reader who may not judge, `readOnly`: the answer stays in its tone, the cards keep their Tab stop and are flatter, and the keys sleep.
+
+_Example: story `Stories.Locked`._
+
+## Layout
+
+The cards stand in one row where they all fit, two a row where four do not (two by two, never three and one), and one a row in less, by the group's own width: a judgement column beside a list holds four as two by two, a dock under the subject holds them in a row.
+
+_Example: story `Stories.Widths`._
+
+## Content
+
+- **The label is the answer, as the product's vocabulary says it:** "Satisfied", "Request changes", "Approve with conditions".
+- **The key is the label's first letter** where the answers allow (S, P, O, N; A, R), and never one the workspace uses for something else (J and K move).
+
+## Props
+
+The group renders RadioGroup's `div` with `role="radiogroup"` inside a box (`data-slot="decision-keys"`) that measures its width; each card is a `button` with `role="radio"` (`data-slot="decision-key"`, with `data-tone`), its key a `kbd` hidden from assistive technology, its mark `decision-key-mark`.
+
+_Props of `DecisionKeys`, generated from its types:_
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `className` | `string \| ((state: RadioGroupState) => string)` |  | CSS class applied to the element, or a function that returns a class based on the component's state. |
+| `defaultValue` | `Value` |  | The uncontrolled value of the radio button that should be initially selected. To render a controlled radio group, use the `value` prop instead. |
+| `style` | `CSSProperties \| ((state: RadioGroupState) => CSSProperties)` |  | Style applied to the element, or a function that returns a style object based on the component's state. |
+| `form` | `string` |  | Identifies the form that owns the radio inputs. Useful when the radio group is rendered outside the form. |
+| `disabled` | `boolean` | `false` | Whether the component should ignore user interaction. |
+| `name` | `string` |  | Identifies the field when a form is submitted. |
+| `value` | `Value` |  | The controlled value of the radio item that should be currently selected. To render an uncontrolled radio group, use the `defaultValue` prop instead. |
+| `render` | `ReactElement<unknown, string \| JSXElementConstructor<any>> \| ComponentRenderFn<HTMLProps, RadioGroupState>` |  | Allows you to replace the component's HTML element with a different tag, or compose it with another component. Accepts a `ReactElement` or a function that returns the element to render. |
+| `onValueChange` | `((value: Value, eventDetails: { reason: "none"; event: Event; cancel: () => void; allowPropagation: () => void; isCanceled: boolean; isPropagationAllowed: boolean; trigger: Element; }) => void)` |  | Callback fired when the value changes. |
+| `readOnly` | `boolean` | `false` | Whether the user should be unable to select a different radio button in the group. |
+| `required` | `boolean` | `false` | Whether the user must choose a value before submitting a form. |
+| `inputRef` | `Ref<HTMLInputElement>` |  | A ref to access the hidden input element. |
+| `options` (required) | `readonly DecisionKeyOption<Value>[]` |  | The answers, in the order the cards stand: two to six. |
+| `covers` | `number` |  | The answer also judges this many under the record: a heading's objectives. Each card says "+6", and its name says so ("Satisfied and 6 under it"). |
+
+_Rendered in the Storybook: Controls._
+
+## Related
+
+- [RadioGroup](?path=/docs/components-radiogroup--docs): one answer from visible choices, choice cards included.
+- [Kbd](?path=/docs/components-kbd--docs): a key or a shortcut drawn as caps.
+- [CommandScope](?path=/docs/patterns-commandscope--docs): the workspace's commands and the boundary the keys answer in.
+- [FootBar](?path=/docs/layout-footbar--docs): what is judged and the one act, under the work.
 
 <!-- page: Patterns/DocumentReader (src/stories/patterns/DocumentReader.mdx) -->
 
@@ -24973,9 +25364,48 @@ _Example: story `Stories.Phone`._
 
 The trace measures its own width. While each column has room to read (128px, and 32px between two for the wires) the stages stand side by side; in less they stack in the chain's order and the wires leave.
 
+## The rail
+
+_Example: story `Stories.Rail`._
+
+`Trace.Rail` (also `TraceRail`), new with the November 2026 UX proposal and used by no product screen yet, is the compact form: the chain around one record as one line of fixed stations, in the chain's order. The trace draws every record and the links between them; the rail says what stands at each station, so it fits under a record's header, in its body or in a table row, and the full trace becomes its detail. Give every station every time (for the assurance chain: Controls, Requirements, Evidence, Assessment findings, Operational issues, Risks, Remediation), so a station's place is its meaning and a gap lines up down a column of rails. A station is never dropped and never reordered: one with nothing in it says so.
+
+A station's `state` says what stands there:
+
+| State   | Dot                                                         | When                               |
+| ------- | ----------------------------------------------------------- | ---------------------------------- |
+| `held`  | filled, with its `count`, in the `tone` of its worst record | records stand there                |
+| `draft` | a dashed ring                                               | only drafts stand there            |
+| `gap`   | a dashed ring in the warning colour                         | the record owes one and has none   |
+| `none`  | a small hollow mark                                         | nothing recorded, and nothing owed |
+
+`focus` names the record's own station: a smaller dot of its tone inside a ring, its name in the text colour, and the current item. Under each dot, at `medium`, `value` says what stands there, worst first: the records' links, a judgement (Other than satisfied), counts by severity (1 critical, then 1 moderate as its `meta`), milestones reached. Colour never says a tone alone: the words do.
+
+The legs between the dots are derived from the stations at their two ends, so there is nothing to keep in step. A leg is the link between the nearest stations either side that hold anything, and runs through a station with nothing recorded: solid where it holds, dashed where a draft is at one end, and broken in the warning colour where a gap is. With nothing at one end it is a hairline.
+
+## A gap that breaks the line
+
+_Example: story `Stories.RailGap`._
+
+A gap says what is missing in words: its `value` (No remediation item), which may be the link, or the link-styled Button, that opens its fix; a gap given none says Missing. The line breaks on both sides of it and stays broken back to the nearest station that holds anything.
+
+## Sizes
+
+_Example: story `Stories.RailSmall`._
+
+`size="small"` sits in a record's body: the names under the dots, at a fixed pitch of `space.1000`, and no words. `size="xsmall"` fits a table row: the dots alone, `space.200` apart, so the stations line up down a column and a gap reads across a register. Where a station's words are not drawn, its `description` is read after its name ("Evidence, No evidence"), else a string `value`, else the state's own words (Missing, Drafts only, Nothing recorded). Give a toned station a `description` that says its tone in words.
+
+_Example: story `Stories.RailInARow`._
+
+At `medium` the rail measures its own width: in less than 36rem, a phone or a panel, the stations run down the page with the line beside them.
+
+_Example: story `Stories.RailNarrow`._
+
 ## Accessibility
 
 The trace is a group named by `label`. Inside it the stages are an ordered list, each stage a list named by its `label` and count, and each record's description says what it is linked to (Linked to AU-10 Non-repudiation and Signing key rotation log), so the chain reads without the wires. The focus is the current item. The wires are decoration and are hidden from assistive technology.
+
+The rail is an ordered list named by its `label`, a station an item read by its name, its count and its words ("Operational issues, 2, 1 critical, 1 moderate"), the focus the current item. The line and its dots are decoration. Its counts sit on the bold fills with their inverse words, at 4.5:1 in every mode; its dots, rings and legs hold 3:1 against the surface, and a broken leg and a gap's ring are dashed as well as coloured. In forced colours the dots are the system's text colour, the record's ring its highlight.
 
 ## Props
 
@@ -24990,11 +25420,25 @@ _Props of `Trace`, generated from its types:_
 | `limit` | `number` | `8` | How many records a stage shows before the rest fold behind Show more. |
 | `className` | `string` |  |  |
 
+### Trace.Rail
+
+The rail's native props and ref reach its box.
+
+_Props of `TraceRail`, generated from its types:_
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `stops` (required) | `readonly TraceRailStop[]` |  | The stations in the chain's order, every one of them, every time. |
+| `focus` | `string` |  | The station of the record the rail is about: drawn as a ring, and the current item. |
+| `label` (required) | `string` |  | The rail's accessible name: what chain, around which record ("The chain around this risk"). |
+| `size` | `"medium" \| "small" \| "xsmall"` | `medium` |  |
+| `className` | `string` |  |  |
+
 _Rendered in the Storybook: Controls._
 
 ## Related
 
-[TileMap](?path=/docs/patterns-tilemap--docs) · [Related](?path=/docs/patterns-related--docs) · [Stepper and Timeline](?path=/docs/components-timeline--docs) · [DataTable](?path=/docs/patterns-data-table--docs)
+[TileMap](?path=/docs/patterns-tilemap--docs) · [ObjectiveCells](?path=/docs/components-objectivecells--docs) · [Related](?path=/docs/patterns-related--docs) · [Stepper and Timeline](?path=/docs/components-timeline--docs) · [DataTable](?path=/docs/patterns-data-table--docs)
 
 <!-- page: Patterns/WorkPane (src/stories/patterns/WorkPane.mdx) -->
 
@@ -25127,6 +25571,104 @@ _Rendered in the Storybook: Controls._
 The label names the list and the search sits in `listToolbar`, never a search as the label. Nothing chosen is an Empty in the detail, never a grey sentence.
 
 _Example: story `Stories.Dont`._
+
+<!-- page: Patterns/WorkRow (src/stories/patterns/WorkRow.mdx) -->
+
+# WorkRow
+
+**Status: Experimental.** New with the November 2026 proposal's desks (Home's Waiting on you and Waiting on others, a program's next fixes); the props may change while its first screens try it. Owned by the design system.
+
+One line of open work: the verb, what it is done to, why it waits, who it waits on and when. The verb leads, as a button where the reader can press it and as words where the work is someone else's. Rows stack in `WorkRow.Group`, ranked into `WorkRow.Tier`s ("Late", "Next", "Waiting on others"), and their cells make one set of columns across every row and every tier.
+
+_Example: story `Stories.Desk`._
+
+## Anatomy
+
+| Cell | Prop        | What it holds                                                                                                                                                |
+| ---- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Verb | `verb`      | `onAction`: a small secondary Button. `link`: a LinkButton that goes where the act is done. Neither: the verb as words in the subtle colour, someone else's. |
+| What | `title`     | The record's name at medium weight in the text colour, a link with `link`; `meta` after it, muted (the program).                                             |
+| Why  | `reason`    | Why it waits, subtle: "no criteria", or an EmptySeat ("No owner").                                                                                           |
+| Who  | `waitingOn` | A Person, an EmptySeat where nobody holds the role, or a few words. Empty where it waits on the reader.                                                      |
+| When | `when`      | A DateLabel for a due day, a RelativeTime for how long it has waited.                                                                                        |
+
+The verb is described by what it is done to, so five Assign owner buttons are told apart ("Assign owner", described by "11 POA&M items under Condition 1 WS-X90"); the name is described by its meta and its reason.
+
+## The next act
+
+`isNext` marks the desk's first row, the reader's next act: its verb is the one primary, at 36px, its name steps up to the section size, and the row sits in the tray with no hairline around it. One a list; every other verb is a small secondary.
+
+## One line at every width
+
+A row never wraps. Each cell narrower than its words cuts them with an ellipsis and shows them whole on hover, and on keyboard focus of the link or button they sit in; a screen reader reads them whole. The group reads its own width, so a panel beside it narrows it as a phone does. From 48rem the verb and the who are as wide as their widest (a quarter and a fifth of the list at most), the what and the why share the rest three to two, and the when is as wide as its words. In less, the when keeps its words and the other four share what is left by weight, the name the most, then the verb. Give the when a short form: a DateLabel with `format={{ month: "short", day: "numeric" }}`, or a narrow RelativeTime.
+
+_Example: story `Stories.OneLine`._
+
+## Next fixes
+
+A program's next fixes are one list with no tiers, each verb a link to where the fix is made.
+
+_Example: story `Stories.NextFixes`._
+
+## Content
+
+- **The verb is a verb and no object:** "Add security outcomes", "Assign owner", "Retry import". The object is the title.
+- **The title is the record's name, never coloured.** Status and lateness belong to the when (DateLabel's tone and words) and the reason.
+- **The reason is a few words, not a sentence:** "maintenance window slipped".
+- **Nobody is an EmptySeat**, said in words ("No owner", "No authorizing official"), never a dash or "Unassigned".
+- **No second line.** What does not fit is cut, never moved under.
+
+## Accessibility
+
+- A group of rows is one list (`ol`) named by `aria-label` or `aria-labelledby`; a group of tiers is a named group, each tier a heading at the contextual level (an h3 outside every HeadingLevelProvider) and the list it names.
+- The verb and the title are separate Tab stops; someone else's verb is text and no stop.
+- A cut cell's reveal is a visual copy of text already read; the when's tone is said in DateLabel's words.
+
+## Props
+
+WorkRow is an `li` that forwards native props and its ref; its cells carry `data-slot` (`work-row-verb`, `work-row-title`, `work-row-reason`, `work-row-waiting-on`, `work-row-when`), and the next row carries `data-next`.
+
+_Props of `WorkRow`, generated from its types:_
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `verb` (required) | `WorkRowVerb` |  | What to do. A button where the reader can press it, small and secondary (36px and the one primary on the `isNext` row); words in the subtle colour where the work is someone else's. |
+| `title` (required) | `ReactNode` |  | What it is done to: the record's name ("PDR", "11 late POA&M items"). One line, at medium weight in the text colour, never coloured. |
+| `link` | `ReactElement<{ id?: string; children?: ReactNode; }, string \| JSXElementConstructor<any>>` |  | A link element (a router's Link, or `<a href>`) that makes the title a link to the record. |
+| `meta` | `ReactNode` |  | Inline after the title, muted: where the record belongs ("WS-X90"). It keeps its words while the title gives way, and is cut, with its reveal, only past half the cell. |
+| `reason` | `ReactNode` |  | Why it is waiting, in the subtle colour: "no criteria", "maintenance window slipped", or an EmptySeat ("No owner"). |
+| `waitingOn` | `ReactNode` |  | Who it waits on: a Person, an EmptySeat where nobody holds the role, or a few words ("1 product · 3 programs"). Empty where it waits on the reader. |
+| `when` | `ReactNode` |  | When: a DateLabel for a due day, a RelativeTime for how long it has waited. It keeps its words; give it a short form. |
+| `isNext` | `boolean` |  | The desk's first row, the reader's next act: its verb is the one primary at 36px, its name at the section size, and the row sits in the tray. One a list. |
+
+`WorkRow.Group`, also `WorkRowGroup`, is the grid every row shares; it holds rows or tiers.
+
+_Props of `WorkRowGroup`, generated from its types:_
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `children` | `ReactNode` |  | WorkRows, or WorkRow.Tiers that hold them. Either way their cells share one set of columns. |
+
+`WorkRow.Tier`, also `WorkRowTier`, is a heading and its rows.
+
+_Props of `WorkRowTier`, generated from its types:_
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `title` (required) | `ReactNode` |  | The tier's name, a heading over its rows in the eyebrow's small capitals: "Late", "Next", "Waiting on others". It names the tier's list. The heading takes the contextual level, an h3 outside every HeadingLevelProvider. |
+| `children` | `ReactNode` |  | The tier's WorkRows. |
+
+_Example: story `Stories.Playground`._
+
+_Rendered in the Storybook: Controls._
+
+## Related
+
+- [Item](?path=/docs/components-item--docs): a row of a list that is not a desk, a name first.
+- [TaskRow](?path=/docs/patterns-taskrow--docs): a checklist row that completes in place.
+- [EmptySeat](?path=/docs/components-emptyseat--docs): a role nobody holds.
+- [DateTime](?path=/docs/components-datetime--docs): DateLabel and RelativeTime for the when.
+- [PageHeader](?path=/docs/layout-pageheader--docs): the slot's advance, one record's next act.
 
 # Tokens
 
@@ -25641,21 +26183,21 @@ Types: `BackgroundToken`, `BleedProps`, `BoxProps`, `FlexProps`, `GridProps`, `H
 
 ## Components
 
-Values: `Absent`, `Accordion`, `AccordionContent`, `AccordionItem`, `AccordionTrigger`, `Alert`, `AlertAction`, `AlertDescription`, `AlertDialog`, `AlertDialogAction`, `AlertDialogBody`, `AlertDialogCancel`, `AlertDialogContent`, `AlertDialogDescription`, `AlertDialogFooter`, `AlertDialogHeader`, `AlertDialogMedia`, `AlertDialogOverlay`, `AlertDialogPortal`, `AlertDialogTitle`, `AlertDialogTrigger`, `AlertIcon`, `AlertTitle`, `Attachment`, `AttachmentAction`, `AttachmentActions`, `AttachmentContent`, `AttachmentDescription`, `AttachmentGroup`, `AttachmentLink`, `AttachmentMedia`, `AttachmentTitle`, `AttachmentTrigger`, `Avatar`, `AvatarBadge`, `AvatarFallback`, `AvatarGroup`, `AvatarGroupCount`, `avatarHue`, `AvatarImage`, `avatarInitials`, `Badge`, `badgeVariants`, `Banner`, `Breadcrumb`, `BreadcrumbEllipsis`, `BreadcrumbItem`, `BreadcrumbLink`, `BreadcrumbList`, `BreadcrumbPage`, `BreadcrumbSeparator`, `Button`, `ButtonGroup`, `ButtonGroupSeparator`, `ButtonGroupText`, `buttonGroupVariants`, `buttonVariants`, `Calendar`, `CalendarDayButton`, `Card`, `CardAction`, `CardContent`, `CardDescription`, `CardFooter`, `CardHeader`, `CardTitle`, `Checkbox`, `CheckboxGroup`, `CheckboxGroupSelectAll`, `Climb`, `CodeBlock`, `Collapsible`, `CollapsibleContent`, `CollapsibleHeader`, `CollapsibleTrigger`, `Combobox`, `ComboboxChip`, `ComboboxChipRemove`, `ComboboxChips`, `ComboboxChipsInput`, `ComboboxClear`, `ComboboxCollection`, `ComboboxContent`, `ComboboxEmpty`, `ComboboxGroup`, `ComboboxInput`, `ComboboxItem`, `ComboboxLabel`, `ComboboxList`, `ComboboxSeparator`, `ComboboxStatus`, `ComboboxTrigger`, `ComboboxValue`, `Command`, `CommandCount`, `CommandDialog`, `CommandEmpty`, `CommandFooter`, `CommandGroup`, `CommandInput`, `CommandItem`, `CommandList`, `CommandLoading`, `CommandSeparator`, `CommandShortcut`, `ContextMenu`, `ContextMenuContent`, `ContextMenuTrigger`, `controlBase`, `controlHeight`, `CopyButton`, `Count`, `createToastManager`, `DateLabel`, `DatePicker`, `DateRangePicker`, `DateTime`, `DateTimeField`, `Dialog`, `DialogBody`, `DialogClose`, `DialogContent`, `DialogDescription`, `DialogFooter`, `DialogHeader`, `DialogOverlay`, `DialogPortal`, `DialogTitle`, `DialogTrigger`, `Diff`, `diffText`, `Dot`, `Drawer`, `DrawerBody`, `DrawerClose`, `DrawerContent`, `DrawerDescription`, `DrawerFooter`, `DrawerHeader`, `DrawerOverlay`, `DrawerPortal`, `DrawerSwipeHandle`, `DrawerTitle`, `DrawerTrigger`, `DropdownMenu`, `DropdownMenuCheckboxItem`, `DropdownMenuContent`, `DropdownMenuGroup`, `DropdownMenuItem`, `DropdownMenuLabel`, `DropdownMenuLinkItem`, `DropdownMenuPortal`, `DropdownMenuRadioGroup`, `DropdownMenuRadioItem`, `DropdownMenuSeparator`, `DropdownMenuShortcut`, `DropdownMenuSub`, `DropdownMenuSubContent`, `DropdownMenuSubTrigger`, `DropdownMenuTrigger`, `DropZone`, `Empty`, `EmptyContent`, `EmptyDescription`, `EmptyHeader`, `EmptyIllustration`, `EmptyMedia`, `EmptySeat`, `EmptyTitle`, `ErrorSummary`, `Eyebrow`, `Fact`, `FactGroup`, `Field`, `FieldContent`, `FieldDescription`, `FieldError`, `FieldGroup`, `FieldLabel`, `FieldLegend`, `FieldSeparator`, `FieldSet`, `FieldTitle`, `FileTrigger`, `FilterChip`, `formatFileSize`, `formatShortcut`, `getModifierKey`, `HoverCard`, `HoverCardContent`, `HoverCardTrigger`, `Icon`, `IconButton`, `Id`, `IdList`, `Indicator`, `Input`, `InputGroup`, `InputGroupAddon`, `InputGroupButton`, `InputGroupInput`, `InputGroupText`, `InputGroupTextarea`, `Item`, `ItemGroup`, `Kbd`, `KbdGroup`, `KbdShortcut`, `KeyValue`, `KeyValueGroup`, `LinkButton`, `LinkIconButton`, `List`, `ListItem`, `MatchText`, `Meter`, `NumberField`, `Pagination`, `PaginationContent`, `PaginationEllipsis`, `PaginationItem`, `PaginationLink`, `PaginationNext`, `PaginationPrevious`, `Person`, `PhaseBar`, `PhaseBarItem`, `Popover`, `PopoverClose`, `PopoverContent`, `PopoverDescription`, `PopoverHeader`, `PopoverTitle`, `PopoverTrigger`, `Progress`, `ProgressIndicator`, `ProgressLabel`, `ProgressStacked`, `ProgressTrack`, `ProgressValue`, `Prose`, `RadioGroup`, `RadioGroupItem`, `RelativeTime`, `ResizableHandle`, `ResizablePanel`, `ResizablePanelGroup`, `ScrollArea`, `ScrollBar`, `Scroller`, `ScrollerArrow`, `ScrollerViewport`, `SearchField`, `Select`, `SelectContent`, `SelectGroup`, `SelectItem`, `SelectLabel`, `SelectScrollDownButton`, `SelectScrollUpButton`, `SelectSeparator`, `SelectTrigger`, `SelectValue`, `Separator`, `Sheet`, `SheetBody`, `SheetClose`, `SheetContent`, `SheetDescription`, `SheetFooter`, `SheetHeader`, `SheetOverlay`, `SheetPortal`, `SheetTitle`, `SheetTrigger`, `shortcutKeys`, `Skeleton`, `Spinner`, `Stat`, `StatGrid`, `StatList`, `StatRow`, `StatTile`, `Stepper`, `Switch`, `Table`, `Tabs`, `TabsContent`, `TabsList`, `tabsListVariants`, `TabsTrigger`, `Tally`, `Textarea`, `TextLink`, `TimeField`, `Timeline`, `TimelineGroup`, `TimelineItem`, `toast`, `Toast`, `ToastAction`, `ToastClose`, `ToastContent`, `ToastDescription`, `Toaster`, `ToastPortal`, `ToastProvider`, `ToastTitle`, `ToastViewport`, `Toggle`, `ToggleGroup`, `ToggleGroupItem`, `toggleVariants`, `Tooltip`, `TooltipContent`, `TooltipProvider`, `TooltipTrigger`, `Tray`, `Tree`, `Truncate`, `useComboboxAnchor`, `useFormatShortcut`, `useIsTruncated`, `useModifierKey`, `usePage`, `useSort`, `useToastManager`.
+Values: `Absent`, `Accordion`, `AccordionContent`, `AccordionItem`, `AccordionTrigger`, `Alert`, `AlertAction`, `AlertDescription`, `AlertDialog`, `AlertDialogAction`, `AlertDialogBody`, `AlertDialogCancel`, `AlertDialogContent`, `AlertDialogDescription`, `AlertDialogFooter`, `AlertDialogHeader`, `AlertDialogMedia`, `AlertDialogOverlay`, `AlertDialogPortal`, `AlertDialogTitle`, `AlertDialogTrigger`, `AlertIcon`, `AlertTitle`, `Attachment`, `AttachmentAction`, `AttachmentActions`, `AttachmentContent`, `AttachmentDescription`, `AttachmentGroup`, `AttachmentLink`, `AttachmentMedia`, `AttachmentTitle`, `AttachmentTrigger`, `Avatar`, `AvatarBadge`, `AvatarFallback`, `AvatarGroup`, `AvatarGroupCount`, `avatarHue`, `AvatarImage`, `avatarInitials`, `Badge`, `badgeVariants`, `Banner`, `Breadcrumb`, `BreadcrumbEllipsis`, `BreadcrumbItem`, `BreadcrumbLink`, `BreadcrumbList`, `BreadcrumbPage`, `BreadcrumbSeparator`, `Button`, `ButtonGroup`, `ButtonGroupSeparator`, `ButtonGroupText`, `buttonGroupVariants`, `buttonVariants`, `Calendar`, `CalendarDayButton`, `Card`, `CardAction`, `CardContent`, `CardDescription`, `CardFooter`, `CardHeader`, `CardTitle`, `Checkbox`, `CheckboxGroup`, `CheckboxGroupSelectAll`, `Climb`, `CodeBlock`, `Collapsible`, `CollapsibleContent`, `CollapsibleHeader`, `CollapsibleTrigger`, `Combobox`, `ComboboxChip`, `ComboboxChipRemove`, `ComboboxChips`, `ComboboxChipsInput`, `ComboboxClear`, `ComboboxCollection`, `ComboboxContent`, `ComboboxEmpty`, `ComboboxGroup`, `ComboboxInput`, `ComboboxItem`, `ComboboxLabel`, `ComboboxList`, `ComboboxSeparator`, `ComboboxStatus`, `ComboboxTrigger`, `ComboboxValue`, `Command`, `CommandCount`, `CommandDialog`, `CommandEmpty`, `CommandFooter`, `CommandGroup`, `CommandInput`, `CommandItem`, `CommandList`, `CommandLoading`, `CommandSeparator`, `CommandShortcut`, `ContextMenu`, `ContextMenuContent`, `ContextMenuTrigger`, `controlBase`, `controlHeight`, `CopyButton`, `Count`, `createToastManager`, `DateLabel`, `DatePicker`, `DateRangePicker`, `DateTime`, `DateTimeField`, `Dialog`, `DialogBody`, `DialogClose`, `DialogContent`, `DialogDescription`, `DialogFooter`, `DialogHeader`, `DialogOverlay`, `DialogPortal`, `DialogTitle`, `DialogTrigger`, `Diff`, `diffText`, `Dot`, `Drawer`, `DrawerBody`, `DrawerClose`, `DrawerContent`, `DrawerDescription`, `DrawerFooter`, `DrawerHeader`, `DrawerOverlay`, `DrawerPortal`, `DrawerSwipeHandle`, `DrawerTitle`, `DrawerTrigger`, `DropdownMenu`, `DropdownMenuCheckboxItem`, `DropdownMenuContent`, `DropdownMenuGroup`, `DropdownMenuItem`, `DropdownMenuLabel`, `DropdownMenuLinkItem`, `DropdownMenuPortal`, `DropdownMenuRadioGroup`, `DropdownMenuRadioItem`, `DropdownMenuSeparator`, `DropdownMenuShortcut`, `DropdownMenuSub`, `DropdownMenuSubContent`, `DropdownMenuSubTrigger`, `DropdownMenuTrigger`, `DropZone`, `Empty`, `EmptyContent`, `EmptyDescription`, `EmptyHeader`, `EmptyIllustration`, `EmptyMedia`, `EmptySeat`, `EmptyTitle`, `ErrorSummary`, `Eyebrow`, `Fact`, `FactGroup`, `Field`, `FieldContent`, `FieldDescription`, `FieldError`, `FieldGroup`, `FieldLabel`, `FieldLegend`, `FieldSeparator`, `FieldSet`, `FieldTitle`, `FileTrigger`, `FilterChip`, `formatFileSize`, `formatShortcut`, `getModifierKey`, `HoverCard`, `HoverCardContent`, `HoverCardTrigger`, `Icon`, `IconButton`, `Id`, `IdList`, `Indicator`, `Input`, `InputGroup`, `InputGroupAddon`, `InputGroupButton`, `InputGroupInput`, `InputGroupText`, `InputGroupTextarea`, `Item`, `ItemGroup`, `Kbd`, `KbdGroup`, `KbdShortcut`, `KeyValue`, `KeyValueGroup`, `LinkButton`, `LinkIconButton`, `List`, `ListItem`, `MatchText`, `Meter`, `NumberField`, `ObjectiveCells`, `Pagination`, `PaginationContent`, `PaginationEllipsis`, `PaginationItem`, `PaginationLink`, `PaginationNext`, `PaginationPrevious`, `Person`, `PhaseBar`, `PhaseBarItem`, `Popover`, `PopoverClose`, `PopoverContent`, `PopoverDescription`, `PopoverHeader`, `PopoverTitle`, `PopoverTrigger`, `Progress`, `ProgressIndicator`, `ProgressLabel`, `ProgressStacked`, `ProgressTrack`, `ProgressValue`, `Prose`, `RadioGroup`, `RadioGroupItem`, `RelativeTime`, `ResizableHandle`, `ResizablePanel`, `ResizablePanelGroup`, `ScrollArea`, `ScrollBar`, `Scroller`, `ScrollerArrow`, `ScrollerViewport`, `SearchField`, `Select`, `SelectContent`, `SelectGroup`, `SelectItem`, `SelectLabel`, `SelectScrollDownButton`, `SelectScrollUpButton`, `SelectSeparator`, `SelectTrigger`, `SelectValue`, `Separator`, `Sheet`, `SheetBody`, `SheetClose`, `SheetContent`, `SheetDescription`, `SheetFooter`, `SheetHeader`, `SheetOverlay`, `SheetPortal`, `SheetTitle`, `SheetTrigger`, `shortcutKeys`, `Skeleton`, `Spinner`, `Stat`, `StatGrid`, `StatList`, `StatRow`, `StatTile`, `Stepper`, `StepperStage`, `StepperToday`, `Switch`, `Table`, `Tabs`, `TabsContent`, `TabsList`, `tabsListVariants`, `TabsTrigger`, `Tally`, `Textarea`, `TextLink`, `TimeField`, `Timeline`, `TimelineGroup`, `TimelineItem`, `toast`, `Toast`, `ToastAction`, `ToastClose`, `ToastContent`, `ToastDescription`, `Toaster`, `ToastPortal`, `ToastProvider`, `ToastTitle`, `ToastViewport`, `Toggle`, `ToggleGroup`, `ToggleGroupItem`, `toggleVariants`, `Tooltip`, `TooltipContent`, `TooltipProvider`, `TooltipTrigger`, `Tray`, `Tree`, `Truncate`, `useComboboxAnchor`, `useFormatShortcut`, `useIsTruncated`, `useModifierKey`, `usePage`, `useSort`, `useToastManager`.
 
-Types: `AbsentProps`, `AccordionContentProps`, `AccordionItemProps`, `AccordionProps`, `AccordionTriggerProps`, `AlertActionProps`, `AlertDescriptionProps`, `AlertDialogActionProps`, `AlertDialogBodyProps`, `AlertDialogCancelProps`, `AlertDialogContentProps`, `AlertDialogDescriptionProps`, `AlertDialogFooterProps`, `AlertDialogHeaderProps`, `AlertDialogMediaProps`, `AlertDialogOverlayProps`, `AlertDialogPortalProps`, `AlertDialogProps`, `AlertDialogTitleProps`, `AlertDialogTriggerProps`, `AlertDialogWidth`, `AlertIconProps`, `AlertProps`, `AlertTitleProps`, `AttachmentActionProps`, `AttachmentActionsProps`, `AttachmentContentProps`, `AttachmentDescriptionProps`, `AttachmentGroupProps`, `AttachmentLinkProps`, `AttachmentMediaProps`, `AttachmentProps`, `AttachmentSize`, `AttachmentState`, `AttachmentTitleProps`, `AttachmentTriggerProps`, `AvatarBadgeProps`, `AvatarFallbackProps`, `AvatarGroupCountProps`, `AvatarGroupProps`, `AvatarHue`, `AvatarImageProps`, `AvatarProps`, `AvatarSize`, `AvatarVariant`, `BadgeProps`, `BannerProps`, `BannerTone`, `BreadcrumbItemProps`, `BreadcrumbListProps`, `BreadcrumbProps`, `ButtonGroupProps`, `ButtonGroupSeparatorProps`, `ButtonGroupTextProps`, `ButtonProps`, `CalendarDayButtonProps`, `CalendarProps`, `CardActionProps`, `CardContentProps`, `CardDescriptionProps`, `CardFooterProps`, `CardHeaderProps`, `CardProps`, `CardSize`, `CardTitleProps`, `CheckboxGroupProps`, `CheckboxGroupSelectAllProps`, `CheckboxProps`, `ClimbProps`, `ClimbRung`, `CodeBlockProps`, `CollapsibleContentProps`, `CollapsibleHeaderProps`, `CollapsibleProps`, `CollapsibleTriggerProps`, `ComboboxChipProps`, `ComboboxChipRemoveProps`, `ComboboxChipsInputProps`, `ComboboxChipsProps`, `ComboboxClearProps`, `ComboboxCollectionProps`, `ComboboxContentProps`, `ComboboxEmptyProps`, `ComboboxGroupProps`, `ComboboxInputProps`, `ComboboxItemProps`, `ComboboxLabelProps`, `ComboboxListProps`, `ComboboxProps`, `ComboboxSeparatorProps`, `ComboboxStatusProps`, `ComboboxTriggerProps`, `ComboboxValueProps`, `CommandCountProps`, `CommandDialogProps`, `CommandEmptyProps`, `CommandFooterProps`, `CommandInputProps`, `CommandItemProps`, `CommandShortcutProps`, `ContextMenuContentProps`, `ContextMenuProps`, `ContextMenuTriggerProps`, `ControlSize`, `CopyButtonProps`, `CountProps`, `DateLabelKind`, `DateLabelProps`, `DateLabelState`, `DatePickerProps`, `DateRangePickerProps`, `DateRangePreset`, `DateRangeValue`, `DateTimeFieldProps`, `DateTimeFormat`, `DateTimeProps`, `DateTimeValue`, `DialogBodyProps`, `DialogCloseProps`, `DialogContentProps`, `DialogDescriptionProps`, `DialogFooterProps`, `DialogHeaderProps`, `DialogOverlayProps`, `DialogPortalProps`, `DialogProps`, `DialogTitleProps`, `DialogTriggerProps`, `DialogWidth`, `DiffAnnotation`, `DiffLayout`, `DiffLine`, `DiffProps`, `DiffResult`, `DiffRow`, `DiffSegment`, `DiffSelection`, `DotProps`, `DrawerBodyProps`, `DrawerCloseProps`, `DrawerContentProps`, `DrawerDescriptionProps`, `DrawerFooterProps`, `DrawerHeaderProps`, `DrawerOverlayProps`, `DrawerPortalProps`, `DrawerProps`, `DrawerSwipeHandleProps`, `DrawerTitleProps`, `DrawerTriggerProps`, `DrawerWidth`, `DropdownMenuCheckboxItemProps`, `DropdownMenuContentProps`, `DropdownMenuGroupProps`, `DropdownMenuItemProps`, `DropdownMenuItemVariant`, `DropdownMenuLabelProps`, `DropdownMenuLinkItemProps`, `DropdownMenuPortalProps`, `DropdownMenuProps`, `DropdownMenuRadioGroupProps`, `DropdownMenuRadioItemProps`, `DropdownMenuSeparatorProps`, `DropdownMenuShortcutProps`, `DropdownMenuSubContentProps`, `DropdownMenuSubProps`, `DropdownMenuSubTriggerProps`, `DropdownMenuTriggerProps`, `DropZoneProps`, `EmptyContentProps`, `EmptyDescriptionProps`, `EmptyFrame`, `EmptyHeaderProps`, `EmptyIllustrationKind`, `EmptyIllustrationProps`, `EmptyMediaProps`, `EmptyProps`, `EmptySeatProps`, `EmptySize`, `EmptyTitleProps`, `ErrorSummaryIssue`, `ErrorSummaryProps`, `EyebrowProps`, `FactGroupProps`, `FactProps`, `FieldContentProps`, `FieldDescriptionProps`, `FieldErrorProps`, `FieldGroupProps`, `FieldLabelProps`, `FieldLegendProps`, `FieldProps`, `FieldSeparatorProps`, `FieldSetProps`, `FieldTitleProps`, `FileRejection`, `FileRejectionReason`, `FileTriggerProps`, `FilterChipProps`, `FormatFileSizeOptions`, `FormatShortcutOptions`, `HoverCardContentProps`, `HoverCardProps`, `HoverCardTriggerProps`, `IconButtonProps`, `IconColorToken`, `IconProps`, `IconSize`, `IdListProps`, `IdProps`, `IndicatorProps`, `InputGroupAddonProps`, `InputGroupButtonProps`, `InputGroupButtonSize`, `InputGroupIconButtonProps`, `InputGroupProps`, `InputGroupTextareaProps`, `InputGroupTextButtonProps`, `InputGroupTextProps`, `InputProps`, `ItemGroupProps`, `ItemIdWidth`, `ItemProps`, `ItemSize`, `KbdGroupProps`, `KbdProps`, `KbdShortcutProps`, `KeyValueGroupProps`, `KeyValueLabelWidth`, `KeyValueLayout`, `KeyValueProps`, `LinkButtonProps`, `LinkButtonVariant`, `LinkIconButtonProps`, `ListItemProps`, `ListProps`, `ListSpacing`, `MatchTextProps`, `MeterProps`, `MeterSize`, `ModifierKey`, `NumberFieldProps`, `PaginationContentProps`, `PaginationEllipsisProps`, `PaginationItemProps`, `PaginationLinkProps`, `PaginationNextProps`, `PaginationPreviousProps`, `PaginationProps`, `PersonProps`, `PhaseBarItemProps`, `PhaseBarProps`, `PopoverCloseProps`, `PopoverContentProps`, `PopoverDescriptionProps`, `PopoverHeaderProps`, `PopoverProps`, `PopoverTitleProps`, `PopoverTriggerProps`, `ProgressIndicatorProps`, `ProgressLabelProps`, `ProgressProps`, `ProgressSize`, `ProgressStackedProps`, `ProgressTrackProps`, `ProgressValueProps`, `ProseProps`, `RadioGroupItemProps`, `RadioGroupProps`, `RelativeTimeProps`, `ResizableHandleProps`, `ResizablePanelGroupProps`, `ResizablePanelProps`, `ScrollAreaProps`, `ScrollBarProps`, `ScrollerActivation`, `ScrollerArrowProps`, `ScrollerEdge`, `ScrollerOrientation`, `ScrollerProps`, `ScrollerSurface`, `ScrollerViewportProps`, `SearchFieldProps`, `SelectContentProps`, `SelectGroupProps`, `SelectItemProps`, `SelectLabelProps`, `SelectProps`, `SelectScrollDownButtonProps`, `SelectScrollUpButtonProps`, `SelectSeparatorProps`, `SelectTriggerProps`, `SelectTriggerSize`, `SelectValueProps`, `SeparatorProps`, `SheetBodyProps`, `SheetCloseProps`, `SheetContentProps`, `SheetDescriptionProps`, `SheetFooterProps`, `SheetHeaderProps`, `SheetOverlayProps`, `SheetPortalProps`, `SheetProps`, `SheetTitleProps`, `SheetTriggerProps`, `SheetWidth`, `ShortcutKey`, `SkeletonProps`, `SkeletonShape`, `SortDir`, `SpinnerProps`, `SpinnerSize`, `StackedSegment`, `StatGridProps`, `StatListProps`, `StatProps`, `StatRowProps`, `StatTileProps`, `StepperItemProps`, `StepperOrientation`, `StepperProps`, `StepState`, `SwitchProps`, `SwitchSize`, `TableProps`, `TabsContentProps`, `TabsListProps`, `TabsProps`, `TabsTriggerProps`, `TallyFill`, `TallyProps`, `TallySegment`, `TallySize`, `TallyTone`, `TdProps`, `TextareaProps`, `TextareaState`, `TextLinkProps`, `ThProps`, `TimeFieldHourCycle`, `TimeFieldProps`, `TimelineAlign`, `TimelineGroupProps`, `TimelineItemProps`, `TimelineItemWidth`, `TimelineOrientation`, `TimelineProps`, `TimelineSize`, `TimelineTimePosition`, `ToasterProps`, `ToastManager`, `ToastOptions`, `ToastPromiseOptions`, `ToastProviderProps`, `ToastType`, `ToastUpdateOptions`, `ToggleGroupItemProps`, `ToggleGroupProps`, `ToggleProps`, `ToggleSize`, `ToggleStyleProps`, `TooltipContentProps`, `TooltipProps`, `TooltipProviderProps`, `TooltipTriggerProps`, `TrayProps`, `TrayTone`, `TreeItemProps`, `TreeProps`, `TreeSize`, `TruncateLines`, `TruncateProps`, `UseIsTruncatedOptions`.
+Types: `AbsentProps`, `AccordionContentProps`, `AccordionItemProps`, `AccordionProps`, `AccordionTriggerProps`, `AlertActionProps`, `AlertDescriptionProps`, `AlertDialogActionProps`, `AlertDialogBodyProps`, `AlertDialogCancelProps`, `AlertDialogContentProps`, `AlertDialogDescriptionProps`, `AlertDialogFooterProps`, `AlertDialogHeaderProps`, `AlertDialogMediaProps`, `AlertDialogOverlayProps`, `AlertDialogPortalProps`, `AlertDialogProps`, `AlertDialogTitleProps`, `AlertDialogTriggerProps`, `AlertDialogWidth`, `AlertIconProps`, `AlertProps`, `AlertTitleProps`, `AttachmentActionProps`, `AttachmentActionsProps`, `AttachmentContentProps`, `AttachmentDescriptionProps`, `AttachmentGroupProps`, `AttachmentLinkProps`, `AttachmentMediaProps`, `AttachmentProps`, `AttachmentSize`, `AttachmentState`, `AttachmentTitleProps`, `AttachmentTriggerProps`, `AvatarBadgeProps`, `AvatarFallbackProps`, `AvatarGroupCountProps`, `AvatarGroupProps`, `AvatarHue`, `AvatarImageProps`, `AvatarProps`, `AvatarSize`, `AvatarVariant`, `BadgeProps`, `BannerProps`, `BannerTone`, `BreadcrumbItemProps`, `BreadcrumbListProps`, `BreadcrumbProps`, `ButtonGroupProps`, `ButtonGroupSeparatorProps`, `ButtonGroupTextProps`, `ButtonProps`, `CalendarDayButtonProps`, `CalendarProps`, `CardActionProps`, `CardContentProps`, `CardDescriptionProps`, `CardFooterProps`, `CardHeaderProps`, `CardProps`, `CardSize`, `CardTitleProps`, `CheckboxGroupProps`, `CheckboxGroupSelectAllProps`, `CheckboxProps`, `ClimbProps`, `ClimbRung`, `CodeBlockProps`, `CollapsibleContentProps`, `CollapsibleHeaderProps`, `CollapsibleProps`, `CollapsibleTriggerProps`, `ComboboxChipProps`, `ComboboxChipRemoveProps`, `ComboboxChipsInputProps`, `ComboboxChipsProps`, `ComboboxClearProps`, `ComboboxCollectionProps`, `ComboboxContentProps`, `ComboboxEmptyProps`, `ComboboxGroupProps`, `ComboboxInputProps`, `ComboboxItemProps`, `ComboboxLabelProps`, `ComboboxListProps`, `ComboboxProps`, `ComboboxSeparatorProps`, `ComboboxStatusProps`, `ComboboxTriggerProps`, `ComboboxValueProps`, `CommandCountProps`, `CommandDialogProps`, `CommandEmptyProps`, `CommandFooterProps`, `CommandInputProps`, `CommandItemProps`, `CommandShortcutProps`, `ContextMenuContentProps`, `ContextMenuProps`, `ContextMenuTriggerProps`, `ControlSize`, `CopyButtonProps`, `CountProps`, `DateLabelKind`, `DateLabelProps`, `DateLabelState`, `DatePickerProps`, `DateRangePickerProps`, `DateRangePreset`, `DateRangeValue`, `DateTimeFieldProps`, `DateTimeFormat`, `DateTimeProps`, `DateTimeValue`, `DialogBodyProps`, `DialogCloseProps`, `DialogContentProps`, `DialogDescriptionProps`, `DialogFooterProps`, `DialogHeaderProps`, `DialogOverlayProps`, `DialogPortalProps`, `DialogProps`, `DialogTitleProps`, `DialogTriggerProps`, `DialogWidth`, `DiffAnnotation`, `DiffLayout`, `DiffLine`, `DiffProps`, `DiffResult`, `DiffRow`, `DiffSegment`, `DiffSelection`, `DotProps`, `DrawerBodyProps`, `DrawerCloseProps`, `DrawerContentProps`, `DrawerDescriptionProps`, `DrawerFooterProps`, `DrawerHeaderProps`, `DrawerOverlayProps`, `DrawerPortalProps`, `DrawerProps`, `DrawerSwipeHandleProps`, `DrawerTitleProps`, `DrawerTriggerProps`, `DrawerWidth`, `DropdownMenuCheckboxItemProps`, `DropdownMenuContentProps`, `DropdownMenuGroupProps`, `DropdownMenuItemProps`, `DropdownMenuItemVariant`, `DropdownMenuLabelProps`, `DropdownMenuLinkItemProps`, `DropdownMenuPortalProps`, `DropdownMenuProps`, `DropdownMenuRadioGroupProps`, `DropdownMenuRadioItemProps`, `DropdownMenuSeparatorProps`, `DropdownMenuShortcutProps`, `DropdownMenuSubContentProps`, `DropdownMenuSubProps`, `DropdownMenuSubTriggerProps`, `DropdownMenuTriggerProps`, `DropZoneProps`, `EmptyContentProps`, `EmptyDescriptionProps`, `EmptyFrame`, `EmptyHeaderProps`, `EmptyIllustrationKind`, `EmptyIllustrationProps`, `EmptyMediaProps`, `EmptyProps`, `EmptySeatProps`, `EmptySize`, `EmptyTitleProps`, `ErrorSummaryIssue`, `ErrorSummaryProps`, `EyebrowProps`, `FactGroupProps`, `FactProps`, `FieldContentProps`, `FieldDescriptionProps`, `FieldErrorProps`, `FieldGroupProps`, `FieldLabelProps`, `FieldLegendProps`, `FieldProps`, `FieldSeparatorProps`, `FieldSetProps`, `FieldTitleProps`, `FileRejection`, `FileRejectionReason`, `FileTriggerProps`, `FilterChipProps`, `FormatFileSizeOptions`, `FormatShortcutOptions`, `HoverCardContentProps`, `HoverCardProps`, `HoverCardTriggerProps`, `IconButtonProps`, `IconColorToken`, `IconProps`, `IconSize`, `IdListProps`, `IdProps`, `IndicatorProps`, `InputGroupAddonProps`, `InputGroupButtonProps`, `InputGroupButtonSize`, `InputGroupIconButtonProps`, `InputGroupProps`, `InputGroupTextareaProps`, `InputGroupTextButtonProps`, `InputGroupTextProps`, `InputProps`, `ItemGroupProps`, `ItemIdWidth`, `ItemProps`, `ItemSize`, `KbdGroupProps`, `KbdProps`, `KbdShortcutProps`, `KeyValueGroupProps`, `KeyValueLabelWidth`, `KeyValueLayout`, `KeyValueProps`, `LinkButtonProps`, `LinkButtonVariant`, `LinkIconButtonProps`, `ListItemProps`, `ListProps`, `ListSpacing`, `MatchTextProps`, `MeterProps`, `MeterSize`, `ModifierKey`, `NumberFieldProps`, `ObjectiveCellsJudgement`, `ObjectiveCellsObjective`, `ObjectiveCellsProps`, `ObjectiveCellsRung`, `ObjectiveCellsSize`, `ObjectiveCellsTone`, `PaginationContentProps`, `PaginationEllipsisProps`, `PaginationItemProps`, `PaginationLinkProps`, `PaginationNextProps`, `PaginationPreviousProps`, `PaginationProps`, `PersonProps`, `PhaseBarItemProps`, `PhaseBarProps`, `PopoverCloseProps`, `PopoverContentProps`, `PopoverDescriptionProps`, `PopoverHeaderProps`, `PopoverProps`, `PopoverTitleProps`, `PopoverTriggerProps`, `ProgressIndicatorProps`, `ProgressLabelProps`, `ProgressProps`, `ProgressSize`, `ProgressStackedProps`, `ProgressTrackProps`, `ProgressValueProps`, `ProseProps`, `RadioGroupItemProps`, `RadioGroupProps`, `RelativeTimeProps`, `ResizableHandleProps`, `ResizablePanelGroupProps`, `ResizablePanelProps`, `ScrollAreaProps`, `ScrollBarProps`, `ScrollerActivation`, `ScrollerArrowProps`, `ScrollerEdge`, `ScrollerOrientation`, `ScrollerProps`, `ScrollerSurface`, `ScrollerViewportProps`, `SearchFieldProps`, `SelectContentProps`, `SelectGroupProps`, `SelectItemProps`, `SelectLabelProps`, `SelectProps`, `SelectScrollDownButtonProps`, `SelectScrollUpButtonProps`, `SelectSeparatorProps`, `SelectTriggerProps`, `SelectTriggerSize`, `SelectValueProps`, `SeparatorProps`, `SheetBodyProps`, `SheetCloseProps`, `SheetContentProps`, `SheetDescriptionProps`, `SheetFooterProps`, `SheetHeaderProps`, `SheetOverlayProps`, `SheetPortalProps`, `SheetProps`, `SheetTitleProps`, `SheetTriggerProps`, `SheetWidth`, `ShortcutKey`, `SkeletonProps`, `SkeletonShape`, `SortDir`, `SpinnerProps`, `SpinnerSize`, `StackedSegment`, `StatGridProps`, `StatListProps`, `StatProps`, `StatRowProps`, `StatTileProps`, `StepNode`, `StepperItemProps`, `StepperOrientation`, `StepperProps`, `StepperStageProps`, `StepperTodayProps`, `StepperVariant`, `StepState`, `StepTone`, `SwitchProps`, `SwitchSize`, `TableProps`, `TabsContentProps`, `TabsListProps`, `TabsProps`, `TabsTriggerProps`, `TallyFill`, `TallyProps`, `TallySegment`, `TallySize`, `TallyTone`, `TdProps`, `TextareaProps`, `TextareaState`, `TextLinkProps`, `ThProps`, `TimeFieldHourCycle`, `TimeFieldProps`, `TimelineAlign`, `TimelineGroupProps`, `TimelineItemProps`, `TimelineItemWidth`, `TimelineOrientation`, `TimelineProps`, `TimelineSize`, `TimelineTimePosition`, `ToasterProps`, `ToastManager`, `ToastOptions`, `ToastPromiseOptions`, `ToastProviderProps`, `ToastType`, `ToastUpdateOptions`, `ToggleGroupItemProps`, `ToggleGroupProps`, `ToggleProps`, `ToggleSize`, `ToggleStyleProps`, `TooltipContentProps`, `TooltipProps`, `TooltipProviderProps`, `TooltipTriggerProps`, `TrayProps`, `TrayTone`, `TreeItemProps`, `TreeProps`, `TreeSize`, `TruncateLines`, `TruncateProps`, `UseIsTruncatedOptions`.
 
 ## Layout
 
-Values: `AsideLayout`, `PageHeader`, `PageHeaderActions`, `PageHeaderDescription`, `PageHeaderHeading`, `PageHeaderLead`, `PageHeaderSlot`, `PageHeaderStanding`, `PageHeaderTitle`, `PageSkeleton`, `Section`, `Shell`, `SHELL_STORAGE_KEY`, `shellScript`, `shellScriptFor`, `StickyRail`, `useSideNav`.
+Values: `AsideLayout`, `FootBar`, `PageHeader`, `PageHeaderActions`, `PageHeaderDescription`, `PageHeaderHeading`, `PageHeaderLead`, `PageHeaderSlot`, `PageHeaderStanding`, `PageHeaderTitle`, `PageSkeleton`, `Section`, `Shell`, `SHELL_STORAGE_KEY`, `shellScript`, `shellScriptFor`, `StickyRail`, `useSideNav`.
 
-Types: `AppLogoProps`, `AppSwitcherProps`, `AsideLayoutProps`, `IconComponent`, `PageHeaderActionsProps`, `PageHeaderDescriptionProps`, `PageHeaderHeadingProps`, `PageHeaderLeadProps`, `PageHeaderProps`, `PageHeaderSlotAdvance`, `PageHeaderSlotMore`, `PageHeaderSlotProps`, `PageHeaderSlotSign`, `PageHeaderSlotWaiting`, `PageHeaderStandingBeat`, `PageHeaderStandingProps`, `PageHeaderTitleProps`, `PageSkeletonProps`, `PageSkeletonVariant`, `ProfileProps`, `SectionActionsProps`, `SectionDescriptionProps`, `SectionHeaderProps`, `SectionHeadingProps`, `SectionProps`, `SectionTitleProps`, `ShellAsideProps`, `ShellBannerProps`, `ShellMainProps`, `ShellMarkProps`, `ShellPanelActionsProps`, `ShellPanelBackProps`, `ShellPanelBodyProps`, `ShellPanelCloseProps`, `ShellPanelFocusTarget`, `ShellPanelHeaderProps`, `ShellPanelProps`, `ShellPanelTitleProps`, `ShellProps`, `ShellSplitterProps`, `ShellStored`, `ShellTopNavEndProps`, `ShellTopNavItemProps`, `ShellTopNavMiddleProps`, `ShellTopNavProps`, `ShellTopNavSearchProps`, `ShellTopNavStartProps`, `SideNavBodyProps`, `SideNavChange`, `SideNavExpandableProps`, `SideNavFooterProps`, `SideNavHeaderProps`, `SideNavIcon`, `SideNavItemProps`, `SideNavProps`, `SideNavSectionProps`, `SideNavSlotProps`, `SideNavToggleButtonProps`, `SideNavTrigger`, `StickyRailProps`.
+Types: `AppLogoProps`, `AppSwitcherProps`, `AsideLayoutProps`, `FootBarProps`, `IconComponent`, `PageHeaderActionsProps`, `PageHeaderDescriptionProps`, `PageHeaderHeadingProps`, `PageHeaderLeadProps`, `PageHeaderProps`, `PageHeaderSlotAdvance`, `PageHeaderSlotMore`, `PageHeaderSlotProps`, `PageHeaderSlotSign`, `PageHeaderSlotWaiting`, `PageHeaderStandingBeat`, `PageHeaderStandingProps`, `PageHeaderTitleProps`, `PageSkeletonProps`, `PageSkeletonVariant`, `ProfileProps`, `SectionActionsProps`, `SectionDescriptionProps`, `SectionHeaderProps`, `SectionHeadingProps`, `SectionProps`, `SectionTitleProps`, `ShellAsideProps`, `ShellBannerProps`, `ShellMainProps`, `ShellMarkProps`, `ShellPanelActionsProps`, `ShellPanelBackProps`, `ShellPanelBodyProps`, `ShellPanelCloseProps`, `ShellPanelFocusTarget`, `ShellPanelHeaderProps`, `ShellPanelProps`, `ShellPanelTitleProps`, `ShellProps`, `ShellSplitterProps`, `ShellStored`, `ShellTopNavEndProps`, `ShellTopNavItemProps`, `ShellTopNavMiddleProps`, `ShellTopNavProps`, `ShellTopNavSearchProps`, `ShellTopNavStartProps`, `SideNavBodyProps`, `SideNavChange`, `SideNavExpandableProps`, `SideNavFooterProps`, `SideNavHeaderProps`, `SideNavIcon`, `SideNavItemProps`, `SideNavProps`, `SideNavSectionProps`, `SideNavSlotProps`, `SideNavToggleButtonProps`, `SideNavTrigger`, `StickyRailProps`.
 
 ## Patterns
 
-Values: `ActionBar`, `categoricalTone`, `ChangeReview`, `Chart`, `chartColor`, `Citation`, `clearView`, `columnKinds`, `ColumnSortable`, `CommandPalette`, `CommandScope`, `Comparison`, `Composer`, `countRows`, `createDataTableColumnHelper`, `DataTable`, `dataTableFeatures`, `DataTableSort`, `defineColumns`, `displayedRows`, `DocumentPage`, `DocumentReader`, `DocumentSelectionToolbar`, `downloadCsv`, `DragContext`, `Editable`, `EditableDate`, `EditableSelect`, `EditableText`, `FindBar`, `formatNumber`, `GateItem`, `Gates`, `Glance`, `HeaderMenu`, `Inspector`, `InspectorGroup`, `Ladder`, `minWidths`, `Peek`, `PickerSheet`, `PreviewNavigation`, `PreviewSheet`, `readTableQuery`, `readView`, `RecordBrowser`, `RecordPicker`, `Related`, `RelatedCard`, `Reorder`, `ReorderHandle`, `ReorderItem`, `ReorderMove`, `resetView`, `ReviewThread`, `RowSortable`, `sameTableQuery`, `SavedViewEditor`, `SavedViewManager`, `SavedViewPicker`, `SearchDialog`, `SelectionActions`, `showRow`, `Spreadsheet`, `SpreadsheetFormatting`, `SpreadsheetSheetBar`, `SpreadsheetToolbar`, `TablePagination`, `tableQueryFromSearch`, `tableQueryKey`, `tableQueryParamNames`, `tableQueryToSearch`, `tableQueryToString`, `TaskRow`, `TileMap`, `TileMapKey`, `toCsv`, `Toolbar`, `toRows`, `Trace`, `useCellContext`, `useCollectionSelection`, `useColumnDrag`, `useCommandPalette`, `useDataTable`, `useHeaderContext`, `useRowDrag`, `useScopedCommands`, `useTableContext`, `useTableQuery`, `viewKey`, `WorkPane`, `WorkPaneRow`, `writeView`.
+Values: `ActionBar`, `categoricalTone`, `ChangeReview`, `Chart`, `chartColor`, `Citation`, `clearView`, `columnKinds`, `ColumnSortable`, `CommandPalette`, `CommandScope`, `Comparison`, `Composer`, `countRows`, `createDataTableColumnHelper`, `DataTable`, `dataTableFeatures`, `DataTableSort`, `DecisionKeys`, `defineColumns`, `displayedRows`, `DocumentPage`, `DocumentReader`, `DocumentSelectionToolbar`, `downloadCsv`, `DragContext`, `Editable`, `EditableDate`, `EditableSelect`, `EditableText`, `FindBar`, `formatNumber`, `GateItem`, `Gates`, `Glance`, `HeaderMenu`, `Inspector`, `InspectorGroup`, `Ladder`, `minWidths`, `Peek`, `PickerSheet`, `PreviewNavigation`, `PreviewSheet`, `readTableQuery`, `readView`, `RecordBrowser`, `RecordPicker`, `Related`, `RelatedCard`, `Reorder`, `ReorderHandle`, `ReorderItem`, `ReorderMove`, `resetView`, `ReviewThread`, `RowSortable`, `sameTableQuery`, `SavedViewEditor`, `SavedViewManager`, `SavedViewPicker`, `SearchDialog`, `SelectionActions`, `showRow`, `Spreadsheet`, `SpreadsheetFormatting`, `SpreadsheetSheetBar`, `SpreadsheetToolbar`, `TablePagination`, `tableQueryFromSearch`, `tableQueryKey`, `tableQueryParamNames`, `tableQueryToSearch`, `tableQueryToString`, `TaskRow`, `TileMap`, `TileMapKey`, `toCsv`, `Toolbar`, `toRows`, `Trace`, `TraceRail`, `useCellContext`, `useCollectionSelection`, `useColumnDrag`, `useCommandPalette`, `useDataTable`, `useHeaderContext`, `useRowDrag`, `useScopedCommands`, `useTableContext`, `useTableQuery`, `viewKey`, `WorkPane`, `WorkPaneRow`, `WorkRow`, `WorkRowGroup`, `WorkRowTier`, `writeView`.
 
-Types: `ActionBarAction`, `ActionBarProps`, `ActionBarState`, `ChangeReviewProps`, `ChartAreaProps`, `ChartBand`, `ChartBarProps`, `ChartColumn`, `ChartCrumb`, `ChartDatum`, `ChartDomain`, `ChartDonutProps`, `ChartFrameProps`, `ChartFrameState`, `ChartHeatmapProps`, `ChartLegendProps`, `ChartLineProps`, `ChartLink`, `ChartReference`, `ChartScaleProps`, `ChartScatterGroup`, `ChartScatterProps`, `ChartSelection`, `ChartSeries`, `ChartSize`, `ChartSparklineProps`, `ChartTone`, `ChartTreemapProps`, `ChartValue`, `CitationProps`, `CollectionSelection`, `CollectionSelectionItemProps`, `CollectionSelectionOptions`, `ColumnDragOptions`, `ColumnKind`, `ColumnKinds`, `CommandPaletteProps`, `CommandScopeProps`, `ComparisonProps`, `ComposerProps`, `ComposerSuggestion`, `ComposerSuggestions`, `CsvOptions`, `DataTableColumn`, `DataTableColumnMeta`, `DataTableEmpty`, `DataTableFeatures`, `DataTableFilteredEmpty`, `DataTableInstance`, `DataTableMeta`, `DataTableNoun`, `DataTableOptions`, `DataTableOwnProps`, `DataTableProps`, `DataTableSortProps`, `DataTableState`, `DataTableView`, `DocumentAnchor`, `DocumentPageProps`, `DocumentReaderProps`, `DocumentRectangle`, `DocumentSelection`, `DocumentSelectionToolbarProps`, `DonutSelection`, `DonutSlice`, `EditableDateProps`, `EditableOption`, `EditableOptions`, `EditableProps`, `EditableSelectProps`, `EditableTextProps`, `ExportedRows`, `ExportOptions`, `FilterOption`, `FindBarProps`, `Footer`, `GateItemProps`, `GatesProps`, `GlanceProps`, `HeatmapScale`, `HeatmapSelection`, `HeatmapStatus`, `InspectorGroupData`, `InspectorGroupProps`, `InspectorProps`, `LadderLevel`, `LadderLink`, `LadderMark`, `LadderNode`, `LadderProps`, `PaletteCommand`, `PeekProps`, `PickerRecord`, `PickerSheetCloseDetails`, `PickerSheetProps`, `PickerSheetSearch`, `Preset`, `PreviewNavigationProps`, `PreviewSheetProps`, `RecordBrowserEmpty`, `RecordBrowserProps`, `RecordBrowserQuery`, `RecordBrowserServer`, `RecordPickerProps`, `RelatedCardProps`, `RelatedEmpty`, `RelatedLayout`, `RelatedProps`, `ReorderChange`, `ReorderHandleProps`, `ReorderItemProps`, `ReorderMoveProps`, `ReorderProps`, `ReviewChange`, `ReviewThreadAction`, `ReviewThreadEntry`, `ReviewThreadProps`, `RowAction`, `SavedViewDraft`, `SavedViewEditorProps`, `SavedViewItem`, `SavedViewLabels`, `SavedViewManagerProps`, `SavedViewPickerProps`, `SavedViewVisibility`, `ScatterSelection`, `ScopedCommand`, `SearchDialogProps`, `SearchResult`, `SelectionActionsProps`, `SpreadsheetBorder`, `SpreadsheetBorderPreset`, `SpreadsheetCell`, `SpreadsheetCellStyle`, `SpreadsheetColumn`, `SpreadsheetEdit`, `SpreadsheetFormat`, `SpreadsheetFormattingProps`, `SpreadsheetFormulaReference`, `SpreadsheetFunction`, `SpreadsheetMenuContext`, `SpreadsheetPaste`, `SpreadsheetPresence`, `SpreadsheetProps`, `SpreadsheetRow`, `SpreadsheetSelection`, `SpreadsheetSheet`, `SpreadsheetSheetAction`, `SpreadsheetSheetBarProps`, `SpreadsheetStatistics`, `SpreadsheetToolbarProps`, `StatusEntry`, `StatusMap`, `TablePaginationProps`, `TableQuery`, `TableQueryOptions`, `TableQueryParamOptions`, `TableQueryParams`, `TableQuerySearch`, `TaskRowProps`, `TileMapFill`, `TileMapGroup`, `TileMapKeyItem`, `TileMapKeyProps`, `TileMapLayout`, `TileMapMark`, `TileMapProps`, `TileMapTone`, `ToolbarProps`, `TraceLink`, `TraceNode`, `TraceProps`, `TraceStage`, `TreemapNodeInput`, `TreemapSelection`, `UseCommandPaletteOptions`, `WorkPaneProps`, `WorkPaneRowProps`, `WorkPaneView`.
+Types: `ActionBarAction`, `ActionBarProps`, `ActionBarState`, `ChangeReviewProps`, `ChartAreaProps`, `ChartBand`, `ChartBarProps`, `ChartColumn`, `ChartCrumb`, `ChartDatum`, `ChartDomain`, `ChartDonutProps`, `ChartDueItem`, `ChartDueRailProps`, `ChartFrameProps`, `ChartFrameState`, `ChartHeatmapProps`, `ChartLegendProps`, `ChartLineProps`, `ChartLink`, `ChartReference`, `ChartScaleProps`, `ChartScatterGroup`, `ChartScatterProps`, `ChartSelection`, `ChartSeries`, `ChartSize`, `ChartSparklineProps`, `ChartTone`, `ChartTreemapProps`, `ChartValue`, `CitationProps`, `CollectionSelection`, `CollectionSelectionItemProps`, `CollectionSelectionOptions`, `ColumnDragOptions`, `ColumnKind`, `ColumnKinds`, `CommandPaletteProps`, `CommandScopeProps`, `ComparisonProps`, `ComposerProps`, `ComposerSuggestion`, `ComposerSuggestions`, `CsvOptions`, `DataTableColumn`, `DataTableColumnMeta`, `DataTableEmpty`, `DataTableFeatures`, `DataTableFilteredEmpty`, `DataTableInstance`, `DataTableMeta`, `DataTableNoun`, `DataTableOptions`, `DataTableOwnProps`, `DataTableProps`, `DataTableSortProps`, `DataTableState`, `DataTableView`, `DecisionKeyOption`, `DecisionKeysProps`, `DocumentAnchor`, `DocumentPageProps`, `DocumentReaderProps`, `DocumentRectangle`, `DocumentSelection`, `DocumentSelectionToolbarProps`, `DonutSelection`, `DonutSlice`, `EditableDateProps`, `EditableOption`, `EditableOptions`, `EditableProps`, `EditableSelectProps`, `EditableTextProps`, `ExportedRows`, `ExportOptions`, `FilterOption`, `FindBarProps`, `Footer`, `GateItemProps`, `GatesProps`, `GlanceProps`, `HeatmapScale`, `HeatmapSelection`, `HeatmapStatus`, `InspectorGroupData`, `InspectorGroupProps`, `InspectorProps`, `LadderLevel`, `LadderLink`, `LadderMark`, `LadderNode`, `LadderProps`, `PaletteCommand`, `PeekProps`, `PickerRecord`, `PickerSheetCloseDetails`, `PickerSheetProps`, `PickerSheetSearch`, `Preset`, `PreviewNavigationProps`, `PreviewSheetProps`, `RecordBrowserEmpty`, `RecordBrowserProps`, `RecordBrowserQuery`, `RecordBrowserServer`, `RecordPickerProps`, `RelatedCardProps`, `RelatedEmpty`, `RelatedLayout`, `RelatedProps`, `ReorderChange`, `ReorderHandleProps`, `ReorderItemProps`, `ReorderMoveProps`, `ReorderProps`, `ReviewChange`, `ReviewThreadAction`, `ReviewThreadEntry`, `ReviewThreadProps`, `RowAction`, `SavedViewDraft`, `SavedViewEditorProps`, `SavedViewItem`, `SavedViewLabels`, `SavedViewManagerProps`, `SavedViewPickerProps`, `SavedViewVisibility`, `ScatterSelection`, `ScopedCommand`, `SearchDialogProps`, `SearchResult`, `SelectionActionsProps`, `SpreadsheetBorder`, `SpreadsheetBorderPreset`, `SpreadsheetCell`, `SpreadsheetCellStyle`, `SpreadsheetColumn`, `SpreadsheetEdit`, `SpreadsheetFormat`, `SpreadsheetFormattingProps`, `SpreadsheetFormulaReference`, `SpreadsheetFunction`, `SpreadsheetMenuContext`, `SpreadsheetPaste`, `SpreadsheetPresence`, `SpreadsheetProps`, `SpreadsheetRow`, `SpreadsheetSelection`, `SpreadsheetSheet`, `SpreadsheetSheetAction`, `SpreadsheetSheetBarProps`, `SpreadsheetStatistics`, `SpreadsheetToolbarProps`, `StatusEntry`, `StatusMap`, `TablePaginationProps`, `TableQuery`, `TableQueryOptions`, `TableQueryParamOptions`, `TableQueryParams`, `TableQuerySearch`, `TaskRowProps`, `TileMapFill`, `TileMapGroup`, `TileMapKeyItem`, `TileMapKeyProps`, `TileMapLayout`, `TileMapMark`, `TileMapProps`, `TileMapTone`, `ToolbarProps`, `TraceLink`, `TraceNode`, `TraceProps`, `TraceRailProps`, `TraceRailSize`, `TraceRailState`, `TraceRailStop`, `TraceRailTone`, `TraceStage`, `TreemapNodeInput`, `TreemapSelection`, `UseCommandPaletteOptions`, `WorkPaneProps`, `WorkPaneRowProps`, `WorkPaneView`, `WorkRowGroupProps`, `WorkRowProps`, `WorkRowTierProps`, `WorkRowVerb`.
 
 ## Mode
 

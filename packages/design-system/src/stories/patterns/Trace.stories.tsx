@@ -2,8 +2,9 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { createRef } from "react";
 import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 
-import { Button, Dot, TextLink } from "../../components";
-import { Trace, type TraceStage } from "../../patterns";
+import { Button, Dot, Table, TextLink } from "../../components";
+import { Trace, TraceRail, type TraceRailStop, type TraceStage } from "../../patterns";
+import { Text } from "../../primitives";
 
 const meta = {
   title: "Patterns/Trace",
@@ -657,5 +658,325 @@ export const NativeAttributes: Story = {
     await expect(box.current).toBe(trace);
     await expect(trace).toHaveAttribute("id", "risk-trace");
     await expect(trace).toHaveAttribute("data-testid", "trace");
+  },
+};
+
+/* ---------- Trace.Rail: the chain as one line of fixed stations ---------- */
+
+/** The seven stations around a risk that waits on its assessor's draft findings. */
+const riskStops: readonly TraceRailStop[] = [
+  {
+    id: "controls",
+    label: "Controls",
+    state: "held",
+    count: 2,
+    value: (
+      <>
+        <TextLink tone="neutral" href="#ia-2-2">
+          IA-2(2)
+        </TextLink>
+        <TextLink tone="neutral" href="#ia-3-1">
+          IA-3(1)
+        </TextLink>
+      </>
+    ),
+  },
+  {
+    id: "requirements",
+    label: "Requirements",
+    state: "held",
+    count: 2,
+    value: (
+      <>
+        <TextLink tone="neutral" href="#req-599">
+          REQ-599
+        </TextLink>
+        <TextLink tone="neutral" href="#req-604">
+          REQ-604
+        </TextLink>
+      </>
+    ),
+  },
+  {
+    id: "evidence",
+    label: "Evidence",
+    state: "held",
+    count: 2,
+    value: <Text color="color.text.warning">Needs revision</Text>,
+    description: "2, needs revision",
+  },
+  {
+    id: "findings",
+    label: "Assessment findings",
+    state: "draft",
+    value: "2 in draft",
+    meta: "D. Okafor · Nov 20",
+  },
+  {
+    id: "issues",
+    label: "Operational issues",
+    state: "held",
+    count: 2,
+    tone: "danger",
+    value: <Text color="color.text.danger">1 critical</Text>,
+    meta: "1 moderate",
+    description: "1 critical, 1 moderate",
+  },
+  { id: "risks", label: "Risks", state: "held", tone: "danger", value: "Critical" },
+  {
+    id: "remediation",
+    label: "Remediation",
+    state: "held",
+    count: 1,
+    value: "1 of 4 milestones",
+    meta: "Mar 6, 2027",
+  },
+];
+
+const railOf = (canvasElement: HTMLElement, name: string | RegExp) =>
+  within(canvasElement).getByRole("list", { name });
+const stationsOf = (rail: HTMLElement) => within(rail).getAllByRole("listitem");
+const legOf = (station: HTMLElement) =>
+  station.querySelector<HTMLElement>('[data-slot="trace-rail-leg"][data-side="out"]')!.dataset[
+    "state"
+  ];
+
+/** `Trace.Rail` (also `TraceRail`): the chain around one record as one line of seven stations that never move, the record's own ringed. A station holds a count in its dot, toned by its worst record, and under it what stands there, worst first: the records' links, a judgement, counts by severity, milestones reached. A leg is solid where its link holds and dashed where it waits on a draft: this risk's evidence needs revision and its findings are still in draft. */
+export const Rail: Story = {
+  render: () => <Trace.Rail label="The chain around this risk" stops={riskStops} focus="risks" />,
+  play: async ({ canvasElement }) => {
+    const rail = railOf(canvasElement, "The chain around this risk");
+    const stations = stationsOf(rail);
+    // Seven stations in the chain's order, every one drawn.
+    await expect(
+      stations.map(
+        (station) => station.querySelector('[data-slot="trace-rail-label"]')?.textContent,
+      ),
+    ).toEqual([
+      "Controls",
+      "Requirements",
+      "Evidence",
+      "Assessment findings",
+      "Operational issues",
+      "Risks",
+      "Remediation",
+    ]);
+    // The record's own station is the current item, and no other is.
+    await expect(stations[5]).toHaveAttribute("aria-current", "true");
+    await expect(rail.querySelectorAll("[aria-current]")).toHaveLength(1);
+    await expect(stations[5]).toHaveAttribute("data-state", "current");
+    // A held station's count is in its dot, and read after its name.
+    await expect(stations[0]).toHaveTextContent(/^Controls2, 2IA-2\(2\)IA-3\(1\)$/);
+    await expect(within(stations[0]!).getByRole("link", { name: "IA-2(2)" })).toBeVisible();
+    // Counts by severity, worst first, in words beside the tone.
+    await expect(stations[4]).toHaveAttribute("data-tone", "danger");
+    await expect(within(stations[4]!).getByText("1 critical")).toBeVisible();
+    await expect(stations[4]!.textContent!.indexOf("1 critical")).toBeLessThan(
+      stations[4]!.textContent!.indexOf("1 moderate"),
+    );
+    // Drafts only: the station says so, and the legs either side of it wait.
+    await expect(stations[3]).toHaveAttribute("data-state", "draft");
+    await expect(stations.map(legOf)).toEqual([
+      "holds",
+      "holds",
+      "waiting",
+      "waiting",
+      "holds",
+      "holds",
+      undefined,
+    ]);
+    // The rail is text and links; the line is decoration.
+    for (const track of rail.querySelectorAll('[data-slot="trace-rail-track"]'))
+      await expect(track).toHaveAttribute("aria-hidden", "true");
+  },
+};
+
+/** A finding with nothing after it: the line breaks at the gap and stays broken back to the record, across the stations that hold nothing, and the gap says what is missing in words, a link that opens its fix. A station with nothing recorded is a small mark the line runs through; the link from the control to the finding holds across the two between them. */
+export const RailGap: Story = {
+  render: () => (
+    <Trace.Rail
+      label="The chain around this finding"
+      focus="findings"
+      stops={[
+        {
+          id: "controls",
+          label: "Controls",
+          state: "held",
+          count: 1,
+          value: (
+            <TextLink tone="neutral" href="#ac-2-5">
+              AC-2(5)
+            </TextLink>
+          ),
+        },
+        { id: "requirements", label: "Requirements", state: "none" },
+        { id: "evidence", label: "Evidence", state: "none" },
+        {
+          id: "findings",
+          label: "Assessment findings",
+          state: "held",
+          tone: "danger",
+          value: "Other than satisfied",
+          meta: "Published Nov 8",
+        },
+        { id: "issues", label: "Operational issues", state: "none" },
+        { id: "risks", label: "Risks", state: "none" },
+        {
+          id: "remediation",
+          label: "Remediation",
+          state: "gap",
+          value: <TextLink href="#create-remediation">No remediation item</TextLink>,
+          meta: "6 days since published",
+        },
+      ]}
+    />
+  ),
+  play: async ({ canvasElement }) => {
+    const rail = railOf(canvasElement, "The chain around this finding");
+    const stations = stationsOf(rail);
+    // The gap says what is missing in words, and its words open the fix.
+    const gap = stations[6]!;
+    await expect(gap).toHaveAttribute("data-state", "gap");
+    await expect(within(gap).getByRole("link", { name: "No remediation item" })).toBeVisible();
+    // The line holds from the control to the finding and breaks from the finding to the gap.
+    await expect(stations.map(legOf)).toEqual([
+      "holds",
+      "holds",
+      "holds",
+      "broken",
+      "broken",
+      "broken",
+      undefined,
+    ]);
+    // A station with nothing recorded draws no words and says so to assistive technology.
+    await expect(stations[1]).toHaveTextContent("Requirements, Nothing recorded");
+    await expect(stations[1]!.querySelector('[data-slot="trace-rail-value"]')).toBeNull();
+    await expect(stations[3]).toHaveAttribute("aria-current", "true");
+  },
+};
+
+/** `size="small"`, in a record's body: the names under the dots and no words. A gap's name takes the warning colour, and what it says (its `description`, a string value or the state's own words) is read after the name: a gap given no words says Missing. Past the gap, where nothing is recorded, the line meets nothing. */
+export const RailSmall: Story = {
+  render: () => (
+    <Trace.Rail
+      size="small"
+      label="The chain around SI-2 Flaw Remediation"
+      focus="controls"
+      stops={[
+        { id: "controls", label: "Controls", state: "held" },
+        { id: "requirements", label: "Requirements", state: "held", count: 1 },
+        { id: "evidence", label: "Evidence", state: "gap" },
+        { id: "findings", label: "Findings", state: "none" },
+        { id: "issues", label: "Issues", state: "none" },
+        { id: "risks", label: "Risks", state: "none" },
+        { id: "remediation", label: "POA&M", state: "none" },
+      ]}
+    />
+  ),
+  play: async ({ canvasElement }) => {
+    const rail = railOf(canvasElement, "The chain around SI-2 Flaw Remediation");
+    const stations = stationsOf(rail);
+    await expect(stations[0]).toHaveAttribute("aria-current", "true");
+    // No words are drawn at this size, and every station is still read whole.
+    await expect(rail.querySelector('[data-slot="trace-rail-value"]')).toBeNull();
+    await expect(stations[1]).toHaveTextContent("Requirements1, 1");
+    await expect(stations[2]).toHaveTextContent("Evidence, Missing");
+    await expect(stations[2]).toHaveAttribute("data-state", "gap");
+    await expect(stations[3]).toHaveTextContent("Findings, Nothing recorded");
+    // The names sit under the dots.
+    const label = stations[2]!.querySelector('[data-slot="trace-rail-label"]')!;
+    const dot = stations[2]!.querySelector('[data-slot="trace-rail-dot"]')!;
+    await expect(label.getBoundingClientRect().top).toBeGreaterThan(
+      dot.getBoundingClientRect().bottom - 1,
+    );
+    // A gap breaks the line to it; past it, where nothing is recorded, the line meets nothing.
+    await expect(stations.map(legOf)).toEqual([
+      "holds",
+      "broken",
+      "none",
+      "none",
+      "none",
+      "none",
+      undefined,
+    ]);
+  },
+};
+
+/** `size="xsmall"` fits a table row: the dots alone, at a fixed pitch, so the stations line up down a column and a gap reads across the register. The names and words are read, not drawn. */
+export const RailInARow: Story = {
+  render: () => (
+    <Table label="Open risks">
+      <thead>
+        <tr>
+          <Table.Header>Risk</Table.Header>
+          <Table.Header>Chain</Table.Header>
+        </tr>
+      </thead>
+      <tbody>
+        <Table.Row isStatic>
+          <Table.Cell rowHeader>Signing keys rotate without a record</Table.Cell>
+          <Table.Cell>
+            <TraceRail
+              size="xsmall"
+              label="The chain around Signing keys rotate without a record"
+              focus="risks"
+              stops={riskStops}
+            />
+          </Table.Cell>
+        </Table.Row>
+        <Table.Row isStatic>
+          <Table.Cell rowHeader>A password on its own reaches the flightline</Table.Cell>
+          <Table.Cell>
+            <TraceRail
+              size="xsmall"
+              label="The chain around A password on its own reaches the flightline"
+              focus="risks"
+              stops={riskStops.map((stop): TraceRailStop =>
+                stop.id === "evidence"
+                  ? { id: stop.id, label: stop.label, state: "gap", description: "No evidence" }
+                  : stop,
+              )}
+            />
+          </Table.Cell>
+        </Table.Row>
+      </tbody>
+    </Table>
+  ),
+  play: async ({ canvasElement }) => {
+    const first = railOf(canvasElement, /Signing keys rotate/);
+    const second = railOf(canvasElement, /A password on its own/);
+    // The dots alone: no name or word drawn, and the rail no wider than its stations.
+    await expect(first.querySelector('[data-slot="trace-rail-label"]')).toBeNull();
+    await expect(first.querySelector('[data-slot="trace-rail-value"]')).toBeNull();
+    await expect(first.getBoundingClientRect().width).toBeLessThanOrEqual(7 * 16 + 1);
+    // Read whole: the name, the count and what a station says.
+    const stations = stationsOf(second);
+    await expect(stations[2]).toHaveTextContent("Evidence, No evidence");
+    await expect(stations[4]).toHaveTextContent("Operational issues, 2, 1 critical, 1 moderate");
+    await expect(stations[5]).toHaveAttribute("aria-current", "true");
+    // The stations line up down the column.
+    const lefts = (rail: HTMLElement) =>
+      stationsOf(rail).map((station) => Math.round(station.getBoundingClientRect().left));
+    await expect(lefts(second)).toEqual(lefts(first));
+  },
+};
+
+/** At `medium` the rail measures its own width: in less than 36rem, a phone or a panel, the stations run down the page, the line down beside them. */
+export const RailNarrow: Story = {
+  globals: { viewport: { value: "ledgerPhone", isRotated: false } },
+  render: () => <Trace.Rail label="The chain around this risk" stops={riskStops} focus="risks" />,
+  play: async ({ canvasElement }) => {
+    const stations = stationsOf(railOf(canvasElement, "The chain around this risk"));
+    const tops = stations.map((station) => station.getBoundingClientRect().top);
+    for (let at = 1; at < tops.length; at += 1)
+      await expect(tops[at]!).toBeGreaterThan(tops[at - 1]!);
+    // The leg runs down from a dot to the next station's dot.
+    const leg = stations[2]!.querySelector('[data-slot="trace-rail-leg"][data-side="out"]')!;
+    const next = stations[3]!.querySelector('[data-slot="trace-rail-dot"]')!;
+    await expect(
+      Math.abs(leg.getBoundingClientRect().bottom - next.getBoundingClientRect().top),
+    ).toBeLessThan(2);
+    const page = canvasElement.ownerDocument.documentElement;
+    await expect(page.scrollWidth).toBeLessThanOrEqual(page.clientWidth);
   },
 };

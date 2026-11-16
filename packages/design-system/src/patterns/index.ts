@@ -39,6 +39,16 @@ export {
 } from "./related";
 export { SearchDialog, type SearchDialogProps, type SearchResult } from "./search-dialog";
 export { TaskRow, type TaskRowProps } from "./task-row";
+export {
+  WorkRow,
+  WorkRowGroup,
+  WorkRowTier,
+  type WorkRowGroupProps,
+  type WorkRowProps,
+  type WorkRowTierProps,
+  type WorkRowVerb,
+} from "./work-row";
+export { DecisionKeys, type DecisionKeyOption, type DecisionKeysProps } from "./decision-keys";
 
 export {
   ActionBar,
@@ -59,6 +69,8 @@ export {
   type ChartDatum,
   type ChartDomain,
   type ChartDonutProps,
+  type ChartDueItem,
+  type ChartDueRailProps,
   type ChartFrameProps,
   type ChartFrameState,
   type ChartHeatmapProps,
@@ -127,6 +139,14 @@ export {
 } from "./tile-map";
 
 export { Trace, type TraceLink, type TraceNode, type TraceProps, type TraceStage } from "./trace";
+export {
+  TraceRail,
+  type TraceRailProps,
+  type TraceRailSize,
+  type TraceRailState,
+  type TraceRailStop,
+  type TraceRailTone,
+} from "./trace-rail";
 
 export {
   Ladder,

@@ -1,6 +1,6 @@
 import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
-import { Trace } from "../../patterns";
+import { Trace, TraceRail } from "../../patterns";
 import * as Stories from "./Trace.stories";
 
 <Meta of={Stories} />
@@ -65,16 +65,61 @@ A stage shows `limit` records, eight unless said, and folds the rest behind Show
 
 The trace measures its own width. While each column has room to read (128px, and 32px between two for the wires) the stages stand side by side; in less they stack in the chain's order and the wires leave.
 
+## The rail
+
+<Canvas of={Stories.Rail} />
+
+`Trace.Rail` (also `TraceRail`), new with the November 2026 UX proposal and used by no product screen yet, is the compact form: the chain around one record as one line of fixed stations, in the chain's order. The trace draws every record and the links between them; the rail says what stands at each station, so it fits under a record's header, in its body or in a table row, and the full trace becomes its detail. Give every station every time (for the assurance chain: Controls, Requirements, Evidence, Assessment findings, Operational issues, Risks, Remediation), so a station's place is its meaning and a gap lines up down a column of rails. A station is never dropped and never reordered: one with nothing in it says so.
+
+A station's `state` says what stands there:
+
+| State   | Dot                                                         | When                               |
+| ------- | ----------------------------------------------------------- | ---------------------------------- |
+| `held`  | filled, with its `count`, in the `tone` of its worst record | records stand there                |
+| `draft` | a dashed ring                                               | only drafts stand there            |
+| `gap`   | a dashed ring in the warning colour                         | the record owes one and has none   |
+| `none`  | a small hollow mark                                         | nothing recorded, and nothing owed |
+
+`focus` names the record's own station: a smaller dot of its tone inside a ring, its name in the text colour, and the current item. Under each dot, at `medium`, `value` says what stands there, worst first: the records' links, a judgement (Other than satisfied), counts by severity (1 critical, then 1 moderate as its `meta`), milestones reached. Colour never says a tone alone: the words do.
+
+The legs between the dots are derived from the stations at their two ends, so there is nothing to keep in step. A leg is the link between the nearest stations either side that hold anything, and runs through a station with nothing recorded: solid where it holds, dashed where a draft is at one end, and broken in the warning colour where a gap is. With nothing at one end it is a hairline.
+
+## A gap that breaks the line
+
+<Canvas of={Stories.RailGap} />
+
+A gap says what is missing in words: its `value` (No remediation item), which may be the link, or the link-styled Button, that opens its fix; a gap given none says Missing. The line breaks on both sides of it and stays broken back to the nearest station that holds anything.
+
+## Sizes
+
+<Canvas of={Stories.RailSmall} />
+
+`size="small"` sits in a record's body: the names under the dots, at a fixed pitch of `space.1000`, and no words. `size="xsmall"` fits a table row: the dots alone, `space.200` apart, so the stations line up down a column and a gap reads across a register. Where a station's words are not drawn, its `description` is read after its name ("Evidence, No evidence"), else a string `value`, else the state's own words (Missing, Drafts only, Nothing recorded). Give a toned station a `description` that says its tone in words.
+
+<Canvas of={Stories.RailInARow} />
+
+At `medium` the rail measures its own width: in less than 36rem, a phone or a panel, the stations run down the page with the line beside them.
+
+<Canvas of={Stories.RailNarrow} />
+
 ## Accessibility
 
 The trace is a group named by `label`. Inside it the stages are an ordered list, each stage a list named by its `label` and count, and each record's description says what it is linked to (Linked to AU-10 Non-repudiation and Signing key rotation log), so the chain reads without the wires. The focus is the current item. The wires are decoration and are hidden from assistive technology.
+
+The rail is an ordered list named by its `label`, a station an item read by its name, its count and its words ("Operational issues, 2, 1 critical, 1 moderate"), the focus the current item. The line and its dots are decoration. Its counts sit on the bold fills with their inverse words, at 4.5:1 in every mode; its dots, rings and legs hold 3:1 against the surface, and a broken leg and a gap's ring are dashed as well as coloured. In forced colours the dots are the system's text colour, the record's ring its highlight.
 
 ## Props
 
 <ArgTypes of={Trace} />
 
+### Trace.Rail
+
+The rail's native props and ref reach its box.
+
+<ArgTypes of={TraceRail} />
+
 <Controls of={Stories.Playground} />
 
 ## Related
 
-[TileMap](?path=/docs/patterns-tilemap--docs) · [Related](?path=/docs/patterns-related--docs) · [Stepper and Timeline](?path=/docs/components-timeline--docs) · [DataTable](?path=/docs/patterns-data-table--docs)
+[TileMap](?path=/docs/patterns-tilemap--docs) · [ObjectiveCells](?path=/docs/components-objectivecells--docs) · [Related](?path=/docs/patterns-related--docs) · [Stepper and Timeline](?path=/docs/components-timeline--docs) · [DataTable](?path=/docs/patterns-data-table--docs)

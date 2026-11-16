@@ -3092,7 +3092,7 @@
     "Button": {
       "kind": "component",
       "file": "components/button.tsx",
-      "line": 640,
+      "line": 620,
       "root": {
         "align-items": ["items-center"],
         "display": ["inline-flex"],
@@ -3986,6 +3986,26 @@
       "sets": {
         "layout": ["display", "max-w", "position", "shrink", "w"],
         "motion": ["animate"]
+      }
+    },
+    "Chart.DueRail": {
+      "kind": "component",
+      "file": "patterns/chart/due-rail.tsx",
+      "line": 108,
+      "root": {
+        "min-w": ["min-w-0"],
+        "position": ["relative"]
+      },
+      "props": {},
+      "derived": {
+        "min-w": {
+          "props": ["label", "loading"],
+          "classes": ["min-w-0"],
+          "unset": ["min-w-0"]
+        }
+      },
+      "sets": {
+        "layout": ["min-w", "position"]
       }
     },
     "Chart.Frame": {
@@ -8186,6 +8206,33 @@
       },
       "accepts": ["layout"]
     },
+    "DecisionKeys": {
+      "kind": "component",
+      "file": "patterns/decision-keys.tsx",
+      "line": 90,
+      "root": {
+        "class:group/radio-group": ["group/radio-group"],
+        "display": ["grid"],
+        "gap": ["gap-100"],
+        "grid-cols": ["grid-cols-1"],
+        "w": ["w-full"]
+      },
+      "props": {},
+      "derived": {
+        "grid-cols": {
+          "props": ["options"],
+          "classes": [
+            "@3xs/decision-keys:grid-cols-2",
+            "@lg/decision-keys:grid-cols-4",
+            "@md/decision-keys:grid-cols-3"
+          ]
+        }
+      },
+      "sets": {
+        "layout": ["class:group/radio-group", "display", "grid-cols", "w"],
+        "spacing": ["gap"]
+      }
+    },
     "Dialog": {
       "kind": "component",
       "file": "components/dialog.tsx",
@@ -10650,6 +10697,37 @@
         "spacing": ["gap", "gap-x", "gap-y"]
       }
     },
+    "FootBar": {
+      "kind": "component",
+      "file": "layout/foot-bar.tsx",
+      "line": 28,
+      "root": {
+        "align-items": ["items-center"],
+        "bg-color": ["bg-surface-current"],
+        "border-color": ["border-default"],
+        "border-w-t": ["border-t"],
+        "bottom": ["bottom-0"],
+        "display": ["flex"],
+        "flex-wrap": ["flex-wrap"],
+        "gap-x": ["gap-x-200"],
+        "gap-y": ["gap-y-100"],
+        "min-h": ["min-h-layout-footer"],
+        "position": ["sticky"],
+        "px": ["px-300"],
+        "py": ["py-100"],
+        "shadow": ["shadow-overflow"],
+        "z": ["z-10"]
+      },
+      "props": {},
+      "derived": {},
+      "sets": {
+        "layout": ["align-items", "bottom", "display", "flex-wrap", "min-h", "position", "z"],
+        "spacing": ["gap-x", "gap-y", "px", "py"],
+        "color": ["bg-color", "border-color"],
+        "shape": ["border-w-t"],
+        "effects": ["shadow"]
+      }
+    },
     "GateItem": {
       "kind": "component",
       "file": "patterns/gates.tsx",
@@ -11134,7 +11212,7 @@
     "IconButton": {
       "kind": "component",
       "file": "components/button.tsx",
-      "line": 759,
+      "line": 739,
       "root": {
         "align-items": ["items-center"],
         "display": ["inline-flex"],
@@ -13082,6 +13160,23 @@
         "layout": ["min-w"]
       },
       "accepts": ["layout"]
+    },
+    "ObjectiveCells": {
+      "kind": "component",
+      "file": "components/objective-cells.tsx",
+      "line": 123,
+      "root": {
+        "display": ["flex"],
+        "flex-direction": ["flex-col"],
+        "gap": ["gap-150"],
+        "min-w": ["min-w-0"]
+      },
+      "props": {},
+      "derived": {},
+      "sets": {
+        "layout": ["display", "flex-direction", "min-w"],
+        "spacing": ["gap"]
+      }
     },
     "PageHeader": {
       "kind": "component",
@@ -18162,7 +18257,7 @@
     "Stepper": {
       "kind": "component",
       "file": "components/stepper.tsx",
-      "line": 80,
+      "line": 118,
       "root": {
         "class:group/stepper": ["group/stepper"]
       },
@@ -18181,6 +18276,11 @@
             "!vertical": ["@max-md/stepper:flex-col"],
             "vertical": ["flex-col"]
           }
+        },
+        "variant": {
+          "display": {
+            "!steps": ["grid"]
+          }
         }
       },
       "derived": {},
@@ -18191,7 +18291,7 @@
     "Stepper.Item": {
       "kind": "component",
       "file": "components/stepper.tsx",
-      "line": 185,
+      "line": 240,
       "root": {
         "align-items": [
           "@max-md/stepper:items-stretch",
@@ -18199,7 +18299,8 @@
           "items-center"
         ],
         "class:group/step": ["group/step"],
-        "display": ["flex"],
+        "col-start-end": ["col-span-full"],
+        "display": ["flex", "grid"],
         "flex": [
           "@max-md/stepper:flex-none",
           "flex-1",
@@ -18211,6 +18312,7 @@
           "group-data-[orientation=vertical]/stepper:flex-row"
         ],
         "gap": ["@max-md/stepper:gap-150", "group-data-[orientation=vertical]/stepper:gap-150"],
+        "grid-cols": ["grid-cols-subgrid"],
         "min-w": ["min-w-0"],
         "position": ["relative"],
         "text-alignment": [
@@ -18225,14 +18327,84 @@
         "layout": [
           "align-items",
           "class:group/step",
+          "col-start-end",
           "display",
           "flex",
           "flex-direction",
+          "grid-cols",
           "min-w",
           "position",
           "text-alignment"
         ],
         "spacing": ["gap"]
+      }
+    },
+    "Stepper.Stage": {
+      "kind": "component",
+      "file": "components/stepper.tsx",
+      "line": 683,
+      "root": {
+        "bg-color": ["bg-current-default"],
+        "display": ["flex"],
+        "flex-direction": ["flex-col"],
+        "min-w": ["min-w-0"],
+        "rounded": ["rounded-large"]
+      },
+      "props": {},
+      "derived": {},
+      "sets": {
+        "layout": ["display", "flex-direction", "min-w"],
+        "color": ["bg-color"],
+        "shape": ["rounded"]
+      }
+    },
+    "Stepper.Today": {
+      "kind": "component",
+      "file": "components/stepper.tsx",
+      "line": 641,
+      "root": {
+        "col-start-end": ["col-span-full"],
+        "display": ["grid"],
+        "grid-cols": ["grid-cols-subgrid"]
+      },
+      "props": {},
+      "derived": {},
+      "sets": {
+        "layout": ["col-start-end", "display", "grid-cols"]
+      }
+    },
+    "StepperStage": {
+      "kind": "component",
+      "file": "components/stepper.tsx",
+      "line": 683,
+      "root": {
+        "bg-color": ["bg-current-default"],
+        "display": ["flex"],
+        "flex-direction": ["flex-col"],
+        "min-w": ["min-w-0"],
+        "rounded": ["rounded-large"]
+      },
+      "props": {},
+      "derived": {},
+      "sets": {
+        "layout": ["display", "flex-direction", "min-w"],
+        "color": ["bg-color"],
+        "shape": ["rounded"]
+      }
+    },
+    "StepperToday": {
+      "kind": "component",
+      "file": "components/stepper.tsx",
+      "line": 641,
+      "root": {
+        "col-start-end": ["col-span-full"],
+        "display": ["grid"],
+        "grid-cols": ["grid-cols-subgrid"]
+      },
+      "props": {},
+      "derived": {},
+      "sets": {
+        "layout": ["col-start-end", "display", "grid-cols"]
       }
     },
     "StickyRail": {
@@ -20362,7 +20534,25 @@
     "Trace": {
       "kind": "component",
       "file": "patterns/trace.tsx",
-      "line": 271,
+      "line": 272,
+      "root": {},
+      "props": {},
+      "derived": {},
+      "sets": {}
+    },
+    "Trace.Rail": {
+      "kind": "component",
+      "file": "patterns/trace-rail.tsx",
+      "line": 109,
+      "root": {},
+      "props": {},
+      "derived": {},
+      "sets": {}
+    },
+    "TraceRail": {
+      "kind": "component",
+      "file": "patterns/trace-rail.tsx",
+      "line": 109,
       "root": {},
       "props": {},
       "derived": {},
@@ -20592,6 +20782,83 @@
       "sets": {
         "layout": ["class:group/item", "col-start-end", "display", "grid-cols"],
         "typography": ["list-style-type"]
+      }
+    },
+    "WorkRow": {
+      "kind": "component",
+      "file": "patterns/work-row.tsx",
+      "line": 74,
+      "root": {
+        "col-start-end": ["col-span-full"],
+        "display": ["grid"],
+        "grid-cols": ["grid-cols-subgrid"],
+        "list-style-type": ["list-none"]
+      },
+      "props": {},
+      "derived": {},
+      "sets": {
+        "layout": ["col-start-end", "display", "grid-cols"],
+        "typography": ["list-style-type"]
+      }
+    },
+    "WorkRow.Group": {
+      "kind": "component",
+      "file": "patterns/work-row.tsx",
+      "line": 254,
+      "root": {
+        "container-named": ["@container/work-row"],
+        "min-w": ["min-w-0"]
+      },
+      "props": {},
+      "derived": {},
+      "sets": {
+        "layout": ["container-named", "min-w"]
+      }
+    },
+    "WorkRow.Tier": {
+      "kind": "component",
+      "file": "patterns/work-row.tsx",
+      "line": 210,
+      "root": {
+        "class:group/work-row-tier": ["group/work-row-tier"],
+        "col-start-end": ["col-span-full"],
+        "display": ["grid"],
+        "grid-cols": ["grid-cols-subgrid"]
+      },
+      "props": {},
+      "derived": {},
+      "sets": {
+        "layout": ["class:group/work-row-tier", "col-start-end", "display", "grid-cols"]
+      }
+    },
+    "WorkRowGroup": {
+      "kind": "component",
+      "file": "patterns/work-row.tsx",
+      "line": 254,
+      "root": {
+        "container-named": ["@container/work-row"],
+        "min-w": ["min-w-0"]
+      },
+      "props": {},
+      "derived": {},
+      "sets": {
+        "layout": ["container-named", "min-w"]
+      }
+    },
+    "WorkRowTier": {
+      "kind": "component",
+      "file": "patterns/work-row.tsx",
+      "line": 210,
+      "root": {
+        "class:group/work-row-tier": ["group/work-row-tier"],
+        "col-start-end": ["col-span-full"],
+        "display": ["grid"],
+        "grid-cols": ["grid-cols-subgrid"]
+      },
+      "props": {},
+      "derived": {},
+      "sets": {
+        "layout": ["class:group/work-row-tier", "col-start-end", "display", "grid-cols"]
       }
     }
   }

@@ -6,20 +6,20 @@ What to build from the November 2026 UX proposal, in order. The artifacts are th
 
 | Artifact | Use it for |
 | --- | --- |
-| [A Path, Not a Page](https://claude.ai/artifact/GYxwfYJuHpsptsaQyJV24u) | The decisions (21 made, 19 open), the reasoning, every board with its job |
-| [Program Assurance prototype](https://claude.ai/artifact/Fm8T8rkFfeiARpGBB7U7jM) | How each screen behaves: 80 screens in 18 flows. A screen's address is its key (`#component--overview`) |
+| [A Path, Not a Page](https://claude.ai/artifact/GYxwfYJuHpsptsaQyJV24u) | All 40 decisions (the last 19 answered 2026-11-16, pass six), the reasoning, every board with its job |
+| [Program Assurance prototype](https://claude.ai/artifact/Fm8T8rkFfeiARpGBB7U7jM) | How each screen behaves: 81 screens in 18 flows. A screen's address is its key (`#component--overview`) |
 | [Program Assurance mocks](https://claude.ai/artifact/3MbdfEKz2n7AfNCXvLkAjz) | Every screen side by side, and the eight component sheets |
 | [Ledger](https://claude.ai/artifact/2iju1qSiUEtVKtTi3SeCy3) | The tokens in four themes, the brand book, and a card for every part the screens use (static renditions; `nx-` parts are proposed) |
 
-Board sources: `artifacts/prototypes/ux-proposal-2026-11-pass2/` (a gitignored local copy).
+A snapshot of all four is in `docs/ux-proposal-2026-11/` on `design-system`. Board sources: `artifacts/prototypes/ux-proposal-2026-11-pass2/` (a gitignored local copy).
 
 ## 0. Before anything is built
 
 - [x] Go-ahead to start building: 2026-11-16, on the branch `ux-proposal-build`
-- [ ] The 19 open decisions settled or deferred. Four change what is built first: inherited stands over missing evidence (SI-4(2)); a version that lists nothing affected carries everything; an inherited control's next step leads to the component's assessment; Open CVEs count the versions in use
+- [x] All 40 decisions made (2026-11-16): the control work at the centre, Phase 0 first, a short contract and a lab lane; the standing as one header fact; a role-true slot; the Authorization view in two lanes; signing held to roles; on shared components an inherited determination stands, sourced, a version that lists nothing is shown and confirmed, an inherited control leads to the component, and a CVE stays open until every consumer moves
 - [x] The shared-component work (seven migrations, the seed, typed modules) is committed on `design-system`
 
-The order below is a proposal; where to start is still open (D8).
+Phase 0 first (D8): Ledger, then the contract and words, then data, then screens.
 
 ## 1. Ledger first (`packages/design-system`)
 
@@ -27,13 +27,14 @@ Twelve parts, each built on one that ships, through `/ledger-add-part`; the shee
 
 - [x] Foundations: the seven tokens (sheet: Type, colour and surfaces)
 - [x] Standing headline, Action slot, Sign button, on `PageHeader` and `Button` (sheet: Record header and buttons)
-- [ ] Path and Due rail, on `Stepper`, `Timeline`, `Chart` (sheet: Time: rail, path cell, clocks)
+- [x] Path, a variant of `Stepper`, and Due rail, in `Chart` (sheet: Time: rail, path cell, clocks)
 - [x] Empty seat, its own part beside `Avatar` and `Absent` (sheet: Readiness, seats and signatures)
 - [x] Meter and Climb, on `Tally` and `Progress` (sheet: Counting: bars, rungs, marks)
-- [ ] Objective cells, on `Table` and `TileMap` (sheet: Counting: bars, rungs, marks)
-- [ ] Chain rail, on `Trace` (sheet: The chain)
-- [ ] Work row, on `Item` (sheet: Rows)
-- [ ] Decision keys, on `RadioGroup` and `Kbd` (sheet: Review workspace)
+- [x] Objective cells, on Tally's paint with a table twin (sheet: Counting: bars, rungs, marks)
+- [x] Chain rail, `Trace.Rail` (sheet: The chain)
+- [x] Work row, `WorkRow` (sheet: Rows)
+- [x] Decision keys and the foot bar, `DecisionKeys` and `FootBar` (sheet: Review workspace)
+- [ ] Align two wave-1 parts with the decisions: `PageHeader.Standing` becomes one header fact beside the categorization (not the display-size headline); `PageHeader.Slot` is role-true (offered by the roles a program records)
 
 ## 2. Contract and words
 

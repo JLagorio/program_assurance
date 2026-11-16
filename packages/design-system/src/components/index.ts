@@ -433,6 +433,15 @@ export {
 export { Meter, type MeterProps, type MeterSize } from "./meter";
 export { Climb, type ClimbProps, type ClimbRung } from "./climb";
 export {
+  ObjectiveCells,
+  type ObjectiveCellsJudgement,
+  type ObjectiveCellsObjective,
+  type ObjectiveCellsProps,
+  type ObjectiveCellsRung,
+  type ObjectiveCellsSize,
+  type ObjectiveCellsTone,
+} from "./objective-cells";
+export {
   PhaseBar,
   PhaseBarItem,
   type PhaseBarItemProps,
@@ -567,10 +576,17 @@ export {
 } from "./stat";
 export {
   Stepper,
+  StepperStage,
+  StepperToday,
+  type StepNode,
   type StepState,
+  type StepTone,
   type StepperItemProps,
   type StepperOrientation,
   type StepperProps,
+  type StepperStageProps,
+  type StepperTodayProps,
+  type StepperVariant,
 } from "./stepper";
 export { Switch, type SwitchProps, type SwitchSize } from "./switch";
 export { Table, type TableProps, type TdProps, type ThProps } from "./table";

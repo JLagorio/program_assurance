@@ -24,6 +24,7 @@ import { announce } from "../lib/announce";
 import { classes } from "../lib/base-ui";
 import { cn } from "../lib/cn";
 import { useLedgerLocale } from "../lib/locale";
+import { takesText } from "../lib/text-entry";
 import { Stack } from "../primitives/stack";
 import { VisuallyHidden } from "../primitives/visually-hidden";
 import { getModifierKey, useFormatShortcut } from "./kbd";
@@ -365,32 +366,11 @@ export function iconInsets({
     off Apple platforms. */
 const SIGN_SHORTCUT = "Mod+Enter";
 const OPEN_DIALOG = '[role="dialog"][data-open], [role="alertdialog"][data-open]';
-/** Where typing keeps its keys: a field's Command+Enter is its own, such as a composer's send. */
-const TEXT_ENTRY =
-  "textarea, select, [contenteditable]:not([contenteditable='false']), [role='textbox'], [role='combobox'], [role='searchbox'], [role='spinbutton']";
 /** A checkbox, a radio or a switch cancels Enter itself, since Enter never toggles one: the keys
     still sign from it. */
 const TOGGLE = "[role='checkbox'], [role='radio'], [role='switch']";
-/** The inputs that take no text, where the page's shortcut still answers. */
-const KEY_INPUTS = new Set([
-  "checkbox",
-  "radio",
-  "button",
-  "submit",
-  "reset",
-  "range",
-  "color",
-  "file",
-  "image",
-]);
 /** The sign buttons mounted and able to run, in the order they became able. */
 const signers: HTMLElement[] = [];
-
-function takesText(target: EventTarget | null) {
-  if (!(target instanceof Element)) return false;
-  if (target instanceof HTMLInputElement) return !KEY_INPUTS.has(target.type);
-  return target.closest(TEXT_ENTRY) !== null;
-}
 
 /** A sign button answers while it is shown and no open dialog sits over it: the topmost holds
     it, or none is open. */

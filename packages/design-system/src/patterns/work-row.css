@@ -1,0 +1,26 @@
+/*
+  WorkRow: a desk's rows on one grid, five columns every row shares: verb, what, why, who, when.
+  The grid reads the list's own width, so a panel beside it narrows it as a phone does. Nothing
+  wraps at any width: each cell cuts its words with an ellipsis and shows them whole on hover and
+  focus (work-row.tsx), and the columns decide how much of each shows.
+*/
+
+/* Narrow (under 48rem of list): the when first, as wide as its words, since a due day cut is no
+   due day; then the rest share what is left by weight, the name the most and the verb next, so
+   every cell keeps some of its words. */
+[data-slot="work-row-grid"] {
+  grid-template-columns:
+    minmax(0, 3fr) minmax(0, 4fr) minmax(0, 2fr) minmax(0, 2fr)
+    minmax(0, max-content);
+}
+
+/* From 48rem: the verb and the who as wide as their widest, up to a quarter and a fifth of the
+   list; the what and the why share the rest three to two and never fall under three and a half
+   tenths of it; the when as wide as its words. */
+@container work-row (width >= theme(--container-3xl)) {
+  [data-slot="work-row-grid"] {
+    grid-template-columns:
+      fit-content(25%) minmax(30%, 3fr) minmax(15%, 2fr) fit-content(20%)
+      max-content;
+  }
+}

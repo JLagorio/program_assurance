@@ -24,6 +24,7 @@
 @import "./touch.css";
 @import "./stat.css";
 @import "./tally.css";
+@import "./stepper.css";
 @import "./tray.css";
 @import "./avatar.css";
 @import "./shell.css";
@@ -37,6 +38,7 @@
 @import "../patterns/tile-map.css";
 @import "../patterns/trace.css";
 @import "../patterns/ladder.css";
+@import "../patterns/work-row.css";
 
 /* Highlights preserve a readable distinction in the operating system's colour palette. */
 @media (forced-colors: active) {

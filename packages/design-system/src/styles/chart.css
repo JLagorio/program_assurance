@@ -124,3 +124,71 @@
     background-color: GrayText;
   }
 }
+
+/* ---------- Due rail: dated items as dots on one time axis, today ruled across ----------
+   A dot is neutral; one due today or soon is ringed in the warning tone, and a late one is hollow
+   and hatched in the danger tone, as a Meter's late mark is (src/styles/tally.css), so its shape
+   says it as well as its colour. */
+[data-slot="chart-due-axis"] {
+  position: absolute;
+  inset-inline: 0;
+  border-block-start: var(--ds-border-width) solid var(--ds-color-border-bold);
+}
+[data-slot="chart-due-tick"] {
+  border-inline-start: var(--ds-border-width) solid var(--ds-color-border-bold);
+  padding-block-start: var(--ds-space-050);
+  padding-inline-start: var(--ds-space-050);
+}
+[data-slot="chart-due-today"] {
+  position: absolute;
+  border-inline-start: var(--ds-border-width-selected) solid var(--ds-color-border-current);
+}
+[data-slot="chart-due-dot"] {
+  --due-ink: var(--ds-color-chart-neutral);
+  display: block;
+  flex: none;
+  box-sizing: border-box;
+  inline-size: var(--ds-space-100);
+  block-size: var(--ds-space-100);
+  border-radius: var(--ds-radius-full);
+  background-color: var(--due-ink);
+}
+[data-slot="chart-due-dot"]:is([data-state="today"], [data-state="soon"]) {
+  --due-ink: var(--ds-color-chart-warning);
+  box-shadow:
+    0 0 0 var(--ds-border-width) var(--ds-utility-elevation-surface-current),
+    0 0 0 calc(var(--ds-border-width) * 2) var(--due-ink);
+}
+[data-slot="chart-due-dot"][data-state="overdue"] {
+  --due-ink: var(--ds-color-chart-danger);
+  background-color: var(--ds-utility-elevation-surface-current);
+  background-image: repeating-linear-gradient(
+    135deg,
+    transparent 0 var(--ds-space-025),
+    var(--due-ink) var(--ds-space-025) calc(var(--ds-space-025) + var(--ds-border-width))
+  );
+  box-shadow: inset 0 0 0 var(--ds-border-width) var(--due-ink);
+}
+@media (forced-colors: active) {
+  [data-slot="chart-due-dot"] {
+    forced-color-adjust: none;
+    --due-ink: CanvasText;
+  }
+  [data-slot="chart-due-dot"]:is([data-state="today"], [data-state="soon"]),
+  [data-slot="chart-due-dot"][data-state="overdue"] {
+    --due-ink: CanvasText;
+  }
+  [data-slot="chart-due-dot"]:is([data-state="today"], [data-state="soon"]) {
+    box-shadow:
+      0 0 0 var(--ds-border-width) Canvas,
+      0 0 0 calc(var(--ds-border-width) * 2) CanvasText;
+  }
+  [data-slot="chart-due-dot"][data-state="overdue"] {
+    background-color: Canvas;
+  }
+  [data-slot="chart-due-axis"],
+  [data-slot="chart-due-tick"],
+  [data-slot="chart-due-today"] {
+    border-color: CanvasText;
+  }
+}

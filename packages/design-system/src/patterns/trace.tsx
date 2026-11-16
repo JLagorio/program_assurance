@@ -16,6 +16,7 @@ import { Count } from "../components/badge";
 import { Button } from "../components/button";
 import { cn } from "../lib/cn";
 import { useLedgerLocale } from "../lib/locale";
+import { TraceRail } from "./trace-rail";
 
 /** One record of a stage. */
 export type TraceNode = {
@@ -268,7 +269,7 @@ function Node({
  * assistive technology it is a list of stages, each a named list of records that say what they
  * are linked to; in a narrow container the stages stack and the wires leave.
  */
-export function Trace({
+function TraceRoot({
   stages,
   links,
   focus,
@@ -514,3 +515,6 @@ export function Trace({
     </div>
   );
 }
+
+/** A chain's records and their links, with its compact form, the rail of fixed stations, as a member and, for docs and imports, by name. */
+export const Trace = Object.assign(TraceRoot, { Rail: TraceRail });

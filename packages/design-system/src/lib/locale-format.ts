@@ -200,6 +200,12 @@ export const defaultMessages = {
   chartDimensions: "{rows} by {columns}",
   chartValueShare: "{value}, {share}",
   chartAlsoHere: "Also at this point",
+  /** A due rail's table twin: its item column and its day column. */
+  chartDueItem: "Item",
+  chartDue: "Due",
+  /** A due rail's dot, named by its item and its day; and, late or soon, the words DateLabel uses. */
+  chartDueDot: "{label}, due {day}",
+  chartDueDotState: "{label}, {day}, {state}",
   resizeColumn: "Resize column",
   resize: "Resize",
   month: "Month",
@@ -244,6 +250,10 @@ export const defaultMessages = {
   traceShowMoreOne: "Show {count} more",
   traceShowMoreOther: "Show {count} more",
   traceShowFewer: "Show fewer",
+  /** A rail station's words where nothing else says them: a gap, drafts alone, nothing recorded. */
+  traceRailGap: "Missing",
+  traceRailDraft: "Drafts only",
+  traceRailNone: "Nothing recorded",
   ladderShown: "{shown} of {total}",
   ladderValue: "{value} of {total}",
   ladderFlagged: "{count} flagged",
@@ -259,6 +269,14 @@ export const defaultMessages = {
   climbReached: "Reached",
   climbStopped: "Stopped under it",
   climbStart: "Where the climb starts",
+  // ObjectiveCells: a cell's state in words, its name ("SI-02a.[01], Missing") and a rung's count.
+  objectiveCellsObjective: "Objective",
+  objectiveCellsReached: "Reached",
+  objectiveCellsMissing: "Missing",
+  objectiveCellsWaiting: "Waiting",
+  objectiveCellsNotYet: "Not yet",
+  objectiveCellsName: "{label}, {state}",
+  objectiveCellsOf: "{value} of {total}",
   collapse: "Collapse",
   collapseLabel: "Collapse {label}",
   expandLabel: "Expand {label}",
@@ -480,6 +498,10 @@ export const defaultMessages = {
   pageHeaderRemind: "Remind",
   /** A standing beat that counts out of a total: the figure, then the rest in the subtle weight. */
   pageHeaderStandingOf: "{value} of {total}",
+  /** What a decision key chose, said when the reader's focus is not on its card: "Other than satisfied chosen". */
+  decisionKeysChosen: "{label} chosen",
+  /** Read after a decision card's label when the answer also judges the records under it: "Satisfied and 6 under it". The card draws "+6". */
+  decisionKeysCovers: "and {count} under it",
 } satisfies Record<string, string>;
 
 export type LedgerMessages = { [K in keyof typeof defaultMessages]: string };

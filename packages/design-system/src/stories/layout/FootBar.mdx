@@ -1,0 +1,61 @@
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
+
+import { FootBar } from "../../layout";
+import * as Stories from "./FootBar.stories";
+
+<Meta of={Stories} />
+
+# FootBar
+
+**Status: Experimental.** New with the November 2026 proposal's workspaces; the props may change while its first screens try it. Owned by the design system.
+
+A workspace's one finalizing act, docked under the work: what is judged and what it found at the start, what is left and the act at the end. It takes [DataTable](?path=/docs/patterns-data-table--docs)'s SelectionBar anatomy (the count, then the verbs) at the 60px of `dimension.layout.footer`, and sticks to the foot of the window, or of the scroller it sits in, while the work scrolls above it.
+
+<Canvas of={Stories.Playground} />
+
+## Anatomy
+
+| Part    | Prop      | What it is                                                                                                           |
+| ------- | --------- | -------------------------------------------------------------------------------------------------------------------- |
+| Summary | `summary` | What is judged, a count in its words, at medium weight: "56 of 58 recorded", "3 decided".                            |
+| Detail  | `detail`  | After the summary, subtle: what the work found ("5 controls not satisfied") or what is left ("85 left").             |
+| Reason  | `reason`  | Before the act, what is left and so why it waits: "To judge" and a link to each record left.                         |
+| Act     | `actions` | The one act: a 36px primary Button, a sign Button with Return beside it, or a PageHeader.Slot that waits on someone. |
+
+## States
+
+The bar is the same in every state; only what it holds changes. While work is left, `reason` links to what is left and the act keeps its place with Button's `disabledReason`. Ready, the act is the 36px primary. Under way, the act shows `isLoading`. If it fails, `failed` draws the summary in the danger tone with its icon ("Not sent"), the detail says the draft is kept ("58 determinations kept as a draft"), and the act retries ("Send again"). Sent, the end is a [PageHeader.Slot](?path=/docs/layout-pageheader--docs) `waitingOn` the person who acts next, with Remind. A signature is Return beside a Button with `intent="sign"`, whose Command+Enter signs.
+
+<Canvas of={Stories.States} />
+
+## Counts read
+
+The summary and its detail are said whenever they change, politely, so a reader who judges by key hears the count move without looking down; a failure is said at once. Nothing is said as the bar first draws.
+
+<Canvas of={Stories.CountsRead} />
+
+## Content
+
+- **The summary is a count with its noun:** "56 of 58 recorded", never a percentage alone.
+- **One act.** The bar never holds two primaries; the record's other commands stay in its header.
+- **Say what was kept** when the act fails, so the reader knows nothing was lost.
+
+## Accessibility
+
+- The bar is not a landmark; it comes after the work in reading order, and its act is a Tab stop like any other.
+- A waiting act keeps its place and is described by its `disabledReason`; the records left are links.
+- In a narrow bar the end takes the next line, and a wait and its Remind take a line each.
+
+## Props
+
+FootBar is a `div` that forwards native props and its ref, and names itself with `data-slot` (`foot-bar`, with `foot-bar-summary`, `foot-bar-end`, `foot-bar-reason` and `foot-bar-actions` inside). A failed bar carries `data-failed`.
+
+<ArgTypes of={FootBar} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+- [DecisionKeys](?path=/docs/patterns-decisionkeys--docs): the judgement the bar counts.
+- [PageHeader](?path=/docs/layout-pageheader--docs): the slot's wait and sign, a record's one act at its head.
+- [Button](?path=/docs/components-button--docs): `disabledReason`, `isLoading` and `intent="sign"`.

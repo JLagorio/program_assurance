@@ -44,14 +44,16 @@
 
 /* ---------- the paint ----------
    A segment's tone and fill. A Ladder row's marks and a Meter's are the same segments standing
-   apart, one an item, and a Climb's segments and swatches are the same segments again, so they
-   are painted here too and none can drift: each part sets only their size. */
+   apart, one an item, a Climb's segments and swatches are the same segments again, and so are
+   ObjectiveCells' cells, so they are painted here too and none can drift: each part sets only
+   their size. */
 :is(
   [data-slot="tally-segment"],
   [data-slot="ladder-mark"],
   [data-slot="meter-mark"],
   [data-slot="climb-segment"],
-  [data-slot="climb-swatch"]
+  [data-slot="climb-swatch"],
+  [data-slot="objective-cell"]
 ) {
   --tally-ink: var(--ds-color-chart-neutral);
   background-color: var(--tally-ink);
@@ -61,7 +63,8 @@
   [data-slot="ladder-mark"],
   [data-slot="meter-mark"],
   [data-slot="climb-segment"],
-  [data-slot="climb-swatch"]
+  [data-slot="climb-swatch"],
+  [data-slot="objective-cell"]
 )[data-tone="brand"] {
   --tally-ink: var(--ds-color-chart-brand);
 }
@@ -70,7 +73,8 @@
   [data-slot="ladder-mark"],
   [data-slot="meter-mark"],
   [data-slot="climb-segment"],
-  [data-slot="climb-swatch"]
+  [data-slot="climb-swatch"],
+  [data-slot="objective-cell"]
 )[data-tone="information"] {
   --tally-ink: var(--ds-color-chart-information);
 }
@@ -79,7 +83,8 @@
   [data-slot="ladder-mark"],
   [data-slot="meter-mark"],
   [data-slot="climb-segment"],
-  [data-slot="climb-swatch"]
+  [data-slot="climb-swatch"],
+  [data-slot="objective-cell"]
 )[data-tone="success"] {
   --tally-ink: var(--ds-color-chart-success);
 }
@@ -88,7 +93,8 @@
   [data-slot="ladder-mark"],
   [data-slot="meter-mark"],
   [data-slot="climb-segment"],
-  [data-slot="climb-swatch"]
+  [data-slot="climb-swatch"],
+  [data-slot="objective-cell"]
 )[data-tone="warning"] {
   --tally-ink: var(--ds-color-chart-warning);
 }
@@ -97,7 +103,8 @@
   [data-slot="ladder-mark"],
   [data-slot="meter-mark"],
   [data-slot="climb-segment"],
-  [data-slot="climb-swatch"]
+  [data-slot="climb-swatch"],
+  [data-slot="objective-cell"]
 )[data-tone="danger"] {
   --tally-ink: var(--ds-color-chart-danger);
 }
@@ -106,7 +113,8 @@
   [data-slot="ladder-mark"],
   [data-slot="meter-mark"],
   [data-slot="climb-segment"],
-  [data-slot="climb-swatch"]
+  [data-slot="climb-swatch"],
+  [data-slot="objective-cell"]
 )[data-tone="sequential.1"] {
   --tally-ink: var(--ds-color-chart-sequential-1);
 }
@@ -115,7 +123,8 @@
   [data-slot="ladder-mark"],
   [data-slot="meter-mark"],
   [data-slot="climb-segment"],
-  [data-slot="climb-swatch"]
+  [data-slot="climb-swatch"],
+  [data-slot="objective-cell"]
 )[data-tone="sequential.2"] {
   --tally-ink: var(--ds-color-chart-sequential-2);
 }
@@ -124,7 +133,8 @@
   [data-slot="ladder-mark"],
   [data-slot="meter-mark"],
   [data-slot="climb-segment"],
-  [data-slot="climb-swatch"]
+  [data-slot="climb-swatch"],
+  [data-slot="objective-cell"]
 )[data-tone="sequential.3"] {
   --tally-ink: var(--ds-color-chart-sequential-3);
 }
@@ -133,7 +143,8 @@
   [data-slot="ladder-mark"],
   [data-slot="meter-mark"],
   [data-slot="climb-segment"],
-  [data-slot="climb-swatch"]
+  [data-slot="climb-swatch"],
+  [data-slot="objective-cell"]
 )[data-tone="sequential.4"] {
   --tally-ink: var(--ds-color-chart-sequential-4);
 }
@@ -142,7 +153,8 @@
   [data-slot="ladder-mark"],
   [data-slot="meter-mark"],
   [data-slot="climb-segment"],
-  [data-slot="climb-swatch"]
+  [data-slot="climb-swatch"],
+  [data-slot="objective-cell"]
 )[data-tone="sequential.5"] {
   --tally-ink: var(--ds-color-chart-sequential-5);
 }
@@ -152,7 +164,8 @@
   [data-slot="ladder-mark"],
   [data-slot="meter-mark"],
   [data-slot="climb-segment"],
-  [data-slot="climb-swatch"]
+  [data-slot="climb-swatch"],
+  [data-slot="objective-cell"]
 )[data-fill="outline"] {
   background-color: var(--ds-utility-elevation-surface-current);
   box-shadow: inset 0 0 0 var(--tally-edge, var(--ds-border-width)) var(--tally-ink);
@@ -163,7 +176,8 @@
   [data-slot="ladder-mark"],
   [data-slot="meter-mark"],
   [data-slot="climb-segment"],
-  [data-slot="climb-swatch"]
+  [data-slot="climb-swatch"],
+  [data-slot="objective-cell"]
 )[data-fill="empty"] {
   background-color: transparent;
 }
@@ -233,6 +247,89 @@
   background-color: var(--ds-color-chart-track);
 }
 
+/* ---------- ObjectiveCells: the items a whole is judged on, rung by rung ----------
+   A row a rung and a cell an item in every row, so a column is one item. The rows share one grid,
+   so the names, the cells and the counts line up, and where the cells wrap every row wraps at the
+   same place. A run of one group's cells stands apart from the next. A cell is a segment in the
+   paint above: hollow is the gap, grey is waiting, a tone is a judgement. Two paints are the
+   cells' own: the ink of a rung reached, which a Meter or a Climb never draws, and the faint slot
+   of a rung not reached yet. The gap's edge is the selected border width, so it reads apart from
+   that faint slot at every size. */
+[data-slot="objective-cells"] {
+  --objective-cell: var(--ds-space-150);
+  --objective-cells-gap: var(--ds-space-025);
+  --objective-cells-run-gap: var(--ds-space-100);
+}
+[data-slot="objective-cells"][data-size="small"] {
+  --objective-cell: var(--ds-space-100);
+  --objective-cells-run-gap: var(--ds-space-075);
+}
+[data-slot="objective-cells"][data-size="large"] {
+  --objective-cell: var(--ds-space-250);
+  --objective-cells-gap: var(--ds-space-050);
+  --objective-cells-run-gap: var(--ds-space-150);
+}
+[data-slot="objective-cells-rungs"] {
+  display: grid;
+  /* The cells as wide as they are, never wider than the room left; the count right after them. */
+  grid-template-columns: max-content minmax(0, max-content) minmax(max-content, 1fr);
+  align-items: center;
+  gap: var(--ds-space-100) var(--ds-space-150);
+  min-inline-size: 0;
+}
+[data-slot="objective-cells-rung"] {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  align-items: center;
+  min-inline-size: 0;
+}
+[data-slot="objective-cells-rung-label"] {
+  font: var(--ds-font-body-small);
+  letter-spacing: var(--ds-font-body-small-letter-spacing);
+  font-weight: var(--ds-font-weight-medium);
+  color: var(--ds-color-text);
+}
+[data-slot="objective-cells"][data-size="large"] [data-slot="objective-cells-rung-label"] {
+  font: var(--ds-font-body);
+  letter-spacing: var(--ds-font-body-letter-spacing);
+  font-weight: var(--ds-font-weight-medium);
+}
+[data-slot="objective-cells-cells"] {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--objective-cells-gap) var(--objective-cells-run-gap);
+  min-inline-size: 0;
+}
+[data-slot="objective-cells-run"] {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--objective-cells-gap);
+  max-inline-size: 100%;
+}
+[data-slot="objective-cell"] {
+  flex: none;
+  inline-size: var(--objective-cell);
+  block-size: var(--objective-cell);
+  border-radius: var(--ds-radius-xsmall);
+}
+[data-slot="objective-cells"][data-size="large"] [data-slot="objective-cell"] {
+  border-radius: var(--ds-radius-small);
+}
+/* The ink of a rung reached: the bold neutral, a 3:1 mark on every surface in every mode. */
+[data-slot="objective-cell"][data-state="reached"] {
+  --tally-ink: var(--ds-color-background-neutral-bold);
+}
+/* The gap: hollow, edged at the selected border width. */
+[data-slot="objective-cell"][data-state="gap"] {
+  --tally-edge: var(--ds-border-width-selected);
+}
+/* Not reached yet: an empty slot with a hairline, quiet. */
+[data-slot="objective-cell"][data-state="not-yet"] {
+  box-shadow: inset 0 0 0 var(--ds-border-width) var(--ds-color-border);
+}
+
 /* A value changes while the structure stays: the segments ease to their new shares. Reduced
    motion switches them. */
 @media (prefers-reduced-motion: reduce) {
@@ -257,7 +354,8 @@
     [data-slot="ladder-mark"],
     [data-slot="meter-mark"],
     [data-slot="climb-segment"],
-    [data-slot="climb-swatch"]
+    [data-slot="climb-swatch"],
+    [data-slot="objective-cell"]
   ) {
     forced-color-adjust: none;
     background-color: CanvasText;
@@ -267,7 +365,8 @@
     [data-slot="ladder-mark"],
     [data-slot="meter-mark"],
     [data-slot="climb-segment"],
-    [data-slot="climb-swatch"]
+    [data-slot="climb-swatch"],
+    [data-slot="objective-cell"]
   )[data-fill="outline"] {
     background-color: Canvas;
     box-shadow: inset 0 0 0 var(--tally-edge, var(--ds-border-width)) CanvasText;
@@ -277,9 +376,18 @@
     [data-slot="ladder-mark"],
     [data-slot="meter-mark"],
     [data-slot="climb-segment"],
-    [data-slot="climb-swatch"]
+    [data-slot="climb-swatch"],
+    [data-slot="objective-cell"]
   )[data-fill="empty"] {
     background-color: transparent;
+  }
+  /* A cell waiting on someone is the system's grey, apart from the ink of a rung reached, and a
+     rung not reached yet keeps its hairline. */
+  [data-slot="objective-cell"][data-state="waiting"] {
+    background-color: GrayText;
+  }
+  [data-slot="objective-cell"][data-state="not-yet"] {
+    box-shadow: inset 0 0 0 var(--ds-border-width) GrayText;
   }
   /* A climb has no track: its empty segments are the track's outline. A late mark keeps its
      hatch, in the system's text colour. */

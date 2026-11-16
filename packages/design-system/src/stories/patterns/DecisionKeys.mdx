@@ -1,0 +1,66 @@
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
+
+import { DecisionKeys } from "../../patterns";
+import * as Stories from "./DecisionKeys.stories";
+
+<Meta of={Stories} />
+
+# DecisionKeys
+
+**Status: Experimental.** New with the November 2026 proposal's workspaces (judging objectives, reviewing evidence, deciding a package); the props may change while its first screens try it. Owned by the design system.
+
+A judgement chosen from cards that are keys. Each card is one answer and carries the one key that chooses it, drawn on the card as on a keycap, so the reader learns the key by seeing it: Satisfied (S), Partially satisfied (P), Other than satisfied (O), Not assessed (N). It is a [RadioGroup](?path=/docs/components-radiogroup--docs): one Tab stop, the arrow keys between cards, Space to choose, and it takes RadioGroup's `value`, `defaultValue`, `onValueChange`, `readOnly` and `disabled`.
+
+<Canvas of={Stories.Playground} />
+
+## In a workspace only
+
+The keys are for a workspace, a page that judges records one at a time, where a reader presses S forty times in a row. Put the workspace in a [CommandScope](?path=/docs/patterns-commandscope--docs), the focus-owned boundary its other commands share (J and K to move, U to clear): the keys then answer from anywhere in it, the list, the evidence or the cards, and focus stays where the reader is. A key is a click on its card, so it chooses exactly as a press does, and `onValueChange` records it and may move on to the next record. A reader whose focus is not on the card hears what the key chose ("Other than satisfied chosen", the locale's `decisionKeysChosen`). Outside a CommandScope the keys answer only while focus is on the cards.
+
+The keys sleep in a field that takes text, where the letter is the field's (the finding's text), with Control, Command, Option or Shift held, on a repeat, while text is composed, once another handler has taken the key, and while the group is read-only or disabled. Nothing outside the workspace hears them.
+
+<Canvas of={Stories.InAWorkspace} />
+
+Elsewhere, a form or a dialog, one answer from visible choices is a RadioGroup, with choice cards where each answer needs a line of explanation; never decision keys.
+
+## Answers
+
+Each option has a `value`, a `shortcut` (one letter or digit, drawn in capitals and the card's `aria-keyshortcuts`), a `label` (the card's name) and a `tone`, the colour of the answer's mark and of the card once chosen: the colour the record's strip paints it in. An answer with no tone has no mark and is chosen in the neutral fill. Give each answer the same key on every record, so the hand learns it.
+
+<Canvas of={Stories.OtherDecisions} />
+
+On a heading the answer also judges what is under it: `covers` draws "+6" on every card and says it ("Satisfied and 6 under it", the locale's `decisionKeysCovers`).
+
+<Canvas of={Stories.OnAHeading} />
+
+## Locked
+
+For a reader who may not judge, `readOnly`: the answer stays in its tone, the cards keep their Tab stop and are flatter, and the keys sleep.
+
+<Canvas of={Stories.Locked} />
+
+## Layout
+
+The cards stand in one row where they all fit, two a row where four do not (two by two, never three and one), and one a row in less, by the group's own width: a judgement column beside a list holds four as two by two, a dock under the subject holds them in a row.
+
+<Canvas of={Stories.Widths} />
+
+## Content
+
+- **The label is the answer, as the product's vocabulary says it:** "Satisfied", "Request changes", "Approve with conditions".
+- **The key is the label's first letter** where the answers allow (S, P, O, N; A, R), and never one the workspace uses for something else (J and K move).
+
+## Props
+
+The group renders RadioGroup's `div` with `role="radiogroup"` inside a box (`data-slot="decision-keys"`) that measures its width; each card is a `button` with `role="radio"` (`data-slot="decision-key"`, with `data-tone`), its key a `kbd` hidden from assistive technology, its mark `decision-key-mark`.
+
+<ArgTypes of={DecisionKeys} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+- [RadioGroup](?path=/docs/components-radiogroup--docs): one answer from visible choices, choice cards included.
+- [Kbd](?path=/docs/components-kbd--docs): a key or a shortcut drawn as caps.
+- [CommandScope](?path=/docs/patterns-commandscope--docs): the workspace's commands and the boundary the keys answer in.
+- [FootBar](?path=/docs/layout-footbar--docs): what is judged and the one act, under the work.

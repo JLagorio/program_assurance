@@ -11,7 +11,7 @@ import * as Stories from "./Timeline.stories";
 
 Events in order along one rail: a record's activity, a scope's history, an audit trail, a pipeline, a line of releases, a feed of what people did. Each event is a marker on the rail, what happened, who and when, and under it what the event carries: a sentence, a file, a note, two buttons. Vertical reads down, newest first, with sticky group labels over a week or a month; horizontal reads across, oldest first. The anatomy follows [Item](?path=/docs/components-item--docs): a row that opens is its title stretched over the row, and everything beside it is a separate stop.
 
-A timeline is for events; things with a date are an Item list, and a fixed path with a current step is a [Stepper](?path=/docs/components-stepper--docs).
+A timeline is for events; things with a date are an Item list, and a fixed path with a current step is a [Stepper](?path=/docs/components-stepper--docs): a record's dated path, with its one stage open, is a Stepper `variant="dated"`.
 
 <Canvas of={Stories.TimelineMatrix} />
 

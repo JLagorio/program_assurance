@@ -63,6 +63,7 @@ export {
   type PageHeaderStandingProps,
   type PageHeaderTitleProps,
 } from "./page-header";
+export { FootBar, type FootBarProps } from "./foot-bar";
 export { PageSkeleton, type PageSkeletonProps, type PageSkeletonVariant } from "./page-skeleton";
 export {
   Section,
