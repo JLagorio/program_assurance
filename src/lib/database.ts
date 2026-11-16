@@ -196,29 +196,40 @@ export async function saveRecord(
     .select()
     .setHeader("Authorization", `Bearer ${token}`)
     .single();
-  if (error) {
-    if (error.code === "PT409" || error.code === "PGRST116")
-      throw new Error(
-        "This record changed in another session. Your draft is still here; reload the record before saving again.",
-      );
-    if (error.code === "23505")
-      throw new Error("A record with this identifier or relationship already exists.");
-    // An issue that names requirements is held in their program by the links' keys: the edit that
-    // moves it is refused for what it still names, not for a record that does not exist.
-    if (
-      error.code === "23503" &&
-      existing &&
-      collection.name === "operational_issues" &&
-      /"issue_requirements"/.test(error.message)
-    )
-      throw new Error(
-        "This issue names requirements of its program. Unlink them from the issue's Requirements to move the issue to another program.",
-      );
-    if (error.code === "23503")
-      throw new Error("Choose existing related records from the same workspace.");
-    throw new Error(error.message);
-  }
+  if (error) throw saveRefusal(error, collection, existing);
   return data as DataRecord;
+}
+
+/**
+ * Why the database refused a record's create or edit, in the reader's words: another session's
+ * change, a duplicate, a related record that is gone or in another workspace, or an issue its
+ * requirements hold in their program. Anything else keeps the server's own words.
+ */
+export function saveRefusal(
+  error: { code?: string | undefined; message: string },
+  collection: Pick<Collection, "name">,
+  existing?: DataRecord | undefined,
+): Error {
+  if (error.code === "PT409" || error.code === "PGRST116")
+    return new Error(
+      "This record changed in another session. Your draft is still here; reload the record before saving again.",
+    );
+  if (error.code === "23505")
+    return new Error("A record with this identifier or relationship already exists.");
+  // An issue that names requirements is held in their program by the links' keys: the edit that
+  // moves it is refused for what it still names, not for a record that does not exist.
+  if (
+    error.code === "23503" &&
+    existing &&
+    collection.name === "operational_issues" &&
+    /"issue_requirements"/.test(error.message)
+  )
+    return new Error(
+      "This issue names requirements of its program. Unlink them from the issue's Requirements to move the issue to another program.",
+    );
+  if (error.code === "23503")
+    return new Error("Choose existing related records from the same workspace.");
+  return new Error(error.message);
 }
 
 export async function deleteRecord(

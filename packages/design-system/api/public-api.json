@@ -2934,6 +2934,14 @@
       "target": "\"src/patterns/record-browser\".RecordBrowserProps",
       "kind": "type"
     },
+    ".#RecordBrowserQuery": {
+      "target": "\"src/patterns/record-browser\".RecordBrowserQuery",
+      "kind": "type"
+    },
+    ".#RecordBrowserServer": {
+      "target": "\"src/patterns/record-browser\".RecordBrowserServer",
+      "kind": "type"
+    },
     ".#RecordPicker": {
       "target": "\"src/patterns/record-picker\".RecordPicker",
       "kind": "value"
@@ -10891,7 +10899,19 @@
     "\"src/patterns/record-browser\".RecordBrowserProps": [
       {
         "source": "src/patterns/record-browser.d.ts",
-        "declaration": "export type RecordBrowserProps<T extends {\n    id: string;\n}> = {\n    open: boolean;\n    onClose: () => void;\n    title: string;\n    description: string;\n    records: readonly T[];\n    columns: readonly DataTableColumn<T>[];\n    filters?: readonly string[] | undefined;\n    recordTitle: (record: T) => ReactNode;\n    recordLabel?: ((record: T) => string) | undefined;\n    recordCode?: ((record: T) => ReactNode) | undefined;\n    previewColumn?: string | undefined;\n    renderPreview: (record: T) => ReactNode;\n    onConfirm: (records: T[]) => void | Promise<void>;\n    confirmLabel: string;\n    context?: ReactNode;\n    actions?: ReactNode;\n    searchPlaceholder?: string | undefined;\n    state?: Exclude<DataTableState, \"empty\"> | undefined;\n    error?: ReactNode;\n    onRetry?: (() => void) | undefined;\n    empty?: RecordBrowserEmpty | undefined;\n    selectedIds?: readonly string[] | undefined;\n    onSelectionChange?: ((ids: string[]) => void) | undefined;\n};"
+        "declaration": "export type RecordBrowserProps<T extends {\n    id: string;\n}> = {\n    open: boolean;\n    onClose: () => void;\n    title: string;\n    description: string;\n    records: readonly T[];\n    columns: readonly DataTableColumn<T>[];\n    filters?: readonly string[] | undefined;\n    recordTitle: (record: T) => ReactNode;\n    recordLabel?: ((record: T) => string) | undefined;\n    recordCode?: ((record: T) => ReactNode) | undefined;\n    previewColumn?: string | undefined;\n    renderPreview: (record: T) => ReactNode;\n    onConfirm: (records: T[]) => void | Promise<void>;\n    confirmLabel: string;\n    context?: ReactNode;\n    actions?: ReactNode;\n    searchPlaceholder?: string | undefined;\n    state?: Exclude<DataTableState, \"empty\"> | undefined;\n    error?: ReactNode;\n    onRetry?: (() => void) | undefined;\n    empty?: RecordBrowserEmpty | undefined;\n    selectedIds?: readonly string[] | undefined;\n    onSelectionChange?: ((ids: string[]) => void) | undefined;\n    server?: RecordBrowserServer<T> | undefined;\n};"
+      }
+    ],
+    "\"src/patterns/record-browser\".RecordBrowserQuery": [
+      {
+        "source": "src/patterns/record-browser.d.ts",
+        "declaration": "export type RecordBrowserQuery = {\n    search: string;\n    sorting: SortingState;\n    filters: ColumnFiltersState;\n    pageIndex: number;\n    pageSize: number;\n};"
+      }
+    ],
+    "\"src/patterns/record-browser\".RecordBrowserServer": [
+      {
+        "source": "src/patterns/record-browser.d.ts",
+        "declaration": "export type RecordBrowserServer<T extends {\n    id: string;\n}> = {\n    query: RecordBrowserQuery;\n    onQueryChange: (query: RecordBrowserQuery) => void;\n    rowCount: number;\n    total?: number | undefined;\n    filterOptions?: Readonly<Partial<Record<string, readonly FilterOption[]>>> | undefined;\n    selected?: readonly T[] | undefined;\n};"
       }
     ],
     "\"src/patterns/record-picker\".PickerRecord": [

@@ -15823,6 +15823,46 @@ export type Database = {
           },
         ];
       };
+      evidence_version_rows: {
+        Row: {
+          artifact_id: string | null;
+          artifact_kind: string | null;
+          collected_at: string | null;
+          context: string | null;
+          id: string | null;
+          owner_name: string | null;
+          owner_party_id: string | null;
+          program_id: string | null;
+          source_recorded: boolean | null;
+          state: string | null;
+          tenant_id: string | null;
+          title: string | null;
+          version_number: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "evidence_versions_tenant_id_artifact_id_fkey";
+            columns: ["tenant_id", "artifact_id"];
+            isOneToOne: false;
+            referencedRelation: "evidence_artifact_rows";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "evidence_versions_tenant_id_artifact_id_fkey";
+            columns: ["tenant_id", "artifact_id"];
+            isOneToOne: false;
+            referencedRelation: "evidence_artifacts";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "evidence_versions_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       framework_control_link_rows: {
         Row: {
           catalog_revision_id: string | null;
@@ -17647,6 +17687,18 @@ export type Database = {
           p_technique_code?: string;
         };
         Returns: Json;
+      };
+      program_system_counts: {
+        Args: { p_program_id: string };
+        Returns: {
+          additional_child_control_count: number;
+          control_count: number;
+          requirement_count: number;
+          subtree_control_count: number;
+          subtree_requirement_count: number;
+          system_id: string;
+          unresolved_descendant_count: number;
+        }[];
       };
       publish_assessment_results: {
         Args: {

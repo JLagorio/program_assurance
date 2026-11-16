@@ -12994,7 +12994,7 @@
     "RecordBrowser": {
       "kind": "component",
       "file": "patterns/record-browser.tsx",
-      "line": 138,
+      "line": 207,
       "root": {},
       "props": {},
       "derived": {},

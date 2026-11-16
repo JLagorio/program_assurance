@@ -137,7 +137,13 @@ export {
   type LadderProps,
 } from "./ladder";
 
-export { RecordBrowser, type RecordBrowserEmpty, type RecordBrowserProps } from "./record-browser";
+export {
+  RecordBrowser,
+  type RecordBrowserEmpty,
+  type RecordBrowserProps,
+  type RecordBrowserQuery,
+  type RecordBrowserServer,
+} from "./record-browser";
 export * from "./spreadsheet";
 export { ChangeReview, type ChangeReviewProps, type ReviewChange } from "./change-review";
 

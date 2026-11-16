@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useRouterState } from "@tanstack/react-router";
+import type { UseQueryResult } from "@tanstack/react-query";
 import {
   tableQueryFromSearch,
   tableQueryKey,
@@ -18,6 +19,7 @@ import {
   useServerCounts,
   useServerRows,
   type ServerPage,
+  type ServerQuestion,
   type ServerRead,
 } from "@/lib/server-table";
 import { setServerPaging } from "./record-preview";
@@ -198,6 +200,73 @@ function topDown<T>(
   return rows.flatMap((row) => [row, ...topDown(children(row) ?? [], children)]);
 }
 
+/** One page of a server read, as `useServerPage` reads it for the question a surface holds. */
+export type ServerPageRead<R> = {
+  /** The read of the question the server was last asked. */
+  result: UseQueryResult<ServerPage<R>, Error>;
+  /** The page on screen: the one that answers the question, else the last that loaded, kept while the next one loads and under the alert when it fails. */
+  page: ServerPage<R> | undefined;
+  /** A search is being typed: the page on screen answers the question before it. */
+  typing: boolean;
+  /** The read as one query, for ProductCollection's `queries`, a QueryState or a picker's state. */
+  queries: QueryStatus[];
+};
+
+/**
+ * One page of a server read for the question a surface holds: the server is asked the question as
+ * it stands, except that a search being typed is asked once the typing pauses, not at every key;
+ * the page the reader had stays on screen while the next one loads, and under the alert when it
+ * fails. `useServerCollection` draws a register's table over it; a RecordBrowser that pages on the
+ * server hands it the browser's question (the requirement Evidence picker). Keep `question` the
+ * same object while it asks the same thing (state, or memoized).
+ */
+export function useServerPage<R>(
+  read: ServerRead,
+  question: ServerQuestion,
+  { enabled }: { enabled?: boolean | undefined } = {},
+): ServerPageRead<R> {
+  const [reading, setReading] = useState(question);
+  const typing = reading !== question && reading.search !== question.search;
+  if (reading !== question && !typing) setReading(question);
+  useEffect(() => {
+    if (!typing) return;
+    const timer = setTimeout(() => setReading(question), SEARCH_PAUSE);
+    return () => clearTimeout(timer);
+  }, [typing, question]);
+  const result = useServerRows<R>(read, reading, { enabled });
+  // The last page that loaded, kept on screen under the alert when the next one fails.
+  const loaded = useRef<ServerPage<R> | undefined>(undefined);
+  if (result.data && !result.isError) loaded.current = result.data;
+  const page = result.data ?? (result.isError ? loaded.current : undefined);
+  const queries = useMemo<QueryStatus[]>(
+    () => [
+      {
+        isPending: result.isPending,
+        isError: result.isError,
+        error: result.error,
+        refetch: result.refetch,
+        data: page,
+        fetchStatus: result.fetchStatus,
+        isFetching: result.isFetching,
+        // A search being typed is on its way too: the rows shown are the last question's.
+        isPlaceholderData: result.isPlaceholderData || typing,
+      },
+    ],
+    [
+      result.isPending,
+      result.isError,
+      result.error,
+      result.refetch,
+      page,
+      result.fetchStatus,
+      result.isFetching,
+      result.isPlaceholderData,
+      typing,
+    ],
+  );
+  return { result, page, typing, queries };
+}
+
 /** A server-paged collection: spread it into ProductCollection beside the toolbar's parts. */
 export type ServerCollection<T extends { id: string }> = {
   table: DataTableInstance<T>;
@@ -278,29 +347,17 @@ export function useServerCollection<T extends { id: string }, R = T>(
   }
   // The question the server is asked: as the reader asks it, except that a search being typed is
   // asked once the typing pauses, not at every key.
-  const [reading, setReading] = useState(asked);
-  const typing = reading !== asked && reading.search !== asked.search;
-  if (reading !== asked && !typing) setReading(asked);
-  useEffect(() => {
-    if (!typing) return;
-    const timer = setTimeout(() => setReading(asked), SEARCH_PAUSE);
-    return () => clearTimeout(timer);
-  }, [typing, asked]);
-  const result = useServerRows<R>(
-    read,
-    {
-      search: reading.search,
-      sorting: reading.sorting,
-      filters: reading.filters,
-      pageIndex: reading.pagination.pageIndex,
-      pageSize: reading.pagination.pageSize,
-    },
-    { enabled },
+  const question = useMemo(
+    () => ({
+      search: asked.search,
+      sorting: asked.sorting,
+      filters: asked.filters,
+      pageIndex: asked.pagination.pageIndex,
+      pageSize: asked.pagination.pageSize,
+    }),
+    [asked],
   );
-  // The last page that loaded, kept on screen under the alert when the next one fails.
-  const loaded = useRef<ServerPage<R> | undefined>(undefined);
-  if (result.data && !result.isError) loaded.current = result.data;
-  const page = result.data ?? (result.isError ? loaded.current : undefined);
+  const { result, page, queries } = useServerPage<R>(read, question, { enabled });
   const data = useMemo(
     () =>
       !page
@@ -401,33 +458,6 @@ export function useServerCollection<T extends { id: string }, R = T>(
           settling: result.isPlaceholderData || result.isFetching,
         }
       : undefined,
-  );
-
-  const queries = useMemo<QueryStatus[]>(
-    () => [
-      {
-        isPending: result.isPending,
-        isError: result.isError,
-        error: result.error,
-        refetch: result.refetch,
-        data: page,
-        fetchStatus: result.fetchStatus,
-        isFetching: result.isFetching,
-        // A search being typed is on its way too: the rows shown are the last question's.
-        isPlaceholderData: result.isPlaceholderData || typing,
-      },
-    ],
-    [
-      result.isPending,
-      result.isError,
-      result.error,
-      result.refetch,
-      page,
-      result.fetchStatus,
-      result.isFetching,
-      result.isPlaceholderData,
-      typing,
-    ],
   );
   return { table, queries, keepQuestion };
 }

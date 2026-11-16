@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { args, fakeClient, filter, uuid, type FakeResult } from "./testing/fake-client";
 
-const { SaveOnceConflict, saveOnce } = await import("./save-once");
+const { SaveOnceConflict, onceStep, sameValue, saveOnce } = await import("./save-once");
 
 const tenantId = uuid(900);
 const context = { tenantId, token: "token" };
@@ -91,10 +91,84 @@ describe("a save that is safe to retry", () => {
     ).rejects.toMatchObject({ reason: "missing" });
   });
 
+  it("finds a first try that Postgres hands back in its own spelling", async () => {
+    const sent = {
+      title: "Encrypt data at rest",
+      score: "7.50",
+      due_at: new Date("2026-11-15T10:00:00Z").toISOString(),
+      owner_party_id: uuid(7).toUpperCase(),
+      payload: { b: [1, { c: true }], a: null },
+      tags: ["one", "two"],
+    };
+    const { client: db, calls } = client({
+      id,
+      revision: 1,
+      title: "Encrypt data at rest",
+      score: 7.5,
+      due_at: "2026-11-15T10:00:00+00:00",
+      owner_party_id: uuid(7),
+      payload: { a: null, b: [1, { c: true }] },
+      tags: ["one", "two"],
+    });
+    const result = await saveOnce(db, context, {
+      table: "requirement_revisions",
+      id,
+      values: sent as never,
+    });
+    expect(result.outcome).toBe("unchanged");
+    expect(calls).toHaveLength(1);
+  });
+
   it("says what the lookup's failure was", async () => {
     const { client: db } = fakeClient(() => ({ data: null, error: { message: "timeout" } }));
     await expect(
       saveOnce(db, context, { table: "requirement_revisions", id, values }),
     ).rejects.toThrow("timeout");
+  });
+});
+
+describe("a stored value is the one a form sent", () => {
+  it("in Postgres's own spelling", () => {
+    expect(sameValue(7.5, "7.50")).toBe(true);
+    expect(sameValue("2026-11-15T10:00:00+00:00", "2026-11-15T10:00:00.000Z")).toBe(true);
+    expect(sameValue(uuid(3), uuid(3).toUpperCase())).toBe(true);
+    expect(sameValue({ a: 1, b: [2] }, { b: [2], a: 1 })).toBe(true);
+    expect(sameValue(null, undefined)).toBe(true);
+  });
+
+  it("and not another value", () => {
+    expect(sameValue(7.5, "7.6")).toBe(false);
+    expect(sameValue(0, "")).toBe(false);
+    expect(sameValue("2026-11-15T10:00:00+00:00", "2026-11-15T10:01:00.000Z")).toBe(false);
+    expect(sameValue("Name", "name")).toBe(false);
+    expect(sameValue(["one"], ["one", "two"])).toBe(false);
+    expect(sameValue({ a: 1 }, { a: 2 })).toBe(false);
+    expect(sameValue("value", null)).toBe(false);
+    expect(sameValue(false, null)).toBe(false);
+  });
+});
+
+describe("what a retry-safe save does with what its id found", () => {
+  const values = { title: "After" };
+  it("creates where nothing is found, and refuses an edit of a record that is gone", () => {
+    expect(onceStep(null, { values })).toBe("create");
+    expect(() => onceStep(null, { values, revision: 2 })).toThrow(SaveOnceConflict);
+  });
+
+  it("writes nothing where the record holds the values, at any revision", () => {
+    expect(onceStep({ id, revision: 5, title: "After" }, { values, revision: 2 })).toBe(
+      "unchanged",
+    );
+    expect(onceStep({ id, revision: 1, title: "After" }, { values })).toBe("unchanged");
+  });
+
+  it("edits only at the revision the reader opened", () => {
+    expect(onceStep({ id, revision: 2, title: "Before" }, { values, revision: 2 })).toBe("update");
+    expect(() => onceStep({ id, revision: 3, title: "Before" }, { values, revision: 2 })).toThrow(
+      expect.objectContaining({ reason: "changed" }),
+    );
+    expect(() => onceStep({ id, revision: 1, title: "Before" }, { values })).toThrow(
+      expect.objectContaining({ reason: "different" }),
+    );
   });
 });

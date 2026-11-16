@@ -71,8 +71,13 @@ export function buildPayload({
     discussions: detailScenario.discussions,
     passageDiscussion: detailScenario.passageDiscussion,
     taskComments: detailScenario.taskComments,
+    taskCreated: detailScenario.taskCreated,
     taskActivity: detailScenario.taskActivity,
+    riskRecorded: detailScenario.riskRecorded,
+    riskAssessed: detailScenario.riskAssessed,
     riskActivity: detailScenario.riskActivity,
+    unnamedActivity: detailScenario.unnamedActivity,
+    unnamedAssessment: detailScenario.unnamedAssessment,
     ownElementStatus: detailScenario.ownElementStatus,
     workDatasetId: workScenario.workDatasetId,
     cast: workScenario.cast,
@@ -170,6 +175,16 @@ export function readTarget(tenantId) {
       where x.tenant_id = ${tenant} and b.dataset_id = ${quote(detailScenario.detailDatasetId)}
         and x.destination_table = 'activity_events' and e.program_id is null
         and (e.task_id is not null or e.risk_id is not null)),
+    'detailEventsUnnamed', (select jsonb_build_object('tasks', count(*) filter (where e.task_id is not null),
+        'risks', count(*) filter (where e.risk_id is not null))
+      from public.demo_import_records x
+      join public.demo_import_batches b on b.id = x.import_batch_id
+      join public.activity_events e on e.tenant_id = x.tenant_id and e.id = x.destination_id
+      where x.tenant_id = ${tenant} and b.dataset_id = ${quote(detailScenario.detailDatasetId)}
+        and x.destination_table = 'activity_events'
+        and ((e.task_id is not null and e.description in (${list(Object.keys(detailScenario.unnamedActivity.tasks))}))
+          or (e.risk_id is not null and (e.description in (${list(Object.keys(detailScenario.unnamedActivity.risks))})
+            or e.description ~ ${quote(detailScenario.unnamedAssessment)})))),
     'detailSystems', (select coalesce(jsonb_agg(code), '[]'::jsonb) from public.systems
       where tenant_id = ${tenant} and code in (${list(detailScenario.productDetail.variants.map((variant) => variant.code))})),
     'missingBaselines', (select coalesce(jsonb_agg(b.title), '[]'::jsonb) from unnest(array[${list(baselines)}]) b(title)
@@ -354,6 +369,17 @@ const eventsAlone = (target) => {
 const eventProgramsSummary = ({ tasks, risks, total }) =>
   `Names the program of ${total} activity events the fifth step wrote for a task or a risk alone (${tasks} of tasks, ${risks} of risks): each takes its record's program, so that program's Activity and the Portfolio's feed place it.`;
 
+/** The activity events the fifth step wrote in words that name no task or risk ("created the task"). */
+const eventsUnnamed = (target) => {
+  const tasks = target.detailEventsUnnamed?.tasks ?? 0;
+  const risks = target.detailEventsUnnamed?.risks ?? 0;
+  return { tasks, risks, total: tasks + risks };
+};
+
+/** What the next run does to those words, as a reader sees it. */
+const eventRecordsSummary = ({ tasks, risks, total }) =>
+  `Names the task or the risk in the words of ${total} activity events the fifth step wrote (${tasks} of tasks, ${risks} of risks), each by its title (${detailScenario.taskCreated.replace("{task}", "…")}), so the program's Activity and the Portfolio's feed say which record each is about.`;
+
 /** The plan a reader sees before anything is written, and what would stop it. */
 export function buildPlan({ target, asOf }) {
   const issues = [
@@ -421,12 +447,16 @@ export function buildPlan({ target, asOf }) {
     ].filter(Boolean);
     const overlay = scenario.customerOverlay;
     const alone = eventsAlone(target);
+    const unnamed = eventsUnnamed(target);
     return {
       issues,
       summary: {
         state: `This workspace already holds ${held.join(", ")}.`,
         ...(target.detailSeeded && alone.total
           ? { eventPrograms: eventProgramsSummary(alone) }
+          : {}),
+        ...(target.detailSeeded && unnamed.total
+          ? { eventRecords: eventRecordsSummary(unnamed) }
           : {}),
         ...(target.requirementsSeeded ? {} : { customerRequirements }),
         ...(target.assessmentsSeeded ? {} : { deltaAssessments }),
@@ -651,6 +681,10 @@ async function main() {
           }${
             result.detail.eventPrograms?.named
               ? ` Named the program of ${result.detail.eventPrograms.named} activity events (${result.detail.eventPrograms.tasks} of tasks, ${result.detail.eventPrograms.risks} of risks).`
+              : ""
+          }${
+            result.detail.eventRecords?.named
+              ? ` Named the task or the risk in the words of ${result.detail.eventRecords.named} activity events (${result.detail.eventRecords.tasks} of tasks, ${result.detail.eventRecords.risks} of risks).`
               : ""
           }`
         : "Check passed; the transaction was rolled back and nothing was written.",

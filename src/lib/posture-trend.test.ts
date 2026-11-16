@@ -122,7 +122,26 @@ describe("readPostureTrend", () => {
     expect(calls).toHaveLength(0);
   });
 
-  it("passes on a refusal of the command, and reads nothing after it", async () => {
+  it("reads the others when the answer leaves out a program the reader cannot read", async () => {
+    // B was deleted since the rows were read: the command takes nothing for it and the read
+    // answers none of its days, so it has no points and its row draws no sparkline.
+    const { calls, client: fake } = client([
+      ensured,
+      { data: [row(A, "2026-11-12", 3), row(A, "2026-11-13", 4)], error: null },
+    ]);
+    const trend = await readPostureTrend(fake, { token: "token" }, [A, B]);
+    expect(calls.map((call) => [call.name, call.args["p_program_ids"]])).toEqual([
+      ["ensure_program_posture_snapshots", [A, B]],
+      ["program_posture_trend", [A, B]],
+    ]);
+    expect(
+      postureSeries(trend.get(A)!, undefined, "2026-11-14").map((point) => point.share),
+    ).toEqual([0.3, 0.4]);
+    expect(trend.get(B)).toEqual([]);
+    expect(postureSeries(trend.get(B) ?? [], undefined, "2026-11-14")).toEqual([]);
+  });
+
+  it("passes on a refusal of the command (no account, a program left unnamed), and reads nothing after it", async () => {
     const { calls, client: fake } = client([
       { data: null, error: { message: "Program access is required" } },
     ]);

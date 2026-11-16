@@ -13,7 +13,10 @@ import type { ReadContext } from "./models";
  * nothing is backfilled. A daily job takes every program's at the day's end (23:55 UTC); a trend
  * first asks `ensure_program_posture_snapshots` to take today's of any named program that has none,
  * so a workspace whose job has not run still fills, then reads `program_posture_trend`, several
- * programs in one request. This module reads them and lays a program's days out as points.
+ * programs in one request. A named program the reader cannot read (one deleted since the list was
+ * made, or another workspace's) is left out of both, never refusing the rest: it has no snapshots,
+ * so its row draws no sparkline while the others draw theirs. This module reads them and lays a
+ * program's days out as points.
  */
 
 const count = z.number().int().nonnegative();
@@ -42,7 +45,10 @@ export type PostureSnapshot = {
   counts: ControlStatusCounts;
 };
 
-/** Each named program's snapshots, in date order; a program with none has an empty list. */
+/**
+ * Each named program's snapshots, in date order; a program with none has an empty list, as does
+ * one the reader cannot read, which the read leaves out.
+ */
 export type PostureTrend = ReadonlyMap<string, readonly PostureSnapshot[]>;
 
 /** One day of a program's trend, as a chart draws it. */
@@ -59,8 +65,9 @@ type Client = Pick<SupabaseClient, "rpc">;
 
 /**
  * The named programs' snapshots, from `since` on when it is given. Today's snapshot of a program
- * that has none is taken first, by the command, never by the read; a program the reader cannot
- * read is refused.
+ * that has none is taken first, by the command, never by the read. A program the reader cannot read
+ * is left out of both, so it has no snapshots and the others are read; a session with no account
+ * and a program left unnamed are refused.
  */
 export async function readPostureTrend(
   client: Client,

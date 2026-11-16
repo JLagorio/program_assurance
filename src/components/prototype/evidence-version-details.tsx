@@ -100,7 +100,8 @@ function useReviewTime() {
  */
 export function EvidenceReviews({ versionId }: { versionId: string }) {
   const reviews = useRows("evidence_reviews", { evidence_version_id: versionId });
-  const parties = useRows("parties");
+  // The reviewers by name: the people's names alone, as other screens read them.
+  const parties = useRows("parties", undefined, { columns: ["id", "name"] });
   const reviewTime = useReviewTime();
   const sorted = [...(reviews.data ?? [])].sort((a, b) =>
     (b.reviewed_at ?? b.created_at).localeCompare(a.reviewed_at ?? a.created_at),
@@ -182,7 +183,8 @@ export function EvidenceVersionDetails({
   /** The file control, for the surrounding dialog's `initialFocus`. */
   triggerRef?: Ref<HTMLButtonElement> | undefined;
 }) {
-  const parties = useRows("parties");
+  // The owner by name: the people's names alone, as other screens read them.
+  const parties = useRows("parties", undefined, { columns: ["id", "name"] });
   const schema = useCollection("evidence_versions");
   const collection = schema.data;
   return (

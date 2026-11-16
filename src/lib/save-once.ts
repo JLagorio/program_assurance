@@ -27,29 +27,93 @@ export type SaveOnce<T extends TableName> = {
 
 export type SaveOnceOutcome = "created" | "updated" | "unchanged";
 
-/**
- * Why a retry-safe save stopped without writing:
- * - `different`: a create finds its id already saved with other values.
- * - `changed`: an edit finds the record at another revision than the reader edited.
- * - `missing`: an edit finds the record gone.
- * The reader's draft stays; the form says which, in its own words.
- */
-export class SaveOnceConflict extends Error {
-  constructor(
-    readonly reason: "different" | "changed" | "missing",
-    message: string,
-  ) {
-    super(message);
-    this.name = "SaveOnceConflict";
-  }
-}
-
 const conflicts = {
   different: "This record was already saved with different values. Your draft is kept.",
   changed:
     "This record changed in another session. Your draft is kept; reopen the record to load its current values.",
   missing: "This record is no longer available. Your draft is kept.",
 } as const;
+
+/**
+ * Why a retry-safe save stopped without writing:
+ * - `different`: a create finds its id already saved with other values.
+ * - `changed`: an edit finds the record at another revision than the reader edited.
+ * - `missing`: an edit finds the record gone.
+ * The reader's draft stays; the form says which, in its own words (the message here is the
+ * fallback).
+ */
+export class SaveOnceConflict extends Error {
+  constructor(
+    readonly reason: "different" | "changed" | "missing",
+    message: string = conflicts[reason],
+  ) {
+    super(message);
+    this.name = "SaveOnceConflict";
+  }
+}
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const MOMENT = /^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}/;
+
+/**
+ * Whether a stored value is the one a form sent, as Postgres hands it back: a decimal sent as text
+ * comes back a number, a moment in another spelling of the same instant, a uuid in lower case and
+ * a JSON document with its keys in another order.
+ */
+export function sameValue(stored: unknown, sent: unknown): boolean {
+  if (stored === sent) return true;
+  if (stored === null || stored === undefined || sent === null || sent === undefined)
+    return (stored ?? null) === (sent ?? null);
+  if (typeof stored === "number" && typeof sent === "string")
+    return sent.trim() !== "" && Number(sent) === stored;
+  if (typeof stored === "string" && typeof sent === "string") {
+    if (UUID.test(stored) && UUID.test(sent)) return stored.toLowerCase() === sent.toLowerCase();
+    if (MOMENT.test(stored) && MOMENT.test(sent)) {
+      const instant = Date.parse(stored);
+      return Number.isFinite(instant) && instant === Date.parse(sent);
+    }
+    return false;
+  }
+  if (Array.isArray(stored) || Array.isArray(sent))
+    return (
+      Array.isArray(stored) &&
+      Array.isArray(sent) &&
+      stored.length === sent.length &&
+      stored.every((value, index) => sameValue(value, sent[index]))
+    );
+  if (typeof stored === "object" && typeof sent === "object") {
+    const a = stored as Record<string, unknown>;
+    const b = sent as Record<string, unknown>;
+    return [...new Set([...Object.keys(a), ...Object.keys(b)])].every((key) =>
+      sameValue(a[key], b[key]),
+    );
+  }
+  return false;
+}
+
+/** The record already holds every value the reader wrote. */
+export function holds(record: Record<string, unknown>, values: Record<string, unknown>) {
+  return Object.entries(values).every(([column, value]) => sameValue(record[column], value));
+}
+
+/**
+ * What a retry-safe save does with the record its id found: nothing when the record already holds
+ * the reader's values; a create when no record is there; an update when the record is at the
+ * revision the reader edited. Anything else is a conflict, and nothing is written.
+ */
+export function onceStep(
+  found: Record<string, unknown> | null,
+  { values, revision }: { values: Record<string, unknown>; revision?: number | undefined },
+): "unchanged" | "create" | "update" {
+  if (found) {
+    if (holds(found, values)) return "unchanged";
+    if (revision === undefined) throw new SaveOnceConflict("different", conflicts.different);
+    if (found["revision"] !== revision) throw new SaveOnceConflict("changed", conflicts.changed);
+    return "update";
+  }
+  if (revision !== undefined) throw new SaveOnceConflict("missing", conflicts.missing);
+  return "create";
+}
 
 /**
  * A save that is safe to retry after an uncertain response: it reads the record by the id the
@@ -69,14 +133,10 @@ export async function saveOnce<T extends TableName>(
     .setHeader("Authorization", `Bearer ${context.token}`)
     .maybeSingle();
   if (error) throw new Error(error.message);
-  const current = existing as (Row<T> & { revision: number }) | null;
-  if (current) {
-    const same = Object.entries(values).every(
-      ([column, value]) => (current as Record<string, unknown>)[column] === value,
-    );
-    if (same) return { outcome: "unchanged", record: current };
-    if (revision === undefined) throw new SaveOnceConflict("different", conflicts.different);
-    if (current.revision !== revision) throw new SaveOnceConflict("changed", conflicts.changed);
+  const current = existing as Row<T> | null;
+  const step = onceStep(current as Record<string, unknown> | null, { values, revision });
+  if (step === "unchanged") return { outcome: "unchanged", record: current! };
+  if (step === "update") {
     const record = await writeRow(client, context, table, {
       values: values as Insert<T>,
       id,
@@ -84,7 +144,6 @@ export async function saveOnce<T extends TableName>(
     });
     return { outcome: "updated", record };
   }
-  if (revision !== undefined) throw new SaveOnceConflict("missing", conflicts.missing);
   const record = await writeRow(client, context, table, {
     values: { ...create, ...values, id } as Insert<T>,
   });
@@ -94,6 +153,7 @@ export async function saveOnce<T extends TableName>(
 /**
  * The retry-safe save as a mutation: the add-requirement-details and control-mapping dialogs keep
  * one id for their draft, and a second press after an uncertain failure never makes a duplicate.
+ * The generic record form saves by the same rule through `saveRecordOnce` in record-save.ts.
  * The table's lists refresh after every save, a found first try included.
  */
 export function useSaveOnce<T extends TableName>(table: T) {

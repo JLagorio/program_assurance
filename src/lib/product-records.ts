@@ -86,6 +86,8 @@ const nouns = {
   evidence_create_requests: "evidence create request",
   evidence_reviews: "evidence review",
   evidence_uses: "evidence use",
+  // The requirement Evidence picker's offer: a version with its artifact's title, kind and owner.
+  evidence_version_rows: "evidence version",
   evidence_versions: "evidence version",
   finding_evidence: "evidence citation",
   finding_observations: "supporting observation",

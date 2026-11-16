@@ -544,6 +544,45 @@ export function useServerRows<T>(
 }
 
 /**
+ * Every row of a question's result, as one query: what a widget counts across a register's whole
+ * result with a few columns (the Portfolio's risk matrix), never a register drawn whole, which reads
+ * a page. Kept with the register's pages, so a write to a model its view derives from reads it
+ * again; a result past the export's limit fails rather than count short.
+ */
+export function useServerResultRows<T>(
+  read: ServerRead,
+  question: ServerResultQuestion = {},
+  options: ServerRowsOptions = {},
+): UseQueryResult<T[], Error> {
+  const workspace = useWorkspace();
+  const asked = serverQuestion(read, { ...question, pageIndex: 0, pageSize: 1 });
+  const whole = { search: asked.search, sorting: asked.sorting, filters: asked.filters };
+  useDerivedFrom(workspace.tenantId, read.models, read.model ?? read.source);
+  return useQuery<T[], Error>({
+    queryKey: [
+      "models",
+      workspace.tenantId,
+      read.model ?? read.source,
+      "page",
+      readKey(read),
+      { ...whole, result: true },
+    ],
+    enabled: options.enabled ?? true,
+    retry: false,
+    queryFn: async ({ signal }) => {
+      const token = await requireIdentity(workspace);
+      return (await readServerResult(
+        database(),
+        { tenantId: workspace.tenantId, token },
+        read,
+        whole,
+        { signal },
+      )) as T[];
+    },
+  });
+}
+
+/**
  * How many rows each of several questions finds, without their rows: a register's saved views,
  * each counted over the whole register as the reader's question leaves aside its search. Each count
  * is `undefined` until it loads; a write to the read's models counts again.

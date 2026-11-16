@@ -3,7 +3,8 @@
 -- holds against program_control_status; a second run the same day, by the command a trend calls
 -- (which takes a day once) and by the job (which counts it again); a program with no control
 -- baseline; the job with no identity, over every program and over a product variant, which
--- program_control_status itself would refuse; the tenant boundary; and a viewer's read.
+-- program_control_status itself would refuse; a program the reader cannot read, which the command
+-- and the read leave out rather than refuse the rest; the tenant boundary; and a viewer's read.
 begin;
 create function pg_temp.expect_error(statement text, expected_state text) returns void language plpgsql as $$
 begin
@@ -97,12 +98,28 @@ begin
   end if;
 end $$;
 
--- A program the reader cannot read is refused, never answered as empty: one that does not exist,
--- a list that names nothing, a session with no account, an anonymous one, another workspace's.
-select pg_temp.expect_error($$select * from public.program_posture_trend(array['c5810000-0000-0000-0000-00000000dead'::uuid])$$, '42501');
-select pg_temp.expect_error($$select public.ensure_program_posture_snapshots(array['c5810000-0000-0000-0000-00000000dead'::uuid])$$, '42501');
+-- A program the reader cannot read is left out, never refusing the rest: one that does not exist
+-- (one deleted since the list was made) takes nothing and has no snapshot in the answer, and an
+-- empty list names no program. A list left unnamed, a program left unnamed, more than 100 programs
+-- for the command, a session with no account and an anonymous one are refused; another
+-- workspace's member is answered nothing of the program and takes nothing for it.
+do $$
+begin
+  if public.ensure_program_posture_snapshots(array['c5810000-0000-0000-0000-00000000dead'::uuid])->'taken' <> '[]'::jsonb
+    or exists (select 1 from public.program_posture_trend(array['c5810000-0000-0000-0000-00000000dead'::uuid])) then
+    raise exception 'A program that does not exist was taken or read';
+  end if;
+  if public.ensure_program_posture_snapshots(array[]::uuid[])->'taken' <> '[]'::jsonb
+    or exists (select 1 from public.program_posture_trend(array[]::uuid[])) then
+    raise exception 'An empty list was taken or read';
+  end if;
+end $$;
 select pg_temp.expect_error($$select * from public.program_posture_trend(null)$$, '42501');
+select pg_temp.expect_error($$select * from public.program_posture_trend(array[null]::uuid[])$$, '42501');
+select pg_temp.expect_error($$select public.ensure_program_posture_snapshots(null)$$, '42501');
 select pg_temp.expect_error($$select public.ensure_program_posture_snapshots(array[null]::uuid[])$$, '42501');
+select pg_temp.expect_error(format('select public.ensure_program_posture_snapshots(%L::uuid[])',
+  (select array_agg(gen_random_uuid()) from generate_series(1, 101))), '22023');
 select set_config('request.jwt.claim.sub', '', true);
 select pg_temp.expect_error($$select * from public.program_posture_trend(array['c5810000-0000-0000-0000-000000000001'::uuid])$$, '42501');
 select pg_temp.expect_error($$select public.ensure_program_posture_snapshots(array['c5810000-0000-0000-0000-000000000001'::uuid])$$, '42501');
@@ -110,8 +127,13 @@ set local role anon;
 select pg_temp.expect_error($$select * from public.program_posture_trend(array['c5810000-0000-0000-0000-000000000001'::uuid])$$, '42501');
 set local role authenticated;
 select set_config('request.jwt.claim.sub', 'c5800000-0000-0000-0000-000000000002', true);
-select pg_temp.expect_error($$select * from public.program_posture_trend(array['c5810000-0000-0000-0000-000000000001'::uuid])$$, '42501');
-select pg_temp.expect_error($$select public.ensure_program_posture_snapshots(array['c5810000-0000-0000-0000-000000000001'::uuid])$$, '42501');
+do $$
+begin
+  if public.ensure_program_posture_snapshots(array['c5810000-0000-0000-0000-000000000001'::uuid])->'taken' <> '[]'::jsonb
+    or exists (select 1 from public.program_posture_trend(array['c5810000-0000-0000-0000-000000000001'::uuid])) then
+    raise exception 'Another workspace''s member took or read the program';
+  end if;
+end $$;
 select set_config('request.jwt.claim.sub', 'c5800000-0000-0000-0000-000000000001', true);
 -- Nobody takes a snapshot directly.
 select pg_temp.expect_error($$select public.take_program_posture_snapshots('c5810000-0000-0000-0000-000000000001')$$, '42501');
@@ -192,8 +214,10 @@ begin
   insert into public.requirement_evidence(tenant_id, requirement_revision_id, evidence_version_id) values
     (v_tenant, 'c5830000-0000-0000-0000-000000000002', 'c5850000-0000-0000-0000-000000000001');
 
-  -- The command takes today's snapshot of a program that has none, and only of that one.
-  v_answer := public.ensure_program_posture_snapshots(array[v_program, 'c5810000-0000-0000-0000-000000000001'::uuid]);
+  -- The command takes today's snapshot of a program that has none, and only of that one; a program
+  -- the caller cannot read beside it (one that does not exist) is left out, and the rest are taken.
+  v_answer := public.ensure_program_posture_snapshots(array[v_program, 'c5810000-0000-0000-0000-000000000001'::uuid,
+    'c5810000-0000-0000-0000-00000000dead'::uuid]);
   if v_answer->'taken' <> jsonb_build_array(v_program) then
     raise exception 'The command took %', v_answer;
   end if;
@@ -209,10 +233,12 @@ begin
     or v_row.taken_at > clock_timestamp() then
     raise exception 'The snapshot was taken for % on % at %', v_row.tenant_id, v_row.taken_on, v_row.taken_at;
   end if;
-  -- The trend reads it, by program and day.
+  -- The trend reads it, by program and day, beside a program it leaves out.
   if (select count(*) from public.program_posture_trend(array[v_program])) <> 1
     or (select t.id from public.program_posture_trend(array[v_program]) t) <> v_row.id
-    or exists (select 1 from public.program_posture_trend(array[v_program], v_row.taken_on + 1)) then
+    or exists (select 1 from public.program_posture_trend(array[v_program], v_row.taken_on + 1))
+    or array(select t.id from public.program_posture_trend(array['c5810000-0000-0000-0000-00000000dead'::uuid, v_program]) t)
+      <> array[v_row.id] then
     raise exception 'The trend did not read the day''s snapshot';
   end if;
 
@@ -301,17 +327,37 @@ select pg_temp.expect_error(format($$insert into public.program_posture_snapshot
 select pg_temp.expect_error($$update public.program_posture_snapshots set satisfied = satisfied$$, '42501');
 select pg_temp.expect_error($$delete from public.program_posture_snapshots$$, '42501');
 
--- The tenant boundary: another workspace's member sees none of them, and is refused the read.
+-- The tenant boundary: another workspace's member sees none of them. The read leaves the program
+-- out, and the command takes nothing for it, though it has no snapshot today.
+reset role;
+delete from public.program_posture_snapshots
+where program_id = nullif(current_setting('test.program', true), '')::uuid;
+set local role authenticated;
 select set_config('request.jwt.claim.sub', 'c5800000-0000-0000-0000-000000000002', true);
 do $$
+declare v_program uuid := nullif(current_setting('test.program', true), '')::uuid;
 begin
   if exists (select 1 from public.program_posture_snapshots) then
     raise exception 'Another workspace''s member read a snapshot';
   end if;
-  if nullif(current_setting('test.program', true), '') is not null then
-    perform pg_temp.expect_error(format('select * from public.program_posture_trend(array[%L::uuid])', current_setting('test.program')), '42501');
+  if v_program is not null and (
+    public.ensure_program_posture_snapshots(array[v_program])->'taken' <> '[]'::jsonb
+    or exists (select 1 from public.program_posture_trend(array[v_program]))) then
+    raise exception 'Another workspace''s member took or read the program''s trend';
   end if;
 end $$;
+reset role;
+do $$
+declare v_program uuid := nullif(current_setting('test.program', true), '')::uuid;
+begin
+  if v_program is null then return; end if;
+  if exists (select 1 from public.program_posture_snapshots where program_id = v_program) then
+    raise exception 'Another workspace''s member took the program''s snapshot';
+  end if;
+  -- The day again, as the job takes it, for the viewer's read below.
+  perform public.take_program_posture_snapshots(v_program);
+end $$;
+set local role authenticated;
 
 -- A viewer of the workspace reads the trend, and asking for today's snapshot takes nothing more.
 select set_config('request.jwt.claim.sub', 'c5800000-0000-0000-0000-000000000001', true);

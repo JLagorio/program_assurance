@@ -1009,3 +1009,86 @@ begin
 end;
 $carried$;
 -- ——— Carried mappings: end ———
+
+-- ——— Publication events: begin (migration 20261114072513_publication_activity_event) ———
+-- Each publication of WS-X90's assessment results the showcase makes (the payload's publications:
+-- the initial assessment's results, and each increment of the expanded assessment's it publishes)
+-- is recorded in the program's activity as publish_assessment_results records one. The seed
+-- publishes by setting the revision's state, as that command's migration allows a seed to, and
+-- records who published (published_by_party_id, the control assessor it publishes as), so the event
+-- the command would write is written here: the results' publisher, the program and the campaign
+-- whose plan the results belong to, 'published', "published assessment results of <campaign>" over
+-- "<results>: <n> findings.", in the command's words and spacing, at the publication's moment.
+-- It runs after pg_temp.seed_showcase, on the showcase's first run and on a workspace that already
+-- holds the showcase, which it gives the events its publications lack. Each event it writes is
+-- listed in demo_import_records under the showcase's batch, beside the results it records (the
+-- section `assessments`), and counted in the batch's summary (`added`); a publication its campaign's
+-- activity already records at its moment is passed over, so a further run changes nothing. A
+-- publication the batch lists with no publisher or moment recorded stops the run.
+create function pg_temp.seed_showcase_publication_events(p jsonb) returns jsonb language plpgsql as $events$
+declare
+  t uuid := (p->>'tenantId')::uuid;
+  v_batch uuid; v_source public.demo_import_sources; v_item jsonb; v_results public.assessment_results_revisions;
+  v_campaign public.assessment_campaigns; v_findings integer; v_key text; v_id uuid; v_recorded jsonb := '[]';
+begin
+  perform pg_advisory_xact_lock(hashtextextended(t::text || '/demo-showcase', 0));
+  select id into v_batch from public.demo_import_batches where tenant_id = t and dataset_id = p->>'datasetId';
+  if v_batch is null then
+    return jsonb_build_object('changed', false, 'reason', 'This workspace does not hold the showcase.');
+  end if;
+  for v_item in select jsonb_array_elements(coalesce(p->'publications', '[]'::jsonb)) loop
+    select r.* into v_results
+    from public.demo_import_records d
+    join public.assessment_results_revisions r on r.tenant_id = d.tenant_id and r.id = d.destination_id
+    where d.tenant_id = t and d.import_batch_id = v_batch and d.destination_table = 'assessment_results_revisions'
+      and d.source_key = v_item->>'key';
+    -- A campaign the workspace did not hold when the showcase ran was skipped, and published nothing.
+    continue when v_results.id is null;
+    if v_results.state <> 'published' or v_results.published_by_party_id is null or v_results.published_at is null then
+      raise exception 'The showcase lists "%" as a publication it made, with no publisher or moment recorded.', v_results.title;
+    end if;
+    select g.* into v_campaign from public.assessment_plan_revisions pl
+      join public.assessment_campaigns g on g.tenant_id = pl.tenant_id and g.id = pl.campaign_id
+      where pl.tenant_id = t and pl.id = v_results.assessment_plan_revision_id;
+    -- Recorded already, by this step or by anyone: an event of the campaign's at the publication's moment.
+    continue when exists (select 1 from public.activity_events e
+      where e.tenant_id = t and e.assessment_campaign_id = v_campaign.id and e.event_type = 'published'
+        and e.occurred_at = v_results.published_at);
+    select count(*) into v_findings from public.assessment_findings f
+      where f.tenant_id = t and f.assessment_results_revision_id = v_results.id;
+    v_key := 'activity_events/' || (v_item->>'key');
+    v_id := pg_temp.sid(t, v_key);
+    insert into public.activity_events (id, tenant_id, program_id, assessment_campaign_id, actor_party_id,
+        event_type, description, occurred_at)
+      values (v_id, t, v_campaign.program_id, v_campaign.id, v_results.published_by_party_id, 'published',
+        format(E'published assessment results of %s\n%s: %s.',
+          regexp_replace(btrim(v_campaign.title), '\s+', ' ', 'g'),
+          regexp_replace(btrim(v_results.title), '\s+', ' ', 'g'),
+          case when v_findings = 1 then '1 finding' else v_findings::text || ' findings' end),
+        v_results.published_at);
+    select s.* into v_source from public.demo_import_sources s
+      where s.tenant_id = t and s.import_batch_id = v_batch and s.source_pointer = '/assessments';
+    if v_source.id is null then
+      raise exception 'The showcase''s batch lists no assessments section for "%".', v_results.title;
+    end if;
+    insert into public.demo_import_records (id, tenant_id, import_batch_id, dataset_id, destination_table,
+        destination_id, source_key, source_pointer, source_sha256, source_record_id, mapped_values)
+      values (pg_temp.sid(t, 'demo_import_records/activity_events/' || v_id), t, v_batch, p->>'datasetId',
+        'activity_events', v_id, v_key, '/assessments', v_source.source_sha256, v_source.id,
+        jsonb_build_object('section', 'assessments', 'publication', v_item->>'key'));
+    v_recorded := v_recorded || jsonb_build_array(jsonb_build_object(
+      'by', (select x.name from public.parties x where x.tenant_id = t and x.id = v_results.published_by_party_id),
+      'campaign', v_campaign.title, 'results', v_results.title, 'findings', v_findings,
+      'publishedAt', v_results.published_at));
+  end loop;
+  if jsonb_array_length(v_recorded) > 0 then
+    update public.demo_import_batches set summary = summary || jsonb_build_object('added',
+        coalesce(summary->'added', '{}'::jsonb) || jsonb_build_object(
+          'activity_events', coalesce((summary->'added'->>'activity_events')::integer, 0) + jsonb_array_length(v_recorded)))
+      where id = v_batch;
+  end if;
+  return jsonb_build_object('changed', jsonb_array_length(v_recorded) > 0,
+    'recorded', jsonb_array_length(v_recorded), 'publications', v_recorded);
+end;
+$events$;
+-- ——— Publication events: end ———

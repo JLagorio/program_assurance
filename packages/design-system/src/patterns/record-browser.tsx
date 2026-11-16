@@ -1,3 +1,4 @@
+import type { ColumnFiltersState, SortingState, Updater } from "@tanstack/react-table";
 import { AlertCircle, ChevronLeft, X } from "lucide-react";
 import {
   useCallback,
@@ -38,6 +39,7 @@ import {
   type DataTableColumn,
   type DataTableState,
 } from "./data-table";
+import type { FilterOption } from "./data-table/filter";
 import { onOfferIn, selectedCount } from "./picker-sheet";
 import { PreviewNavigation } from "./preview-navigation";
 import { Toolbar } from "./toolbar";
@@ -55,6 +57,52 @@ export type RecordBrowserEmpty = {
   secondary?: ReactNode;
   /** The picture above the message. `records` unsaid; `false` for none. */
   illustration?: EmptyIllustrationKind | false | undefined;
+};
+
+/** What a server-paged browser asks the server for one page: the reader's search, sort and filters, and the page. */
+export type RecordBrowserQuery = {
+  /** The search text. */
+  search: string;
+  /** The sort, first column first. */
+  sorting: SortingState;
+  /** The column filters, as the table holds them. */
+  filters: ColumnFiltersState;
+  /** The page, counted from 0. */
+  pageIndex: number;
+  /** Records a page. */
+  pageSize: number;
+};
+
+/**
+ * A browser whose records the server pages, sorts, filters and searches, as DataTable's `manual`
+ * mode: the caller holds the question and hands the browser the page that answers it.
+ */
+export type RecordBrowserServer<T extends { id: string }> = {
+  /** The question the caller reads its page by. The search field, the sort, the filters and the pages show it. */
+  query: RecordBrowserQuery;
+  /**
+   * Called with the next question when the reader asks another: a search, a sort or a filter asks
+   * from the first page, a page or a preview's step past the page's edge keeps the rest. Hand it
+   * back as `query`, read that page and give it as `records`, keeping the rows the reader has (the
+   * same array) with `state="refreshing"` while it is on its way, so they are never taken for its
+   * answer.
+   */
+  onQueryChange: (query: RecordBrowserQuery) => void;
+  /** How many records the question finds: the pages' total, and the preview's ("21 of 62 records"). */
+  rowCount: number;
+  /**
+   * How many records there are to choose from, search and filters aside: the "62" of the footer's
+   * "3 of 62 selected". Unsaid, the footer says how many are chosen ("3 selected").
+   */
+  total?: number | undefined;
+  /** Each filter's values, by column id (DataTable.Filter's `options`): one page's rows are not every value there is. */
+  filterOptions?: Readonly<Partial<Record<string, readonly FilterOption[]>>> | undefined;
+  /**
+   * The records of `selectedIds` that no page the browser was given may hold: one the reader made
+   * through `actions`, which the caller chose. The browser keeps every record a page gives it, so a
+   * choice made on another page is still counted, named and confirmed; these are kept with them.
+   */
+  selected?: readonly T[] | undefined;
 };
 
 export type RecordBrowserProps<T extends { id: string }> = {
@@ -117,7 +165,28 @@ export type RecordBrowserProps<T extends { id: string }> = {
   selectedIds?: readonly string[] | undefined;
   /** Reports selection changes. Pair with selectedIds for controlled selection. */
   onSelectionChange?: ((ids: string[]) => void) | undefined;
+  /**
+   * Server-paged, for a collection too large to hand over whole: `records` is the page that
+   * answers `server.query`, and the browser asks for another through `server.onQueryChange`.
+   * Selection, the footer's count, `onConfirm` and the preview's previous and next keep to the
+   * whole result, across its pages. Unsaid, `records` is every eligible record and the browser
+   * searches, filters, sorts and pages them itself.
+   */
+  server?: RecordBrowserServer<T> | undefined;
 };
+
+/** Two questions that ask the server the same thing. */
+const sameQuery = (a: RecordBrowserQuery, b: RecordBrowserQuery) =>
+  JSON.stringify([a.search, a.sorting, a.filters, a.pageIndex, a.pageSize]) ===
+  JSON.stringify([b.search, b.sorting, b.filters, b.pageIndex, b.pageSize]);
+
+/** A question's search, sort and filters in one spelling: every page of one result shares it. */
+const resultOf = (query: RecordBrowserQuery) =>
+  JSON.stringify([query.search, query.sorting, query.filters]);
+
+/** A table's change to one slice of its state: the next value, or how to make it from the last. */
+const applyUpdate = <S,>(update: Updater<S>, previous: S): S =>
+  typeof update === "function" ? (update as (previous: S) => S)(previous) : update;
 
 /** A column's id as the table knows it: its `id`, else its accessor key. */
 const columnId = (column: { id?: string | undefined }) =>
@@ -142,6 +211,9 @@ export function RecordBrowser<T extends { id: string }>({
 }: RecordBrowserProps<T>) {
   const dismissPreview = useRef<(() => void) | null>(null);
   const confirming = useRef(false);
+  // Server-paged: every record a page has given while the browser is mounted, by id, so a choice
+  // the caller keeps across openings (`selectedIds`) is still counted and confirmed in the next.
+  const seen = useRef(new Map<string, T>());
   // The confirmation in flight holds the dialog: the kit's pending lock disables Close and Cancel
   // and cancels every dismissal while `onConfirm` runs.
   const [saving, setSaving] = useState(false);
@@ -188,6 +260,7 @@ export function RecordBrowser<T extends { id: string }>({
           onClose={onClose}
           dismissPreview={dismissPreview}
           confirming={confirming}
+          seen={seen}
           saving={saving}
           setSaving={setSaving}
         />
@@ -200,6 +273,7 @@ function RecordBrowserContent<T extends { id: string }>({
   live,
   dismissPreview,
   confirming,
+  seen,
   saving,
   setSaving,
   title,
@@ -223,16 +297,56 @@ function RecordBrowserContent<T extends { id: string }>({
   empty,
   selectedIds,
   onSelectionChange,
+  server,
   onClose,
 }: Omit<RecordBrowserProps<T>, "open"> & {
   live: boolean;
   dismissPreview: RefObject<(() => void) | null>;
   confirming: RefObject<boolean>;
+  seen: RefObject<Map<string, T>>;
   saving: boolean;
   setSaving: (saving: boolean) => void;
 }) {
   const { t, formatNumber } = useLedgerLocale();
   const [previewId, setPreviewId] = useState<string | null>(null);
+  // Server-paged: the question as last asked. Two changes in one event (Clear filters clears the
+  // filters, then the search) build on each other, never on the question the browser was drawn with.
+  const asked = useRef(server?.query);
+  useLayoutEffect(() => {
+    asked.current = server?.query;
+  });
+  // The rows the browser had when it asked for another page or result: until other rows arrive,
+  // the rows on screen answer the question before, whatever `state` says in the meantime.
+  const askedFrom = useRef<readonly T[] | null>(null);
+  const ask = (change: (query: RecordBrowserQuery) => RecordBrowserQuery) => {
+    const current = asked.current;
+    if (!server || !current) return;
+    const next = change(current);
+    if (sameQuery(next, current)) return;
+    asked.current = next;
+    if (
+      next.pageIndex !== current.pageIndex ||
+      next.pageSize !== current.pageSize ||
+      resultOf(next) !== resultOf(current)
+    )
+      askedFrom.current = records;
+    server.onQueryChange(next);
+  };
+  // Every record a page has given, by id: a choice or a preview on another page is still counted,
+  // named and confirmed. The page's own rows, and the caller's chosen ones, win.
+  const paged = server !== undefined;
+  const chosenElsewhere = server?.selected;
+  useLayoutEffect(() => {
+    if (!paged) return;
+    for (const record of records) seen.current.set(record.id, record);
+  }, [paged, records, seen]);
+  const known = useMemo(() => {
+    if (!paged) return undefined;
+    const byId = new Map(seen.current);
+    for (const record of chosenElsewhere ?? []) byId.set(record.id, record);
+    for (const record of records) byId.set(record.id, record);
+    return byId;
+  }, [paged, chosenElsewhere, records, seen]);
   const [linkError, setLinkError] = useState<string | null>(null);
   const [internalSelection, setInternalSelection] = useState<Record<string, true>>({});
   const mounted = useRef(true);
@@ -281,42 +395,169 @@ function RecordBrowserContent<T extends { id: string }>({
     const named = columns.find((column) => columnId(column) === previewColumn);
     return named ? [named, ...columns.filter((column) => column !== named)] : columns;
   }, [columns, previewColumn]);
+  const query = server?.query;
   const table = useDataTable({
     data: records,
     columns: orderedColumns,
     getRowId: (record) => record.id,
     selectable: true,
-    state: { rowSelection },
+    state: query
+      ? {
+          rowSelection,
+          globalFilter: query.search,
+          sorting: query.sorting,
+          columnFilters: query.filters,
+          pagination: { pageIndex: query.pageIndex, pageSize: query.pageSize },
+        }
+      : { rowSelection },
     onRowSelectionChange: (updater) => {
       const next = typeof updater === "function" ? updater(rowSelection) : updater;
       if (selectedIds === undefined) setInternalSelection(next);
       onSelectionChange?.(Object.keys(next).filter((id) => next[id]));
     },
-    pageSize: 20,
+    // The server pages, sorts, filters and searches: each change is a question asked of it.
+    ...(server
+      ? {
+          manual: { sorting: true, filtering: true, pagination: true },
+          rowCount: server.rowCount,
+          onGlobalFilterChange: (update: Updater<string>) =>
+            ask((previous) => ({
+              ...previous,
+              search: String(applyUpdate(update, previous.search) ?? ""),
+              pageIndex: 0,
+            })),
+          onSortingChange: (update: Updater<SortingState>) =>
+            ask((previous) => ({
+              ...previous,
+              sorting: applyUpdate(update, previous.sorting),
+              pageIndex: 0,
+            })),
+          onColumnFiltersChange: (update: Updater<ColumnFiltersState>) =>
+            ask((previous) => ({
+              ...previous,
+              filters: applyUpdate(update, previous.filters),
+              pageIndex: 0,
+            })),
+          onPaginationChange: (update: Updater<{ pageIndex: number; pageSize: number }>) =>
+            ask((previous) => ({
+              ...previous,
+              ...applyUpdate(update, {
+                pageIndex: previous.pageIndex,
+                pageSize: previous.pageSize,
+              }),
+            })),
+        }
+      : {}),
+    pageSize: query ? query.pageSize : 20,
     label: title,
     density: "compact",
     rowLabel: labelOf,
     preview: { onPreview: openPreview, activeId: previewId },
   });
-  const preview = records.find((record) => record.id === previewId);
+  const preview =
+    previewId === null
+      ? undefined
+      : known
+        ? known.get(previewId)
+        : records.find((record) => record.id === previewId);
   // Previous and next walk every row the search and filters leave, in the table's order, on every
   // page: a step onto another page turns the table to it.
   const displayed = displayedRows(table);
-  const index = previewId === null ? -1 : displayed.findIndex((row) => row.id === previewId);
-  const step = (delta: -1 | 1) => {
-    const target = displayed[index + delta];
-    if (!target) return;
-    showRow(table, target.id);
-    openerId.current = target.id;
-    setPreviewId(target.id);
+  const onPage = previewId === null ? -1 : displayed.findIndex((row) => row.id === previewId);
+  // Server-paged, the rows are one page of the whole result: the page they are and the question
+  // they answer settle once other rows than those the browser asked from have arrived and `state`
+  // is neither loading nor refreshing, so a step never counts from rows that answer the question
+  // before.
+  const settled = (state === undefined || state === "ready") && askedFrom.current !== records;
+  const [rowsAre, setRowsAre] = useState(() =>
+    query
+      ? { pageIndex: query.pageIndex, pageSize: query.pageSize, result: resultOf(query) }
+      : null,
+  );
+  if (
+    query &&
+    settled &&
+    (rowsAre?.pageIndex !== query.pageIndex ||
+      rowsAre.pageSize !== query.pageSize ||
+      rowsAre.result !== resultOf(query))
+  )
+    setRowsAre({ pageIndex: query.pageIndex, pageSize: query.pageSize, result: resultOf(query) });
+  const answered =
+    !!query &&
+    settled &&
+    rowsAre?.pageIndex === query.pageIndex &&
+    rowsAre.pageSize === query.pageSize &&
+    rowsAre.result === resultOf(query);
+  const rowsOffset = rowsAre ? rowsAre.pageIndex * rowsAre.pageSize : 0;
+  // Where the shown record stands in the whole result: on the page, else where it last stood
+  // under the same question (a page turned by hand leaves it there), else outside the results.
+  // While the next answer is on its way it keeps the place it had.
+  const [place, setPlace] = useState<{ id: string; offset: number; result: string } | null>(null);
+  if (query && answered && previewId !== null && onPage >= 0) {
+    const at = rowsOffset + onPage;
+    if (place?.id !== previewId || place.offset !== at || place.result !== resultOf(query))
+      setPlace({ id: previewId, offset: at, result: resultOf(query) });
+  }
+  const offset = !query
+    ? onPage
+    : answered && onPage >= 0
+      ? rowsOffset + onPage
+      : place?.id === previewId && (place.result === resultOf(query) || !answered)
+        ? place.offset
+        : -1;
+  // A step past the page's edge asks for the page that holds the record it wants, by its place in
+  // the whole result, and shows it once that page has arrived.
+  const [arrival, setArrival] = useState<{ offset: number; pageIndex: number } | null>(null);
+  const show = (id: string) => {
+    openerId.current = id;
+    setPreviewId(id);
   };
-  const selected = table.getSelectedRowModel().flatRows.map((row) => row.original);
+  const step = (delta: -1 | 1) => {
+    if (!server || !query) {
+      const target = displayed[onPage + delta];
+      if (!target) return;
+      showRow(table, target.id);
+      show(target.id);
+      return;
+    }
+    // A step while another is on its way goes on from where that one is going.
+    const from = arrival ? arrival.offset : offset;
+    const target = from + delta;
+    if (from < 0 || target < 0 || target >= server.rowCount) return;
+    const row = answered && !arrival ? displayed[target - rowsOffset] : undefined;
+    if (row) return show(row.id);
+    const pageIndex = Math.floor(target / query.pageSize);
+    setArrival({ offset: target, pageIndex });
+    ask((previous) => ({ ...previous, pageIndex }));
+  };
+  const askedPage = query?.pageIndex;
+  useEffect(() => {
+    if (!arrival) return;
+    // The reader turned to another page: the step is dropped and the preview stays where it is.
+    if (askedPage !== arrival.pageIndex) return setArrival(null);
+    if (!answered) return;
+    setArrival(null);
+    // The server orders the page: its rows are the table's, in the order given.
+    const row = records[arrival.offset - rowsOffset];
+    if (!row) return;
+    openerId.current = row.id;
+    setPreviewId(row.id);
+  }, [arrival, askedPage, answered, records, rowsOffset]);
+  const chosenIds = useMemo(
+    () => Object.keys(rowSelection).filter((id) => rowSelection[id]),
+    [rowSelection],
+  );
+  const selected = known
+    ? chosenIds.flatMap((id) => known.get(id) ?? [])
+    : table.getSelectedRowModel().flatRows.map((row) => row.original);
   // What there is to choose from once the records are in, search and filters aside. While they
   // load, or after a load that failed with none, the count says only what is chosen.
   const onOffer =
     state === "loading" || (state === "error" && records.length === 0)
       ? undefined
-      : onOfferIn(table);
+      : server
+        ? server.total
+        : onOfferIn(table);
   const closePreview = () => {
     // Keep focus in the dialog before removing the focused preview subtree. Otherwise
     // Base UI restores focus from the document body and overrides the row restoration.
@@ -426,7 +667,12 @@ function RecordBrowserContent<T extends { id: string }>({
                   filters.length ? (
                     <>
                       {filters.map((column) => (
-                        <DataTable.Filter key={column} table={table} column={column} />
+                        <DataTable.Filter
+                          key={column}
+                          table={table}
+                          column={column}
+                          options={server?.filterOptions?.[column]}
+                        />
                       ))}
                     </>
                   ) : undefined
@@ -459,8 +705,8 @@ function RecordBrowserContent<T extends { id: string }>({
               <Truncate className="min-w-0 flex-1 font-body-small text-subtle">{code}</Truncate>
               {/* The kit's navigation, without a full-record link: the preview belongs to the task. */}
               <PreviewNavigation
-                position={index + 1}
-                total={displayed.length}
+                position={offset + 1}
+                total={server ? server.rowCount : displayed.length}
                 recordLabel={previewLabel}
                 onPrevious={() => step(-1)}
                 onNext={() => step(1)}

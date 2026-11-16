@@ -1,18 +1,16 @@
 import { useMemo } from "react";
-import { useSelectedControls } from "@/lib/control-reads";
 import { idSet, useRows } from "@/lib/models";
-import {
-  assuranceResolutionIds,
-  buildSystemAssuranceRows,
-  systemAssuranceColumns,
-} from "@/lib/system-assurance";
+import { buildSystemAssuranceRows, systemAssuranceColumns } from "@/lib/system-assurance";
+import { useProgramSystemCounts } from "@/lib/system-counts";
 import type { SystemElement } from "@/lib/system-tree";
 
 /**
  * The one projection every system surface reads: the tree, the preview and the record. Every read
- * is scoped to the program on the server: its systems, then the scopes, baselines and allocations
- * of those systems, the scopes' adoptions, and only the selections of the resolutions they name.
- * The profile names are small reference collections, read with the few columns they need.
+ * is scoped to the program on the server: its systems, then the scopes and baselines of those
+ * systems and the scopes' adoptions. What it counts of each element and of everything inside it
+ * (the controls its baseline selects, the requirements allocated to it) is counted on the server
+ * in one request, so no allocation and no selection is read. The profile names are small reference
+ * collections, read with the few columns they need.
  */
 export function useSystemAssurance(programId: string) {
   const systems = useRows("systems", { program_id: programId });
@@ -28,28 +26,13 @@ export function useSystemAssurance(programId: string) {
     { system_id: systemIds },
     { enabled: systems.isSuccess },
   );
-  const allocations = useRows(
-    "requirement_allocations",
-    { system_id: systemIds },
-    { columns: systemAssuranceColumns.allocations, enabled: systems.isSuccess },
-  );
+  const counts = useProgramSystemCounts(programId);
   const scopeIds = useMemo(() => idSet(scopes.data?.map((row) => row.id)), [scopes.data]);
   const scopeBaselines = useRows(
     "scope_baselines",
     { scope_id: scopeIds },
     { columns: systemAssuranceColumns.scopeBaselines, enabled: scopes.isSuccess },
   );
-  // The resolutions whose controls the rows count: each baseline's and each scope adoption's.
-  const resolutionIds = useMemo(
-    () =>
-      baselines.isSuccess && scopeBaselines.isSuccess
-        ? assuranceResolutionIds(baselines.data, scopeBaselines.data)
-        : undefined,
-    [baselines.isSuccess, baselines.data, scopeBaselines.isSuccess, scopeBaselines.data],
-  );
-  const selections = useSelectedControls(resolutionIds, {
-    columns: systemAssuranceColumns.selections,
-  });
   const resolutions = useRows(
     "profile_resolutions",
     {},
@@ -69,9 +52,8 @@ export function useSystemAssurance(programId: string) {
     systems,
     scopes,
     baselines,
-    selections,
+    counts,
     scopeBaselines,
-    allocations,
     resolutions,
     profiles,
     profileRecords,
@@ -83,9 +65,8 @@ export function useSystemAssurance(programId: string) {
         systems: elements,
         scopes: scopes.data ?? [],
         baselines: baselines.data ?? [],
-        selections: selections.data ?? [],
         scopeBaselines: scopeBaselines.data ?? [],
-        allocations: allocations.data ?? [],
+        counts: counts.data,
         resolutions: resolutions.data ?? [],
         profiles: profiles.data ?? [],
         profileRecords: profileRecords.data ?? [],
@@ -94,9 +75,8 @@ export function useSystemAssurance(programId: string) {
       elements,
       scopes.data,
       baselines.data,
-      selections.data,
       scopeBaselines.data,
-      allocations.data,
+      counts.data,
       resolutions.data,
       profiles.data,
       profileRecords.data,

@@ -196,6 +196,41 @@ export function evidenceOwners(archive = readArchive()) {
   );
 }
 
+/**
+ * The publications the showcase makes, each by the key its results revision is listed under in
+ * the batch: the initial assessment's results, and each increment of the expanded assessment's the
+ * scenario publishes (a draft increment is no publication). The seed publishes them as the control
+ * assessor and records each in WS-X90's activity as publish_assessment_results records one
+ * (pg_temp.seed_showcase_publication_events).
+ */
+export function publications() {
+  const { initial, expanded } = scenario.assessments;
+  return [
+    {
+      key: "assessment_results_revisions/initial",
+      campaign: initial.campaign,
+      results: initial.results,
+      publishedAt: initial.resultsPublishedAt,
+    },
+    ...expanded.increments.flatMap((increment, index) =>
+      increment.publishedAt
+        ? [
+            {
+              key: `assessment_results_revisions/expanded/${index + 1}`,
+              campaign: expanded.campaign,
+              results: increment.results,
+              publishedAt: increment.publishedAt,
+            },
+          ]
+        : [],
+    ),
+  ];
+}
+
+/** A publication as the plan says it, in the words the feeds draw after the person. */
+const publicationLine = ({ by, campaign, results, publishedAt }) =>
+  `${by} published assessment results of ${campaign} on ${publishedAt.slice(0, 10)} (${results})`;
+
 /** The fiscal year the as-of date falls in, October to September (FY2027 starts 2026-10-01). */
 export function fiscalYear(asOf) {
   const [year, month] = asOf.split("-").map(Number);
@@ -292,6 +327,8 @@ export function buildPayload({ tenantId, accountUserId, asOf, scenarioSha256, ar
     issueRequirements: scenario.issueRequirements,
     // Objective mappings: the objectives a requirement maps of a control mapped in part.
     objectiveMappings: scenario.objectiveMappings,
+    // The publications it makes, each recorded in the program's activity.
+    publications: publications(),
   };
 }
 function monthName(date) {
@@ -308,7 +345,22 @@ function readTarget(tenantId) {
        join public.profiles pr on pr.id=v.profile_id where c.tenant_id=${quote(tenantId)}::uuid and g.code=${quote(scenario.programCode)} limit 1),
     'programsWithoutBaseline', (select coalesce(jsonb_agg(p.code order by p.code), '[]'::jsonb) from public.programs p
        where p.tenant_id=${quote(tenantId)}::uuid and not exists(select 1 from public.program_reference_choices c where c.program_id=p.id)),
-    'gates', (select count(*) from public.lifecycle_gates g join public.programs p on p.id=g.program_id where g.tenant_id=${quote(tenantId)}::uuid and p.code=${quote(scenario.programCode)})
+    'gates', (select count(*) from public.lifecycle_gates g join public.programs p on p.id=g.program_id where g.tenant_id=${quote(tenantId)}::uuid and p.code=${quote(scenario.programCode)}),
+    'unrecordedPublications', (select coalesce(jsonb_agg(jsonb_build_object('by', pa.name, 'campaign', g.title,
+        'results', r.title, 'publishedAt', r.published_at) order by r.published_at), '[]'::jsonb)
+      from public.demo_import_records d
+      join public.demo_import_batches b on b.id=d.import_batch_id
+      join public.assessment_results_revisions r on r.tenant_id=d.tenant_id and r.id=d.destination_id
+      join public.assessment_plan_revisions pl on pl.tenant_id=r.tenant_id and pl.id=r.assessment_plan_revision_id
+      join public.assessment_campaigns g on g.tenant_id=pl.tenant_id and g.id=pl.campaign_id
+      left join public.parties pa on pa.tenant_id=r.tenant_id and pa.id=r.published_by_party_id
+      where d.tenant_id=${quote(tenantId)}::uuid and b.dataset_id=${quote(scenario.datasetId)}
+        and d.destination_table='assessment_results_revisions' and r.state='published'
+        and d.source_key in (${publications()
+          .map((publication) => quote(publication.key))
+          .join(", ")})
+        and not exists (select 1 from public.activity_events e where e.tenant_id=r.tenant_id
+          and e.assessment_campaign_id=g.id and e.event_type='published' and e.occurred_at=r.published_at))
   );`);
 }
 
@@ -342,7 +394,7 @@ export function buildPlan({ target, asOf = new Date().toISOString().slice(0, 10)
     issues.push({
       blocks: false,
       message:
-        "This workspace already holds the showcase; a run writes only what its risks still lack (a threat, a vulnerability, a rationale, a response's due moment), an owner for each artifact that waits on a review with none, and the objective mappings it does not hold yet.",
+        "This workspace already holds the showcase; a run writes only what its risks still lack (a threat, a vulnerability, a rationale, a response's due moment), an owner for each artifact that waits on a review with none, the objective mappings it does not hold yet, and the activity event of each publication it made that WS-X90's activity does not record yet.",
     });
   if (!target.program)
     issues.push({
@@ -381,6 +433,17 @@ export function buildPlan({ target, asOf = new Date().toISOString().slice(0, 10)
         (capability) => `${capability.code} ${capability.name}`,
       ),
       assessments: assessmentSummary(asOf),
+      // Each publication in WS-X90's activity, as publish_assessment_results records one: on a
+      // workspace that holds the showcase, only those its activity does not record yet.
+      ...(target.applied
+        ? target.unrecordedPublications?.length
+          ? { publicationEvents: target.unrecordedPublications.map(publicationLine) }
+          : {}
+        : {
+            publicationEvents: publications().map((publication) =>
+              publicationLine({ ...publication, by: scenario.people.controlAssessor }),
+            ),
+          }),
       monitoring: `${scenario.monitoring.schedule.length} scheduled assessments`,
       gates: target.gates
         ? "kept: the program already has gates"
@@ -405,9 +468,9 @@ export function buildPlan({ target, asOf = new Date().toISOString().slice(0, 10)
 
 /**
  * The showcase, then what its risks still lack, an owner for each artifact waiting on a review, the
- * objective mappings and the seeded mappings carried to the baseline the showcase pins: on a
- * workspace that already holds the showcase the first changes nothing and the rest write only what
- * is missing, recording it under its batch.
+ * objective mappings, the seeded mappings carried to the baseline the showcase pins and the activity
+ * event of each publication it made: on a workspace that already holds the showcase the first
+ * changes nothing and the rest write only what is missing, recording it under its batch.
  */
 export function applyShowcase(transaction, payload, { commit = false } = {}) {
   const result = sql(
@@ -419,13 +482,21 @@ export function applyShowcase(transaction, payload, { commit = false } = {}) {
       `select pg_temp.seed_showcase_evidence_owners(${json(payload)});`,
       `select pg_temp.seed_showcase_objective_mappings(${json(payload)});`,
       `select pg_temp.seed_showcase_carried_mappings(${json(payload)});`,
+      `select pg_temp.seed_showcase_publication_events(${json(payload)});`,
       commit ? "commit;" : "rollback;",
     ].join("\n"),
   );
-  const [showcase, riskDetails, evidenceOwners, objectiveMappings, carriedMappings] = result
+  const [
+    showcase,
+    riskDetails,
+    evidenceOwners,
+    objectiveMappings,
+    carriedMappings,
+    publicationEvents,
+  ] = result
     .split("\n")
     .filter((line) => line.startsWith("{"))
-    .slice(-5)
+    .slice(-6)
     .map((line) => JSON.parse(line));
   return {
     ...showcase,
@@ -433,12 +504,14 @@ export function applyShowcase(transaction, payload, { commit = false } = {}) {
     evidenceOwners,
     objectiveMappings,
     carriedMappings,
+    publicationEvents,
     changed: Boolean(
       showcase.changed ||
       riskDetails.changed ||
       evidenceOwners.changed ||
       objectiveMappings.changed ||
-      carriedMappings.changed,
+      carriedMappings.changed ||
+      publicationEvents.changed,
     ),
     showcaseChanged: Boolean(showcase.changed),
     committed: commit,
@@ -501,7 +574,7 @@ async function main() {
     commit: Boolean(options.apply),
   });
   console.log(JSON.stringify(result, null, 2));
-  const filled = `${result.riskDetails.riskRevisions} risk revision(s) and ${result.riskDetails.riskResponses} response(s) filled, ${result.evidenceOwners.assigned ?? 0} evidence artifact(s) given an owner, ${result.objectiveMappings.mapped ?? 0} objective mapping(s) written`;
+  const filled = `${result.riskDetails.riskRevisions} risk revision(s) and ${result.riskDetails.riskResponses} response(s) filled, ${result.evidenceOwners.assigned ?? 0} evidence artifact(s) given an owner, ${result.objectiveMappings.mapped ?? 0} objective mapping(s) written, ${result.publicationEvents.recorded ?? 0} publication(s) recorded in ${scenario.programCode}'s activity`;
   console.log(
     !result.changed
       ? "Nothing changed: this workspace already holds the showcase and everything its risks need."

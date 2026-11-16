@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 import type { Row, TableName } from "./models";
 import {
-  assuranceResolutionIds,
   baselineSource,
   buildSystemAssuranceRows,
   type SystemAssuranceInput,
 } from "./system-assurance";
+import type { SystemCounts } from "./system-counts";
 import type { SystemElement } from "./system-tree";
 
 const record = <T extends TableName>(value: Partial<Row<T>>) => value as Row<T>;
@@ -50,15 +50,21 @@ const baseline = (
     inherited: systemId !== "root",
     ...values,
   });
-const selections = (resolutionId: string, controls: string[]) =>
-  controls.map((controlId) =>
-    record<"selected_controls">({ profile_resolution_id: resolutionId, control_id: controlId }),
-  );
+/** What the server counts of an element (`program_system_counts`), nothing unless given. */
+const counted = (systemId: string, values: Partial<SystemCounts> = {}): SystemCounts => ({
+  systemId,
+  controlCount: null,
+  subtreeControlCount: null,
+  additionalChildControlCount: 0,
+  unresolvedDescendantCount: 0,
+  requirementCount: 0,
+  subtreeRequirementCount: 0,
+  ...values,
+});
 const fixture = (values: Partial<SystemAssuranceInput> = {}): SystemAssuranceInput => ({
   systems: [element("root"), element("child"), element("leaf", { parent_system_id: "child" })],
   scopes: [],
   baselines: [],
-  selections: [],
   scopeBaselines: [],
   ...values,
 });
@@ -130,7 +136,7 @@ describe("system assurance projection", () => {
     });
   });
 
-  it("deduplicates subtree controls, preserves child overrides, and excludes independent boundaries", () => {
+  it("takes each element's counts from the server and excludes independent boundaries from its rollups", () => {
     const rows = buildSystemAssuranceRows(
       fixture({
         systems: [
@@ -153,39 +159,69 @@ describe("system assurance projection", () => {
           baseline("leaf", "tailored", { source_system_id: "child" }),
           baseline("separate", "other", { boundary_system_id: "separate" }),
         ],
-        selections: [
-          ...selections("base", ["a", "b", "a"]),
-          ...selections("tailored", ["b", "c"]),
-          ...selections("other", ["outside"]),
+        counts: [
+          counted("root", {
+            controlCount: 2,
+            subtreeControlCount: 3,
+            additionalChildControlCount: 1,
+            requirementCount: 1,
+            subtreeRequirementCount: 4,
+          }),
+          counted("child", { controlCount: 2, subtreeControlCount: 2 }),
+          counted("separate", {
+            controlCount: 1,
+            subtreeControlCount: 1,
+            unresolvedDescendantCount: 1,
+          }),
         ],
       }),
     );
     expect(rows[0]).toMatchObject({
-      controlIds: ["a", "b"],
       controlCount: 2,
       subtreeControlCount: 3,
       additionalChildControlCount: 1,
       unresolvedDescendantCount: 0,
+      requirementCount: 1,
+      subtreeRequirementCount: 4,
       subtreeScopeCount: 1,
     });
+    // The separate boundary's scope and impact are its own, not the root's.
     expect(rows[0]?.childImpacts.confidentiality).toBe("moderate");
-    expect(rows[1]?.controlIds).toEqual(["b", "c"]);
+    expect(rows[1]).toMatchObject({ controlCount: 2, subtreeControlCount: 2 });
     expect(rows[1]?.inheritedFrom).toBeUndefined();
     expect(rows[2]?.inheritedFrom?.id).toBe("child");
     expect(rows[3]?.unresolvedDescendantCount).toBe(1);
   });
 
-  it("distinguishes unresolved baselines from a recorded empty selection and known partial rollups", () => {
-    const input = fixture({ baselines: [baseline("root", null), baseline("leaf", "empty")] });
-    const rows = buildSystemAssuranceRows(input);
+  it("counts nothing until the server's counts arrive: zero controls with a baseline, none without", () => {
+    const rows = buildSystemAssuranceRows(
+      fixture({ baselines: [baseline("root", null), baseline("leaf", "empty")] }),
+    );
     expect(rows[0]).toMatchObject({
+      controlCount: null,
+      subtreeControlCount: null,
+      unresolvedDescendantCount: 0,
+      requirementCount: 0,
+      subtreeRequirementCount: 0,
+    });
+    expect(rows[2]).toMatchObject({ controlCount: 0, subtreeControlCount: 0 });
+    const read = buildSystemAssuranceRows(
+      fixture({
+        baselines: [baseline("root", null), baseline("leaf", "empty")],
+        counts: [
+          counted("root", { subtreeControlCount: 0, unresolvedDescendantCount: 1 }),
+          counted("child", { subtreeControlCount: 0 }),
+          counted("leaf", { controlCount: 0, subtreeControlCount: 0 }),
+        ],
+      }),
+    );
+    expect(read[0]).toMatchObject({
       controlCount: null,
       subtreeControlCount: 0,
       unresolvedDescendantCount: 1,
     });
-    expect(rows[1]).toMatchObject({ controlCount: null, subtreeControlCount: 0 });
-    expect(rows[2]).toMatchObject({ controlCount: 0, subtreeControlCount: 0 });
-    expect(buildSystemAssuranceRows(fixture())[0]?.subtreeControlCount).toBeNull();
+    expect(read[1]).toMatchObject({ controlCount: null, subtreeControlCount: 0 });
+    expect(read[2]).toMatchObject({ controlCount: 0, subtreeControlCount: 0 });
   });
 
   it("keeps latest scope adoption separate from system inheritance and refuses ambiguous timestamp ties", () => {
@@ -200,17 +236,15 @@ describe("system assurance projection", () => {
     const input = fixture({
       scopes: [scope("scope", "child")],
       baselines: [baseline("child", "base")],
-      selections: [...selections("base", ["a", "b"]), ...selections("scope-only", ["c"])],
+      counts: [counted("child", { controlCount: 2, subtreeControlCount: 2 })],
       scopeBaselines: [
         adoption("old", "base", "2026-01-01T00:00:00Z"),
         adoption("latest", "scope-only", "2026-02-01T00:00:00Z"),
       ],
     });
     let child = buildSystemAssuranceRows(input)[1]!;
-    expect(child.controlIds).toEqual(["a", "b"]);
     expect(child.scopeSelections[0]).toMatchObject({
       profileResolutionId: "scope-only",
-      controlCount: 1,
       differs: true,
       conflicting: false,
     });
@@ -218,7 +252,6 @@ describe("system assurance projection", () => {
     child = buildSystemAssuranceRows(input)[1]!;
     expect(child.scopeSelections[0]).toMatchObject({
       profileResolutionId: null,
-      controlCount: null,
       differs: false,
       conflicting: true,
     });
@@ -242,7 +275,6 @@ describe("system assurance projection", () => {
     const rows = buildSystemAssuranceRows(input);
     expect(rows[1]?.scopeSelections[0]).toMatchObject({
       profileResolutionId: "base",
-      controlCount: 0,
       conflicting: false,
     });
     expect(rows[0]?.subtreeScopeCount).toBe(0);
@@ -250,14 +282,7 @@ describe("system assurance projection", () => {
     expect(input.systems[0]).not.toHaveProperty("impacts");
   });
 
-  it("counts exact allocations per element, unions them over the subtree, and names the effective profile", () => {
-    const allocation = (id: string, systemId: string | null, revisionId: string) =>
-      record<"requirement_allocations">({
-        id,
-        tenant_id: "tenant",
-        system_id: systemId,
-        requirement_revision_id: revisionId,
-      });
+  it("takes the requirements the server counts and names the effective profile", () => {
     const rows = buildSystemAssuranceRows(
       fixture({
         baselines: [
@@ -268,15 +293,11 @@ describe("system assurance projection", () => {
           baseline("child", "resolution", { source_label: "Inherited system adoption" }),
           baseline("leaf", "resolution", { source_label: "Inherited system adoption" }),
         ],
-        selections: selections("resolution", ["ac-1"]),
-        allocations: [
-          allocation("a", "root", "req-1"),
-          allocation("b", "child", "req-2"),
-          allocation("c", "child", "req-2"),
-          allocation("d", "leaf", "req-2"),
-          allocation("e", "leaf", "req-3"),
-          allocation("f", null, "req-4"),
-          allocation("g", "missing", "req-5"),
+        counts: [
+          counted("root", { requirementCount: 1, subtreeRequirementCount: 3 }),
+          counted("child", { requirementCount: 1, subtreeRequirementCount: 2 }),
+          counted("leaf", { requirementCount: 2, subtreeRequirementCount: 2 }),
+          counted("missing", { requirementCount: 5 }),
         ],
         resolutions: [
           record<"profile_resolutions">({
@@ -295,21 +316,5 @@ describe("system assurance projection", () => {
     expect(baselineSource(rows[0]!)).toBe("Applied here");
     expect(baselineSource(rows[1]!)).toBe("Inherited from root");
     expect(baselineSource({ ...rows[2]!, effectiveBaseline: undefined })).toBe("Not set");
-  });
-});
-
-describe("the selections a program reads", () => {
-  it("names each resolution a baseline or a scope adoption uses, once", () => {
-    expect(
-      assuranceResolutionIds(
-        [
-          { profile_resolution_id: "moderate" },
-          { profile_resolution_id: null },
-          { profile_resolution_id: "high" },
-        ],
-        [{ profile_resolution_id: "moderate" }, { profile_resolution_id: "tailored" }],
-      ),
-    ).toEqual(["high", "moderate", "tailored"]);
-    expect(assuranceResolutionIds([], [])).toEqual([]);
   });
 });

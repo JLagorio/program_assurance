@@ -395,9 +395,40 @@ try {
   ).toContainText("RQD-RETAIN");
   await page.getByRole("row").filter({ hasText: "RQD-RETAIN" }).first().click();
   await expect(page.getByRole("main")).toContainText("Library reuse in the browser");
+
+  // A profile: the sheet lists the profiles with their controls counted on the server, and the
+  // one chosen is adopted with the controls read once it is chosen. The ground segment adopts the
+  // Low baseline as it is, so the command writes no tailored profile and the element names it.
+  const { count: lowControls } = await client
+    .from("selected_controls")
+    .select("id", { count: "exact", head: true })
+    .eq("profile_resolution_id", resolution.id);
+  await page.goto(`${origin}/programs/${program.id}/systems/${child.id}?tab=Library`);
+  await page
+    .getByRole("main")
+    .getByRole("button", { name: "Add from library", exact: true })
+    .first()
+    .click();
+  await sheet().getByRole("combobox", { name: "Source", exact: true }).click();
+  await page.getByRole("option", { name: "Profile (control baseline)", exact: true }).click();
+  await sheet()
+    .getByRole("row")
+    .filter({ hasText: `${lowControls.toLocaleString("en-US")} controls` })
+    .filter({ hasText: profile.version })
+    .first()
+    .click();
+  await sheet().getByRole("button", { name: "Continue", exact: true }).click();
+  await sheet()
+    .getByRole("textbox", { name: "Rationale", exact: true })
+    .fill("The ground segment works from the Low baseline.");
+  await sheet().getByRole("button", { name: "Add from library", exact: true }).click();
+  await expect(sheet()).toHaveCount(0, { timeout: 30000 });
+  const [adopting] = await rows("systems", { id: child.id });
+  assert.equal(adopting.adopted_profile_resolution_id, resolution.id);
+  assert.equal(adopting.baseline_rationale, "The ground segment works from the Low baseline.");
   assert.deepEqual(errors, []);
   console.log(
-    "PASS add from library: component applied through the matrix, seeded controls, evidence use accepted, requirement adopted and allocated, existing requirement allocated, update review taken, program roll-up, requirements library",
+    "PASS add from library: component applied through the matrix, seeded controls, evidence use accepted, requirement adopted and allocated, existing requirement allocated, update review taken, program roll-up, requirements library, profile adopted with its own controls",
   );
 } catch (failure) {
   await page

@@ -1,7 +1,15 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { expect, userEvent, waitFor, within } from "storybook/test";
-import { useRef, useState } from "react";
-import { Button, defineColumns, KeyValue, RecordBrowser, Section, Stack } from "../..";
+import { useEffect, useRef, useState } from "react";
+import {
+  Button,
+  defineColumns,
+  KeyValue,
+  RecordBrowser,
+  Section,
+  Stack,
+  type RecordBrowserQuery,
+} from "../..";
 import { interact } from "../_lib/interact";
 import * as pairLayout from "../_lib/pair";
 
@@ -697,6 +705,269 @@ export const PreviewAcrossPages: Story = {
       dialog.queryByRole("button", { name: "Preview Verification artifact 1" }),
     ).toBeNull();
     await closeBrowser(canvasElement);
+  },
+};
+
+/** Sixty-two artifacts on a server that pages, sorts, filters and searches them. */
+const onServer: Record[] = Array.from({ length: 62 }, (_, index) => ({
+  id: `EVD-${String(index + 1).padStart(3, "0")}`,
+  title: `Verification artifact ${index + 1}`,
+  type: index % 2 ? "Test result" : "Document",
+  owner: index % 3 ? "Alex Morgan" : "Dana Lee",
+}));
+/** One the reader makes through Create evidence artifact: chosen as it is made, on no page yet. */
+const made: Record = {
+  id: "EVD-063",
+  title: "Verification artifact 63",
+  type: "Document",
+  owner: "Dana Lee",
+};
+
+/** What the server answers a question: the page it asks for, and how many records it finds. */
+function readPage(query: RecordBrowserQuery): Promise<{ rows: Record[]; count: number }> {
+  const words = query.search.trim().toLowerCase();
+  let rows = onServer.filter(
+    (record) => !words || `${record.id} ${record.title}`.toLowerCase().includes(words),
+  );
+  for (const filter of query.filters) {
+    const values = (Array.isArray(filter.value) ? filter.value : [filter.value]).map(String);
+    rows = rows.filter((record) => values.includes(String(record[filter.id as keyof Record])));
+  }
+  const sort = query.sorting[0];
+  if (sort) {
+    const key = sort.id as keyof Record;
+    rows = [...rows].sort(
+      (a, b) => (sort.desc ? -1 : 1) * a[key].localeCompare(b[key], undefined, { numeric: true }),
+    );
+  }
+  const from = query.pageIndex * query.pageSize;
+  return new Promise((resolve) =>
+    setTimeout(
+      () => resolve({ rows: rows.slice(from, from + query.pageSize), count: rows.length }),
+      150,
+    ),
+  );
+}
+
+const firstQuestion: RecordBrowserQuery = {
+  search: "",
+  sorting: [],
+  filters: [],
+  pageIndex: 0,
+  pageSize: 20,
+};
+
+function ServerExample() {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState(firstQuestion);
+  const [page, setPage] = useState<{ rows: Record[]; count: number } | null>(null);
+  const [reading, setReading] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [linked, setLinked] = useState<string[]>([]);
+  // Create evidence artifact closes the browser for its form, as an application's does.
+  const [making, setMaking] = useState(false);
+  // The caller holds the question and reads the page that answers it; the browser shows that page
+  // and asks again when the reader searches, filters, sorts, turns a page or steps past its edge.
+  useEffect(() => {
+    if (!open) return;
+    let live = true;
+    setReading(true);
+    void readPage(query).then((answer) => {
+      if (!live) return;
+      setPage(answer);
+      setReading(false);
+    });
+    return () => {
+      live = false;
+    };
+  }, [open, query]);
+  return (
+    <div className="p-200">
+      <Button
+        onClick={() => {
+          setQuery(firstQuestion);
+          setSelectedIds([]);
+          setOpen(true);
+        }}
+      >
+        Add evidence
+      </Button>
+      {making ? (
+        // The record is made and returns chosen: the browser opens again on its first page.
+        <Button
+          onClick={() => {
+            setMaking(false);
+            setSelectedIds((ids) => (ids.includes(made.id) ? ids : [...ids, made.id]));
+            setQuery(firstQuestion);
+            setOpen(true);
+          }}
+        >
+          Back to evidence browser
+        </Button>
+      ) : null}
+      <p>Linked records: {linked.join(", ") || "None"}</p>
+      <RecordBrowser
+        open={open}
+        onClose={() => setOpen(false)}
+        title="Link evidence"
+        description="Search and inspect the artifacts before linking them to this requirement."
+        records={page?.rows ?? []}
+        state={!page ? "loading" : reading ? "refreshing" : "ready"}
+        server={{
+          query,
+          onQueryChange: setQuery,
+          rowCount: page?.count ?? 0,
+          total: onServer.length,
+          filterOptions: {
+            type: [{ value: "Document" }, { value: "Test result" }],
+            owner: [{ value: "Alex Morgan" }, { value: "Dana Lee" }],
+          },
+          selected: selectedIds.includes(made.id) ? [made] : [],
+        }}
+        selectedIds={selectedIds}
+        onSelectionChange={setSelectedIds}
+        columns={columns}
+        filters={["type", "owner"]}
+        recordTitle={(record) => record.title}
+        recordCode={(record) => record.id}
+        searchPlaceholder="Search evidence"
+        renderPreview={(record) => (
+          <Section title="Details">
+            <KeyValue label="Type">{record.type}</KeyValue>
+          </Section>
+        )}
+        onConfirm={(chosen) => setLinked(chosen.map((record) => record.id))}
+        confirmLabel="Link evidence"
+        actions={
+          <Button
+            size="small"
+            onClick={() => {
+              setOpen(false);
+              setMaking(true);
+            }}
+          >
+            Create evidence artifact
+          </Button>
+        }
+      />
+    </div>
+  );
+}
+
+/**
+ * Server-paged (`server`): the caller holds the question, reads the page that answers it and hands
+ * the browser that page, how many records the question finds and how many there are to choose
+ * from. A choice on one page stays chosen and counted on the next; previous and next walk the whole
+ * result, a step past the page's edge reading the next page; a search and a filter ask from the
+ * first page, and Clear filters clears both at once. A choice the caller keeps (`selectedIds`)
+ * outlasts the browser closing for Create evidence artifact and opening again on its first page:
+ * the record chosen on the second page is still counted and linked, and the record made, which no
+ * page holds, returns chosen through `server.selected`.
+ */
+export const ServerPaged: Story = {
+  name: "Server-paged",
+  render: () => <ServerExample />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const screen = within(canvasElement.ownerDocument.body);
+    await userEvent.click(canvas.getByRole("button", { name: "Add evidence" }));
+    const dialog = within(await screen.findByRole("dialog", { name: "Link evidence" }));
+    const choose = (name: string) =>
+      dialog.findByRole("checkbox", { name: `Select ${name}` }, { timeout: 3000 });
+    // The first page arrives; the footer counts every record there is to choose from.
+    await userEvent.click(await choose("Verification artifact 1"));
+    await expect(dialog.getByText("1 of 62 selected", { exact: true })).toBeVisible();
+    // The second page reads from the server; the choice on the first stays chosen and counted.
+    await userEvent.click(dialog.getByRole("button", { name: "Next page" }));
+    await userEvent.click(await choose("Verification artifact 21"));
+    await expect(dialog.getByText("2 of 62 selected", { exact: true })).toBeVisible();
+    // Previous and next walk the whole result: past the page's last record, the next page.
+    await userEvent.click(dialog.getByRole("button", { name: "Preview Verification artifact 40" }));
+    const next = previewOf(dialog, "Verification artifact 40").getByRole("button", {
+      name: "Next record",
+    });
+    await waitFor(() =>
+      expect(previewOf(dialog, "Verification artifact 40").getByRole("status")).toHaveTextContent(
+        "Verification artifact 40, 40 of 62 records",
+      ),
+    );
+    await userEvent.click(next);
+    await waitFor(
+      () =>
+        expect(previewOf(dialog, "Verification artifact 41").getByRole("status")).toHaveTextContent(
+          "Verification artifact 41, 41 of 62 records",
+        ),
+      { timeout: 3000 },
+    );
+    await expect(next).toHaveFocus();
+    // The table turned to the page that holds it (behind the preview on a phone).
+    await expect(
+      within(dialog.getByRole("table", { name: "Link evidence", hidden: true })).getByRole(
+        "checkbox",
+        { name: "Select Verification artifact 41", hidden: true },
+      ),
+    ).toBeInTheDocument();
+    await userEvent.click(
+      previewOf(dialog, "Verification artifact 41").getByRole("button", {
+        name: "Previous record",
+      }),
+    );
+    await waitFor(
+      () =>
+        expect(previewOf(dialog, "Verification artifact 40").getByRole("status")).toHaveTextContent(
+          "Verification artifact 40, 40 of 62 records",
+        ),
+      { timeout: 3000 },
+    );
+    await closePreview(dialog);
+    // A search asks from the first page. Where the filters show, one narrows it too, and Clear
+    // filters clears both in one step.
+    const search = dialog.getByRole("searchbox", { name: "Search evidence" });
+    await userEvent.type(search, "artifact 5");
+    await expect(await choose("Verification artifact 59")).toBeInTheDocument();
+    // The toolbar's Type chip, where the toolbar has room for it (a narrow one folds it into More).
+    const typeChip = () =>
+      dialog
+        .queryAllByRole("button", { name: /^Type/ })
+        .find((button) => button.getAttribute("aria-haspopup") === "dialog");
+    const type = typeChip();
+    if (type) {
+      await userEvent.click(type);
+      const facet = await screen.findByRole("dialog", { name: "Type" });
+      await userEvent.click(within(facet).getByRole("checkbox", { name: "Test result" }));
+      await userEvent.keyboard("{Escape}");
+      await waitFor(() => expect(screen.queryByRole("dialog", { name: "Type" })).toBeNull());
+      await waitFor(() =>
+        expect(
+          dialog.queryByRole("checkbox", { name: "Select Verification artifact 5" }),
+        ).toBeNull(),
+      );
+    }
+    await userEvent.type(search, "zz");
+    await userEvent.click(await dialog.findByRole("button", { name: "Clear filters" }));
+    // The toolbar lays itself out again as the filter goes, so the field is found afresh.
+    await waitFor(() =>
+      expect(dialog.getByRole("searchbox", { name: "Search evidence" })).toHaveValue(""),
+    );
+    await expect(await choose("Verification artifact 2")).toBeInTheDocument();
+    if (type) await expect(typeChip()?.querySelector('[data-slot="filter-chip-value"]')).toBeNull();
+    // The browser closes for Create evidence artifact and opens again on its first page, the
+    // record made chosen beside the two before: the one from the second page still counts.
+    await userEvent.click(dialog.getByRole("button", { name: "Create evidence artifact" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    await userEvent.click(canvas.getByRole("button", { name: "Back to evidence browser" }));
+    const reopened = within(await screen.findByRole("dialog", { name: "Link evidence" }));
+    await waitFor(() =>
+      expect(reopened.getByText("3 of 62 selected", { exact: true })).toBeVisible(),
+    );
+    await expect(
+      await reopened.findByRole("checkbox", { name: "Select Verification artifact 1" }),
+    ).toBeChecked();
+    await interact(() => reopened.getByRole("button", { name: "Link evidence (3)" }).click());
+    await waitFor(() =>
+      expect(screen.queryByRole("dialog", { name: "Link evidence" })).not.toBeInTheDocument(),
+    );
+    await expect(canvas.getByText("Linked records: EVD-001, EVD-021, EVD-063")).toBeVisible();
   },
 };
 

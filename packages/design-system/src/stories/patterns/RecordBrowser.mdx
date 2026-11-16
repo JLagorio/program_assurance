@@ -51,6 +51,14 @@ Previous and next walk every row the search and filters leave, in the table's or
 
 <Canvas of={Stories.PreviewAcrossPages} />
 
+## Server-paged
+
+A collection too large to hand over whole (thousands of evidence versions, every requirement of a program) is read a page at a time, as DataTable's `manual` mode reads it. With `server`, the caller holds the question, `server.query` (the search, the sort, the filters, the page and its size), reads the page that answers it and gives that page as `records`, with `server.rowCount`, how many records the question finds, and `server.total`, how many there are to choose from, search and filters aside. The browser asks again through `server.onQueryChange`: a search, a sort or a filter asks from the first page, and a page keeps the rest; several changes in one step (Clear filters clears the filters and the search) arrive as one question. Pass `state="refreshing"` while the next page is on its way, so the rows the reader has are not taken for its answer, and each filter's values as `server.filterOptions`, since one page's values are not every value there is.
+
+The choice and the preview keep to the whole result. The browser keeps every record a page has given it while it is mounted, so a record chosen on one page is still counted on the next, and in the next opening where the caller keeps the choice (`selectedIds`), and `onConfirm` receives it with the rest. A record the caller chose that no page may hold, such as one the reader made through `actions`, comes in `server.selected`. Previous and next count the whole result ("41 of 62 records"): a step past the page's edge asks for the page that holds the next record and shows it once that page has arrived, and a page turned by hand leaves the preview where it was, its next step turning back. A record the current question no longer finds on the page it reads is outside the results.
+
+<Canvas of={Stories.ServerPaged} />
+
 ## Narrow and short windows
 
 Below the split container size (`dimension.container.split`, 50rem) the preview replaces the results while keeping the table mounted. The way back leads the preview's header as a chevron, Back to results, away from the dialog's Close; beside the results it is the X at the end of that header.
@@ -75,7 +83,7 @@ The words are the locale's: Search records, Back to results, Previous record, Ne
 
 <ArgTypes of={RecordBrowser} />
 
-`records` contains eligible records with stable IDs. `columns` uses `defineColumns`; `filters` names filterable columns. `onConfirm` receives all selected records, including selections hidden by filters or pagination; it may return a promise. `confirmLabel` names the action. `searchPlaceholder` names what is searched. `context` is optional relationship context; `actions` holds permanent controls such as Create evidence artifact.
+`records` contains eligible records with stable IDs: all of them, or with `server` the page that answers `server.query` (Server-paged). `columns` uses `defineColumns`; `filters` names filterable columns. `onConfirm` receives all selected records, including selections hidden by filters or pagination; it may return a promise. `confirmLabel` names the action. `searchPlaceholder` names what is searched. `context` is optional relationship context; `actions` holds permanent controls such as Create evidence artifact.
 
 `selectedIds` and `onSelectionChange` optionally let the caller own selection. This supports a sequential create flow that closes the browser temporarily and returns with the earlier selections intact. The caller decides when to clear its controlled selection. The default behavior is unchanged when these props are omitted.
 

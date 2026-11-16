@@ -258,6 +258,153 @@ test("the fifth step's activity names the program of the task or the risk it is 
   assert.match(sql, /x\.import_batch_id = p_batch and x\.destination_table = 'activity_events'/);
 });
 
+test("the fifth step's activity names the task or the risk by its title", () => {
+  const { taskCreated, taskActivity, riskRecorded, riskAssessed, riskActivity } = detailScenario;
+  // A feed reads a recorded verb phrase after the person ("Sarah Chen created the task …";
+  // eventWords in src/lib/activity-entries.ts takes a first line that opens in lower case as the
+  // deed), so each line opens with its verb and names its record by its title in quotes, once.
+  const [assessed, levels] = riskAssessed.split("\n");
+  const lines = [
+    ["{task}", [taskCreated, ...Object.values(taskActivity).map(([, line]) => line)]],
+    ["{risk}", [riskRecorded, assessed, ...Object.values(riskActivity).map(([, line]) => line)]],
+  ];
+  for (const [placeholder, group] of lines)
+    for (const line of group) {
+      assert.match(line, /^[a-z]/, line);
+      assert.equal(line.split(`"${placeholder}"`).length, 2, `${line} names its record once`);
+      assert.deepEqual(
+        line.replace(placeholder, "").match(/\{\w+\}/g) ?? [],
+        line === assessed ? ["{version}"] : [],
+        line,
+      );
+    }
+  // A risk's assessment says what it found on the line after, which a feed reads as what was said.
+  assert.equal(levels, "{levels}");
+  // Every status past creation says what it did, in the kinds of event it always had.
+  assert.deepEqual(Object.keys(taskActivity), [
+    "in_progress",
+    "waiting",
+    "blocked",
+    "done",
+    "cancelled",
+  ]);
+  assert.deepEqual(Object.keys(riskActivity), [
+    "investigating",
+    "responding",
+    "accepted",
+    "closed",
+  ]);
+  assert.deepEqual(
+    Object.values(taskActivity).map(([kind]) => kind),
+    ["updated", "updated", "updated", "completed", "updated"],
+  );
+  assert.deepEqual(
+    Object.values(riskActivity).map(([kind]) => kind),
+    ["updated", "updated", "reviewed", "completed"],
+  );
+  // Filled as the transaction fills them: the title in place of its placeholder.
+  assert.equal(
+    taskActivity.blocked[1].replace("{task}", "Obtain Customer A test keys for the datalink test"),
+    'marked the task "Obtain Customer A test keys for the datalink test" blocked',
+  );
+  const sql = readFileSync(resolve("scripts/demo/seed-products-detail.sql"), "utf8");
+  assert.match(sql, /replace\(x\.description, '\{task\}', k\.title\), x\.occurred_at/);
+  assert.match(sql, /replace\(x\.description, '\{risk\}', k\.title\), x\.occurred_at/);
+  assert.match(sql, /select 1 as n, 'created' as event_type, p->>'taskCreated' as description,/);
+  assert.match(sql, /'created' as event_type, p->>'riskRecorded' as description,/);
+  assert.match(
+    sql,
+    /replace\(replace\(p->>'riskAssessed', '\{version\}', r\.version_number::text\), '\{levels\}', pg_temp\.dlevels\(r\.likelihood, r\.impact\)\)/,
+  );
+  // The levels read as a sentence, its first letter capitalized.
+  assert.match(
+    sql,
+    /format\('%s likelihood, %s impact\.', replace\(p_likelihood, '_', ' '\), replace\(p_impact, '_', ' '\)\)/,
+  );
+});
+
+test("a workspace whose fifth step wrote activity naming no record is given the record's name", () => {
+  const { unnamedActivity, unnamedAssessment, taskCreated, riskAssessed } = detailScenario;
+  // The lines the fifth step wrote until 2026-11-15, each with the line that replaced it.
+  assert.deepEqual(Object.keys(unnamedActivity.tasks), [
+    "created the task",
+    "started the task",
+    "marked the task waiting",
+    "marked the task blocked",
+    "completed the task",
+    "cancelled the task",
+  ]);
+  assert.deepEqual(Object.keys(unnamedActivity.risks), [
+    "recorded the risk",
+    "started investigating the risk",
+    "started the response",
+    "accepted the risk",
+    "closed the risk",
+  ]);
+  assert.equal(unnamedActivity.tasks["created the task"], taskCreated);
+  // What a line said stays what it says: the old line is the new one with the name taken out.
+  for (const [before, after] of Object.entries(unnamedActivity.tasks))
+    assert.equal(after.replace(' "{task}"', ""), before);
+  for (const [before, after] of Object.entries(unnamedActivity.risks))
+    assert.equal(
+      after
+        .replace(' "{risk}"', "")
+        .replace("started responding to the risk", "started the response"),
+      before,
+    );
+  // A risk's assessment is read back for its number and its levels, never once it names the risk.
+  const pattern = new RegExp(unnamedAssessment);
+  assert.deepEqual(
+    pattern.exec("published assessment version 2: very low likelihood, very high impact").slice(1),
+    ["2", "very low", "very high"],
+  );
+  assert.equal(
+    pattern.exec(
+      riskAssessed.replace("{version}", "1").replace("{risk}", "Key material survives zeroization"),
+    ),
+    null,
+  );
+  const held = {
+    ...emptyTarget,
+    seeded: true,
+    requirementsSeeded: true,
+    assessmentsSeeded: true,
+    workSeeded: true,
+    detailSeeded: true,
+    reviewSeeded: true,
+  };
+  // The developer workspace's 155 events, which name their program since 2026-11-15.
+  const unnamed = buildPlan({ target: { ...held, detailEventsUnnamed: { tasks: 99, risks: 56 } } });
+  assert.match(unnamed.summary.state, /the records one click down\.$/);
+  assert.match(
+    unnamed.summary.eventRecords,
+    /^Names the task or the risk in the words of 155 activity events .* \(99 of tasks, 56 of risks\), each by its title \(created the task "…"\)/,
+  );
+  assert.equal(unnamed.summary.eventPrograms, undefined);
+  assert.equal(unnamed.issues.filter((issue) => issue.blocks).length, 0);
+  for (const left of [{ tasks: 0, risks: 0 }, undefined])
+    assert.equal(
+      buildPlan({ target: { ...held, detailEventsUnnamed: left } }).summary.eventRecords,
+      undefined,
+    );
+  const before = { ...held, detailSeeded: false, detailEventsUnnamed: { tasks: 3, risks: 1 } };
+  assert.equal(buildPlan({ target: before }).summary.eventRecords, undefined);
+  // The run rewrites them under the batch's provenance, with the append-only guard set aside for
+  // those rows alone, inside its transaction, and put back.
+  const sql = readFileSync(resolve("scripts/demo/seed-products-detail.sql"), "utf8");
+  assert.match(sql, /v_worded := pg_temp\.name_product_event_records\(p, v_batch\);/);
+  const body = sql.slice(
+    sql.indexOf("create function pg_temp.name_product_event_records"),
+    sql.indexOf("-- The seventh step"),
+  );
+  assert.match(
+    body,
+    /alter table public\.activity_events disable trigger append_only;\n  with listed as \([\s\S]*x\.import_batch_id = p_batch and x\.destination_table = 'activity_events'[\s\S]*update public\.activity_events e set description = pg_temp\.dnamed\(p, l\.of_task, l\.description, l\.title\)[\s\S]*alter table public\.activity_events enable trigger append_only;/,
+  );
+  assert.match(body, /raise exception '% activity events of the batch still name no task or risk/);
+  assert.match(body, /'eventRecords',/);
+});
+
 // The fourth step, the programs' work, as written.
 
 const customerPrograms = scenario.programs.map((program) => program.code);
@@ -632,6 +779,17 @@ test("the payload carries the fifth step", () => {
     assert.ok(payload.discussions[status]?.subject, `no discussion opens on ${status}`);
   for (const status of ["open", "in_progress", "waiting", "blocked", "done", "cancelled"])
     assert.ok(payload.taskComments[status], `no comment for a task ${status}`);
+  // The words of a task's and a risk's activity, and those they replaced.
+  for (const key of [
+    "taskCreated",
+    "taskActivity",
+    "riskRecorded",
+    "riskAssessed",
+    "riskActivity",
+    "unnamedActivity",
+    "unnamedAssessment",
+  ])
+    assert.deepEqual(payload[key], detailScenario[key], key);
 });
 
 test("the fifth step refuses a variant code the workspace already has", () => {

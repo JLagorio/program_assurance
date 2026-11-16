@@ -1627,22 +1627,72 @@ export const taskComments = {
   cancelled: "Cancelled; nothing further to do.",
 };
 
+/*
+ * A task's and a risk's activity name the record by its title (`{task}`, `{risk}`), so a feed that
+ * reads the line after the person says which task or risk was acted on ("Sarah Chen created the
+ * task "Book the waveform confidentiality test at the customer laboratory""), as a publication's
+ * event names its campaign. No command of the app records a task's or a risk's activity, and
+ * neither has a code for the "CODE: what changed" line a feed reads, so each line is a recorded
+ * verb phrase, the record's title in quotes, as the legacy import's task events read.
+ */
+
+/** The line that records a task's creation. */
+export const taskCreated = 'created the task "{task}"';
+
 /** A task's activity: what each status adds after the line that records its creation. */
 export const taskActivity = {
-  in_progress: ["updated", "started the task"],
-  waiting: ["updated", "marked the task waiting"],
-  blocked: ["updated", "marked the task blocked"],
-  done: ["completed", "completed the task"],
-  cancelled: ["updated", "cancelled the task"],
+  in_progress: ["updated", 'started the task "{task}"'],
+  waiting: ["updated", 'marked the task "{task}" waiting'],
+  blocked: ["updated", 'marked the task "{task}" blocked'],
+  done: ["completed", 'completed the task "{task}"'],
+  cancelled: ["updated", 'cancelled the task "{task}"'],
 };
+
+/** The line that records a risk. */
+export const riskRecorded = 'recorded the risk "{risk}"';
+
+/**
+ * The line that publishes a risk's assessment, `{version}` its number, over what it found:
+ * `{levels}` is its likelihood and impact as a sentence ("Moderate likelihood, very high impact.").
+ */
+export const riskAssessed = 'published assessment version {version} of the risk "{risk}"\n{levels}';
 
 /** A risk's activity after the line that records it and the one that publishes its assessment. */
 export const riskActivity = {
-  investigating: ["updated", "started investigating the risk"],
-  responding: ["updated", "started the response"],
-  accepted: ["reviewed", "accepted the risk"],
-  closed: ["completed", "closed the risk"],
+  investigating: ["updated", 'started investigating the risk "{risk}"'],
+  responding: ["updated", 'started responding to the risk "{risk}"'],
+  accepted: ["reviewed", 'accepted the risk "{risk}"'],
+  closed: ["completed", 'closed the risk "{risk}"'],
 };
+
+/**
+ * What the fifth step wrote of a task's and a risk's activity until 2026-11-15, each line naming
+ * the kind of record and not the record, with the line that replaced it (Josef, 2026-11-15: "Name
+ * the record"). A run on a workspace whose activity still reads one of them rewrites it under the
+ * batch that lists it. A risk's assessment then read "published assessment version 1: low
+ * likelihood, high impact", which the run reads back into `riskAssessed`.
+ */
+export const unnamedActivity = {
+  tasks: {
+    "created the task": taskCreated,
+    "started the task": taskActivity.in_progress[1],
+    "marked the task waiting": taskActivity.waiting[1],
+    "marked the task blocked": taskActivity.blocked[1],
+    "completed the task": taskActivity.done[1],
+    "cancelled the task": taskActivity.cancelled[1],
+  },
+  risks: {
+    "recorded the risk": riskRecorded,
+    "started investigating the risk": riskActivity.investigating[1],
+    "started the response": riskActivity.responding[1],
+    "accepted the risk": riskActivity.accepted[1],
+    "closed the risk": riskActivity.closed[1],
+  },
+};
+
+/** A risk's assessment as the fifth step wrote it until 2026-11-15, its number and levels kept. */
+export const unnamedAssessment =
+  "^published assessment version ([0-9]+): (.+) likelihood, (.+) impact$";
 
 /** What a contribution of an element the program added says of the control. */
 export const ownElementStatus = "planned";

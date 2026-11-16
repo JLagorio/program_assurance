@@ -4,7 +4,14 @@ import { resolve } from "node:path";
 import test from "node:test";
 import { gunzipSync } from "node:zlib";
 import * as scenario from "../demo/showcase-scenario.mjs";
-import { buildPayload, evidenceOwners, fiscalYear, readArchive } from "../seed-demo-showcase.mjs";
+import {
+  buildPayload,
+  buildPlan,
+  evidenceOwners,
+  fiscalYear,
+  publications,
+  readArchive,
+} from "../seed-demo-showcase.mjs";
 
 const framework = (name) =>
   JSON.parse(gunzipSync(readFileSync(resolve("supabase/reference", `${name}.json.gz`))));
@@ -390,4 +397,98 @@ test("a requirement maps some objectives of a control no archived requirement ma
     assert.ok(entry.rationale.trim());
   }
   assert.deepEqual(payload.objectiveMappings, scenario.objectiveMappings);
+});
+
+// Publications (migration 20261114072513_publication_activity_event): each one in WS-X90's activity.
+test("each publication the showcase makes is recorded as publish_assessment_results records one", () => {
+  const made = publications();
+  // The initial assessment's results and the expanded assessment's first increment; the second
+  // increment is a draft, which nobody has published.
+  assert.deepEqual(
+    made.map((publication) => publication.key),
+    ["assessment_results_revisions/initial", "assessment_results_revisions/expanded/1"],
+  );
+  const { initial, expanded } = scenario.assessments;
+  assert.deepEqual(
+    made.map((publication) => [publication.campaign, publication.results, publication.publishedAt]),
+    [
+      [initial.campaign, initial.results, initial.resultsPublishedAt],
+      [expanded.campaign, expanded.increments[0].results, expanded.increments[0].publishedAt],
+    ],
+  );
+  assert.deepEqual(payload.publications, made);
+  // The seed records who published (the control assessor it publishes as), and the event names that
+  // person, the program and the campaign, at the publication's moment, in the command's words.
+  const seed = readFileSync(resolve("scripts/demo/seed-showcase.sql"), "utf8");
+  const command = readFileSync(
+    resolve("supabase/migrations/20261114072513_publication_activity_event.sql"),
+    "utf8",
+  );
+  for (const shared of [
+    "format(E'published assessment results of %s\\n%s: %s.',",
+    "regexp_replace(btrim(v_campaign.title), '\\s+', ' ', 'g'),",
+    "regexp_replace(btrim(v_results.title), '\\s+', ' ', 'g'),",
+    "case when v_findings = 1 then '1 finding' else v_findings::text || ' findings' end",
+  ]) {
+    assert.ok(command.includes(shared), `the command no longer reads ${shared}`);
+    assert.ok(seed.includes(shared), `the seed does not write ${shared}`);
+  }
+  assert.equal(
+    seed.match(
+      /update public\.assessment_results_revisions set state = 'published', revision = revision \+ 1, published_by_party_id = pg_temp\.person\(p, 'controlAssessor'\),/g,
+    )?.length,
+    2,
+    "both results revisions the seed publishes record their publisher",
+  );
+  assert.match(
+    seed,
+    /values \(v_id, t, v_campaign\.program_id, v_campaign\.id, v_results\.published_by_party_id, 'published',/,
+  );
+  assert.match(seed, /v_results\.published_at\);\n/);
+  // Listed under the showcase's batch, and never written twice: a publication its campaign's
+  // activity records at its moment is passed over.
+  assert.match(seed, /'activity_events', v_id, v_key, '\/assessments'/);
+  assert.match(
+    seed,
+    /e\.assessment_campaign_id = v_campaign\.id and e\.event_type = 'published'\n\s+and e\.occurred_at = v_results\.published_at\);/,
+  );
+});
+
+test("the plan names each publication the workspace's activity does not record yet", () => {
+  const target = {
+    program: { id: "p", name: "WS-X90 Sentinel Mission System" },
+    baseline: scenario.tailoring.base,
+    programsWithoutBaseline: [],
+    gates: 0,
+  };
+  const fresh = buildPlan({ target: { ...target, applied: false }, asOf: "2026-11-13" });
+  assert.deepEqual(fresh.summary.publicationEvents, [
+    "D. Okafor published assessment results of WS-X90 Initial Authorization Security Assessment on 2026-08-28 (Security assessment report — initial authorization)",
+    "D. Okafor published assessment results of WS-X90 Expanded Control Set Assessment on 2026-11-12 (Security assessment report — expanded control set, increment 1)",
+  ]);
+  // A workspace that holds the showcase is given the events its publications lack, and only those.
+  const held = { ...target, applied: true, gates: 15 };
+  const backfill = buildPlan({
+    target: {
+      ...held,
+      unrecordedPublications: [
+        {
+          by: "D. Okafor",
+          campaign: "WS-X90 Initial Authorization Security Assessment",
+          results: "Security assessment report — initial authorization",
+          publishedAt: "2026-08-28T15:00:00+00:00",
+        },
+      ],
+    },
+    asOf: "2026-11-13",
+  });
+  assert.deepEqual(backfill.summary.publicationEvents, [fresh.summary.publicationEvents[0]]);
+  assert.match(backfill.issues[0].message, /the activity event of each publication it made/);
+  assert.equal(backfill.issues.filter((issue) => issue.blocks).length, 0);
+  for (const unrecorded of [[], undefined])
+    assert.equal(
+      buildPlan({ target: { ...held, unrecordedPublications: unrecorded }, asOf: "2026-11-13" })
+        .summary.publicationEvents,
+      undefined,
+    );
 });

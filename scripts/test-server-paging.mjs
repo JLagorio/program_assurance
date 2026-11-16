@@ -1194,6 +1194,44 @@ try {
   );
   console.log("PASS the Portfolio's tiles count on the server, and its programs rank by activity");
   console.log("PASS Recently updated programs reads its rows' control status counts alone");
+  // The risk matrix and Highest open risks read the risk register's view, scoped to the open
+  // risks, never every risk and risk assessment of the workspace. The matrix places the 26
+  // assessed risks at their latest likelihood and impact; Highest open risks lists five of the
+  // seven critical ones, latest changed first and then by id (Assign owner changed them together).
+  const highest = page.getByRole("table", { name: "Highest open risks" });
+  const criticalRisks = await data(
+    client
+      .from("risks")
+      .select("id,title,updated_at")
+      .in(
+        "id",
+        [0, 3, 7, 11, 15, 19, 23].map((index) => risks[index].id),
+      ),
+  );
+  const expectedHighest = criticalRisks
+    .sort((a, b) => Date.parse(b.updated_at) - Date.parse(a.updated_at) || (a.id < b.id ? -1 : 1))
+    .slice(0, 5)
+    .map((risk) => risk.title);
+  await expect(highest.locator("tbody tr")).toHaveCount(5);
+  assert.deepEqual(
+    (await highest.locator("tbody tr a").allInnerTexts()).map((text) => text.trim()),
+    expectedHighest,
+    "Highest open risks lists the critical risks, latest changed first",
+  );
+  await expect(page.getByText("4 open risks are not yet assessed").first()).toBeVisible();
+  await expect(
+    page.getByText("26 assessed open risks, placed by their likelihood and impact.").first(),
+  ).toBeAttached();
+  expectNoBaseReads(["risks", "risk_revisions"], "The Portfolio reads no risk or risk assessment");
+  assert.ok(
+    reads.filter(
+      (url) =>
+        url.pathname.endsWith("/rest/v1/risk_rows") &&
+        url.searchParams.get("status") === "in.(accepted,investigating,open,responding)",
+    ).length >= 2,
+    "The risk matrix and Highest open risks read the open risks from the register's view",
+  );
+  console.log("PASS the risk matrix and Highest open risks read the open risks from risk_rows");
   await issueTile.click();
   await expect(range(issueLabel)).toContainText(`1–${PAGE} of ${number(openIssues)}`);
   await expect(rows(issueTable)).toHaveCount(PAGE);

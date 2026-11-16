@@ -48,6 +48,7 @@ import { useFormFeedback, type FormIssue } from "@/components/app/form-feedback"
 import { useDraftGuard } from "@/components/app/use-draft-guard";
 import { useSelectedControls } from "@/lib/control-reads";
 import { idSet, useRows, type Row } from "@/lib/models";
+import { useResolutionCounts } from "@/lib/profile-reads";
 import { labelFor } from "@/lib/records";
 import {
   useAdoptBaseline,
@@ -56,7 +57,7 @@ import {
 } from "@/lib/library-apply";
 import type { SystemAssuranceRow } from "@/lib/system-assurance";
 import { elementTypeForComponent } from "@/lib/library-items";
-import { profileChoices, type ProfileChoice } from "./system-baseline";
+import { profileOptions, type ProfileOption } from "@/lib/profile-options";
 import { ProductCollection } from "./product-collection";
 import { QueryState } from "./work-common";
 import { currentOpener } from "./opener";
@@ -79,7 +80,7 @@ type Item = {
   definedComponentId: string | null;
   componentType: string | null;
   definitionCode: string;
-  profile: ProfileChoice | null;
+  profile: ProfileOption | null;
 };
 type CellState = "seed" | "not_in_baseline" | "no_ssp" | "already_applied";
 const cellStateLabels: Record<Exclude<CellState, "seed">, string> = {
@@ -200,15 +201,10 @@ export function AddFromLibrary({
     { enabled: source === "profile" && profiles.isSuccess },
   );
   const catalogs = useRows("catalog_revisions", { state: "published" }, profile);
-  // The published resolutions' selections, to list the profiles; the boundary's own for the claims.
-  const published = useMemo(
-    () => resolutions.data?.filter((row) => row.state === "published").map((row) => row.id),
-    [resolutions.data],
-  );
-  const selections = useSelectedControls(published, {
-    ...profile,
-    columns: ["id", "profile_resolution_id", "control_id"],
-  });
+  // How many controls each profile selects, counted on the server (the profiles register's
+  // count): the profiles are listed without reading their selections, and the chosen one's
+  // controls are read once it is chosen.
+  const counts = useResolutionCounts(profile);
   const requirementDefinitions = useRows("requirement_definitions", undefined, requirement);
   // Only published versions are adopted, so no draft is read.
   const requirementRevisions = useRows(
@@ -264,13 +260,13 @@ export function AddFromLibrary({
   );
   const choices = useMemo(
     () =>
-      profileChoices({
+      profileOptions({
         resolutions: resolutions.data ?? [],
         profiles: profiles.data ?? [],
         profileRecords: profileRecords.data ?? [],
         imports: imports.data ?? [],
         catalogs: catalogs.data ?? [],
-        selections: selections.data ?? [],
+        counts: new Map((counts.data ?? []).map((row) => [row.id, row.selections])),
       }),
     [
       resolutions.data,
@@ -278,13 +274,13 @@ export function AddFromLibrary({
       profileRecords.data,
       imports.data,
       catalogs.data,
-      selections.data,
+      counts.data,
     ],
   );
   // Exactly the queries each source's choices come from, so the list never reads as empty early.
   const sourceQueries =
     source === "profile"
-      ? [resolutions, profiles, profileRecords, imports, catalogs, selections]
+      ? [resolutions, profiles, profileRecords, imports, catalogs, counts]
       : source === "requirement"
         ? [requirementDefinitions, requirementRevisions]
         : [definitions, revisions, definedComponents, implementations];
@@ -300,13 +296,13 @@ export function AddFromLibrary({
         id: choice.id,
         code: choice.label,
         name: choice.title,
-        detail: formatPlural(choice.controlIds.length, {
+        detail: formatPlural(choice.controlCount, {
           one: "{count} control",
           other: "{count} controls",
         }),
         category: "Profile",
         version: choice.version,
-        claims: choice.controlIds.length,
+        claims: choice.controlCount,
         revisionId: choice.id,
         definedComponentId: null,
         componentType: null,
@@ -391,6 +387,11 @@ export function AddFromLibrary({
     formatPlural,
   ]);
   const chosen = items.find((item) => item.id === chosenId) ?? null;
+  // The chosen profile's own controls, what its adoption writes: read once it is chosen.
+  const profileControls = useSelectedControls(
+    source === "profile" && chosen?.profile ? [chosen.profile.id] : undefined,
+    { columns: ["control_id"] },
+  );
   const columns = useMemo(
     () =>
       defineColumns<Item>((c) => [
@@ -470,7 +471,8 @@ export function AddFromLibrary({
   const cellKey = (targetId: string, claimControlId: string) => `${targetId}:${claimControlId}`;
   const willWrite = targets.filter((target) => !alreadyApplied(target)).length;
   const busy = guard.busy;
-  // What the confirm frame reads, so it never states a negative before its data arrives.
+  // What the confirm frame reads, so it never states a negative before its data arrives, and a
+  // profile's controls, which its adoption writes.
   const confirmQueries =
     source === "component"
       ? [
@@ -480,7 +482,9 @@ export function AddFromLibrary({
           implementations,
           ...(plan?.profile_resolution_id ? [planSelections] : []),
         ]
-      : [];
+      : source === "profile"
+        ? [profileControls]
+        : [];
   const confirmReady = confirmQueries.every((query) => query.data !== undefined);
   const needsRationale = source !== "requirement" && !rationale.trim();
   const elementType = elementTypeForComponent(chosen?.componentType ?? "other");
@@ -591,7 +595,7 @@ export function AddFromLibrary({
                 mode: "adopt",
                 catalogRevisionId: chosen.profile.catalogId,
                 profileResolutionId: chosen.profile.id,
-                controlIds: [...chosen.profile.controlIds].sort(),
+                controlIds: (profileControls.data ?? []).map((row) => row.control_id).sort(),
                 rationale,
               },
             });

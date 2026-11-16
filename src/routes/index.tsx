@@ -60,7 +60,6 @@ import {
   riskLevels,
   riskStatuses,
   severityLevels,
-  statusEntry,
 } from "@/lib/status";
 import { useWorkspace } from "@/components/app/workspace";
 import { Page } from "@/components/app/shell";
@@ -70,6 +69,7 @@ import { registerViews } from "@/lib/register-views";
 import {
   serverRead,
   useServerCountQueries,
+  useServerResultRows,
   useServerRows,
   type ServerRow,
 } from "@/lib/server-table";
@@ -90,10 +90,6 @@ const isLoading = (query: QueryStatus) =>
 const hasFailed = (query: QueryStatus) => query.isError && query.data === undefined;
 /** A tile's count, read on the server: its loading and its failure too, never a zero. */
 type CountQuery = ReturnType<typeof useServerCountQueries>[number];
-
-/** A severity's place in the order, highest first; an unassessed risk sorts last. */
-const severityRank = (value: string | null | undefined) =>
-  statusEntry(severityLevels, value)?.rank ?? -1;
 
 const openRisk = (status: string) => status !== "closed";
 const openIssue = (status: string) => !["closed", "resolved", "cancelled"].includes(status);
@@ -151,6 +147,36 @@ const findingCounts = serverRead({
   source: "assessment_finding_rows",
   model: "assessment_findings",
   columns: ["id", "determination"],
+});
+
+/*
+ * The risk widgets read the risk register's view, scoped to the open risks: never every risk and
+ * risk assessment of the workspace. The matrix reads each open risk's latest likelihood and impact
+ * alone, and Highest open risks its five rows, ordered on the server.
+ */
+const openRiskMatrixRead = serverRead({
+  source: "risk_rows",
+  model: "risks",
+  // A risk's likelihood and impact are its latest assessment's.
+  models: ["risk_revisions"],
+  columns: ["id", "likelihood", "impact"],
+  scope: { status: openRiskStatuses },
+});
+/**
+ * The open risks by their latest assessment's severity, the unassessed last, then the latest
+ * changed first, with their program's and owner's names.
+ */
+const highestOpenRisksRead = serverRead({
+  source: "risk_rows",
+  model: "risks",
+  // A new assessment changes a risk's latest severity.
+  models: ["risk_revisions"],
+  columns: ["id", "title", "status", "severity", "program_name", "owner_name"],
+  scope: { status: openRiskStatuses },
+  order: [
+    { column: "severity_rank", ascending: false },
+    { column: "updated_at", ascending: false },
+  ],
 });
 
 /**
@@ -342,6 +368,14 @@ function RiskMatrix({
   );
 }
 
+/** An open risk the matrix places, at its latest assessment. */
+type MatrixRisk = ServerRow<"risk_rows", "id" | "likelihood" | "impact">;
+/** One of the highest open risks, as the register's view reads it. */
+type HighestRisk = ServerRow<
+  "risk_rows",
+  "id" | "title" | "status" | "severity" | "program_name" | "owner_name",
+  "title" | "status"
+>;
 type RiskRow = {
   id: string;
   title: string;
@@ -349,8 +383,6 @@ type RiskRow = {
   severity: string | null;
   program: string | null;
   owner: string | null;
-  program_id: string;
-  updated_at: string;
 };
 /** A program the widget lists: its own fields, and the moment it last saw activity. */
 type ProgramRow = ServerRow<
@@ -409,11 +441,11 @@ function Portfolio() {
   const programs = useRows("programs", undefined, {
     columns: ["id", "name", "status"] as const,
   });
-  const risks = useRows("risks", undefined, {
-    columns: ["id", "title", "status", "program_id", "owner_party_id", "updated_at"] as const,
-  });
-  const riskVersions = useRows("risk_revisions", undefined, {
-    columns: ["id", "risk_id", "version_number", "severity", "likelihood", "impact"] as const,
+  // The open risks the matrix places, and the five highest of them, from the register's view.
+  const matrixRisks = useServerResultRows<MatrixRisk>(openRiskMatrixRead);
+  const highestRisks = useServerRows<HighestRisk>(highestOpenRisksRead, {
+    pageIndex: 0,
+    pageSize: TOP,
   });
   // Each tile's count and note: the server counts its register's question, rows unread.
   const [openRiskCount, unownedRiskCount] = useServerCountQueries(riskCounts, [
@@ -474,30 +506,6 @@ function Portfolio() {
     () => new Map((parties.data ?? []).map((row) => [row.id, row.name])),
     [parties.data],
   );
-  // Each risk's latest assessment: the severity the widget orders by, the likelihood and impact
-  // the matrix places it at.
-  const latestAssessment = useMemo(() => {
-    const latest = new Map<
-      string,
-      {
-        version: number;
-        severity: string | null;
-        likelihood: string | null;
-        impact: string | null;
-      }
-    >();
-    for (const version of riskVersions.data ?? []) {
-      const current = latest.get(version.risk_id);
-      if (!current || current.version < version.version_number)
-        latest.set(version.risk_id, {
-          version: version.version_number,
-          severity: version.severity,
-          likelihood: version.likelihood,
-          impact: version.impact,
-        });
-    }
-    return latest;
-  }, [riskVersions.data]);
 
   /** A note that counts the tile's high and critical records, once its count has loaded. */
   const severeNote = (count: CountQuery) =>
@@ -581,40 +589,29 @@ function Portfolio() {
   const matrix = useMemo(() => {
     const counts = new Map<string, number>();
     let unassessed = 0;
-    for (const risk of risks.data ?? []) {
-      if (!openRisk(risk.status)) continue;
-      const latest = latestAssessment.get(risk.id);
-      if (!latest?.likelihood || !latest.impact) {
+    for (const risk of matrixRisks.data ?? []) {
+      if (!risk.likelihood || !risk.impact) {
         unassessed += 1;
         continue;
       }
-      const key = `${latest.likelihood}|${latest.impact}`;
+      const key = `${risk.likelihood}|${risk.impact}`;
       counts.set(key, (counts.get(key) ?? 0) + 1);
     }
     return { counts, unassessed };
-  }, [risks.data, latestAssessment]);
+  }, [matrixRisks.data]);
 
+  // The five the server ordered, highest severity first, as the widget's rows.
   const riskRows = useMemo<RiskRow[]>(
     () =>
-      (risks.data ?? [])
-        .filter((row) => openRisk(row.status))
-        .map((row) => ({
-          id: row.id,
-          title: row.title,
-          status: row.status,
-          severity: latestAssessment.get(row.id)?.severity ?? null,
-          program: programName.get(row.program_id) ?? null,
-          owner: row.owner_party_id ? (partyName.get(row.owner_party_id) ?? null) : null,
-          program_id: row.program_id,
-          updated_at: row.updated_at,
-        }))
-        .sort(
-          (a, b) =>
-            severityRank(b.severity) - severityRank(a.severity) ||
-            b.updated_at.localeCompare(a.updated_at),
-        )
-        .slice(0, TOP),
-    [risks.data, latestAssessment, programName, partyName],
+      (highestRisks.data?.rows ?? []).map((row) => ({
+        id: row.id,
+        title: row.title,
+        status: row.status,
+        severity: row.severity,
+        program: row.program_name,
+        owner: row.owner_name,
+      })),
+    [highestRisks.data],
   );
   const riskColumns = useMemo(
     () =>
@@ -849,7 +846,7 @@ function Portfolio() {
               <RiskMatrix
                 counts={matrix.counts}
                 unassessed={matrix.unassessed}
-                queries={[risks, riskVersions]}
+                queries={[matrixRisks]}
               />
               <Widget
                 title="Highest open risks"
@@ -863,7 +860,7 @@ function Portfolio() {
                   </TextLink>
                 }
                 table={riskTable}
-                queries={[risks, riskVersions, programs, parties]}
+                queries={[highestRisks]}
                 retryLabel="Retry loading risks"
                 empty={{
                   title: "No open risks",

@@ -30,8 +30,10 @@ import {
   VisuallyHidden,
   toast,
 } from "@ledger/design-system";
-import { listRecords, saveRecord } from "@/lib/database";
+import { database, listRecords, requireIdentity } from "@/lib/database";
 import { useHeldFields } from "@/lib/held-fields";
+import { saveRecordOnce } from "@/lib/record-save";
+import { SaveOnceConflict } from "@/lib/save-once";
 import {
   defaultValue,
   isDerivedRecordField,
@@ -287,6 +289,11 @@ export function RecordEditor({
   const collections = catalog.data ?? NO_COLLECTIONS;
   const formId = useId();
   const [baseline] = useState(existing);
+  // The record's id is chosen once for the draft, so a retry after an uncertain answer finds its
+  // first try instead of creating the record twice; the draft's changes keep it.
+  const [id] = useState(() => baseline?.id ?? crypto.randomUUID());
+  // The columns this draft's inserts sent a value for (saveRecordOnce).
+  const sent = useRef(new Set<string>());
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const columns = useMemo(
@@ -482,29 +489,24 @@ export function RecordEditor({
     if (!guard.start()) return;
     let record: DataRecord;
     try {
-      record = await saveRecord(workspace, collection, payload, baseline);
+      ({ record } = await saveRecordOnce(
+        database(),
+        { tenantId: workspace.tenantId, token: await requireIdentity(workspace) },
+        collection,
+        { id, payload, existing: baseline, sent: sent.current },
+      ));
     } catch (cause) {
-      setFailure({
-        title: existing ? `The ${noun} was not saved` : `The ${noun} was not created`,
-        message: `${causeText(cause)} Your details are kept.`,
-      });
+      // A conflict found the record as it stands now: what lies behind the form reads it again.
+      if (cause instanceof SaveOnceConflict) refresh();
+      setFailure(failureOf(cause));
       guard.finish();
       return;
     }
     guard.release();
     setDirty(false);
     guard.finish();
-    // The write is confirmed; the lists refresh behind the next view.
-    void Promise.all(
-      [
-        ["records"],
-        ["record", workspace.tenantId, collection.name, record.id],
-        ["record-name", workspace.tenantId, collection.name, record.id],
-        ["models", workspace.tenantId, collection.name],
-        ["model", workspace.tenantId, collection.name],
-        ["reference-options", workspace.tenantId, collection.name],
-      ].map((queryKey) => queryClient.invalidateQueries({ queryKey })),
-    ).catch(() => {});
+    // The write is confirmed, or a first try already made it; the lists refresh behind the next view.
+    refresh();
     try {
       if (onSaved) {
         await onSaved(record);
@@ -524,6 +526,49 @@ export function RecordEditor({
         description: `The next view could not be opened. ${causeText(cause, "")}`.trim(),
       });
     }
+  }
+
+  /** Every read of the record and its collection, marked stale. */
+  function refresh() {
+    void Promise.all(
+      [
+        ["records"],
+        ["record", workspace.tenantId, collection.name, id],
+        ["record-name", workspace.tenantId, collection.name, id],
+        ["models", workspace.tenantId, collection.name],
+        ["model", workspace.tenantId, collection.name],
+        ["reference-options", workspace.tenantId, collection.name],
+      ].map((queryKey) => queryClient.invalidateQueries({ queryKey })),
+    ).catch(() => {});
+  }
+
+  /**
+   * Why the save stopped, in the form's words. The draft stays every time; a retry finds what a
+   * first try saved, so it never makes a second record, and a conflict says which one it met.
+   */
+  function failureOf(cause: unknown): { title: string; message: string } {
+    if (cause instanceof SaveOnceConflict && cause.reason === "different")
+      return {
+        title: `The ${noun} was already created`,
+        message: `An earlier try created this ${noun} before you changed its details. Your changes are kept; close the form and edit the ${noun} to apply them.`,
+      };
+    if (cause instanceof SaveOnceConflict)
+      return {
+        title: `The ${noun} was not saved`,
+        message:
+          cause.reason === "missing"
+            ? `This ${noun} is no longer available. Your changes are kept.`
+            : `This ${noun} changed in another session. Your changes are kept; close the form and edit the ${noun} again to load its current details.`,
+      };
+    return existing
+      ? {
+          title: `The ${noun} was not saved`,
+          message: `${causeText(cause)} Your changes are kept, so you can try again.`,
+        }
+      : {
+          title: `The ${noun} was not created`,
+          message: `${causeText(cause)} Your details are kept, and trying again will not make a second ${noun}.`,
+        };
   }
 
   function change(column: Column, next: string) {

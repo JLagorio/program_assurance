@@ -2,7 +2,8 @@
 /**
  * Shared async confirmations retain drafts, nest focus, and hold forms during saves. Closing a
  * create or edit Dialog by Cancel, Escape or Discard hands focus back to the control that opened
- * it, and every focus stop in the dialog keeps its ring in view (A11-12).
+ * it, and every focus stop in the dialog keeps its ring in view (A11-12). A create or edit whose
+ * answer is lost after its write landed is retried without a second record (create-once.mjs).
  */
 import assert from "node:assert/strict";
 import { mkdir, mkdtemp } from "node:fs/promises";
@@ -10,6 +11,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { chromium } from "playwright";
 import { expect as playwrightExpect } from "playwright/test";
+import { checkCreateOnce } from "./tests/create-once.mjs";
 import { checkFocusRings, expectFocusReturned, openerOf } from "./tests/focus-ring.mjs";
 import { localWorkspace } from "./tests/local-workspace.mjs";
 
@@ -324,6 +326,7 @@ try {
     1,
     "Retry creates one record; cancelled drafts create none",
   );
+  await checkCreateOnce({ page, origin, workspace, expect });
   // A library record's ProductRecordDialog uses the same domain noun as RecordEditor's primary.
   const definition = await insert("component_definitions", {
     code: "FORM-COMPONENT",

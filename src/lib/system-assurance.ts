@@ -1,4 +1,5 @@
 import type { Row } from "./models";
+import type { SystemCounts } from "./system-counts";
 import { systemTree, type SystemElement, type SystemTreeNode } from "./system-tree";
 
 export type Impact = "low" | "moderate" | "high";
@@ -12,7 +13,6 @@ export type SystemImpact = {
 export type SystemScopeSelection = {
   scope: Row<"scopes">;
   profileResolutionId: string | null;
-  controlCount: number | null;
   differs: boolean;
   conflicting: boolean;
 };
@@ -24,7 +24,7 @@ export type SystemAssuranceRow = SystemElement & {
   /** Maximum known descendant values, never an adopted system categorization. */
   childImpacts: Record<ImpactDimension, Impact | null>;
   effectiveBaseline: Row<"system_effective_baselines"> | undefined;
-  controlIds: string[];
+  /** The controls its control baseline selects; null without one. */
   controlCount: number | null;
   inheritedFrom: SystemElement | undefined;
   /** Unique known selections in this subtree; null means no resolved baseline. */
@@ -48,13 +48,12 @@ export type SystemAssuranceRow = SystemElement & {
   baselineDraft: boolean;
 };
 /**
- * The columns the projection reads from each input, so a caller reads no more than these: the
- * selections and allocations, which run to thousands of rows a program, without their own ids.
+ * The columns the projection reads from each input, so a caller reads no more than these. What it
+ * counts (the controls a baseline selects, the requirements allocated) the server counts, so no
+ * selection and no allocation is read (`program_system_counts`).
  */
 export const systemAssuranceColumns = {
-  selections: ["profile_resolution_id", "control_id"],
   scopeBaselines: ["id", "tenant_id", "scope_id", "profile_resolution_id", "adopted_at"],
-  allocations: ["system_id", "requirement_revision_id"],
   resolutions: ["id", "tenant_id", "profile_revision_id", "state"],
   profiles: ["id", "tenant_id", "profile_id", "title"],
   profileRecords: ["id", "tenant_id", "title"],
@@ -66,30 +65,19 @@ export type SystemAssuranceInput = {
   systems: SystemElement[];
   scopes: Row<"scopes">[];
   baselines: Row<"system_effective_baselines">[];
-  /** The selections of the resolutions the baselines and scope adoptions name. */
-  selections: Pick<Row<"selected_controls">, Columns<"selections">>[];
   scopeBaselines: Pick<Row<"scope_baselines">, Columns<"scopeBaselines">>[];
-  /** Requirement allocations; an element's count reads `system_id` exactly, never a cascade. */
-  allocations?: Pick<Row<"requirement_allocations">, Columns<"allocations">>[] | undefined;
+  /**
+   * What the server counts of each element and of everything inside it within its boundary: the
+   * controls its baseline selects and the requirement revisions allocated to it, each once. Until
+   * they are read an element counts no control (zero where it has a baseline) and no requirement.
+   */
+  counts?: readonly SystemCounts[] | undefined;
   /** Resolutions and profile revisions name the effective baseline. */
   resolutions?: Pick<Row<"profile_resolutions">, Columns<"resolutions">>[] | undefined;
   profiles?: Pick<Row<"profile_revisions">, Columns<"profiles">>[] | undefined;
   /** The stable profile records, whose `title` is the short name shown for every revision. */
   profileRecords?: Pick<Row<"profiles">, Columns<"profileRecords">>[] | undefined;
 };
-
-/**
- * The resolutions whose selected controls a program's rows count: each effective baseline's and
- * each scope adoption's. The selections are read for these alone, not the whole table.
- */
-export function assuranceResolutionIds(
-  baselines: readonly Pick<Row<"system_effective_baselines">, "profile_resolution_id">[],
-  scopeBaselines: readonly Pick<Row<"scope_baselines">, "profile_resolution_id">[],
-): string[] {
-  return [
-    ...new Set([...baselines, ...scopeBaselines].flatMap((row) => row.profile_resolution_id ?? [])),
-  ].sort();
-}
 
 /** What the Baseline column and the preview say about where the effective set comes from. */
 export function baselineSource(row: SystemAssuranceRow): string {
@@ -165,26 +153,12 @@ export function buildSystemAssuranceRows(input: SystemAssuranceInput): SystemAss
   const baselineBySystem = new Map(
     input.baselines.map((baseline) => [baseline.system_id, baseline]),
   );
-  const controlsByResolution = new Map<string, Set<string>>();
-  for (const selection of input.selections) {
-    const controls = controlsByResolution.get(selection.profile_resolution_id) ?? new Set<string>();
-    controls.add(selection.control_id);
-    controlsByResolution.set(selection.profile_resolution_id, controls);
-  }
+  const countsBySystem = new Map((input.counts ?? []).map((counts) => [counts.systemId, counts]));
   const adoptionsByScope = new Map<string, SystemAssuranceInput["scopeBaselines"]>();
   for (const adoption of input.scopeBaselines) {
     const current = adoptionsByScope.get(adoption.scope_id) ?? [];
     current.push(adoption);
     adoptionsByScope.set(adoption.scope_id, current);
-  }
-  const revisionsBySystem = new Map<string, Set<string>>();
-  // An allocation keeps to its system's workspace: its key names the system with the workspace.
-  for (const allocation of input.allocations ?? []) {
-    const element = allocation.system_id ? byId.get(allocation.system_id) : undefined;
-    if (!element) continue;
-    const current = revisionsBySystem.get(element.id) ?? new Set<string>();
-    current.add(allocation.requirement_revision_id);
-    revisionsBySystem.set(element.id, current);
   }
   const resolutionById = new Map((input.resolutions ?? []).map((row) => [row.id, row]));
   const profileById = new Map((input.profiles ?? []).map((row) => [row.id, row]));
@@ -199,11 +173,10 @@ export function buildSystemAssuranceRows(input: SystemAssuranceInput): SystemAss
     const resolutionId = effectiveBaseline?.profile_resolution_id;
     const resolution = resolutionId ? resolutionById.get(resolutionId) : undefined;
     const profile = resolution ? profileById.get(resolution.profile_revision_id) : undefined;
-    const ownRevisions = revisionsBySystem.get(system.id) ?? new Set<string>();
+    const counted = countsBySystem.get(system.id);
     const directScopes = [...(scopesByElement.get(system.id) ?? [])].sort((a, b) =>
       a.code.localeCompare(b.code, undefined, { numeric: true }),
     );
-    const controlIds = [...(controlsByResolution.get(resolutionId ?? "") ?? [])].sort();
     const source = byId.get(effectiveBaseline?.source_system_id ?? "");
     return {
       ...system,
@@ -216,19 +189,18 @@ export function buildSystemAssuranceRows(input: SystemAssuranceInput): SystemAss
       },
       childImpacts: { confidentiality: null, integrity: null, availability: null },
       effectiveBaseline,
-      controlIds,
-      controlCount: resolutionId ? controlIds.length : null,
+      controlCount: counted ? counted.controlCount : resolutionId ? 0 : null,
       inheritedFrom:
         effectiveBaseline?.inherited &&
         source?.tenant_id === system.tenant_id &&
         source.boundary_system_id === system.boundary_system_id
           ? source
           : undefined,
-      subtreeControlCount: resolutionId ? controlIds.length : null,
-      additionalChildControlCount: 0,
-      unresolvedDescendantCount: 0,
-      requirementCount: ownRevisions.size,
-      subtreeRequirementCount: ownRevisions.size,
+      subtreeControlCount: counted ? counted.subtreeControlCount : resolutionId ? 0 : null,
+      additionalChildControlCount: counted?.additionalChildControlCount ?? 0,
+      unresolvedDescendantCount: counted?.unresolvedDescendantCount ?? 0,
+      requirementCount: counted?.requirementCount ?? 0,
+      subtreeRequirementCount: counted?.subtreeRequirementCount ?? 0,
       baselineTitle: profile
         ? (profileRecordById.get(profile.profile_id)?.title ?? profile.title)
         : null,
@@ -248,9 +220,6 @@ export function buildSystemAssuranceRows(input: SystemAssuranceInput): SystemAss
         return {
           scope,
           profileResolutionId,
-          controlCount: profileResolutionId
-            ? (controlsByResolution.get(profileResolutionId)?.size ?? 0)
-            : null,
           differs: !!profileResolutionId && !!resolutionId && profileResolutionId !== resolutionId,
           conflicting: resolutions.size > 1,
         };
@@ -259,7 +228,8 @@ export function buildSystemAssuranceRows(input: SystemAssuranceInput): SystemAss
   });
 
   // Reuse the same cycle/orphan handling as the visible tree. A nested boundary
-  // remains visible in containment but never contributes to its parent's rollup.
+  // remains visible in containment but never contributes to its parent's rollup. The server
+  // counts the controls and requirements the same way (`program_system_counts`).
   const nodes = new Map<string, SystemTreeNode<SystemAssuranceRow>>();
   const pending = systemTree(rows);
   while (pending.length) {
@@ -293,23 +263,6 @@ export function buildSystemAssuranceRows(input: SystemAssuranceInput): SystemAss
         ]),
       );
     }
-    const allControls = new Set([
-      ...row.controlIds,
-      ...descendants.flatMap((child) => child.controlIds),
-    ]);
-    row.subtreeControlCount =
-      row.controlCount !== null || descendants.some((child) => child.controlCount !== null)
-        ? allControls.size
-        : null;
-    const ownControls = new Set(row.controlIds);
-    row.additionalChildControlCount = [...allControls].filter((id) => !ownControls.has(id)).length;
-    row.unresolvedDescendantCount = descendants.filter(
-      (child) => child.controlCount === null,
-    ).length;
-    row.subtreeRequirementCount = new Set([
-      ...(revisionsBySystem.get(row.id) ?? []),
-      ...descendants.flatMap((child) => [...(revisionsBySystem.get(child.id) ?? [])]),
-    ]).size;
   }
   return rows;
 }
