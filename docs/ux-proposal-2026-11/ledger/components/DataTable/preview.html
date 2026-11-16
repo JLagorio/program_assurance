@@ -1,0 +1,37 @@
+<!-- @dsCard group="Data" height=313 -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>DataTable</title>
+<style>
+body { margin: 0; background: var(--ds-elevation-surface); }
+.lx.l-card { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+.lx .l-spec { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 12px 16px; align-items: center; }
+.lx .l-spec > .t-label { align-self: center; }
+.lx .l-spec > .is-top { align-self: start; padding-top: 6px; }
+.lx .l-stage { position: relative; overflow: hidden; border: 1px solid var(--ds-color-border); border-radius: 10px; background: var(--ds-elevation-surface); }
+.lx .k-table .l-sel { width: 40px; padding-inline-end: 0; }
+.lx .k-table th.l-sel .k-check, .lx .k-table td.l-sel .k-check { vertical-align: middle; }
+</style>
+</head>
+<body style="margin:0">
+<div class="lx l-card">
+  <div class="k-tablebox">
+    <table class="k-table">
+      <thead>
+        <tr><th class="l-sel"><span class="k-check" role="checkbox" aria-checked="false" aria-label="Select all risks"></span></th><th class="is-fill">Risk</th><th>Severity</th><th>Status</th><th>Owner</th><th>Response due</th><th class="is-num">Techniques</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="l-sel"><span class="k-check"></span></td><td class="is-fill"><a class="k-name">Payload arm and release records become unverifiable as signing keys rotate</a></td><td><span class="row g-075 c-danger w-600"><span class="k-dot t-danger"></span>Critical</span></td><td><span class="k-badge">Open</span></td><td><span class="c-subtle" role="img" aria-label="No owner">—</span></td><td><span class="k-date is-overdue"><svg class="i s-12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>Nov 2, 2026 · <b class="w-500">Overdue</b></span></td><td class="is-num">2</td></tr>
+        <tr class="is-selected"><td class="l-sel"><span class="k-check is-on"><svg class="i s-12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span></td><td class="is-fill"><a class="k-name">Risk arising from REQ-008</a></td><td><span class="row g-075"><span class="k-dot t-danger"></span>High</span></td><td><span class="k-badge">Open</span></td><td><span class="c-subtle" role="img" aria-label="No owner">—</span></td><td><span class="k-date is-overdue"><svg class="i s-12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>Oct 9, 2026 · <b class="w-500">Overdue</b></span></td><td class="is-num">1</td></tr>
+        <tr class="is-selected"><td class="l-sel"><span class="k-check is-on"><svg class="i s-12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span></td><td class="is-fill"><a class="k-name">Risk arising from REQ-068</a></td><td><span class="row g-075"><span class="k-dot t-danger"></span>High</span></td><td><span class="k-badge">Open</span></td><td><span class="c-subtle" role="img" aria-label="No owner">—</span></td><td><span class="k-date is-overdue"><svg class="i s-12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>Oct 12, 2026 · <b class="w-500">Overdue</b></span></td><td class="is-num">0</td></tr>
+        <tr class="is-hover"><td class="l-sel"><span class="k-check"></span></td><td class="is-fill"><a class="k-name">Low-rate exhaustion and unattributable egress at the WS-X90 external boundary</a></td><td><span class="row g-075"><span class="k-dot t-danger"></span>High</span></td><td><span class="k-badge t-info">Responding</span></td><td>Joel Barrantes</td><td><span class="k-date"><svg class="i s-12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 18h.01"/><path d="M12 18h.01"/><path d="M16 18h.01"/></svg>Nov 22, 2026</span></td><td class="is-num">3</td></tr>
+        <tr><td class="l-sel"><span class="k-check"></span></td><td class="is-fill"><a class="k-name">An unsealed service connector leaves a physical route into the maintenance path</a></td><td><span class="row g-075"><span class="k-dot t-warning"></span>Moderate</span></td><td><span class="k-badge t-info">Investigating</span></td><td>Ingrid Solberg</td><td><span class="k-date"><svg class="i s-12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 18h.01"/><path d="M12 18h.01"/><path d="M16 18h.01"/></svg>Dec 8, 2026</span></td><td class="is-num">1</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="row between c-subtle"><span>1–25 of 40 risks</span><span class="row g-050"><a class="k-btn is-subtle is-icon s-xs" aria-disabled="true" aria-label="Previous page"><svg class="i s-14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></a><a class="k-btn is-subtle is-icon s-xs" aria-label="Next page"><svg class="i s-14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span></div>
+</div>
+</body>
+</html>

@@ -1,0 +1,148 @@
+<!-- @dsCard group="Proposed" height=900 width=1440 page -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Page type: Overview</title>
+<style>
+body { margin: 0; background: var(--ds-elevation-surface); }
+.lx.l-card { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+.lx .l-spec { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 12px 16px; align-items: center; }
+.lx .l-spec > .t-label { align-self: center; }
+.lx .l-spec > .is-top { align-self: start; padding-top: 6px; }
+.lx .l-stage { position: relative; overflow: hidden; border: 1px solid var(--ds-color-border); border-radius: 10px; background: var(--ds-elevation-surface); }
+/* WS-X90 · Overview (page type Overview). Layout, and one part first used here (notes/sys-overview.md):
+   nx-famrows  one bar a family on one shared scale, in the standing fills (after the `controls` board):
+               the largest family is the full track, a hairline every 20 controls */
+.b-sys-overview .l-auth { color: var(--ds-color-text-subtle); }
+
+/* the chart beside the next fixes, under the tile band */
+.b-sys-overview .l-cols { display: grid; grid-template-columns: minmax(0, 1.84fr) minmax(0, 1fr); gap: 40px; align-items: start; padding-top: 12px; min-width: 0; }
+.b-sys-overview .l-chart { gap: 12px; }
+/* the key on one line: its counts are the standing of all 560 */
+.b-sys-overview .nx-key-row { flex-wrap: nowrap; gap: 12px; }
+
+.b-sys-overview .nx-famrows { position: relative; display: flex; flex-direction: column; min-width: 0; padding-top: 4px; }
+.b-sys-overview .nx-famrows::before { content: ""; position: absolute; inset-block: 0 20px; inset-inline: 40px 0; background: repeating-linear-gradient(to right, transparent 0 calc(29.412% - 1px), var(--ds-color-border) calc(29.412% - 1px) 29.412%); pointer-events: none; }
+.b-sys-overview .nx-famrows__row { position: relative; display: grid; grid-template-columns: 28px minmax(0, 1fr); column-gap: 12px; align-items: center; height: 22px; }
+.b-sys-overview .nx-famrows__row > b { font: 500 12px/16px var(--font-sans); color: var(--ds-color-text); }
+.b-sys-overview .nx-famrows__bar { display: flex; gap: 1px; height: 12px; border-radius: 2px; overflow: hidden; min-width: 0; }
+.b-sys-overview .nx-famrows__bar > i { min-width: 3px; }
+.b-sys-overview .nx-famrows__axis { position: relative; height: 20px; margin-inline-start: 40px; }
+.b-sys-overview .nx-famrows__axis > span { position: absolute; top: 4px; transform: translateX(-50%); font: 400 11px/14px var(--font-sans); color: var(--ds-color-text-subtlest); }
+
+/* next fixes: the verb, what it is done on and what that moves, the gain on one scale */
+.b-sys-overview .l-fixes { gap: 4px; }
+.b-sys-overview .l-fixrows td { height: 48px; padding-inline: 8px; }
+.b-sys-overview .l-fixrows td:first-child { padding-inline-start: 12px; }
+.b-sys-overview .l-fixrows td:last-child { padding-inline-end: 12px; }
+.b-sys-overview .l-fixrows tr:first-child td { border-top: 1px solid var(--ds-color-border); }
+.b-sys-overview .l-fixrows td.is-fill > * { vertical-align: middle; }
+.b-sys-overview .l-fixrows td.is-fill > svg.i { margin-inline: 6px; color: var(--ds-color-icon-subtlest); }
+.b-sys-overview .l-gain { text-align: end; }
+.b-sys-overview .l-gain > b { display: inline-block; min-width: 32px; font-weight: 600; vertical-align: middle; }
+.b-sys-overview .l-gain__bar { display: inline-flex; width: 56px; height: 6px; margin-inline-end: 8px; border-radius: 9999px; background: var(--nx-track); overflow: hidden; vertical-align: middle; }
+.b-sys-overview .l-gain__bar > i { display: block; height: 100%; border-radius: 9999px; background: var(--nx-ink-3); }
+</style>
+</head>
+<body style="margin:0">
+<div class="lx k-app b-sys-overview">
+<header class="k-topnav"><div class="k-topnav-start"><span class="k-mark"></span><span class="k-app-name grow truncate">Program Assurance</span><span class="k-btn is-subtle is-icon"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/></svg></span></div><div class="k-topnav-middle"><div class="k-search"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg><span class="grow truncate">Search or jump to…</span><span class="k-kbd">⌘</span><span class="k-kbd">K</span></div></div><div class="k-topnav-end"><span class="k-btn is-subtle is-icon"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg></span><span class="k-avatar">IS</span></div></header>
+<nav class="k-sidenav nx-sysnav" aria-label="Main"><div class="k-nav-body"><div class="k-nav-section"><a class="k-nav-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span class="grow truncate">Home</span></a></div><a class="nx-sysswitch" aria-label="Change scope"><span class="nx-sysswitch__mark">WS</span><span class="nx-sysswitch__text"><span class="nx-sysswitch__id"><b>WS-X90</b><span>High</span></span><span class="nx-sysswitch__name truncate">Sentinel Mission System</span></span><svg class="i s-14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></svg></a><div class="k-nav-section nx-sysnav__chain"><a class="k-nav-item" aria-current="page"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg><span class="grow truncate">Overview</span></a><a class="k-nav-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.97 12.92A2 2 0 0 0 2 14.63v3.24a2 2 0 0 0 .97 1.71l3 1.8a2 2 0 0 0 2.06 0L12 19v-5.5l-5-3-4.03 2.42Z"/><path d="m7 16.5-4.74-2.85"/><path d="m7 16.5 5-3"/><path d="M7 16.5v5.17"/><path d="M12 13.5V19l3.97 2.38a2 2 0 0 0 2.06 0l3-1.8a2 2 0 0 0 .97-1.71v-3.24a2 2 0 0 0-.97-1.71L17 10.5l-5 3Z"/><path d="m17 16.5-5-3"/><path d="m17 16.5 4.74-2.85"/><path d="M17 16.5v5.17"/><path d="M7.97 4.42A2 2 0 0 0 7 6.13v4.37l5 3 5-3V6.13a2 2 0 0 0-.97-1.71l-3-1.8a2 2 0 0 0-2.06 0l-3 1.8Z"/><path d="M12 8 7.26 5.15"/><path d="m12 8 4.74-2.85"/><path d="M12 13.5V8"/></svg><span class="grow truncate">System</span></a><a class="k-nav-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z"/><path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12"/><path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17"/></svg><span class="grow truncate">Baseline</span></a><a class="k-nav-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg><span class="grow truncate">Controls</span></a><a class="k-nav-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 5h8"/><path d="M13 12h8"/><path d="M13 19h8"/><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/></svg><span class="grow truncate">Requirements</span></a><a class="k-nav-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.5 22H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.706.706l3.588 3.588A2.4 2.4 0 0 1 20 8v6"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="m14 20 2 2 4-4"/></svg><span class="grow truncate">Evidence</span><span class="k-count">54</span></a><a class="k-nav-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><circle cx="12" cy="12" r="3"/><path d="m16 16-1.9-1.9"/></svg><span class="grow truncate">Findings</span></a><a class="k-nav-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg><span class="grow truncate">POA&amp;M</span></a><a class="k-nav-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg><span class="grow truncate">Risks</span></a></div><div class="k-nav-section nx-sysnav__quiet"><span class="k-nav-heading">Assess and authorize</span><a class="k-nav-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="m9 14 2 2 4-4"/></svg><span class="grow truncate">Assessments</span></a><a class="k-nav-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 13V8.5C14 7 15 7 15 5a3 3 0 0 0-6 0c0 2 1 2 1 3.5V13"/><path d="M20 15.5a2.5 2.5 0 0 0-2.5-2.5h-11A2.5 2.5 0 0 0 4 15.5V17a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1z"/><path d="M5 22h14"/></svg><span class="grow truncate">Authorization</span></a></div></div><div class="k-nav-footer"><div class="k-nav-section"><a class="k-nav-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/></svg><span class="grow truncate">Library</span></a></div><div class="k-profile"><span class="k-avatar">IS</span><div class="col g-0 grow"><span class="truncate w-500">Ingrid Solberg</span><span class="t-small c-subtle truncate">System security engineer</span></div></div></div></nav>
+  <main class="k-main">
+    <div class="k-pagehead">
+      <div class="k-titlebar">
+        <h1 class="k-title truncate">WS-X90 Sentinel Mission System</h1>
+        <div class="nx-slot">
+          <span class="nx-slot__why"><b>REQ-052 cites none</b><span>+38 objectives</span></span>
+          <a class="k-btn is-primary s-lg">Add evidence<span class="nx-key">↵</span></a>
+          <button class="k-btn is-subtle is-icon s-lg" aria-label="More actions"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button>
+        </div>
+      </div>
+      <div class="nx-facts">
+        <span>Categorization <b>High · High · Moderate</b></span>
+        <a class="k-link l-auth">ATO with conditions · PDR 35d late</a>
+      </div>
+    </div>
+    <div class="nx-tiles" role="group" aria-label="The chain, in numbers">
+      <a class="nx-tile">
+        <span class="nx-tile__label">Controls implemented<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span>
+        <span class="nx-tile__figure">162 <span class="of">of 560</span></span>
+        <span class="nx-tile__meter" aria-hidden="true"><i class="m-ink" style="flex: 162"></i><i class="m-na" style="flex: 216"></i><b style="flex: 182"></b></span>
+        <span class="nx-tile__sub">Partial <b>216</b></span>
+      </a>
+      <a class="nx-tile">
+        <span class="nx-tile__label">Evidence verified<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span>
+        <span class="nx-tile__figure">226 <span class="of">of 368</span></span>
+        <span class="nx-tile__meter" aria-hidden="true"><i class="m-sat" style="flex: 226"></i><i class="m-part" style="flex: 54"></i><b style="flex: 88"></b></span>
+        <span class="nx-tile__sub t-warning">Needs revision <b>54</b></span>
+      </a>
+      <a class="nx-tile">
+        <span class="nx-tile__label">Controls satisfied<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span>
+        <span class="nx-tile__figure">174 <span class="of">of 560</span></span>
+        <span class="nx-tile__meter" aria-hidden="true"><i class="m-sat" style="flex: 174"></i><i class="m-other" style="flex: 13"></i><b style="flex: 373"></b></span>
+        <span class="nx-tile__sub t-danger">Not satisfied <b>13</b></span>
+      </a>
+      <a class="nx-tile">
+        <span class="nx-tile__label">Open findings<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span>
+        <span class="nx-tile__figure">43</span>
+        <span class="nx-tile__meter" aria-hidden="true"><i class="m-crit" style="flex: 2"></i><i class="m-other" style="flex: 11"></i><b style="flex: 30"></b></span>
+        <span class="nx-tile__sub t-danger">High+ <b>13</b></span>
+      </a>
+      <a class="nx-tile">
+        <span class="nx-tile__label">POA&amp;M items late<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span>
+        <span class="nx-tile__figure">11 <span class="of">of 33</span></span>
+        <span class="nx-tile__meter" aria-hidden="true"><i class="m-other" style="flex: 11"></i><b style="flex: 22"></b></span>
+        <span class="nx-tile__sub t-danger">High+ <b>3</b></span>
+      </a>
+    </div>
+    <div class="l-cols">
+      <section class="k-section l-chart" aria-label="Controls by family">
+        <div class="k-section-head"><h2 class="k-section-title">Controls by family</h2></div>
+        <div class="nx-key-row">
+          <a><i class="m-other"></i>Not satisfied <b>13</b></a>
+          <a><i class="m-part"></i>Partially satisfied <b>34</b></a>
+          <a><i class="m-sat"></i>Satisfied <b>174</b></a>
+          <a><i class="m-na"></i>Not assessed <b>90</b></a>
+          <a><i class="m-noev"></i>No evidence <b>235</b></a>
+          <a><i class="m-noreq"></i>No requirement <b>14</b></a>
+        </div>
+        <div class="nx-famrows">
+          <a class="nx-famrows__row"><b>AC</b><span class="nx-famrows__bar" style="width: 76.5%"><i class="m-other" style="flex: 1"></i><i class="m-part" style="flex: 4"></i><i class="m-sat" style="flex: 24"></i><i class="m-na" style="flex: 7"></i><i class="m-noev" style="flex: 15"></i><i class="m-noreq" style="flex: 1"></i></span></a>
+          <a class="nx-famrows__row"><b>AT</b><span class="nx-famrows__bar" style="width: 17.6%"><i class="m-sat" style="flex: 1"></i><i class="m-na" style="flex: 1"></i><i class="m-noev" style="flex: 10"></i></span></a>
+          <a class="nx-famrows__row"><b>AU</b><span class="nx-famrows__bar" style="width: 51.5%"><i class="m-other" style="flex: 2"></i><i class="m-part" style="flex: 5"></i><i class="m-sat" style="flex: 16"></i><i class="m-na" style="flex: 2"></i><i class="m-noev" style="flex: 10"></i></span></a>
+          <a class="nx-famrows__row"><b>CA</b><span class="nx-famrows__bar" style="width: 26.5%"><i class="m-part" style="flex: 2"></i><i class="m-sat" style="flex: 6"></i><i class="m-na" style="flex: 4"></i><i class="m-noev" style="flex: 6"></i></span></a>
+          <a class="nx-famrows__row"><b>CM</b><span class="nx-famrows__bar" style="width: 63.2%"><i class="m-other" style="flex: 1"></i><i class="m-part" style="flex: 5"></i><i class="m-sat" style="flex: 17"></i><i class="m-na" style="flex: 9"></i><i class="m-noev" style="flex: 11"></i></span></a>
+          <a class="nx-famrows__row"><b>CP</b><span class="nx-famrows__bar" style="width: 39.7%"><i class="m-part" style="flex: 3"></i><i class="m-sat" style="flex: 8"></i><i class="m-na" style="flex: 1"></i><i class="m-noev" style="flex: 12"></i><i class="m-noreq" style="flex: 3"></i></span></a>
+          <a class="nx-famrows__row"><b>IA</b><span class="nx-famrows__bar" style="width: 52.9%"><i class="m-other" style="flex: 1"></i><i class="m-part" style="flex: 1"></i><i class="m-sat" style="flex: 3"></i><i class="m-na" style="flex: 20"></i><i class="m-noev" style="flex: 11"></i></span></a>
+          <a class="nx-famrows__row"><b>IR</b><span class="nx-famrows__bar" style="width: 47.1%"><i class="m-part" style="flex: 2"></i><i class="m-sat" style="flex: 9"></i><i class="m-na" style="flex: 3"></i><i class="m-noev" style="flex: 18"></i></span></a>
+          <a class="nx-famrows__row"><b>MA</b><span class="nx-famrows__bar" style="width: 29.4%"><i class="m-part" style="flex: 2"></i><i class="m-sat" style="flex: 5"></i><i class="m-na" style="flex: 5"></i><i class="m-noev" style="flex: 8"></i></span></a>
+          <a class="nx-famrows__row"><b>MP</b><span class="nx-famrows__bar" style="width: 14.7%"><i class="m-sat" style="flex: 1"></i><i class="m-na" style="flex: 4"></i><i class="m-noev" style="flex: 5"></i></span></a>
+          <a class="nx-famrows__row"><b>PE</b><span class="nx-famrows__bar" style="width: 38.2%"><i class="m-other" style="flex: 1"></i><i class="m-sat" style="flex: 7"></i><i class="m-na" style="flex: 2"></i><i class="m-noev" style="flex: 16"></i></span></a>
+          <a class="nx-famrows__row"><b>PL</b><span class="nx-famrows__bar" style="width: 16.2%"><i class="m-sat" style="flex: 3"></i><i class="m-na" style="flex: 1"></i><i class="m-noev" style="flex: 7"></i></span></a>
+          <a class="nx-famrows__row"><b>PS</b><span class="nx-famrows__bar" style="width: 19.1%"><i class="m-part" style="flex: 1"></i><i class="m-sat" style="flex: 5"></i><i class="m-na" style="flex: 1"></i><i class="m-noev" style="flex: 6"></i></span></a>
+          <a class="nx-famrows__row"><b>RA</b><span class="nx-famrows__bar" style="width: 22.1%"><i class="m-part" style="flex: 2"></i><i class="m-sat" style="flex: 4"></i><i class="m-na" style="flex: 2"></i><i class="m-noev" style="flex: 7"></i></span></a>
+          <a class="nx-famrows__row"><b>SA</b><span class="nx-famrows__bar" style="width: 100%"><i class="m-other" style="flex: 1"></i><i class="m-part" style="flex: 2"></i><i class="m-sat" style="flex: 12"></i><i class="m-na" style="flex: 7"></i><i class="m-noev" style="flex: 45"></i><i class="m-noreq" style="flex: 1"></i></span></a>
+          <a class="nx-famrows__row"><b>SC</b><span class="nx-famrows__bar" style="width: 97.1%"><i class="m-other" style="flex: 4"></i><i class="m-part" style="flex: 3"></i><i class="m-sat" style="flex: 25"></i><i class="m-na" style="flex: 10"></i><i class="m-noev" style="flex: 18"></i><i class="m-noreq" style="flex: 6"></i></span></a>
+          <a class="nx-famrows__row"><b>SI</b><span class="nx-famrows__bar" style="width: 79.4%"><i class="m-other" style="flex: 2"></i><i class="m-part" style="flex: 1"></i><i class="m-sat" style="flex: 22"></i><i class="m-na" style="flex: 7"></i><i class="m-noev" style="flex: 19"></i><i class="m-noreq" style="flex: 3"></i></span></a>
+          <a class="nx-famrows__row"><b>SR</b><span class="nx-famrows__bar" style="width: 32.4%"><i class="m-part" style="flex: 1"></i><i class="m-sat" style="flex: 6"></i><i class="m-na" style="flex: 4"></i><i class="m-noev" style="flex: 11"></i></span></a>
+          <div class="nx-famrows__axis" aria-hidden="true"><span style="left: 29.4%">20</span><span style="left: 58.8%">40</span><span style="left: 88.2%">60</span></div>
+        </div>
+      </section>
+      <section class="k-section l-fixes" aria-label="Next fixes">
+        <div class="k-section-head"><h2 class="k-section-title">Next fixes</h2><span class="c-subtle">by objectives moved</span><div class="k-section-actions"><a class="nx-unowned">No owner</a></div></div>
+        <table class="k-table l-fixrows">
+          <tbody>
+            <tr class="is-selected"><td><a class="k-name">Add evidence</a></td><td class="is-fill"><a class="k-link">REQ-052</a><svg class="i s-12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg><a>PL-2</a></td><td class="l-gain"><span class="l-gain__bar"><i style="width: 100%"></i></span><b>+38</b></td></tr>
+            <tr><td><a class="k-link">Add evidence</a></td><td class="is-fill"><a class="k-link">REQ-372</a><svg class="i s-12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg><a>MA-1</a></td><td class="l-gain"><span class="l-gain__bar"><i style="width: 44.7%"></i></span><b>+17</b></td></tr>
+            <tr><td><a class="k-link">Add evidence</a></td><td class="is-fill"><a class="k-link">REQ-390</a><svg class="i s-12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg><a>PE-1</a></td><td class="l-gain"><span class="l-gain__bar"><i style="width: 44.7%"></i></span><b>+17</b></td></tr>
+            <tr><td><a class="k-link">Add to assessment</a></td><td class="is-fill"><a class="k-link">IR-8</a></td><td class="l-gain"><span class="l-gain__bar"><i style="width: 44.7%"></i></span><b>+17</b></td></tr>
+            <tr><td><a class="k-link">Add to assessment</a></td><td class="is-fill"><a class="k-link">MP-1</a></td><td class="l-gain"><span class="l-gain__bar"><i style="width: 44.7%"></i></span><b>+17</b></td></tr>
+          </tbody>
+        </table>
+      </section>
+    </div>
+  </main>
+</div>
+</body>
+</html>

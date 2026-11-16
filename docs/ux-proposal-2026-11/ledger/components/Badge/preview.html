@@ -1,0 +1,42 @@
+<!-- @dsCard group="Status" height=192 -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Badge</title>
+<style>
+body { margin: 0; background: var(--ds-elevation-surface); }
+.lx.l-card { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+.lx .l-spec { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 12px 16px; align-items: center; }
+.lx .l-spec > .t-label { align-self: center; }
+.lx .l-spec > .is-top { align-self: start; padding-top: 6px; }
+.lx .l-stage { position: relative; overflow: hidden; border: 1px solid var(--ds-color-border); border-radius: 10px; background: var(--ds-elevation-surface); }
+</style>
+</head>
+<body style="margin:0">
+<div class="lx l-card">
+  <div class="l-spec">
+    <span class="t-label">Control status</span>
+    <div class="row wrap">
+      <span class="k-badge">No requirement</span><span class="k-badge t-warning">No evidence</span><span class="k-badge t-info">Not assessed</span><span class="k-badge t-danger">Other than satisfied</span><span class="k-badge t-warning">Partially satisfied</span><span class="k-badge t-success">Satisfied</span>
+    </div>
+    <span class="t-label">Task status</span>
+    <div class="row wrap">
+      <span class="k-badge">Open</span><span class="k-badge t-info">In progress</span><span class="k-badge t-warning">Waiting</span><span class="k-badge t-danger">Blocked</span><span class="k-badge t-success">Done</span><span class="k-badge">Cancelled</span>
+    </div>
+    <span class="t-label">Accents</span>
+    <div class="row wrap">
+      <span class="k-badge t-teal">Modified</span><span class="k-badge t-purple">Inherited</span><span class="k-badge is-outline">Draft</span>
+    </div>
+    <span class="t-label">Bold</span>
+    <div class="row wrap">
+      <span class="k-badge is-bold">Open</span><span class="k-badge is-bold t-info">In review</span><span class="k-badge is-bold t-success">Accepted</span><span class="k-badge is-bold t-warning">Needs revision</span><span class="k-badge is-bold t-danger">Blocked</span>
+    </div>
+    <span class="t-label">Sizes</span>
+    <div class="row wrap">
+      <span class="k-badge s-xs t-success">Satisfied</span><span class="k-badge t-success">Satisfied</span><span class="k-badge s-md t-success">Satisfied</span>
+    </div>
+  </div>
+</div>
+</body>
+</html>

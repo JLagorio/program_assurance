@@ -1,0 +1,352 @@
+<!-- @dsCard group="Proposed" height=2576 width=1440 page -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Time: rail, path cell, clocks</title>
+<style>
+body { margin: 0; background: var(--ds-elevation-surface); }
+.lx.l-card { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+.lx .l-spec { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 12px 16px; align-items: center; }
+.lx .l-spec > .t-label { align-self: center; }
+.lx .l-spec > .is-top { align-self: start; padding-top: 6px; }
+.lx .l-stage { position: relative; overflow: hidden; border: 1px solid var(--ds-color-border); border-radius: 10px; background: var(--ds-elevation-surface); }
+</style>
+</head>
+<body style="margin:0">
+<div class="lx nx-sheet b-sheet-rail">
+  <div class="col g-100">
+    <h1 class="nx-sheet__title">The path, and time on one line</h1>
+    <p class="nx-sheet__lede">A record is stops on one rail with one stage open; whatever runs out is one line past today.</p>
+  </div>
+
+  <section class="nx-spec">
+    <div class="l-label"><span class="nx-spec__label">Path, dated · measure, node, stop, today rule · the open stage: head, checks, foot</span><code class="mono c-subtlest">nx-path is-dated · nx-stage</code></div>
+    <div class="nx-spec__stage">
+      <div class="l-hero">
+        <div class="col g-200">
+          <span class="t-small c-subtle">WS-X90 Sentinel Mission System</span>
+          <ol class="nx-path is-dated l-keyed" aria-label="WS-X90, dated path">
+            <li class="nx-path__stop is-major is-walked">
+              <span class="t-label l-key">Signed</span>
+              <span class="nx-path__when">Sep 18</span>
+              <span class="nx-path__node is-done is-signed"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+              <div class="nx-stop"><div class="nx-stop__body"><a class="nx-stop__name">Authorization decision</a><span class="nx-stop__fact">SYS-WSX90 · signed</span></div><span class="nx-stop__end"><span class="nx-person"><span class="k-avatar s-xs">RC</span>R. Calloway</span></span></div>
+            </li>
+            <li class="nx-path__stop is-open is-walked">
+              <span class="t-label l-key">Open</span>
+              <span class="nx-path__when is-late">Oct 10</span>
+              <span class="nx-path__node is-gate is-here"></span>
+              <section class="nx-stage" aria-label="PDR">
+                <div class="nx-stage__head"><h2 class="nx-stage__title">PDR</h2><span class="nx-stage__state">In review</span></div>
+                <div class="nx-stage__body">
+                  <div class="nx-checklist">
+                    <div class="nx-check is-next"><span class="nx-check__mark"></span><span class="nx-check__label"><b>Criteria</b> · 0 recorded</span><span class="nx-check__end"><span class="c-subtle">yours</span></span></div>
+                    <div class="nx-check is-na"><span class="nx-check__mark"></span><span class="nx-check__label"><b>Decision</b> · after criteria</span><span class="nx-check__end"><span class="nx-person"><span class="k-avatar s-xs">PR</span>Priya Raghavan</span><span class="c-subtle">gate chair</span></span></div>
+                  </div>
+                </div>
+              </section>
+            </li>
+            <li class="nx-path__stop is-major is-walked">
+              <span class="t-label l-key">Gate</span>
+              <span class="nx-path__when">After PDR</span>
+              <span class="nx-path__node is-gate"></span>
+              <div class="nx-stop"><div class="nx-stop__body"><span class="nx-stop__name">CDR</span></div></div>
+            </li>
+            <li class="nx-path__stop is-walked">
+              <span class="t-label l-key">Done</span>
+              <span class="nx-path__when">Oct 14</span>
+              <span class="nx-path__node is-done"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+              <div class="nx-stop"><div class="nx-stop__body"><a class="nx-stop__name">SCAP compliance scan — maintenance laptop (Windows 11)</a><span class="nx-stop__fact">completed</span></div><span class="nx-stop__end"><span class="nx-person"><span class="k-avatar s-xs">JB</span>Joel Barrantes</span></span></div>
+            </li>
+            <li class="nx-path__stop is-walked">
+              <span class="t-label l-key">Late</span>
+              <span class="nx-path__when is-late">3d late</span>
+              <span class="nx-path__node is-work t-danger"></span>
+              <div class="nx-stop"><div class="nx-stop__body"><a class="nx-stop__name">Monthly STIG compliance scan</a><span class="nx-late">Blocked</span></div><span class="nx-stop__end"><span class="nx-person"><span class="k-avatar s-xs">JB</span>Joel Barrantes</span></span></div>
+            </li>
+            <li class="nx-path__stop is-walked">
+              <span class="t-label l-key">Published</span>
+              <span class="nx-path__when">Nov 12</span>
+              <span class="nx-path__node is-done is-signed"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+              <div class="nx-stop"><div class="nx-stop__body"><span class="nx-stop__name">Expanded control set assessment, increment 1</span><span class="nx-stop__fact">published</span></div><span class="nx-stop__end"><span class="nx-person"><span class="k-avatar s-xs">DO</span>D. Okafor</span></span></div>
+            </li>
+            <li class="nx-path__today"><b>Today</b><i></i></li>
+            <li class="nx-path__stop">
+              <span class="t-label l-key">Work</span>
+              <span class="nx-path__when">Nov 20</span>
+              <span class="nx-path__node is-work"></span>
+              <div class="nx-stop"><div class="nx-stop__body"><a class="nx-stop__name">Expanded control set assessment, increment 2</a><span class="nx-stop__fact">56 of 58 judged</span></div><span class="nx-stop__end">Publish results<span class="nx-person"><span class="k-avatar s-xs">DO</span>D. Okafor</span></span></div>
+            </li>
+            <li class="nx-path__stop">
+              <span class="t-label l-key">Hover</span>
+              <span class="nx-path__when">Nov 21</span>
+              <span class="nx-path__node is-work"></span>
+              <div class="nx-stop is-hover"><div class="nx-stop__body"><a class="nx-stop__name">Monthly POA&amp;M review</a><span class="nx-stop__fact">Ready</span></div><span class="nx-stop__end"><span class="nx-person"><span class="k-avatar s-xs">PR</span>Priya Raghavan</span></span></div>
+            </li>
+            <li class="nx-path__stop is-major">
+              <span class="t-label l-key">At risk</span>
+              <span class="nx-path__when">Dec 17</span>
+              <span class="nx-path__node t-warning"></span>
+              <div class="nx-stop"><div class="nx-stop__body"><a class="nx-stop__name">Condition 1</a><span class="nx-stop__count"><span class="nx-meter" aria-hidden="true"><i class="is-met"></i><i class="is-late"></i><i class="is-late"></i><i class="is-late"></i><i class="is-risk"></i><i class="is-risk"></i><i class="is-risk"></i><i class="is-risk"></i><i class="is-risk"></i><i class="is-risk"></i><i class="is-risk"></i><i class="is-risk"></i></span>1 of 12</span><span class="nx-risk">8 planned after it</span></div><span class="nx-stop__end"><span class="nx-unowned">No owner</span></span></div>
+            </li>
+            <li class="nx-path__stop is-major">
+              <span class="t-label l-key">Decision</span>
+              <span class="nx-path__when">Sep 18, 2027</span>
+              <span class="nx-path__node"></span>
+              <div class="nx-stop"><div class="nx-stop__body"><a class="nx-stop__name">Annual authorization review</a><span class="nx-stop__count"><span class="nx-meter" aria-hidden="true"><i class="is-met"></i><i class="is-met"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>2 of 10 checks</span></div></div>
+            </li>
+            <li class="nx-path__stop is-major">
+              <span class="t-label l-key">End</span>
+              <span class="nx-path__when">Sep 17, 2029</span>
+              <span class="nx-path__node is-end"></span>
+              <div class="nx-stop"><div class="nx-stop__body"><span class="nx-stop__name">ATD</span></div></div>
+            </li>
+          </ol>
+        </div>
+        <div class="l-stages">
+          <div class="col g-100">
+            <span class="t-label">Waiting</span>
+            <section class="nx-stage" aria-label="PDR, waiting">
+              <div class="nx-stage__head"><h2 class="nx-stage__title">PDR</h2><span class="nx-stage__state">In review</span></div>
+              <div class="nx-stage__body">
+                <div class="nx-checklist">
+                  <div class="nx-check is-met"><span class="nx-check__mark"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><span class="nx-check__label"><b>Criteria</b> · 4 recorded</span></div>
+                  <div class="nx-check"><span class="nx-check__mark"></span><span class="nx-check__label"><b>Decision</b></span></div>
+                </div>
+              </div>
+              <div class="nx-stage__foot"><span class="nx-wait"><span class="k-avatar s-xs">PR</span><b>Waiting on Priya Raghavan</b><span class="c-subtle">gate chair</span></span><span class="end"><a class="k-btn is-secondary s-md">Remind</a></span></div>
+            </section>
+          </div>
+          <div class="col g-100">
+            <span class="t-label">At risk</span>
+            <section class="nx-stage" aria-label="Condition 1, at risk">
+              <div class="nx-stage__head"><h2 class="nx-stage__title">Condition 1</h2><span class="nx-stage__figure"><span class="nx-stop__count"><span class="nx-meter" aria-hidden="true"><i class="is-met"></i><i class="is-late"></i><i class="is-late"></i><i class="is-late"></i><i class="is-risk"></i><i class="is-risk"></i><i class="is-risk"></i><i class="is-risk"></i><i class="is-risk"></i><i class="is-risk"></i><i class="is-risk"></i><i class="is-risk"></i></span>1 of 12</span></span></div>
+              <div class="nx-stage__body">
+                <div class="nx-checklist">
+                  <div class="nx-check is-adv"><span class="nx-check__mark"></span><span class="nx-check__label"><b>Dates</b> · <span class="nx-risk">8 planned after it</span></span><span class="nx-check__end"><a class="k-link">Request extension</a></span></div>
+                  <div class="nx-check is-adv"><span class="nx-check__mark"></span><span class="nx-check__label"><b>Items</b> · 11 open</span><span class="nx-check__end"><span class="nx-unowned">No owner</span></span></div>
+                </div>
+              </div>
+            </section>
+          </div>
+          <div class="col g-100">
+            <span class="t-label">Read</span>
+            <section class="nx-stage is-done l-read" aria-label="Authorization decision, read">
+              <div class="nx-stage__head"><h2 class="nx-stage__title">Authorization decision</h2><span class="nx-stage__state">ATO with conditions · signed</span></div>
+              <div class="nx-stage__body">
+                <div class="nx-checklist">
+                  <div class="nx-check"><span class="c-subtle">1</span><span class="nx-check__label">Close the high-severity remediation items within 90 days</span></div>
+                  <div class="nx-check"><span class="c-subtle">2</span><span class="nx-check__label">Complete the expanded control set assessment before Milestone C</span></div>
+                  <div class="nx-check"><span class="c-subtle">3</span><span class="nx-check__label">Report the SA-24 design review at the annual authorization review</span></div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+      <div class="l-legend hairline t-small c-subtle">
+        <span class="t-label">Nodes</span>
+        <span class="l-node"><span class="nx-path__node"></span>Decision</span>
+        <span class="l-node"><span class="nx-path__node is-gate"></span>Gate</span>
+        <span class="l-node"><span class="nx-path__node is-work"></span>Work</span>
+        <span class="l-node"><span class="nx-path__node is-end"></span>End</span>
+        <span class="l-node"><span class="nx-path__node t-warning"></span><span class="nx-path__node is-gate t-warning"></span>At risk</span>
+        <span class="l-node"><span class="nx-path__node t-danger"></span><span class="nx-path__node is-gate t-danger"></span><span class="nx-path__node is-work t-danger"></span>Late</span>
+        <span class="l-node"><span class="nx-path__node is-done"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>Done</span>
+        <span class="l-node"><span class="nx-path__node is-done is-signed"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>Signed or published</span>
+        <span class="l-node"><span class="nx-path__node is-here"></span><span class="nx-path__node is-gate is-here"></span>Open</span>
+        <span class="t-label">Rail</span>
+        <span class="l-node"><i class="l-rail"></i>Before today</span>
+        <span class="l-node"><i class="l-rail is-ahead"></i>Ahead</span>
+      </div>
+    </div>
+    <p class="nx-spec__note">Where a record stands on the way to its next decision · <code class="mono">Path variant stops open today</code> · extends Stepper, retires PhaseBar · from SBB’s pearl chain</p>
+    <p class="nx-spec__note">The open stop, the surface’s one tray: what closes it and who holds it · <code class="mono">Path.Stage title state figure checks foot done</code> · extends Tray and Gates · from Salesforce Path and Azure Pipelines’ gates</p>
+  </section>
+
+  <section class="nx-spec">
+    <div class="l-label"><span class="nx-spec__label">Path, ladder · numbered rungs · the measure is N of M, loud on the open rung</span><code class="mono c-subtlest">nx-path is-ladder</code></div>
+    <div class="nx-spec__stage">
+      <div class="l-two">
+        <div class="col g-200">
+          <span class="t-small c-subtle">SI-2 Flaw Remediation</span>
+          <ol class="nx-path is-ladder l-keyed" aria-label="SI-2, ladder">
+            <li class="nx-path__stop is-major is-walked">
+              <span class="t-label l-key">Done</span>
+              <span class="nx-path__when">10 of 10</span>
+              <span class="nx-path__node is-done"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+              <div class="nx-stop"><div class="nx-stop__body"><span class="nx-stop__name">Mapped</span><span class="nx-stop__fact">REQ-064</span></div></div>
+            </li>
+            <li class="nx-path__stop is-open">
+              <span class="t-label l-key">Open</span>
+              <span class="nx-path__when is-loud"><span>0 <span class="of">of 10</span></span></span>
+              <span class="nx-path__node is-here"></span>
+              <section class="nx-stage" aria-label="Evidence">
+                <div class="nx-stage__head"><h2 class="nx-stage__title">Evidence</h2><span class="nx-stage__figure"><span class="nx-objs" aria-hidden="true"><span><i class="is-gap"></i><i></i><i></i></span><span><i></i><i></i><i></i><i></i></span><span><i></i><i></i></span><span><i></i></span></span></span></div>
+                <div class="nx-stage__body">
+                  <div class="nx-checklist">
+                    <div class="nx-check is-next is-na"><span class="nx-check__mark"></span><span class="nx-check__label"><b>REQ-064</b> · cites none</span><span class="nx-check__end"><span class="c-subtle">yours</span></span></div>
+                  </div>
+                </div>
+              </section>
+            </li>
+            <li class="nx-path__stop is-major">
+              <span class="t-label l-key">Ahead</span>
+              <span class="nx-path__node"></span>
+              <div class="nx-stop"><div class="nx-stop__body"><span class="nx-stop__name">Assessed</span></div></div>
+            </li>
+            <li class="nx-path__stop is-major">
+              <span class="nx-path__node"></span>
+              <div class="nx-stop"><div class="nx-stop__body"><span class="nx-stop__name">Satisfied</span></div></div>
+            </li>
+          </ol>
+        </div>
+        <div class="col g-200">
+          <span class="t-small c-subtle">AC-2 Account Management</span>
+          <ol class="nx-path is-ladder l-keyed" aria-label="AC-2, ladder">
+            <li class="nx-path__stop is-major is-walked">
+              <span class="t-label l-key">Settled</span>
+              <span class="nx-path__node is-done"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+              <div class="nx-stop"><div class="nx-stop__body"><span class="nx-stop__name">Mapped</span><span class="nx-stop__fact">REQ-001 · REQ-075</span></div></div>
+            </li>
+            <li class="nx-path__stop is-major is-walked">
+              <span class="nx-path__node is-done"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+              <div class="nx-stop"><div class="nx-stop__body"><span class="nx-stop__name">Evidence</span><span class="nx-stop__fact">2 accepted</span></div></div>
+            </li>
+            <li class="nx-path__stop is-major is-walked">
+              <span class="nx-path__node is-done"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+              <div class="nx-stop"><div class="nx-stop__body"><span class="nx-stop__name">Assessed</span><span class="nx-stop__fact">Aug 20</span></div><span class="nx-stop__end"><span class="nx-person"><span class="k-avatar s-xs">NF</span>Nadia Fournier</span></span></div>
+            </li>
+            <li class="nx-path__stop is-major">
+              <span class="nx-path__when">26 of 26</span>
+              <span class="nx-path__node is-done is-signed"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+              <div class="nx-stop"><div class="nx-stop__body"><span class="nx-stop__name">Satisfied</span><span class="nx-stop__fact">published Aug 28</span></div><span class="nx-stop__end"><span class="nx-person"><span class="k-avatar s-xs">DO</span>D. Okafor</span></span></div>
+            </li>
+          </ol>
+        </div>
+      </div>
+      <div class="l-legend hairline t-small c-subtle">
+        <span class="t-label">Rungs</span>
+        <span class="nx-path is-ladder l-rungs">
+          <span class="l-node"><span class="nx-path__node is-done"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>Done</span>
+          <span class="l-node"><span class="nx-path__node is-here"></span>Open</span>
+          <span class="l-node"><span class="nx-path__node"></span>Ahead</span>
+          <span class="l-node"><span class="nx-path__node is-done is-signed"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>Satisfied</span>
+        </span>
+      </div>
+    </div>
+    <p class="nx-spec__note">How far a control has climbed, rung by rung · <code class="mono">Path variant="ladder" measure</code> · extends Stepper, retires the three objective counts in a control’s Details · from GOV.UK’s step by step</p>
+  </section>
+
+  <section class="nx-spec">
+    <div class="l-label"><span class="nx-spec__label">Dated rail · page size · late, at risk, the axis break</span><code class="mono c-subtlest">forms.mjs rail</code></div>
+    <div class="nx-spec__stage">
+      <div class="l-railbox"><svg class="form" width="1192" height="132" viewBox="0 0 1192 132" role="img" aria-label="Dated rail"><rect x="116.1" y="49" width="1" height="6" class="f-ink2"/><text x="120.1" y="65" class="ax">Oct</text><rect x="408" y="49" width="1" height="6" class="f-ink2"/><text x="412" y="65" class="ax">Dec</text><rect x="556.4" y="49" width="1" height="6" class="f-ink2"/><text x="560.4" y="65" class="ax">Jan 2027</text><rect x="704.7" y="49" width="1" height="6" class="f-ink2"/><text x="708.7" y="65" class="ax">Feb</text><rect x="838.7" y="49" width="1" height="6" class="f-ink2"/><text x="842.7" y="65" class="ax">Mar</text><rect x="983.9" y="49" width="1" height="6" class="f-ink2"/><text x="987.9" y="65" class="ax">2028</text><rect x="1092.2" y="49" width="1" height="6" class="f-ink2"/><text x="1096.2" y="65" class="ax">2029</text><rect x="6" y="51.5" width="874" height="1" class="f-ink3"/><rect x="896" y="51.5" width="292" height="1" class="f-ink3"/><path d="M883 57 l4 -10 M889 57 l4 -10" class="s-line" fill="none"/><rect x="53.9" y="40" width="826.1" height="6" class="f-okband"/><rect x="896" y="40" width="272.7" height="6" class="f-okband"/><rect x="53.9" y="40" width="272.8" height="6" class="f-ok"/><rect x="1167.7" y="35" width="2" height="16" class="f-ok"/><circle cx="53.9" cy="43" r="6.5" class="f-ok"/><path d="M50.9 43 l2.2 2.2 l4 -4.4" class="s-surface" stroke-width="1.6" fill="none"/><text x="42.9" y="33" text-anchor="end" class="lb strong ok">ATO with conditions</text><text x="42.9" y="48" text-anchor="end" class="lb sub">Sep 18</text><text x="1170.7" y="80" text-anchor="end" class="lb"><tspan class="strong">ATD</tspan> Sep 17, 2029</text><rect x="159.1" y="8.5" width="167.5" height="3" class="f-bad"/><rect x="155.1" y="6" width="8" height="8" transform="rotate(45 159.1 10)" class="ms-late big"/><text x="334.6" y="14" class="lb"><tspan class="strong">PDR · In review</tspan> <tspan class="bad num">35d late</tspan></text><line x1="484.6" y1="48" x2="484.6" y2="114" class="dash-warn"/><rect x="480.1" y="38.5" width="9" height="9" class="cd-risk"/><text x="493.6" y="33" class="lb"><tspan class="strong">Condition 1</tspan> <tspan class="warn">at risk</tspan> · Dec 17</text><circle cx="952.9" cy="43" r="4" class="cd-open"/><rect x="952.4" y="19" width="1" height="19" class="f-ink2"/><text x="957.9" y="25" class="lb">Annual authorization review · Sep 18, 2027</text><rect x="325.9" y="0" width="1.5" height="114" class="f-ink"/><text x="320.6" y="65" text-anchor="end" class="ax now">Today · Nov 14</text><circle cx="13.3" cy="79" r="3.5" class="f-warn"/><circle cx="13.3" cy="90" r="3.5" class="f-ink3"/><circle cx="42" cy="79" r="3.5" class="f-bad"/><circle cx="42" cy="90" r="3.5" class="f-warn"/><circle cx="147.3" cy="79" r="3.5" class="f-bad"/><circle cx="147.3" cy="90" r="3.5" class="f-warn"/><circle cx="168.8" cy="79" r="3.5" class="f-warn"/><circle cx="204.7" cy="79" r="3.5" class="f-bad"/><circle cx="204.7" cy="90" r="3.5" class="f-warn"/><circle cx="307.5" cy="79" r="3.5" class="f-warn"/><circle cx="307.5" cy="90" r="3.5" class="f-ink3"/><circle cx="343.4" cy="79" r="3.5" class="f-warn"/><circle cx="343.4" cy="90" r="3.5" class="f-ink3"/><circle cx="537.1" cy="79" r="3.5" class="f-bad"/><circle cx="537.1" cy="79" r="5.8" class="ring-warn"/><circle cx="537.1" cy="90" r="3.5" class="f-warn"/><circle cx="570.6" cy="79" r="3.5" class="f-warn"/><circle cx="599.3" cy="79" r="3.5" class="f-warn"/><circle cx="678.3" cy="79" r="3.5" class="f-bad"/><circle cx="678.3" cy="79" r="5.8" class="ring-warn"/><circle cx="678.3" cy="90" r="3.5" class="f-bad"/><circle cx="678.3" cy="90" r="5.8" class="ring-warn"/><circle cx="704.6" cy="79" r="3.5" class="f-warn"/><circle cx="738.1" cy="79" r="3.5" class="f-warn"/><circle cx="764.3" cy="79" r="3.5" class="f-warn"/><circle cx="764.3" cy="90" r="3.5" class="f-warn"/><circle cx="840.1" cy="79" r="3.5" class="f-bad"/><circle cx="840.1" cy="79" r="5.8" class="ring-warn"/><circle cx="840.1" cy="90" r="3.5" class="f-warn"/><circle cx="840.1" cy="101" r="3.5" class="f-ink3"/><circle cx="870.4" cy="79" r="3.5" class="f-bad"/><circle cx="870.4" cy="79" r="5.8" class="ring-warn"/><circle cx="870.4" cy="90" r="3.5" class="f-bad"/><circle cx="870.4" cy="90" r="5.8" class="ring-warn"/><circle cx="870.4" cy="101" r="3.5" class="f-warn"/><text x="902" y="83" class="lb sub"><tspan class="num">4</tspan> later</text><text x="-8" y="83" text-anchor="end" class="lb"><tspan class="strong">POA&amp;M items</tspan> · 33 open</text><text x="-8" y="99" text-anchor="end" class="lb"><tspan class="num bad">11 late</tspan></text><text x="493.6" y="126" class="lb"><tspan class="num warn">8</tspan> under Condition 1, planned after it</text></svg></div>
+      <div class="l-legend hairline t-small c-subtle">
+        <span class="t-label">Dots</span>
+        <span class="l-node"><svg class="form glyph" width="8" height="12" viewBox="0 0 8 12" aria-hidden="true"><circle cx="4" cy="6" r="3.5" class="f-bad"/></svg>High+</span>
+        <span class="l-node"><svg class="form glyph" width="8" height="12" viewBox="0 0 8 12" aria-hidden="true"><circle cx="4" cy="6" r="3.5" class="f-warn"/></svg>Moderate</span>
+        <span class="l-node"><svg class="form glyph" width="8" height="12" viewBox="0 0 8 12" aria-hidden="true"><circle cx="4" cy="6" r="3.5" class="f-ink3"/></svg>Low</span>
+        <span class="l-node"><svg class="form glyph" width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="3.5" class="f-bad"/><circle cx="7" cy="7" r="5.8" class="ring-warn"/></svg>Planned after its condition</span>
+      </div>
+    </div>
+    <p class="nx-spec__note">A program’s decisions and dated work on one axis: six months to scale, then a break · <code class="mono">PathRail start band gates marks dots</code> · extends the horizontal Timeline, unused today · from milestone Gantt charts and Jira Plans’ release marks</p>
+  </section>
+
+  <div class="l-row">
+    <section class="nx-spec">
+      <div class="l-label"><span class="nx-spec__label">Path cell and its axis · row size · late, lapsed, none, at risk</span><code class="mono c-subtlest">forms.mjs pathcell · pathaxis</code></div>
+      <div class="nx-spec__stage">
+        <table class="k-table l-cells">
+          <thead><tr><th></th><th>Program</th><th><svg class="form path" width="290" height="12" viewBox="0 0 290 12"><text x="45.9" y="9" class="ax" text-anchor="middle">Aug</text><text x="108" y="9" class="ax now" text-anchor="middle">Today</text><text x="154.7" y="9" class="ax" text-anchor="middle">Feb</text><path d="M217 10 l3 -6 M220.5 10 l3 -6" class="s-line" fill="none"/><text x="239.1" y="9" class="ax" text-anchor="middle">2028</text><text x="275.1" y="9" class="ax" text-anchor="middle">2029</text></svg></th><th class="is-num">Next</th></tr></thead>
+          <tbody>
+            <tr><td><span class="t-label l-st">Late</span></td><td class="is-fill"><a class="k-name">WS-X90</a></td><td><svg class="form path" width="290" height="22" viewBox="0 0 290 22" role="img"><rect x="74.3" y="12" width="205.9" height="5" rx="1" class="f-okband"/><rect x="74.3" y="12" width="33.7" height="5" rx="1" class="f-ok"/><rect x="279.5" y="9.5" width="1.5" height="10" class="f-ok"/><rect x="125" y="12" width="5" height="5" class="cd-risk"/><rect x="229.7" y="12" width="5" height="5" class="cd-open"/><rect x="87.3" y="4" width="20.7" height="2" class="f-bad"/><rect x="84.6" y="2.3" width="5.4" height="5.4" transform="rotate(45 87.3 5)" class="ms-late"/><rect x="217" y="10" width="6" height="9" class="f-surface"/><rect x="107.5" y="-9" width="1" height="40" class="f-ink"/></svg></td><td class="is-num"><span class="nx-late">PDR 35d late</span></td></tr>
+            <tr><td><span class="t-label l-st">Lapsed</span></td><td class="is-fill"><span class="k-name">Legacy billing gateway</span></td><td><svg class="form path" width="290" height="22" viewBox="0 0 290 22" role="img"><rect x="0" y="12" width="9.2" height="5" rx="1" class="f-okband"/><rect x="8.5" y="9.5" width="1.5" height="10" class="f-bad"/><rect x="9.2" y="12" width="98.8" height="5" class="f-badband"/><rect x="9.7" y="12.5" width="97.8" height="4" class="s-bad" fill="none"/><path d="M13.8 2.5 l5 5 m0 -5 l-5 5" class="s-bad" stroke-width="1.5" fill="none"/><rect x="217" y="10" width="6" height="9" class="f-surface"/><rect x="107.5" y="-9" width="1" height="40" class="f-ink"/></svg></td><td class="is-num"><span class="nx-late">167d past ATD</span></td></tr>
+            <tr><td><span class="t-label l-st">None</span></td><td class="is-fill"><a class="k-name">Customer B</a></td><td><svg class="form path" width="290" height="22" viewBox="0 0 290 22" role="img"><rect x="101.5" y="13.5" width="6.5" height="2" class="f-warn"/><circle cx="101.5" cy="14.5" r="2.8" class="wt"/><rect x="72.2" y="2.3" width="5.4" height="5.4" transform="rotate(45 74.9 5)" class="ms-done"/><rect x="88.2" y="2.3" width="5.4" height="5.4" transform="rotate(45 90.9 5)" class="ms-done"/><rect x="106.5" y="2.3" width="5.4" height="5.4" transform="rotate(45 109.2 5)" class="ms-soon"/><rect x="111.8" y="2.3" width="5.4" height="5.4" transform="rotate(45 114.5 5)" class="ms-soon"/><rect x="131.3" y="2.3" width="5.4" height="5.4" transform="rotate(45 134 5)" class="ms-soon"/><rect x="181.6" y="2.3" width="5.4" height="5.4" transform="rotate(45 184.3 5)" class="ms-open"/><rect x="217" y="10" width="6" height="9" class="f-surface"/><rect x="107.5" y="-9" width="1" height="40" class="f-ink"/></svg></td><td class="is-num">plan approval · 11d</td></tr>
+            <tr><td><span class="t-label l-st">At risk</span></td><td class="is-fill"><a class="k-name">Customer A</a></td><td><svg class="form path" width="290" height="22" viewBox="0 0 290 22" role="img"><rect x="46.8" y="2.3" width="5.4" height="5.4" transform="rotate(45 49.5 5)" class="ms-done"/><rect x="55" y="2.3" width="5.4" height="5.4" transform="rotate(45 57.7 5)" class="ms-done"/><rect x="81.1" y="2.3" width="5.4" height="5.4" transform="rotate(45 83.8 5)" class="ms-done"/><rect x="110.6" y="2.3" width="5.4" height="5.4" transform="rotate(45 113.3 5)" class="ms-soon"/><rect x="115.4" y="2.3" width="5.4" height="5.4" transform="rotate(45 118.1 5)" class="ms-open"/><rect x="141.4" y="2.3" width="5.4" height="5.4" transform="rotate(45 144.1 5)" class="ms-open"/><rect x="169.8" y="2.3" width="5.4" height="5.4" transform="rotate(45 172.5 5)" class="ms-open"/><rect x="217" y="10" width="6" height="9" class="f-surface"/><rect x="107.5" y="-9" width="1" height="40" class="f-ink"/></svg></td><td class="is-num"><span class="nx-risk">gate at risk · in 9d</span></td></tr>
+          </tbody>
+        </table>
+        <div class="l-legend t-small c-subtle">
+          <span class="t-label">Marks</span>
+          <span class="l-node"><svg class="form glyph" width="30" height="12" viewBox="0 0 30 12" aria-hidden="true"><rect x="0" y="4" width="28" height="5" rx="1" class="f-okband"/><rect x="0" y="4" width="12" height="5" rx="1" class="f-ok"/><rect x="27.25" y="1.5" width="1.5" height="10" class="f-ok"/></svg>Authorized</span>
+          <span class="l-node"><svg class="form glyph" width="22" height="12" viewBox="0 0 22 12" aria-hidden="true"><rect x="0" y="4" width="22" height="5" class="f-badband"/><rect x="0.5" y="4.5" width="21" height="4" class="s-bad" fill="none"/></svg>Lapsed</span>
+          <span class="l-node"><svg class="form glyph" width="8" height="12" viewBox="0 0 8 12" aria-hidden="true"><path d="M1.5 3.5 l5 5 m0 -5 l-5 5" class="s-bad" stroke-width="1.5" fill="none"/></svg>Denied</span>
+          <span class="l-node"><svg class="form glyph" width="37" height="12" viewBox="0 0 37 12" aria-hidden="true"><rect x="2.3" y="3.3" width="5.4" height="5.4" transform="rotate(45 5 6)" class="ms-done"/><rect x="11.3" y="3.3" width="5.4" height="5.4" transform="rotate(45 14 6)" class="ms-late"/><rect x="20.3" y="3.3" width="5.4" height="5.4" transform="rotate(45 23 6)" class="ms-soon"/><rect x="29.3" y="3.3" width="5.4" height="5.4" transform="rotate(45 32 6)" class="ms-open"/></svg>Gate</span>
+          <span class="l-node"><svg class="form glyph" width="17" height="12" viewBox="0 0 17 12" aria-hidden="true"><rect x="1" y="3.5" width="5" height="5" class="cd-risk"/><rect x="11" y="3.5" width="5" height="5" class="cd-open"/></svg>Condition</span>
+          <span class="l-node"><svg class="form glyph" width="18" height="12" viewBox="0 0 18 12" aria-hidden="true"><rect x="3" y="5" width="15" height="2" class="f-warn"/><circle cx="3.5" cy="6" r="2.8" class="wt"/></svg>Waiting on a signature</span>
+          <span class="l-node"><svg class="form glyph" width="9" height="12" viewBox="0 0 9 12" aria-hidden="true"><path d="M1 9 l3 -6 M4.5 9 l3 -6" class="s-line" fill="none"/></svg>Axis break</span>
+        </div>
+      </div>
+      <p class="nx-spec__note">The rail folded into a row under one today rule · <code class="mono">PathCell band lapse denied gates conditions waits</code><span class="l-line">retires the Authorization pill and two date columns · from GitLab’s mini pipeline graph</span></p>
+    </section>
+    <section class="nx-spec">
+      <div class="l-label"><span class="nx-spec__label">Day ticks · row size</span><code class="mono c-subtlest">forms.mjs dayticks</code></div>
+      <div class="nx-spec__stage">
+        <table class="k-table l-cells">
+          <thead><tr><th></th><th>Program</th><th>Last 28 days</th><th class="is-num">Net</th></tr></thead>
+          <tbody>
+            <tr><td><span class="t-label l-st">1 day</span></td><td class="is-fill"><span class="k-name">Customer C</span></td><td><svg class="form" width="139" height="18" viewBox="0 0 139 18" role="img"><rect x="1.25" y="8.25" width="1.5" height="1.5" class="f-ink2"/><rect x="6.25" y="8.25" width="1.5" height="1.5" class="f-ink2"/><rect x="11.25" y="8.25" width="1.5" height="1.5" class="f-ink2"/><rect x="16.25" y="8.25" width="1.5" height="1.5" class="f-ink2"/><rect x="21.25" y="8.25" width="1.5" height="1.5" class="f-ink2"/><rect x="26.25" y="8.25" width="1.5" height="1.5" class="f-ink2"/><rect x="31.25" y="8.25" width="1.5" height="1.5" class="f-ink2"/><rect x="36.25" y="8.25" width="1.5" height="1.5" class="f-ink2"/><rect x="41.25" y="8.25" width="1.5" height="1.5" class="f-ink2"/><rect x="46.25" y="8.25" width="1.5" height="1.5" class="f-ink2"/><rect x="51.25" y="8.25" width="1.5" height="1.5" class="f-ink2"/><rect x="56.25" y="8.25" width="1.5" height="1.5" class="f-ink2"/><rect x="61.25" y="8.25" width="1.5" height="1.5" class="f-ink2"/><rect x="66.25" y="8.25" width="1.5" height="1.5" class="f-ink2"/><rect x="71.25" y="8.25" width="1.5" height="1.5" class="f-ink2"/><rect x="76.25" y="8.25" width="1.5" height="1.5" class="f-ink2"/><rect x="81.25" y="8.25" width="1.5" height="1.5" class="f-ink2"/><rect x="86.25" y="8.25" width="1.5" height="1.5" class="f-ink2"/><rect x="91.25" y="8.25" width="1.5" height="1.5" class="f-ink2"/><rect x="96.25" y="8.25" width="1.5" height="1.5" class="f-ink2"/><rect x="101.25" y="8.25" width="1.5" height="1.5" class="f-ink2"/><rect x="106.25" y="8.25" width="1.5" height="1.5" class="f-ink2"/><rect x="111.25" y="8.25" width="1.5" height="1.5" class="f-ink2"/><rect x="116.25" y="8.25" width="1.5" height="1.5" class="f-ink2"/><rect x="121.25" y="8.25" width="1.5" height="1.5" class="f-ink2"/><rect x="126.25" y="8.25" width="1.5" height="1.5" class="f-ink2"/><rect x="129" y="1" width="1" height="16" class="f-ink3"/><rect x="130" y="8" width="4" height="2" class="f-ink3"/><rect x="136.25" y="8.25" width="1.5" height="1.5" class="f-ink2"/></svg></td><td class="is-num"></td></tr>
+            <tr><td><span class="t-label l-st">2 days</span></td><td class="is-fill"><a class="k-name">WS-X90</a></td><td><svg class="form" width="139" height="18" viewBox="0 0 139 18" role="img"><rect x="1.25" y="8.25" width="1.5" height="1.5" class="f-ink2"/><rect x="6.25" y="8.25" width="1.5" height="1.5" class="f-ink2"/><rect x="11.25" y="8.25" width="1.5" height="1.5" class="f-ink2"/><rect x="16.25" y="8.25" width="1.5" height="1.5" class="f-ink2"/><rect x="21.25" y="8.25" width="1.5" height="1.5" class="f-ink2"/><rect x="26.25" y="8.25" width="1.5" height="1.5" class="f-ink2"/><rect x="31.25" y="8.25" width="1.5" height="1.5" class="f-ink2"/><rect x="36.25" y="8.25" width="1.5" height="1.5" class="f-ink2"/><rect x="41.25" y="8.25" width="1.5" height="1.5" class="f-ink2"/><rect x="46.25" y="8.25" width="1.5" height="1.5" class="f-ink2"/><rect x="51.25" y="8.25" width="1.5" height="1.5" class="f-ink2"/><rect x="56.25" y="8.25" width="1.5" height="1.5" class="f-ink2"/><rect x="61.25" y="8.25" width="1.5" height="1.5" class="f-ink2"/><rect x="66.25" y="8.25" width="1.5" height="1.5" class="f-ink2"/><rect x="71.25" y="8.25" width="1.5" height="1.5" class="f-ink2"/><rect x="76.25" y="8.25" width="1.5" height="1.5" class="f-ink2"/><rect x="81.25" y="8.25" width="1.5" height="1.5" class="f-ink2"/><rect x="86.25" y="8.25" width="1.5" height="1.5" class="f-ink2"/><rect x="91.25" y="8.25" width="1.5" height="1.5" class="f-ink2"/><rect x="96.25" y="8.25" width="1.5" height="1.5" class="f-ink2"/><rect x="101.25" y="8.25" width="1.5" height="1.5" class="f-ink2"/><rect x="106.25" y="8.25" width="1.5" height="1.5" class="f-ink2"/><rect x="111.25" y="8.25" width="1.5" height="1.5" class="f-ink2"/><rect x="116.25" y="8.25" width="1.5" height="1.5" class="f-ink2"/><rect x="121.25" y="8.25" width="1.5" height="1.5" class="f-ink2"/><rect x="126.25" y="8.25" width="1.5" height="1.5" class="f-ink2"/><rect x="129" y="1" width="1" height="16" class="f-ink3"/><rect x="130" y="8" width="4" height="2" class="f-ink3"/><rect x="135" y="8" width="4" height="2" class="f-ink3"/></svg></td><td class="is-num"></td></tr>
+            <tr><td><span class="t-label l-st">28 days</span></td><td class="is-fill"><span class="c-subtle">Illustrative</span></td><td><svg class="form" width="139" height="18" viewBox="0 0 139 18" role="img"><rect x="-1" y="1" width="1" height="16" class="f-ink3"/><rect x="0" y="8" width="4" height="2" class="f-ink3"/><rect x="5" y="6" width="4" height="3" class="f-ok"/><rect x="10" y="1.5" width="4" height="7.5" class="f-ok"/><rect x="15" y="9" width="4" height="3" class="f-bad"/><rect x="20" y="4.5" width="4" height="4.5" class="f-ok"/><rect x="25" y="8" width="4" height="2" class="f-ink3"/><rect x="30" y="0" width="4" height="9" class="f-ok"/><rect x="35" y="6" width="4" height="3" class="f-ok"/><rect x="40" y="8" width="4" height="2" class="f-ink3"/><rect x="45" y="6" width="4" height="3" class="f-ok"/><rect x="50" y="8" width="4" height="2" class="f-ink3"/><rect x="55" y="9" width="4" height="3" class="f-bad"/><rect x="60" y="8" width="4" height="2" class="f-ink3"/><rect x="65" y="4.5" width="4" height="4.5" class="f-ok"/><rect x="70" y="8" width="4" height="2" class="f-ink3"/><rect x="75" y="8" width="4" height="2" class="f-ink3"/><rect x="80" y="6" width="4" height="3" class="f-ok"/><rect x="86.25" y="8.25" width="1.5" height="1.5" class="f-ink2"/><rect x="90" y="3" width="4" height="6" class="f-ok"/><rect x="95" y="8" width="4" height="2" class="f-ink3"/><rect x="100" y="9" width="4" height="4.5" class="f-bad"/><rect x="105" y="8" width="4" height="2" class="f-ink3"/><rect x="110" y="6" width="4" height="3" class="f-ok"/><rect x="115" y="8" width="4" height="2" class="f-ink3"/><rect x="120" y="6" width="4" height="3" class="f-ok"/><rect x="125" y="8" width="4" height="2" class="f-ink3"/><rect x="130" y="4.5" width="4" height="4.5" class="f-ok"/><rect x="135" y="8" width="4" height="2" class="f-ink3"/></svg></td><td class="is-num"><span class="c-success">+28</span></td></tr>
+          </tbody>
+        </table>
+        <div class="l-legend t-small c-subtle">
+          <span class="t-label">Marks</span>
+          <span class="l-node"><svg class="form glyph" width="4" height="12" viewBox="0 0 4 12" aria-hidden="true"><rect x="1.25" y="5.25" width="1.5" height="1.5" class="f-ink2"/></svg>No snapshot</span>
+          <span class="l-node"><svg class="form glyph" width="4" height="12" viewBox="0 0 4 12" aria-hidden="true"><rect x="1.5" y="0" width="1" height="12" class="f-ink3"/></svg>Began</span>
+          <span class="l-node"><svg class="form glyph" width="4" height="12" viewBox="0 0 4 12" aria-hidden="true"><rect x="0" y="5" width="4" height="2" class="f-ink3"/></svg>No change</span>
+          <span class="l-node"><svg class="form glyph" width="4" height="12" viewBox="0 0 4 12" aria-hidden="true"><rect x="0" y="1" width="4" height="5" class="f-ok"/></svg>Gained</span>
+          <span class="l-node"><svg class="form glyph" width="4" height="12" viewBox="0 0 4 12" aria-hidden="true"><rect x="0" y="6" width="4" height="5" class="f-bad"/></svg>Lost</span>
+        </div>
+      </div>
+      <p class="nx-spec__note">A trend that shows its own gaps · <code class="mono">DayTicks days</code><span class="l-line">retires the two-point Chart.Line · from win/loss sparklines</span></p>
+    </section>
+  </div>
+
+  <section class="nx-spec">
+    <div class="l-label"><span class="nx-spec__label">One clock · due on a POA&amp;M item, life on evidence · row size</span><code class="mono c-subtlest">forms.mjs timebar</code></div>
+    <div class="l-pair is-even">
+      <div class="nx-spec__stage">
+        <table class="k-table l-cells">
+          <thead><tr><th></th><th>POA&amp;M item</th><th>Clock</th><th class="is-num">Due</th></tr></thead>
+          <tbody>
+            <tr><td><span class="t-label l-st">On time</span></td><td class="is-fill"><a class="k-name">Remove the password-only path and make the switch exchange mutual</a></td><td><svg class="form" width="96" height="14" viewBox="0 0 96 14" role="img"><rect x="0" y="5" width="72" height="4" rx="1" class="f-track2"/><rect x="0" y="5" width="25.9" height="4" rx="1" class="f-ink3"/><rect x="71.25" y="1" width="1.5" height="12" class="f-ink"/><rect x="22.9" y="4.4" width="5.2" height="5.2" transform="rotate(45 25.5 7)" class="ms-done"/><rect x="35.3" y="4.4" width="5.2" height="5.2" transform="rotate(45 37.9 7)" class="ms-open"/><rect x="48" y="4.4" width="5.2" height="5.2" transform="rotate(45 50.6 7)" class="ms-open"/><rect x="60.8" y="4.4" width="5.2" height="5.2" transform="rotate(45 63.4 7)" class="ms-open"/></svg></td><td class="is-num">Mar 6, 2027</td></tr>
+            <tr><td><span class="t-label l-st">Missed</span></td><td class="is-fill"><span class="k-name">Publish the retired key history and reissue the audit direction</span></td><td><svg class="form" width="96" height="14" viewBox="0 0 96 14" role="img"><rect x="0" y="5" width="72" height="4" rx="1" class="f-track2"/><rect x="0" y="5" width="42" height="4" rx="1" class="f-ink3"/><rect x="71.25" y="1" width="1.5" height="12" class="f-ink"/><rect x="14.8" y="4.4" width="5.2" height="5.2" transform="rotate(45 17.4 7)" class="ms-done"/><rect x="35.4" y="4.4" width="5.2" height="5.2" transform="rotate(45 38 7)" class="ms-missed"/><rect x="55.4" y="4.4" width="5.2" height="5.2" transform="rotate(45 58 7)" class="ms-open"/></svg></td><td class="is-num">Dec 29</td></tr>
+            <tr><td><span class="t-label l-st">Soon</span></td><td class="is-fill"><span class="k-name">AC-12 · Remediate REQ-083</span></td><td><svg class="form" width="96" height="14" viewBox="0 0 96 14" role="img"><rect x="0" y="5" width="72" height="4" rx="1" class="f-track2"/><rect x="0" y="5" width="69.8" height="4" rx="1" class="f-warn"/><rect x="71.25" y="1" width="1.5" height="12" class="f-ink"/></svg></td><td class="is-num"><span class="nx-soon">Nov 16</span></td></tr>
+            <tr><td><span class="t-label l-st">Late</span></td><td class="is-fill"><span class="k-name">AC-11 · AU-4 · Remediate REQ-008</span></td><td><svg class="form" width="96" height="14" viewBox="0 0 96 14" role="img"><rect x="0" y="5" width="72" height="4" rx="1" class="f-track2"/><rect x="0" y="5" width="72" height="4" rx="1" class="f-bad"/><rect x="73.5" y="5" width="16.9" height="4" class="f-bad"/><rect x="71.25" y="1" width="1.5" height="12" class="f-bad"/></svg></td><td class="is-num"><span class="nx-late">39d late</span></td></tr>
+          </tbody>
+        </table>
+        <div class="l-legend t-small c-subtle">
+          <span class="t-label">Marks</span>
+          <span class="l-node"><svg class="form glyph" width="28" height="12" viewBox="0 0 28 12" aria-hidden="true"><rect x="0" y="4" width="28" height="4" rx="1" class="f-track2"/><rect x="0" y="4" width="12" height="4" rx="1" class="f-ink3"/></svg>Time used</span>
+          <span class="l-node"><svg class="form glyph" width="28" height="12" viewBox="0 0 28 12" aria-hidden="true"><rect x="0" y="4" width="28" height="4" rx="1" class="f-track2"/><rect x="0" y="4" width="25" height="4" rx="1" class="f-warn"/></svg>Last 14 days</span>
+          <span class="l-node"><svg class="form glyph" width="2" height="12" viewBox="0 0 2 12" aria-hidden="true"><rect x="0" y="0" width="1.5" height="12" class="f-ink"/></svg>Due day</span>
+          <span class="l-node"><svg class="form glyph" width="14" height="12" viewBox="0 0 14 12" aria-hidden="true"><rect x="0" y="0" width="1.5" height="12" class="f-bad"/><rect x="2.5" y="4" width="11" height="4" class="f-bad"/></svg>Days late</span>
+          <span class="l-node"><svg class="form glyph" width="28" height="12" viewBox="0 0 28 12" aria-hidden="true"><rect x="2.4" y="3.4" width="5.2" height="5.2" transform="rotate(45 5 6)" class="ms-done"/><rect x="11.4" y="3.4" width="5.2" height="5.2" transform="rotate(45 14 6)" class="ms-missed"/><rect x="20.4" y="3.4" width="5.2" height="5.2" transform="rotate(45 23 6)" class="ms-open"/></svg>Milestone</span>
+        </div>
+      </div>
+      <div class="nx-spec__stage">
+        <table class="k-table l-cells">
+          <thead><tr><th></th><th>Evidence</th><th>Life</th><th class="is-num">Expires</th></tr></thead>
+          <tbody>
+            <tr><td><span class="t-label l-st">Fresh</span></td><td class="is-fill"><span class="k-name">Station configuration record, vehicles 1 and 2</span></td><td><svg class="form" width="96" height="14" viewBox="0 0 96 14" role="img"><rect x="0" y="5" width="72" height="4" rx="1" class="f-track2"/><rect x="0" y="5" width="6.9" height="4" rx="1" class="f-ink3"/><rect x="71.25" y="1" width="1.5" height="12" class="f-ink"/></svg></td><td class="is-num">May 12, 2027</td></tr>
+            <tr><td><span class="t-label l-st">Half used</span></td><td class="is-fill"><span class="k-name">Evidence for REQ-001</span></td><td><svg class="form" width="96" height="14" viewBox="0 0 96 14" role="img"><rect x="0" y="5" width="72" height="4" rx="1" class="f-track2"/><rect x="0" y="5" width="41" height="4" rx="1" class="f-ink3"/><rect x="71.25" y="1" width="1.5" height="12" class="f-ink"/></svg></td><td class="is-num">Feb 1, 2027</td></tr>
+            <tr><td><span class="t-label l-st">Soon</span></td><td class="is-fill"><span class="k-name">Vulnerability scan of the field test set</span></td><td><svg class="form" width="96" height="14" viewBox="0 0 96 14" role="img"><rect x="0" y="5" width="72" height="4" rx="1" class="f-track2"/><rect x="0" y="5" width="50.4" height="4" rx="1" class="f-warn"/><rect x="71.25" y="1" width="1.5" height="12" class="f-ink"/></svg></td><td class="is-num"><span class="nx-soon">Nov 23</span></td></tr>
+            <tr><td><span class="t-label l-st">Expired</span></td><td class="is-fill"><span class="c-subtle">Illustrative</span></td><td><svg class="form" width="96" height="14" viewBox="0 0 96 14" role="img"><rect x="0" y="5" width="72" height="4" rx="1" class="f-track2"/><rect x="0" y="5" width="72" height="4" rx="1" class="f-bad"/><rect x="73.5" y="5" width="12.6" height="4" class="f-bad"/><rect x="71.25" y="1" width="1.5" height="12" class="f-bad"/></svg></td><td class="is-num"><span class="nx-late">26d past expiry</span></td></tr>
+          </tbody>
+        </table>
+        <div class="l-legend t-small c-subtle">
+          <span class="t-label">Marks</span>
+          <span class="l-node"><svg class="form glyph" width="28" height="12" viewBox="0 0 28 12" aria-hidden="true"><rect x="0" y="4" width="28" height="4" rx="1" class="f-track2"/><rect x="0" y="4" width="12" height="4" rx="1" class="f-ink3"/></svg>Life used</span>
+          <span class="l-node"><svg class="form glyph" width="28" height="12" viewBox="0 0 28 12" aria-hidden="true"><rect x="0" y="4" width="28" height="4" rx="1" class="f-track2"/><rect x="0" y="4" width="25" height="4" rx="1" class="f-warn"/></svg>Last 30 days</span>
+          <span class="l-node"><svg class="form glyph" width="2" height="12" viewBox="0 0 2 12" aria-hidden="true"><rect x="0" y="0" width="1.5" height="12" class="f-ink"/></svg>Expiry day</span>
+          <span class="l-node"><svg class="form glyph" width="14" height="12" viewBox="0 0 14 12" aria-hidden="true"><rect x="0" y="0" width="1.5" height="12" class="f-bad"/><rect x="2.5" y="4" width="11" height="4" class="f-bad"/></svg>Days past</span>
+        </div>
+      </div>
+    </div>
+    <p class="nx-spec__note">One clock for anything that runs out · <code class="mono">TimeBar elapsed late soon milestones</code> · retires the Overdue and Due soon pills in a row · from bullet graphs and error-budget bars</p>
+  </section>
+</div>
+</body>
+</html>

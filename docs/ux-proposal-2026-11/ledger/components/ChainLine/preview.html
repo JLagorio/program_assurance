@@ -1,0 +1,42 @@
+<!-- @dsCard group="Proposed" height=172 -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>ChainLine</title>
+<style>
+body { margin: 0; background: var(--ds-elevation-surface); }
+.lx.l-card { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+.lx .l-spec { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 12px 16px; align-items: center; }
+.lx .l-spec > .t-label { align-self: center; }
+.lx .l-spec > .is-top { align-self: start; padding-top: 6px; }
+.lx .l-stage { position: relative; overflow: hidden; border: 1px solid var(--ds-color-border); border-radius: 10px; background: var(--ds-elevation-surface); }
+</style>
+</head>
+<body style="margin:0">
+<div class="lx l-card">
+  <div class="col g-100">
+    <span class="t-label">A requirement: evidence owed, a finding against it</span>
+    <nav class="nx-chain" aria-label="Assurance chain">
+      <a class="nx-chain__stop"><i></i><span>Controls</span><b>2</b></a>
+      <a class="nx-chain__stop is-here"><i></i><span>Requirements</span></a>
+      <a class="nx-chain__stop is-gap"><i></i><span>Evidence</span><b>0</b><u>Add evidence</u></a>
+      <a class="nx-chain__stop is-bad"><i></i><span>Findings</span><b>2</b><em>Not satisfied</em></a>
+      <a class="nx-chain__stop is-bad"><i></i><span>POA&amp;M</span><b>1</b><em>39d late</em></a>
+      <a class="nx-chain__stop"><i></i><span>Risks</span><b>1</b><em>High</em></a>
+    </nav>
+  </div>
+  <div class="col g-100">
+    <span class="t-label">A control: nothing wrong downstream</span>
+    <nav class="nx-chain" aria-label="Assurance chain">
+      <a class="nx-chain__stop is-here"><i></i><span>Controls</span></a>
+      <a class="nx-chain__stop"><i></i><span>Requirements</span><b>3</b></a>
+      <a class="nx-chain__stop"><i></i><span>Evidence</span><b>4</b></a>
+      <a class="nx-chain__stop"><i></i><span>Findings</span><b>1</b><em>Satisfied</em></a>
+      <a class="nx-chain__stop is-none"><i></i><span>POA&amp;M</span><b>0</b></a>
+      <a class="nx-chain__stop is-none"><i></i><span>Risks</span><b>0</b></a>
+    </nav>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,44 @@
+<!-- @dsCard group="Surfaces" height=246 -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Card</title>
+<style>
+body { margin: 0; background: var(--ds-elevation-surface); }
+.lx.l-card { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+.lx .l-spec { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 12px 16px; align-items: center; }
+.lx .l-spec > .t-label { align-self: center; }
+.lx .l-spec > .is-top { align-self: start; padding-top: 6px; }
+.lx .l-stage { position: relative; overflow: hidden; border: 1px solid var(--ds-color-border); border-radius: 10px; background: var(--ds-elevation-surface); }
+.lx .l-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; align-items: start; }
+.lx .l-flush-head { display: flex; align-items: center; gap: 8px; padding: 10px 12px; }
+.lx .l-flush-row { display: flex; align-items: center; gap: 12px; height: 40px; padding: 0 12px; }
+</style>
+</head>
+<body style="margin:0">
+<div class="lx l-card">
+  <div class="l-cards">
+    <div class="k-card">
+      <div class="row between"><a class="k-name truncate">AC Access Control</a><span class="c-subtle nowrap">24 / 52 satisfied</span></div>
+      <div class="k-tally" role="img" aria-label="Control status of 52 controls"><i class="st-other" style="flex: 1"></i><i class="st-part" style="flex: 4"></i><i class="st-sat" style="flex: 24"></i><i class="st-na" style="flex: 7"></i><i class="st-noev" style="flex: 15"></i><i class="st-noreq" style="flex: 1"></i></div>
+      <span class="c-subtle">36 with evidence</span>
+    </div>
+    <div class="k-card s-sm">
+      <div class="row between"><a class="k-name truncate">AU Audit and Accountability</a><span class="c-subtle nowrap">16 / 35 satisfied</span></div>
+      <div class="k-tally" role="img" aria-label="Control status of 35 controls"><i class="st-other" style="flex: 2"></i><i class="st-part" style="flex: 5"></i><i class="st-sat" style="flex: 16"></i><i class="st-na" style="flex: 2"></i><i class="st-noev" style="flex: 10"></i></div>
+      <span class="c-subtle">25 with evidence</span>
+    </div>
+    <div class="k-card is-flush">
+      <div class="l-flush-head"><span class="t-section">Contains</span><span class="k-count">3</span></div>
+      <hr class="k-divider">
+      <a class="l-flush-row"><span class="w-500">CN-109113</span><span class="grow truncate">Platform Management Controller</span><span class="c-subtle">Component</span></a>
+      <hr class="k-divider">
+      <a class="l-flush-row"><span class="w-500">CN-109114</span><span class="grow truncate">Maintenance Access Gateway</span><span class="c-subtle">Component</span></a>
+      <hr class="k-divider">
+      <a class="l-flush-row"><span class="w-500">CN-109119</span><span class="grow truncate">Maintenance Laptop</span><span class="c-subtle">Asset</span></a>
+    </div>
+  </div>
+</div>
+</body>
+</html>

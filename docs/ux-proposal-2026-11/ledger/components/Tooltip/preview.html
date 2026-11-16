@@ -1,0 +1,35 @@
+<!-- @dsCard group="Overlays" height=222 -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Tooltip</title>
+<style>
+body { margin: 0; background: var(--ds-elevation-surface); }
+.lx.l-card { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+.lx .l-spec { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 12px 16px; align-items: center; }
+.lx .l-spec > .t-label { align-self: center; }
+.lx .l-spec > .is-top { align-self: start; padding-top: 6px; }
+.lx .l-stage { position: relative; overflow: hidden; border: 1px solid var(--ds-color-border); border-radius: 10px; background: var(--ds-elevation-surface); }
+.lx .l-tip { align-items: center; }
+.lx .l-tip.l-start { align-items: flex-start; }
+.lx .l-cut { max-width: 280px; }
+</style>
+</head>
+<body style="margin:0">
+<div class="lx l-card">
+  <div class="l-spec">
+    <span class="t-label">On an icon button</span>
+    <div class="row wrap g-300">
+      <span class="col g-050 l-tip"><a class="k-btn is-subtle is-icon" aria-label="Close Operational issue preview"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></a><span class="k-tooltip">Close Operational issue preview</span></span>
+      <span class="col g-050 l-tip"><a class="k-btn is-subtle is-icon" aria-label="Columns"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="M15 3v18"/></svg></a><span class="k-tooltip">Columns</span></span>
+      <span class="col g-050 l-tip"><a class="k-btn is-subtle is-icon" aria-label="Search"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg></a><span class="k-tooltip">Search or jump to… ⌘K</span></span>
+    </div>
+    <span class="t-label">On a cut name</span>
+    <div class="col g-050 l-tip l-start"><span class="k-name truncate l-cut">Payload arm and release records become unverifiable as signing keys rotate</span><span class="k-tooltip">Payload arm and release records become unverifiable as signing keys rotate</span></div>
+    <span class="t-label">Why it cannot run</span>
+    <div class="col g-050 l-tip l-start"><a class="k-btn is-primary" aria-disabled="true">Publish assessment results</a><span class="k-tooltip">Its draft results hold no finding yet.</span></div>
+  </div>
+</div>
+</body>
+</html>

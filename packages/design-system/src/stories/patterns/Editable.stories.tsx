@@ -287,6 +287,10 @@ export const Roster: Story = {
     await waitFor(() => expect(owner).toHaveTextContent("Priya Raghavan"));
     await expect(owner).toHaveAttribute("aria-disabled", "true");
     await waitFor(() => expect(owner).toHaveFocus());
+    // The list just chosen from fades out on its own time; once it is gone, Enter while the save
+    // is pending must not open another.
+    await waitFor(() => expect(page.queryByRole("listbox")).toBeNull());
+    await expect(owner).toHaveAttribute("aria-disabled", "true");
     await userEvent.keyboard("{Enter}");
     await expect(page.queryByRole("listbox")).toBeNull();
     await waitFor(() => expect(owner).not.toHaveAttribute("aria-disabled", "true"));

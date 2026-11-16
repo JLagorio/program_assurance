@@ -1,0 +1,383 @@
+<!-- @dsCard group="Proposed" height=2538 width=1440 page -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Counting: bars, rungs, marks</title>
+<style>
+body { margin: 0; background: var(--ds-elevation-surface); }
+.lx.l-card { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+.lx .l-spec { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 12px 16px; align-items: center; }
+.lx .l-spec > .t-label { align-self: center; }
+.lx .l-spec > .is-top { align-self: start; padding-top: 6px; }
+.lx .l-stage { position: relative; overflow: hidden; border: 1px solid var(--ds-color-border); border-radius: 10px; background: var(--ds-elevation-surface); }
+</style>
+</head>
+<body style="margin:0">
+<div class="lx nx-sheet b-sheet-marks">
+  <header class="l-head">
+    <h1 class="nx-sheet__title">Counting</h1>
+    <p class="nx-sheet__lede">Draw what can be counted as its marks before it is a number, and spend hue only on a judgement.</p>
+  </header>
+
+  <section class="nx-spec">
+    <div class="l-label"><span class="nx-spec__label">Control status · six states, today and next</span><code class="mono c-subtlest">forms.mjs rung · nx-mark · m- fills</code></div>
+    <div class="nx-spec__stage l-keywrap">
+      <div class="l-keys">
+        <div class="l-key">
+          <span class="t-label">Today</span><span class="c-subtle">Badge</span>
+          <span><span class="k-badge t-danger">Other than satisfied</span></span>
+          <span><span class="k-badge t-warning">Partially satisfied</span></span>
+          <span><span class="k-badge t-success">Satisfied</span></span>
+          <span><span class="k-badge t-info">Not assessed</span></span>
+          <span><span class="k-badge t-warning">No evidence</span></span>
+          <span><span class="k-badge">No requirement</span></span>
+          <span></span><span class="c-subtle">Tile map</span>
+          <span><i class="k-mark-sq st-other"></i></span>
+          <span><i class="k-mark-sq st-part"></i></span>
+          <span><i class="k-mark-sq st-sat"></i></span>
+          <span><i class="k-mark-sq st-na"></i></span>
+          <span><i class="k-mark-sq st-noev"></i></span>
+          <span><i class="k-mark-sq st-noreq"></i></span>
+        </div>
+        <div class="k-divider"></div>
+        <div class="l-key">
+          <span class="t-label">Next</span><span class="c-subtle">Rung and word</span>
+          <span class="nx-st"><svg class="form glyph" width="12" height="14" viewBox="0 0 12 14" role="img"><rect x="0" y="12" width="12" height="2" rx="0.5" class="f-bad"/><rect x="0" y="8" width="12" height="2" rx="0.5" class="f-bad"/><rect x="0" y="4" width="12" height="2" rx="0.5" class="f-bad"/><rect x="0" y="0" width="12" height="2" rx="0.5" class="f-ink1"/></svg>Other than satisfied</span>
+          <span class="nx-st"><svg class="form glyph" width="12" height="14" viewBox="0 0 12 14" role="img"><rect x="0" y="12" width="12" height="2" rx="0.5" class="f-warn"/><rect x="0" y="8" width="12" height="2" rx="0.5" class="f-warn"/><rect x="0" y="4" width="12" height="2" rx="0.5" class="f-warn"/><rect x="0" y="0" width="12" height="2" rx="0.5" class="f-ink1"/><rect x="0" y="0" width="6" height="2" rx="0.5" class="f-warn"/></svg>Partially satisfied</span>
+          <span class="nx-st"><svg class="form glyph" width="12" height="14" viewBox="0 0 12 14" role="img"><rect x="0" y="12" width="12" height="2" rx="0.5" class="f-ok"/><rect x="0" y="8" width="12" height="2" rx="0.5" class="f-ok"/><rect x="0" y="4" width="12" height="2" rx="0.5" class="f-ok"/><rect x="0" y="0" width="12" height="2" rx="0.5" class="f-ok"/></svg>Satisfied</span>
+          <span class="nx-st"><svg class="form glyph" width="12" height="14" viewBox="0 0 12 14" role="img"><rect x="0" y="12" width="12" height="2" rx="0.5" class="f-ink"/><rect x="0" y="8" width="12" height="2" rx="0.5" class="f-ink"/><rect x="0" y="4" width="12" height="2" rx="0.5" class="f-ink1"/><rect x="0" y="0" width="12" height="2" rx="0.5" class="f-ink1"/></svg>Not assessed</span>
+          <span class="nx-st"><svg class="form glyph" width="12" height="14" viewBox="0 0 12 14" role="img"><rect x="0" y="12" width="12" height="2" rx="0.5" class="f-ink"/><rect x="0" y="8" width="12" height="2" rx="0.5" class="f-ink1"/><rect x="0" y="4" width="12" height="2" rx="0.5" class="f-ink1"/><rect x="0" y="0" width="12" height="2" rx="0.5" class="f-ink1"/></svg>No evidence</span>
+          <span class="nx-st"><svg class="form glyph" width="12" height="14" viewBox="0 0 12 14" role="img"><rect x="0" y="12" width="12" height="2" rx="0.5" class="f-ink1"/><rect x="0" y="8" width="12" height="2" rx="0.5" class="f-ink1"/><rect x="0" y="4" width="12" height="2" rx="0.5" class="f-ink1"/><rect x="0" y="0" width="12" height="2" rx="0.5" class="f-ink1"/></svg>No requirement</span>
+          <span></span><span class="c-subtle">Mark</span>
+          <span><i class="nx-mark m-other"></i></span>
+          <span><i class="nx-mark m-part"></i></span>
+          <span><i class="nx-mark m-sat"></i></span>
+          <span><i class="nx-mark m-na"></i></span>
+          <span><i class="nx-mark m-noev"></i></span>
+          <span><i class="nx-mark m-noreq"></i></span>
+          <span></span><span class="c-subtle">Token</span>
+          <span><code class="mono c-subtle">chart.danger</code></span>
+          <span><code class="mono c-subtle">chart.warning</code></span>
+          <span><code class="mono c-subtle">chart.success</code></span>
+          <span><code class="mono c-subtle">chart.ink.3</code></span>
+          <span><code class="mono c-subtle">chart.ink.2</code></span>
+          <span><code class="mono c-subtle">border.bold</code></span>
+        </div>
+      </div>
+      <div class="l-anat">
+        <span class="t-label">Rung glyph · 12 × 14</span>
+        <div class="row g-150">
+          <svg class="form glyph" width="48" height="56" viewBox="0 0 12 14" role="img"><rect x="0" y="12" width="12" height="2" rx="0.5" class="f-ink"/><rect x="0" y="8" width="12" height="2" rx="0.5" class="f-ink"/><rect x="0" y="4" width="12" height="2" rx="0.5" class="f-ink1"/><rect x="0" y="0" width="12" height="2" rx="0.5" class="f-ink1"/></svg>
+          <div class="l-anat__names t-small"><span class="c-subtle">Satisfied</span><span class="c-subtle">Assessed</span><span>Evidence</span><span>Requirement</span></div>
+        </div>
+      </div>
+    </div>
+    <p class="nx-spec__note">Where a control stands, hue only once it is judged · <code class="mono">RungGlyph status</code> · <code class="mono">Mark tone fill</code> · retires the tinted badge in lists and the app’s marks table; information blue leaves status · from signal bars</p>
+  </section>
+
+  <section class="nx-spec">
+    <div class="l-label"><span class="nx-spec__label">Standing bar · control status across a baseline</span><code class="mono c-subtlest">forms.mjs standing · nx-standbar · nx-famrows</code></div>
+    <div class="nx-spec__stage l-standing">
+      <div class="col g-100">
+        <span class="t-label">Page · 14 tall, one count on</span>
+        <div class="row base g-150"><span class="t-figure">174 <span class="of">of 560</span></span><span class="t-unit l-unit"><i class="nx-mark s-sm m-sat"></i>satisfied</span></div>
+        <div class="nx-standbar">
+          <div class="nx-standbar__rung" style="flex:221">
+            <div class="nx-standbar__keys"><a class="nx-standbar__key is-on"><i class="nx-mark s-sm m-other"></i><span><b>13</b> Other than satisfied</span></a><a class="nx-standbar__key"><i class="nx-mark s-sm m-part"></i><span><b>34</b> Partially satisfied</span></a></div>
+            <div class="nx-standbar__segs"><a class="m-other is-on" style="flex:13"></a><a class="m-part" style="flex:34"></a><a class="m-sat" style="flex:174"></a></div>
+            <a class="nx-standbar__tick"><b>221</b> assessed</a>
+          </div>
+          <div class="nx-standbar__rung" style="flex:90">
+            <div class="nx-standbar__keys"><a class="nx-standbar__key"><i class="nx-mark s-sm m-na"></i><span><b>90</b> Not assessed</span></a></div>
+            <div class="nx-standbar__segs"><a class="m-na" style="flex:90"></a></div>
+            <a class="nx-standbar__tick"><b>311</b> with evidence</a>
+          </div>
+          <div class="nx-standbar__rung" style="flex:235">
+            <div class="nx-standbar__keys"><a class="nx-standbar__key"><i class="nx-mark s-sm m-noev"></i><span><b>235</b> No evidence</span></a></div>
+            <div class="nx-standbar__segs"><a class="m-noev" style="flex:235"></a></div>
+            <a class="nx-standbar__tick"><b>546</b> mapped</a>
+          </div>
+          <div class="nx-standbar__rung" style="flex:14">
+            <div class="nx-standbar__keys"><a class="nx-standbar__key"><i class="nx-mark s-sm m-noreq"></i><span><b>14</b> No requirement</span></a></div>
+            <div class="nx-standbar__segs"><a class="m-noreq" style="flex:14"></a></div>
+          </div>
+        </div>
+      </div>
+      <div class="l-standing__below">
+        <div class="col g-100">
+          <span class="t-label">Row · 120 × 8</span>
+          <table class="k-table l-rows">
+            <tbody>
+              <tr><td class="is-fill"><span class="row g-100"><span class="k-name">WS-X90</span><span class="t-label">Today, Tally</span></span></td><td class="is-num c-subtle">31%</td><td><span class="k-tally l-tally"><i class="st-sat" style="flex:174"></i><i class="st-part" style="flex:34"></i><i class="st-other" style="flex:13"></i><i class="st-na" style="flex:90"></i><i class="st-noev" style="flex:235"></i><i class="st-noreq" style="flex:14"></i></span></td></tr>
+              <tr><td class="is-fill"><span class="k-name">WS-X90</span></td><td class="is-num">174 <span class="c-subtle">of 560</span></td><td><svg class="form bar" width="120" height="8" viewBox="0 0 120 8" role="img" aria-label=""><g><rect x="0" y="0" width="3" height="8" class="f-bad"/><rect x="4" y="0" width="7" height="8" class="f-warn"/><rect x="12" y="0" width="35.6" height="8" class="f-ok"/><rect x="48.5" y="0" width="18.4" height="8" class="f-ink3"/><rect x="67.9" y="0" width="48.1" height="8" class="f-ink2"/><rect x="117.5" y="0.5" width="2" height="7" class="hollow"/></g></svg></td></tr>
+              <tr><td class="is-fill"><span class="k-name">Customer A</span></td><td class="is-num">116 <span class="c-subtle">of 374</span></td><td><svg class="form bar" width="120" height="8" viewBox="0 0 120 8" role="img" aria-label=""><g><rect x="0" y="0" width="10.1" height="8" class="f-bad"/><rect x="11.1" y="0" width="8.8" height="8" class="f-warn"/><rect x="20.9" y="0" width="35.3" height="8" class="f-ok"/><rect x="57.2" y="0" width="3" height="8" class="f-ink3"/><rect x="61.7" y="0.5" width="57.8" height="7" class="hollow"/></g></svg></td></tr>
+              <tr><td class="is-fill"><span class="k-name">Atlas payments platform</span></td><td class="is-num c-subtle">0 of 287</td><td><svg class="form bar" width="120" height="8" viewBox="0 0 120 8" role="img" aria-label=""><g><rect x="0" y="0" width="3" height="8" class="f-ink2"/><rect x="4.5" y="0.5" width="115" height="7" class="hollow"/></g></svg></td></tr>
+              <tr><td class="is-fill"><span class="k-name">Legacy billing gateway</span></td><td class="is-num c-subtle">0 of 149</td><td><svg class="form bar" width="120" height="8" viewBox="0 0 120 8" role="img" aria-label=""><g><rect x="0.5" y="0.5" width="119" height="7" class="hollow"/></g></svg></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="col g-100">
+          <span class="t-label">By family · one scale, 8 of 18</span>
+          <div class="nx-famrows">
+            <div class="nx-famrows__head"><span class="nx-famrows__of">Assessed<svg class="i s-12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></svg></span></div>
+            <a class="nx-famrows__row"><b>AT</b><span class="nx-famrows__n">8%</span><span class="nx-famrows__bar" style="width:17.6%"><i class="m-sat" style="flex:1"></i><i class="m-na" style="flex:1"></i><i class="m-noev" style="flex:10"></i></span></a>
+            <a class="nx-famrows__row"><b>MP</b><span class="nx-famrows__n">10%</span><span class="nx-famrows__bar" style="width:14.7%"><i class="m-sat" style="flex:1"></i><i class="m-na" style="flex:4"></i><i class="m-noev" style="flex:5"></i></span></a>
+            <a class="nx-famrows__row"><b>IA</b><span class="nx-famrows__n">14%</span><span class="nx-famrows__bar" style="width:52.9%"><i class="m-other" style="flex:1"></i><i class="m-part" style="flex:1"></i><i class="m-sat" style="flex:3"></i><i class="m-na" style="flex:20"></i><i class="m-noev" style="flex:11"></i></span></a>
+            <a class="nx-famrows__row"><b>SA</b><span class="nx-famrows__n">22%</span><span class="nx-famrows__bar" style="width:100%"><i class="m-other" style="flex:1"></i><i class="m-part" style="flex:2"></i><i class="m-sat" style="flex:12"></i><i class="m-na" style="flex:7"></i><i class="m-noev" style="flex:45"></i><i class="m-noreq" style="flex:1"></i></span></a>
+            <a class="nx-famrows__row"><b>PL</b><span class="nx-famrows__n">27%</span><span class="nx-famrows__bar" style="width:16.2%"><i class="m-sat" style="flex:3"></i><i class="m-na" style="flex:1"></i><i class="m-noev" style="flex:7"></i></span></a>
+            <a class="nx-famrows__row"><b>PE</b><span class="nx-famrows__n">31%</span><span class="nx-famrows__bar" style="width:38.2%"><i class="m-other" style="flex:1"></i><i class="m-sat" style="flex:7"></i><i class="m-na" style="flex:2"></i><i class="m-noev" style="flex:16"></i></span></a>
+            <a class="nx-famrows__row"><b>SR</b><span class="nx-famrows__n">32%</span><span class="nx-famrows__bar" style="width:32.4%"><i class="m-part" style="flex:1"></i><i class="m-sat" style="flex:6"></i><i class="m-na" style="flex:4"></i><i class="m-noev" style="flex:11"></i></span></a>
+            <a class="nx-famrows__row"><b>IR</b><span class="nx-famrows__n">34%</span><span class="nx-famrows__bar" style="width:47.1%"><i class="m-part" style="flex:2"></i><i class="m-sat" style="flex:9"></i><i class="m-na" style="flex:3"></i><i class="m-noev" style="flex:18"></i></span></a>
+          </div>
+        </div>
+        <div class="col g-100">
+          <span class="t-label">A status chosen · a family open</span>
+          <div class="nx-famrows">
+            <div class="nx-famrows__head"><span class="nx-famrows__of"><i class="nx-mark s-sm m-other"></i>Other than satisfied<svg class="i s-12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg></span></div>
+            <a class="nx-famrows__row is-on"><b>SC</b><span class="nx-famrows__n">4</span><span class="nx-famrows__bar" style="width:97.1%"><i class="m-other" style="flex:4"></i><i class="m-part" style="flex:3"></i><i class="m-sat" style="flex:25"></i><i class="m-na" style="flex:10"></i><i class="m-noev" style="flex:18"></i><i class="m-noreq" style="flex:6"></i></span></a>
+            <a class="nx-famrows__row"><b>AU</b><span class="nx-famrows__n">2</span><span class="nx-famrows__bar" style="width:51.5%"><i class="m-other" style="flex:2"></i><i class="m-part" style="flex:5"></i><i class="m-sat" style="flex:16"></i><i class="m-na" style="flex:2"></i><i class="m-noev" style="flex:10"></i></span></a>
+            <a class="nx-famrows__row"><b>SI</b><span class="nx-famrows__n">2</span><span class="nx-famrows__bar" style="width:79.4%"><i class="m-other" style="flex:2"></i><i class="m-part" style="flex:1"></i><i class="m-sat" style="flex:22"></i><i class="m-na" style="flex:7"></i><i class="m-noev" style="flex:19"></i><i class="m-noreq" style="flex:3"></i></span></a>
+            <a class="nx-famrows__row"><b>AC</b><span class="nx-famrows__n">1</span><span class="nx-famrows__bar" style="width:76.5%"><i class="m-other" style="flex:1"></i><i class="m-part" style="flex:4"></i><i class="m-sat" style="flex:24"></i><i class="m-na" style="flex:7"></i><i class="m-noev" style="flex:15"></i><i class="m-noreq" style="flex:1"></i></span></a>
+            <a class="nx-famrows__row"><b>CM</b><span class="nx-famrows__n">1</span><span class="nx-famrows__bar" style="width:63.2%"><i class="m-other" style="flex:1"></i><i class="m-part" style="flex:5"></i><i class="m-sat" style="flex:17"></i><i class="m-na" style="flex:9"></i><i class="m-noev" style="flex:11"></i></span></a>
+            <a class="nx-famrows__row"><b>IA</b><span class="nx-famrows__n">1</span><span class="nx-famrows__bar" style="width:52.9%"><i class="m-other" style="flex:1"></i><i class="m-part" style="flex:1"></i><i class="m-sat" style="flex:3"></i><i class="m-na" style="flex:20"></i><i class="m-noev" style="flex:11"></i></span></a>
+            <a class="nx-famrows__row"><b>PE</b><span class="nx-famrows__n">1</span><span class="nx-famrows__bar" style="width:38.2%"><i class="m-other" style="flex:1"></i><i class="m-sat" style="flex:7"></i><i class="m-na" style="flex:2"></i><i class="m-noev" style="flex:16"></i></span></a>
+            <a class="nx-famrows__row"><b>SA</b><span class="nx-famrows__n">1</span><span class="nx-famrows__bar" style="width:100%"><i class="m-other" style="flex:1"></i><i class="m-part" style="flex:2"></i><i class="m-sat" style="flex:12"></i><i class="m-na" style="flex:7"></i><i class="m-noev" style="flex:45"></i><i class="m-noreq" style="flex:1"></i></span></a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="nx-spec__note">Control status across a baseline, trouble first, no segment under 3px, a count the way into its segment · <code class="mono">StandingBar counts size ticks value</code> · absorbs Tally, ProgressStacked and the family cards · from the bullet graph</p>
+  </section>
+
+  <section class="nx-spec">
+    <div class="l-label"><span class="nx-spec__label">Ladder and climb · where a baseline stopped</span><code class="mono c-subtlest">nx-ladder · nx-climb</code></div>
+    <div class="nx-spec__stage l-climbs">
+      <div class="l-ladders">
+        <div class="col g-100">
+          <span class="t-label">WS-X90 · the drop is evidence</span>
+          <div class="nx-ladder">
+            <div class="nx-ladder__rung"><span class="nx-ladder__name">Requirement</span><span></span><span class="nx-ladder__n">546</span><div class="nx-ladder__bar"><i class="is-on" style="flex:546"></i><i class="is-none" style="flex:14"></i></div></div>
+            <div class="nx-ladder__rung"><span class="nx-ladder__name">Evidence</span><span class="nx-ladder__drop">−235</span><span class="nx-ladder__n">311</span><div class="nx-ladder__bar"><i class="is-on" style="flex:311"></i><i class="is-gap" style="flex:235"></i><b style="flex:14"></b></div></div>
+            <div class="nx-ladder__rung"><span class="nx-ladder__name">Assessed</span><span></span><span class="nx-ladder__n">221</span><div class="nx-ladder__bar"><i class="is-on" style="flex:221"></i><i class="is-wait" style="flex:90"></i><b style="flex:249"></b></div></div>
+            <div class="nx-ladder__rung"><span class="nx-ladder__name">Satisfied</span><span></span><span class="nx-ladder__n">174</span><div class="nx-ladder__bar"><i class="is-sat" style="flex:174"></i><i class="is-part" style="flex:34"></i><i class="is-other" style="flex:13"></i><b style="flex:339"></b></div></div>
+          </div>
+        </div>
+        <div class="col g-100">
+          <span class="t-label">Customer A · the drop is requirements</span>
+          <div class="nx-ladder">
+            <div class="nx-ladder__rung"><span class="nx-ladder__name">Requirement</span><span class="nx-ladder__drop">−193</span><span class="nx-ladder__n">181</span><div class="nx-ladder__bar"><i class="is-on" style="flex:181"></i><i class="is-none" style="flex:193"></i></div></div>
+            <div class="nx-ladder__rung"><span class="nx-ladder__name">Evidence</span><span></span><span class="nx-ladder__n">181</span><div class="nx-ladder__bar"><i class="is-on" style="flex:181"></i><b style="flex:193"></b></div></div>
+            <div class="nx-ladder__rung"><span class="nx-ladder__name">Assessed</span><span></span><span class="nx-ladder__n">178</span><div class="nx-ladder__bar"><i class="is-on" style="flex:178"></i><i class="is-wait" style="flex:3"></i><b style="flex:193"></b></div></div>
+            <div class="nx-ladder__rung"><span class="nx-ladder__name">Satisfied</span><span></span><span class="nx-ladder__n">116</span><div class="nx-ladder__bar"><i class="is-sat" style="flex:116"></i><i class="is-part" style="flex:29"></i><i class="is-other" style="flex:33"></i><b style="flex:196"></b></div></div>
+          </div>
+        </div>
+        <div class="col g-100">
+          <span class="t-label">Atlas · 5 of 287 mapped</span>
+          <div class="nx-ladder">
+            <div class="nx-ladder__rung"><span class="nx-ladder__name">Requirement</span><span class="nx-ladder__drop">−282</span><span class="nx-ladder__n">5</span><div class="nx-ladder__bar"><i class="is-on" style="flex:5"></i><i class="is-none" style="flex:282"></i></div></div>
+            <div class="nx-ladder__rung"><span class="nx-ladder__name">Evidence</span><span></span><span class="nx-ladder__n">0</span><div class="nx-ladder__bar"><i class="is-gap" style="flex:5"></i><b style="flex:282"></b></div></div>
+            <div class="nx-ladder__rung"><span class="nx-ladder__name c-subtle">Assessed</span><span></span><span class="nx-ladder__n"></span><div class="nx-ladder__bar"></div></div>
+            <div class="nx-ladder__rung"><span class="nx-ladder__name c-subtle">Satisfied</span><span></span><span class="nx-ladder__n"></span><div class="nx-ladder__bar"></div></div>
+          </div>
+        </div>
+        <div class="col g-100">
+          <span class="t-label">Bar fills</span>
+          <div class="l-fills">
+            <span class="nx-ladder__bar"><i class="is-on" style="flex:1"></i></span><span>Reached the rung</span>
+            <span class="nx-ladder__bar"><i class="is-gap" style="flex:1"></i></span><span>Stopped under it</span>
+            <span class="nx-ladder__bar"><i class="is-wait" style="flex:1"></i></span><span>Waiting on an assessor</span>
+            <span class="nx-ladder__bar"><i class="is-none" style="flex:1"></i></span><span>No requirement</span>
+            <span class="nx-ladder__bar"><i class="is-sat" style="flex:2"></i><i class="is-part" style="flex:1"></i><i class="is-other" style="flex:1"></i></span><span>Judged</span>
+            <span class="nx-ladder__drop">−235</span><span>The widest drop, once</span>
+          </div>
+        </div>
+      </div>
+      <div class="col g-100">
+        <span class="t-label">Climb · one line</span>
+        <div class="nx-climb">
+          <div class="nx-climb__node"><b>560</b><span>Selected</span></div>
+          <div class="nx-climb__leg" style="flex:14"><span>14 to map</span><i class="is-none"></i></div>
+          <div class="nx-climb__node"><b>546</b><span>Requirement</span></div>
+          <div class="nx-climb__leg" style="flex:235"><span class="is-warn">235 need evidence</span><i class="is-gap"></i></div>
+          <div class="nx-climb__node"><b>311</b><span>Evidence</span></div>
+          <div class="nx-climb__leg" style="flex:90"><span>90 to assess</span><i class="is-wait"></i></div>
+          <div class="nx-climb__node"><b>221</b><span>Assessed</span></div>
+          <div class="nx-climb__leg" style="flex:47"><span>47 not satisfied</span><i class="is-short"></i></div>
+          <div class="nx-climb__node"><b>174</b><span>Satisfied</span></div>
+          <div class="nx-climb__end" style="flex:174"><i></i></div>
+        </div>
+      </div>
+    </div>
+    <p class="nx-spec__note">A baseline as four rungs: who reached each, who stopped under it · <code class="mono">Ladder rungs layout</code> · retires the Overview’s control status tray and its two-point trend · from the conversion funnel</p>
+  </section>
+
+  <div class="l-pair">
+    <section class="nx-spec">
+      <div class="l-label"><span class="nx-spec__label">Rung glyph and pips · a control in a row</span><code class="mono c-subtlest">forms.mjs rung · pips</code></div>
+      <div class="nx-spec__stage">
+        <div class="col g-100">
+          <span class="t-label">Row · mapped · with evidence · assessed</span>
+          <table class="k-table l-rows">
+            <tbody>
+              <tr><td class="is-fill"><span class="k-name">IA-5 Authenticator Management</span></td><td><span class="nx-st"><svg class="form glyph" width="12" height="14" viewBox="0 0 12 14" role="img"><rect x="0" y="12" width="12" height="2" rx="0.5" class="f-bad"/><rect x="0" y="8" width="12" height="2" rx="0.5" class="f-bad"/><rect x="0" y="4" width="12" height="2" rx="0.5" class="f-bad"/><rect x="0" y="0" width="12" height="2" rx="0.5" class="f-ink1"/></svg>Other than satisfied</span></td><td><svg class="form" width="104" height="10" viewBox="0 0 104 10" role="img"><rect x="0" y="0" width="9.5" height="10" rx="0.5" class="f-bad"/><rect x="10.5" y="0" width="9.5" height="10" rx="0.5" class="f-bad"/><rect x="21" y="0" width="9.5" height="10" rx="0.5" class="f-bad"/><rect x="31.5" y="0" width="9.5" height="10" rx="0.5" class="f-bad"/><rect x="42" y="0" width="9.5" height="10" rx="0.5" class="f-bad"/><rect x="52.5" y="0" width="9.5" height="10" rx="0.5" class="f-bad"/><rect x="63" y="0" width="9.5" height="10" rx="0.5" class="f-bad"/><rect x="73.5" y="0" width="9.5" height="10" rx="0.5" class="f-bad"/><rect x="84" y="0" width="9.5" height="10" rx="0.5" class="f-bad"/><rect x="94.5" y="0" width="9.5" height="10" rx="0.5" class="f-bad"/></svg></td><td class="is-num">10 · 10 · 10</td></tr>
+              <tr><td class="is-fill"><span class="k-name">RA-3 Risk Assessment</span></td><td><span class="nx-st"><svg class="form glyph" width="12" height="14" viewBox="0 0 12 14" role="img"><rect x="0" y="12" width="12" height="2" rx="0.5" class="f-warn"/><rect x="0" y="8" width="12" height="2" rx="0.5" class="f-warn"/><rect x="0" y="4" width="12" height="2" rx="0.5" class="f-warn"/><rect x="0" y="0" width="12" height="2" rx="0.5" class="f-ink1"/><rect x="0" y="0" width="6" height="2" rx="0.5" class="f-warn"/></svg>Partially satisfied</span></td><td><svg class="form" width="104" height="10" viewBox="0 0 104 10" role="img"><rect x="0" y="0" width="12.1" height="10" rx="0.5" class="f-warn"/><rect x="13.1" y="0" width="12.1" height="10" rx="0.5" class="f-warn"/><rect x="26.3" y="0" width="12.1" height="10" rx="0.5" class="f-warn"/><rect x="39.4" y="0" width="12.1" height="10" rx="0.5" class="f-warn"/><rect x="52.5" y="0" width="12.1" height="10" rx="0.5" class="f-warn"/><rect x="65.6" y="0" width="12.1" height="10" rx="0.5" class="f-warn"/><rect x="78.8" y="0" width="12.1" height="10" rx="0.5" class="f-warn"/><rect x="91.9" y="0" width="12.1" height="10" rx="0.5" class="f-warn"/></svg></td><td class="is-num">8 · 8 · 8</td></tr>
+              <tr><td class="is-fill"><span class="k-name">AC-2 Account Management</span></td><td><span class="nx-st"><svg class="form glyph" width="12" height="14" viewBox="0 0 12 14" role="img"><rect x="0" y="12" width="12" height="2" rx="0.5" class="f-ok"/><rect x="0" y="8" width="12" height="2" rx="0.5" class="f-ok"/><rect x="0" y="4" width="12" height="2" rx="0.5" class="f-ok"/><rect x="0" y="0" width="12" height="2" rx="0.5" class="f-ok"/></svg>Satisfied</span></td><td><svg class="form" width="104" height="10" viewBox="0 0 104 10" role="img"><rect x="0" y="0" width="3" height="10" rx="0.5" class="f-ok"/><rect x="4" y="0" width="3" height="10" rx="0.5" class="f-ok"/><rect x="8.1" y="0" width="3" height="10" rx="0.5" class="f-ok"/><rect x="12.1" y="0" width="3" height="10" rx="0.5" class="f-ok"/><rect x="16.2" y="0" width="3" height="10" rx="0.5" class="f-ok"/><rect x="20.2" y="0" width="3" height="10" rx="0.5" class="f-ok"/><rect x="24.2" y="0" width="3" height="10" rx="0.5" class="f-ok"/><rect x="28.3" y="0" width="3" height="10" rx="0.5" class="f-ok"/><rect x="32.3" y="0" width="3" height="10" rx="0.5" class="f-ok"/><rect x="36.3" y="0" width="3" height="10" rx="0.5" class="f-ok"/><rect x="40.4" y="0" width="3" height="10" rx="0.5" class="f-ok"/><rect x="44.4" y="0" width="3" height="10" rx="0.5" class="f-ok"/><rect x="48.5" y="0" width="3" height="10" rx="0.5" class="f-ok"/><rect x="52.5" y="0" width="3" height="10" rx="0.5" class="f-ok"/><rect x="56.5" y="0" width="3" height="10" rx="0.5" class="f-ok"/><rect x="60.6" y="0" width="3" height="10" rx="0.5" class="f-ok"/><rect x="64.6" y="0" width="3" height="10" rx="0.5" class="f-ok"/><rect x="68.7" y="0" width="3" height="10" rx="0.5" class="f-ok"/><rect x="72.7" y="0" width="3" height="10" rx="0.5" class="f-ok"/><rect x="76.7" y="0" width="3" height="10" rx="0.5" class="f-ok"/><rect x="80.8" y="0" width="3" height="10" rx="0.5" class="f-ok"/><rect x="84.8" y="0" width="3" height="10" rx="0.5" class="f-ok"/><rect x="88.8" y="0" width="3" height="10" rx="0.5" class="f-ok"/><rect x="92.9" y="0" width="3" height="10" rx="0.5" class="f-ok"/><rect x="96.9" y="0" width="3" height="10" rx="0.5" class="f-ok"/><rect x="101" y="0" width="3" height="10" rx="0.5" class="f-ok"/></svg></td><td class="is-num">26 · 26 · 26</td></tr>
+              <tr><td class="is-fill"><span class="k-name">CA-3 Information Exchange</span></td><td><span class="nx-st"><svg class="form glyph" width="12" height="14" viewBox="0 0 12 14" role="img"><rect x="0" y="12" width="12" height="2" rx="0.5" class="f-ink"/><rect x="0" y="8" width="12" height="2" rx="0.5" class="f-ink"/><rect x="0" y="4" width="12" height="2" rx="0.5" class="f-ink1"/><rect x="0" y="0" width="12" height="2" rx="0.5" class="f-ink1"/></svg>Not assessed</span></td><td><svg class="form" width="104" height="10" viewBox="0 0 104 10" role="img"><rect x="0" y="0" width="12.1" height="10" rx="0.5" class="f-ink3"/><rect x="13.1" y="0" width="12.1" height="10" rx="0.5" class="f-ink3"/><rect x="26.3" y="0" width="12.1" height="10" rx="0.5" class="f-ink3"/><rect x="39.4" y="0" width="12.1" height="10" rx="0.5" class="f-ink3"/><rect x="52.5" y="0" width="12.1" height="10" rx="0.5" class="f-ink3"/><rect x="65.6" y="0" width="12.1" height="10" rx="0.5" class="f-ink3"/><rect x="78.8" y="0" width="12.1" height="10" rx="0.5" class="f-ink3"/><rect x="91.9" y="0" width="12.1" height="10" rx="0.5" class="f-ink3"/></svg></td><td class="is-num">8 · 8 · 0</td></tr>
+              <tr><td class="is-fill"><span class="k-name">SI-2 Flaw Remediation</span></td><td><span class="nx-st"><svg class="form glyph" width="12" height="14" viewBox="0 0 12 14" role="img"><rect x="0" y="12" width="12" height="2" rx="0.5" class="f-ink"/><rect x="0" y="8" width="12" height="2" rx="0.5" class="f-ink1"/><rect x="0" y="4" width="12" height="2" rx="0.5" class="f-ink1"/><rect x="0" y="0" width="12" height="2" rx="0.5" class="f-ink1"/></svg>No evidence</span></td><td><svg class="form" width="104" height="10" viewBox="0 0 104 10" role="img"><rect x="0" y="0" width="9.5" height="10" rx="0.5" class="f-ink2"/><rect x="10.5" y="0" width="9.5" height="10" rx="0.5" class="f-ink2"/><rect x="21" y="0" width="9.5" height="10" rx="0.5" class="f-ink2"/><rect x="31.5" y="0" width="9.5" height="10" rx="0.5" class="f-ink2"/><rect x="42" y="0" width="9.5" height="10" rx="0.5" class="f-ink2"/><rect x="52.5" y="0" width="9.5" height="10" rx="0.5" class="f-ink2"/><rect x="63" y="0" width="9.5" height="10" rx="0.5" class="f-ink2"/><rect x="73.5" y="0" width="9.5" height="10" rx="0.5" class="f-ink2"/><rect x="84" y="0" width="9.5" height="10" rx="0.5" class="f-ink2"/><rect x="94.5" y="0" width="9.5" height="10" rx="0.5" class="f-ink2"/></svg></td><td class="is-num">10 · 0 · 0</td></tr>
+              <tr><td class="is-fill"><span class="k-name">SI-4(13) Analyze Traffic and Event Patterns</span></td><td><span class="nx-st"><svg class="form glyph" width="12" height="14" viewBox="0 0 12 14" role="img"><rect x="0" y="12" width="12" height="2" rx="0.5" class="f-ink1"/><rect x="0" y="8" width="12" height="2" rx="0.5" class="f-ink1"/><rect x="0" y="4" width="12" height="2" rx="0.5" class="f-ink1"/><rect x="0" y="0" width="12" height="2" rx="0.5" class="f-ink1"/></svg>No requirement</span></td><td><svg class="form" width="104" height="10" viewBox="0 0 104 10" role="img"><rect x="0" y="0" width="16.5" height="10" rx="0.5" class="f-ink2"/><rect x="17.5" y="0" width="16.5" height="10" rx="0.5" class="f-ink2"/><rect x="35" y="0" width="16.5" height="10" rx="0.5" class="f-ink2"/><rect x="53" y="0.5" width="15.5" height="9" rx="0.5" class="hollow"/><rect x="70.5" y="0.5" width="15.5" height="9" rx="0.5" class="hollow"/><rect x="88" y="0.5" width="15.5" height="9" rx="0.5" class="hollow"/></svg></td><td class="is-num">3 · 0 · 0</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <p class="nx-spec__note">A control’s rung, then each objective inked by how far it has climbed · <code class="mono">RungGlyph status</code> · <code class="mono">StandingBar units</code> · retires the status pill and three N of 26 columns · from signal bars and the unit chart</p>
+    </section>
+    <section class="nx-spec">
+      <div class="l-label"><span class="nx-spec__label">Objective marks · a control on its record</span><code class="mono c-subtlest">nx-objs · nx-rungs</code></div>
+      <div class="nx-spec__stage">
+        <div class="col g-100">
+          <span class="t-label">One rung · by statement part</span>
+          <div class="l-objs">
+            <b>IA-5</b><span class="nx-objs"><span><i class="is-other"></i></span><span><i class="is-other"></i></span><span><i class="is-other"></i></span><span><i class="is-other"></i></span><span><i class="is-other"></i></span><span><i class="is-other"></i></span><span><i class="is-other"></i></span><span><i class="is-other"></i><i class="is-other"></i></span><span><i class="is-other"></i></span></span><span>10 <span class="c-subtle">of 10 assessed</span></span>
+            <b>RA-3</b><span class="nx-objs"><span><i class="is-part"></i><i class="is-part"></i><i class="is-part"></i></span><span><i class="is-part"></i></span><span><i class="is-part"></i></span><span><i class="is-part"></i></span><span><i class="is-part"></i></span><span><i class="is-part"></i></span></span><span>8 <span class="c-subtle">of 8 assessed</span></span>
+            <b>AC-2</b><span class="nx-objs s-sm"><span><i class="is-sat"></i><i class="is-sat"></i></span><span><i class="is-sat"></i></span><span><i class="is-sat"></i></span><span><i class="is-sat"></i><i class="is-sat"></i><i class="is-sat"></i><i class="is-sat"></i></span><span><i class="is-sat"></i></span><span><i class="is-sat"></i><i class="is-sat"></i><i class="is-sat"></i><i class="is-sat"></i><i class="is-sat"></i></span><span><i class="is-sat"></i></span><span><i class="is-sat"></i><i class="is-sat"></i><i class="is-sat"></i></span><span><i class="is-sat"></i><i class="is-sat"></i><i class="is-sat"></i></span><span><i class="is-sat"></i></span><span><i class="is-sat"></i><i class="is-sat"></i></span><span><i class="is-sat"></i><i class="is-sat"></i></span></span><span>26 <span class="c-subtle">of 26 assessed</span></span>
+            <b>CA-3</b><span class="nx-objs"><span><i class="is-wait"></i></span><span><i class="is-wait"></i><i class="is-wait"></i><i class="is-wait"></i><i class="is-wait"></i><i class="is-wait"></i><i class="is-wait"></i></span><span><i class="is-wait"></i></span></span><span>0 <span class="c-subtle">of 8 assessed</span></span>
+            <b>SI-2</b><span class="nx-objs"><span><i class="is-gap"></i><i class="is-gap"></i><i class="is-gap"></i></span><span><i class="is-gap"></i><i class="is-gap"></i><i class="is-gap"></i><i class="is-gap"></i></span><span><i class="is-gap"></i><i class="is-gap"></i></span><span><i class="is-gap"></i></span></span><span>0 <span class="c-subtle">of 10 with evidence</span></span>
+            <b>SI-4(13)</b><span class="nx-objs"><span><i class="is-on"></i><i class="is-gap"></i></span><span><i class="is-on"></i><i class="is-gap"></i></span><span><i class="is-on"></i><i class="is-gap"></i></span></span><span>3 <span class="c-subtle">of 6 mapped</span></span>
+            <b></b><span class="nx-objs"><span><i class="is-gap"></i><i></i></span><span><i class="is-gap"></i><i></i></span><span><i class="is-gap"></i><i></i></span></span><span>0 <span class="c-subtle">of 3 with evidence</span></span>
+          </div>
+        </div>
+        <div class="col g-100">
+          <span class="t-label">Every rung · SI-4(13), then IA-5 small</span>
+          <div class="l-rungs">
+            <div class="nx-rungs">
+              <span>Mapped</span><span class="nx-rungs__cells"><i class="m-ink"></i><i class="is-empty"></i><i class="m-ink"></i><i class="is-empty"></i><i class="m-ink"></i><i class="is-empty"></i></span><span class="nx-rungs__frac">3 of 6</span>
+              <span>Evidence</span><span class="nx-rungs__cells"><i class="is-empty"></i><i class="is-dim"></i><i class="is-empty"></i><i class="is-dim"></i><i class="is-empty"></i><i class="is-dim"></i></span><span class="nx-rungs__frac">0 of 3</span>
+              <span>Assessed</span><span class="nx-rungs__cells"><i class="is-dim"></i><i class="is-dim"></i><i class="is-dim"></i><i class="is-dim"></i><i class="is-dim"></i><i class="is-dim"></i></span><span class="nx-rungs__frac"></span>
+            </div>
+            <div class="nx-rungs s-sm">
+              <span>Mapped</span><span class="nx-rungs__cells"><i class="m-ink"></i><i class="m-ink"></i><i class="m-ink"></i><i class="m-ink"></i><i class="m-ink"></i><i class="m-ink"></i><i class="m-ink"></i><i class="m-ink"></i><i class="m-ink"></i><i class="m-ink"></i></span><span class="nx-rungs__frac">10 of 10</span>
+              <span>Evidence</span><span class="nx-rungs__cells"><i class="m-ink"></i><i class="m-ink"></i><i class="m-ink"></i><i class="m-ink"></i><i class="m-ink"></i><i class="m-ink"></i><i class="m-ink"></i><i class="m-ink"></i><i class="m-ink"></i><i class="m-ink"></i></span><span class="nx-rungs__frac">10 of 10</span>
+              <span>Assessed</span><span class="nx-rungs__cells"><i class="m-other"></i><i class="m-other"></i><i class="m-other"></i><i class="m-other"></i><i class="m-other"></i><i class="m-other"></i><i class="m-other"></i><i class="m-other"></i><i class="m-other"></i><i class="m-other"></i></span><span class="nx-rungs__frac">10 of 10</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="nx-spec__note">Solid reached, hollow the gap, faint not yet, grey waiting, hue judged · <code class="mono">ObjectiveMarks units groupBy</code> · retires the three Objectives facts in a control’s Details · from Codecov’s hit, partial, miss</p>
+    </section>
+  </div>
+
+  <div class="l-trio">
+    <section class="nx-spec">
+      <div class="l-label"><span class="nx-spec__label">Meter and strip · N of M</span><code class="mono c-subtlest">nx-meter · nx-pips · nx-strip</code></div>
+      <div class="nx-spec__stage">
+        <div class="l-meters">
+          <span>Condition 1</span><span class="nx-meter"><i class="is-met"></i><i class="is-late"></i><i class="is-late"></i><i class="is-late"></i><i class="is-risk"></i><i class="is-risk"></i><i class="is-risk"></i><i class="is-risk"></i><i class="is-risk"></i><i class="is-risk"></i><i class="is-risk"></i><i class="is-risk"></i></span><span>1 <span class="c-subtle">of 12</span></span>
+          <span>Annual review</span><span class="nx-meter"><i class="is-met"></i><i class="is-met"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span>2 <span class="c-subtle">of 10</span></span>
+          <span>Results published</span><span class="nx-meter"><i class="is-sat"></i><i class="is-sat"></i><i></i></span><span>2 <span class="c-subtle">of 3</span></span>
+          <span>Condition 1, large</span><span class="nx-meter s-lg"><i class="is-met"></i><i class="is-late"></i><i class="is-late"></i><i class="is-late"></i><i class="is-risk"></i><i class="is-risk"></i><i class="is-risk"></i><i class="is-risk"></i><i class="is-risk"></i><i class="is-risk"></i><i class="is-risk"></i><i class="is-risk"></i></span><span>1 <span class="c-subtle">of 12</span></span>
+          <span>Milestones, one late</span><span class="nx-pips"><i class="is-done"></i><i class="is-late"></i><i></i></span><span>1 <span class="c-subtle">of 3</span></span>
+        </div>
+        <div class="col g-100">
+          <div class="row between"><span class="t-label">Strip · increment 2, a bar a family</span><span>18 <span class="c-subtle">of 20</span></span></div>
+          <div class="nx-strip"><div class="nx-strip__group" style="flex:2"><div class="nx-strip__marks"><i class="m-part"></i><i class="m-sat"></i></div><span class="nx-strip__code">AC</span></div><div class="nx-strip__group" style="flex:2"><div class="nx-strip__marks"><i class="m-sat"></i><i class="m-sat"></i></div><span class="nx-strip__code">AU</span></div><div class="nx-strip__group" style="flex:1"><div class="nx-strip__marks"><i class="m-part"></i></div><span class="nx-strip__code">CA</span></div><div class="nx-strip__group" style="flex:4"><div class="nx-strip__marks"><i class="m-sat"></i><i class="m-sat"></i><i class="m-sat"></i><i class="m-na"></i></div><span class="nx-strip__code">CM</span></div><div class="nx-strip__group" style="flex:7"><div class="nx-strip__marks"><i class="m-other"></i><i class="m-part"></i><i class="m-sat"></i><i class="m-sat"></i><i class="m-sat"></i><i class="m-sat"></i><i class="m-na"></i></div><span class="nx-strip__code">IA</span></div><div class="nx-strip__group" style="flex:1"><div class="nx-strip__marks"><i class="m-sat"></i></div><span class="nx-strip__code">IR</span></div><div class="nx-strip__group" style="flex:1"><div class="nx-strip__marks"><i class="m-part"></i></div><span class="nx-strip__code">MA</span></div><div class="nx-strip__group" style="flex:1"><div class="nx-strip__marks"><i class="m-sat"></i></div><span class="nx-strip__code">SC</span></div><div class="nx-strip__group" style="flex:1"><div class="nx-strip__marks"><i class="m-sat"></i></div><span class="nx-strip__code">SR</span></div></div>
+        </div>
+      </div>
+      <p class="nx-spec__note">Ink met, green published, red late, amber at risk; many become a strip · <code class="mono">Meter marks</code> · <code class="mono">MarkStrip groups</code> · extends Progress · from Grafana’s LCD gauge</p>
+    </section>
+    <section class="nx-spec">
+      <div class="l-label"><span class="nx-spec__label">Severity · signal and slots</span><code class="mono c-subtlest">forms.mjs signal · slots</code></div>
+      <div class="nx-spec__stage">
+        <div class="l-signals">
+          <span class="nx-st"><svg class="form glyph" width="14" height="12" viewBox="0 0 14 12" role="img"><rect x="0" y="9" width="2.75" height="3" rx="0.5" class="f-crit"/><rect x="3.8" y="6" width="2.75" height="6" rx="0.5" class="f-crit"/><rect x="7.5" y="3" width="2.75" height="9" rx="0.5" class="f-crit"/><rect x="11.3" y="0" width="2.75" height="12" rx="0.5" class="f-crit"/></svg>Critical</span>
+          <span class="nx-st"><svg class="form glyph" width="14" height="12" viewBox="0 0 14 12" role="img"><rect x="0" y="9" width="2.75" height="3" rx="0.5" class="f-bad"/><rect x="3.8" y="6" width="2.75" height="6" rx="0.5" class="f-bad"/><rect x="7.5" y="3" width="2.75" height="9" rx="0.5" class="f-bad"/><rect x="11.3" y="0" width="2.75" height="12" rx="0.5" class="f-ink1"/></svg>High</span>
+          <span class="nx-st"><svg class="form glyph" width="14" height="12" viewBox="0 0 14 12" role="img"><rect x="0" y="9" width="2.75" height="3" rx="0.5" class="f-warn"/><rect x="3.8" y="6" width="2.75" height="6" rx="0.5" class="f-warn"/><rect x="7.5" y="3" width="2.75" height="9" rx="0.5" class="f-ink1"/><rect x="11.3" y="0" width="2.75" height="12" rx="0.5" class="f-ink1"/></svg>Moderate</span>
+          <span class="nx-st"><svg class="form glyph" width="14" height="12" viewBox="0 0 14 12" role="img"><rect x="0" y="9" width="2.75" height="3" rx="0.5" class="f-ink3"/><rect x="3.8" y="6" width="2.75" height="6" rx="0.5" class="f-ink1"/><rect x="7.5" y="3" width="2.75" height="9" rx="0.5" class="f-ink1"/><rect x="11.3" y="0" width="2.75" height="12" rx="0.5" class="f-ink1"/></svg>Low</span>
+        </div>
+        <div class="l-slots">
+          <span>WS-X90 open issues</span><span class="slots"><span class="slot crit">2</span><span class="slot high">11</span><span class="slot mod">23</span><span class="slot low">7</span></span>
+          <span>WS-X90 open risks</span><span class="slots"><span class="slot crit">2</span><span class="slot high">10</span><span class="slot mod">18</span><span class="slot low">10</span></span>
+          <span>Customer C open issues</span><span class="slots"><span class="slot zero">·</span><span class="slot high">1</span><span class="slot mod">2</span><span class="slot zero">·</span></span>
+        </div>
+        <div class="col g-050">
+          <span class="slots"><span class="slot crit big">2</span><span class="slot high big">11</span><span class="slot mod big">23</span><span class="slot low big">7</span></span>
+          <div class="l-slotnames t-small c-subtle"><span>Critical</span><span>High</span><span>Moderate</span><span>Low</span></div>
+        </div>
+      </div>
+      <p class="nx-spec__note">One record, four rising bars; many, four fixed slots · <code class="mono">SeveritySignal</code> · <code class="mono">SeveritySlots</code> · retires severity pills · from Linear’s priority icon</p>
+    </section>
+    <section class="nx-spec">
+      <div class="l-label"><span class="nx-spec__label">Matrix glyph · one cell lit</span><code class="mono c-subtlest">forms.mjs matrix · nx-cell5</code></div>
+      <div class="nx-spec__stage">
+        <div class="col g-100">
+          <span class="t-label">WS-X90 · 40 risks by cell</span>
+          <div class="l-cells">
+            <svg class="form glyph" width="19" height="19" viewBox="-1 -1 21 21" role="img"><rect x="0" y="16" width="3" height="3" class="f-ink1"/><rect x="4" y="16" width="3" height="3" class="f-ink1"/><rect x="8" y="16" width="3" height="3" class="f-ink1"/><rect x="12" y="16" width="3" height="3" class="f-ink1"/><rect x="16" y="16" width="3" height="3" class="f-ink1"/><rect x="0" y="12" width="3" height="3" class="f-ink1"/><rect x="4" y="12" width="3" height="3" class="f-ink1"/><rect x="8" y="12" width="3" height="3" class="f-ink1"/><rect x="12" y="12" width="3" height="3" class="f-ink1"/><rect x="16" y="12" width="3" height="3" class="f-ink2"/><rect x="0" y="8" width="3" height="3" class="f-ink1"/><rect x="4" y="8" width="3" height="3" class="f-ink1"/><rect x="8" y="8" width="3" height="3" class="f-ink1"/><rect x="12" y="8" width="3" height="3" class="f-ink2"/><rect x="16" y="8" width="3" height="3" class="f-ink2"/><rect x="0" y="4" width="3" height="3" class="f-ink1"/><rect x="4" y="4" width="3" height="3" class="f-ink1"/><rect x="8" y="4" width="3" height="3" class="f-ink2"/><rect x="11.1" y="3.1" width="4.8" height="4.8" rx="0.6" class="mx-high"/><rect x="16" y="4" width="3" height="3" class="f-ink2"/><rect x="0" y="0" width="3" height="3" class="f-ink1"/><rect x="4" y="0" width="3" height="3" class="f-ink2"/><rect x="8" y="0" width="3" height="3" class="f-ink2"/><rect x="12" y="0" width="3" height="3" class="f-ink2"/><rect x="16" y="0" width="3" height="3" class="f-ink2"/></svg><span>High × High</span><span>4</span>
+            <svg class="form glyph" width="19" height="19" viewBox="-1 -1 21 21" role="img"><rect x="0" y="16" width="3" height="3" class="f-ink1"/><rect x="4" y="16" width="3" height="3" class="f-ink1"/><rect x="8" y="16" width="3" height="3" class="f-ink1"/><rect x="12" y="16" width="3" height="3" class="f-ink1"/><rect x="16" y="16" width="3" height="3" class="f-ink1"/><rect x="0" y="12" width="3" height="3" class="f-ink1"/><rect x="4" y="12" width="3" height="3" class="f-ink1"/><rect x="8" y="12" width="3" height="3" class="f-ink1"/><rect x="12" y="12" width="3" height="3" class="f-ink1"/><rect x="16" y="12" width="3" height="3" class="f-ink2"/><rect x="0" y="8" width="3" height="3" class="f-ink1"/><rect x="4" y="8" width="3" height="3" class="f-ink1"/><rect x="8" y="8" width="3" height="3" class="f-ink1"/><rect x="11.1" y="7.1" width="4.8" height="4.8" rx="0.6" class="mx-high"/><rect x="16" y="8" width="3" height="3" class="f-ink2"/><rect x="0" y="4" width="3" height="3" class="f-ink1"/><rect x="4" y="4" width="3" height="3" class="f-ink1"/><rect x="8" y="4" width="3" height="3" class="f-ink2"/><rect x="12" y="4" width="3" height="3" class="f-ink2"/><rect x="16" y="4" width="3" height="3" class="f-ink2"/><rect x="0" y="0" width="3" height="3" class="f-ink1"/><rect x="4" y="0" width="3" height="3" class="f-ink2"/><rect x="8" y="0" width="3" height="3" class="f-ink2"/><rect x="12" y="0" width="3" height="3" class="f-ink2"/><rect x="16" y="0" width="3" height="3" class="f-ink2"/></svg><span>Moderate × High</span><span>12</span>
+            <svg class="form glyph" width="19" height="19" viewBox="-1 -1 21 21" role="img"><rect x="0" y="16" width="3" height="3" class="f-ink1"/><rect x="4" y="16" width="3" height="3" class="f-ink1"/><rect x="8" y="16" width="3" height="3" class="f-ink1"/><rect x="12" y="16" width="3" height="3" class="f-ink1"/><rect x="16" y="16" width="3" height="3" class="f-ink1"/><rect x="0" y="12" width="3" height="3" class="f-ink1"/><rect x="4" y="12" width="3" height="3" class="f-ink1"/><rect x="8" y="12" width="3" height="3" class="f-ink1"/><rect x="12" y="12" width="3" height="3" class="f-ink1"/><rect x="16" y="12" width="3" height="3" class="f-ink2"/><rect x="0" y="8" width="3" height="3" class="f-ink1"/><rect x="4" y="8" width="3" height="3" class="f-ink1"/><rect x="7.1" y="7.1" width="4.8" height="4.8" rx="0.6" class="mx-mod"/><rect x="12" y="8" width="3" height="3" class="f-ink2"/><rect x="16" y="8" width="3" height="3" class="f-ink2"/><rect x="0" y="4" width="3" height="3" class="f-ink1"/><rect x="4" y="4" width="3" height="3" class="f-ink1"/><rect x="8" y="4" width="3" height="3" class="f-ink2"/><rect x="12" y="4" width="3" height="3" class="f-ink2"/><rect x="16" y="4" width="3" height="3" class="f-ink2"/><rect x="0" y="0" width="3" height="3" class="f-ink1"/><rect x="4" y="0" width="3" height="3" class="f-ink2"/><rect x="8" y="0" width="3" height="3" class="f-ink2"/><rect x="12" y="0" width="3" height="3" class="f-ink2"/><rect x="16" y="0" width="3" height="3" class="f-ink2"/></svg><span>Moderate × Moderate</span><span>14</span>
+            <svg class="form glyph" width="19" height="19" viewBox="-1 -1 21 21" role="img"><rect x="0" y="16" width="3" height="3" class="f-ink1"/><rect x="4" y="16" width="3" height="3" class="f-ink1"/><rect x="8" y="16" width="3" height="3" class="f-ink1"/><rect x="12" y="16" width="3" height="3" class="f-ink1"/><rect x="16" y="16" width="3" height="3" class="f-ink1"/><rect x="0" y="12" width="3" height="3" class="f-ink1"/><rect x="4" y="12" width="3" height="3" class="f-ink1"/><rect x="7.1" y="11.1" width="4.8" height="4.8" rx="0.6" class="mx-mod"/><rect x="12" y="12" width="3" height="3" class="f-ink1"/><rect x="16" y="12" width="3" height="3" class="f-ink2"/><rect x="0" y="8" width="3" height="3" class="f-ink1"/><rect x="4" y="8" width="3" height="3" class="f-ink1"/><rect x="8" y="8" width="3" height="3" class="f-ink1"/><rect x="12" y="8" width="3" height="3" class="f-ink2"/><rect x="16" y="8" width="3" height="3" class="f-ink2"/><rect x="0" y="4" width="3" height="3" class="f-ink1"/><rect x="4" y="4" width="3" height="3" class="f-ink1"/><rect x="8" y="4" width="3" height="3" class="f-ink2"/><rect x="12" y="4" width="3" height="3" class="f-ink2"/><rect x="16" y="4" width="3" height="3" class="f-ink2"/><rect x="0" y="0" width="3" height="3" class="f-ink1"/><rect x="4" y="0" width="3" height="3" class="f-ink2"/><rect x="8" y="0" width="3" height="3" class="f-ink2"/><rect x="12" y="0" width="3" height="3" class="f-ink2"/><rect x="16" y="0" width="3" height="3" class="f-ink2"/></svg><span>Low × Moderate</span><span>4</span>
+            <svg class="form glyph" width="19" height="19" viewBox="-1 -1 21 21" role="img"><rect x="0" y="16" width="3" height="3" class="f-ink1"/><rect x="4" y="16" width="3" height="3" class="f-ink1"/><rect x="8" y="16" width="3" height="3" class="f-ink1"/><rect x="12" y="16" width="3" height="3" class="f-ink1"/><rect x="16" y="16" width="3" height="3" class="f-ink1"/><rect x="0" y="12" width="3" height="3" class="f-ink1"/><rect x="3.1" y="11.1" width="4.8" height="4.8" rx="0.6" class="mx-low"/><rect x="8" y="12" width="3" height="3" class="f-ink1"/><rect x="12" y="12" width="3" height="3" class="f-ink1"/><rect x="16" y="12" width="3" height="3" class="f-ink2"/><rect x="0" y="8" width="3" height="3" class="f-ink1"/><rect x="4" y="8" width="3" height="3" class="f-ink1"/><rect x="8" y="8" width="3" height="3" class="f-ink1"/><rect x="12" y="8" width="3" height="3" class="f-ink2"/><rect x="16" y="8" width="3" height="3" class="f-ink2"/><rect x="0" y="4" width="3" height="3" class="f-ink1"/><rect x="4" y="4" width="3" height="3" class="f-ink1"/><rect x="8" y="4" width="3" height="3" class="f-ink2"/><rect x="12" y="4" width="3" height="3" class="f-ink2"/><rect x="16" y="4" width="3" height="3" class="f-ink2"/><rect x="0" y="0" width="3" height="3" class="f-ink1"/><rect x="4" y="0" width="3" height="3" class="f-ink2"/><rect x="8" y="0" width="3" height="3" class="f-ink2"/><rect x="12" y="0" width="3" height="3" class="f-ink2"/><rect x="16" y="0" width="3" height="3" class="f-ink2"/></svg><span>Low × Low</span><span>6</span>
+            <svg class="form glyph" width="19" height="19" viewBox="-1 -1 21 21" role="img"><rect x="0" y="16" width="3" height="3" class="f-ink1"/><rect x="4" y="16" width="3" height="3" class="f-ink1"/><rect x="8" y="16" width="3" height="3" class="f-ink1"/><rect x="12" y="16" width="3" height="3" class="f-ink1"/><rect x="16" y="16" width="3" height="3" class="f-ink1"/><rect x="0" y="12" width="3" height="3" class="f-ink1"/><rect x="4" y="12" width="3" height="3" class="f-ink1"/><rect x="8" y="12" width="3" height="3" class="f-ink1"/><rect x="12" y="12" width="3" height="3" class="f-ink1"/><rect x="16" y="12" width="3" height="3" class="f-ink2"/><rect x="0" y="8" width="3" height="3" class="f-ink1"/><rect x="4" y="8" width="3" height="3" class="f-ink1"/><rect x="8" y="8" width="3" height="3" class="f-ink1"/><rect x="11.1" y="7.1" width="4.8" height="4.8" rx="0.6" class="mx-high"/><rect x="16" y="8" width="3" height="3" class="f-ink2"/><rect x="0" y="4" width="3" height="3" class="f-ink1"/><rect x="4" y="4" width="3" height="3" class="f-ink1"/><rect x="8" y="4" width="3" height="3" class="f-ink2"/><rect x="11.6" y="3.6" width="3.8" height="3.8" class="mx-was"/><rect x="16" y="4" width="3" height="3" class="f-ink2"/><rect x="0" y="0" width="3" height="3" class="f-ink1"/><rect x="4" y="0" width="3" height="3" class="f-ink2"/><rect x="8" y="0" width="3" height="3" class="f-ink2"/><rect x="12" y="0" width="3" height="3" class="f-ink2"/><rect x="16" y="0" width="3" height="3" class="f-ink2"/></svg><span class="c-subtle">Moved from High × High, illustrative</span><span></span>
+            <span class="nx-cell5"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="is-on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="c-subtle">Moderate × High as nx-cell5, 29 wide</span><span></span>
+          </div>
+        </div>
+      </div>
+      <p class="nx-spec__note">Likelihood up, impact across, tinted by its band · <code class="mono">MatrixGlyph likelihood impact from</code> · retires the text pair · from the risk matrix</p>
+    </section>
+  </div>
+
+  <div class="l-pair">
+    <section class="nx-spec">
+      <div class="l-label"><span class="nx-spec__label">Layer waterfall · how a baseline is formed</span><code class="mono c-subtlest">forms.mjs waterfall · nx-layers</code></div>
+      <div class="nx-spec__stage">
+        <div class="col g-100">
+          <span class="t-label">Page · WS-X90, a column a layer</span>
+          <div class="nx-layers">
+            <svg class="form" width="648" height="64" viewBox="0 0 648 64" role="img"><rect x="0" y="24.5" width="48" height="39.5" class="f-ink2"/><rect x="120" y="26.3" width="48" height="37.7" class="f-ink2"/><rect x="120" y="4.9" width="48" height="21.4" class="f-ink"/><rect x="120.5" y="26.8" width="47" height="1.5" class="cut"/><rect x="240" y="5.4" width="48" height="58.6" class="f-ink2"/><rect x="240.5" y="5.9" width="47" height="1.5" class="cut"/><rect x="360" y="5.4" width="48" height="58.6" class="f-ink2"/><rect x="360" y="3.4" width="48" height="2" class="f-ink"/><rect x="480" y="5.8" width="48" height="58.2" class="f-ink2"/><rect x="480.5" y="6.3" width="47" height="1.5" class="cut"/><rect x="600" y="5.8" width="48" height="58.2" class="f-ink2"/><rect x="600" y="3.8" width="48" height="2" class="f-ink"/></svg>
+            <div class="nx-layers__row t-small"><span>High baseline</span><span>CNSSI 1253</span><span>Mission Assurance</span><span>Deployed Platform</span><span>Customer A</span><span>Program tailoring</span></div>
+            <div class="nx-layers__row t-small c-subtle"><span><b>370</b></span><span>+201 −17 · <b>554</b></span><span>−5 · <b>549</b></span><span>+1 · <b>550</b></span><span>−4 · <b>546</b></span><span>+14 · <b>560</b></span></div>
+          </div>
+        </div>
+        <div class="col g-100">
+          <span class="t-label">Row · 8 a layer, 20 tall</span>
+          <table class="k-table l-rows">
+            <tbody>
+              <tr><td class="is-fill"><span class="k-name">WS-X90</span></td><td class="is-num">560</td><td><svg class="form" width="63" height="20" viewBox="0 0 63 20" role="img"><rect x="0" y="7.7" width="8" height="12.3" class="f-ink2"/><rect x="11" y="8.2" width="8" height="11.8" class="f-ink2"/><rect x="11" y="1.5" width="8" height="6.7" class="f-ink"/><rect x="11.5" y="8.7" width="7" height="1.5" class="cut"/><rect x="22" y="1.7" width="8" height="18.3" class="f-ink2"/><rect x="22.5" y="2.2" width="7" height="1.5" class="cut"/><rect x="33" y="1.7" width="8" height="18.3" class="f-ink2"/><rect x="33" y="-0.3" width="8" height="2" class="f-ink"/><rect x="44" y="1.8" width="8" height="18.2" class="f-ink2"/><rect x="44.5" y="2.3" width="7" height="1.5" class="cut"/><rect x="55" y="1.8" width="8" height="18.2" class="f-ink2"/><rect x="55" y="-0.2" width="8" height="2" class="f-ink"/></svg></td></tr>
+              <tr><td class="is-fill"><span class="k-name">Customer A</span></td><td class="is-num">374</td><td><svg class="form" width="19" height="20" viewBox="0 0 19 20" role="img"><rect x="0" y="7.7" width="8" height="12.3" class="f-ink2"/><rect x="11" y="7.7" width="8" height="12.3" class="f-ink2"/><rect x="11" y="5.7" width="8" height="2" class="f-ink"/><rect x="11.5" y="8.2" width="7" height="1.5" class="cut"/></svg></td></tr>
+              <tr><td class="is-fill"><span class="k-name">Legacy billing gateway</span></td><td class="is-num">149</td><td><svg class="form" width="8" height="20" viewBox="0 0 8 20" role="img"><rect x="0" y="15" width="8" height="5" class="f-ink2"/></svg></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <p class="nx-spec__note">Grey carried, ink added, dashed cut, the running count under each · <code class="mono">LayerWaterfall layers</code> · absorbs the Stepper in Baseline; retires the stack table’s number columns · from the bridge chart</p>
+    </section>
+    <section class="nx-spec">
+      <div class="l-label"><span class="nx-spec__label">Owed bar · what a variant inherits and owes</span><code class="mono c-subtlest">nx-delta · forms.mjs source</code></div>
+      <div class="nx-spec__stage">
+        <div class="col g-100">
+          <span class="t-label">Page · X800-A-CUSA</span>
+          <div class="nx-key-row"><span><i class="d-inh"></i>Inherited <b>113</b></span><span><i class="d-shared"></i>Shared <b>27</b></span><span><i class="d-changed"></i>Changed here <b>82</b></span><span><i class="d-own"></i>Program only <b>152</b></span></div>
+          <div class="nx-delta">
+            <div class="nx-delta__bar"><i class="d-inh" style="flex:113"></i><i class="d-shared" style="flex:27"></i><i class="l-owed" style="flex:234"><i class="d-changed" style="flex:82"></i><i class="d-own" style="flex:152"></i></i></div>
+            <div class="nx-delta__bracket"><span style="flex:113"></span><span style="flex:27"></span><span class="is-owed" style="flex:234"><em><b>234</b> to assess</em></span></div>
+            <div class="nx-delta__thin"><i style="flex:113"></i><i style="flex:27"></i><i class="l-owed" style="flex:234"><i class="m-other" style="flex:31"></i><i class="m-part" style="flex:29"></i><i class="m-sat" style="flex:105"></i><i class="d-unplanned" style="flex:69"></i></i></div>
+            <div class="nx-delta__foot"><span style="flex:113"></span><span style="flex:27"></span><span style="flex:234"><b>165</b> determined · <b>69</b> to go</span></div>
+          </div>
+        </div>
+        <div class="col g-100">
+          <span class="t-label">Row · 120 × 8</span>
+          <table class="k-table l-rows">
+            <tbody>
+              <tr><td class="is-fill"><span class="k-name">X800-A-CUSA</span></td><td class="is-num">234 <span class="c-subtle">of 374</span></td><td><svg class="form bar" width="120" height="8" viewBox="0 0 120 8" role="img"><g><rect x="0" y="0" width="35.4" height="8" class="f-ink2"/><rect x="38.4" y="0" width="7.4" height="8" class="f-teal2"/><rect x="46.8" y="0" width="24.7" height="8" class="f-teal"/><rect x="72.4" y="0" width="47.6" height="8" class="f-ink"/></g></svg></td></tr>
+              <tr><td class="is-fill"><span class="k-name">R210-STD-CUSA</span></td><td class="is-num">303 <span class="c-subtle">of 374</span></td><td><svg class="form bar" width="120" height="8" viewBox="0 0 120 8" role="img"><g><rect x="0" y="0" width="18.8" height="8" class="f-ink2"/><rect x="21.8" y="0" width="2.4" height="8" class="f-teal2"/><rect x="25.2" y="0" width="10.6" height="8" class="f-teal"/><rect x="36.8" y="0" width="83.2" height="8" class="f-ink"/></g></svg></td></tr>
+              <tr><td class="is-fill"><span class="k-name">X800-C-CUSB</span></td><td class="is-num">178 <span class="c-subtle">of 370</span></td><td><svg class="form bar" width="120" height="8" viewBox="0 0 120 8" role="img"><g><rect x="0" y="0" width="48.1" height="8" class="f-ink2"/><rect x="51.1" y="0" width="11.6" height="8" class="f-teal2"/><rect x="63.7" y="0" width="15.8" height="8" class="f-teal"/><rect x="80.5" y="0" width="39.5" height="8" class="f-ink"/></g></svg></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <p class="nx-spec__note">Faint inherited, teal differs, ink the program’s own, one bracket under what is owed · <code class="mono">SourceBar size progress</code> · retires the Product delta’s four-number band · from the shared responsibility matrix</p>
+    </section>
+  </div>
+</div>
+</body>
+</html>

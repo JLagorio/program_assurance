@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Field operations mobile · Overview</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="ledger.css">
+<style>body{margin:0;background:var(--ds-elevation-surface-sunken)}</style>
+</head>
+<body>
+<div class="lx k-app b-program-empty" data-shell="programs" data-reader="PR" data-role="System owner">
+<header class="k-topnav"><div class="k-topnav-start"><span class="k-mark"></span><span class="k-app-name grow truncate">Program Assurance</span><span class="k-btn is-subtle is-icon"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/></svg></span></div><div class="k-topnav-middle"><div class="k-search"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg><span class="grow truncate">Search or jump to…</span><span class="k-kbd">⌘</span><span class="k-kbd">K</span></div></div><div class="k-topnav-end"><span class="k-btn is-subtle is-icon"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg></span><span class="k-avatar">PR</span></div></header>
+<nav class="k-sidenav" aria-label="Main"><div class="k-nav-body"><div class="k-nav-section"><a class="k-nav-item" href="home.html"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Home</a><a class="k-nav-item" aria-current="page" href="programs.html"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/><path d="M8 10v4"/><path d="M12 10v2"/><path d="M16 10v6"/></svg>Programs</a><a class="k-nav-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 5h8"/><path d="M13 12h8"/><path d="M13 19h8"/><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/></svg>Registers</a><a class="k-nav-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 12h4"/><path d="M10 8h4"/><path d="M14 21v-3a2 2 0 0 0-4 0v3"/><path d="M6 10H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2"/><path d="M6 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16"/></svg>Business lines</a><a class="k-nav-item" href="product.html"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"/><path d="M12 22V12"/><polyline points="3.29 7 12 12 20.71 7"/><path d="m7.5 4.27 9 5.15"/></svg>Products</a><a class="k-nav-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/></svg>Library</a></div></div><div class="k-nav-footer"><div class="k-profile"><span class="k-avatar">PR</span><div class="col g-0 grow"><span class="truncate w-500">Priya Raghavan</span><span class="t-small c-subtle">System owner</span></div><svg class="i s-14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></svg></div></div></nav>
+  <main class="k-main">
+    <div class="k-pagehead">
+      <nav class="k-trail"><a href="programs.html">Programs</a><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg><span aria-current="page">PRG-1007</span></nav>
+      <div class="k-titlebar">
+        <h1 class="k-title truncate">Field operations mobile</h1>
+        <div class="nx-slot">
+          <span class="nx-slot__why"><b>No requirements recorded</b><span>step 3 of 7</span></span>
+          <a class="k-btn is-primary s-lg">Import requirements<span class="nx-key">↵</span></a>
+          <button class="k-btn is-subtle is-icon s-lg" aria-label="More actions"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button>
+        </div>
+      </div>
+    </div>
+    <div class="k-tabs" role="tablist"><a class="k-tab" role="tab" aria-selected="true">Overview</a><a class="k-tab" role="tab" aria-selected="false">System</a><a class="k-tab" role="tab" aria-selected="false">Controls</a><a class="k-tab" role="tab" aria-selected="false">Requirements</a><a class="k-tab" role="tab" aria-selected="false">Assessments</a><a class="k-tab" role="tab" aria-selected="false">Risk &amp; POA&amp;M</a><a class="k-tab" role="tab" aria-selected="false">Decisions</a></div>
+    <p class="t-figure l-standing">No decision yet.</p>
+    <div class="l-cols">
+      <ol class="nx-path is-ladder" aria-label="Path to the first decision">
+        <li class="nx-path__stop is-major is-walked">
+          <span class="nx-path__when">Sep 12</span>
+          <span class="nx-path__node is-done"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <div class="nx-stop"><div class="nx-stop__body"><a class="nx-stop__name">System</a><span class="nx-stop__fact">fom-mobile</span><span class="nx-stop__fact">Low · Low · Low</span><span class="nx-stop__fact l-verb">system owner</span></div><span class="nx-stop__end"><span class="nx-person"><span class="k-avatar s-xs">PR</span>Priya Raghavan</span></span></div>
+        </li>
+        <li class="nx-path__stop is-major is-walked">
+          <span class="nx-path__when">Nov 13</span>
+          <span class="nx-path__node is-done"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <div class="nx-stop"><div class="nx-stop__body"><a class="nx-stop__name">Control baseline</a><span class="nx-stop__fact">SP 800-53 Rev 5 Moderate</span><span class="nx-stop__fact">287 controls</span></div></div>
+        </li>
+        <li class="nx-path__today"><b>Today</b><i></i></li>
+        <li class="nx-path__stop is-open">
+          <span class="nx-path__when"></span>
+          <span class="nx-path__node is-here"></span>
+          <section class="nx-stage" aria-label="Requirements">
+            <div class="nx-stage__head"><h2 class="nx-stage__title">Requirements</h2></div>
+            <div class="nx-stage__body">
+              <div class="nx-checklist">
+                <div class="nx-check is-ahead is-next"><span class="nx-check__mark"></span><span class="nx-check__label"><b>Recorded</b> · none</span><span class="nx-check__end"><span class="c-subtle">yours</span></span></div>
+                <div class="nx-check is-na"><span class="nx-check__mark"></span><span class="nx-check__label"><b>Mapped</b> · 0 of 287</span></div>
+              </div>
+            </div>
+          </section>
+        </li>
+        <li class="nx-path__stop l-gate">
+          <span class="nx-path__when">Nov 19</span>
+          <span class="nx-path__node is-gate"></span>
+          <div class="nx-stop"><div class="nx-stop__body"><a class="nx-stop__name">Initial Operational Capability</a><span class="nx-stop__fact">In review</span></div></div>
+        </li>
+        <li class="nx-path__stop is-major">
+          <span class="nx-path__when"></span>
+          <span class="nx-path__node"></span>
+          <div class="nx-stop"><div class="nx-stop__body"><span class="nx-stop__name">Evidence</span></div></div>
+        </li>
+        <li class="nx-path__stop is-major">
+          <span class="nx-path__when"></span>
+          <span class="nx-path__node"></span>
+          <div class="nx-stop"><div class="nx-stop__body"><span class="nx-stop__name">Security plan</span></div></div>
+        </li>
+        <li class="nx-path__stop is-major">
+          <span class="nx-path__when"></span>
+          <span class="nx-path__node"></span>
+          <div class="nx-stop"><div class="nx-stop__body"><span class="nx-stop__name">Assessment</span></div></div>
+        </li>
+        <li class="nx-path__stop is-major">
+          <span class="nx-path__when"></span>
+          <span class="nx-path__node"></span>
+          <div class="nx-stop"><div class="nx-stop__body"><a class="nx-stop__name">Authorization decision</a><span class="nx-stop__fact l-verb">draft package</span></div><span class="nx-stop__end"><span class="nx-person"><span class="k-avatar s-xs">RY</span>Ray Colston</span></span></div>
+        </li>
+      </ol>
+    </div>
+  </main>
+</div>
+</body>
+</html>

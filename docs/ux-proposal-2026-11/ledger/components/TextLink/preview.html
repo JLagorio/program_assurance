@@ -1,0 +1,30 @@
+<!-- @dsCard group="Actions" height=148 -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>TextLink</title>
+<style>
+body { margin: 0; background: var(--ds-elevation-surface); }
+.lx.l-card { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+.lx .l-spec { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 12px 16px; align-items: center; }
+.lx .l-spec > .t-label { align-self: center; }
+.lx .l-spec > .is-top { align-self: start; padding-top: 6px; }
+.lx .l-stage { position: relative; overflow: hidden; border: 1px solid var(--ds-color-border); border-radius: 10px; background: var(--ds-elevation-surface); }
+</style>
+</head>
+<body style="margin:0">
+<div class="lx l-card">
+  <div class="l-spec">
+    <span class="t-label">Link</span>
+    <div class="row wrap g-200"><a class="k-link">Open assessment findings</a><a class="k-link">Remediate REQ-008</a><span>Decided by <a class="k-link">X800 Missile version 2 product assessment</a></span></div>
+    <span class="t-label">Brand</span>
+    <div class="row wrap g-200"><a class="k-link is-brand">View all</a><a class="k-link is-brand">Clear filters</a></div>
+    <span class="t-label">Record name</span>
+    <div class="row wrap g-200"><a class="k-name">Risk arising from REQ-008</a><a class="k-name">AU-4 Audit Log Storage Capacity</a><a class="k-name">Unnamed requirement</a></div>
+    <span class="t-label">Acts in place</span>
+    <div class="row wrap g-200"><button class="k-btn is-link k-link">Map 14 more objectives</button><button class="k-btn is-link k-link">Add to assessment campaign</button></div>
+  </div>
+</div>
+</body>
+</html>

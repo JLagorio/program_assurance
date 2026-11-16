@@ -1,0 +1,31 @@
+<!-- @dsCard group="Measures" height=236 -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Stat</title>
+<style>
+body { margin: 0; background: var(--ds-elevation-surface); }
+.lx.l-card { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+.lx .l-spec { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 12px 16px; align-items: center; }
+.lx .l-spec > .t-label { align-self: center; }
+.lx .l-spec > .is-top { align-self: start; padding-top: 6px; }
+.lx .l-stage { position: relative; overflow: hidden; border: 1px solid var(--ds-color-border); border-radius: 10px; background: var(--ds-elevation-surface); }
+</style>
+</head>
+<body style="margin:0">
+<div class="lx l-card">
+  <div class="k-statband" role="group" aria-label="Needs attention">
+    <a class="k-stat"><span class="k-stat-label">Open risks</span><span class="k-stat-value">60</span><span class="k-stat-note">41 without an owner</span></a>
+    <a class="k-stat"><span class="k-stat-label">Open operational issues</span><span class="k-stat-value">67</span><span class="k-stat-note">22 high or critical</span></a>
+    <a class="k-stat"><span class="k-stat-label">Overdue remediation items</span><span class="k-stat-value">19</span><span class="k-stat-note">15 more due within 30 days</span></a>
+    <a class="k-stat"><span class="k-stat-label">Evidence to accept</span><span class="k-stat-value c-subtlest">0</span><span class="k-stat-note">All reviewed</span></a>
+  </div>
+  <div class="k-statband" role="group" aria-label="Posture">
+    <div class="k-stat"><span class="k-stat-label">Objectives mapped</span><span class="k-stat-value">1,761</span><span class="k-stat-note">of 1,791</span></div>
+    <div class="k-stat"><span class="k-stat-label">Without evidence</span><span class="k-stat-value">643</span><span class="k-stat-note">of those mapped</span></div>
+    <div class="k-stat"><span class="k-stat-label">Open issues</span><span class="k-stat-value c-subtle" role="img" aria-label="Not recorded">—</span><span class="k-stat-note">Could not load</span></div>
+  </div>
+</div>
+</body>
+</html>

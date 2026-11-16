@@ -1,0 +1,34 @@
+<!-- @dsCard group="Surfaces" height=248 -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Empty</title>
+<style>
+body { margin: 0; background: var(--ds-elevation-surface); }
+.lx.l-card { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+.lx .l-spec { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 12px 16px; align-items: center; }
+.lx .l-spec > .t-label { align-self: center; }
+.lx .l-spec > .is-top { align-self: start; padding-top: 6px; }
+.lx .l-stage { position: relative; overflow: hidden; border: 1px solid var(--ds-color-border); border-radius: 10px; background: var(--ds-elevation-surface); }
+.lx .l-empties { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; align-items: stretch; }
+.lx .l-empties > .k-card { justify-content: center; }
+.lx .k-empty.l-compact { padding: 16px; }
+</style>
+</head>
+<body style="margin:0">
+<div class="lx l-card">
+  <div class="l-empties">
+    <div class="k-card is-flush">
+      <div class="k-empty"><span class="k-empty-icon"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg></span><span class="t-section c-text">No risks yet</span><span>Risks recorded for this program appear here.</span><a class="k-btn is-primary">Create risk</a></div>
+    </div>
+    <div class="k-card is-flush">
+      <div class="k-empty"><span class="k-empty-icon"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg></span><span class="t-section c-text">No risks match</span><span>No open risk has High severity and no owner.</span><a class="k-btn is-secondary">Clear filters</a></div>
+    </div>
+    <div class="k-card is-flush">
+      <div class="k-empty l-compact"><span class="w-500 c-text">No evidence cited</span><a class="k-btn is-secondary s-xs">Link evidence</a></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

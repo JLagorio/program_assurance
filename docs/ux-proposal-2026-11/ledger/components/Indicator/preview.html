@@ -1,0 +1,37 @@
+<!-- @dsCard group="Status" height=120 -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Indicator</title>
+<style>
+body { margin: 0; background: var(--ds-elevation-surface); }
+.lx.l-card { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+.lx .l-spec { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 12px 16px; align-items: center; }
+.lx .l-spec > .t-label { align-self: center; }
+.lx .l-spec > .is-top { align-self: start; padding-top: 6px; }
+.lx .l-stage { position: relative; overflow: hidden; border: 1px solid var(--ds-color-border); border-radius: 10px; background: var(--ds-elevation-surface); }
+</style>
+</head>
+<body style="margin:0">
+<div class="lx l-card">
+  <div class="l-spec">
+    <span class="t-label">Severity</span>
+    <div class="row wrap g-250">
+      <span class="row g-075 c-danger w-600"><span class="k-dot t-danger"></span>Critical</span>
+      <span class="row g-075"><span class="k-dot t-danger"></span>High</span>
+      <span class="row g-075"><span class="k-dot t-warning"></span>Moderate</span>
+      <span class="row g-075 c-subtle"><span class="k-dot"></span>Low</span>
+    </div>
+    <span class="t-label">Tones</span>
+    <div class="row wrap g-250">
+      <span class="row g-075"><span class="k-dot t-success"></span>Healthy</span>
+      <span class="row g-075"><span class="k-dot t-info"></span>Informational</span>
+      <span class="row g-075"><span class="k-dot t-brand"></span>Under way</span>
+    </div>
+    <span class="t-label">In a row</span>
+    <div class="row g-200"><a class="k-name">Unmet requirement REQ-008</a><span class="row g-075"><span class="k-dot t-danger"></span>High</span><span class="k-badge">Open</span></div>
+  </div>
+</div>
+</body>
+</html>

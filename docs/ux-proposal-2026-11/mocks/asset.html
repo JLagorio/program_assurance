@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Payload Interface Controller · Components</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="ledger.css">
+<style>body{margin:0;background:var(--ds-elevation-surface-sunken)}</style>
+</head>
+<body>
+<div class="lx k-app b-asset" data-shell="sys" data-current="system" data-reader="IS" data-role="System security engineer" data-counts='{"evidence":54}'>
+<header class="k-topnav"><div class="k-topnav-start"><span class="k-mark"></span><span class="k-app-name grow truncate">Program Assurance</span><span class="k-btn is-subtle is-icon"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/></svg></span></div><div class="k-topnav-middle"><div class="k-search"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg><span class="grow truncate">Search or jump to…</span><span class="k-kbd">⌘</span><span class="k-kbd">K</span></div></div><div class="k-topnav-end"><span class="k-btn is-subtle is-icon"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg></span><span class="k-avatar">IS</span></div></header>
+<nav class="k-sidenav nx-sysnav" aria-label="Main"><div class="k-nav-body"><div class="k-nav-section"><a class="k-nav-item" href="home.html"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span class="grow truncate">Home</span></a></div><a class="nx-sysswitch" aria-label="Change scope" href="portfolio.html"><span class="nx-sysswitch__mark">WS</span><span class="nx-sysswitch__text"><span class="nx-sysswitch__id"><b>WS-X90</b><span>High</span></span><span class="nx-sysswitch__name truncate">Sentinel Mission System</span></span><svg class="i s-14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></svg></a><div class="k-nav-section nx-sysnav__chain"><a class="k-nav-item" href="sys-overview.html"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg><span class="grow truncate">Overview</span></a><a class="k-nav-item" aria-current="page"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.97 12.92A2 2 0 0 0 2 14.63v3.24a2 2 0 0 0 .97 1.71l3 1.8a2 2 0 0 0 2.06 0L12 19v-5.5l-5-3-4.03 2.42Z"/><path d="m7 16.5-4.74-2.85"/><path d="m7 16.5 5-3"/><path d="M7 16.5v5.17"/><path d="M12 13.5V19l3.97 2.38a2 2 0 0 0 2.06 0l3-1.8a2 2 0 0 0 .97-1.71v-3.24a2 2 0 0 0-.97-1.71L17 10.5l-5 3Z"/><path d="m17 16.5-5-3"/><path d="m17 16.5 4.74-2.85"/><path d="M17 16.5v5.17"/><path d="M7.97 4.42A2 2 0 0 0 7 6.13v4.37l5 3 5-3V6.13a2 2 0 0 0-.97-1.71l-3-1.8a2 2 0 0 0-2.06 0l-3 1.8Z"/><path d="M12 8 7.26 5.15"/><path d="m12 8 4.74-2.85"/><path d="M12 13.5V8"/></svg><span class="grow truncate">System</span></a><a class="k-nav-item" href="baseline.html"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z"/><path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12"/><path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17"/></svg><span class="grow truncate">Baseline</span></a><a class="k-nav-item" href="impl.html"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg><span class="grow truncate">Controls</span></a><a class="k-nav-item" href="reqs.html"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 5h8"/><path d="M13 12h8"/><path d="M13 19h8"/><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/></svg><span class="grow truncate">Requirements</span></a><a class="k-nav-item" href="evidence.html"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.5 22H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.706.706l3.588 3.588A2.4 2.4 0 0 1 20 8v6"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="m14 20 2 2 4-4"/></svg><span class="grow truncate">Evidence</span><span class="k-count">54</span></a><a class="k-nav-item" href="findings.html"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><circle cx="12" cy="12" r="3"/><path d="m16 16-1.9-1.9"/></svg><span class="grow truncate">Findings</span></a><a class="k-nav-item" href="poam-items.html"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg><span class="grow truncate">POA&amp;M</span></a><a class="k-nav-item" href="risks.html"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg><span class="grow truncate">Risks</span></a></div><div class="k-nav-section nx-sysnav__quiet"><span class="k-nav-heading">Assess and authorize</span><a class="k-nav-item" href="assessments.html"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="m9 14 2 2 4-4"/></svg><span class="grow truncate">Assessments</span></a><a class="k-nav-item" href="decisions.html"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 13V8.5C14 7 15 7 15 5a3 3 0 0 0-6 0c0 2 1 2 1 3.5V13"/><path d="M20 15.5a2.5 2.5 0 0 0-2.5-2.5h-11A2.5 2.5 0 0 0 4 15.5V17a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1z"/><path d="M5 22h14"/></svg><span class="grow truncate">Authorization</span></a></div></div><div class="k-nav-footer"><div class="k-nav-section"><a class="k-nav-item" href="lib-frameworks.html"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/></svg><span class="grow truncate">Library</span></a></div><div class="k-profile"><span class="k-avatar">IS</span><div class="col g-0 grow"><span class="truncate w-500">Ingrid Solberg</span><span class="t-small c-subtle truncate">System security engineer</span></div></div></div></nav>
+  <main class="k-main">
+    <div class="k-pagehead">
+      <nav class="k-trail"><a href="sys-overview.html">WS-X90</a><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg><a href="assets.html">System</a><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg><span aria-current="page">CN-109110</span></nav>
+      <div class="k-titlebar">
+        <h1 class="k-title truncate">Payload Interface Controller</h1>
+        <span class="nx-state">Operational</span>
+        <div class="nx-slot">
+          <span class="nx-slot__why"><b>OpenSSH 8.9p1 · Critical</b><span>Upgrade closes 2</span></span>
+          <a class="k-btn is-primary s-lg" >Create POA&amp;M item<span class="nx-key">↵</span></a>
+          <button class="k-btn is-subtle is-icon s-lg" aria-label="More actions"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button>
+        </div>
+      </div>
+      <div class="nx-facts">
+        <span>Type <b>Hardware</b></span>
+        <span>In <a class="k-link" href="assets.html">Payload Interface Subsystem</a></span>
+        <span>SBOM imported <b>Nov 13</b></span>
+        <span>STIG scan <span class="nx-late">3d late</span></span>
+      </div>
+    </div>
+    <nav class="nx-chain" aria-label="The chain around CN-109110">
+      <a class="nx-chain__stop" href="impl.html"><i></i><span>Controls</span><b>34</b></a>
+      <a class="nx-chain__stop" href="reqs.html"><i></i><span>Requirements</span><b>33</b></a>
+      <a class="nx-chain__stop" href="evidence.html"><i></i><span>Evidence</span><b>16</b><em>12 verified</em></a>
+      <a class="nx-chain__stop is-bad" href="findings.html"><i></i><span>Findings</span><b>3</b><em>+6 from SBOM</em></a>
+      <a class="nx-chain__stop" href="poam-items.html"><i></i><span>POA&amp;M</span><b>3</b></a>
+      <a class="nx-chain__stop is-bad" href="risks.html"><i></i><span>Risks</span><b>1</b><em>Critical</em></a>
+    </nav>
+    <div class="k-tabs" role="tablist">
+      <a class="k-tab" role="tab" aria-selected="false">Overview</a>
+      <a class="k-tab" role="tab" aria-selected="true">Components<span class="k-count">34</span></a>
+      <a class="k-tab" role="tab" aria-selected="false">Findings<span class="k-count">3</span></a>
+      <a class="k-tab" role="tab" aria-selected="false">Requirements<span class="k-count">33</span></a>
+      <a class="k-tab" role="tab" aria-selected="false">Scans<span class="k-count">1</span></a>
+    </div>
+    <div class="nx-record">
+      <div class="nx-record__body">
+        <table class="k-table l-bom">
+          <thead>
+            <tr><th class="is-fill">Component</th><th>Version</th><th>Supplier</th><th>Licence</th><th>Known vulnerabilities</th><th>Fixed in</th></tr>
+          </thead>
+          <tbody>
+            <tr class="is-selected"><td class="is-fill"><a class="k-name">OpenSSH</a></td><td>8.9p1</td><td class="c-subtle">OpenBSD Project</td><td class="c-subtle">BSD-2-Clause</td><td><span class="slots"><span class="slot crit">1</span><span class="slot high">1</span><span class="slot zero">·</span><span class="slot zero">·</span></span></td><td><b class="l-fix">9.8p1</b></td></tr>
+            <tr><td class="is-fill"><a class="k-name">zlib</a></td><td>1.2.11</td><td class="c-subtle">zlib project</td><td class="c-subtle">Zlib</td><td><span class="slots"><span class="slot crit">1</span><span class="slot zero">·</span><span class="slot zero">·</span><span class="slot zero">·</span></span></td><td><b class="l-fix">1.2.13</b></td></tr>
+            <tr><td class="is-fill"><a class="k-name">glibc</a></td><td>2.35</td><td class="c-subtle">GNU Project</td><td class="c-subtle">LGPL-2.1-or-later</td><td><span class="slots"><span class="slot zero">·</span><span class="slot high">1</span><span class="slot zero">·</span><span class="slot zero">·</span></span></td><td><b class="l-fix">2.39</b></td></tr>
+            <tr><td class="is-fill"><a class="k-name">nghttp2</a></td><td>1.47.0</td><td class="c-subtle">nghttp2 project</td><td class="c-subtle">MIT</td><td><span class="slots"><span class="slot zero">·</span><span class="slot high">1</span><span class="slot zero">·</span><span class="slot zero">·</span></span></td><td><b class="l-fix">1.57.0</b></td></tr>
+            <tr><td class="is-fill"><a class="k-name">OpenSSL</a></td><td>3.0.2</td><td class="c-subtle">OpenSSL Project</td><td class="c-subtle">Apache-2.0</td><td><span class="slots"><span class="slot zero">·</span><span class="slot high">1</span><span class="slot zero">·</span><span class="slot zero">·</span></span></td><td><b class="l-fix">3.0.8</b></td></tr>
+            <tr><td class="is-fill"><a class="k-name">can-utils</a></td><td>2021.08.0</td><td class="c-subtle">linux-can</td><td class="c-subtle">GPL-2.0-only</td><td></td><td></td></tr>
+            <tr><td class="is-fill"><a class="k-name">chrony</a></td><td>4.2</td><td class="c-subtle">chrony project</td><td class="c-subtle">GPL-2.0-only</td><td></td><td></td></tr>
+            <tr><td class="is-fill"><a class="k-name">libgpiod</a></td><td>1.6.3</td><td class="c-subtle">kernel.org</td><td class="c-subtle">LGPL-2.1-or-later</td><td></td><td></td></tr>
+            <tr><td class="is-fill"><a class="k-name">Payload interface application</a></td><td>3.4.1</td><td class="c-subtle">WS-X90 program</td><td class="c-subtle">Proprietary</td><td></td><td></td></tr>
+            <tr class="nx-folded"><td colspan="6"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg><b>25 more</b> · no known vulnerability</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <aside class="nx-details" aria-label="Known vulnerabilities in the bill of materials">
+        <h2 class="t-section">Known vulnerabilities</h2>
+        <div class="nx-details__group">
+          <h3 class="nx-details__title">Critical <b>2</b></h3>
+          <dl class="k-kv l-cves">
+            <dt><a class="k-link">CVE-2023-38408</a></dt><dd><b>9.8</b> OpenSSH</dd>
+            <dt><a class="k-link">CVE-2022-37434</a></dt><dd><b>9.8</b> zlib</dd>
+          </dl>
+        </div>
+        <div class="nx-details__group">
+          <h3 class="nx-details__title">High <b>4</b></h3>
+          <dl class="k-kv l-cves">
+            <dt><a class="k-link" href="finding-cve.html">CVE-2024-6387</a></dt><dd><b>8.1</b> OpenSSH</dd>
+            <dt><a class="k-link">CVE-2023-4911</a></dt><dd><b>7.8</b> glibc</dd>
+            <dt><a class="k-link">CVE-2023-44487</a></dt><dd><b>7.5</b> nghttp2</dd>
+            <dt><a class="k-link">CVE-2023-0286</a></dt><dd><b>7.4</b> OpenSSL</dd>
+          </dl>
+        </div>
+        <div class="nx-details__group">
+          <h3 class="nx-details__title">Bears on</h3>
+          <dl class="k-kv l-cves">
+            <dt>SI-2</dt><dd><a class="k-name" href="impl-control.html">Flaw Remediation</a></dd>
+            <dt>RA-5</dt><dd><a class="k-name" href="impl.html">Vulnerability Monitoring and Scanning</a></dd>
+          </dl>
+        </div>
+        <div class="nx-details__group">
+          <h3 class="nx-details__title">Import</h3>
+          <dl class="k-kv">
+            <dt>Requested by</dt><dd>Joel Barrantes</dd>
+          </dl>
+        </div>
+        <div class="nx-details__group">
+          <h3 class="nx-details__title">Asset</h3>
+          <dl class="k-kv">
+            <dt>Inventory</dt><dd>AST-109010</dd>
+            <dt>Owner</dt><dd><span class="nx-unowned">No owner</span></dd>
+          </dl>
+        </div>
+      </aside>
+    </div>
+  </main>
+</div>
+</body>
+</html>

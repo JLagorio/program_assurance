@@ -1,0 +1,37 @@
+<!-- @dsCard group="Actions" height=152 -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>ButtonGroup</title>
+<style>
+body { margin: 0; background: var(--ds-elevation-surface); }
+.lx.l-card { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+.lx .l-spec { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 12px 16px; align-items: center; }
+.lx .l-spec > .t-label { align-self: center; }
+.lx .l-spec > .is-top { align-self: start; padding-top: 6px; }
+.lx .l-stage { position: relative; overflow: hidden; border: 1px solid var(--ds-color-border); border-radius: 10px; background: var(--ds-elevation-surface); }
+</style>
+</head>
+<body style="margin:0">
+<div class="lx l-card">
+  <div class="l-spec">
+    <span class="t-label">Primary</span>
+    <div class="row wrap g-200">
+      <span class="k-btngroup"><a class="k-btn is-primary">Create system</a><a class="k-btn is-primary is-icon" aria-label="More ways to create a system"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></a></span>
+      <span class="c-subtle">A register's toolbar: the one create action, then the other paths.</span>
+    </div>
+    <span class="t-label">Secondary</span>
+    <div class="row wrap g-200">
+      <span class="k-btngroup"><a class="k-btn is-secondary">Create gate criterion</a><a class="k-btn is-secondary is-icon" aria-label="More ways to create a gate criterion"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></a></span>
+      <span class="c-subtle">A collection under a Section heading.</span>
+    </div>
+    <span class="t-label">Sizes</span>
+    <div class="row wrap g-200">
+      <span class="k-btngroup"><a class="k-btn is-secondary s-xs">Previous</a><a class="k-btn is-secondary s-xs">Next</a></span>
+      <span class="k-btngroup"><a class="k-btn is-secondary s-md">Create program</a><a class="k-btn is-secondary is-icon s-md" aria-label="More ways to create a program"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></a></span>
+    </div>
+  </div>
+</div>
+</body>
+</html>

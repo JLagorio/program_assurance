@@ -1,0 +1,37 @@
+<!-- @dsCard group="Proposed" height=299 -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Reuse</title>
+<style>
+body { margin: 0; background: var(--ds-elevation-surface); }
+.lx.l-card { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+.lx .l-spec { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 12px 16px; align-items: center; }
+.lx .l-spec > .t-label { align-self: center; }
+.lx .l-spec > .is-top { align-self: start; padding-top: 6px; }
+.lx .l-stage { position: relative; overflow: hidden; border: 1px solid var(--ds-color-border); border-radius: 10px; background: var(--ds-elevation-surface); }
+.lx .l-reuse { grid-template-columns: 132px minmax(0, 1fr); }
+</style>
+</head>
+<body style="margin:0">
+<div class="lx l-card">
+  <div class="l-spec l-reuse">
+    <span class="t-label">Assessed once</span>
+    <div class="row wrap g-300"><span class="nx-once"><span class="nx-det is-sat">Satisfied</span><a class="nx-prov">Mission Computer <b>3.0</b></a></span><span class="nx-once"><span class="nx-det is-part">Partially satisfied</span><a class="nx-prov">Cryptographic Module <b>2</b></a></span></div>
+    <span class="t-label">Against what it took</span>
+    <div class="row wrap g-300"><span class="nx-reuse is-pinned">Pinned <b>3.0</b></span><a class="nx-reuse is-behind">Behind <b>1</b><u>Take version 3.1</u></a><span class="nx-reuse is-modified">Modified here</span><span class="nx-reuse is-modified">Modified here <b>2</b></span></div>
+    <span class="t-label">An offer</span>
+    <div class="row wrap"><span class="nx-offer is-offered">Offered</span><span class="nx-offer is-accepted">Accepted</span><span class="nx-offer is-returned">Returned</span></div>
+  </div>
+  <table class="k-table">
+    <thead><tr><th class="is-fill">What it takes</th><th>From</th><th class="is-num">Controls</th><th>Standing</th></tr></thead>
+    <tbody>
+      <tr><td class="is-fill"><a class="k-name">CVE-2024-6387 OpenSSH</a></td><td><a class="nx-prov">Mission Computer <b>1</b></a></td><td class="is-num">2</td><td><span class="nx-offer is-offered">Offered</span></td></tr>
+      <tr><td class="is-fill"><a class="k-name">X800 Missile 2</a></td><td>X800 Missile</td><td class="is-num">9</td><td><a class="nx-reuse is-behind">Behind <b>1</b><u>Take version 2</u></a></td></tr>
+      <tr><td class="is-fill"><span class="nx-code">CS-CRY</span><a class="k-name">Cryptographic Module</a></td><td>X800 Missile</td><td class="is-num">26</td><td><span class="nx-reuse is-modified">Modified here</span></td></tr>
+    </tbody>
+  </table>
+</div>
+</body>
+</html>
