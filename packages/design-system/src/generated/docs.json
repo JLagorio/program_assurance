@@ -400,6 +400,21 @@
     "utility": "bg-selected-bold-pressed"
   },
   {
+    "name": "color.background.current",
+    "cssVar": "--ds-color-background-current",
+    "type": "color",
+    "group": "background",
+    "description": "The fill of the current place, where blue is kept for the act: the side nav's current destination, a pressed view, a chip that is on. The same value as color.background.neutral, so it follows that fill under increased contrast. Its class is bg-current-default, since bg-current is Tailwind's currentColor.",
+    "light": "color.background.neutral.default",
+    "dark": "color.background.neutral.default",
+    "lightResolved": "oklch(0.22 0.024 258 / 0.06)",
+    "darkResolved": "oklch(0.22 0.024 258 / 0.06)",
+    "contrast": null,
+    "introduced": "0.8.0",
+    "deprecated": null,
+    "utility": "bg-current-default"
+  },
+  {
     "name": "color.background.danger",
     "cssVar": "--ds-color-background-danger",
     "type": "color",
@@ -1455,6 +1470,21 @@
     "utility": "text-brand"
   },
   {
+    "name": "color.text.link",
+    "cssVar": "--ds-color-text-link",
+    "type": "color",
+    "group": "text",
+    "description": "A link's words where colour is kept for status and the act: ink, the same value as color.text, told apart as a link by its underline, which the part draws. 4.5:1 wherever color.text is.",
+    "light": "color.text.default",
+    "dark": "color.text.default",
+    "lightResolved": "oklch(0.22 0.024 258)",
+    "darkResolved": "oklch(0.22 0.024 258)",
+    "contrast": null,
+    "introduced": "0.8.0",
+    "deprecated": null,
+    "utility": "text-link"
+  },
+  {
     "name": "color.text.danger",
     "cssVar": "--ds-color-text-danger",
     "type": "color",
@@ -1875,6 +1905,21 @@
     "utility": "icon-information"
   },
   {
+    "name": "color.icon.changed",
+    "cssVar": "--ds-color-icon-changed",
+    "type": "color",
+    "group": "icon",
+    "description": "The mark beside what differs from what was inherited: a control or an element a program changed here. The same value as color.background.accent.teal.bolder, 3:1 on every surface; teal says changed here and nothing else.",
+    "light": "color.background.accent.teal.bolder",
+    "dark": "color.background.accent.teal.bolder",
+    "lightResolved": "oklch(0.49 0.148 192)",
+    "darkResolved": "oklch(0.49 0.148 192)",
+    "contrast": null,
+    "introduced": "0.8.0",
+    "deprecated": null,
+    "utility": "icon-changed"
+  },
+  {
     "name": "color.border",
     "cssVar": "--ds-color-border",
     "type": "color",
@@ -1993,6 +2038,21 @@
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "border-selected"
+  },
+  {
+    "name": "color.border.current",
+    "cssVar": "--ds-color-border-current",
+    "type": "color",
+    "group": "border",
+    "description": "The rule that marks the current place in ink, where blue is kept for the act: the current tab's underline, the edge of the current step. The same value as color.background.neutral.bold. Its class is border-current-default, since border-current is Tailwind's currentColor.",
+    "light": "color.background.neutral.bold.default",
+    "dark": "color.background.neutral.bold.default",
+    "lightResolved": "oklch(0.22 0.024 258)",
+    "darkResolved": "oklch(0.22 0.024 258)",
+    "contrast": null,
+    "introduced": "0.8.0",
+    "deprecated": null,
+    "utility": "border-current-default"
   },
   {
     "name": "color.border.brand",
@@ -2383,6 +2443,21 @@
     "introduced": "0.2.0",
     "deprecated": null,
     "utility": "fill-chart-track"
+  },
+  {
+    "name": "color.chart.changed",
+    "cssVar": "--ds-color-chart-changed",
+    "type": "color",
+    "group": "chart",
+    "description": "A mark for what differs from what was inherited: a control changed here, an element a program modified. The chart's teal, categorical series 3, so the same step in both modes and 3:1 on every surface a chart sits on; teal is spent on this meaning and on no status.",
+    "light": "color.chart.categorical.3.default",
+    "dark": "color.chart.categorical.3.default",
+    "lightResolved": "oklch(0.585 0.148 192)",
+    "darkResolved": "oklch(0.585 0.148 192)",
+    "contrast": null,
+    "introduced": "0.8.0",
+    "deprecated": null,
+    "utility": "fill-chart-changed"
   },
   {
     "name": "color.chart.categorical.1",
@@ -5325,6 +5400,21 @@
     "utility": "max-w-layout-measure"
   },
   {
+    "name": "dimension.layout.footer",
+    "cssVar": "--ds-dimension-layout-footer",
+    "type": "dimension",
+    "group": "dimension",
+    "description": "A footer bar docked at the bottom of a work area, holding its one act and what it counts (58 of 58 recorded, Send to lead). Its utility sets the height; the bar casts elevation.shadow.overflow over what scrolls under it.",
+    "light": "60px",
+    "dark": null,
+    "lightResolved": "60px",
+    "darkResolved": null,
+    "contrast": null,
+    "introduced": "0.8.0",
+    "deprecated": null,
+    "utility": "h-layout-footer"
+  },
+  {
     "name": "dimension.part.tooltip",
     "cssVar": "--ds-dimension-part-tooltip",
     "type": "dimension",
@@ -6628,6 +6718,21 @@
     "introduced": null,
     "deprecated": null,
     "utility": "font-heading-xxsmall"
+  },
+  {
+    "name": "font.figure",
+    "cssVar": "--ds-font-figure",
+    "type": "typography",
+    "group": "font",
+    "description": "A figure that stands for its row: the count in a table cell or a card that the reader reads first, 20/26 semibold. Not a title. The part adds tabular numerals, since the font shorthand resets them.",
+    "light": "var(--ds-font-weight-semibold) 1.25rem/1.625rem var(--ds-font-family-body)",
+    "dark": null,
+    "lightResolved": "var(--ds-font-weight-semibold) 1.25rem/1.625rem var(--ds-font-family-body)",
+    "darkResolved": null,
+    "contrast": null,
+    "introduced": "0.8.0",
+    "deprecated": null,
+    "utility": "font-figure"
   },
   {
     "name": "font.code",

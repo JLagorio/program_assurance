@@ -205,6 +205,7 @@ The catalog is organised by family. This page is organised by need: find the row
 | A labelled paragraph, or authored text in several paragraphs or Markdown                   | **Prose**: a string child keeps its paragraphs and line breaks; `markdown` with `renderLink` for Markdown. **Text** `preserveLineBreaks` for one short note.                                                                          | Text with a bold first line, or HTML set by hand.                                             |
 | Two or more short points: messages, conflicts, steps                                       | **List**, `ordered` for steps.                                                                                                                                                                                                        | Records, which are an Item.Group or a DataTable; labelled values, which are a KeyValue.Group. |
 | A person                                                                                   | **Person**; **Avatar** and **AvatarGroup** for the mark alone.                                                                                                                                                                        |                                                                                               |
+| A role nobody holds: an owner, an assessor, a signer                                       | **EmptySeat** (experimental): a dashed circle and words that name the role ("No owner"); `onSelect` makes it a button that fills the seat.                                                                                            | **Absent**, which says a value is missing, not that a role waits for someone.                 |
 | A file                                                                                     | **Attachment**; **Attachment.Link** when the card opens or downloads a URL; **formatFileSize** in its description. The application owns upload, retry and removal.                                                                    | An anchor with the overlay classes copied onto it, or a raw byte count.                       |
 | A date or a moment: updated, collected, a milestone                                        | **DateTime**, in the provider's locale and zone.                                                                                                                                                                                      | `toLocaleString`, or a formatter of your own.                                                 |
 | How long ago, for activity and recency                                                     | **RelativeTime**; the exact value is its tooltip.                                                                                                                                                                                     | "2h ago" written by hand.                                                                     |
@@ -541,6 +542,7 @@ The Token grammar page explains the naming; the token sheets list every value. T
 | On a bold background                        | `color.text.inverse`                                                  | `text-inverse`                      |
 | Selected item                               | `color.text.selected`                                                 | `text-selected`                     |
 | A link, the brand                           | `color.text.brand`                                                    | `text-brand`                        |
+| A link in ink, where colour is kept for status | `color.text.link`, the part draws the underline                   | `text-link`                         |
 | Danger, warning, success, information       | `color.text.danger` and the rest; `.bolder` for text on a subtle tone | `text-danger`, `text-danger-bolder` |
 | A categorical accent (charts, avatars)      | `color.text.accent.blue` … `purple`                                   | `text-accent-blue`                  |
 
@@ -634,7 +636,7 @@ A Section's title is `font.heading.section`, a step above the body at semibold. 
 | `dimension.control.xsmall` | 24px  | Button `xsmall`.                                                    |
 | `dimension.control.small`  | 28px  | Button `small`, chips, menu items, side nav items, a Toolbar's row. |
 | `dimension.control.medium` | 32px  | The default: Button `medium`, inputs, selects, combobox triggers.   |
-| `dimension.control.large`  | 36px  | Hero forms only.                                                    |
+| `dimension.control.large`  | 36px  | A record's action slot (Button and IconButton `large`); hero forms. |
 | `dimension.row`            | 40px  | A table row; `.compact` 36px; `.header` 32px; `.menu` 28px.         |
 | `dimension.icon.small`     | 14px  | An icon inside a small or medium control.                           |
 | `dimension.icon.medium`    | 16px  | A standalone icon, an icon button's glyph.                          |
@@ -5750,7 +5752,21 @@ The canvas is white: `elevation.surface` is `color.neutral.0` in light. Blue is 
 | The focus ring                                               | `color.border.focused` at `border.width.focused` | `border-focused`, `border-w-focused` |
 | A link                                                       | `color.text.brand`                               | `text-brand`, or TextLink            |
 
-Ids and counts stay neutral, and so does an avatar by default. An Id is blue only inside a link or a button (`ledger/id-not-blue`). Colour that carries no meaning is the accent family: `color.background.accent.*` in six hues, `subtler` under `color.text.accent.*` and `bolder` under `color.text.inverse`, for an avatar's tint, fill or gradient and, later, a tag. Teal and purple reach only the accent family and `color.chart.*`; a status is never drawn in them.
+Ids and counts stay neutral, and so does an avatar by default. An Id is blue only inside a link or a button (`ledger/id-not-blue`). Colour that carries no meaning is the accent family: `color.background.accent.*` in six hues, `subtler` under `color.text.accent.*` and `bolder` under `color.text.inverse`, for an avatar's tint, fill or gradient and, later, a tag. Teal and purple reach only the accent family and `color.chart.*`, and teal one meaning besides, changed here (below); a status is never drawn in them.
+
+## Ink for the current place, teal for a change
+
+Five colour tokens, minted for the parts that say where the reader is and what a program changed. Each is an alias of a token Ledger already ships, so nothing changes colour: in both modes and under increased contrast it reads as the token it names. No part draws them yet.
+
+| Job                                                                                              | Token                      | Same value as                         | Utility                                                          |
+| ------------------------------------------------------------------------------------------------ | -------------------------- | ------------------------------------- | ---------------------------------------------------------------- |
+| A link's words where colour is kept for status: ink, told apart by the underline the part draws  | `color.text.link`          | `color.text`                          | `text-link`                                                      |
+| The fill of the current place: the side nav's destination, a pressed view, a chip that is on     | `color.background.current` | `color.background.neutral`            | `bg-current-default`                                             |
+| The rule that marks the current place: the current tab's underline, the edge of the current step | `color.border.current`     | `color.background.neutral.bold`       | `border-current-default`                                         |
+| The mark beside what differs from what was inherited                                             | `color.icon.changed`       | `color.background.accent.teal.bolder` | `icon-changed`                                                   |
+| A change drawn as a mark on a chart or a strip                                                   | `color.chart.changed`      | `color.chart.categorical.3`           | `fill-chart-changed`, `stroke-chart-changed`, `bg-chart-changed` |
+
+`bg-current` and `border-current` are Tailwind's currentColor, which `ledger/no-static-design-value` reports as a literal colour, so these two keep their source's `default` segment in the class, as `color.border` is `border-default`. `color.chart.changed` is the chart's teal, the same step in both modes as every series; `color.icon.changed` is the accent's bolder teal, a step darker in light. Each holds what the token it names holds: 4.5:1 for the link's words, 3:1 for the icon, the rule and the chart mark on every surface.
 
 ## Text and icons
 
@@ -5782,18 +5798,19 @@ Reach these through the `tone` prop on Badge, Dot, Indicator, Alert, Progress an
 
 The matrix is complete on purpose: every fill has `hovered` and `pressed`, every tone has `subtler`, `subtle`, the default and `bold`, the inverse subtle fill exists for a control on a bold fill, and the bolder text colours exist for a word on a tone's label. About forty of them have no part that draws them yet: a token is minted when its place in the grammar is clear and drawn when the part arrives, so a part never invents a colour. The families still open, and the part each waits for:
 
-| Family                                                                                                       | Waits for                                                                                                                                              |
-| ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `color.background.{danger,warning,success,information}.{hovered,pressed}` and `.subtler.{hovered,pressed}`   | A status fill that is pressed: a toned chip that filters, a status pill that opens its record.                                                         |
-| `color.background.{warning,success,information}.bold.{hovered,pressed}`, `neutral.bold.{hovered,pressed}`    | A bold button in a tone other than brand and danger.                                                                                                   |
-| `color.background.brand.boldest` and states, `brand.subtlest.{hovered,pressed}`, `selected.bold` and states  | A pressed primary, a hovered brand tint, a bold selected control.                                                                                      |
-| `color.background.danger.subtler`, `warning.subtler`, the three `.subtle`                                    | A lozenge emphasis between the subtle fill and the bold one.                                                                                           |
-| `color.background.inverse.subtle`                                                                            | The resting fill of a control on a bold surface; its `hovered` and `pressed` are drawn by the Banner's action.                                         |
-| `color.text.{danger,warning,success,information}.bolder`, `color.border.warning`, `color.border.information` | A word on a tone's label; a 3:1 status border in those tones.                                                                                          |
-| `color.icon.warning.inverse`, `color.border.inverse`                                                         | An icon and a border on a bold warning fill; the Box paints its text inverse and icons follow it, so the icon token is reached through `currentColor`. |
-| `elevation.surface.pressed`, `elevation.surface.overlay.{hovered,pressed}`, `elevation.shadow.overflow`      | A pressed page surface, a hovered overlay, a scroll edge.                                                                                              |
+| Family                                                                                                             | Waits for                                                                                                                                              |
+| ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `color.background.{danger,warning,success,information}.{hovered,pressed}` and `.subtler.{hovered,pressed}`         | A status fill that is pressed: a toned chip that filters, a status pill that opens its record.                                                         |
+| `color.background.{warning,success,information}.bold.{hovered,pressed}`, `neutral.bold.{hovered,pressed}`          | A bold button in a tone other than brand and danger.                                                                                                   |
+| `color.background.brand.boldest` and states, `brand.subtlest.{hovered,pressed}`, `selected.bold` and states        | A pressed primary, a hovered brand tint, a bold selected control.                                                                                      |
+| `color.background.danger.subtler`, `warning.subtler`, the three `.subtle`                                          | A lozenge emphasis between the subtle fill and the bold one.                                                                                           |
+| `color.background.inverse.subtle`                                                                                  | The resting fill of a control on a bold surface; its `hovered` and `pressed` are drawn by the Banner's action.                                         |
+| `color.text.{danger,warning,success,information}.bolder`, `color.border.information`                               | A word on a tone's label; a 3:1 status border in those tones.                                                                                          |
+| `color.icon.warning.inverse`, `color.border.inverse`                                                               | An icon and a border on a bold warning fill; the Box paints its text inverse and icons follow it, so the icon token is reached through `currentColor`. |
+| `elevation.surface.pressed`, `elevation.surface.overlay.{hovered,pressed}`, `elevation.shadow.overflow`            | A pressed page surface, a hovered overlay, a scroll edge.                                                                                              |
+| `color.text.link`, `color.background.current`, `color.border.current`, `color.icon.changed`, `color.chart.changed` | The parts that draw ink for the current place and teal for a change, above.                                                                            |
 
-`color.background.input.pressed` is drawn by every field on focus, and `color.background.inverse.subtle.hovered` and `.pressed` by the Banner's action under the pointer. The chart tokens are reached at runtime through `tone`, which a name scan cannot see; Patterns/Chart.
+`color.background.input.pressed` is drawn by every field on focus, `color.background.inverse.subtle.hovered` and `.pressed` by the Banner's action under the pointer, and `color.border.warning` by EmptySeat's dashed circle. The chart tokens are reached at runtime through `tone`, which a name scan cannot see; Patterns/Chart.
 
 ## Borders
 
@@ -5807,6 +5824,7 @@ Every border is a 1px hairline: `border.width` is 1px and `color.border` is the 
 | Checkbox and radio boxes, 3:1   | `color.border.bold`     | `border-bold`                       |
 | Focus ring, 2px                 | `color.border.focused`  | `border-focused border-w-focused`   |
 | Selected tab or item, 2px       | `color.border.selected` | `border-selected border-w-selected` |
+| The current place, in ink       | `color.border.current`  | `border-current-default`            |
 | Off                             | `color.border.disabled` | `border-disabled`                   |
 
 The text-field border is light by decision: `color.border.input` is 1.87:1 on the light page and about 2:1 on the dark one, and the contrast test holds it at 1.5:1 or more on the page, sunken, raised, overlay and input surfaces, including the hovered and pressed input fills. The input surface, the hover tint and the focus and danger borders, which do meet 3:1, carry the affordance. A choice control has no input surface and no text to carry it, so the Checkbox and Radio box is drawn in `color.border.bold` and the Switch's off track in `color.background.input.track`, each 3:1 on every surface. A reader who asks for more contrast gets a text-field boundary of 3:1 or more on every one of those surfaces too: see Increased contrast below. Decorative rules and disabled controls use separate tokens; a decorative border must not be the only visible boundary of an interactive control.
@@ -5999,6 +6017,7 @@ The sizes, the stroke, the colour and the naming rules are on the [Icons](?path=
 | `dimension.layout.list`    | 340px | `w-layout-list`        | The list column of a WorkPane.                                |
 | `dimension.layout.rail`    | 272px | `w-layout-rail`        | The Details rail beside a record's body: an AsideLayout's.    |
 | `dimension.layout.measure` | 720px | `max-w-layout-measure` | The widest a run of prose grows.                              |
+| `dimension.layout.footer`  | 60px  | `h-layout-footer`      | A footer bar docked under a work area: its one act and count. |
 
 ## Parts
 
@@ -6331,11 +6350,14 @@ _Example: story `Stories.PackagedFaces`._
 | `font.heading.overlay` | `font-heading-overlay` | 17/24 | semibold | Heading `overlay`: an overlay's title (DialogTitle, SheetTitle, AlertDialogTitle, DrawerTitle), a card's title, a group inside an overlay. |
 | `font.heading.section` | `font-heading-section` | 15/22 | semibold | Heading `section`: a section's title (Section.Title), a step above the body at semibold. |
 | `font.heading.xxsmall` | `font-heading-xxsmall` | 11/14 | medium | Eyebrows, group headings, menu section labels. The component adds the uppercase. |
+| `font.figure` | `font-figure` | 20/26 | semibold | A figure that stands for its row: the count in a table cell or a card read first (234 to assess). Not a title. Add `tabular-nums` beside it. |
 | `font.body.large` | `font-body-large` | 15/22 | regular | Reading text and dialog body. |
 | `font.body` | `font-body` | 13/18 | regular | Controls, cells, tabs, inputs, menu items. |
 | `font.body.small` | `font-body-small` | 12/16 | regular | Table headers, field labels, badges, KeyValue. Labels add `font-medium`. |
 | `font.body.xsmall` | `font-body-xsmall` | 11/14 | regular | Eyebrow, counts, metadata. |
 | `font.code` | `font-code` | 12/18 | regular | Code blocks only. |
+
+`font.figure` is in the source as `font.figure.default`, so a larger figure can join it later; nothing draws it yet, and no Text or Heading `size` reaches it.
 
 Text takes the body ramp as `size` (`large`, `medium`, `small`, `xsmall`). Heading takes the heading ramp the same way (`page`, `overlay`, `section`, `display`). Eyebrow is `font.heading.xxsmall`, uppercased.
 
@@ -6356,7 +6378,7 @@ These steps are deprecated and stay for one version. Nothing in the kit sets the
 | --- | --- | --- |
 | `font.weight.regular` | `font-regular` | Body, cells, controls. |
 | `font.weight.medium` | `font-medium` | Labels, UI headings, emphasis inside body text. |
-| `font.weight.semibold` | `font-semibold` | Titles (a page's, a record's, a section's, a panel's) and a Stat's figure. Never running text. |
+| `font.weight.semibold` | `font-semibold` | Titles (a page's, a record's, a section's, a panel's), a Stat's figure and `font.figure`. Never running text. |
 
 ## Letter-spacing
 
@@ -6366,7 +6388,7 @@ Tracking tightens as size grows. Each composite carries its own step; there is n
 | --- | --- | --- |
 | `font.letterSpacing.100` | -0.004em | `font.body.small`, `font.body.xsmall` |
 | `font.letterSpacing.200` | -0.008em | `font.body`, `font.body.large`, `font.heading.section` |
-| `font.letterSpacing.300` | -0.015em | `font.heading.page`, `font.heading.overlay` |
+| `font.letterSpacing.300` | -0.015em | `font.heading.page`, `font.heading.overlay`, `font.figure` |
 | `font.letterSpacing.400` | -0.02em | `font.heading.display` |
 | `font.letterSpacing.500` | 0.06em | `font.heading.xxsmall`: uppercase micro labels |
 | `font.letterSpacing.0` | 0 | `font.code` |
@@ -7816,7 +7838,7 @@ _Props of `AlertDialogCancel`, generated from its types:_
 | `className` | `string \| ((state: DialogCloseState) => string)` |  | CSS class applied to the element, or a function that returns a class based on the component's state. |
 | `render` | `ReactElement<unknown, string \| JSXElementConstructor<any>> \| ComponentRenderFn<HTMLProps, DialogCloseState>` |  | Allows you to replace the component's HTML element with a different tag, or compose it with another component. Accepts a `ReactElement` or a function that returns the element to render. |
 | `style` | `CSSProperties \| ((state: DialogCloseState) => CSSProperties)` |  | Style applied to the element, or a function that returns a style object based on the component's state. |
-| `size` | `"medium" \| "small" \| "xsmall"` |  | Medium is 32px, small 28px and xsmall 24px. `variant="link"` ignores it: a link-styled action is as tall as its text. |
+| `size` | `"large" \| "medium" \| "small" \| "xsmall"` |  | Medium is 32px, small 28px and xsmall 24px; large is 36px, for a record's action slot. `variant="link"` ignores it: a link-styled action is as tall as its text. |
 | `variant` | `"danger" \| "link" \| "primary" \| "secondary" \| "subtle"` | `subtle` | Secondary is the default; primary emphasizes the main action. |
 
 ### AlertDialogAction
@@ -7831,7 +7853,7 @@ _Props of `AlertDialogAction`, generated from its types:_
 | `render` | `ReactElement<unknown, string \| JSXElementConstructor<any>> \| ComponentRenderFn<HTMLProps, ButtonState>` |  | Allows you to replace the component's HTML element with a different tag, or compose it with another component. Accepts a `ReactElement` or a function that returns the element to render. |
 | `style` | `CSSProperties \| ((state: ButtonState) => CSSProperties)` |  | Style applied to the element, or a function that returns a style object based on the component's state. |
 | `variant` | `"danger" \| "link" \| "primary" \| "secondary" \| "subtle"` |  | Secondary is the default; primary emphasizes the main action. |
-| `size` | `"medium" \| "small" \| "xsmall"` |  | Medium is 32px, small 28px and xsmall 24px. `variant="link"` ignores it: a link-styled action is as tall as its text. |
+| `size` | `"large" \| "medium" \| "small" \| "xsmall"` |  | Medium is 32px, small 28px and xsmall 24px; large is 36px, for a record's action slot. `variant="link"` ignores it: a link-styled action is as tall as its text. |
 | `isSelected` | `boolean` |  | Paint the selected state and, on Button, set aria-pressed. |
 | `isFullWidth` | `boolean` |  | Fill the available width. |
 | `iconBefore` | `ReactElement<unknown, string \| JSXElementConstructor<any>>` |  | Decorative leading icon, replaced by a spinner while loading. |
@@ -7840,6 +7862,8 @@ _Props of `AlertDialogAction`, generated from its types:_
 | `loadingLabel` | `string` |  | What the pending work is, said once through the page's polite live region when loading starts, such as "Saving requirement revision". `aria-busy` alone is not announced by the major screen readers. Leave it out when something else on the page already says it. |
 | `disabledReason` | `string` |  | Why the action is unavailable, for an action that truly cannot run. The button is disabled but stays in the tab order with `aria-disabled`, so the reader can reach it and learn why: the reason shows in a tooltip on hover, on keyboard focus and on a tap, and is the button's accessible description. It disables the button by itself and keeps it focusable even with `disabled`. An empty string is no reason. Prefer an enabled action that explains on use, such as a submit that reports what is missing. |
 | `truncate` | `boolean` |  | For a slot narrower than the label, such as a rail, a card's footer or a table cell: the button narrows to its container and cuts the label with an ellipsis, its icons whole. The whole label stays the accessible name and shows in a tooltip on hover and keyboard focus while it is cut. Write labels short enough not to need it; this is for the slot that cannot grow. |
+| `intent` | `"sign"` |  | What a press means, where it is more than an act. `sign` records the reader's signature: the button is drawn in ink, at the 36px size, with a signature mark before the label and the signer's name after it, and Command+Enter (Control+Enter off Apple platforms) presses it from anywhere on the page, never a bare Enter. In a slot narrower than it the label gives way with an ellipsis and the signer stays whole. `variant`, `size`, `isSelected`, `truncate` and the icons do not apply to it. One a page. |
+| `signer` | `string` |  | With `intent="sign"`, who signs: the reader, by name ("R. Calloway"), drawn after the label and read with it. |
 
 _Example: story `Stories.Playground`._
 
@@ -8052,6 +8076,8 @@ _Props of `AttachmentTrigger`, generated from its types:_
 | `loadingLabel` | `string` |  | What the pending work is, said once through the page's polite live region when loading starts, such as "Saving requirement revision". `aria-busy` alone is not announced by the major screen readers. Leave it out when something else on the page already says it. |
 | `disabledReason` | `string` |  | Why the action is unavailable, for an action that truly cannot run. The button is disabled but stays in the tab order with `aria-disabled`, so the reader can reach it and learn why: the reason shows in a tooltip on hover, on keyboard focus and on a tap, and is the button's accessible description. It disables the button by itself and keeps it focusable even with `disabled`. An empty string is no reason. Prefer an enabled action that explains on use, such as a submit that reports what is missing. |
 | `truncate` | `boolean` |  | For a slot narrower than the label, such as a rail, a card's footer or a table cell: the button narrows to its container and cuts the label with an ellipsis, its icons whole. The whole label stays the accessible name and shows in a tooltip on hover and keyboard focus while it is cut. Write labels short enough not to need it; this is for the slot that cannot grow. |
+| `intent` | `"sign"` |  | What a press means, where it is more than an act. `sign` records the reader's signature: the button is drawn in ink, at the 36px size, with a signature mark before the label and the signer's name after it, and Command+Enter (Control+Enter off Apple platforms) presses it from anywhere on the page, never a bare Enter. In a slot narrower than it the label gives way with an ellipsis and the signer stays whole. `variant`, `size`, `isSelected`, `truncate` and the icons do not apply to it. One a page. |
+| `signer` | `string` |  | With `intent="sign"`, who signs: the reader, by name ("R. Calloway"), drawn after the label and read with it. |
 
 ### Attachment.Link
 
@@ -8984,15 +9010,16 @@ _Example: story `Stories.Emphasis`._
 | `danger`    | Destructive actions, with confirmation when appropriate. |
 | `link`      | A text styled action, such as Show more.                 |
 
-| Size     | Height | Typical placement                       |
-| -------- | ------ | --------------------------------------- |
-| `medium` | 32px   | Default for forms, headers and footers. |
-| `small`  | 28px   | Toolbars and rows.                      |
-| `xsmall` | 24px   | Dense inline actions.                   |
+| Size     | Height | Typical placement                                                                                                         |
+| -------- | ------ | ------------------------------------------------------------------------------------------------------------------------- |
+| `large`  | 36px   | A record's action slot: its act, a signature and Remind ([PageHeader](?path=/docs/layout-pageheader--docs), Action slot). |
+| `medium` | 32px   | Default for forms, headers and footers.                                                                                   |
+| `small`  | 28px   | Toolbars and rows.                                                                                                        |
+| `xsmall` | 24px   | Dense inline actions.                                                                                                     |
 
 The `link` variant has no fixed height and ignores `size`: it is as tall as its text, and it wraps as the text around it does. `iconBefore` and `iconAfter` take an icon element; Button sizes it to 14px and keeps a 6px gap. `isSelected` applies the selected palette and `aria-pressed`.
 
-The family shares one height axis: `xsmall` 24px, `small` 28px and `medium` 32px on Button, IconButton, LinkButton and LinkIconButton, and the icon-only two add `xxsmall`, the 20px row control. Button defaults to `medium` and IconButton to `small`, so an IconButton beside a default Button takes `size="medium"`. Toggle and ToggleGroup take the same words: `small` 28px, `medium` 32px, and `large`, a 36px step Button does not have. ButtonGroupText takes the `size` of the controls beside it.
+The family shares one height axis: `xsmall` 24px, `small` 28px, `medium` 32px and `large` 36px on Button, IconButton, LinkButton and LinkIconButton, and the icon-only two add `xxsmall`, the 20px row control. Button defaults to `medium` and IconButton to `small`, so an IconButton beside a default Button takes `size="medium"`, and beside a large one `size="large"`. Toggle and ToggleGroup take the same words: `small` 28px, `medium` 32px and `large` 36px. ButtonGroupText takes the `size` of the controls beside it.
 
 ## Long labels
 
@@ -9003,6 +9030,18 @@ _Example: story `Stories.TruncatedLabel`._
 A `link` Button wraps like the text around it, as a [TextLink](?path=/docs/components-textlink--docs) does: it sets no `white-space` of its own. In a value narrower than its words, a next step in a rail's Details, its label goes on to the next line whole, its lines from the start, and its box is as tall as its lines: nothing is cut, it keeps its name, its touch area, its focus ring and, loading, its box. Where the text around it stays on one line, a table cell that cuts its value, it stays on one line too; a record's name there takes `truncate`, so it ends in an ellipsis and the table shows it whole on hover, on keyboard focus and after a long press ([Table](?path=/docs/components-table--docs), Wrapping and cut values). Its words still name one action: a sentence belongs in the region's text.
 
 _Example: story `Stories.LinkWraps`._
+
+## Signing
+
+A signature is not an act, and reads as one. `intent="sign"` draws the button in ink (`color.background.neutral.bold`, where an act is the brand's) at 36px, a signature mark before the label and the signer's name after a rule: `signer` is the reader, by name. The label says what the signature records, "Approve security plan", and the name reads with it, "Approve security plan as R. Calloway" (the words around the name are the locale's `buttonSigner`). In a slot narrower than the button the label gives way with an ellipsis and the name stays whole. `variant`, `size`, `isSelected`, `truncate` and the icons do not apply to it.
+
+Command+Enter, Control+Enter off Apple platforms, presses it from anywhere on the page, and `aria-keyshortcuts` says so. A bare Enter never signs from the page: on the focused sign, Enter and Space press it as they press every button, and nowhere else. The keys do nothing with another modifier held, on a repeat, while text is composed, once another handler has taken them, from a field that takes text (a composer's own Command+Enter wins; a checkbox, a radio or a switch takes none) and over a dialog that does not hold the button. One sign a page: where the page's sign opens a confirmation with a sign of its own, the confirmation's answers while it is open.
+
+_Example: story `Stories.Sign`._
+
+_Example: story `Stories.SignOverADialog`._
+
+A signature the reader owes on a record is its header's action slot in the `sign` form ([PageHeader](?path=/docs/layout-pageheader--docs), Action slot). The sign is experimental: its API may change before it is stable.
 
 ## Loading and forms
 
@@ -9068,7 +9107,7 @@ _Props of `Button`, generated from its types:_
 | `render` | `ReactElement<unknown, string \| JSXElementConstructor<any>> \| ComponentRenderFn<HTMLProps, ButtonState>` |  | Allows you to replace the component's HTML element with a different tag, or compose it with another component. Accepts a `ReactElement` or a function that returns the element to render. |
 | `style` | `CSSProperties \| ((state: ButtonState) => CSSProperties)` |  | Style applied to the element, or a function that returns a style object based on the component's state. |
 | `variant` | `"danger" \| "link" \| "primary" \| "secondary" \| "subtle"` | `secondary` | Secondary is the default; primary emphasizes the main action. |
-| `size` | `"medium" \| "small" \| "xsmall"` | `medium` | Medium is 32px, small 28px and xsmall 24px. `variant="link"` ignores it: a link-styled action is as tall as its text. |
+| `size` | `"large" \| "medium" \| "small" \| "xsmall"` | `medium` | Medium is 32px, small 28px and xsmall 24px; large is 36px, for a record's action slot. `variant="link"` ignores it: a link-styled action is as tall as its text. |
 | `isSelected` | `boolean` |  | Paint the selected state and, on Button, set aria-pressed. |
 | `isFullWidth` | `boolean` |  | Fill the available width. |
 | `iconBefore` | `ReactElement<unknown, string \| JSXElementConstructor<any>>` |  | Decorative leading icon, replaced by a spinner while loading. |
@@ -9077,6 +9116,8 @@ _Props of `Button`, generated from its types:_
 | `loadingLabel` | `string` |  | What the pending work is, said once through the page's polite live region when loading starts, such as "Saving requirement revision". `aria-busy` alone is not announced by the major screen readers. Leave it out when something else on the page already says it. |
 | `disabledReason` | `string` |  | Why the action is unavailable, for an action that truly cannot run. The button is disabled but stays in the tab order with `aria-disabled`, so the reader can reach it and learn why: the reason shows in a tooltip on hover, on keyboard focus and on a tap, and is the button's accessible description. It disables the button by itself and keeps it focusable even with `disabled`. An empty string is no reason. Prefer an enabled action that explains on use, such as a submit that reports what is missing. |
 | `truncate` | `boolean` |  | For a slot narrower than the label, such as a rail, a card's footer or a table cell: the button narrows to its container and cuts the label with an ellipsis, its icons whole. The whole label stays the accessible name and shows in a tooltip on hover and keyboard focus while it is cut. Write labels short enough not to need it; this is for the slot that cannot grow. |
+| `intent` | `"sign"` |  | What a press means, where it is more than an act. `sign` records the reader's signature: the button is drawn in ink, at the 36px size, with a signature mark before the label and the signer's name after it, and Command+Enter (Control+Enter off Apple platforms) presses it from anywhere on the page, never a bare Enter. In a slot narrower than it the label gives way with an ellipsis and the signer stays whole. `variant`, `size`, `isSelected`, `truncate` and the icons do not apply to it. One a page. |
+| `signer` | `string` |  | With `intent="sign"`, who signs: the reader, by name ("R. Calloway"), drawn after the label and read with it. |
 
 _Example: story `Stories.Playground`._
 
@@ -9160,7 +9201,7 @@ _Props of `ButtonGroupText`, generated from its types:_
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
 | `render` | `ReactElement<unknown, string \| JSXElementConstructor<any>> \| ComponentRenderFn<HTMLProps, {}>` |  | Allows you to replace the component's HTML element with a different tag, or compose it with another component. Accepts a `ReactElement` or a function that returns the element to render. |
-| `size` | `"medium" \| "small" \| "xsmall"` | `medium` | The size of the controls beside it, so the text is never shorter than they are: `medium` 32px (the default, as on Button), `small` 28px or `xsmall` 24px. In a vertical group, where it would otherwise be only as tall as its words, it takes the controls' height. |
+| `size` | `"large" \| "medium" \| "small" \| "xsmall"` | `medium` | The size of the controls beside it, so the text is never shorter than they are: `medium` 32px (the default, as on Button), `large` 36px, `small` 28px or `xsmall` 24px. In a vertical group, where it would otherwise be only as tall as its words, it takes the controls' height. |
 
 _Props of `ButtonGroupSeparator`, generated from its types:_
 
@@ -9604,6 +9645,83 @@ _Rendered in the Storybook: Controls._
 ## Related
 
 [Checkbox](?path=/docs/components-checkbox--docs) · [Field](?path=/docs/components-field--docs) · [Forms](?path=/docs/patterns-forms--docs) · [Base UI Checkbox Group](https://base-ui.com/react/components/checkbox-group)
+
+<!-- page: Components/Climb (src/stories/components/Climb.mdx) -->
+
+# Climb
+
+**Status: Experimental.** New with the November 2026 UX proposal's counting forms, for a control baseline's four rungs; no product screen has used it yet, so the first one may still change its props. Owned by the design system.
+
+A whole as it climbs a ladder of rungs, drawn as one bar with the gaps to scale: of 560 controls, how many reached a requirement, then evidence, then an assessment, then a satisfied determination, and how many stopped under each. Each segment is what stopped under a rung and the last is what reached the top, so where the climb stalls is the widest segment. Under the bar each rung says how many reached it and what stopped under it, and the same numbers are a table one toggle away.
+
+_Example: story `Stories.Playground`._
+
+## Climb, Tally or Ladder
+
+|               | Tally                           | Climb                                                         | [Ladder](?path=/docs/patterns-ladder--docs)  |
+| ------------- | ------------------------------- | ------------------------------------------------------------- | -------------------------------------------- |
+| What it shows | A whole in states with no order | A whole in order: each rung holds no more than the one before | A structure: levels of nodes joined by wires |
+| A segment     | A state's share of the total    | What stopped under a rung, or what reached the top            | A node's tally, a row's marks                |
+| The numbers   | Beside it, the caller's         | Its own: every rung's count, and the table twin               | A figure a node                              |
+| Interaction   | None                            | The table toggle                                              | Choosing a node keeps its path               |
+
+The climb is a component, beside Tally and Progress: it describes a standing and owns no workflow. Its one control chooses between two views of the same numbers, as a chart's Table toggle does. A Ladder is a pattern because it owns choosing a node, its paths, roving focus and a card of details.
+
+## Rungs and what stopped
+
+`start` names the whole ("Selected"); its count is every segment together. Each of `rungs`, from the first, has a `label`, what reaching it means ("Requirement"), and `stopped`, what stopped under it: a [Tally](?path=/docs/components-tally--docs) segment in a tone and fill, or its parts where a judgement splits it (other than satisfied and partially satisfied, under Satisfied). `reached` is what reached the last rung. A rung's count is the whole less what stopped under it and every rung before, so the numbers always add up. Segments take a TileMap mark's tones and fills, so one key explains a map, a tally and a climb; `empty` paints the track's own colour, since the climb has no track behind it.
+
+The gap with the largest count is the widest drop, and its words take the warning colour, once. A gap of nothing draws no segment and says nothing under its rung; the rung still says its count.
+
+_Example: story `Stories.StoppedEarly`._
+
+## Three pixels at least
+
+A segment grows by its count from nothing and is never thinner than three pixels, so one control of 560 still shows; the other segments share what is left in proportion. A hairline of the surface parts the segments.
+
+_Example: story `Stories.OneInHundreds`._
+
+## The table twin
+
+The Table toggle shows the same numbers as a [Table](?path=/docs/components-table--docs) in place of the bar: a row a rung, with how many reached it and what stopped under it in the segments' words. The toggle keeps its name and says by `aria-pressed` whether the table shows, as a [Chart](?path=/docs/patterns-chart-overview--docs)'s does.
+
+_Example: story `Stories.TableTwin`._
+
+## Accessibility
+
+- **A named figure.** The climb is a `figure` named by `label`. The bar is decoration; the rungs under it are an ordered list a screen reader reads as text ("546, Requirement, 14 to map"), and the table twin is a table named "…, as a table".
+- **Not colour alone.** Every segment has a swatch beside its words under the rungs and its words under the pointer; the widest gap is said by its number as well as its colour.
+- **Forced colours.** Filled, hollow and empty stay three things in the system palette.
+- **Right to left.** The bar and the rungs run from the inline start, so the climb mirrors.
+- **Motion.** A segment eases to its new share when a count changes, over `motion.duration.moderate`, and switches under reduced motion.
+
+## Style
+
+| Element | Token                                                                                                             |
+| ------- | ----------------------------------------------------------------------------------------------------------------- |
+| Bar     | `space.100` thick · segments `border.width` apart · `radius.xsmall` · at least `space.025` + `border.width`       |
+| Segment | `color.chart.*` in its tone · hollow: `elevation.surface.current` inside an edge · empty: `color.chart.track`     |
+| Rung    | the count in `font.body.large` semibold, tabular · the name and the gap in `font.body.small`, `color.text.subtle` |
+| Widest  | `color.text.warning`, medium                                                                                      |
+
+## Props
+
+The figure's native props and ref reach its box.
+
+_Props of `Climb`, generated from its types:_
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `label` (required) | `string` |  | The climb's name: what climbs and what it counts ("Controls of the baseline"). It names the figure, and its table as the table of it. |
+| `start` (required) | `string` |  | What the climb starts from, named under the whole's count: "Selected". |
+| `rungs` (required) | `readonly ClimbRung[]` |  | The rungs in order, from the first. Each rung's count is the whole less what stopped under it and every rung before. |
+| `reached` (required) | `TallySegment` |  | What reached the last rung: the bar's last segment, in its tone ("174 satisfied", `tone: "success"`). Its value is the last rung's count. |
+
+_Rendered in the Storybook: Controls._
+
+## Related
+
+[Tally](?path=/docs/components-tally--docs) · [Meter](?path=/docs/components-meter--docs) · [Progress](?path=/docs/components-progress--docs) · [Ladder](?path=/docs/patterns-ladder--docs) · [Chart](?path=/docs/patterns-chart-overview--docs)
 
 <!-- page: Components/CodeBlock (src/stories/components/CodeBlock.mdx) -->
 
@@ -10306,6 +10424,8 @@ _Props of `CopyButton`, generated from its types:_
 | `isFullWidth` | `boolean` |  | Fill the available width. |
 | `loadingLabel` | `string` |  | What the pending work is, said once through the page's polite live region when loading starts, such as "Saving requirement revision". `aria-busy` alone is not announced by the major screen readers. Leave it out when something else on the page already says it. |
 | `truncate` | `boolean` |  | For a slot narrower than the label, such as a rail, a card's footer or a table cell: the button narrows to its container and cuts the label with an ellipsis, its icons whole. The whole label stays the accessible name and shows in a tooltip on hover and keyboard focus while it is cut. Write labels short enough not to need it; this is for the slot that cannot grow. |
+| `intent` | `"sign"` |  | What a press means, where it is more than an act. `sign` records the reader's signature: the button is drawn in ink, at the 36px size, with a signature mark before the label and the signer's name after it, and Command+Enter (Control+Enter off Apple platforms) presses it from anywhere on the page, never a bare Enter. In a slot narrower than it the label gives way with an ellipsis and the signer stays whole. `variant`, `size`, `isSelected`, `truncate` and the icons do not apply to it. One a page. |
+| `signer` | `string` |  | With `intent="sign"`, who signs: the reader, by name ("R. Calloway"), drawn after the label and read with it. |
 | `text` (required) | `string` |  | The text put on the clipboard. |
 | `variant` | `"primary" \| "secondary" \| "subtle"` | `secondary` | Secondary is the default, as on Button and IconButton; subtle beside an identifier or in a block. |
 | `size` | `"medium" \| "small"` |  | Medium (32px) by default for the labelled form, small (28px) for the icon-only form. |
@@ -11847,6 +11967,61 @@ A filtered table's empty says what emptied it and offers Clear filters, never a 
 
 _Example: story `Stories.Dont`._
 
+<!-- page: Components/EmptySeat (src/stories/components/EmptySeat.mdx) -->
+
+# EmptySeat
+
+**Status: Experimental.** New with the November 2026 proposal's rows, facts and readiness seats; the props may change while its first screens try it. Owned by the design system.
+
+A role nobody holds: an owner, an assessor, a signer. It stands where a [Person](?path=/docs/components-avatar--docs) would, drawn as the avatar's empty form, a dashed circle at Person's 16px, beside words that name the role ("No owner"). With `onSelect` the whole seat is a button that fills it, such as one that opens Assign owner; without it the seat only reports.
+
+_Example: story `Stories.Playground`._
+
+It is a statement, not a missing value: "No owner" is something the reader can act on, so it is said in words and drawn in the warning tone. A value nobody recorded is an [Absent](?path=/docs/components-typography--docs), a muted dash heard as "Not recorded". A person who holds the role is a Person.
+
+| Part   | Paint                                                                           |
+| ------ | ------------------------------------------------------------------------------- |
+| Circle | 16px (`space.200`), a 1px dashed `color.border.warning` ring, no fill; hidden   |
+| Words  | `color.text.warning` at `font.weight.medium`, in the type size around the seat  |
+| Button | The circle and the words; underlined under the pointer, the focus ring on focus |
+
+## Filling a seat
+
+With `onSelect` the seat is a button named by its words ("No owner"), reached with Tab and pressed with Enter or Space. The circle is inside it, so the whole seat is the target, and on a touch screen the band around it is 24px tall. A seat without `onSelect` is text and no Tab stop: give it one only where the reader may fill the seat.
+
+_Example: story `Stories.Pressable`._
+
+## Beside a person
+
+Seats sit where people do: in a row's Owner cell, in a record's Details, in a list of who must sign. Each names its role, so two empty seats never read alike.
+
+_Example: story `Stories.BesideAPerson`._
+
+## Content
+
+- **`label` names the role, as the product calls it:** "No owner", "No assessor", "No authorizing official". It is the seat's accessible name, so it says both the role and that nobody holds it; never "None", "Unassigned" or a dash.
+- **The words are short.** In a column narrower than they are, they end in an ellipsis and show whole on hover and keyboard focus while they are cut; the circle keeps its size.
+
+_Example: story `Stories.InANarrowColumn`._
+
+## Props
+
+EmptySeat is a `span` that forwards native props and its ref, and names itself last with `data-slot` (`empty-seat`, with `empty-seat-mark` and, when it can be pressed, `empty-seat-button` inside). A pressable seat carries `data-pressable`.
+
+_Props of `EmptySeat`, generated from its types:_
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `label` (required) | `string` |  | The seat in words, naming the role nobody holds: "No owner", "No assessor", "No authorizing official". Drawn beside the dashed circle, and the seat's accessible name. |
+| `onSelect` | `(() => void)` |  | Makes the seat a button that fills it, such as one that opens Assign owner. Without it the seat only reports, and takes no Tab stop. |
+
+_Rendered in the Storybook: Controls._
+
+## Related
+
+- [Avatar](?path=/docs/components-avatar--docs): Person, the seat a person holds.
+- [Typography](?path=/docs/components-typography--docs): Absent, a value nobody recorded.
+
 <!-- page: Components/ErrorSummary (src/stories/components/ErrorSummary.mdx) -->
 
 # ErrorSummary
@@ -12263,7 +12438,7 @@ _Props of `FileTrigger`, generated from its types:_
 | `style` | `CSSProperties \| ((state: ButtonState) => CSSProperties)` |  | Style applied to the element, or a function that returns a style object based on the component's state. |
 | `nativeButton` | `boolean` | `true` | Whether the component renders a native `<button>` element when replacing it via the `render` prop. Set to `false` if the rendered element is not a button (for example, `<div>`). |
 | `render` | `ReactElement<unknown, string \| JSXElementConstructor<any>> \| ComponentRenderFn<HTMLProps, ButtonState>` |  | Allows you to replace the component's HTML element with a different tag, or compose it with another component. Accepts a `ReactElement` or a function that returns the element to render. |
-| `size` | `"medium" \| "small" \| "xsmall"` |  | Medium is 32px, small 28px and xsmall 24px. `variant="link"` ignores it: a link-styled action is as tall as its text. |
+| `size` | `"large" \| "medium" \| "small" \| "xsmall"` |  | Medium is 32px, small 28px and xsmall 24px; large is 36px, for a record's action slot. `variant="link"` ignores it: a link-styled action is as tall as its text. |
 | `focusableWhenDisabled` | `boolean` | `false` | Whether the button should be focusable when disabled. |
 | `variant` | `"danger" \| "link" \| "primary" \| "secondary" \| "subtle"` |  | Secondary is the default; primary emphasizes the main action. |
 | `isSelected` | `boolean` |  | Paint the selected state and, on Button, set aria-pressed. |
@@ -12274,6 +12449,8 @@ _Props of `FileTrigger`, generated from its types:_
 | `loadingLabel` | `string` |  | What the pending work is, said once through the page's polite live region when loading starts, such as "Saving requirement revision". `aria-busy` alone is not announced by the major screen readers. Leave it out when something else on the page already says it. |
 | `disabledReason` | `string` |  | Why the action is unavailable, for an action that truly cannot run. The button is disabled but stays in the tab order with `aria-disabled`, so the reader can reach it and learn why: the reason shows in a tooltip on hover, on keyboard focus and on a tap, and is the button's accessible description. It disables the button by itself and keeps it focusable even with `disabled`. An empty string is no reason. Prefer an enabled action that explains on use, such as a submit that reports what is missing. |
 | `truncate` | `boolean` |  | For a slot narrower than the label, such as a rail, a card's footer or a table cell: the button narrows to its container and cuts the label with an ellipsis, its icons whole. The whole label stays the accessible name and shows in a tooltip on hover and keyboard focus while it is cut. Write labels short enough not to need it; this is for the slot that cannot grow. |
+| `intent` | `"sign"` |  | What a press means, where it is more than an act. `sign` records the reader's signature: the button is drawn in ink, at the 36px size, with a signature mark before the label and the signer's name after it, and Command+Enter (Control+Enter off Apple platforms) presses it from anywhere on the page, never a bare Enter. In a slot narrower than it the label gives way with an ellipsis and the signer stays whole. `variant`, `size`, `isSelected`, `truncate` and the icons do not apply to it. One a page. |
+| `signer` | `string` |  | With `intent="sign"`, who signs: the reader, by name ("R. Calloway"), drawn after the label and read with it. |
 | `accept` | `string \| readonly string[]` |  | The file types the picker offers, as the input's `accept`: media types (`application/pdf`), wildcards (`image/*`) and extensions (`.csv`), in a string or a list. The picker filters by it but a reader can still choose another file, so check the files you receive; DropZone does. |
 | `multiple` | `boolean` | `false` | Lets the reader choose several files at once. One by default. |
 | `capture` | `"environment" \| "user"` |  | On a phone, offers the camera directly: `environment` the rear one, `user` the front. |
@@ -12609,12 +12786,13 @@ _Example: story `Stories.DoDont`._
 
 | Size      | Button                    | Icon | Typical placement                                                                                                                                                                                                                                                                                                        |
 | --------- | ------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `large`   | 36px square               | 16px | Beside a large Button in a record's action slot: its More.                                                                                                                                                                                                                                                               |
 | `medium`  | 32px square               | 16px | Beside a default (medium) Button, in a header or a footer.                                                                                                                                                                                                                                                               |
 | `small`   | 28px square, the default  | 14px | Toolbars, the top navigation, a card's corner.                                                                                                                                                                                                                                                                           |
 | `xsmall`  | 24px square               | 14px | Beside an xsmall Button, such as the options of a dense split action.                                                                                                                                                                                                                                                    |
 | `xxsmall` | 20px square, small radius | 14px | The row control: a table or tree row's disclosure, the preview eye, a list row's chevron (a row's More fields is its count, "+3", at the same height). Table, DataTable, Tree and Item draw theirs with it. In a row pass `isTooltipDisabled`, so a long list mounts no tooltip per row; the name still says the action. |
 
-The sizes are Button's (`xsmall` 24px, `small` 28px, `medium` 32px) plus the 20px row control; Button defaults to `medium` and IconButton to `small`, so beside a default Button pass `size="medium"`. Where any pointer is coarse every size takes a hit area of at least 24px, centred, so a row keeps its height.
+The sizes are Button's (`xsmall` 24px, `small` 28px, `medium` 32px, `large` 36px) plus the 20px row control; Button defaults to `medium` and IconButton to `small`, so beside a default Button pass `size="medium"`. Where any pointer is coarse every size takes a hit area of at least 24px, centred, so a row keeps its height.
 
 Pass the icon element with `icon`. IconButton sizes it and hides it from assistive technology; `label` provides the accessible name. `isSelected` applies the selected palette and `aria-pressed`. `isLoading` replaces the icon with a decorative spinner while retaining the label and focus.
 
@@ -12664,7 +12842,7 @@ _Props of `IconButton`, generated from its types:_
 | `label` (required) | `string` |  | Accessible action name, also used by the tooltip. |
 | `icon` (required) | `ReactElement<unknown, string \| JSXElementConstructor<any>>` |  | Decorative icon, replaced by a spinner while loading. |
 | `variant` | `"primary" \| "secondary" \| "subtle"` |  |  |
-| `size` | `"medium" \| "small" \| "xsmall" \| "xxsmall"` | `small` | Small is 28px, the default; medium 32px with a larger icon; xsmall 24px, beside an xsmall Button; xxsmall 20px, the row control in a table, tree or list row. Where any pointer is coarse each takes a hit area of at least 24px. |
+| `size` | `"large" \| "medium" \| "small" \| "xsmall" \| "xxsmall"` | `small` | Small is 28px, the default; medium 32px with a larger icon; large 36px, beside a large Button in a record's action slot; xsmall 24px, beside an xsmall Button; xxsmall 20px, the row control in a table, tree or list row. Where any pointer is coarse each takes a hit area of at least 24px. |
 | `isTooltipDisabled` | `boolean` |  | Keep the accessible name while omitting the tooltip. A `disabledReason` still shows its own. |
 
 _Example: story `Stories.Playground`._
@@ -13076,6 +13254,8 @@ _Props of `InputGroupButton`, generated from its types:_
 | `loadingLabel` | `string` |  | What the pending work is, said once through the page's polite live region when loading starts, such as "Saving requirement revision". `aria-busy` alone is not announced by the major screen readers. Leave it out when something else on the page already says it. |
 | `disabledReason` | `string` |  | Why the action is unavailable, for an action that truly cannot run. The button is disabled but stays in the tab order with `aria-disabled`, so the reader can reach it and learn why: the reason shows in a tooltip on hover, on keyboard focus and on a tap, and is the button's accessible description. It disables the button by itself and keeps it focusable even with `disabled`. An empty string is no reason. Prefer an enabled action that explains on use, such as a submit that reports what is missing. |
 | `truncate` | `boolean` |  | For a slot narrower than the label, such as a rail, a card's footer or a table cell: the button narrows to its container and cuts the label with an ellipsis, its icons whole. The whole label stays the accessible name and shows in a tooltip on hover and keyboard focus while it is cut. Write labels short enough not to need it; this is for the slot that cannot grow. |
+| `intent` | `"sign"` |  | What a press means, where it is more than an act. `sign` records the reader's signature: the button is drawn in ink, at the 36px size, with a signature mark before the label and the signer's name after it, and Command+Enter (Control+Enter off Apple platforms) presses it from anywhere on the page, never a bare Enter. In a slot narrower than it the label gives way with an ellipsis and the signer stays whole. `variant`, `size`, `isSelected`, `truncate` and the icons do not apply to it. One a page. |
+| `signer` | `string` |  | With `intent="sign"`, who signs: the reader, by name ("R. Calloway"), drawn after the label and read with it. |
 | `size` | `"icon-sm" \| "icon-xs" \| "sm" \| "small" \| "xs" \| "xsmall"` | `xsmall` | `xsmall` 24px by default, `small` 28px. `xs` and `sm` are the deprecated spellings of `xsmall` and `small`; `icon-xs` and `icon-sm` are the deprecated square forms, which `icon` and `label` replace. |
 | `icon` | `ReactElement<unknown, string \| JSXElementConstructor<any>>` |  | The decorative icon of an icon-only button. The button is square and `label` names it. |
 | `label` | `string` |  | The accessible name of an icon-only button, required with `icon`. |
@@ -13588,7 +13768,7 @@ _Props of `LinkButton`, generated from its types:_
 | --- | --- | --- | --- |
 | `render` | `ReactElement<unknown, string \| JSXElementConstructor<any>> \| ComponentRenderFn<HTMLProps, {}>` |  | Allows you to replace the component's HTML element with a different tag, or compose it with another component. Accepts a `ReactElement` or a function that returns the element to render. |
 | `variant` | `"danger" \| "primary" \| "secondary" \| "subtle"` | `secondary` | Secondary is the default; primary emphasizes the main destination. A link in text is TextLink. |
-| `size` | `"medium" \| "small" \| "xsmall"` | `medium` | Medium is 32px, small 28px and xsmall 24px, as on Button. |
+| `size` | `"large" \| "medium" \| "small" \| "xsmall"` | `medium` | Medium is 32px, small 28px, xsmall 24px and large 36px, as on Button. |
 | `isFullWidth` | `boolean` |  | Fill the available width. |
 | `iconBefore` | `ReactElement<unknown, string \| JSXElementConstructor<any>>` |  | Decorative leading icon. |
 | `iconAfter` | `ReactElement<unknown, string \| JSXElementConstructor<any>>` |  | Decorative trailing icon, such as an arrow or an external-link mark. |
@@ -13605,7 +13785,7 @@ _Props of `LinkIconButton`, generated from its types:_
 | `label` (required) | `string` |  | The destination's accessible name, also used by the tooltip. |
 | `icon` (required) | `ReactElement<unknown, string \| JSXElementConstructor<any>>` |  | Decorative icon. |
 | `variant` | `"primary" \| "secondary" \| "subtle"` |  |  |
-| `size` | `"medium" \| "small" \| "xsmall" \| "xxsmall"` | `small` | As on IconButton: small 28px (the default), medium 32px, xsmall 24px and xxsmall 20px, the row control. |
+| `size` | `"large" \| "medium" \| "small" \| "xsmall" \| "xxsmall"` | `small` | As on IconButton: small 28px (the default), medium 32px, xsmall 24px and xxsmall 20px, the row control. |
 | `isTooltipDisabled` | `boolean` |  | Keep the accessible name while omitting the tooltip. A `disabledReason` still shows its own. |
 
 ### Playground
@@ -13820,6 +14000,75 @@ _Example: story `Stories.LiteralTerms`._
 _Example: story `Stories.CaseSensitive`._
 _Example: story `Stories.EmptyQuery`._
 _Rendered in the Storybook: ArgTypes._
+
+<!-- page: Components/Meter (src/stories/components/Meter.mdx) -->
+
+# Meter
+
+**Status: Experimental.** New with the November 2026 UX proposal's counting forms, a thin part over [Tally](?path=/docs/components-tally--docs); no product screen has used it yet, so the first one may still change its props. Owned by the design system.
+
+N of M as its marks, one an item, always beside the count in words: two of ten checks met, one of twelve items closed with three late. It is for a few items, up to about twenty, where each one is worth seeing; past that, a [Tally](?path=/docs/components-tally--docs) beside the number shows the proportion.
+
+_Example: story `Stories.Playground`._
+
+## Neutral, and late by its shape
+
+The marks are a tally's segments standing apart, in the same paint, and they spend no hue on what is not a judgement: a met item is filled and an open one hollow, both in the neutral tone. A late item (`late`, counted among those not met) is drawn after the met ones, hatched in the danger tone, so it is told by its shape as well as its colour, in every colour vision and with forced colours.
+
+_Example: story `Stories.Late`._
+
+## The count is always drawn
+
+The meter draws its own count, "2 of 10", so the marks never stand without their number. The value is in the text colour and the rest of the words subtle; the words come from the LedgerProvider (`meterValue`, `meterLate`), so a translation owns their order.
+
+## Sizes
+
+`size="medium"` is 8px marks beside `font.body`, in a row or a cell. `size="large"` is 12px marks beside `font.body.large`, where the count is the reading of a band.
+
+_Example: story `Stories.Sizes`._
+
+## In a table
+
+In a cell the count is the text and the marks are decoration: leave `label` unsaid, so a screen reader reads the row as its numbers and is not told of an image a cell. How many are late is said after the count, unseen ("1 of 12, 3 late").
+
+_Example: story `Stories.InATable`._
+
+## Accessibility
+
+- **Named or text, never between.** With `label` the meter is `role="img"`, named by the label and the count: "Condition 1 items closed: 1 of 12, 3 late". Without it the marks are hidden from assistive technology and the count beside them is read as text.
+- **Not colour alone.** Filled, hollow and hatched are three shapes; the hatch stays in the system's text colour with forced colours.
+- **A count in range.** `value` is held to `max`, and `late` to what is not met.
+- **Right to left.** The marks run from the inline start, so the meter mirrors.
+
+## Style
+
+| Element | Token                                                                                             |
+| ------- | ------------------------------------------------------------------------------------------------- |
+| Mark    | `space.100` (medium) or `space.150` (large) square · `radius.xsmall` · `space.025` apart          |
+| Met     | `color.chart.neutral`                                                                             |
+| Open    | `elevation.surface.current` inside a `border.width` edge in `color.chart.neutral`                 |
+| Late    | an edge and a hairline hatch every `space.025` in `color.chart.danger`                            |
+| Count   | `font.body` or `font.body.large`, tabular · the value `color.text`, the words `color.text.subtle` |
+
+## Props
+
+The span's native props and ref reach the meter's box.
+
+_Props of `Meter`, generated from its types:_
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `value` (required) | `number` |  | How many are met, N: drawn first, filled. |
+| `max` (required) | `number` |  | How many there are, M: one mark each. For a few items, up to about twenty; past that, a Tally beside the number. |
+| `late` | `number` | `0` | How many of the rest are late: drawn after the met marks, hatched in the danger tone, so their shape says it as well as their colour, and said after the count ("3 late"). |
+| `size` | `"large" \| "medium"` | `medium` | `medium` is 8px marks beside `font.body`; `large` 12px marks beside `font.body.large`. |
+| `label` | `string` |  | What is counted: "Checks met". With it the meter is an image named by it and its count ("Checks met: 2 of 10"); without it the marks are decoration and the count beside them is the text a screen reader reads. |
+
+_Rendered in the Storybook: Controls._
+
+## Related
+
+[Tally](?path=/docs/components-tally--docs) · [Climb](?path=/docs/components-climb--docs) · [Progress](?path=/docs/components-progress--docs) · [TileMap](?path=/docs/patterns-tilemap--docs)
 
 <!-- page: Components/Mode (src/stories/components/Mode.mdx) -->
 
@@ -14284,14 +14533,14 @@ _Props of `PaginationLink`, generated from its types:_
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `size` | `"medium" \| "small" \| "xsmall"` | `small` | Medium is 32px, small 28px and xsmall 24px. `variant="link"` ignores it: a link-styled action is as tall as its text. |
+| `size` | `"large" \| "medium" \| "small" \| "xsmall"` | `small` | Medium is 32px, small 28px and xsmall 24px; large is 36px, for a record's action slot. `variant="link"` ignores it: a link-styled action is as tall as its text. |
 | `isActive` | `boolean` |  |  |
 
 _Props of `PaginationPrevious`, generated from its types:_
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `size` | `"medium" \| "small" \| "xsmall"` |  | Medium is 32px, small 28px and xsmall 24px. `variant="link"` ignores it: a link-styled action is as tall as its text. |
+| `size` | `"large" \| "medium" \| "small" \| "xsmall"` |  | Medium is 32px, small 28px and xsmall 24px; large is 36px, for a record's action slot. `variant="link"` ignores it: a link-styled action is as tall as its text. |
 | `isActive` | `boolean` |  |  |
 | `text` | `string` |  | The visible word in place of "Previous", such as "Older". It also names the link. |
 
@@ -14299,7 +14548,7 @@ _Props of `PaginationNext`, generated from its types:_
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `size` | `"medium" \| "small" \| "xsmall"` |  | Medium is 32px, small 28px and xsmall 24px. `variant="link"` ignores it: a link-styled action is as tall as its text. |
+| `size` | `"large" \| "medium" \| "small" \| "xsmall"` |  | Medium is 32px, small 28px and xsmall 24px; large is 36px, for a record's action slot. `variant="link"` ignores it: a link-styled action is as tall as its text. |
 | `isActive` | `boolean` |  |  |
 | `text` | `string` |  | The visible word in place of "Next", such as "Newer". It also names the link. |
 
@@ -16702,6 +16951,8 @@ _Example: story `Stories.Playground`._
 | Parts of a whole in the status tones, a hatched hole, parts that click | `ProgressStacked`, on the [Progress](?path=/docs/components-progress--docs) page |
 | Where work stands along a few named phases                             | [PhaseBar](?path=/docs/components-phasebar--docs)                                |
 | How many items of a group are in each state, in a map's colours        | `Tally`                                                                          |
+| N of a few items, each its own mark, beside the count                  | [Meter](?path=/docs/components-meter--docs)                                      |
+| A whole in order, rung by rung, with the gaps to scale                 | [Climb](?path=/docs/components-climb--docs)                                      |
 | Every item as its own mark, to find one by where it stands             | [TileMap](?path=/docs/patterns-tilemap--docs)                                    |
 
 A tally is not a progressbar: nothing is under way, and a screen reader would hear a percentage of a job that is not running. It keeps apart from `ProgressStacked` by its vocabulary. A stacked bar speaks the status tones (success, warning, danger) and hatches what is unknown; a tally speaks a map's chart tones and has a hollow segment, for what was there and is not now, and a remainder that is the track. Use the one whose key is already on the page.
@@ -16779,7 +17030,7 @@ _Rendered in the Storybook: Controls._
 
 ## Related
 
-[Progress](?path=/docs/components-progress--docs) · [PhaseBar](?path=/docs/components-phasebar--docs) · [TileMap](?path=/docs/patterns-tilemap--docs) · [Ladder](?path=/docs/patterns-ladder--docs) · [Stat](?path=/docs/components-stat--docs)
+[Progress](?path=/docs/components-progress--docs) · [PhaseBar](?path=/docs/components-phasebar--docs) · [Meter](?path=/docs/components-meter--docs) · [Climb](?path=/docs/components-climb--docs) · [TileMap](?path=/docs/patterns-tilemap--docs) · [Ladder](?path=/docs/patterns-ladder--docs) · [Stat](?path=/docs/components-stat--docs)
 
 <!-- page: Components/Textarea (src/stories/components/Textarea.mdx) -->
 
@@ -18319,13 +18570,39 @@ Use PageHeader.Title once for the page's h1. Actions sit at the end of the title
 
 ## Actions and their sizes
 
-| Where                    | Actions                                                                                                                                                                                            |
-| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| A register               | None. The create action is the Toolbar's small primary.                                                                                                                                            |
-| A record page            | One default-size primary Button, or one default-size Actions menu: a Button labelled Actions with a trailing ChevronDown, its items the record's operations, and a link item for each destination. |
-| A preview's inner header | One small primary, then the rest behind a subtle small IconButton that opens a menu.                                                                                                               |
+| Where                    | Actions                                                                                                                                                                                                                                                     |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A register               | None. The create action is the Toolbar's small primary.                                                                                                                                                                                                     |
+| A record page            | One default-size primary Button, or one default-size Actions menu: a Button labelled Actions with a trailing ChevronDown, its items the record's operations, and a link item for each destination. Or the action slot, whose act, sign and Remind are 36px. |
+| A preview's inner header | One small primary, then the rest behind a subtle small IconButton that opens a menu.                                                                                                                                                                        |
 
 A destination in an Actions menu is a link item (`DropdownMenuLinkItem`, or an item rendered as a router link), so it opens in a new tab; a Button in the header acts, never navigates.
+
+## The action slot
+
+`PageHeader.Slot` is a record's one place for what happens next, at the end of the title's row in PageHeader.Actions' place, and it keeps Actions' wrap rule. It has four forms and no others, one prop each, and TypeScript refuses two at once:
+
+| Form    | Prop        | What it draws                                                                                                                                                                                                                                                        |
+| ------- | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Advance | `advance`   | The reader's own next step: why it is next (`reason`, at medium weight, and a smaller `detail` under it), then the act, a 36px primary named by `label`. The reason is the act's description. `onAction` runs it here; `link` makes it a LinkButton to another page. |
+| Sign    | `sign`      | A signature the reader owes: "Signing as" and their `role`, then a [Button](?path=/docs/components-button--docs) with `intent="sign"` and the reader as `signer`, which Command+Enter presses. The words are its description.                                        |
+| Waiting | `waitingOn` | Who the record waits on, by `name` and `role`, and since when (`since`, said relative to now with the full moment in its tooltip), then Remind, a 36px secondary described by the wait, where the reader may remind (`onRemind`).                                    |
+| None    | none        | Nothing of its own: the record has no next step here, and the slot holds only `more`.                                                                                                                                                                                |
+
+`more` is the record's other commands behind a subtle 36px icon button at the slot's end: `label` names the record ("More control actions") and `items` are the menu's items, Inspect record last. Every form may have it. A slot with no form and no `more` draws nothing.
+
+The slot never shows a disabled primary: when the reader cannot take the next step, the record waits on someone (Waiting) or has none (None). One slot a record, and nothing else in the header's actions. The slot and the standing are experimental: their API may change before they are stable.
+
+_Example: story `Stories.ActionSlot`._
+
+## The standing headline
+
+`PageHeader.Standing` says where the record stands, in the display size (32/40), on one line under the name and the slot: a direct child of PageHeader after the slot, it takes the header's full width. `beats` is one beat or two, never more: on an Overview, where the record stands and then what needs doing. A beat is a count (`value` in the reader's locale, `total` after it in the subtle weight, "42 of 61", then its `label`, "satisfied") or a few words ("ATO with conditions."); `tone` colours a beat that is a judgement, "PDR 35d late." in `danger`, and most stay in the text colour. The name stays the h1, and the standing is not a heading or a link.
+
+It reads its own width, never the window's: where the line has the room the beats share it, and under 32rem, a phone or a narrow panel, each beat takes a line of its own.
+
+_Example: story `Stories.Standing`._
+_Example: story `Stories.StandingOnAPhone`._
 
 _Example: story `Stories.WithDescription`._
 
@@ -18347,7 +18624,7 @@ _Example: story `Stories.TitleLevels`._
 
 ## Props
 
-No other part has props of its own: the root and Lead are a `div` or the element given to `render`, Heading and Actions are `div`s, and Description a `p`; each takes its element's native props and ref, and names itself last with `data-slot`. Title takes `render` and its element's props. Every part is also exported by name (`PageHeaderLead`, `PageHeaderHeading`, `PageHeaderTitle`, `PageHeaderDescription`, `PageHeaderActions`), the same component as the member.
+The root and Lead are a `div` or the element given to `render`, Heading and Actions are `div`s, and Description a `p`; each takes its element's native props and ref, and names itself last with `data-slot`. Title takes `render` and its element's props. Slot and Standing are `div`s with props of their own, below. Every part is also exported by name (`PageHeaderLead`, `PageHeaderHeading`, `PageHeaderTitle`, `PageHeaderDescription`, `PageHeaderActions`, `PageHeaderSlot`, `PageHeaderStanding`), the same component as the member.
 
 _Props of `PageHeader`, generated from its types:_
 
@@ -18370,6 +18647,25 @@ _Props of `PageHeaderLead`, generated from its types:_
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
 | `render` | `ReactElement<unknown, string \| JSXElementConstructor<any>> \| ComponentRenderFn<HTMLProps, {}>` |  | Allows you to replace the component's HTML element with a different tag, or compose it with another component. Accepts a `ReactElement` or a function that returns the element to render. |
+
+### PageHeader.Slot
+
+_Props of `PageHeaderSlot`, generated from its types:_
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `advance` | `PageHeaderSlotAdvance` |  |  |
+| `sign` | `PageHeaderSlotSign` |  |  |
+| `waitingOn` | `PageHeaderSlotWaiting` |  |  |
+| `more` | `PageHeaderSlotMore` |  | The record's other commands. Every form may have them; with no form they are the slot. |
+
+### PageHeader.Standing
+
+_Props of `PageHeaderStanding`, generated from its types:_
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `beats` (required) | `readonly [PageHeaderStandingBeat] \| readonly [PageHeaderStandingBeat, PageHeaderStandingBeat]` |  | One beat, or two in reading order: where the record stands, then what needs doing ("42 of 61 satisfied", "2 to review"). |
 
 <!-- page: Layout/Pages (src/stories/layout/Pages.mdx) -->
 
@@ -18800,7 +19096,7 @@ _Props of `Shell.AppSwitcher`, generated from its types:_
 | `style` | `CSSProperties \| ((state: ButtonState) => CSSProperties)` |  | Style applied to the element, or a function that returns a style object based on the component's state. |
 | `nativeButton` | `boolean` | `true` | Whether the component renders a native `<button>` element when replacing it via the `render` prop. Set to `false` if the rendered element is not a button (for example, `<div>`). |
 | `render` | `ReactElement<unknown, string \| JSXElementConstructor<any>> \| ComponentRenderFn<HTMLProps, ButtonState>` |  | Allows you to replace the component's HTML element with a different tag, or compose it with another component. Accepts a `ReactElement` or a function that returns the element to render. |
-| `size` | `"medium" \| "small" \| "xsmall" \| "xxsmall"` |  | Small is 28px, the default; medium 32px with a larger icon; xsmall 24px, beside an xsmall Button; xxsmall 20px, the row control in a table, tree or list row. Where any pointer is coarse each takes a hit area of at least 24px. |
+| `size` | `"large" \| "medium" \| "small" \| "xsmall" \| "xxsmall"` |  | Small is 28px, the default; medium 32px with a larger icon; large 36px, beside a large Button in a record's action slot; xsmall 24px, beside an xsmall Button; xxsmall 20px, the row control in a table, tree or list row. Where any pointer is coarse each takes a hit area of at least 24px. |
 | `focusableWhenDisabled` | `boolean` | `false` | Whether the button should be focusable when disabled. |
 | `variant` | `"primary" \| "secondary" \| "subtle"` | `subtle` |  |
 | `isSelected` | `boolean` |  | Paint the selected state and, on Button, set aria-pressed. |
@@ -18868,7 +19164,7 @@ _Props of `Shell.SideNav.ToggleButton`, generated from its types:_
 | `style` | `CSSProperties \| ((state: ButtonState) => CSSProperties)` |  | Style applied to the element, or a function that returns a style object based on the component's state. |
 | `nativeButton` | `boolean` | `true` | Whether the component renders a native `<button>` element when replacing it via the `render` prop. Set to `false` if the rendered element is not a button (for example, `<div>`). |
 | `render` | `ReactElement<unknown, string \| JSXElementConstructor<any>> \| ComponentRenderFn<HTMLProps, ButtonState>` |  | Allows you to replace the component's HTML element with a different tag, or compose it with another component. Accepts a `ReactElement` or a function that returns the element to render. |
-| `size` | `"medium" \| "small" \| "xsmall" \| "xxsmall"` |  | Small is 28px, the default; medium 32px with a larger icon; xsmall 24px, beside an xsmall Button; xxsmall 20px, the row control in a table, tree or list row. Where any pointer is coarse each takes a hit area of at least 24px. |
+| `size` | `"large" \| "medium" \| "small" \| "xsmall" \| "xxsmall"` |  | Small is 28px, the default; medium 32px with a larger icon; large 36px, beside a large Button in a record's action slot; xsmall 24px, beside an xsmall Button; xxsmall 20px, the row control in a table, tree or list row. Where any pointer is coarse each takes a hit area of at least 24px. |
 | `focusableWhenDisabled` | `boolean` | `false` | Whether the button should be focusable when disabled. |
 | `variant` | `"primary" \| "secondary" \| "subtle"` | `subtle` |  |
 | `isSelected` | `boolean` |  | Paint the selected state and, on Button, set aria-pressed. |
@@ -18931,7 +19227,7 @@ _Props of `Shell.Panel.Back`, generated from its types:_
 | `style` | `CSSProperties \| ((state: ButtonState) => CSSProperties)` |  | Style applied to the element, or a function that returns a style object based on the component's state. |
 | `nativeButton` | `boolean` | `true` | Whether the component renders a native `<button>` element when replacing it via the `render` prop. Set to `false` if the rendered element is not a button (for example, `<div>`). |
 | `render` | `ReactElement<unknown, string \| JSXElementConstructor<any>> \| ComponentRenderFn<HTMLProps, ButtonState>` |  | Allows you to replace the component's HTML element with a different tag, or compose it with another component. Accepts a `ReactElement` or a function that returns the element to render. |
-| `size` | `"medium" \| "small" \| "xsmall" \| "xxsmall"` | `small` | Small is 28px, the default; medium 32px with a larger icon; xsmall 24px, beside an xsmall Button; xxsmall 20px, the row control in a table, tree or list row. Where any pointer is coarse each takes a hit area of at least 24px. |
+| `size` | `"large" \| "medium" \| "small" \| "xsmall" \| "xxsmall"` | `small` | Small is 28px, the default; medium 32px with a larger icon; large 36px, beside a large Button in a record's action slot; xsmall 24px, beside an xsmall Button; xxsmall 20px, the row control in a table, tree or list row. Where any pointer is coarse each takes a hit area of at least 24px. |
 | `focusableWhenDisabled` | `boolean` | `false` | Whether the button should be focusable when disabled. |
 | `variant` | `"primary" \| "secondary" \| "subtle"` | `subtle` |  |
 | `isSelected` | `boolean` |  | Paint the selected state and, on Button, set aria-pressed. |
@@ -18949,7 +19245,7 @@ _Props of `Shell.Panel.Close`, generated from its types:_
 | `style` | `CSSProperties \| ((state: ButtonState) => CSSProperties)` |  | Style applied to the element, or a function that returns a style object based on the component's state. |
 | `nativeButton` | `boolean` | `true` | Whether the component renders a native `<button>` element when replacing it via the `render` prop. Set to `false` if the rendered element is not a button (for example, `<div>`). |
 | `render` | `ReactElement<unknown, string \| JSXElementConstructor<any>> \| ComponentRenderFn<HTMLProps, ButtonState>` |  | Allows you to replace the component's HTML element with a different tag, or compose it with another component. Accepts a `ReactElement` or a function that returns the element to render. |
-| `size` | `"medium" \| "small" \| "xsmall" \| "xxsmall"` | `small` | Small is 28px, the default; medium 32px with a larger icon; xsmall 24px, beside an xsmall Button; xxsmall 20px, the row control in a table, tree or list row. Where any pointer is coarse each takes a hit area of at least 24px. |
+| `size` | `"large" \| "medium" \| "small" \| "xsmall" \| "xxsmall"` | `small` | Small is 28px, the default; medium 32px with a larger icon; large 36px, beside a large Button in a record's action slot; xsmall 24px, beside an xsmall Button; xxsmall 20px, the row control in a table, tree or list row. Where any pointer is coarse each takes a hit area of at least 24px. |
 | `focusableWhenDisabled` | `boolean` | `false` | Whether the button should be focusable when disabled. |
 | `variant` | `"primary" \| "secondary" \| "subtle"` | `subtle` |  |
 | `isSelected` | `boolean` |  | Paint the selected state and, on Button, set aria-pressed. |
@@ -19090,7 +19386,7 @@ StickyRail renders one `div`, forwards its native props, a `className` and its r
 
 # ActionBar
 
-**Status: Deprecated.** No product screen uses ActionBar; it stays for one version and then leaves the package. A record page's header is a [PageHeader](?path=/docs/layout-pageheader--docs), with the record's state in its Details rail: [Shell.Aside](?path=/docs/layout-shell--docs) holding an [Inspector](?path=/docs/patterns-inspector--docs).
+**Status: Deprecated.** No product screen uses ActionBar; it stays for one version and then leaves the package. A record page's header is a [PageHeader](?path=/docs/layout-pageheader--docs), with the record's state in its Details rail: [Shell.Aside](?path=/docs/layout-shell--docs) holding an [Inspector](?path=/docs/patterns-inspector--docs). The record's next act, which ActionBar's `actions` held, is PageHeader's action slot (`PageHeader.Slot`): one act with why it is next, a signature, who it waits on, or none, never a disabled primary, and the record's standing is `PageHeader.Standing`.
 
 A work surface's header pinned above the work: the trail ending in the record's id, the title with a few words of context, the record's state axes as facts, and the actions that change that state. It is composed from [PageHeader](?path=/docs/layout-pageheader--docs)'s parts, so it keeps PageHeader's wrap rule.
 
@@ -23444,7 +23740,7 @@ _Props of `ReorderHandle`, generated from its types:_
 | `style` | `CSSProperties \| ((state: ButtonState) => CSSProperties)` |  | Style applied to the element, or a function that returns a style object based on the component's state. |
 | `nativeButton` | `boolean` | `true` | Whether the component renders a native `<button>` element when replacing it via the `render` prop. Set to `false` if the rendered element is not a button (for example, `<div>`). |
 | `render` | `ReactElement<unknown, string \| JSXElementConstructor<any>> \| ComponentRenderFn<HTMLProps, ButtonState>` |  | Allows you to replace the component's HTML element with a different tag, or compose it with another component. Accepts a `ReactElement` or a function that returns the element to render. |
-| `size` | `"medium" \| "small" \| "xsmall" \| "xxsmall"` |  | Small is 28px, the default; medium 32px with a larger icon; xsmall 24px, beside an xsmall Button; xxsmall 20px, the row control in a table, tree or list row. Where any pointer is coarse each takes a hit area of at least 24px. |
+| `size` | `"large" \| "medium" \| "small" \| "xsmall" \| "xxsmall"` |  | Small is 28px, the default; medium 32px with a larger icon; large 36px, beside a large Button in a record's action slot; xsmall 24px, beside an xsmall Button; xxsmall 20px, the row control in a table, tree or list row. Where any pointer is coarse each takes a hit area of at least 24px. |
 | `focusableWhenDisabled` | `boolean` | `false` | Whether the button should be focusable when disabled. |
 | `variant` | `"primary" \| "secondary" \| "subtle"` |  |  |
 | `isSelected` | `boolean` |  | Paint the selected state and, on Button, set aria-pressed. |
@@ -23463,7 +23759,7 @@ _Props of `ReorderMove`, generated from its types:_
 | `style` | `CSSProperties \| ((state: ButtonState) => CSSProperties)` |  | Style applied to the element, or a function that returns a style object based on the component's state. |
 | `nativeButton` | `boolean` | `true` | Whether the component renders a native `<button>` element when replacing it via the `render` prop. Set to `false` if the rendered element is not a button (for example, `<div>`). |
 | `render` | `ReactElement<unknown, string \| JSXElementConstructor<any>> \| ComponentRenderFn<HTMLProps, ButtonState>` |  | Allows you to replace the component's HTML element with a different tag, or compose it with another component. Accepts a `ReactElement` or a function that returns the element to render. |
-| `size` | `"medium" \| "small" \| "xsmall" \| "xxsmall"` |  | Small is 28px, the default; medium 32px with a larger icon; xsmall 24px, beside an xsmall Button; xxsmall 20px, the row control in a table, tree or list row. Where any pointer is coarse each takes a hit area of at least 24px. |
+| `size` | `"large" \| "medium" \| "small" \| "xsmall" \| "xxsmall"` |  | Small is 28px, the default; medium 32px with a larger icon; large 36px, beside a large Button in a record's action slot; xsmall 24px, beside an xsmall Button; xxsmall 20px, the row control in a table, tree or list row. Where any pointer is coarse each takes a hit area of at least 24px. |
 | `focusableWhenDisabled` | `boolean` | `false` | Whether the button should be focusable when disabled. |
 | `variant` | `"primary" \| "secondary" \| "subtle"` |  |  |
 | `isSelected` | `boolean` |  | Paint the selected state and, on Button, set aria-pressed. |
@@ -24862,6 +25158,7 @@ Every design value is a token. The utility is the Tailwind class the lint allows
 | `color.background.selected.bold` | `bg-selected-bold` | `--ds-color-background-selected-bold` |  | Use for the backgrounds of elements in a selected state, such as checkboxes and radio buttons. |
 | `color.background.selected.bold.hovered` | `bg-selected-bold-hovered` | `--ds-color-background-selected-bold-hovered` |  | Hovered state of the bold selected background. |
 | `color.background.selected.bold.pressed` | `bg-selected-bold-pressed` | `--ds-color-background-selected-bold-pressed` |  | Pressed state of the bold selected background. |
+| `color.background.current` | `bg-current-default` | `--ds-color-background-current` |  | The fill of the current place, where blue is kept for the act: the side nav's current destination, a pressed view, a chip that is on. The same value as color.background.neutral, so it follows that fill under increased contrast. Its class is bg-current-default, since bg-current is Tailwind's currentColor. |
 | `color.background.danger` | `bg-danger` | `--ds-color-background-danger` |  | Use for backgrounds communicating critical information, such as in section messages. |
 | `color.background.danger.hovered` | `bg-danger-hovered` | `--ds-color-background-danger-hovered` |  | Hovered state of the critical information background. |
 | `color.background.danger.pressed` | `bg-danger-pressed` | `--ds-color-background-danger-pressed` |  | Pressed state of the critical information background. |
@@ -24931,6 +25228,7 @@ Every design value is a token. The utility is the Tailwind class the lint allows
 | `color.text.inverse` | `text-inverse` | `--ds-color-text-inverse` |  | Use for text on bold backgrounds. |
 | `color.text.selected` | `text-selected` | `--ds-color-text-selected` |  | Use for text in selected or opened states, such as tabs and dropdown buttons. |
 | `color.text.brand` | `text-brand` | `--ds-color-text-brand` |  | Use for text that reinforces our brand, and for a link. 4.5:1 on every surface and on the selected fill at rest and under the pointer, so a record's name link in a chosen row stays readable. |
+| `color.text.link` | `text-link` | `--ds-color-text-link` |  | A link's words where colour is kept for status and the act: ink, the same value as color.text, told apart as a link by its underline, which the part draws. 4.5:1 wherever color.text is. |
 | `color.text.danger` | `text-danger` | `--ds-color-text-danger` |  | Use for critical text, such as input field error messaging. |
 | `color.text.danger.bolder` | `text-danger-bolder` | `--ds-color-text-danger-bolder` |  | Use for text on top of danger semantic labels. |
 | `color.text.warning` | `text-warning` | `--ds-color-text-warning` |  | Use for text to emphasize caution. |
@@ -24958,6 +25256,7 @@ Every design value is a token. The utility is the Tailwind class the lint allows
 | `color.icon.warning.inverse` | `icon-warning-inverse` | `--ds-color-icon-warning-inverse` |  | Use for icons when on bold warning backgrounds. |
 | `color.icon.success` | `icon-success` | `--ds-color-icon-success` |  | Use for icons communicating a favorable outcome. |
 | `color.icon.information` | `icon-information` | `--ds-color-icon-information` |  | Use for icons communicating information or something in progress. |
+| `color.icon.changed` | `icon-changed` | `--ds-color-icon-changed` |  | The mark beside what differs from what was inherited: a control or an element a program changed here. The same value as color.background.accent.teal.bolder, 3:1 on every surface; teal says changed here and nothing else. |
 | `color.border` | `border-default` | `--ds-color-border` |  | Use to visually group or separate UI elements, such as flat cards or side panel dividers. |
 | `color.border.bold` | `border-bold` | `--ds-color-border-bold` |  | A neutral border option that passes min 3:1 contrast ratios. |
 | `color.border.disabled` | `border-disabled` | `--ds-color-border-disabled` |  | Use for borders of elements in a disabled state. |
@@ -24965,6 +25264,7 @@ Every design value is a token. The utility is the Tailwind class the lint allows
 | `color.border.input` | `border-input` | `--ds-color-border-input` |  | Borders of form UI elements, such as text fields, checkboxes, and radio buttons. A light boundary by decision: the input surface, the hover tint and the focus and danger borders carry the affordance. Increased contrast raises it to 3:1 on every surface. |
 | `color.border.inverse` | `border-inverse` | `--ds-color-border-inverse` |  | Use for borders on bold backgrounds. |
 | `color.border.selected` | `border-selected` | `--ds-color-border-selected` |  | Use for borders or visual indicators of elements in a selected or opened state, such as tabs or menu items. |
+| `color.border.current` | `border-current-default` | `--ds-color-border-current` |  | The rule that marks the current place in ink, where blue is kept for the act: the current tab's underline, the edge of the current step. The same value as color.background.neutral.bold. Its class is border-current-default, since border-current is Tailwind's currentColor. |
 | `color.border.brand` | `border-brand` | `--ds-color-border-brand` |  | Use for borders of elements that reinforce our brand, such as primary buttons. |
 | `color.border.danger` | `border-danger` | `--ds-color-border-danger` |  | Use for borders communicating critical information. |
 | `color.border.danger.subtle` | `border-danger-subtle` | `--ds-color-border-danger-subtle` |  | Use for decorative critical information borders that do not need to meet 3:1 contrast. |
@@ -24991,6 +25291,7 @@ Every design value is a token. The utility is the Tailwind class the lint allows
 | `color.chart.danger` | `fill-chart-danger` | `--ds-color-chart-danger` |  | A series carrying a danger status: other than satisfied, overdue, open. |
 | `color.chart.danger.hovered` | `fill-chart-danger-hovered` | `--ds-color-chart-danger-hovered` |  | The danger series under the pointer: one step darker in light, one lighter in dark. |
 | `color.chart.track` | `fill-chart-track` | `--ds-color-chart-track` |  | The unfilled part of a ring or bar: the whole against which a series is read. |
+| `color.chart.changed` | `fill-chart-changed` | `--ds-color-chart-changed` |  | A mark for what differs from what was inherited: a control changed here, an element a program modified. The chart's teal, categorical series 3, so the same step in both modes and 3:1 on every surface a chart sits on; teal is spent on this meaning and on no status. |
 | `color.chart.categorical.1` | `fill-chart-categorical-1` | `--ds-color-chart-categorical-1` |  | Categorical series 1, blue. The six hues are in a fixed order that keeps every neighbouring pair apart under deutan and protan vision, validated in both modes; assign in order, never by rank. |
 | `color.chart.categorical.1.hovered` | `fill-chart-categorical-1-hovered` | `--ds-color-chart-categorical-1-hovered` |  | The categorical series 1 under the pointer: one step darker in light, one lighter in dark. |
 | `color.chart.categorical.2` | `fill-chart-categorical-2` | `--ds-color-chart-categorical-2` |  | Categorical series 2, orange. The six hues are in a fixed order that keeps every neighbouring pair apart under deutan and protan vision, validated in both modes; assign in order, never by rank. |
@@ -25187,6 +25488,7 @@ Every design value is a token. The utility is the Tailwind class the lint allows
 | `dimension.layout.list` | `w-layout-list` | `--ds-dimension-layout-list` |  | The list column of a WorkPane. |
 | `dimension.layout.rail` | `w-layout-rail` | `--ds-dimension-layout-rail` |  | The rail beside a record page: the Shell's Aside and the Inspector in it. A vertical Attachment, and a Timeline event across at `itemWidth="rail"`, take the same width. |
 | `dimension.layout.measure` | `max-w-layout-measure` | `--ds-dimension-layout-measure` |  | The widest a run of prose grows: statements, notes, descriptions. |
+| `dimension.layout.footer` | `h-layout-footer` | `--ds-dimension-layout-footer` |  | A footer bar docked at the bottom of a work area, holding its one act and what it counts (58 of 58 recorded, Send to lead). Its utility sets the height; the bar casts elevation.shadow.overflow over what scrolls under it. |
 | `dimension.part.tooltip` |  | `--ds-dimension-part-tooltip` |  | The widest a Tooltip grows; a narrower window caps it at the room it leaves. |
 | `dimension.part.hoverCard` |  | `--ds-dimension-part-hover-card` |  | A HoverCard's width, within the room the window leaves. |
 | `dimension.part.popover` |  | `--ds-dimension-part-popover` |  | A Popover's width, within the room the window leaves. The caller's style sets another. |
@@ -25274,6 +25576,7 @@ Every design value is a token. The utility is the Tailwind class the lint allows
 | `font.heading.small` | `font-heading-small` | `--ds-font-heading-small` | deprecated font.heading.page | Deprecated: font.heading.page (24/30 semibold) for a page or record title, font.heading.section for a section's title. Kept for one version. |
 | `font.heading.xsmall` | `font-heading-xsmall` | `--ds-font-heading-xsmall` | deprecated font.heading.overlay | Deprecated: font.heading.overlay, the same style. Kept for one version. |
 | `font.heading.xxsmall` | `font-heading-xxsmall` | `--ds-font-heading-xxsmall` |  | Eyebrows, group headings and menu section labels. The component adds the uppercase. |
+| `font.figure` | `font-figure` | `--ds-font-figure` |  | A figure that stands for its row: the count in a table cell or a card that the reader reads first, 20/26 semibold. Not a title. The part adds tabular numerals, since the font shorthand resets them. |
 | `font.code` | `font-code` | `--ds-font-code` |  | Code blocks only. |
 | `layer.chrome` | `z-chrome` | `--ds-layer-chrome` |  | The Shell's banner and top nav, sticky over the page. A region's own sticky parts (a table's header, a pinned column, a sticky footer) stack inside Main, below it. |
 | `layer.blanket` | `z-blanket` | `--ds-layer-blanket` |  | The Shell's blanket under the side nav when it opens over the page on a narrow screen. A dialog's, sheet's or drawer's own blanket goes with its popup on layer.overlay, so it also covers an open side nav. |
@@ -25338,15 +25641,15 @@ Types: `BackgroundToken`, `BleedProps`, `BoxProps`, `FlexProps`, `GridProps`, `H
 
 ## Components
 
-Values: `Absent`, `Accordion`, `AccordionContent`, `AccordionItem`, `AccordionTrigger`, `Alert`, `AlertAction`, `AlertDescription`, `AlertDialog`, `AlertDialogAction`, `AlertDialogBody`, `AlertDialogCancel`, `AlertDialogContent`, `AlertDialogDescription`, `AlertDialogFooter`, `AlertDialogHeader`, `AlertDialogMedia`, `AlertDialogOverlay`, `AlertDialogPortal`, `AlertDialogTitle`, `AlertDialogTrigger`, `AlertIcon`, `AlertTitle`, `Attachment`, `AttachmentAction`, `AttachmentActions`, `AttachmentContent`, `AttachmentDescription`, `AttachmentGroup`, `AttachmentLink`, `AttachmentMedia`, `AttachmentTitle`, `AttachmentTrigger`, `Avatar`, `AvatarBadge`, `AvatarFallback`, `AvatarGroup`, `AvatarGroupCount`, `avatarHue`, `AvatarImage`, `avatarInitials`, `Badge`, `badgeVariants`, `Banner`, `Breadcrumb`, `BreadcrumbEllipsis`, `BreadcrumbItem`, `BreadcrumbLink`, `BreadcrumbList`, `BreadcrumbPage`, `BreadcrumbSeparator`, `Button`, `ButtonGroup`, `ButtonGroupSeparator`, `ButtonGroupText`, `buttonGroupVariants`, `buttonVariants`, `Calendar`, `CalendarDayButton`, `Card`, `CardAction`, `CardContent`, `CardDescription`, `CardFooter`, `CardHeader`, `CardTitle`, `Checkbox`, `CheckboxGroup`, `CheckboxGroupSelectAll`, `CodeBlock`, `Collapsible`, `CollapsibleContent`, `CollapsibleHeader`, `CollapsibleTrigger`, `Combobox`, `ComboboxChip`, `ComboboxChipRemove`, `ComboboxChips`, `ComboboxChipsInput`, `ComboboxClear`, `ComboboxCollection`, `ComboboxContent`, `ComboboxEmpty`, `ComboboxGroup`, `ComboboxInput`, `ComboboxItem`, `ComboboxLabel`, `ComboboxList`, `ComboboxSeparator`, `ComboboxStatus`, `ComboboxTrigger`, `ComboboxValue`, `Command`, `CommandCount`, `CommandDialog`, `CommandEmpty`, `CommandFooter`, `CommandGroup`, `CommandInput`, `CommandItem`, `CommandList`, `CommandLoading`, `CommandSeparator`, `CommandShortcut`, `ContextMenu`, `ContextMenuContent`, `ContextMenuTrigger`, `controlBase`, `controlHeight`, `CopyButton`, `Count`, `createToastManager`, `DateLabel`, `DatePicker`, `DateRangePicker`, `DateTime`, `DateTimeField`, `Dialog`, `DialogBody`, `DialogClose`, `DialogContent`, `DialogDescription`, `DialogFooter`, `DialogHeader`, `DialogOverlay`, `DialogPortal`, `DialogTitle`, `DialogTrigger`, `Diff`, `diffText`, `Dot`, `Drawer`, `DrawerBody`, `DrawerClose`, `DrawerContent`, `DrawerDescription`, `DrawerFooter`, `DrawerHeader`, `DrawerOverlay`, `DrawerPortal`, `DrawerSwipeHandle`, `DrawerTitle`, `DrawerTrigger`, `DropdownMenu`, `DropdownMenuCheckboxItem`, `DropdownMenuContent`, `DropdownMenuGroup`, `DropdownMenuItem`, `DropdownMenuLabel`, `DropdownMenuLinkItem`, `DropdownMenuPortal`, `DropdownMenuRadioGroup`, `DropdownMenuRadioItem`, `DropdownMenuSeparator`, `DropdownMenuShortcut`, `DropdownMenuSub`, `DropdownMenuSubContent`, `DropdownMenuSubTrigger`, `DropdownMenuTrigger`, `DropZone`, `Empty`, `EmptyContent`, `EmptyDescription`, `EmptyHeader`, `EmptyIllustration`, `EmptyMedia`, `EmptyTitle`, `ErrorSummary`, `Eyebrow`, `Fact`, `FactGroup`, `Field`, `FieldContent`, `FieldDescription`, `FieldError`, `FieldGroup`, `FieldLabel`, `FieldLegend`, `FieldSeparator`, `FieldSet`, `FieldTitle`, `FileTrigger`, `FilterChip`, `formatFileSize`, `formatShortcut`, `getModifierKey`, `HoverCard`, `HoverCardContent`, `HoverCardTrigger`, `Icon`, `IconButton`, `Id`, `IdList`, `Indicator`, `Input`, `InputGroup`, `InputGroupAddon`, `InputGroupButton`, `InputGroupInput`, `InputGroupText`, `InputGroupTextarea`, `Item`, `ItemGroup`, `Kbd`, `KbdGroup`, `KbdShortcut`, `KeyValue`, `KeyValueGroup`, `LinkButton`, `LinkIconButton`, `List`, `ListItem`, `MatchText`, `NumberField`, `Pagination`, `PaginationContent`, `PaginationEllipsis`, `PaginationItem`, `PaginationLink`, `PaginationNext`, `PaginationPrevious`, `Person`, `PhaseBar`, `PhaseBarItem`, `Popover`, `PopoverClose`, `PopoverContent`, `PopoverDescription`, `PopoverHeader`, `PopoverTitle`, `PopoverTrigger`, `Progress`, `ProgressIndicator`, `ProgressLabel`, `ProgressStacked`, `ProgressTrack`, `ProgressValue`, `Prose`, `RadioGroup`, `RadioGroupItem`, `RelativeTime`, `ResizableHandle`, `ResizablePanel`, `ResizablePanelGroup`, `ScrollArea`, `ScrollBar`, `Scroller`, `ScrollerArrow`, `ScrollerViewport`, `SearchField`, `Select`, `SelectContent`, `SelectGroup`, `SelectItem`, `SelectLabel`, `SelectScrollDownButton`, `SelectScrollUpButton`, `SelectSeparator`, `SelectTrigger`, `SelectValue`, `Separator`, `Sheet`, `SheetBody`, `SheetClose`, `SheetContent`, `SheetDescription`, `SheetFooter`, `SheetHeader`, `SheetOverlay`, `SheetPortal`, `SheetTitle`, `SheetTrigger`, `shortcutKeys`, `Skeleton`, `Spinner`, `Stat`, `StatGrid`, `StatList`, `StatRow`, `StatTile`, `Stepper`, `Switch`, `Table`, `Tabs`, `TabsContent`, `TabsList`, `tabsListVariants`, `TabsTrigger`, `Tally`, `Textarea`, `TextLink`, `TimeField`, `Timeline`, `TimelineGroup`, `TimelineItem`, `toast`, `Toast`, `ToastAction`, `ToastClose`, `ToastContent`, `ToastDescription`, `Toaster`, `ToastPortal`, `ToastProvider`, `ToastTitle`, `ToastViewport`, `Toggle`, `ToggleGroup`, `ToggleGroupItem`, `toggleVariants`, `Tooltip`, `TooltipContent`, `TooltipProvider`, `TooltipTrigger`, `Tray`, `Tree`, `Truncate`, `useComboboxAnchor`, `useFormatShortcut`, `useIsTruncated`, `useModifierKey`, `usePage`, `useSort`, `useToastManager`.
+Values: `Absent`, `Accordion`, `AccordionContent`, `AccordionItem`, `AccordionTrigger`, `Alert`, `AlertAction`, `AlertDescription`, `AlertDialog`, `AlertDialogAction`, `AlertDialogBody`, `AlertDialogCancel`, `AlertDialogContent`, `AlertDialogDescription`, `AlertDialogFooter`, `AlertDialogHeader`, `AlertDialogMedia`, `AlertDialogOverlay`, `AlertDialogPortal`, `AlertDialogTitle`, `AlertDialogTrigger`, `AlertIcon`, `AlertTitle`, `Attachment`, `AttachmentAction`, `AttachmentActions`, `AttachmentContent`, `AttachmentDescription`, `AttachmentGroup`, `AttachmentLink`, `AttachmentMedia`, `AttachmentTitle`, `AttachmentTrigger`, `Avatar`, `AvatarBadge`, `AvatarFallback`, `AvatarGroup`, `AvatarGroupCount`, `avatarHue`, `AvatarImage`, `avatarInitials`, `Badge`, `badgeVariants`, `Banner`, `Breadcrumb`, `BreadcrumbEllipsis`, `BreadcrumbItem`, `BreadcrumbLink`, `BreadcrumbList`, `BreadcrumbPage`, `BreadcrumbSeparator`, `Button`, `ButtonGroup`, `ButtonGroupSeparator`, `ButtonGroupText`, `buttonGroupVariants`, `buttonVariants`, `Calendar`, `CalendarDayButton`, `Card`, `CardAction`, `CardContent`, `CardDescription`, `CardFooter`, `CardHeader`, `CardTitle`, `Checkbox`, `CheckboxGroup`, `CheckboxGroupSelectAll`, `Climb`, `CodeBlock`, `Collapsible`, `CollapsibleContent`, `CollapsibleHeader`, `CollapsibleTrigger`, `Combobox`, `ComboboxChip`, `ComboboxChipRemove`, `ComboboxChips`, `ComboboxChipsInput`, `ComboboxClear`, `ComboboxCollection`, `ComboboxContent`, `ComboboxEmpty`, `ComboboxGroup`, `ComboboxInput`, `ComboboxItem`, `ComboboxLabel`, `ComboboxList`, `ComboboxSeparator`, `ComboboxStatus`, `ComboboxTrigger`, `ComboboxValue`, `Command`, `CommandCount`, `CommandDialog`, `CommandEmpty`, `CommandFooter`, `CommandGroup`, `CommandInput`, `CommandItem`, `CommandList`, `CommandLoading`, `CommandSeparator`, `CommandShortcut`, `ContextMenu`, `ContextMenuContent`, `ContextMenuTrigger`, `controlBase`, `controlHeight`, `CopyButton`, `Count`, `createToastManager`, `DateLabel`, `DatePicker`, `DateRangePicker`, `DateTime`, `DateTimeField`, `Dialog`, `DialogBody`, `DialogClose`, `DialogContent`, `DialogDescription`, `DialogFooter`, `DialogHeader`, `DialogOverlay`, `DialogPortal`, `DialogTitle`, `DialogTrigger`, `Diff`, `diffText`, `Dot`, `Drawer`, `DrawerBody`, `DrawerClose`, `DrawerContent`, `DrawerDescription`, `DrawerFooter`, `DrawerHeader`, `DrawerOverlay`, `DrawerPortal`, `DrawerSwipeHandle`, `DrawerTitle`, `DrawerTrigger`, `DropdownMenu`, `DropdownMenuCheckboxItem`, `DropdownMenuContent`, `DropdownMenuGroup`, `DropdownMenuItem`, `DropdownMenuLabel`, `DropdownMenuLinkItem`, `DropdownMenuPortal`, `DropdownMenuRadioGroup`, `DropdownMenuRadioItem`, `DropdownMenuSeparator`, `DropdownMenuShortcut`, `DropdownMenuSub`, `DropdownMenuSubContent`, `DropdownMenuSubTrigger`, `DropdownMenuTrigger`, `DropZone`, `Empty`, `EmptyContent`, `EmptyDescription`, `EmptyHeader`, `EmptyIllustration`, `EmptyMedia`, `EmptySeat`, `EmptyTitle`, `ErrorSummary`, `Eyebrow`, `Fact`, `FactGroup`, `Field`, `FieldContent`, `FieldDescription`, `FieldError`, `FieldGroup`, `FieldLabel`, `FieldLegend`, `FieldSeparator`, `FieldSet`, `FieldTitle`, `FileTrigger`, `FilterChip`, `formatFileSize`, `formatShortcut`, `getModifierKey`, `HoverCard`, `HoverCardContent`, `HoverCardTrigger`, `Icon`, `IconButton`, `Id`, `IdList`, `Indicator`, `Input`, `InputGroup`, `InputGroupAddon`, `InputGroupButton`, `InputGroupInput`, `InputGroupText`, `InputGroupTextarea`, `Item`, `ItemGroup`, `Kbd`, `KbdGroup`, `KbdShortcut`, `KeyValue`, `KeyValueGroup`, `LinkButton`, `LinkIconButton`, `List`, `ListItem`, `MatchText`, `Meter`, `NumberField`, `Pagination`, `PaginationContent`, `PaginationEllipsis`, `PaginationItem`, `PaginationLink`, `PaginationNext`, `PaginationPrevious`, `Person`, `PhaseBar`, `PhaseBarItem`, `Popover`, `PopoverClose`, `PopoverContent`, `PopoverDescription`, `PopoverHeader`, `PopoverTitle`, `PopoverTrigger`, `Progress`, `ProgressIndicator`, `ProgressLabel`, `ProgressStacked`, `ProgressTrack`, `ProgressValue`, `Prose`, `RadioGroup`, `RadioGroupItem`, `RelativeTime`, `ResizableHandle`, `ResizablePanel`, `ResizablePanelGroup`, `ScrollArea`, `ScrollBar`, `Scroller`, `ScrollerArrow`, `ScrollerViewport`, `SearchField`, `Select`, `SelectContent`, `SelectGroup`, `SelectItem`, `SelectLabel`, `SelectScrollDownButton`, `SelectScrollUpButton`, `SelectSeparator`, `SelectTrigger`, `SelectValue`, `Separator`, `Sheet`, `SheetBody`, `SheetClose`, `SheetContent`, `SheetDescription`, `SheetFooter`, `SheetHeader`, `SheetOverlay`, `SheetPortal`, `SheetTitle`, `SheetTrigger`, `shortcutKeys`, `Skeleton`, `Spinner`, `Stat`, `StatGrid`, `StatList`, `StatRow`, `StatTile`, `Stepper`, `Switch`, `Table`, `Tabs`, `TabsContent`, `TabsList`, `tabsListVariants`, `TabsTrigger`, `Tally`, `Textarea`, `TextLink`, `TimeField`, `Timeline`, `TimelineGroup`, `TimelineItem`, `toast`, `Toast`, `ToastAction`, `ToastClose`, `ToastContent`, `ToastDescription`, `Toaster`, `ToastPortal`, `ToastProvider`, `ToastTitle`, `ToastViewport`, `Toggle`, `ToggleGroup`, `ToggleGroupItem`, `toggleVariants`, `Tooltip`, `TooltipContent`, `TooltipProvider`, `TooltipTrigger`, `Tray`, `Tree`, `Truncate`, `useComboboxAnchor`, `useFormatShortcut`, `useIsTruncated`, `useModifierKey`, `usePage`, `useSort`, `useToastManager`.
 
-Types: `AbsentProps`, `AccordionContentProps`, `AccordionItemProps`, `AccordionProps`, `AccordionTriggerProps`, `AlertActionProps`, `AlertDescriptionProps`, `AlertDialogActionProps`, `AlertDialogBodyProps`, `AlertDialogCancelProps`, `AlertDialogContentProps`, `AlertDialogDescriptionProps`, `AlertDialogFooterProps`, `AlertDialogHeaderProps`, `AlertDialogMediaProps`, `AlertDialogOverlayProps`, `AlertDialogPortalProps`, `AlertDialogProps`, `AlertDialogTitleProps`, `AlertDialogTriggerProps`, `AlertDialogWidth`, `AlertIconProps`, `AlertProps`, `AlertTitleProps`, `AttachmentActionProps`, `AttachmentActionsProps`, `AttachmentContentProps`, `AttachmentDescriptionProps`, `AttachmentGroupProps`, `AttachmentLinkProps`, `AttachmentMediaProps`, `AttachmentProps`, `AttachmentSize`, `AttachmentState`, `AttachmentTitleProps`, `AttachmentTriggerProps`, `AvatarBadgeProps`, `AvatarFallbackProps`, `AvatarGroupCountProps`, `AvatarGroupProps`, `AvatarHue`, `AvatarImageProps`, `AvatarProps`, `AvatarSize`, `AvatarVariant`, `BadgeProps`, `BannerProps`, `BannerTone`, `BreadcrumbItemProps`, `BreadcrumbListProps`, `BreadcrumbProps`, `ButtonGroupProps`, `ButtonGroupSeparatorProps`, `ButtonGroupTextProps`, `ButtonProps`, `CalendarDayButtonProps`, `CalendarProps`, `CardActionProps`, `CardContentProps`, `CardDescriptionProps`, `CardFooterProps`, `CardHeaderProps`, `CardProps`, `CardSize`, `CardTitleProps`, `CheckboxGroupProps`, `CheckboxGroupSelectAllProps`, `CheckboxProps`, `CodeBlockProps`, `CollapsibleContentProps`, `CollapsibleHeaderProps`, `CollapsibleProps`, `CollapsibleTriggerProps`, `ComboboxChipProps`, `ComboboxChipRemoveProps`, `ComboboxChipsInputProps`, `ComboboxChipsProps`, `ComboboxClearProps`, `ComboboxCollectionProps`, `ComboboxContentProps`, `ComboboxEmptyProps`, `ComboboxGroupProps`, `ComboboxInputProps`, `ComboboxItemProps`, `ComboboxLabelProps`, `ComboboxListProps`, `ComboboxProps`, `ComboboxSeparatorProps`, `ComboboxStatusProps`, `ComboboxTriggerProps`, `ComboboxValueProps`, `CommandCountProps`, `CommandDialogProps`, `CommandEmptyProps`, `CommandFooterProps`, `CommandInputProps`, `CommandItemProps`, `CommandShortcutProps`, `ContextMenuContentProps`, `ContextMenuProps`, `ContextMenuTriggerProps`, `ControlSize`, `CopyButtonProps`, `CountProps`, `DateLabelKind`, `DateLabelProps`, `DateLabelState`, `DatePickerProps`, `DateRangePickerProps`, `DateRangePreset`, `DateRangeValue`, `DateTimeFieldProps`, `DateTimeFormat`, `DateTimeProps`, `DateTimeValue`, `DialogBodyProps`, `DialogCloseProps`, `DialogContentProps`, `DialogDescriptionProps`, `DialogFooterProps`, `DialogHeaderProps`, `DialogOverlayProps`, `DialogPortalProps`, `DialogProps`, `DialogTitleProps`, `DialogTriggerProps`, `DialogWidth`, `DiffAnnotation`, `DiffLayout`, `DiffLine`, `DiffProps`, `DiffResult`, `DiffRow`, `DiffSegment`, `DiffSelection`, `DotProps`, `DrawerBodyProps`, `DrawerCloseProps`, `DrawerContentProps`, `DrawerDescriptionProps`, `DrawerFooterProps`, `DrawerHeaderProps`, `DrawerOverlayProps`, `DrawerPortalProps`, `DrawerProps`, `DrawerSwipeHandleProps`, `DrawerTitleProps`, `DrawerTriggerProps`, `DrawerWidth`, `DropdownMenuCheckboxItemProps`, `DropdownMenuContentProps`, `DropdownMenuGroupProps`, `DropdownMenuItemProps`, `DropdownMenuItemVariant`, `DropdownMenuLabelProps`, `DropdownMenuLinkItemProps`, `DropdownMenuPortalProps`, `DropdownMenuProps`, `DropdownMenuRadioGroupProps`, `DropdownMenuRadioItemProps`, `DropdownMenuSeparatorProps`, `DropdownMenuShortcutProps`, `DropdownMenuSubContentProps`, `DropdownMenuSubProps`, `DropdownMenuSubTriggerProps`, `DropdownMenuTriggerProps`, `DropZoneProps`, `EmptyContentProps`, `EmptyDescriptionProps`, `EmptyFrame`, `EmptyHeaderProps`, `EmptyIllustrationKind`, `EmptyIllustrationProps`, `EmptyMediaProps`, `EmptyProps`, `EmptySize`, `EmptyTitleProps`, `ErrorSummaryIssue`, `ErrorSummaryProps`, `EyebrowProps`, `FactGroupProps`, `FactProps`, `FieldContentProps`, `FieldDescriptionProps`, `FieldErrorProps`, `FieldGroupProps`, `FieldLabelProps`, `FieldLegendProps`, `FieldProps`, `FieldSeparatorProps`, `FieldSetProps`, `FieldTitleProps`, `FileRejection`, `FileRejectionReason`, `FileTriggerProps`, `FilterChipProps`, `FormatFileSizeOptions`, `FormatShortcutOptions`, `HoverCardContentProps`, `HoverCardProps`, `HoverCardTriggerProps`, `IconButtonProps`, `IconColorToken`, `IconProps`, `IconSize`, `IdListProps`, `IdProps`, `IndicatorProps`, `InputGroupAddonProps`, `InputGroupButtonProps`, `InputGroupButtonSize`, `InputGroupIconButtonProps`, `InputGroupProps`, `InputGroupTextareaProps`, `InputGroupTextButtonProps`, `InputGroupTextProps`, `InputProps`, `ItemGroupProps`, `ItemIdWidth`, `ItemProps`, `ItemSize`, `KbdGroupProps`, `KbdProps`, `KbdShortcutProps`, `KeyValueGroupProps`, `KeyValueLabelWidth`, `KeyValueLayout`, `KeyValueProps`, `LinkButtonProps`, `LinkButtonVariant`, `LinkIconButtonProps`, `ListItemProps`, `ListProps`, `ListSpacing`, `MatchTextProps`, `ModifierKey`, `NumberFieldProps`, `PaginationContentProps`, `PaginationEllipsisProps`, `PaginationItemProps`, `PaginationLinkProps`, `PaginationNextProps`, `PaginationPreviousProps`, `PaginationProps`, `PersonProps`, `PhaseBarItemProps`, `PhaseBarProps`, `PopoverCloseProps`, `PopoverContentProps`, `PopoverDescriptionProps`, `PopoverHeaderProps`, `PopoverProps`, `PopoverTitleProps`, `PopoverTriggerProps`, `ProgressIndicatorProps`, `ProgressLabelProps`, `ProgressProps`, `ProgressSize`, `ProgressStackedProps`, `ProgressTrackProps`, `ProgressValueProps`, `ProseProps`, `RadioGroupItemProps`, `RadioGroupProps`, `RelativeTimeProps`, `ResizableHandleProps`, `ResizablePanelGroupProps`, `ResizablePanelProps`, `ScrollAreaProps`, `ScrollBarProps`, `ScrollerActivation`, `ScrollerArrowProps`, `ScrollerEdge`, `ScrollerOrientation`, `ScrollerProps`, `ScrollerSurface`, `ScrollerViewportProps`, `SearchFieldProps`, `SelectContentProps`, `SelectGroupProps`, `SelectItemProps`, `SelectLabelProps`, `SelectProps`, `SelectScrollDownButtonProps`, `SelectScrollUpButtonProps`, `SelectSeparatorProps`, `SelectTriggerProps`, `SelectTriggerSize`, `SelectValueProps`, `SeparatorProps`, `SheetBodyProps`, `SheetCloseProps`, `SheetContentProps`, `SheetDescriptionProps`, `SheetFooterProps`, `SheetHeaderProps`, `SheetOverlayProps`, `SheetPortalProps`, `SheetProps`, `SheetTitleProps`, `SheetTriggerProps`, `SheetWidth`, `ShortcutKey`, `SkeletonProps`, `SkeletonShape`, `SortDir`, `SpinnerProps`, `SpinnerSize`, `StackedSegment`, `StatGridProps`, `StatListProps`, `StatProps`, `StatRowProps`, `StatTileProps`, `StepperItemProps`, `StepperOrientation`, `StepperProps`, `StepState`, `SwitchProps`, `SwitchSize`, `TableProps`, `TabsContentProps`, `TabsListProps`, `TabsProps`, `TabsTriggerProps`, `TallyFill`, `TallyProps`, `TallySegment`, `TallySize`, `TallyTone`, `TdProps`, `TextareaProps`, `TextareaState`, `TextLinkProps`, `ThProps`, `TimeFieldHourCycle`, `TimeFieldProps`, `TimelineAlign`, `TimelineGroupProps`, `TimelineItemProps`, `TimelineItemWidth`, `TimelineOrientation`, `TimelineProps`, `TimelineSize`, `TimelineTimePosition`, `ToasterProps`, `ToastManager`, `ToastOptions`, `ToastPromiseOptions`, `ToastProviderProps`, `ToastType`, `ToastUpdateOptions`, `ToggleGroupItemProps`, `ToggleGroupProps`, `ToggleProps`, `ToggleSize`, `ToggleStyleProps`, `TooltipContentProps`, `TooltipProps`, `TooltipProviderProps`, `TooltipTriggerProps`, `TrayProps`, `TrayTone`, `TreeItemProps`, `TreeProps`, `TreeSize`, `TruncateLines`, `TruncateProps`, `UseIsTruncatedOptions`.
+Types: `AbsentProps`, `AccordionContentProps`, `AccordionItemProps`, `AccordionProps`, `AccordionTriggerProps`, `AlertActionProps`, `AlertDescriptionProps`, `AlertDialogActionProps`, `AlertDialogBodyProps`, `AlertDialogCancelProps`, `AlertDialogContentProps`, `AlertDialogDescriptionProps`, `AlertDialogFooterProps`, `AlertDialogHeaderProps`, `AlertDialogMediaProps`, `AlertDialogOverlayProps`, `AlertDialogPortalProps`, `AlertDialogProps`, `AlertDialogTitleProps`, `AlertDialogTriggerProps`, `AlertDialogWidth`, `AlertIconProps`, `AlertProps`, `AlertTitleProps`, `AttachmentActionProps`, `AttachmentActionsProps`, `AttachmentContentProps`, `AttachmentDescriptionProps`, `AttachmentGroupProps`, `AttachmentLinkProps`, `AttachmentMediaProps`, `AttachmentProps`, `AttachmentSize`, `AttachmentState`, `AttachmentTitleProps`, `AttachmentTriggerProps`, `AvatarBadgeProps`, `AvatarFallbackProps`, `AvatarGroupCountProps`, `AvatarGroupProps`, `AvatarHue`, `AvatarImageProps`, `AvatarProps`, `AvatarSize`, `AvatarVariant`, `BadgeProps`, `BannerProps`, `BannerTone`, `BreadcrumbItemProps`, `BreadcrumbListProps`, `BreadcrumbProps`, `ButtonGroupProps`, `ButtonGroupSeparatorProps`, `ButtonGroupTextProps`, `ButtonProps`, `CalendarDayButtonProps`, `CalendarProps`, `CardActionProps`, `CardContentProps`, `CardDescriptionProps`, `CardFooterProps`, `CardHeaderProps`, `CardProps`, `CardSize`, `CardTitleProps`, `CheckboxGroupProps`, `CheckboxGroupSelectAllProps`, `CheckboxProps`, `ClimbProps`, `ClimbRung`, `CodeBlockProps`, `CollapsibleContentProps`, `CollapsibleHeaderProps`, `CollapsibleProps`, `CollapsibleTriggerProps`, `ComboboxChipProps`, `ComboboxChipRemoveProps`, `ComboboxChipsInputProps`, `ComboboxChipsProps`, `ComboboxClearProps`, `ComboboxCollectionProps`, `ComboboxContentProps`, `ComboboxEmptyProps`, `ComboboxGroupProps`, `ComboboxInputProps`, `ComboboxItemProps`, `ComboboxLabelProps`, `ComboboxListProps`, `ComboboxProps`, `ComboboxSeparatorProps`, `ComboboxStatusProps`, `ComboboxTriggerProps`, `ComboboxValueProps`, `CommandCountProps`, `CommandDialogProps`, `CommandEmptyProps`, `CommandFooterProps`, `CommandInputProps`, `CommandItemProps`, `CommandShortcutProps`, `ContextMenuContentProps`, `ContextMenuProps`, `ContextMenuTriggerProps`, `ControlSize`, `CopyButtonProps`, `CountProps`, `DateLabelKind`, `DateLabelProps`, `DateLabelState`, `DatePickerProps`, `DateRangePickerProps`, `DateRangePreset`, `DateRangeValue`, `DateTimeFieldProps`, `DateTimeFormat`, `DateTimeProps`, `DateTimeValue`, `DialogBodyProps`, `DialogCloseProps`, `DialogContentProps`, `DialogDescriptionProps`, `DialogFooterProps`, `DialogHeaderProps`, `DialogOverlayProps`, `DialogPortalProps`, `DialogProps`, `DialogTitleProps`, `DialogTriggerProps`, `DialogWidth`, `DiffAnnotation`, `DiffLayout`, `DiffLine`, `DiffProps`, `DiffResult`, `DiffRow`, `DiffSegment`, `DiffSelection`, `DotProps`, `DrawerBodyProps`, `DrawerCloseProps`, `DrawerContentProps`, `DrawerDescriptionProps`, `DrawerFooterProps`, `DrawerHeaderProps`, `DrawerOverlayProps`, `DrawerPortalProps`, `DrawerProps`, `DrawerSwipeHandleProps`, `DrawerTitleProps`, `DrawerTriggerProps`, `DrawerWidth`, `DropdownMenuCheckboxItemProps`, `DropdownMenuContentProps`, `DropdownMenuGroupProps`, `DropdownMenuItemProps`, `DropdownMenuItemVariant`, `DropdownMenuLabelProps`, `DropdownMenuLinkItemProps`, `DropdownMenuPortalProps`, `DropdownMenuProps`, `DropdownMenuRadioGroupProps`, `DropdownMenuRadioItemProps`, `DropdownMenuSeparatorProps`, `DropdownMenuShortcutProps`, `DropdownMenuSubContentProps`, `DropdownMenuSubProps`, `DropdownMenuSubTriggerProps`, `DropdownMenuTriggerProps`, `DropZoneProps`, `EmptyContentProps`, `EmptyDescriptionProps`, `EmptyFrame`, `EmptyHeaderProps`, `EmptyIllustrationKind`, `EmptyIllustrationProps`, `EmptyMediaProps`, `EmptyProps`, `EmptySeatProps`, `EmptySize`, `EmptyTitleProps`, `ErrorSummaryIssue`, `ErrorSummaryProps`, `EyebrowProps`, `FactGroupProps`, `FactProps`, `FieldContentProps`, `FieldDescriptionProps`, `FieldErrorProps`, `FieldGroupProps`, `FieldLabelProps`, `FieldLegendProps`, `FieldProps`, `FieldSeparatorProps`, `FieldSetProps`, `FieldTitleProps`, `FileRejection`, `FileRejectionReason`, `FileTriggerProps`, `FilterChipProps`, `FormatFileSizeOptions`, `FormatShortcutOptions`, `HoverCardContentProps`, `HoverCardProps`, `HoverCardTriggerProps`, `IconButtonProps`, `IconColorToken`, `IconProps`, `IconSize`, `IdListProps`, `IdProps`, `IndicatorProps`, `InputGroupAddonProps`, `InputGroupButtonProps`, `InputGroupButtonSize`, `InputGroupIconButtonProps`, `InputGroupProps`, `InputGroupTextareaProps`, `InputGroupTextButtonProps`, `InputGroupTextProps`, `InputProps`, `ItemGroupProps`, `ItemIdWidth`, `ItemProps`, `ItemSize`, `KbdGroupProps`, `KbdProps`, `KbdShortcutProps`, `KeyValueGroupProps`, `KeyValueLabelWidth`, `KeyValueLayout`, `KeyValueProps`, `LinkButtonProps`, `LinkButtonVariant`, `LinkIconButtonProps`, `ListItemProps`, `ListProps`, `ListSpacing`, `MatchTextProps`, `MeterProps`, `MeterSize`, `ModifierKey`, `NumberFieldProps`, `PaginationContentProps`, `PaginationEllipsisProps`, `PaginationItemProps`, `PaginationLinkProps`, `PaginationNextProps`, `PaginationPreviousProps`, `PaginationProps`, `PersonProps`, `PhaseBarItemProps`, `PhaseBarProps`, `PopoverCloseProps`, `PopoverContentProps`, `PopoverDescriptionProps`, `PopoverHeaderProps`, `PopoverProps`, `PopoverTitleProps`, `PopoverTriggerProps`, `ProgressIndicatorProps`, `ProgressLabelProps`, `ProgressProps`, `ProgressSize`, `ProgressStackedProps`, `ProgressTrackProps`, `ProgressValueProps`, `ProseProps`, `RadioGroupItemProps`, `RadioGroupProps`, `RelativeTimeProps`, `ResizableHandleProps`, `ResizablePanelGroupProps`, `ResizablePanelProps`, `ScrollAreaProps`, `ScrollBarProps`, `ScrollerActivation`, `ScrollerArrowProps`, `ScrollerEdge`, `ScrollerOrientation`, `ScrollerProps`, `ScrollerSurface`, `ScrollerViewportProps`, `SearchFieldProps`, `SelectContentProps`, `SelectGroupProps`, `SelectItemProps`, `SelectLabelProps`, `SelectProps`, `SelectScrollDownButtonProps`, `SelectScrollUpButtonProps`, `SelectSeparatorProps`, `SelectTriggerProps`, `SelectTriggerSize`, `SelectValueProps`, `SeparatorProps`, `SheetBodyProps`, `SheetCloseProps`, `SheetContentProps`, `SheetDescriptionProps`, `SheetFooterProps`, `SheetHeaderProps`, `SheetOverlayProps`, `SheetPortalProps`, `SheetProps`, `SheetTitleProps`, `SheetTriggerProps`, `SheetWidth`, `ShortcutKey`, `SkeletonProps`, `SkeletonShape`, `SortDir`, `SpinnerProps`, `SpinnerSize`, `StackedSegment`, `StatGridProps`, `StatListProps`, `StatProps`, `StatRowProps`, `StatTileProps`, `StepperItemProps`, `StepperOrientation`, `StepperProps`, `StepState`, `SwitchProps`, `SwitchSize`, `TableProps`, `TabsContentProps`, `TabsListProps`, `TabsProps`, `TabsTriggerProps`, `TallyFill`, `TallyProps`, `TallySegment`, `TallySize`, `TallyTone`, `TdProps`, `TextareaProps`, `TextareaState`, `TextLinkProps`, `ThProps`, `TimeFieldHourCycle`, `TimeFieldProps`, `TimelineAlign`, `TimelineGroupProps`, `TimelineItemProps`, `TimelineItemWidth`, `TimelineOrientation`, `TimelineProps`, `TimelineSize`, `TimelineTimePosition`, `ToasterProps`, `ToastManager`, `ToastOptions`, `ToastPromiseOptions`, `ToastProviderProps`, `ToastType`, `ToastUpdateOptions`, `ToggleGroupItemProps`, `ToggleGroupProps`, `ToggleProps`, `ToggleSize`, `ToggleStyleProps`, `TooltipContentProps`, `TooltipProps`, `TooltipProviderProps`, `TooltipTriggerProps`, `TrayProps`, `TrayTone`, `TreeItemProps`, `TreeProps`, `TreeSize`, `TruncateLines`, `TruncateProps`, `UseIsTruncatedOptions`.
 
 ## Layout
 
-Values: `AsideLayout`, `PageHeader`, `PageHeaderActions`, `PageHeaderDescription`, `PageHeaderHeading`, `PageHeaderLead`, `PageHeaderTitle`, `PageSkeleton`, `Section`, `Shell`, `SHELL_STORAGE_KEY`, `shellScript`, `shellScriptFor`, `StickyRail`, `useSideNav`.
+Values: `AsideLayout`, `PageHeader`, `PageHeaderActions`, `PageHeaderDescription`, `PageHeaderHeading`, `PageHeaderLead`, `PageHeaderSlot`, `PageHeaderStanding`, `PageHeaderTitle`, `PageSkeleton`, `Section`, `Shell`, `SHELL_STORAGE_KEY`, `shellScript`, `shellScriptFor`, `StickyRail`, `useSideNav`.
 
-Types: `AppLogoProps`, `AppSwitcherProps`, `AsideLayoutProps`, `IconComponent`, `PageHeaderActionsProps`, `PageHeaderDescriptionProps`, `PageHeaderHeadingProps`, `PageHeaderLeadProps`, `PageHeaderProps`, `PageHeaderTitleProps`, `PageSkeletonProps`, `PageSkeletonVariant`, `ProfileProps`, `SectionActionsProps`, `SectionDescriptionProps`, `SectionHeaderProps`, `SectionHeadingProps`, `SectionProps`, `SectionTitleProps`, `ShellAsideProps`, `ShellBannerProps`, `ShellMainProps`, `ShellMarkProps`, `ShellPanelActionsProps`, `ShellPanelBackProps`, `ShellPanelBodyProps`, `ShellPanelCloseProps`, `ShellPanelFocusTarget`, `ShellPanelHeaderProps`, `ShellPanelProps`, `ShellPanelTitleProps`, `ShellProps`, `ShellSplitterProps`, `ShellStored`, `ShellTopNavEndProps`, `ShellTopNavItemProps`, `ShellTopNavMiddleProps`, `ShellTopNavProps`, `ShellTopNavSearchProps`, `ShellTopNavStartProps`, `SideNavBodyProps`, `SideNavChange`, `SideNavExpandableProps`, `SideNavFooterProps`, `SideNavHeaderProps`, `SideNavIcon`, `SideNavItemProps`, `SideNavProps`, `SideNavSectionProps`, `SideNavSlotProps`, `SideNavToggleButtonProps`, `SideNavTrigger`, `StickyRailProps`.
+Types: `AppLogoProps`, `AppSwitcherProps`, `AsideLayoutProps`, `IconComponent`, `PageHeaderActionsProps`, `PageHeaderDescriptionProps`, `PageHeaderHeadingProps`, `PageHeaderLeadProps`, `PageHeaderProps`, `PageHeaderSlotAdvance`, `PageHeaderSlotMore`, `PageHeaderSlotProps`, `PageHeaderSlotSign`, `PageHeaderSlotWaiting`, `PageHeaderStandingBeat`, `PageHeaderStandingProps`, `PageHeaderTitleProps`, `PageSkeletonProps`, `PageSkeletonVariant`, `ProfileProps`, `SectionActionsProps`, `SectionDescriptionProps`, `SectionHeaderProps`, `SectionHeadingProps`, `SectionProps`, `SectionTitleProps`, `ShellAsideProps`, `ShellBannerProps`, `ShellMainProps`, `ShellMarkProps`, `ShellPanelActionsProps`, `ShellPanelBackProps`, `ShellPanelBodyProps`, `ShellPanelCloseProps`, `ShellPanelFocusTarget`, `ShellPanelHeaderProps`, `ShellPanelProps`, `ShellPanelTitleProps`, `ShellProps`, `ShellSplitterProps`, `ShellStored`, `ShellTopNavEndProps`, `ShellTopNavItemProps`, `ShellTopNavMiddleProps`, `ShellTopNavProps`, `ShellTopNavSearchProps`, `ShellTopNavStartProps`, `SideNavBodyProps`, `SideNavChange`, `SideNavExpandableProps`, `SideNavFooterProps`, `SideNavHeaderProps`, `SideNavIcon`, `SideNavItemProps`, `SideNavProps`, `SideNavSectionProps`, `SideNavSlotProps`, `SideNavToggleButtonProps`, `SideNavTrigger`, `StickyRailProps`.
 
 ## Patterns
 

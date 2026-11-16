@@ -207,14 +207,15 @@
 }
 
 /* ACTIONS: a bounded Button, IconButton, LinkButton or LinkIconButton keeps its bounds. Primary,
-   secondary and danger draw their edge with a fill or a raised shadow, which forced colours
+   secondary, danger and a sign draw their edge with a fill or a raised shadow, which forced colours
    remove, so they take a ButtonText outline inside their box; a disabled one is GrayText. Subtle
    and link have no edge to keep. The focus outline still wins while the keyboard is on one. */
 @media (forced-colors: active) {
   :is(
     [data-button-variant="primary"],
     [data-button-variant="secondary"],
-    [data-button-variant="danger"]
+    [data-button-variant="danger"],
+    [data-button-variant="sign"]
   ):not(:focus-visible) {
     outline: var(--ds-border-width) solid ButtonText;
     outline-offset: calc(-1 * var(--ds-border-width));
@@ -222,7 +223,8 @@
   :is(
       [data-button-variant="primary"],
       [data-button-variant="secondary"],
-      [data-button-variant="danger"]
+      [data-button-variant="danger"],
+      [data-button-variant="sign"]
     )[data-disabled]:not([data-loading]):not(:focus-visible) {
     outline-color: GrayText;
   }

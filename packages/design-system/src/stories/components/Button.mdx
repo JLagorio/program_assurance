@@ -53,15 +53,16 @@ One primary per region: a page header, a dialog footer, a toolbar, a card. It is
 | `danger`    | Destructive actions, with confirmation when appropriate. |
 | `link`      | A text styled action, such as Show more.                 |
 
-| Size     | Height | Typical placement                       |
-| -------- | ------ | --------------------------------------- |
-| `medium` | 32px   | Default for forms, headers and footers. |
-| `small`  | 28px   | Toolbars and rows.                      |
-| `xsmall` | 24px   | Dense inline actions.                   |
+| Size     | Height | Typical placement                                                                                                         |
+| -------- | ------ | ------------------------------------------------------------------------------------------------------------------------- |
+| `large`  | 36px   | A record's action slot: its act, a signature and Remind ([PageHeader](?path=/docs/layout-pageheader--docs), Action slot). |
+| `medium` | 32px   | Default for forms, headers and footers.                                                                                   |
+| `small`  | 28px   | Toolbars and rows.                                                                                                        |
+| `xsmall` | 24px   | Dense inline actions.                                                                                                     |
 
 The `link` variant has no fixed height and ignores `size`: it is as tall as its text, and it wraps as the text around it does. `iconBefore` and `iconAfter` take an icon element; Button sizes it to 14px and keeps a 6px gap. `isSelected` applies the selected palette and `aria-pressed`.
 
-The family shares one height axis: `xsmall` 24px, `small` 28px and `medium` 32px on Button, IconButton, LinkButton and LinkIconButton, and the icon-only two add `xxsmall`, the 20px row control. Button defaults to `medium` and IconButton to `small`, so an IconButton beside a default Button takes `size="medium"`. Toggle and ToggleGroup take the same words: `small` 28px, `medium` 32px, and `large`, a 36px step Button does not have. ButtonGroupText takes the `size` of the controls beside it.
+The family shares one height axis: `xsmall` 24px, `small` 28px, `medium` 32px and `large` 36px on Button, IconButton, LinkButton and LinkIconButton, and the icon-only two add `xxsmall`, the 20px row control. Button defaults to `medium` and IconButton to `small`, so an IconButton beside a default Button takes `size="medium"`, and beside a large one `size="large"`. Toggle and ToggleGroup take the same words: `small` 28px, `medium` 32px and `large` 36px. ButtonGroupText takes the `size` of the controls beside it.
 
 ## Long labels
 
@@ -72,6 +73,18 @@ A label is short enough for one line in the slot it sits in; a longer one is a s
 A `link` Button wraps like the text around it, as a [TextLink](?path=/docs/components-textlink--docs) does: it sets no `white-space` of its own. In a value narrower than its words, a next step in a rail's Details, its label goes on to the next line whole, its lines from the start, and its box is as tall as its lines: nothing is cut, it keeps its name, its touch area, its focus ring and, loading, its box. Where the text around it stays on one line, a table cell that cuts its value, it stays on one line too; a record's name there takes `truncate`, so it ends in an ellipsis and the table shows it whole on hover, on keyboard focus and after a long press ([Table](?path=/docs/components-table--docs), Wrapping and cut values). Its words still name one action: a sentence belongs in the region's text.
 
 <Canvas of={Stories.LinkWraps} />
+
+## Signing
+
+A signature is not an act, and reads as one. `intent="sign"` draws the button in ink (`color.background.neutral.bold`, where an act is the brand's) at 36px, a signature mark before the label and the signer's name after a rule: `signer` is the reader, by name. The label says what the signature records, "Approve security plan", and the name reads with it, "Approve security plan as R. Calloway" (the words around the name are the locale's `buttonSigner`). In a slot narrower than the button the label gives way with an ellipsis and the name stays whole. `variant`, `size`, `isSelected`, `truncate` and the icons do not apply to it.
+
+Command+Enter, Control+Enter off Apple platforms, presses it from anywhere on the page, and `aria-keyshortcuts` says so. A bare Enter never signs from the page: on the focused sign, Enter and Space press it as they press every button, and nowhere else. The keys do nothing with another modifier held, on a repeat, while text is composed, once another handler has taken them, from a field that takes text (a composer's own Command+Enter wins; a checkbox, a radio or a switch takes none) and over a dialog that does not hold the button. One sign a page: where the page's sign opens a confirmation with a sign of its own, the confirmation's answers while it is open.
+
+<Canvas of={Stories.Sign} />
+
+<Canvas of={Stories.SignOverADialog} />
+
+A signature the reader owes on a record is its header's action slot in the `sign` form ([PageHeader](?path=/docs/layout-pageheader--docs), Action slot). The sign is experimental: its API may change before it is stable.
 
 ## Loading and forms
 

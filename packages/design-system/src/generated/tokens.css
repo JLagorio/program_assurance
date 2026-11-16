@@ -42,6 +42,7 @@
   --ds-color-background-selected-bold: var(--ds-color-blue-700);
   --ds-color-background-selected-bold-hovered: var(--ds-color-blue-800);
   --ds-color-background-selected-bold-pressed: var(--ds-color-blue-900);
+  --ds-color-background-current: var(--ds-color-background-neutral);
   --ds-color-background-danger: var(--ds-color-red-100);
   --ds-color-background-danger-hovered: var(--ds-color-red-200);
   --ds-color-background-danger-pressed: var(--ds-color-red-250);
@@ -119,6 +120,7 @@
   --ds-color-text-selected--more: var(--ds-color-blue-1100);
   --ds-color-text-selected: var(--ds-contrast-more, var(--ds-color-text-selected--standard)) var(--ds-contrast-standard, var(--ds-color-text-selected--more));
   --ds-color-text-brand: var(--ds-color-blue-725);
+  --ds-color-text-link: var(--ds-color-text);
   --ds-color-text-danger: var(--ds-color-red-800);
   --ds-color-text-danger-bolder: var(--ds-color-red-900);
   --ds-color-text-warning: var(--ds-color-orange-800);
@@ -152,6 +154,7 @@
   --ds-color-icon-warning-inverse: var(--ds-color-neutral-1000);
   --ds-color-icon-success: var(--ds-color-green-600);
   --ds-color-icon-information: var(--ds-color-blue-600);
+  --ds-color-icon-changed: var(--ds-color-background-accent-teal-bolder);
   --ds-color-border--standard: var(--ds-color-neutral-300a);
   --ds-color-border--more: var(--ds-color-neutral-450a);
   --ds-color-border: var(--ds-contrast-more, var(--ds-color-border--standard)) var(--ds-contrast-standard, var(--ds-color-border--more));
@@ -165,6 +168,7 @@
   --ds-color-border-input: var(--ds-contrast-more, var(--ds-color-border-input--standard)) var(--ds-contrast-standard, var(--ds-color-border-input--more));
   --ds-color-border-inverse: var(--ds-color-neutral-0);
   --ds-color-border-selected: var(--ds-color-blue-700);
+  --ds-color-border-current: var(--ds-color-background-neutral-bold);
   --ds-color-border-brand: var(--ds-color-blue-700);
   --ds-color-border-danger: var(--ds-color-red-600);
   --ds-color-border-danger-subtle: var(--ds-color-red-300);
@@ -191,6 +195,7 @@
   --ds-color-chart-danger: var(--ds-color-red-600);
   --ds-color-chart-danger-hovered: var(--ds-color-red-700);
   --ds-color-chart-track: var(--ds-color-neutral-200);
+  --ds-color-chart-changed: var(--ds-color-chart-categorical-3);
   --ds-color-chart-categorical-1: var(--ds-color-blue-600);
   --ds-color-chart-categorical-1-hovered: var(--ds-color-blue-700);
   --ds-color-chart-categorical-2: var(--ds-color-orange-600);
@@ -387,6 +392,7 @@
   --ds-dimension-layout-list: 340px;
   --ds-dimension-layout-rail: 272px;
   --ds-dimension-layout-measure: 720px;
+  --ds-dimension-layout-footer: 60px;
   --ds-dimension-part-tooltip: 320px;
   --ds-dimension-part-hover-card: 256px;
   --ds-dimension-part-popover: 288px;
@@ -500,6 +506,9 @@
   --ds-font-heading-xxsmall: var(--ds-font-weight-medium) 0.6875rem/0.875rem var(--ds-font-family-heading);
   --ds-font-heading-xxsmall-letter-spacing: var(--ds-font-letter-spacing-500);
   --ds-font-heading-xxsmall-weight: var(--ds-font-weight-medium);
+  --ds-font-figure: var(--ds-font-weight-semibold) 1.25rem/1.625rem var(--ds-font-family-body);
+  --ds-font-figure-letter-spacing: var(--ds-font-letter-spacing-300);
+  --ds-font-figure-weight: var(--ds-font-weight-semibold);
   --ds-font-code: var(--ds-font-weight-regular) 0.75rem/1.125rem var(--ds-font-family-code);
   --ds-font-code-letter-spacing: var(--ds-font-letter-spacing-0);
   --ds-font-code-weight: var(--ds-font-weight-regular);
@@ -596,6 +605,7 @@
   --ds-color-background-selected-bold: var(--ds-color-blue-700);
   --ds-color-background-selected-bold-hovered: var(--ds-color-blue-800);
   --ds-color-background-selected-bold-pressed: var(--ds-color-blue-900);
+  --ds-color-background-current: var(--ds-color-background-neutral);
   --ds-color-background-danger: var(--ds-color-red-100);
   --ds-color-background-danger-hovered: var(--ds-color-red-200);
   --ds-color-background-danger-pressed: var(--ds-color-red-250);
@@ -673,6 +683,7 @@
   --ds-color-text-selected--more: var(--ds-color-blue-1100);
   --ds-color-text-selected: var(--ds-contrast-more, var(--ds-color-text-selected--standard)) var(--ds-contrast-standard, var(--ds-color-text-selected--more));
   --ds-color-text-brand: var(--ds-color-blue-725);
+  --ds-color-text-link: var(--ds-color-text);
   --ds-color-text-danger: var(--ds-color-red-800);
   --ds-color-text-danger-bolder: var(--ds-color-red-900);
   --ds-color-text-warning: var(--ds-color-orange-800);
@@ -706,6 +717,7 @@
   --ds-color-icon-warning-inverse: var(--ds-color-neutral-1000);
   --ds-color-icon-success: var(--ds-color-green-600);
   --ds-color-icon-information: var(--ds-color-blue-600);
+  --ds-color-icon-changed: var(--ds-color-background-accent-teal-bolder);
   --ds-color-border--standard: var(--ds-color-neutral-300a);
   --ds-color-border--more: var(--ds-color-neutral-450a);
   --ds-color-border: var(--ds-contrast-more, var(--ds-color-border--standard)) var(--ds-contrast-standard, var(--ds-color-border--more));
@@ -719,6 +731,7 @@
   --ds-color-border-input: var(--ds-contrast-more, var(--ds-color-border-input--standard)) var(--ds-contrast-standard, var(--ds-color-border-input--more));
   --ds-color-border-inverse: var(--ds-color-neutral-0);
   --ds-color-border-selected: var(--ds-color-blue-700);
+  --ds-color-border-current: var(--ds-color-background-neutral-bold);
   --ds-color-border-brand: var(--ds-color-blue-700);
   --ds-color-border-danger: var(--ds-color-red-600);
   --ds-color-border-danger-subtle: var(--ds-color-red-300);
@@ -745,6 +758,7 @@
   --ds-color-chart-danger: var(--ds-color-red-600);
   --ds-color-chart-danger-hovered: var(--ds-color-red-700);
   --ds-color-chart-track: var(--ds-color-neutral-200);
+  --ds-color-chart-changed: var(--ds-color-chart-categorical-3);
   --ds-color-chart-categorical-1: var(--ds-color-blue-600);
   --ds-color-chart-categorical-1-hovered: var(--ds-color-blue-700);
   --ds-color-chart-categorical-2: var(--ds-color-orange-600);
@@ -828,6 +842,7 @@
   --ds-color-background-selected-bold: var(--ds-color-blue-400);
   --ds-color-background-selected-bold-hovered: var(--ds-color-blue-300);
   --ds-color-background-selected-bold-pressed: var(--ds-color-blue-200);
+  --ds-color-background-current: var(--ds-color-background-neutral);
   --ds-color-background-danger: var(--ds-color-red-1000);
   --ds-color-background-danger-hovered: var(--ds-color-red-900);
   --ds-color-background-danger-pressed: var(--ds-color-red-850);
@@ -905,6 +920,7 @@
   --ds-color-text-selected--more: var(--ds-color-blue-50);
   --ds-color-text-selected: var(--ds-contrast-more, var(--ds-color-text-selected--standard)) var(--ds-contrast-standard, var(--ds-color-text-selected--more));
   --ds-color-text-brand: var(--ds-color-blue-400);
+  --ds-color-text-link: var(--ds-color-text);
   --ds-color-text-danger: var(--ds-color-red-300);
   --ds-color-text-danger-bolder: var(--ds-color-red-200);
   --ds-color-text-warning: var(--ds-color-orange-300);
@@ -938,6 +954,7 @@
   --ds-color-icon-warning-inverse: var(--ds-color-dark-neutral-100);
   --ds-color-icon-success: var(--ds-color-green-500);
   --ds-color-icon-information: var(--ds-color-blue-500);
+  --ds-color-icon-changed: var(--ds-color-background-accent-teal-bolder);
   --ds-color-border--standard: var(--ds-color-dark-neutral-300a);
   --ds-color-border--more: var(--ds-color-dark-neutral-450a);
   --ds-color-border: var(--ds-contrast-more, var(--ds-color-border--standard)) var(--ds-contrast-standard, var(--ds-color-border--more));
@@ -951,6 +968,7 @@
   --ds-color-border-input: var(--ds-contrast-more, var(--ds-color-border-input--standard)) var(--ds-contrast-standard, var(--ds-color-border-input--more));
   --ds-color-border-inverse: var(--ds-color-dark-neutral-0);
   --ds-color-border-selected: var(--ds-color-blue-400);
+  --ds-color-border-current: var(--ds-color-background-neutral-bold);
   --ds-color-border-brand: var(--ds-color-blue-400);
   --ds-color-border-danger: var(--ds-color-red-500);
   --ds-color-border-danger-subtle: var(--ds-color-red-800);
@@ -977,6 +995,7 @@
   --ds-color-chart-danger: var(--ds-color-red-600);
   --ds-color-chart-danger-hovered: var(--ds-color-red-500);
   --ds-color-chart-track: var(--ds-color-dark-neutral-300);
+  --ds-color-chart-changed: var(--ds-color-chart-categorical-3);
   --ds-color-chart-categorical-1: var(--ds-color-blue-600);
   --ds-color-chart-categorical-1-hovered: var(--ds-color-blue-500);
   --ds-color-chart-categorical-2: var(--ds-color-orange-600);
@@ -1061,6 +1080,7 @@
     --ds-color-background-selected-bold: var(--ds-color-blue-400);
     --ds-color-background-selected-bold-hovered: var(--ds-color-blue-300);
     --ds-color-background-selected-bold-pressed: var(--ds-color-blue-200);
+    --ds-color-background-current: var(--ds-color-background-neutral);
     --ds-color-background-danger: var(--ds-color-red-1000);
     --ds-color-background-danger-hovered: var(--ds-color-red-900);
     --ds-color-background-danger-pressed: var(--ds-color-red-850);
@@ -1138,6 +1158,7 @@
     --ds-color-text-selected--more: var(--ds-color-blue-50);
     --ds-color-text-selected: var(--ds-contrast-more, var(--ds-color-text-selected--standard)) var(--ds-contrast-standard, var(--ds-color-text-selected--more));
     --ds-color-text-brand: var(--ds-color-blue-400);
+    --ds-color-text-link: var(--ds-color-text);
     --ds-color-text-danger: var(--ds-color-red-300);
     --ds-color-text-danger-bolder: var(--ds-color-red-200);
     --ds-color-text-warning: var(--ds-color-orange-300);
@@ -1171,6 +1192,7 @@
     --ds-color-icon-warning-inverse: var(--ds-color-dark-neutral-100);
     --ds-color-icon-success: var(--ds-color-green-500);
     --ds-color-icon-information: var(--ds-color-blue-500);
+    --ds-color-icon-changed: var(--ds-color-background-accent-teal-bolder);
     --ds-color-border--standard: var(--ds-color-dark-neutral-300a);
     --ds-color-border--more: var(--ds-color-dark-neutral-450a);
     --ds-color-border: var(--ds-contrast-more, var(--ds-color-border--standard)) var(--ds-contrast-standard, var(--ds-color-border--more));
@@ -1184,6 +1206,7 @@
     --ds-color-border-input: var(--ds-contrast-more, var(--ds-color-border-input--standard)) var(--ds-contrast-standard, var(--ds-color-border-input--more));
     --ds-color-border-inverse: var(--ds-color-dark-neutral-0);
     --ds-color-border-selected: var(--ds-color-blue-400);
+    --ds-color-border-current: var(--ds-color-background-neutral-bold);
     --ds-color-border-brand: var(--ds-color-blue-400);
     --ds-color-border-danger: var(--ds-color-red-500);
     --ds-color-border-danger-subtle: var(--ds-color-red-800);
@@ -1210,6 +1233,7 @@
     --ds-color-chart-danger: var(--ds-color-red-600);
     --ds-color-chart-danger-hovered: var(--ds-color-red-500);
     --ds-color-chart-track: var(--ds-color-dark-neutral-300);
+    --ds-color-chart-changed: var(--ds-color-chart-categorical-3);
     --ds-color-chart-categorical-1: var(--ds-color-blue-600);
     --ds-color-chart-categorical-1-hovered: var(--ds-color-blue-500);
     --ds-color-chart-categorical-2: var(--ds-color-orange-600);
@@ -1284,6 +1308,8 @@
   --ds-color-border: var(--ds-contrast-more, var(--ds-color-border--standard)) var(--ds-contrast-standard, var(--ds-color-border--more));
   --ds-color-border-focused: var(--ds-contrast-more, var(--ds-color-border-focused--standard)) var(--ds-contrast-standard, var(--ds-color-border-focused--more));
   --ds-color-border-input: var(--ds-contrast-more, var(--ds-color-border-input--standard)) var(--ds-contrast-standard, var(--ds-color-border-input--more));
+  --ds-color-background-current: var(--ds-color-background-neutral);
+  --ds-color-text-link: var(--ds-color-text);
 }
 
 [data-contrast-mode="no-preference"] {
@@ -1307,4 +1333,6 @@
   --ds-color-border: var(--ds-contrast-more, var(--ds-color-border--standard)) var(--ds-contrast-standard, var(--ds-color-border--more));
   --ds-color-border-focused: var(--ds-contrast-more, var(--ds-color-border-focused--standard)) var(--ds-contrast-standard, var(--ds-color-border-focused--more));
   --ds-color-border-input: var(--ds-contrast-more, var(--ds-color-border-input--standard)) var(--ds-contrast-standard, var(--ds-color-border-input--more));
+  --ds-color-background-current: var(--ds-color-background-neutral);
+  --ds-color-text-link: var(--ds-color-text);
 }

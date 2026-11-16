@@ -1,4 +1,5 @@
 import { Button as ButtonPrimitive } from "@base-ui/react/button";
+import { Signature } from "lucide-react";
 import {
   Children,
   cloneElement,
@@ -22,20 +23,23 @@ import {
 import { announce } from "../lib/announce";
 import { classes } from "../lib/base-ui";
 import { cn } from "../lib/cn";
+import { useLedgerLocale } from "../lib/locale";
 import { Stack } from "../primitives/stack";
+import { VisuallyHidden } from "../primitives/visually-hidden";
+import { getModifierKey, useFormatShortcut } from "./kbd";
 import { Spinner } from "./spinner";
 import { Tooltip, TooltipContent, TooltipTrigger, type TooltipProps } from "./tooltip";
 import { Truncate } from "./truncate";
 
 export type ButtonVariant = "primary" | "secondary" | "subtle" | "danger" | "link";
-export type ButtonSize = "xsmall" | "small" | "medium";
+export type ButtonSize = "xsmall" | "small" | "medium" | "large";
 
 type ButtonStyleProps = {
   /** Secondary is the default; primary emphasizes the main action. */
   variant?: ButtonVariant | undefined;
   /**
-   * Medium is 32px, small 28px and xsmall 24px. `variant="link"` ignores it: a link-styled action
-   * is as tall as its text.
+   * Medium is 32px, small 28px and xsmall 24px; large is 36px, for a record's action slot.
+   * `variant="link"` ignores it: a link-styled action is as tall as its text.
    */
   size?: ButtonSize | undefined;
   /** Paint the selected state and, on Button, set aria-pressed. */
@@ -68,7 +72,16 @@ const sizes: Record<ButtonSize, string> = {
   xsmall: "h-control-xsmall gap-050 px-100 font-body-small",
   small: "h-control-small px-150",
   medium: "h-control-medium px-150",
+  large: "h-control-large px-200",
 };
+
+/* A signature reads as a signature, never as the page's next act: the ink fill (neutral.bold, the
+   text colour's own fill) where an act is the brand's, at the 36px size, with the signer's name.
+   It is laid over whatever variant and size the button was given, so it is the whole look: the
+   height and insets (the start inset for its mark), the type, the fill, its states, and the room to
+   narrow so a cut label gives way before the signer. */
+const signLook =
+  "h-control-large px-200 ps-150 gap-075 font-body bg-neutral-bold text-inverse shadow-none hover:bg-neutral-bold-hovered hover:no-underline active:bg-neutral-bold-pressed aria-expanded:bg-neutral-bold-pressed data-[disabled]:not-data-[loading]:bg-disabled data-[disabled]:not-data-[loading]:text-disabled whitespace-nowrap min-w-0 max-w-full";
 
 /** Shared styling for Button and real navigation links. Does not add interaction or ARIA. */
 export function buttonVariants({
@@ -123,6 +136,17 @@ export type ButtonProps = ButtonPrimitive.Props &
      * Write labels short enough not to need it; this is for the slot that cannot grow.
      */
     truncate?: boolean | undefined;
+    /**
+     * What a press means, where it is more than an act. `sign` records the reader's signature: the
+     * button is drawn in ink, at the 36px size, with a signature mark before the label and the
+     * signer's name after it, and Command+Enter (Control+Enter off Apple platforms) presses it from
+     * anywhere on the page, never a bare Enter. In a slot narrower than it the label gives way with
+     * an ellipsis and the signer stays whole. `variant`, `size`, `isSelected`, `truncate` and the
+     * icons do not apply to it. One a page.
+     */
+    intent?: "sign" | undefined;
+    /** With `intent="sign"`, who signs: the reader, by name ("R. Calloway"), drawn after the label and read with it. */
+    signer?: string | undefined;
   };
 
 type TooltipOpenChange = NonNullable<TooltipProps["onOpenChange"]>;
@@ -331,7 +355,97 @@ export function iconInsets({
   return cn(
     hasIconBefore && (size === "xsmall" ? "ps-075" : "ps-100"),
     hasIconAfter && (size === "xsmall" ? "pe-075" : "pe-100"),
+    // The 36px step keeps a wider inset beside its icon, after the default one it replaces.
+    hasIconBefore && size === "large" && "ps-150",
+    hasIconAfter && size === "large" && "pe-150",
   );
+}
+
+/** The keys that press a sign Button from anywhere on the page: Command+Enter, Control+Enter
+    off Apple platforms. */
+const SIGN_SHORTCUT = "Mod+Enter";
+const OPEN_DIALOG = '[role="dialog"][data-open], [role="alertdialog"][data-open]';
+/** Where typing keeps its keys: a field's Command+Enter is its own, such as a composer's send. */
+const TEXT_ENTRY =
+  "textarea, select, [contenteditable]:not([contenteditable='false']), [role='textbox'], [role='combobox'], [role='searchbox'], [role='spinbutton']";
+/** A checkbox, a radio or a switch cancels Enter itself, since Enter never toggles one: the keys
+    still sign from it. */
+const TOGGLE = "[role='checkbox'], [role='radio'], [role='switch']";
+/** The inputs that take no text, where the page's shortcut still answers. */
+const KEY_INPUTS = new Set([
+  "checkbox",
+  "radio",
+  "button",
+  "submit",
+  "reset",
+  "range",
+  "color",
+  "file",
+  "image",
+]);
+/** The sign buttons mounted and able to run, in the order they became able. */
+const signers: HTMLElement[] = [];
+
+function takesText(target: EventTarget | null) {
+  if (!(target instanceof Element)) return false;
+  if (target instanceof HTMLInputElement) return !KEY_INPUTS.has(target.type);
+  return target.closest(TEXT_ENTRY) !== null;
+}
+
+/** A sign button answers while it is shown and no open dialog sits over it: the topmost holds
+    it, or none is open. */
+function answers(button: HTMLElement) {
+  if (!button.isConnected || button.getClientRects().length === 0) return false;
+  const open = button.ownerDocument.querySelectorAll(OPEN_DIALOG);
+  const top = open[open.length - 1];
+  return !top || top.contains(button);
+}
+
+/**
+ * Presses a sign button on Command+Enter (Control+Enter off Apple platforms) from anywhere on the
+ * page: never a bare Enter, never with another modifier held, never on a repeat or while text is
+ * composed, never once another handler has taken the key, never from a field that takes text (its
+ * own Command+Enter wins), and never over a dialog that does not hold the button. Of the sign
+ * buttons that could answer, the one that became able last does, so one press signs once: a
+ * confirmation's sign over the page's.
+ */
+function useSignShortcut(node: RefObject<HTMLElement | null>, active: boolean) {
+  useEffect(() => {
+    const button = node.current;
+    if (!active || !button) return undefined;
+    signers.push(button);
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== "Enter" || event.repeat || event.isComposing) return;
+      // A handler that took the key keeps it; a toggle's own cancel of Enter is not taking it.
+      const target = event.target instanceof Element ? event.target : null;
+      if (event.defaultPrevented && !target?.closest(TOGGLE)) return;
+      const apple = getModifierKey() === "meta";
+      const held = apple ? event.metaKey && !event.ctrlKey : event.ctrlKey && !event.metaKey;
+      if (!held || event.altKey || event.shiftKey || takesText(event.target)) return;
+      if (signers.filter(answers).at(-1) !== button) return;
+      event.preventDefault();
+      button.click();
+    };
+    const doc = button.ownerDocument;
+    doc.addEventListener("keydown", onKey);
+    return () => {
+      doc.removeEventListener("keydown", onKey);
+      const index = signers.indexOf(button);
+      if (index >= 0) signers.splice(index, 1);
+    };
+  }, [node, active]);
+}
+
+/** A signature names its signer: said once in development, never thrown. */
+function useSignerNamed(sign: boolean, signer: string | undefined) {
+  useEffect(() => {
+    if (!sign || signer) return;
+    const message =
+      'Ledger: a Button with intent="sign" names who signs in `signer`, drawn after its label.';
+    if (warned.has(message)) return;
+    warned.add(message);
+    console.warn(message);
+  }, [sign, signer]);
 }
 
 /** The button itself, without the tooltip a disabled reason adds. */
@@ -352,20 +466,49 @@ function ButtonBase({
   children,
   render,
   carry,
+  intent,
+  signer,
   ref,
   ...props
 }: ButtonProps & { carry?: RefObject<boolean> | undefined }) {
   const reasonId = useId();
-  const joinedRef = useJoinedRef(useCarriedFocus(carry), ref);
+  const node = useCarriedFocus(carry);
+  const joinedRef = useJoinedRef(node, ref);
+  const { t } = useLedgerLocale();
+  const format = useFormatShortcut();
+  // A signature has one look: ink, 36px, its mark first and the signer last. In a slot narrower
+  // than it the label gives way with an ellipsis, as `truncate` cuts it, and the signer never does.
+  // The variant, the size and the icons the caller gave are left for its look (signLook).
+  const sign = intent === "sign";
+  // The look a press wears: the sign's own, else the variant's (what buttonVariants draws).
+  const look = sign ? "sign" : variant;
+  const leading = sign ? <Signature /> : iconBefore;
+  const trailing = sign ? undefined : iconAfter;
+  const cut = sign || truncate;
   const reason = disabledReason ? disabledReason : undefined;
   const blocked = Boolean(disabled || isLoading || reason);
+  useSignShortcut(node, sign && !blocked);
+  useSignerNamed(sign, signer);
   const element = isValidElement<{ children?: ReactNode }>(render) ? render : undefined;
   const content = children === undefined ? element?.props.children : children;
   useLabelInName(props["aria-label"], visibleText(content));
   useLoadingAnnouncement(Boolean(isLoading), loadingLabel);
+  // The signer, after a rule, read after the label in the locale's words ("as R. Calloway").
+  const [readBefore = "", readAfter = ""] = t("buttonSigner").split("{signer}");
+  const signed =
+    sign && signer ? (
+      <span
+        data-slot="button-signer"
+        className="shrink-0 border-s border-inverse ps-150 font-regular"
+      >
+        {readBefore ? <VisuallyHidden>{readBefore}</VisuallyHidden> : null}
+        {signer}
+        {readAfter ? <VisuallyHidden>{readAfter}</VisuallyHidden> : null}
+      </span>
+    ) : null;
   // Where the spinner goes, so the button never changes width: the leading icon's place, else the
   // trailing icon's, else over the label, which keeps its space (and the name) but not its ink.
-  const spinnerAt = !isLoading ? undefined : iconBefore ? "start" : iconAfter ? "end" : "over";
+  const spinnerAt = !isLoading ? undefined : leading ? "start" : trailing ? "end" : "over";
   // The spinner takes the text colour, so it follows the variant and forced colours alike.
   const spinner = (side: "inline-start" | "inline-end") => (
     <Spinner data-icon={side} isDecorative appearance="inherit" />
@@ -374,7 +517,7 @@ function ButtonBase({
   // cut. With a disabled reason the reason's tooltip names the action instead, so only one shows.
   const hasLabel = content !== undefined && content !== null && content !== false && content !== "";
   const label =
-    truncate && hasLabel ? (
+    cut && hasLabel ? (
       reason ? (
         <span className="min-w-0 truncate">{content}</span>
       ) : (
@@ -387,8 +530,8 @@ function ButtonBase({
     <>
       {spinnerAt === "start"
         ? spinner("inline-start")
-        : iconBefore
-          ? decorativeIcon(iconBefore, "inline-start")
+        : leading
+          ? decorativeIcon(leading, "inline-start")
           : null}
       {spinnerAt === "over" ? (
         <span
@@ -404,10 +547,11 @@ function ButtonBase({
       ) : (
         label
       )}
+      {signed}
       {spinnerAt === "end"
         ? spinner("inline-end")
-        : iconAfter
-          ? decorativeIcon(iconAfter, "inline-end")
+        : trailing
+          ? decorativeIcon(trailing, "inline-end")
           : null}
       {spinnerAt === "over" ? (
         <span
@@ -456,10 +600,11 @@ function ButtonBase({
     <ButtonPrimitive
       data-slot="button"
       data-loading={isLoading && !disabled ? "" : undefined}
-      aria-pressed={isSelected}
+      aria-pressed={sign ? undefined : isSelected}
       aria-busy={isLoading || undefined}
       {...(blocked ? guardActivation(props) : props)}
-      data-button-variant={variant}
+      {...(sign ? { "aria-keyshortcuts": format(SIGN_SHORTCUT, "aria") } : {})}
+      data-button-variant={look}
       ref={joinedRef}
       aria-describedby={describedBy(props["aria-describedby"], reason && reasonId)}
       disabled={blocked}
@@ -477,6 +622,7 @@ function ButtonBase({
           truncate && "min-w-0 max-w-full",
           isLoading && "cursor-progress",
           reason && !isLoading && "cursor-not-allowed",
+          look === "sign" && signLook,
         ),
         className,
       )}
@@ -512,7 +658,7 @@ export function Button({
   );
 }
 
-/** The square sizes of an icon-only control: Button's three, and the 20px row control. */
+/** The square sizes of an icon-only control: Button's four, and the 20px row control. */
 export type IconButtonSize = "xxsmall" | "xsmall" | ButtonSize;
 
 /**
@@ -529,6 +675,7 @@ export function squareSize(size: IconButtonSize) {
       xsmall: "size-control-xsmall",
       small: "size-control-small",
       medium: "size-control-medium [&>svg]:size-icon-medium",
+      large: "size-control-large [&>svg]:size-icon-medium",
     }[size],
   };
 }
@@ -543,6 +690,8 @@ export type IconButtonProps = Omit<
   | "variant"
   | "size"
   | "truncate"
+  | "intent"
+  | "signer"
 > & {
   /** Accessible action name, also used by the tooltip. */
   label: string;
@@ -550,9 +699,9 @@ export type IconButtonProps = Omit<
   icon: ReactElement;
   variant?: "primary" | "secondary" | "subtle" | undefined;
   /**
-   * Small is 28px, the default; medium 32px with a larger icon; xsmall 24px, beside an xsmall
-   * Button; xxsmall 20px, the row control in a table, tree or list row. Where any pointer is
-   * coarse each takes a hit area of at least 24px.
+   * Small is 28px, the default; medium 32px with a larger icon; large 36px, beside a large Button
+   * in a record's action slot; xsmall 24px, beside an xsmall Button; xxsmall 20px, the row control
+   * in a table, tree or list row. Where any pointer is coarse each takes a hit area of at least 24px.
    */
   size?: IconButtonSize | undefined;
   /** Keep the accessible name while omitting the tooltip. A `disabledReason` still shows its own. */

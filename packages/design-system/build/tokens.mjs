@@ -46,6 +46,12 @@ const cssVarFromPath = (dotted) =>
 
 const rest = (segs, from) => segs.slice(from).map(kebab).join("-");
 
+/** Tailwind's colour keywords: `bg-current` is currentColor and `border-inherit` inherits, so a
+    background or border token whose name ends at one keeps its source's `default` segment in the
+    class (`color.background.current` is `bg-current-default`), as `color.border` is `border-default`. */
+const unkeyword = (suffix) =>
+  /^(current|inherit|transparent|black|white)$/.test(suffix) ? `${suffix}-default` : suffix;
+
 /** Which generated class reaches this token, and through which mechanism. */
 function utilityFor(token) {
   const p = publicPath(token);
@@ -54,7 +60,7 @@ function utilityFor(token) {
     if (["neutral", "darkNeutral", "blue", "green", "orange", "red", "teal", "purple"].includes(b))
       return null; // palette: unreachable by design
     if (b === "background")
-      return { kind: "utility", cls: `bg-${rest(p, 2)}`, prop: "background-color" };
+      return { kind: "utility", cls: `bg-${unkeyword(rest(p, 2))}`, prop: "background-color" };
     if (b === "blanket") return { kind: "utility", cls: "bg-blanket", prop: "background-color" };
     if (b === "skeleton")
       return {
@@ -77,7 +83,7 @@ function utilityFor(token) {
     if (b === "border")
       return {
         kind: "utility",
-        cls: `border-${p.length > 2 ? rest(p, 2) : "default"}`,
+        cls: `border-${p.length > 2 ? unkeyword(rest(p, 2)) : "default"}`,
         prop: "border-color",
       };
     if (b === "chart")
@@ -160,8 +166,8 @@ function utilityFor(token) {
         return { kind: "utility", cls: "max-w-layout-measure", prop: "max-width" };
       return {
         kind: "utility",
-        cls: `${/^(topbar|topnav|banner)$/.test(p[2]) ? "h" : "w"}-layout-${rest(p, 2)}`,
-        prop: /^(topbar|topnav|banner)$/.test(p[2]) ? "height" : "width",
+        cls: `${/^(topbar|topnav|banner|footer)$/.test(p[2]) ? "h" : "w"}-layout-${rest(p, 2)}`,
+        prop: /^(topbar|topnav|banner|footer)$/.test(p[2]) ? "height" : "width",
       };
     }
     return { kind: "utility", cls: `h-${b}${p[2] ? "-" + rest(p, 2) : ""}`, prop: "height" };

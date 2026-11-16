@@ -3,7 +3,24 @@ import { ArrowRight, ChevronDown, Download, Plus, Trash2 } from "lucide-react";
 import { createRef, useState } from "react";
 import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 
-import { Button, KeyValue, LinkButton, TextLink } from "../../components";
+import {
+  Button,
+  Checkbox,
+  Dialog,
+  DialogBody,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Field,
+  FieldLabel,
+  getModifierKey,
+  Input,
+  KeyValue,
+  LinkButton,
+  TextLink,
+} from "../../components";
 import { Inline, Stack, Text } from "../../primitives";
 import * as direction from "../_lib/direction";
 import * as storyLayout from "../_lib/matrix";
@@ -24,7 +41,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 const variants = ["primary", "secondary", "subtle", "danger", "link"] as const;
-const sizes = ["medium", "small", "xsmall"] as const;
+const sizes = ["large", "medium", "small", "xsmall"] as const;
 
 /** The variants and sizes, plus disabled, selected, loading and icon placement. */
 export const Matrix: Story = {
@@ -65,7 +82,7 @@ export const Matrix: Story = {
         await expect(button).toHaveAttribute("type", "button");
         await expect(button).toHaveAttribute("data-slot", "button");
         if (variant !== "link") {
-          await expect(button.getBoundingClientRect().height).toBe([32, 28, 24][index]);
+          await expect(button.getBoundingClientRect().height).toBe([36, 32, 28, 24][index]);
           await expect(button.getBoundingClientRect().width).toBeGreaterThanOrEqual(24);
         }
       }
@@ -759,5 +776,162 @@ export const LinkWraps: Story = {
     await expect(after.height).toBe(before.height);
     await expect(step).toHaveAccessibleName("Add to assessment campaign");
     await expect(step).toHaveFocus();
+  },
+};
+
+/** The platform's shortcut modifier as user-event spells it: Command on Apple platforms, Control elsewhere. */
+const modKey = () => (getModifierKey() === "meta" ? "Meta" : "Control");
+
+/**
+ * A signature, not an act. `intent="sign"` draws the button in ink at 36px, a signature mark before
+ * the label and the signer's name after a rule, and reads them as one name ("Approve security plan as
+ * R. Calloway"). Command+Enter (Control+Enter off Apple platforms) presses it from anywhere on the
+ * page, which `aria-keyshortcuts` says; a bare Enter never does, and a field that takes text keeps
+ * the keys for itself.
+ */
+export const Sign: Story = {
+  args: { onClick: fn() },
+  render: (args) => (
+    <Stack space="space.200" alignInline="start">
+      <Button intent="sign" signer="R. Calloway" onClick={args.onClick}>
+        Approve security plan
+      </Button>
+      <Input aria-label="Note for the record" />
+      <Button>Open conditions</Button>
+    </Stack>
+  ),
+  play: async ({ args, canvasElement }) => {
+    const canvas = within(canvasElement);
+    const signed = args.onClick as ReturnType<typeof fn>;
+    signed.mockClear();
+    const sign = canvas.getByRole("button", { name: "Approve security plan as R. Calloway" });
+    await expect(sign).toHaveAttribute("data-button-variant", "sign");
+    await expect(sign.getBoundingClientRect().height).toBe(36);
+    await expect(sign).toHaveAttribute(
+      "aria-keyshortcuts",
+      getModifierKey() === "meta" ? "Meta+Enter" : "Control+Enter",
+    );
+    // The signer comes after the label, and the mark before it is decoration.
+    const signer = sign.querySelector('[data-slot="button-signer"]')!;
+    await expect(signer).toHaveTextContent("R. Calloway");
+    await expect(signer.getBoundingClientRect().left).toBeGreaterThan(
+      sign.querySelector("svg")!.getBoundingClientRect().right,
+    );
+    await expect(sign.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+    // The ink fill is not a secondary's raised surface; in forced colours it keeps its edge.
+    if (matchMedia("(forced-colors: active)").matches)
+      await expect(getComputedStyle(sign).outlineStyle).toBe("solid");
+    else
+      await expect(getComputedStyle(sign).backgroundColor).not.toBe(
+        getComputedStyle(canvas.getByRole("button", { name: "Open conditions" })).backgroundColor,
+      );
+    // A bare Enter on another control presses that control and never signs.
+    const other = canvas.getByRole("button", { name: "Open conditions" });
+    other.focus();
+    await userEvent.keyboard("{Enter}");
+    await expect(signed).not.toHaveBeenCalled();
+    // With nothing focused, a bare Enter signs nothing either.
+    other.blur();
+    await userEvent.keyboard("{Enter}");
+    await expect(signed).not.toHaveBeenCalled();
+    // Command+Enter (Control+Enter elsewhere) signs, from anywhere on the page, once.
+    const mod = modKey();
+    other.focus();
+    await userEvent.keyboard(`{${mod}>}{Enter}{/${mod}}`);
+    await expect(signed).toHaveBeenCalledTimes(1);
+    await expect(other).toHaveFocus();
+    sign.focus();
+    await userEvent.keyboard(`{${mod}>}{Enter}{/${mod}}`);
+    await expect(signed).toHaveBeenCalledTimes(2);
+    // Another modifier with it is another shortcut.
+    other.focus();
+    await userEvent.keyboard(`{Shift>}{${mod}>}{Enter}{/${mod}}{/Shift}`);
+    await expect(signed).toHaveBeenCalledTimes(2);
+    // A field that takes text keeps its Command+Enter.
+    await userEvent.click(canvas.getByRole("textbox", { name: "Note for the record" }));
+    await userEvent.keyboard(`{${mod}>}{Enter}{/${mod}}`);
+    await expect(signed).toHaveBeenCalledTimes(2);
+  },
+};
+
+const signedOnPage = fn();
+const signedInDialog = fn();
+
+/** The page's sign opens its confirmation; the confirmation's own sign records it. */
+function SignConfirmation() {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <Button
+        intent="sign"
+        signer="R. Calloway"
+        onClick={() => {
+          signedOnPage();
+          setOpen(true);
+        }}
+      >
+        Approve security plan
+      </Button>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent width="medium">
+          <DialogHeader>
+            <DialogTitle>Approve security plan</DialogTitle>
+          </DialogHeader>
+          <DialogBody>
+            <Field orientation="horizontal">
+              <Checkbox defaultChecked />
+              <FieldLabel>I approve this plan with its 2 conditions</FieldLabel>
+            </Field>
+          </DialogBody>
+          <DialogFooter>
+            <DialogClose render={<Button variant="subtle" />}>Cancel</DialogClose>
+            <Button
+              intent="sign"
+              signer="R. Calloway"
+              onClick={() => {
+                signedInDialog();
+                setOpen(false);
+              }}
+            >
+              Approve security plan
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
+
+/**
+ * A sign over a sign: the page's opens the confirmation, whose own sign records the signature. While
+ * the dialog is open, Command+Enter presses the dialog's sign and never the page's behind it; a
+ * checkbox does not take text, so the keys still sign from it.
+ */
+export const SignOverADialog: Story = {
+  tags: ["!manifest"],
+  name: "Sign over a dialog",
+  render: () => <SignConfirmation />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    signedOnPage.mockClear();
+    signedInDialog.mockClear();
+    const mod = modKey();
+    await userEvent.keyboard(`{${mod}>}{Enter}{/${mod}}`);
+    await expect(signedOnPage).toHaveBeenCalledTimes(1);
+    const dialog = await within(document.body).findByRole("dialog", {
+      name: "Approve security plan",
+    });
+    const checkbox = within(dialog).getByRole("checkbox", {
+      name: "I approve this plan with its 2 conditions",
+    });
+    await waitFor(() => expect(dialog).toContainElement(document.activeElement as HTMLElement));
+    checkbox.focus();
+    await userEvent.keyboard(`{${mod}>}{Enter}{/${mod}}`);
+    await expect(signedInDialog).toHaveBeenCalledTimes(1);
+    await expect(signedOnPage).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(within(document.body).queryByRole("dialog")).toBeNull());
+    await expect(
+      canvas.getByRole("button", { name: "Approve security plan as R. Calloway" }),
+    ).toBeVisible();
   },
 };

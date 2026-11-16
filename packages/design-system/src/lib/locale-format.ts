@@ -252,6 +252,13 @@ export const defaultMessages = {
   ladderRows: "{level}, {node}",
   ladderPath: "Path through {node}: {counts}",
   ladderPathCount: "{shown} of {total} {level}",
+  // COUNTING: Meter and Climb.
+  meterValue: "{value} of {total}",
+  meterLate: "{count} late",
+  climbRung: "Rung",
+  climbReached: "Reached",
+  climbStopped: "Stopped under it",
+  climbStart: "Where the climb starts",
   collapse: "Collapse",
   collapseLabel: "Collapse {label}",
   expandLabel: "Expand {label}",
@@ -466,6 +473,13 @@ export const defaultMessages = {
   gateMet: "Met: {label}",
   gateNotMet: "Not met: {label}",
   taskRowCompleted: "{title}, completed",
+  /** A sign Button's signer as it is read after the label, "Approve security plan as R. Calloway": the name is drawn, the words around it only read. */
+  buttonSigner: "as {signer}",
+  pageHeaderSigningAs: "Signing as {role}",
+  pageHeaderWaitingOn: "Waiting on {name}",
+  pageHeaderRemind: "Remind",
+  /** A standing beat that counts out of a total: the figure, then the rest in the subtle weight. */
+  pageHeaderStandingOf: "{value} of {total}",
 } satisfies Record<string, string>;
 
 export type LedgerMessages = { [K in keyof typeof defaultMessages]: string };

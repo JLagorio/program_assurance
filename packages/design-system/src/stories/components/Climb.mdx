@@ -1,0 +1,74 @@
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
+
+import { Climb } from "../../components";
+import * as Stories from "./Climb.stories";
+
+<Meta of={Stories} />
+
+# Climb
+
+**Status: Experimental.** New with the November 2026 UX proposal's counting forms, for a control baseline's four rungs; no product screen has used it yet, so the first one may still change its props. Owned by the design system.
+
+A whole as it climbs a ladder of rungs, drawn as one bar with the gaps to scale: of 560 controls, how many reached a requirement, then evidence, then an assessment, then a satisfied determination, and how many stopped under each. Each segment is what stopped under a rung and the last is what reached the top, so where the climb stalls is the widest segment. Under the bar each rung says how many reached it and what stopped under it, and the same numbers are a table one toggle away.
+
+<Canvas of={Stories.Playground} />
+
+## Climb, Tally or Ladder
+
+|               | Tally                           | Climb                                                         | [Ladder](?path=/docs/patterns-ladder--docs)  |
+| ------------- | ------------------------------- | ------------------------------------------------------------- | -------------------------------------------- |
+| What it shows | A whole in states with no order | A whole in order: each rung holds no more than the one before | A structure: levels of nodes joined by wires |
+| A segment     | A state's share of the total    | What stopped under a rung, or what reached the top            | A node's tally, a row's marks                |
+| The numbers   | Beside it, the caller's         | Its own: every rung's count, and the table twin               | A figure a node                              |
+| Interaction   | None                            | The table toggle                                              | Choosing a node keeps its path               |
+
+The climb is a component, beside Tally and Progress: it describes a standing and owns no workflow. Its one control chooses between two views of the same numbers, as a chart's Table toggle does. A Ladder is a pattern because it owns choosing a node, its paths, roving focus and a card of details.
+
+## Rungs and what stopped
+
+`start` names the whole ("Selected"); its count is every segment together. Each of `rungs`, from the first, has a `label`, what reaching it means ("Requirement"), and `stopped`, what stopped under it: a [Tally](?path=/docs/components-tally--docs) segment in a tone and fill, or its parts where a judgement splits it (other than satisfied and partially satisfied, under Satisfied). `reached` is what reached the last rung. A rung's count is the whole less what stopped under it and every rung before, so the numbers always add up. Segments take a TileMap mark's tones and fills, so one key explains a map, a tally and a climb; `empty` paints the track's own colour, since the climb has no track behind it.
+
+The gap with the largest count is the widest drop, and its words take the warning colour, once. A gap of nothing draws no segment and says nothing under its rung; the rung still says its count.
+
+<Canvas of={Stories.StoppedEarly} />
+
+## Three pixels at least
+
+A segment grows by its count from nothing and is never thinner than three pixels, so one control of 560 still shows; the other segments share what is left in proportion. A hairline of the surface parts the segments.
+
+<Canvas of={Stories.OneInHundreds} />
+
+## The table twin
+
+The Table toggle shows the same numbers as a [Table](?path=/docs/components-table--docs) in place of the bar: a row a rung, with how many reached it and what stopped under it in the segments' words. The toggle keeps its name and says by `aria-pressed` whether the table shows, as a [Chart](?path=/docs/patterns-chart-overview--docs)'s does.
+
+<Canvas of={Stories.TableTwin} />
+
+## Accessibility
+
+- **A named figure.** The climb is a `figure` named by `label`. The bar is decoration; the rungs under it are an ordered list a screen reader reads as text ("546, Requirement, 14 to map"), and the table twin is a table named "…, as a table".
+- **Not colour alone.** Every segment has a swatch beside its words under the rungs and its words under the pointer; the widest gap is said by its number as well as its colour.
+- **Forced colours.** Filled, hollow and empty stay three things in the system palette.
+- **Right to left.** The bar and the rungs run from the inline start, so the climb mirrors.
+- **Motion.** A segment eases to its new share when a count changes, over `motion.duration.moderate`, and switches under reduced motion.
+
+## Style
+
+| Element | Token                                                                                                             |
+| ------- | ----------------------------------------------------------------------------------------------------------------- |
+| Bar     | `space.100` thick · segments `border.width` apart · `radius.xsmall` · at least `space.025` + `border.width`       |
+| Segment | `color.chart.*` in its tone · hollow: `elevation.surface.current` inside an edge · empty: `color.chart.track`     |
+| Rung    | the count in `font.body.large` semibold, tabular · the name and the gap in `font.body.small`, `color.text.subtle` |
+| Widest  | `color.text.warning`, medium                                                                                      |
+
+## Props
+
+The figure's native props and ref reach its box.
+
+<ArgTypes of={Climb} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+[Tally](?path=/docs/components-tally--docs) · [Meter](?path=/docs/components-meter--docs) · [Progress](?path=/docs/components-progress--docs) · [Ladder](?path=/docs/patterns-ladder--docs) · [Chart](?path=/docs/patterns-chart-overview--docs)

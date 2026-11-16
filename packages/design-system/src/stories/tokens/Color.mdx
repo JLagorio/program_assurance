@@ -22,7 +22,21 @@ The canvas is white: `elevation.surface` is `color.neutral.0` in light. Blue is 
 | The focus ring                                               | `color.border.focused` at `border.width.focused` | `border-focused`, `border-w-focused` |
 | A link                                                       | `color.text.brand`                               | `text-brand`, or TextLink            |
 
-Ids and counts stay neutral, and so does an avatar by default. An Id is blue only inside a link or a button (`ledger/id-not-blue`). Colour that carries no meaning is the accent family: `color.background.accent.*` in six hues, `subtler` under `color.text.accent.*` and `bolder` under `color.text.inverse`, for an avatar's tint, fill or gradient and, later, a tag. Teal and purple reach only the accent family and `color.chart.*`; a status is never drawn in them.
+Ids and counts stay neutral, and so does an avatar by default. An Id is blue only inside a link or a button (`ledger/id-not-blue`). Colour that carries no meaning is the accent family: `color.background.accent.*` in six hues, `subtler` under `color.text.accent.*` and `bolder` under `color.text.inverse`, for an avatar's tint, fill or gradient and, later, a tag. Teal and purple reach only the accent family and `color.chart.*`, and teal one meaning besides, changed here (below); a status is never drawn in them.
+
+## Ink for the current place, teal for a change
+
+Five colour tokens, minted for the parts that say where the reader is and what a program changed. Each is an alias of a token Ledger already ships, so nothing changes colour: in both modes and under increased contrast it reads as the token it names. No part draws them yet.
+
+| Job                                                                                              | Token                      | Same value as                         | Utility                                                          |
+| ------------------------------------------------------------------------------------------------ | -------------------------- | ------------------------------------- | ---------------------------------------------------------------- |
+| A link's words where colour is kept for status: ink, told apart by the underline the part draws  | `color.text.link`          | `color.text`                          | `text-link`                                                      |
+| The fill of the current place: the side nav's destination, a pressed view, a chip that is on     | `color.background.current` | `color.background.neutral`            | `bg-current-default`                                             |
+| The rule that marks the current place: the current tab's underline, the edge of the current step | `color.border.current`     | `color.background.neutral.bold`       | `border-current-default`                                         |
+| The mark beside what differs from what was inherited                                             | `color.icon.changed`       | `color.background.accent.teal.bolder` | `icon-changed`                                                   |
+| A change drawn as a mark on a chart or a strip                                                   | `color.chart.changed`      | `color.chart.categorical.3`           | `fill-chart-changed`, `stroke-chart-changed`, `bg-chart-changed` |
+
+`bg-current` and `border-current` are Tailwind's currentColor, which `ledger/no-static-design-value` reports as a literal colour, so these two keep their source's `default` segment in the class, as `color.border` is `border-default`. `color.chart.changed` is the chart's teal, the same step in both modes as every series; `color.icon.changed` is the accent's bolder teal, a step darker in light. Each holds what the token it names holds: 4.5:1 for the link's words, 3:1 for the icon, the rule and the chart mark on every surface.
 
 ## Text and icons
 
@@ -54,18 +68,19 @@ Reach these through the `tone` prop on Badge, Dot, Indicator, Alert, Progress an
 
 The matrix is complete on purpose: every fill has `hovered` and `pressed`, every tone has `subtler`, `subtle`, the default and `bold`, the inverse subtle fill exists for a control on a bold fill, and the bolder text colours exist for a word on a tone's label. About forty of them have no part that draws them yet: a token is minted when its place in the grammar is clear and drawn when the part arrives, so a part never invents a colour. The families still open, and the part each waits for:
 
-| Family                                                                                                       | Waits for                                                                                                                                              |
-| ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `color.background.{danger,warning,success,information}.{hovered,pressed}` and `.subtler.{hovered,pressed}`   | A status fill that is pressed: a toned chip that filters, a status pill that opens its record.                                                         |
-| `color.background.{warning,success,information}.bold.{hovered,pressed}`, `neutral.bold.{hovered,pressed}`    | A bold button in a tone other than brand and danger.                                                                                                   |
-| `color.background.brand.boldest` and states, `brand.subtlest.{hovered,pressed}`, `selected.bold` and states  | A pressed primary, a hovered brand tint, a bold selected control.                                                                                      |
-| `color.background.danger.subtler`, `warning.subtler`, the three `.subtle`                                    | A lozenge emphasis between the subtle fill and the bold one.                                                                                           |
-| `color.background.inverse.subtle`                                                                            | The resting fill of a control on a bold surface; its `hovered` and `pressed` are drawn by the Banner's action.                                         |
-| `color.text.{danger,warning,success,information}.bolder`, `color.border.warning`, `color.border.information` | A word on a tone's label; a 3:1 status border in those tones.                                                                                          |
-| `color.icon.warning.inverse`, `color.border.inverse`                                                         | An icon and a border on a bold warning fill; the Box paints its text inverse and icons follow it, so the icon token is reached through `currentColor`. |
-| `elevation.surface.pressed`, `elevation.surface.overlay.{hovered,pressed}`, `elevation.shadow.overflow`      | A pressed page surface, a hovered overlay, a scroll edge.                                                                                              |
+| Family                                                                                                             | Waits for                                                                                                                                              |
+| ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `color.background.{danger,warning,success,information}.{hovered,pressed}` and `.subtler.{hovered,pressed}`         | A status fill that is pressed: a toned chip that filters, a status pill that opens its record.                                                         |
+| `color.background.{warning,success,information}.bold.{hovered,pressed}`, `neutral.bold.{hovered,pressed}`          | A bold button in a tone other than brand and danger.                                                                                                   |
+| `color.background.brand.boldest` and states, `brand.subtlest.{hovered,pressed}`, `selected.bold` and states        | A pressed primary, a hovered brand tint, a bold selected control.                                                                                      |
+| `color.background.danger.subtler`, `warning.subtler`, the three `.subtle`                                          | A lozenge emphasis between the subtle fill and the bold one.                                                                                           |
+| `color.background.inverse.subtle`                                                                                  | The resting fill of a control on a bold surface; its `hovered` and `pressed` are drawn by the Banner's action.                                         |
+| `color.text.{danger,warning,success,information}.bolder`, `color.border.information`                               | A word on a tone's label; a 3:1 status border in those tones.                                                                                          |
+| `color.icon.warning.inverse`, `color.border.inverse`                                                               | An icon and a border on a bold warning fill; the Box paints its text inverse and icons follow it, so the icon token is reached through `currentColor`. |
+| `elevation.surface.pressed`, `elevation.surface.overlay.{hovered,pressed}`, `elevation.shadow.overflow`            | A pressed page surface, a hovered overlay, a scroll edge.                                                                                              |
+| `color.text.link`, `color.background.current`, `color.border.current`, `color.icon.changed`, `color.chart.changed` | The parts that draw ink for the current place and teal for a change, above.                                                                            |
 
-`color.background.input.pressed` is drawn by every field on focus, and `color.background.inverse.subtle.hovered` and `.pressed` by the Banner's action under the pointer. The chart tokens are reached at runtime through `tone`, which a name scan cannot see; Patterns/Chart.
+`color.background.input.pressed` is drawn by every field on focus, `color.background.inverse.subtle.hovered` and `.pressed` by the Banner's action under the pointer, and `color.border.warning` by EmptySeat's dashed circle. The chart tokens are reached at runtime through `tone`, which a name scan cannot see; Patterns/Chart.
 
 ## Borders
 
@@ -79,6 +94,7 @@ Every border is a 1px hairline: `border.width` is 1px and `color.border` is the 
 | Checkbox and radio boxes, 3:1   | `color.border.bold`     | `border-bold`                       |
 | Focus ring, 2px                 | `color.border.focused`  | `border-focused border-w-focused`   |
 | Selected tab or item, 2px       | `color.border.selected` | `border-selected border-w-selected` |
+| The current place, in ink       | `color.border.current`  | `border-current-default`            |
 | Off                             | `color.border.disabled` | `border-disabled`                   |
 
 The text-field border is light by decision: `color.border.input` is 1.87:1 on the light page and about 2:1 on the dark one, and the contrast test holds it at 1.5:1 or more on the page, sunken, raised, overlay and input surfaces, including the hovered and pressed input fills. The input surface, the hover tint and the focus and danger borders, which do meet 3:1, carry the affordance. A choice control has no input surface and no text to carry it, so the Checkbox and Radio box is drawn in `color.border.bold` and the Switch's off track in `color.background.input.track`, each 3:1 on every surface. A reader who asks for more contrast gets a text-field boundary of 3:1 or more on every one of those surfaces too: see Increased contrast below. Decorative rules and disabled controls use separate tokens; a decorative border must not be the only visible boundary of an interactive control.

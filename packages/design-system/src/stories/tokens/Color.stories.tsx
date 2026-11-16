@@ -23,6 +23,7 @@ export const Background: Story = {
         "neutral",
         "brand",
         "selected",
+        "current",
         "danger",
         "warning",
         "success",

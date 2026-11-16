@@ -160,9 +160,9 @@ Family pages in Storybook own each component's current API, defaults and integra
   `information`, `success`, `warning`, `danger`, and `brand` where supported.
 - **One size scale.** `size` names a step on one scale, `xxsmall` to `xlarge`, and a part offers
   only the steps it draws. A control's height follows `dimension.control`: xsmall 24px, small
-  28px, medium 32px, large 36px. Button defaults to `medium`; IconButton defaults to `small` and
-  adds `xxsmall` for a row control, so an IconButton beside a default Button takes
-  `size="medium"`. Input, Select, Combobox and the date and time fields take `small` or `medium`;
+  28px, medium 32px, large 36px. Button defaults to `medium` and takes `large` for a record's
+  action slot; IconButton defaults to `small` and adds `xxsmall` for a row control, so an
+  IconButton beside a default Button takes `size="medium"`. Input, Select, Combobox and the date and time fields take `small` or `medium`;
   Toggle and ToggleGroup take `small`, `medium` or `large`; InputGroupButton takes `xsmall` or
   `small`, and `icon` with a required `label` for an icon-only square. A `link` variant Button
   ignores `size`: it is as tall as its text. `compact` names a density, not a size (Item, Empty).

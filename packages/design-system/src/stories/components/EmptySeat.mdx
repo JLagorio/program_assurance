@@ -1,0 +1,54 @@
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
+
+import { EmptySeat } from "../../components";
+import * as Stories from "./EmptySeat.stories";
+
+<Meta of={Stories} />
+
+# EmptySeat
+
+**Status: Experimental.** New with the November 2026 proposal's rows, facts and readiness seats; the props may change while its first screens try it. Owned by the design system.
+
+A role nobody holds: an owner, an assessor, a signer. It stands where a [Person](?path=/docs/components-avatar--docs) would, drawn as the avatar's empty form, a dashed circle at Person's 16px, beside words that name the role ("No owner"). With `onSelect` the whole seat is a button that fills it, such as one that opens Assign owner; without it the seat only reports.
+
+<Canvas of={Stories.Playground} />
+
+It is a statement, not a missing value: "No owner" is something the reader can act on, so it is said in words and drawn in the warning tone. A value nobody recorded is an [Absent](?path=/docs/components-typography--docs), a muted dash heard as "Not recorded". A person who holds the role is a Person.
+
+| Part   | Paint                                                                           |
+| ------ | ------------------------------------------------------------------------------- |
+| Circle | 16px (`space.200`), a 1px dashed `color.border.warning` ring, no fill; hidden   |
+| Words  | `color.text.warning` at `font.weight.medium`, in the type size around the seat  |
+| Button | The circle and the words; underlined under the pointer, the focus ring on focus |
+
+## Filling a seat
+
+With `onSelect` the seat is a button named by its words ("No owner"), reached with Tab and pressed with Enter or Space. The circle is inside it, so the whole seat is the target, and on a touch screen the band around it is 24px tall. A seat without `onSelect` is text and no Tab stop: give it one only where the reader may fill the seat.
+
+<Canvas of={Stories.Pressable} />
+
+## Beside a person
+
+Seats sit where people do: in a row's Owner cell, in a record's Details, in a list of who must sign. Each names its role, so two empty seats never read alike.
+
+<Canvas of={Stories.BesideAPerson} />
+
+## Content
+
+- **`label` names the role, as the product calls it:** "No owner", "No assessor", "No authorizing official". It is the seat's accessible name, so it says both the role and that nobody holds it; never "None", "Unassigned" or a dash.
+- **The words are short.** In a column narrower than they are, they end in an ellipsis and show whole on hover and keyboard focus while they are cut; the circle keeps its size.
+
+<Canvas of={Stories.InANarrowColumn} />
+
+## Props
+
+EmptySeat is a `span` that forwards native props and its ref, and names itself last with `data-slot` (`empty-seat`, with `empty-seat-mark` and, when it can be pressed, `empty-seat-button` inside). A pressable seat carries `data-pressable`.
+
+<ArgTypes of={EmptySeat} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+- [Avatar](?path=/docs/components-avatar--docs): Person, the seat a person holds.
+- [Typography](?path=/docs/components-typography--docs): Absent, a value nobody recorded.

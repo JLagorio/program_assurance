@@ -274,6 +274,18 @@
           }
         }
       },
+      "current": {
+        "default": {
+          "$type": "color",
+          "$value": "{color.background.neutral.default}",
+          "$description": "The fill of the current place, where blue is kept for the act: the side nav's current destination, a pressed view, a chip that is on. The same value as color.background.neutral, so it follows that fill under increased contrast. Its class is bg-current-default, since bg-current is Tailwind's currentColor.",
+          "$extensions": {
+            "ledger": {
+              "introduced": "0.8.0"
+            }
+          }
+        }
+      },
       "danger": {
         "default": {
           "$type": "color",
@@ -1036,6 +1048,16 @@
           }
         }
       },
+      "link": {
+        "$type": "color",
+        "$value": "{color.text.default}",
+        "$description": "A link's words where colour is kept for status and the act: ink, the same value as color.text, told apart as a link by its underline, which the part draws. 4.5:1 wherever color.text is.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.8.0"
+          }
+        }
+      },
       "danger": {
         "default": {
           "$type": "color",
@@ -1319,6 +1341,16 @@
             "introduced": "0.1.0"
           }
         }
+      },
+      "changed": {
+        "$type": "color",
+        "$value": "{color.background.accent.teal.bolder}",
+        "$description": "The mark beside what differs from what was inherited: a control or an element a program changed here. The same value as color.background.accent.teal.bolder, 3:1 on every surface; teal says changed here and nothing else.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.8.0"
+          }
+        }
       }
     },
     "border": {
@@ -1389,6 +1421,18 @@
         "$extensions": {
           "ledger": {
             "introduced": "0.1.0"
+          }
+        }
+      },
+      "current": {
+        "default": {
+          "$type": "color",
+          "$value": "{color.background.neutral.bold.default}",
+          "$description": "The rule that marks the current place in ink, where blue is kept for the act: the current tab's underline, the edge of the current step. The same value as color.background.neutral.bold. Its class is border-current-default, since border-current is Tailwind's currentColor.",
+          "$extensions": {
+            "ledger": {
+              "introduced": "0.8.0"
+            }
           }
         }
       },
@@ -1681,6 +1725,16 @@
         "$extensions": {
           "ledger": {
             "introduced": "0.2.0"
+          }
+        }
+      },
+      "changed": {
+        "$type": "color",
+        "$value": "{color.chart.categorical.3.default}",
+        "$description": "A mark for what differs from what was inherited: a control changed here, an element a program modified. The chart's teal, categorical series 3, so the same step in both modes and 3:1 on every surface a chart sits on; teal is spent on this meaning and on no status.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.8.0"
           }
         }
       },
@@ -4102,6 +4156,19 @@
           "unit": "px"
         },
         "$description": "The widest a run of prose grows: statements, notes, descriptions."
+      },
+      "footer": {
+        "$type": "dimension",
+        "$value": {
+          "value": 60,
+          "unit": "px"
+        },
+        "$description": "A footer bar docked at the bottom of a work area, holding its one act and what it counts (58 of 58 recorded, Send to lead). Its utility sets the height; the bar casts elevation.shadow.overflow over what scrolls under it.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.8.0"
+          }
+        }
       }
     },
     "part": {
@@ -5488,6 +5555,34 @@
           "org.ledger.css": {
             "sourceLineHeight": "0.875rem",
             "sourceLetterSpacing": "{font.letterSpacing.500}"
+          }
+        }
+      }
+    },
+    "figure": {
+      "default": {
+        "$type": "typography",
+        "$value": {
+          "fontFamily": "{font.family.body}",
+          "fontWeight": "{font.weight.semibold}",
+          "fontSize": {
+            "value": 1.25,
+            "unit": "rem"
+          },
+          "lineHeight": 1.3,
+          "letterSpacing": {
+            "value": -0.3,
+            "unit": "px"
+          }
+        },
+        "$description": "A figure that stands for its row: the count in a table cell or a card that the reader reads first, 20/26 semibold. Not a title. The part adds tabular numerals, since the font shorthand resets them.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.8.0"
+          },
+          "org.ledger.css": {
+            "sourceLineHeight": "1.625rem",
+            "sourceLetterSpacing": "{font.letterSpacing.300}"
           }
         }
       }

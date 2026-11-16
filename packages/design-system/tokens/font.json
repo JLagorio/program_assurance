@@ -221,6 +221,20 @@
         "$description": "Eyebrows, group headings and menu section labels. The component adds the uppercase."
       }
     },
+    "figure": {
+      "$type": "typography",
+      "default": {
+        "$value": {
+          "fontFamily": "{font.family.body}",
+          "fontWeight": "{font.weight.semibold}",
+          "fontSize": "1.25rem",
+          "lineHeight": "1.625rem",
+          "letterSpacing": "{font.letterSpacing.300}"
+        },
+        "$description": "A figure that stands for its row: the count in a table cell or a card that the reader reads first, 20/26 semibold. Not a title. The part adds tabular numerals, since the font shorthand resets them.",
+        "$extensions": { "ledger": { "introduced": "0.8.0" } }
+      }
+    },
     "code": {
       "$type": "typography",
       "$value": {

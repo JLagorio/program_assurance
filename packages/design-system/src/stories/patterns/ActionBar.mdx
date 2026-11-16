@@ -7,7 +7,7 @@ import * as Stories from "./ActionBar.stories";
 
 # ActionBar
 
-**Status: Deprecated.** No product screen uses ActionBar; it stays for one version and then leaves the package. A record page's header is a [PageHeader](?path=/docs/layout-pageheader--docs), with the record's state in its Details rail: [Shell.Aside](?path=/docs/layout-shell--docs) holding an [Inspector](?path=/docs/patterns-inspector--docs).
+**Status: Deprecated.** No product screen uses ActionBar; it stays for one version and then leaves the package. A record page's header is a [PageHeader](?path=/docs/layout-pageheader--docs), with the record's state in its Details rail: [Shell.Aside](?path=/docs/layout-shell--docs) holding an [Inspector](?path=/docs/patterns-inspector--docs). The record's next act, which ActionBar's `actions` held, is PageHeader's action slot (`PageHeader.Slot`): one act with why it is next, a signature, who it waits on, or none, never a disabled primary, and the record's standing is `PageHeader.Standing`.
 
 A work surface's header pinned above the work: the trail ending in the record's id, the title with a few words of context, the record's state axes as facts, and the actions that change that state. It is composed from [PageHeader](?path=/docs/layout-pageheader--docs)'s parts, so it keeps PageHeader's wrap rule.
 

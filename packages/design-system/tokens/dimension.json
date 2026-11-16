@@ -255,6 +255,15 @@
       "measure": {
         "$value": "720px",
         "$description": "The widest a run of prose grows: statements, notes, descriptions."
+      },
+      "footer": {
+        "$value": "60px",
+        "$description": "A footer bar docked at the bottom of a work area, holding its one act and what it counts (58 of 58 recorded, Send to lead). Its utility sets the height; the bar casts elevation.shadow.overflow over what scrolls under it.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.8.0"
+          }
+        }
       }
     },
     "part": {

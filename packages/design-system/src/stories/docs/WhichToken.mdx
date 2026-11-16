@@ -17,6 +17,7 @@ The Token grammar page explains the naming; the token sheets list every value. T
 | On a bold background                        | `color.text.inverse`                                                  | `text-inverse`                      |
 | Selected item                               | `color.text.selected`                                                 | `text-selected`                     |
 | A link, the brand                           | `color.text.brand`                                                    | `text-brand`                        |
+| A link in ink, where colour is kept for status | `color.text.link`, the part draws the underline                   | `text-link`                         |
 | Danger, warning, success, information       | `color.text.danger` and the rest; `.bolder` for text on a subtle tone | `text-danger`, `text-danger-bolder` |
 | A categorical accent (charts, avatars)      | `color.text.accent.blue` … `purple`                                   | `text-accent-blue`                  |
 
@@ -110,7 +111,7 @@ A Section's title is `font.heading.section`, a step above the body at semibold. 
 | `dimension.control.xsmall` | 24px  | Button `xsmall`.                                                    |
 | `dimension.control.small`  | 28px  | Button `small`, chips, menu items, side nav items, a Toolbar's row. |
 | `dimension.control.medium` | 32px  | The default: Button `medium`, inputs, selects, combobox triggers.   |
-| `dimension.control.large`  | 36px  | Hero forms only.                                                    |
+| `dimension.control.large`  | 36px  | A record's action slot (Button and IconButton `large`); hero forms. |
 | `dimension.row`            | 40px  | A table row; `.compact` 36px; `.header` 32px; `.menu` 28px.         |
 | `dimension.icon.small`     | 14px  | An icon inside a small or medium control.                           |
 | `dimension.icon.medium`    | 16px  | A standalone icon, an icon button's glyph.                          |

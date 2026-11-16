@@ -55,13 +55,14 @@ const matrixCols = [
   "xsmall",
   "small",
   "medium",
+  "large",
   "selected",
   "loading",
   "disabled",
 ] as const;
-const squareOf = { xxsmall: 20, xsmall: 24, small: 28, medium: 32 } as const;
+const squareOf = { xxsmall: 20, xsmall: 24, small: 28, medium: 32, large: 36 } as const;
 const sizeOf = (col: (typeof matrixCols)[number]) =>
-  col === "xxsmall" || col === "xsmall" || col === "medium" ? col : "small";
+  col === "xxsmall" || col === "xsmall" || col === "medium" || col === "large" ? col : "small";
 
 /** All variants and sizes, plus selected, loading and disabled states. */
 export const IconButtonMatrix: Story = {
@@ -97,7 +98,9 @@ export const IconButtonMatrix: Story = {
         await expect(button.getBoundingClientRect().width).toBe(size);
         await expect(button.getBoundingClientRect().height).toBe(size);
         const icon = button.querySelector("svg")!;
-        await expect(getComputedStyle(icon).width).toBe(col === "medium" ? "16px" : "14px");
+        await expect(getComputedStyle(icon).width).toBe(
+          col === "medium" || col === "large" ? "16px" : "14px",
+        );
         const buttonBox = button.getBoundingClientRect();
         const iconBox = icon.getBoundingClientRect();
         await expect(

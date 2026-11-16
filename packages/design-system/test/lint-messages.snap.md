@@ -680,7 +680,6 @@ legacyName: Dash is Absent in the kit. Import that instead of declaring a local 
 legacyName: Notice is Alert in the kit. Import that instead of declaring a local copy.
 legacyName: Modal is Dialog in the kit. Import that instead of declaring a local copy.
 legacyName: Menu is DropdownMenu in the kit. Import that instead of declaring a local copy.
-legacyName: Meter is Progress in the kit. Import that instead of declaring a local copy.
 legacyName: EmptyState is Empty in the kit. Import that instead of declaring a local copy.
 legacyName: SegmentedControl is ToggleGroup in the kit. Import that instead of declaring a local copy.
 legacyName: Disclosure is Collapsible in the kit. Import that instead of declaring a local copy.

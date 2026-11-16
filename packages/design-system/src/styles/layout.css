@@ -157,9 +157,14 @@
     flex: 1 1 min(100%, var(--ds-dimension-part-page-header-heading));
     max-inline-size: max-content;
   }
-  & > [data-slot="page-header-actions"] {
+  & > [data-slot="page-header-actions"],
+  & > [data-slot="page-header-slot"] {
     max-inline-size: 100%;
     margin-inline-start: auto;
+  }
+  /* The standing is the row under the name and the slot, across the header. */
+  & > [data-slot="page-header-standing"] {
+    flex-basis: 100%;
   }
 }
 

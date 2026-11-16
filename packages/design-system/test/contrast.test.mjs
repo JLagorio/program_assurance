@@ -541,6 +541,19 @@ for (const s of status) {
 }
 for (const icon of ["color.icon.subtle", "color.icon.subtlest"])
   add(icon, "elevation.surface.raised", 3, "stat row's icon and chevron");
+// INK AND TEAL (0.8.0): the five colour tokens minted for the current place and a change, each an
+// alias of a token held above, held here by their own names so an alias that moves is caught: a
+// link's ink words and the words on the current fill at 4.5:1, the current rule, the changed icon
+// and the changed chart mark at 3:1, on every surface a page, a card or a chart sits on.
+for (const surface of surfaces) {
+  add("color.text.link", surface, 4.5, "ink link");
+  add("color.border.current", surface, 3, "current place's rule");
+  add("color.icon.changed", surface, 3, "changed-here mark");
+  if (surface !== "color.background.input")
+    add("color.chart.changed", surface, 3, "changed mark on a chart", surface);
+}
+for (const text of ["color.text", "color.text.subtle", "color.text.link"])
+  add(text, "color.background.current", 4.5, "words on the current place's fill");
 
 const results = [];
 for (const mode of modes) {

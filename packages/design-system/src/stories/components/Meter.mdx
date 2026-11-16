@@ -1,0 +1,65 @@
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
+
+import { Meter } from "../../components";
+import * as Stories from "./Meter.stories";
+
+<Meta of={Stories} />
+
+# Meter
+
+**Status: Experimental.** New with the November 2026 UX proposal's counting forms, a thin part over [Tally](?path=/docs/components-tally--docs); no product screen has used it yet, so the first one may still change its props. Owned by the design system.
+
+N of M as its marks, one an item, always beside the count in words: two of ten checks met, one of twelve items closed with three late. It is for a few items, up to about twenty, where each one is worth seeing; past that, a [Tally](?path=/docs/components-tally--docs) beside the number shows the proportion.
+
+<Canvas of={Stories.Playground} />
+
+## Neutral, and late by its shape
+
+The marks are a tally's segments standing apart, in the same paint, and they spend no hue on what is not a judgement: a met item is filled and an open one hollow, both in the neutral tone. A late item (`late`, counted among those not met) is drawn after the met ones, hatched in the danger tone, so it is told by its shape as well as its colour, in every colour vision and with forced colours.
+
+<Canvas of={Stories.Late} />
+
+## The count is always drawn
+
+The meter draws its own count, "2 of 10", so the marks never stand without their number. The value is in the text colour and the rest of the words subtle; the words come from the LedgerProvider (`meterValue`, `meterLate`), so a translation owns their order.
+
+## Sizes
+
+`size="medium"` is 8px marks beside `font.body`, in a row or a cell. `size="large"` is 12px marks beside `font.body.large`, where the count is the reading of a band.
+
+<Canvas of={Stories.Sizes} />
+
+## In a table
+
+In a cell the count is the text and the marks are decoration: leave `label` unsaid, so a screen reader reads the row as its numbers and is not told of an image a cell. How many are late is said after the count, unseen ("1 of 12, 3 late").
+
+<Canvas of={Stories.InATable} />
+
+## Accessibility
+
+- **Named or text, never between.** With `label` the meter is `role="img"`, named by the label and the count: "Condition 1 items closed: 1 of 12, 3 late". Without it the marks are hidden from assistive technology and the count beside them is read as text.
+- **Not colour alone.** Filled, hollow and hatched are three shapes; the hatch stays in the system's text colour with forced colours.
+- **A count in range.** `value` is held to `max`, and `late` to what is not met.
+- **Right to left.** The marks run from the inline start, so the meter mirrors.
+
+## Style
+
+| Element | Token                                                                                             |
+| ------- | ------------------------------------------------------------------------------------------------- |
+| Mark    | `space.100` (medium) or `space.150` (large) square · `radius.xsmall` · `space.025` apart          |
+| Met     | `color.chart.neutral`                                                                             |
+| Open    | `elevation.surface.current` inside a `border.width` edge in `color.chart.neutral`                 |
+| Late    | an edge and a hairline hatch every `space.025` in `color.chart.danger`                            |
+| Count   | `font.body` or `font.body.large`, tabular · the value `color.text`, the words `color.text.subtle` |
+
+## Props
+
+The span's native props and ref reach the meter's box.
+
+<ArgTypes of={Meter} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+[Tally](?path=/docs/components-tally--docs) · [Climb](?path=/docs/components-climb--docs) · [Progress](?path=/docs/components-progress--docs) · [TileMap](?path=/docs/patterns-tilemap--docs)

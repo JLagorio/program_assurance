@@ -292,6 +292,18 @@
           }
         }
       },
+      "current": {
+        "default": {
+          "$value": "{color.background.neutral.default}",
+          "$description": "The fill of the current place, where blue is kept for the act: the side nav's current destination, a pressed view, a chip that is on. The same value as color.background.neutral, so it follows that fill under increased contrast. Its class is bg-current-default, since bg-current is Tailwind's currentColor.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.background.neutral.default}",
+              "introduced": "0.8.0"
+            }
+          }
+        }
+      },
       "danger": {
         "default": {
           "$value": "{color.red.100}",
@@ -1046,6 +1058,16 @@
           }
         }
       },
+      "link": {
+        "$value": "{color.text.default}",
+        "$description": "A link's words where colour is kept for status and the act: ink, the same value as color.text, told apart as a link by its underline, which the part draws. 4.5:1 wherever color.text is.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.text.default}",
+            "introduced": "0.8.0"
+          }
+        }
+      },
       "danger": {
         "default": {
           "$value": "{color.red.800}",
@@ -1341,6 +1363,16 @@
             "introduced": "0.1.0"
           }
         }
+      },
+      "changed": {
+        "$value": "{color.background.accent.teal.bolder}",
+        "$description": "The mark beside what differs from what was inherited: a control or an element a program changed here. The same value as color.background.accent.teal.bolder, 3:1 on every surface; teal says changed here and nothing else.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.background.accent.teal.bolder}",
+            "introduced": "0.8.0"
+          }
+        }
       }
     },
     "border": {
@@ -1423,6 +1455,18 @@
           "ledger": {
             "dark": "{color.blue.400}",
             "introduced": "0.1.0"
+          }
+        }
+      },
+      "current": {
+        "default": {
+          "$value": "{color.background.neutral.bold.default}",
+          "$description": "The rule that marks the current place in ink, where blue is kept for the act: the current tab's underline, the edge of the current step. The same value as color.background.neutral.bold. Its class is border-current-default, since border-current is Tailwind's currentColor.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.background.neutral.bold.default}",
+              "introduced": "0.8.0"
+            }
           }
         }
       },
@@ -1708,6 +1752,16 @@
           "ledger": {
             "dark": "{color.darkNeutral.300}",
             "introduced": "0.2.0"
+          }
+        }
+      },
+      "changed": {
+        "$value": "{color.chart.categorical.3.default}",
+        "$description": "A mark for what differs from what was inherited: a control changed here, an element a program modified. The chart's teal, categorical series 3, so the same step in both modes and 3:1 on every surface a chart sits on; teal is spent on this meaning and on no status.",
+        "$extensions": {
+          "ledger": {
+            "dark": "{color.chart.categorical.3.default}",
+            "introduced": "0.8.0"
           }
         }
       },
@@ -2908,6 +2962,15 @@
       "measure": {
         "$value": "720px",
         "$description": "The widest a run of prose grows: statements, notes, descriptions."
+      },
+      "footer": {
+        "$value": "60px",
+        "$description": "A footer bar docked at the bottom of a work area, holding its one act and what it counts (58 of 58 recorded, Send to lead). Its utility sets the height; the bar casts elevation.shadow.overflow over what scrolls under it.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.8.0"
+          }
+        }
       }
     },
     "part": {
@@ -3741,6 +3804,24 @@
           "letterSpacing": "{font.letterSpacing.500}"
         },
         "$description": "Eyebrows, group headings and menu section labels. The component adds the uppercase."
+      }
+    },
+    "figure": {
+      "$type": "typography",
+      "default": {
+        "$value": {
+          "fontFamily": "{font.family.body}",
+          "fontWeight": "{font.weight.semibold}",
+          "fontSize": "1.25rem",
+          "lineHeight": "1.625rem",
+          "letterSpacing": "{font.letterSpacing.300}"
+        },
+        "$description": "A figure that stands for its row: the count in a table cell or a card that the reader reads first, 20/26 semibold. Not a title. The part adds tabular numerals, since the font shorthand resets them.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.8.0"
+          }
+        }
       }
     },
     "code": {

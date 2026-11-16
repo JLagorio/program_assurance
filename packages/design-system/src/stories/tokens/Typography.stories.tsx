@@ -18,6 +18,7 @@ const composites = [
   "font.heading.page",
   "font.heading.overlay",
   "font.heading.section",
+  "font.figure",
   "font.body.large",
   "font.body",
   "font.body.small",
@@ -47,7 +48,12 @@ export const Specimen: Story = {
                   <Spec>{d.utility}</Spec>
                   <Spec>{d.light}</Spec>
                 </div>
-                <div className={d.utility ?? ""}>{sample}</div>
+                {/* A figure is a number, with the tabular numerals its part adds. */}
+                {name === "font.figure" ? (
+                  <div className="font-figure tabular-nums">234</div>
+                ) : (
+                  <div className={d.utility ?? ""}>{sample}</div>
+                )}
               </div>
             );
           })}

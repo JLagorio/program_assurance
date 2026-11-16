@@ -71,6 +71,9 @@
 @utility bg-selected-bold-pressed {
   background-color: var(--ds-color-background-selected-bold-pressed);
 }
+@utility bg-current-default {
+  background-color: var(--ds-color-background-current);
+}
 @utility bg-danger {
   background-color: var(--ds-color-background-danger);
 }
@@ -278,6 +281,9 @@
 @utility text-brand {
   color: var(--ds-color-text-brand);
 }
+@utility text-link {
+  color: var(--ds-color-text-link);
+}
 @utility text-danger {
   color: var(--ds-color-text-danger);
 }
@@ -359,6 +365,9 @@
 @utility icon-information {
   color: var(--ds-color-icon-information);
 }
+@utility icon-changed {
+  color: var(--ds-color-icon-changed);
+}
 @utility border-default {
   border-color: var(--ds-color-border);
 }
@@ -379,6 +388,9 @@
 }
 @utility border-selected {
   border-color: var(--ds-color-border-selected);
+}
+@utility border-current-default {
+  border-color: var(--ds-color-border-current);
 }
 @utility border-brand {
   border-color: var(--ds-color-border-brand);
@@ -541,6 +553,15 @@
 }
 @utility bg-chart-track {
   background-color: var(--ds-color-chart-track);
+}
+@utility fill-chart-changed {
+  fill: var(--ds-color-chart-changed);
+}
+@utility stroke-chart-changed {
+  stroke: var(--ds-color-chart-changed);
+}
+@utility bg-chart-changed {
+  background-color: var(--ds-color-chart-changed);
 }
 @utility fill-chart-categorical-1 {
   fill: var(--ds-color-chart-categorical-1);
@@ -878,6 +899,12 @@
 @utility max-w-layout-measure {
   max-width: var(--ds-dimension-layout-measure);
 }
+@utility h-layout-footer {
+  height: var(--ds-dimension-layout-footer);
+}
+@utility min-h-layout-footer {
+  min-height: var(--ds-dimension-layout-footer);
+}
 @utility bg-surface {
   background-color: var(--ds-elevation-surface);
 }
@@ -978,6 +1005,11 @@
   font: var(--ds-font-heading-xxsmall);
   font-weight: var(--tw-font-weight, var(--ds-font-heading-xxsmall-weight));
   letter-spacing: var(--ds-font-heading-xxsmall-letter-spacing);
+}
+@utility font-figure {
+  font: var(--ds-font-figure);
+  font-weight: var(--tw-font-weight, var(--ds-font-figure-weight));
+  letter-spacing: var(--ds-font-figure-letter-spacing);
 }
 @utility font-code {
   font: var(--ds-font-code);

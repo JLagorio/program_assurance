@@ -269,7 +269,6 @@ const LEGACY = {
   Notice: "Alert",
   Modal: "Dialog",
   Menu: "DropdownMenu",
-  Meter: "Progress",
   EmptyState: "Empty",
   SegmentedControl: "ToggleGroup",
   Disclosure: "Collapsible",

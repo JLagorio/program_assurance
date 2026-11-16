@@ -14,8 +14,8 @@
       "meaning": "Family-relative geometry or density. Button height, Avatar diameter, text scale, and Empty composition are not one common pixel scale.",
       "migration": "Preserve intentional family scales and document their dimensions. Do not globally replace small/medium with one abbreviated enum or reinterpret layout choices as fixed heights. Controls that share a height use ControlSize words (xsmall, small, medium); a shadcn spelling (sm, default, xs) on a control moves to the full word with a deprecated alias and a ledger/no-deprecated-name fixer.",
       "familyValues": {
-        "Button": "xsmall 24px, small 28px, medium 32px (default); link has natural height.",
-        "IconButton": "xxsmall 20px (a row control), xsmall 24px, small 28px (default), medium 32px.",
+        "Button": "xsmall 24px, small 28px, medium 32px (default), large 36px (a record's action slot); link has natural height, and intent=\"sign\" is always 36px.",
+        "IconButton": "xxsmall 20px (a row control), xsmall 24px, small 28px (default), medium 32px, large 36px.",
         "Input, Combobox, SearchField, NumberField, DatePicker, TimeField, DateTimeField": "ControlSize: small 28px, medium 32px (default).",
         "SelectTrigger": "ControlSize: small 28px, medium 32px (default); sm and default are deprecated spellings of small and medium.",
         "Switch": "ControlSize: small (24 × 16px), medium (32 × 20px, default); sm and default are deprecated spellings of small and medium.",

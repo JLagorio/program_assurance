@@ -1,4 +1,4 @@
-import { expect, waitFor, within } from "storybook/test";
+import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { ChevronDown, MoreHorizontal } from "lucide-react";
 import {
@@ -15,10 +15,13 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLinkItem,
+  getModifierKey,
   HeadingLevelProvider,
   IconButton,
   PageHeader,
   PageHeaderLead,
+  PageHeaderSlot,
+  PageHeaderStanding,
   PageHeaderTitle,
   Section,
   Stack,
@@ -34,7 +37,7 @@ const { Pair } = pairLayout;
 const meta = {
   title: "Layout/PageHeader",
   component: PageHeader,
-  subcomponents: { PageHeaderTitle, PageHeaderLead },
+  subcomponents: { PageHeaderTitle, PageHeaderLead, PageHeaderSlot, PageHeaderStanding },
   parameters: { layout: "padded" },
 } satisfies Meta<typeof PageHeader>;
 export default meta;
@@ -380,5 +383,301 @@ export const DoDont: Story = {
     const crowded = header("record-dont");
     await expect(crowded.querySelector('[data-slot="badge"]')).not.toBeNull();
     await expect(within(crowded).getAllByRole("button")).toHaveLength(2);
+  },
+};
+
+const advanced = fn();
+const signed = fn();
+const reminded = fn();
+/** Eight days before the story opens, so the wait reads "8d ago" whenever it runs. */
+const eightDaysAgo = Date.now() - 8 * 86_400_000;
+
+/** The slot of each header in the Action slot story. */
+const slotOf = (header: HTMLElement) =>
+  header.querySelector<HTMLElement>('[data-slot="page-header-slot"]')!;
+
+/** The slot sits beside the title while the row holds its measure, else on the next row at the end. */
+async function expectSlotPlaced(header: HTMLElement) {
+  const box = header.querySelector('[data-slot="page-header"]')!.getBoundingClientRect();
+  const title = within(header).getByRole("heading").getBoundingClientRect();
+  const slot = slotOf(header).getBoundingClientRect();
+  if (slot.top >= title.bottom) await expect(Math.round(slot.right)).toBe(Math.round(box.right));
+  else await expect(slot.left).toBeGreaterThan(title.right);
+  await expect(slot.right).toBeLessThanOrEqual(box.right + 0.5);
+}
+
+/**
+ * A record's header ends in one slot, in one of four forms and no others. Advance: the reader's own
+ * next step, a 36px primary, with why it is next before it, which is its description. Sign: a
+ * signature the reader owes, said as the capacity they sign in and a sign Button, which
+ * Command+Enter presses. Waiting: who the record waits on, since when, and Remind. None: only the
+ * record's other commands. Each form is drawn by the slot, so nothing else fits in it.
+ */
+export const ActionSlot: Story = {
+  name: "Action slot",
+  render: () => (
+    <HeadingLevelProvider level={2}>
+      <Stack space="space.400">
+        <div data-testid="advance">
+          <PageHeader>
+            <PageHeader.Heading>
+              <PageHeader.Title>SI-2 Flaw Remediation</PageHeader.Title>
+            </PageHeader.Heading>
+            <PageHeader.Slot
+              advance={{
+                label: "Add evidence",
+                reason: "REQ-064 cites none",
+                detail: "the only requirement",
+                onAction: advanced,
+              }}
+              more={{
+                label: "More control actions",
+                items: (
+                  <>
+                    <DropdownMenuItem>Map a requirement</DropdownMenuItem>
+                    <DropdownMenuLinkItem href="#schema/controls/si-2">
+                      Inspect record
+                    </DropdownMenuLinkItem>
+                  </>
+                ),
+              }}
+            />
+          </PageHeader>
+        </div>
+        <div data-testid="sign">
+          <PageHeader>
+            <PageHeader.Heading>
+              <PageHeader.Title>Customer B security plan approval</PageHeader.Title>
+            </PageHeader.Heading>
+            <PageHeader.Slot
+              sign={{
+                label: "Approve security plan",
+                signer: "R. Calloway",
+                role: "authorizing official",
+                onSign: signed,
+              }}
+            />
+          </PageHeader>
+        </div>
+        <div data-testid="waiting">
+          <PageHeader>
+            <PageHeader.Heading>
+              <PageHeader.Title>X800 Palletized Integration</PageHeader.Title>
+            </PageHeader.Heading>
+            <PageHeader.Slot
+              waitingOn={{
+                name: "R. Calloway",
+                role: "authorizing official",
+                since: eightDaysAgo,
+                onRemind: reminded,
+              }}
+              more={{
+                label: "More decision actions",
+                items: <DropdownMenuItem>Withdraw request</DropdownMenuItem>,
+              }}
+            />
+          </PageHeader>
+        </div>
+        <div data-testid="none">
+          <PageHeader>
+            <PageHeader.Heading>
+              <PageHeader.Title>WS-X90 Sentinel Mission System</PageHeader.Title>
+            </PageHeader.Heading>
+            <PageHeader.Slot
+              more={{
+                label: "More program actions",
+                items: <DropdownMenuItem>Edit program</DropdownMenuItem>,
+              }}
+            />
+          </PageHeader>
+        </div>
+      </Stack>
+    </HeadingLevelProvider>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    advanced.mockClear();
+    signed.mockClear();
+    reminded.mockClear();
+    const header = (form: string) => canvas.getByTestId(form);
+    for (const [id, form] of [
+      ["advance", "advance"],
+      ["sign", "sign"],
+      ["waiting", "waiting"],
+      ["none", "none"],
+    ] as const) {
+      await expect(slotOf(header(id))).toHaveAttribute("data-form", form);
+      await expectSlotPlaced(header(id));
+    }
+
+    // Advance: one 36px primary, described by why it is next, and the record's other commands.
+    const advance = within(header("advance"));
+    const act = advance.getByRole("button", { name: "Add evidence" });
+    await expect(act).toHaveAttribute("data-button-variant", "primary");
+    await expect(act.getBoundingClientRect().height).toBe(36);
+    await expect(act).toHaveAccessibleDescription(/REQ-064 cites none.*the only requirement/);
+    const more = advance.getByRole("button", { name: "More control actions" });
+    await expect(more.getBoundingClientRect().height).toBe(36);
+    await expect(advance.getAllByRole("button")).toHaveLength(2);
+    await userEvent.click(act);
+    await expect(advanced).toHaveBeenCalledTimes(1);
+
+    // Sign: the sign Button alone, described by the capacity the reader signs in.
+    const sign = within(header("sign"));
+    const signature = sign.getByRole("button", { name: "Approve security plan as R. Calloway" });
+    await expect(signature).toHaveAttribute("data-button-variant", "sign");
+    await expect(signature.getBoundingClientRect().height).toBe(36);
+    await expect(signature).toHaveAccessibleDescription("Signing as authorizing official");
+    await expect(sign.getAllByRole("button")).toHaveLength(1);
+    // Command+Enter (Control+Enter elsewhere) signs from the page; a bare Enter does not.
+    act.focus();
+    await userEvent.keyboard("{Enter}");
+    await expect(signed).not.toHaveBeenCalled();
+    const mod = getModifierKey() === "meta" ? "Meta" : "Control";
+    await userEvent.keyboard(`{${mod}>}{Enter}{/${mod}}`);
+    await expect(signed).toHaveBeenCalledTimes(1);
+
+    // Waiting: who and since when, then Remind, a 36px secondary described by the wait. No primary.
+    const waiting = header("waiting");
+    await expect(within(waiting).getByText("Waiting on R. Calloway")).toBeVisible();
+    await expect(waiting.querySelector("time")).toHaveAttribute("datetime");
+    const remind = within(waiting).getByRole("button", { name: "Remind" });
+    await expect(remind).toHaveAttribute("data-button-variant", "secondary");
+    await expect(remind.getBoundingClientRect().height).toBe(36);
+    await expect(remind).toHaveAccessibleDescription(/Waiting on R\. Calloway/);
+    await expect(waiting.querySelector('[data-button-variant="primary"]')).toBeNull();
+    await userEvent.click(remind);
+    await expect(reminded).toHaveBeenCalledTimes(1);
+
+    // None: the record's other commands alone.
+    const none = within(header("none")).getAllByRole("button");
+    await expect(none).toHaveLength(1);
+    await expect(none[0]).toHaveAccessibleName("More program actions");
+  },
+};
+
+/**
+ * On an Overview the standing is the headline: one line under the name and the slot, in the
+ * display size, of two beats at most. A count reads its figure and what it counts, with what it is
+ * out of in the subtle weight; a beat that is a judgement takes its tone. The name stays the h1 and
+ * the standing is not a heading. Where the line has the room the beats share it.
+ */
+export const Standing: Story = {
+  name: "Standing headline",
+  render: () => (
+    <PageHeader>
+      <PageHeader.Lead render={<Breadcrumb />}>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink href="#components">Components</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>Mission Computer</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </PageHeader.Lead>
+      <PageHeader.Heading>
+        <PageHeader.Title>Mission Computer</PageHeader.Title>
+      </PageHeader.Heading>
+      <PageHeader.Slot
+        advance={{
+          label: "Review offer",
+          reason: "1 offer waiting",
+          detail: "CVE-2024-6387 from WS-X90",
+          onAction: advanced,
+        }}
+      />
+      <PageHeader.Standing
+        beats={[
+          { value: 42, total: 61, label: "satisfied" },
+          { value: 2, label: "to review", tone: "warning" },
+        ]}
+      />
+    </PageHeader>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    // The name is the one heading; the standing is not one.
+    await expect(canvas.getAllByRole("heading")).toHaveLength(1);
+    const title = canvas.getByRole("heading", { level: 1, name: "Mission Computer" });
+    const standing = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="page-header-standing"]',
+    )!;
+    const beats = [
+      ...standing.querySelectorAll<HTMLElement>('[data-slot="page-header-standing-beat"]'),
+    ];
+    await expect(beats).toHaveLength(2);
+    await expect(beats[0]).toHaveTextContent("42 of 61 satisfied");
+    await expect(beats[1]).toHaveTextContent("2 to review");
+    await expect(beats[1]).toHaveAttribute("data-tone", "warning");
+    for (const beat of beats) await expect(getComputedStyle(beat).fontSize).toBe("32px");
+    // The total is in the subtle weight; the figure keeps the beat's.
+    const of = beats[0]!.querySelector("span")!;
+    await expect(of).toHaveTextContent("of 61");
+    await expect(Number(getComputedStyle(of).fontWeight)).toBeLessThan(
+      Number(getComputedStyle(beats[0]!).fontWeight),
+    );
+    // Under the name and the slot, across the header.
+    const slot = canvasElement.querySelector('[data-slot="page-header-slot"]')!;
+    await expect(standing.getBoundingClientRect().top).toBeGreaterThanOrEqual(
+      Math.max(title.getBoundingClientRect().bottom, slot.getBoundingClientRect().bottom) - 0.5,
+    );
+    // Two beats share the line where it has the room (32rem), and take a line each where it does not.
+    const [first, second] = beats.map((beat) => beat.getBoundingClientRect());
+    if (standing.getBoundingClientRect().width >= 512)
+      await expect(Math.round(second!.top)).toBe(Math.round(first!.top));
+    else await expect(second!.top).toBeGreaterThanOrEqual(first!.bottom - 0.5);
+    for (const beat of beats)
+      await expect(beat.scrollWidth).toBeLessThanOrEqual(beat.clientWidth + 1);
+  },
+};
+
+/**
+ * On a phone the standing gives each beat its line, from its own width, never the window's: two
+ * beats of words, the judgement in its tone, under the name with the slot's act on the row below.
+ */
+export const StandingOnAPhone: Story = {
+  name: "Standing headline on a phone",
+  globals: { viewport: { value: "ledgerPhone", isRotated: false } },
+  render: () => (
+    <PageHeader>
+      <PageHeader.Heading>
+        <PageHeader.Title>WS-X90 Sentinel Mission System</PageHeader.Title>
+      </PageHeader.Heading>
+      <PageHeader.Slot
+        advance={{
+          label: "Add security outcomes",
+          reason: "PDR cannot be decided",
+          detail: "no criteria recorded",
+          onAction: advanced,
+        }}
+      />
+      <PageHeader.Standing
+        beats={[{ value: "ATO with conditions." }, { value: "PDR 35d late.", tone: "danger" }]}
+      />
+    </PageHeader>
+  ),
+  play: async ({ canvasElement }) => {
+    await waitFor(() => expect(window.innerWidth).toBe(390));
+    const canvas = within(canvasElement);
+    const title = canvas.getByRole("heading", { level: 1 }).getBoundingClientRect();
+    const act = canvas
+      .getByRole("button", { name: "Add security outcomes" })
+      .getBoundingClientRect();
+    await expect(act.top).toBeGreaterThanOrEqual(title.bottom);
+    const beats = [
+      ...canvasElement.querySelectorAll<HTMLElement>('[data-slot="page-header-standing-beat"]'),
+    ];
+    await expect(beats).toHaveLength(2);
+    await expect(beats[1]).toHaveAttribute("data-tone", "danger");
+    // One beat a line, each inside the phone.
+    const [first, second] = beats.map((beat) => beat.getBoundingClientRect());
+    await expect(second!.top).toBeGreaterThanOrEqual(first!.bottom - 0.5);
+    await expect(Math.round(second!.left)).toBe(Math.round(first!.left));
+    for (const beat of beats) {
+      await expect(beat.getBoundingClientRect().right).toBeLessThanOrEqual(window.innerWidth);
+      await expect(beat.scrollWidth).toBeLessThanOrEqual(beat.clientWidth + 1);
+    }
   },
 };

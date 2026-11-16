@@ -43,56 +43,201 @@
 }
 
 /* ---------- the paint ----------
-   A segment's tone and fill. A Ladder row's marks are the same segments standing apart, one an
-   item, so they are painted here too and the two can never drift: the row sets only their size. */
-:is([data-slot="tally-segment"], [data-slot="ladder-mark"]) {
+   A segment's tone and fill. A Ladder row's marks and a Meter's are the same segments standing
+   apart, one an item, and a Climb's segments and swatches are the same segments again, so they
+   are painted here too and none can drift: each part sets only their size. */
+:is(
+  [data-slot="tally-segment"],
+  [data-slot="ladder-mark"],
+  [data-slot="meter-mark"],
+  [data-slot="climb-segment"],
+  [data-slot="climb-swatch"]
+) {
   --tally-ink: var(--ds-color-chart-neutral);
   background-color: var(--tally-ink);
 }
-:is([data-slot="tally-segment"], [data-slot="ladder-mark"])[data-tone="brand"] {
+:is(
+  [data-slot="tally-segment"],
+  [data-slot="ladder-mark"],
+  [data-slot="meter-mark"],
+  [data-slot="climb-segment"],
+  [data-slot="climb-swatch"]
+)[data-tone="brand"] {
   --tally-ink: var(--ds-color-chart-brand);
 }
-:is([data-slot="tally-segment"], [data-slot="ladder-mark"])[data-tone="information"] {
+:is(
+  [data-slot="tally-segment"],
+  [data-slot="ladder-mark"],
+  [data-slot="meter-mark"],
+  [data-slot="climb-segment"],
+  [data-slot="climb-swatch"]
+)[data-tone="information"] {
   --tally-ink: var(--ds-color-chart-information);
 }
-:is([data-slot="tally-segment"], [data-slot="ladder-mark"])[data-tone="success"] {
+:is(
+  [data-slot="tally-segment"],
+  [data-slot="ladder-mark"],
+  [data-slot="meter-mark"],
+  [data-slot="climb-segment"],
+  [data-slot="climb-swatch"]
+)[data-tone="success"] {
   --tally-ink: var(--ds-color-chart-success);
 }
-:is([data-slot="tally-segment"], [data-slot="ladder-mark"])[data-tone="warning"] {
+:is(
+  [data-slot="tally-segment"],
+  [data-slot="ladder-mark"],
+  [data-slot="meter-mark"],
+  [data-slot="climb-segment"],
+  [data-slot="climb-swatch"]
+)[data-tone="warning"] {
   --tally-ink: var(--ds-color-chart-warning);
 }
-:is([data-slot="tally-segment"], [data-slot="ladder-mark"])[data-tone="danger"] {
+:is(
+  [data-slot="tally-segment"],
+  [data-slot="ladder-mark"],
+  [data-slot="meter-mark"],
+  [data-slot="climb-segment"],
+  [data-slot="climb-swatch"]
+)[data-tone="danger"] {
   --tally-ink: var(--ds-color-chart-danger);
 }
-:is([data-slot="tally-segment"], [data-slot="ladder-mark"])[data-tone="sequential.1"] {
+:is(
+  [data-slot="tally-segment"],
+  [data-slot="ladder-mark"],
+  [data-slot="meter-mark"],
+  [data-slot="climb-segment"],
+  [data-slot="climb-swatch"]
+)[data-tone="sequential.1"] {
   --tally-ink: var(--ds-color-chart-sequential-1);
 }
-:is([data-slot="tally-segment"], [data-slot="ladder-mark"])[data-tone="sequential.2"] {
+:is(
+  [data-slot="tally-segment"],
+  [data-slot="ladder-mark"],
+  [data-slot="meter-mark"],
+  [data-slot="climb-segment"],
+  [data-slot="climb-swatch"]
+)[data-tone="sequential.2"] {
   --tally-ink: var(--ds-color-chart-sequential-2);
 }
-:is([data-slot="tally-segment"], [data-slot="ladder-mark"])[data-tone="sequential.3"] {
+:is(
+  [data-slot="tally-segment"],
+  [data-slot="ladder-mark"],
+  [data-slot="meter-mark"],
+  [data-slot="climb-segment"],
+  [data-slot="climb-swatch"]
+)[data-tone="sequential.3"] {
   --tally-ink: var(--ds-color-chart-sequential-3);
 }
-:is([data-slot="tally-segment"], [data-slot="ladder-mark"])[data-tone="sequential.4"] {
+:is(
+  [data-slot="tally-segment"],
+  [data-slot="ladder-mark"],
+  [data-slot="meter-mark"],
+  [data-slot="climb-segment"],
+  [data-slot="climb-swatch"]
+)[data-tone="sequential.4"] {
   --tally-ink: var(--ds-color-chart-sequential-4);
 }
-:is([data-slot="tally-segment"], [data-slot="ladder-mark"])[data-tone="sequential.5"] {
+:is(
+  [data-slot="tally-segment"],
+  [data-slot="ladder-mark"],
+  [data-slot="meter-mark"],
+  [data-slot="climb-segment"],
+  [data-slot="climb-swatch"]
+)[data-tone="sequential.5"] {
   --tally-ink: var(--ds-color-chart-sequential-5);
 }
 /* Hollow: it was there and is not now. The surface shows through, edged in the tone. */
-:is([data-slot="tally-segment"], [data-slot="ladder-mark"])[data-fill="outline"] {
+:is(
+  [data-slot="tally-segment"],
+  [data-slot="ladder-mark"],
+  [data-slot="meter-mark"],
+  [data-slot="climb-segment"],
+  [data-slot="climb-swatch"]
+)[data-fill="outline"] {
   background-color: var(--ds-utility-elevation-surface-current);
   box-shadow: inset 0 0 0 var(--tally-edge, var(--ds-border-width)) var(--tally-ink);
 }
 /* Empty: the track's own colour, for a caller that names the rest as a segment. */
-:is([data-slot="tally-segment"], [data-slot="ladder-mark"])[data-fill="empty"] {
+:is(
+  [data-slot="tally-segment"],
+  [data-slot="ladder-mark"],
+  [data-slot="meter-mark"],
+  [data-slot="climb-segment"],
+  [data-slot="climb-swatch"]
+)[data-fill="empty"] {
   background-color: transparent;
+}
+
+/* ---------- Meter: N of M as its marks, one an item, beside the count ----------
+   Its marks are a tally's segments standing apart, painted above: met is filled, open is hollow,
+   and late is hatched in the danger tone, so a late item is told by its shape as well as its
+   colour. The hatch is ProgressStacked's: a hairline every `space.025`. */
+[data-slot="meter"] {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-100);
+  max-inline-size: 100%;
+  vertical-align: middle;
+}
+[data-slot="meter-marks"] {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--ds-space-025);
+  min-inline-size: 0;
+}
+[data-slot="meter-mark"] {
+  flex: none;
+  inline-size: var(--ds-space-100);
+  block-size: var(--ds-space-100);
+  border-radius: var(--ds-radius-xsmall);
+}
+[data-slot="meter"][data-size="large"] [data-slot="meter-mark"] {
+  inline-size: var(--ds-space-150);
+  block-size: var(--ds-space-150);
+}
+[data-slot="meter-mark"][data-state="late"] {
+  background-image: repeating-linear-gradient(
+    135deg,
+    transparent 0 var(--ds-space-025),
+    var(--tally-ink) var(--ds-space-025) calc(var(--ds-space-025) + var(--ds-border-width))
+  );
+}
+
+/* ---------- Climb: a whole, rung by rung, as one bar ----------
+   Each segment is what stopped under a rung, to scale against the whole, and the last is what
+   reached the top. A segment grows by its count from nothing and is never thinner than three
+   pixels (`space.025` and a hairline), so one of hundreds still shows; the rest share what is
+   left in proportion, as flexbox frees a segment held at its least size. A hairline of the
+   surface parts them. There is no track behind them, so `empty` paints the track's own colour. */
+[data-slot="climb-bar"] {
+  display: flex;
+  gap: var(--ds-border-width);
+  inline-size: 100%;
+  min-inline-size: 0;
+  block-size: var(--ds-space-100);
+}
+[data-slot="climb-segment"] {
+  flex: 0 1 0%;
+  min-inline-size: calc(var(--ds-space-025) + var(--ds-border-width));
+  block-size: 100%;
+  border-radius: var(--ds-radius-xsmall);
+  transition: flex-grow var(--ds-motion-duration-moderate) var(--ds-motion-easing-standard);
+}
+[data-slot="climb-swatch"] {
+  flex: none;
+  inline-size: var(--ds-space-100);
+  block-size: var(--ds-space-100);
+  border-radius: var(--ds-radius-xsmall);
+}
+:is([data-slot="climb-segment"], [data-slot="climb-swatch"])[data-fill="empty"] {
+  background-color: var(--ds-color-chart-track);
 }
 
 /* A value changes while the structure stays: the segments ease to their new shares. Reduced
    motion switches them. */
 @media (prefers-reduced-motion: reduce) {
-  [data-slot="tally-segment"] {
+  [data-slot="tally-segment"],
+  [data-slot="climb-segment"] {
     transition: none;
   }
 }
@@ -107,15 +252,46 @@
   [data-slot="tally"][data-tone="danger"] > [data-slot="tally-track"] {
     box-shadow: inset 0 0 0 var(--tally-edge) CanvasText;
   }
-  :is([data-slot="tally-segment"], [data-slot="ladder-mark"]) {
+  :is(
+    [data-slot="tally-segment"],
+    [data-slot="ladder-mark"],
+    [data-slot="meter-mark"],
+    [data-slot="climb-segment"],
+    [data-slot="climb-swatch"]
+  ) {
     forced-color-adjust: none;
     background-color: CanvasText;
   }
-  :is([data-slot="tally-segment"], [data-slot="ladder-mark"])[data-fill="outline"] {
+  :is(
+    [data-slot="tally-segment"],
+    [data-slot="ladder-mark"],
+    [data-slot="meter-mark"],
+    [data-slot="climb-segment"],
+    [data-slot="climb-swatch"]
+  )[data-fill="outline"] {
     background-color: Canvas;
     box-shadow: inset 0 0 0 var(--tally-edge, var(--ds-border-width)) CanvasText;
   }
-  :is([data-slot="tally-segment"], [data-slot="ladder-mark"])[data-fill="empty"] {
+  :is(
+    [data-slot="tally-segment"],
+    [data-slot="ladder-mark"],
+    [data-slot="meter-mark"],
+    [data-slot="climb-segment"],
+    [data-slot="climb-swatch"]
+  )[data-fill="empty"] {
     background-color: transparent;
+  }
+  /* A climb has no track: its empty segments are the track's outline. A late mark keeps its
+     hatch, in the system's text colour. */
+  :is([data-slot="climb-segment"], [data-slot="climb-swatch"])[data-fill="empty"] {
+    background-color: Canvas;
+    box-shadow: inset 0 0 0 var(--ds-border-width) GrayText;
+  }
+  [data-slot="meter-mark"][data-state="late"] {
+    background-image: repeating-linear-gradient(
+      135deg,
+      transparent 0 var(--ds-space-025),
+      CanvasText var(--ds-space-025) calc(var(--ds-space-025) + var(--ds-border-width))
+    );
   }
 }

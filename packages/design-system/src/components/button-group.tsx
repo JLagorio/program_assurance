@@ -38,7 +38,7 @@ export function ButtonGroup({ className, orientation = "horizontal", ...props }:
 export type ButtonGroupTextProps = useRender.ComponentProps<"div"> & {
   /**
    * The size of the controls beside it, so the text is never shorter than they are: `medium` 32px
-   * (the default, as on Button), `small` 28px or `xsmall` 24px. In a vertical group, where it would
+   * (the default, as on Button), `large` 36px, `small` 28px or `xsmall` 24px. In a vertical group, where it would
    * otherwise be only as tall as its words, it takes the controls' height.
    */
   size?: ButtonSize | undefined;
@@ -48,6 +48,7 @@ const textHeights: Record<ButtonSize, string> = {
   xsmall: "min-h-control-xsmall px-100",
   small: "min-h-control-small px-150",
   medium: "min-h-control-medium px-150",
+  large: "min-h-control-large px-200",
 };
 
 export function ButtonGroupText({

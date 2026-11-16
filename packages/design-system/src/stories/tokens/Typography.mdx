@@ -45,11 +45,14 @@ The bundler copies the font files with the rest of the build, so the page needs 
 | `font.heading.overlay` | `font-heading-overlay` | 17/24 | semibold | Heading `overlay`: an overlay's title (DialogTitle, SheetTitle, AlertDialogTitle, DrawerTitle), a card's title, a group inside an overlay. |
 | `font.heading.section` | `font-heading-section` | 15/22 | semibold | Heading `section`: a section's title (Section.Title), a step above the body at semibold. |
 | `font.heading.xxsmall` | `font-heading-xxsmall` | 11/14 | medium | Eyebrows, group headings, menu section labels. The component adds the uppercase. |
+| `font.figure` | `font-figure` | 20/26 | semibold | A figure that stands for its row: the count in a table cell or a card read first (234 to assess). Not a title. Add `tabular-nums` beside it. |
 | `font.body.large` | `font-body-large` | 15/22 | regular | Reading text and dialog body. |
 | `font.body` | `font-body` | 13/18 | regular | Controls, cells, tabs, inputs, menu items. |
 | `font.body.small` | `font-body-small` | 12/16 | regular | Table headers, field labels, badges, KeyValue. Labels add `font-medium`. |
 | `font.body.xsmall` | `font-body-xsmall` | 11/14 | regular | Eyebrow, counts, metadata. |
 | `font.code` | `font-code` | 12/18 | regular | Code blocks only. |
+
+`font.figure` is in the source as `font.figure.default`, so a larger figure can join it later; nothing draws it yet, and no Text or Heading `size` reaches it.
 
 Text takes the body ramp as `size` (`large`, `medium`, `small`, `xsmall`). Heading takes the heading ramp the same way (`page`, `overlay`, `section`, `display`). Eyebrow is `font.heading.xxsmall`, uppercased.
 
@@ -70,7 +73,7 @@ These steps are deprecated and stay for one version. Nothing in the kit sets the
 | --- | --- | --- |
 | `font.weight.regular` | `font-regular` | Body, cells, controls. |
 | `font.weight.medium` | `font-medium` | Labels, UI headings, emphasis inside body text. |
-| `font.weight.semibold` | `font-semibold` | Titles (a page's, a record's, a section's, a panel's) and a Stat's figure. Never running text. |
+| `font.weight.semibold` | `font-semibold` | Titles (a page's, a record's, a section's, a panel's), a Stat's figure and `font.figure`. Never running text. |
 
 ## Letter-spacing
 
@@ -80,7 +83,7 @@ Tracking tightens as size grows. Each composite carries its own step; there is n
 | --- | --- | --- |
 | `font.letterSpacing.100` | -0.004em | `font.body.small`, `font.body.xsmall` |
 | `font.letterSpacing.200` | -0.008em | `font.body`, `font.body.large`, `font.heading.section` |
-| `font.letterSpacing.300` | -0.015em | `font.heading.page`, `font.heading.overlay` |
+| `font.letterSpacing.300` | -0.015em | `font.heading.page`, `font.heading.overlay`, `font.figure` |
 | `font.letterSpacing.400` | -0.02em | `font.heading.display` |
 | `font.letterSpacing.500` | 0.06em | `font.heading.xxsmall`: uppercase micro labels |
 | `font.letterSpacing.0` | 0 | `font.code` |

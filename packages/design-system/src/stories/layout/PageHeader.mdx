@@ -1,5 +1,11 @@
 import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
-import { PageHeader, PageHeaderLead, PageHeaderTitle } from "../..";
+import {
+  PageHeader,
+  PageHeaderLead,
+  PageHeaderSlot,
+  PageHeaderStanding,
+  PageHeaderTitle,
+} from "../..";
 import * as Stories from "./PageHeader.stories";
 
 <Meta of={Stories} />
@@ -28,13 +34,39 @@ Use PageHeader.Title once for the page's h1. Actions sit at the end of the title
 
 ## Actions and their sizes
 
-| Where                    | Actions                                                                                                                                                                                            |
-| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| A register               | None. The create action is the Toolbar's small primary.                                                                                                                                            |
-| A record page            | One default-size primary Button, or one default-size Actions menu: a Button labelled Actions with a trailing ChevronDown, its items the record's operations, and a link item for each destination. |
-| A preview's inner header | One small primary, then the rest behind a subtle small IconButton that opens a menu.                                                                                                               |
+| Where                    | Actions                                                                                                                                                                                                                                                     |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A register               | None. The create action is the Toolbar's small primary.                                                                                                                                                                                                     |
+| A record page            | One default-size primary Button, or one default-size Actions menu: a Button labelled Actions with a trailing ChevronDown, its items the record's operations, and a link item for each destination. Or the action slot, whose act, sign and Remind are 36px. |
+| A preview's inner header | One small primary, then the rest behind a subtle small IconButton that opens a menu.                                                                                                                                                                        |
 
 A destination in an Actions menu is a link item (`DropdownMenuLinkItem`, or an item rendered as a router link), so it opens in a new tab; a Button in the header acts, never navigates.
+
+## The action slot
+
+`PageHeader.Slot` is a record's one place for what happens next, at the end of the title's row in PageHeader.Actions' place, and it keeps Actions' wrap rule. It has four forms and no others, one prop each, and TypeScript refuses two at once:
+
+| Form    | Prop        | What it draws                                                                                                                                                                                                                                                        |
+| ------- | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Advance | `advance`   | The reader's own next step: why it is next (`reason`, at medium weight, and a smaller `detail` under it), then the act, a 36px primary named by `label`. The reason is the act's description. `onAction` runs it here; `link` makes it a LinkButton to another page. |
+| Sign    | `sign`      | A signature the reader owes: "Signing as" and their `role`, then a [Button](?path=/docs/components-button--docs) with `intent="sign"` and the reader as `signer`, which Command+Enter presses. The words are its description.                                        |
+| Waiting | `waitingOn` | Who the record waits on, by `name` and `role`, and since when (`since`, said relative to now with the full moment in its tooltip), then Remind, a 36px secondary described by the wait, where the reader may remind (`onRemind`).                                    |
+| None    | none        | Nothing of its own: the record has no next step here, and the slot holds only `more`.                                                                                                                                                                                |
+
+`more` is the record's other commands behind a subtle 36px icon button at the slot's end: `label` names the record ("More control actions") and `items` are the menu's items, Inspect record last. Every form may have it. A slot with no form and no `more` draws nothing.
+
+The slot never shows a disabled primary: when the reader cannot take the next step, the record waits on someone (Waiting) or has none (None). One slot a record, and nothing else in the header's actions. The slot and the standing are experimental: their API may change before they are stable.
+
+<Canvas of={Stories.ActionSlot} />
+
+## The standing headline
+
+`PageHeader.Standing` says where the record stands, in the display size (32/40), on one line under the name and the slot: a direct child of PageHeader after the slot, it takes the header's full width. `beats` is one beat or two, never more: on an Overview, where the record stands and then what needs doing. A beat is a count (`value` in the reader's locale, `total` after it in the subtle weight, "42 of 61", then its `label`, "satisfied") or a few words ("ATO with conditions."); `tone` colours a beat that is a judgement, "PDR 35d late." in `danger`, and most stay in the text colour. The name stays the h1, and the standing is not a heading or a link.
+
+It reads its own width, never the window's: where the line has the room the beats share it, and under 32rem, a phone or a narrow panel, each beat takes a line of its own.
+
+<Canvas of={Stories.Standing} />
+<Canvas of={Stories.StandingOnAPhone} />
 
 <Canvas of={Stories.WithDescription} />
 
@@ -56,7 +88,7 @@ The Title is a [Heading](?path=/docs/primitives-heading--docs) at `page`, 24/30 
 
 ## Props
 
-No other part has props of its own: the root and Lead are a `div` or the element given to `render`, Heading and Actions are `div`s, and Description a `p`; each takes its element's native props and ref, and names itself last with `data-slot`. Title takes `render` and its element's props. Every part is also exported by name (`PageHeaderLead`, `PageHeaderHeading`, `PageHeaderTitle`, `PageHeaderDescription`, `PageHeaderActions`), the same component as the member.
+The root and Lead are a `div` or the element given to `render`, Heading and Actions are `div`s, and Description a `p`; each takes its element's native props and ref, and names itself last with `data-slot`. Title takes `render` and its element's props. Slot and Standing are `div`s with props of their own, below. Every part is also exported by name (`PageHeaderLead`, `PageHeaderHeading`, `PageHeaderTitle`, `PageHeaderDescription`, `PageHeaderActions`, `PageHeaderSlot`, `PageHeaderStanding`), the same component as the member.
 
 <ArgTypes of={PageHeader} />
 
@@ -67,3 +99,11 @@ No other part has props of its own: the root and Lead are a `div` or the element
 ### PageHeader.Lead
 
 <ArgTypes of={PageHeaderLead} />
+
+### PageHeader.Slot
+
+<ArgTypes of={PageHeaderSlot} />
+
+### PageHeader.Standing
+
+<ArgTypes of={PageHeaderStanding} />

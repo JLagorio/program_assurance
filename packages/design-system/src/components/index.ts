@@ -430,6 +430,8 @@ export {
   type TallySize,
   type TallyTone,
 } from "./tally";
+export { Meter, type MeterProps, type MeterSize } from "./meter";
+export { Climb, type ClimbProps, type ClimbRung } from "./climb";
 export {
   PhaseBar,
   PhaseBarItem,
@@ -686,6 +688,7 @@ export {
   type PersonProps,
   Person,
 } from "./avatar";
+export { EmptySeat, type EmptySeatProps } from "./empty-seat";
 
 export { type InputProps, Input } from "./input";
 

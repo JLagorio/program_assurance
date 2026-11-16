@@ -15,21 +15,22 @@ Board sources: `artifacts/prototypes/ux-proposal-2026-11-pass2/` (a gitignored l
 
 ## 0. Before anything is built
 
-- [ ] Josef's final approval of the proposal and the prototype
+- [x] Go-ahead to start building: 2026-11-16, on the branch `ux-proposal-build`
 - [ ] The 19 open decisions settled or deferred. Four change what is built first: inherited stands over missing evidence (SI-4(2)); a version that lists nothing affected carries everything; an inherited control's next step leads to the component's assessment; Open CVEs count the versions in use
-- [ ] The parked shared-component work: keep, revert only the seed, or undo (seven migrations, the seed and typed modules, uncommitted)
+- [x] The shared-component work (seven migrations, the seed, typed modules) is committed on `design-system`
 
 The order below is a proposal; where to start is still open (D8).
 
 ## 1. Ledger first (`packages/design-system`)
 
-Twelve parts, each built on one that ships. One at a time through `/ledger-add-part`; the sheet on the mocks canvas is the spec. The parts and the seven tokens are themselves an open decision.
+Twelve parts, each built on one that ships, through `/ledger-add-part`; the sheet on the mocks canvas is the spec. Building them accepts the sheets as Ledger's next scope. Each new part starts Experimental.
 
-- [ ] Foundations: the seven tokens (sheet: Type, colour and surfaces)
-- [ ] Standing headline, Action slot, Sign button, on `PageHeader` and `Button` (sheet: Record header and buttons)
+- [x] Foundations: the seven tokens (sheet: Type, colour and surfaces)
+- [x] Standing headline, Action slot, Sign button, on `PageHeader` and `Button` (sheet: Record header and buttons)
 - [ ] Path and Due rail, on `Stepper`, `Timeline`, `Chart` (sheet: Time: rail, path cell, clocks)
-- [ ] Empty seat, on `Avatar` and `Absent` (sheet: Readiness, seats and signatures)
-- [ ] Meter, Climb, Objective cells, on `Tally`, `Ladder`, `Table`, `TileMap` (sheet: Counting: bars, rungs, marks)
+- [x] Empty seat, its own part beside `Avatar` and `Absent` (sheet: Readiness, seats and signatures)
+- [x] Meter and Climb, on `Tally` and `Progress` (sheet: Counting: bars, rungs, marks)
+- [ ] Objective cells, on `Table` and `TileMap` (sheet: Counting: bars, rungs, marks)
 - [ ] Chain rail, on `Trace` (sheet: The chain)
 - [ ] Work row, on `Item` (sheet: Rows)
 - [ ] Decision keys, on `RadioGroup` and `Kbd` (sheet: Review workspace)
@@ -43,8 +44,8 @@ Twelve parts, each built on one that ships. One at a time through `/ledger-add-p
 
 ## 3. Data (`supabase/`, `src/lib`)
 
-- [ ] Shared components: commit the parked schema (migrations `20261115070043` to `20261115172957`, seven schema tests pass locally) or redo it
-- [ ] Before it is committed: the plan-cache slowdown in `program_objective_placement_answer`; the seed's Mission Computer 2 published, with AC-17(2) and SC-23 to review; Open CVEs counted per version in use
+- [x] Shared components: the schema (migrations `20261115070043` to `20261115172957`) and its seven schema tests are committed
+- [ ] Fix, before a screen reads it: the plan-cache slowdown in `program_objective_placement_answer`; the seed's Mission Computer 2 published, with AC-17(2) and SC-23 to review; Open CVEs counted per version in use
 - [ ] Per flow, what the schema still lacks (checked as each flow starts)
 
 ## 4. Screens, a flow at a time

@@ -34,7 +34,7 @@ export type LinkButtonVariant = "primary" | "secondary" | "subtle" | "danger";
 export type LinkButtonProps = useRender.ComponentProps<"a"> & {
   /** Secondary is the default; primary emphasizes the main destination. A link in text is TextLink. */
   variant?: LinkButtonVariant | undefined;
-  /** Medium is 32px, small 28px and xsmall 24px, as on Button. */
+  /** Medium is 32px, small 28px, xsmall 24px and large 36px, as on Button. */
   size?: ButtonSize | undefined;
   /** Fill the available width. */
   isFullWidth?: boolean | undefined;
