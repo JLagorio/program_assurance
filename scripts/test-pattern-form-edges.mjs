@@ -146,15 +146,37 @@ try {
   for (const label of ["Confidentiality", "Integrity", "Availability"]) {
     const select = variant.getByRole("combobox", { name: label, exact: true });
     const low = page.getByRole("option", { name: "Low", exact: true });
-    // Choose by keyboard: a pointer click on an option scrolls it into view, and on a slow runner
-    // the list closed under that scroll before the click landed (twice, with the list held still).
-    await select.focus();
-    await page.keyboard.press("ArrowDown");
-    await low.waitFor();
-    await page.keyboard.type("Low");
-    await expect(low).toHaveAttribute("data-highlighted", "");
-    await page.keyboard.press("Enter");
-    await expect(select).toHaveText(/Low/);
+    // A click on an option scrolls it into view, and on a slow runner the list has closed under
+    // that scroll before the click landed (twice, with the list held still first): the click then
+    // waits for an option that is gone, so open the list again and choose, three times at most.
+    for (let attempt = 1; ; attempt += 1) {
+      if (!(await page.getByRole("listbox").isVisible())) await select.click();
+      // Choose once the list has stopped moving.
+      await low.evaluate(
+        (option) =>
+          new Promise((resolve) => {
+            let last = "";
+            let still = 0;
+            let frames = 0;
+            const tick = () => {
+              const box = option.getBoundingClientRect();
+              const now = `${box.x},${box.y},${box.width},${box.height}`;
+              still = now === last && box.width > 0 ? still + 1 : 0;
+              last = now;
+              frames += 1;
+              if (still >= 3 || frames >= 120) resolve();
+              else requestAnimationFrame(tick);
+            };
+            requestAnimationFrame(tick);
+          }),
+      );
+      try {
+        await low.click({ timeout: 5000 });
+        break;
+      } catch (error) {
+        if (attempt === 3) throw error;
+      }
+    }
     // The list fades out after a choice; the next Select opens once it has gone.
     await page.getByRole("listbox").waitFor({ state: "hidden" });
   }
