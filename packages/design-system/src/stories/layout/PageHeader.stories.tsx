@@ -15,14 +15,17 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLinkItem,
+  Fact,
   getModifierKey,
   HeadingLevelProvider,
   IconButton,
   PageHeader,
+  PageHeaderFacts,
   PageHeaderLead,
   PageHeaderSlot,
   PageHeaderStanding,
   PageHeaderTitle,
+  type PageHeaderStandingDate,
   Section,
   Stack,
   Toolbar,
@@ -37,7 +40,13 @@ const { Pair } = pairLayout;
 const meta = {
   title: "Layout/PageHeader",
   component: PageHeader,
-  subcomponents: { PageHeaderTitle, PageHeaderLead, PageHeaderSlot, PageHeaderStanding },
+  subcomponents: {
+    PageHeaderTitle,
+    PageHeaderLead,
+    PageHeaderSlot,
+    PageHeaderFacts,
+    PageHeaderStanding,
+  },
   parameters: { layout: "padded" },
 } satisfies Meta<typeof PageHeader>;
 export default meta;
@@ -274,7 +283,7 @@ export const TitleLevels: Story = {
   },
 };
 
-/** A register's header is its name, and a record's is its trail, its name and its actions: the create action is the toolbar's, and the record's facts are labelled properties in its Details. */
+/** A register's header is its name, and a record's is its trail, its name, its facts line and its actions: the create action is the toolbar's, and the record's other facts are labelled properties in its Details. */
 export const DoDont: Story = {
   tags: ["!manifest"],
   name: "Do and don't",
@@ -333,6 +342,10 @@ export const DoDont: Story = {
                 </PageHeader.Lead>
                 <PageHeader.Heading>
                   <PageHeader.Title>Review privileged access</PageHeader.Title>
+                  <PageHeader.Facts>
+                    <PageHeader.Standing label="State" status="Approved" tone="success" />
+                    <Fact label="Owner">Dana Whitfield</Fact>
+                  </PageHeader.Facts>
                 </PageHeader.Heading>
                 <PageHeader.Actions>
                   <Button variant="primary">Edit requirement</Button>
@@ -340,7 +353,7 @@ export const DoDont: Story = {
               </PageHeader>
             </div>
           }
-          doText="The trail with the code, the name and one primary. Status, owner and due are labelled properties in the Details rail."
+          doText="The trail with the code, the name and one primary; under the name, the facts line: the standing and the few facts the reader acts on, each labelled. The rest are properties in the Details rail."
           dont={
             <div data-testid="record-dont">
               <PageHeader>
@@ -360,7 +373,7 @@ export const DoDont: Story = {
               </PageHeader>
             </div>
           }
-          dontText="The code in the name, the status, owner and due in the header and two buttons. The facts lose their labels, and the row wraps on a phone."
+          dontText="The code in the name, owner and due as a sentence, the status as a badge among the actions and two buttons. The facts lose their labels, and the row wraps on a phone."
         />
       </Stack>
     </HeadingLevelProvider>
@@ -374,12 +387,14 @@ export const DoDont: Story = {
     // The register's create action sits in its toolbar, not in the header.
     await expect(header("register-do")).not.toContainElement(create("register-do"));
     await expect(header("register-dont")).toContainElement(create("register-dont"));
-    // The record's header holds the trail, the name and one action, and none of its facts.
+    // The record's header holds the trail, the name, its facts line and one action: its facts
+    // labelled terms of a list, never a sentence or a badge among the actions.
     const record = header("record-do");
     await expect(within(record).getByRole("navigation", { name: "Breadcrumb" })).toBeVisible();
     await expect(within(record).getAllByRole("button")).toHaveLength(1);
     await expect(record.querySelector('[data-slot="badge"]')).toBeNull();
     await expect(record.querySelector('[data-slot="page-header-description"]')).toBeNull();
+    await expect(record.querySelectorAll('[data-slot="page-header-facts"] dt')).toHaveLength(2);
     const crowded = header("record-dont");
     await expect(crowded.querySelector('[data-slot="badge"]')).not.toBeNull();
     await expect(within(crowded).getAllByRole("button")).toHaveLength(2);
@@ -556,128 +571,261 @@ export const ActionSlot: Story = {
   },
 };
 
+/** The story's today, noon on Nov 16, 2026 in the provider's zone (UTC), so the dates read alike on every run. */
+const NOW = Date.parse("2026-11-16T12:00:00Z");
+
+/** The facts line of the header a story draws: a `dl` under the title. */
+const factsOf = (root: HTMLElement) =>
+  root.querySelector<HTMLElement>('[data-slot="page-header-facts"]')!;
+/** The facts in a facts line, a Fact or the standing each. */
+const factsIn = (facts: HTMLElement) => [...facts.children] as HTMLElement[];
+
 /**
- * On an Overview the standing is the headline: one line under the name and the slot, in the
- * display size, of two beats at most. A count reads its figure and what it counts, with what it is
- * out of in the subtle weight; a beat that is a judgement takes its tone. The name stays the h1 and
- * the standing is not a heading. Where the line has the room the beats share it.
+ * Under the name, the facts line: a few labelled facts in the body size, one of them the record's
+ * standing, its status in its tone and its most urgent date flagged as DateLabel flags one. The
+ * name stays the h1 and the only heading; the standing's label is heard, not drawn, since its
+ * words name it. Where the line has the room the facts share it.
  */
-export const Standing: Story = {
-  name: "Standing headline",
+export const Facts: Story = {
+  name: "Facts and standing",
   render: () => (
     <PageHeader>
       <PageHeader.Lead render={<Breadcrumb />}>
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbLink href="#components">Components</BreadcrumbLink>
+            <BreadcrumbLink href="#programs">Programs</BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbPage>Mission Computer</BreadcrumbPage>
+            <BreadcrumbPage>WS-X90</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </PageHeader.Lead>
       <PageHeader.Heading>
-        <PageHeader.Title>Mission Computer</PageHeader.Title>
+        <PageHeader.Title>WS-X90 Sentinel Mission System</PageHeader.Title>
+        <PageHeader.Facts>
+          <Fact label="Categorization">High · High · Moderate</Fact>
+          <PageHeader.Standing
+            label="Authorization"
+            status="ATO with conditions"
+            tone="warning"
+            date={{ value: "2026-10-12", name: "PDR", now: NOW }}
+          />
+        </PageHeader.Facts>
       </PageHeader.Heading>
-      <PageHeader.Slot
-        advance={{
-          label: "Review offer",
-          reason: "1 offer waiting",
-          detail: "CVE-2024-6387 from WS-X90",
-          onAction: advanced,
-        }}
-      />
-      <PageHeader.Standing
-        beats={[
-          { value: 42, total: 61, label: "satisfied" },
-          { value: 2, label: "to review", tone: "warning" },
-        ]}
-      />
+      <PageHeader.Actions>
+        <Button variant="primary">Edit program</Button>
+      </PageHeader.Actions>
     </PageHeader>
   ),
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    // The name is the one heading; the standing is not one.
+    // The name is the one heading; the facts line holds none.
     await expect(canvas.getAllByRole("heading")).toHaveLength(1);
-    const title = canvas.getByRole("heading", { level: 1, name: "Mission Computer" });
-    const standing = canvasElement.querySelector<HTMLElement>(
-      '[data-slot="page-header-standing"]',
-    )!;
-    const beats = [
-      ...standing.querySelectorAll<HTMLElement>('[data-slot="page-header-standing-beat"]'),
-    ];
-    await expect(beats).toHaveLength(2);
-    await expect(beats[0]).toHaveTextContent("42 of 61 satisfied");
-    await expect(beats[1]).toHaveTextContent("2 to review");
-    await expect(beats[1]).toHaveAttribute("data-tone", "warning");
-    for (const beat of beats) await expect(getComputedStyle(beat).fontSize).toBe("32px");
-    // The total is in the subtle weight; the figure keeps the beat's.
-    const of = beats[0]!.querySelector("span")!;
-    await expect(of).toHaveTextContent("of 61");
-    await expect(Number(getComputedStyle(of).fontWeight)).toBeLessThan(
-      Number(getComputedStyle(beats[0]!).fontWeight),
+    const title = canvas.getByRole("heading", { level: 1, name: "WS-X90 Sentinel Mission System" });
+    const facts = factsOf(canvasElement);
+    await expect(facts.tagName).toBe("DL");
+    const [categorization, standing] = factsIn(facts);
+    await expect(standing).toHaveAttribute("data-slot", "page-header-standing");
+    // A definition list: each fact a term and its value. The standing's term is heard, not drawn.
+    const term = standing!.querySelector("dt")!;
+    await expect(term).toHaveTextContent("Authorization");
+    await expect(term.getBoundingClientRect().width).toBeLessThanOrEqual(1);
+    const value = standing!.querySelector("dd")!;
+    // The status in its tone, then the date in words: late, flagged by its icon and the danger tone.
+    await expect(standing).toHaveAttribute("data-tone", "warning");
+    await expect(
+      value.querySelector('[data-slot="page-header-standing-status"]'),
+    ).toHaveTextContent("ATO with conditions");
+    const date = value.querySelector<HTMLElement>('[data-slot="page-header-standing-date"]')!;
+    await expect(date).toHaveAttribute("data-state", "overdue");
+    await expect(date.querySelector("svg")).toHaveAttribute("aria-hidden");
+    await expect(date.querySelector('span[aria-hidden="true"]')).toHaveTextContent("PDR 35d late");
+    // A screen reader hears the days in full.
+    await expect(date).toHaveTextContent(/PDR 35 days late/);
+    // Late is the danger tone, apart from the status's; forced colours keep the icon and words.
+    if (!matchMedia("(forced-colors: active)").matches)
+      await expect(getComputedStyle(date).color).not.toBe(
+        getComputedStyle(value.querySelector('[data-slot="page-header-standing-status"]')!).color,
+      );
+    // The body size, as every fact's value is, never a headline.
+    const factValue = categorization!.querySelector("dd")!;
+    await expect(getComputedStyle(value).fontSize).toBe(getComputedStyle(factValue).fontSize);
+    await expect(parseFloat(getComputedStyle(value).fontSize)).toBeLessThan(
+      parseFloat(getComputedStyle(title).fontSize),
     );
-    // Under the name and the slot, across the header.
-    const slot = canvasElement.querySelector('[data-slot="page-header-slot"]')!;
-    await expect(standing.getBoundingClientRect().top).toBeGreaterThanOrEqual(
-      Math.max(title.getBoundingClientRect().bottom, slot.getBoundingClientRect().bottom) - 0.5,
+    // Under the name, and on one line where the line has the room.
+    await expect(facts.getBoundingClientRect().top).toBeGreaterThanOrEqual(
+      title.getBoundingClientRect().bottom - 0.5,
     );
-    // Two beats share the line where it has the room (32rem), and take a line each where it does not.
-    const [first, second] = beats.map((beat) => beat.getBoundingClientRect());
-    if (standing.getBoundingClientRect().width >= 512)
-      await expect(Math.round(second!.top)).toBe(Math.round(first!.top));
-    else await expect(second!.top).toBeGreaterThanOrEqual(first!.bottom - 0.5);
-    for (const beat of beats)
-      await expect(beat.scrollWidth).toBeLessThanOrEqual(beat.clientWidth + 1);
+    const line = facts.getBoundingClientRect().width;
+    const needed =
+      categorization!.getBoundingClientRect().width + standing!.getBoundingClientRect().width;
+    if (line > needed + 32)
+      await expect(Math.round(standing!.getBoundingClientRect().top)).toBe(
+        Math.round(categorization!.getBoundingClientRect().top),
+      );
   },
 };
 
 /**
- * On a phone the standing gives each beat its line, from its own width, never the window's: two
- * beats of words, the judgement in its tone, under the name with the slot's act on the row below.
+ * On a phone the facts line wraps between facts, so each fact keeps its line whole: the standing
+ * takes the line under the categorization, at the same start, and nothing scrolls sideways.
  */
-export const StandingOnAPhone: Story = {
-  name: "Standing headline on a phone",
+export const FactsOnAPhone: Story = {
+  name: "Facts on a phone",
   globals: { viewport: { value: "ledgerPhone", isRotated: false } },
   render: () => (
     <PageHeader>
       <PageHeader.Heading>
         <PageHeader.Title>WS-X90 Sentinel Mission System</PageHeader.Title>
+        <PageHeader.Facts>
+          <Fact label="Categorization">High · High · Moderate</Fact>
+          <PageHeader.Standing
+            label="Authorization"
+            status="ATO with conditions"
+            tone="warning"
+            date={{ value: "2026-10-12", name: "PDR", now: NOW }}
+          />
+        </PageHeader.Facts>
       </PageHeader.Heading>
-      <PageHeader.Slot
-        advance={{
-          label: "Add security outcomes",
-          reason: "PDR cannot be decided",
-          detail: "no criteria recorded",
-          onAction: advanced,
-        }}
-      />
-      <PageHeader.Standing
-        beats={[{ value: "ATO with conditions." }, { value: "PDR 35d late.", tone: "danger" }]}
-      />
+      <PageHeader.Actions>
+        <Button variant="primary">Edit program</Button>
+      </PageHeader.Actions>
     </PageHeader>
   ),
   play: async ({ canvasElement }) => {
     await waitFor(() => expect(window.innerWidth).toBe(390));
-    const canvas = within(canvasElement);
-    const title = canvas.getByRole("heading", { level: 1 }).getBoundingClientRect();
-    const act = canvas
-      .getByRole("button", { name: "Add security outcomes" })
-      .getBoundingClientRect();
-    await expect(act.top).toBeGreaterThanOrEqual(title.bottom);
-    const beats = [
-      ...canvasElement.querySelectorAll<HTMLElement>('[data-slot="page-header-standing-beat"]'),
-    ];
-    await expect(beats).toHaveLength(2);
-    await expect(beats[1]).toHaveAttribute("data-tone", "danger");
-    // One beat a line, each inside the phone.
-    const [first, second] = beats.map((beat) => beat.getBoundingClientRect());
-    await expect(second!.top).toBeGreaterThanOrEqual(first!.bottom - 0.5);
-    await expect(Math.round(second!.left)).toBe(Math.round(first!.left));
-    for (const beat of beats) {
-      await expect(beat.getBoundingClientRect().right).toBeLessThanOrEqual(window.innerWidth);
-      await expect(beat.scrollWidth).toBeLessThanOrEqual(beat.clientWidth + 1);
+    const page = document.documentElement;
+    await expect(page.scrollWidth).toBeLessThanOrEqual(page.clientWidth);
+    const [categorization, standing] = factsIn(factsOf(canvasElement)).map((fact) =>
+      fact.getBoundingClientRect(),
+    );
+    // A fact a line, each whole and inside the phone, at one start.
+    await expect(standing!.top).toBeGreaterThanOrEqual(categorization!.bottom - 0.5);
+    await expect(Math.round(standing!.left)).toBe(Math.round(categorization!.left));
+    for (const fact of factsIn(factsOf(canvasElement))) {
+      await expect(fact.getBoundingClientRect().right).toBeLessThanOrEqual(window.innerWidth);
+      await expect(fact.scrollWidth).toBeLessThanOrEqual(fact.clientWidth + 1);
     }
+  },
+};
+
+/** Each facts line's standing, for the Standing dates story. */
+const standingDates: {
+  id: string;
+  status: string;
+  tone: "warning" | "information";
+  date: PageHeaderStandingDate;
+}[] = [
+  {
+    id: "late",
+    status: "ATO with conditions",
+    tone: "warning",
+    date: { value: "2026-10-12", name: "PDR" },
+  },
+  {
+    id: "today",
+    status: "ATO with conditions",
+    tone: "warning",
+    date: { value: "2026-11-16", name: "CDR" },
+  },
+  {
+    id: "soon",
+    status: "ATO with conditions",
+    tone: "warning",
+    date: { value: "2026-11-18", name: "PDR" },
+  },
+  {
+    id: "later",
+    status: "ATO with conditions",
+    tone: "warning",
+    date: { value: "2026-12-04", name: "TRR" },
+  },
+  {
+    id: "expiring",
+    status: "ATO with conditions",
+    tone: "warning",
+    date: { value: "2027-01-15", kind: "expiry", soonWithin: 90 },
+  },
+  {
+    id: "expires later",
+    status: "ATO with conditions",
+    tone: "warning",
+    date: { value: "2029-09-17", kind: "expiry", soonWithin: 90 },
+  },
+  {
+    id: "expired",
+    status: "In review",
+    tone: "information",
+    date: { value: "2026-11-02", name: "Waiver", kind: "expiry" },
+  },
+];
+
+/**
+ * The standing's date, judged against the reader's today as DateLabel judges one: late in the
+ * danger tone with its icon and how long ago ("PDR 35d late"), due today and due soon in the
+ * warning tone with theirs, and a later day plainly. An expiry says expires and expired, and
+ * `soonWithin` flags it a quarter ahead. Without a name the words follow the status. While the
+ * standing is read a line holds its place; with no status it is Absent.
+ */
+export const StandingDates: Story = {
+  name: "Standing dates",
+  render: () => (
+    <Stack space="space.150">
+      {standingDates.map(({ id, status, tone, date }) => (
+        <PageHeader.Facts key={id} data-testid={id}>
+          <PageHeader.Standing
+            label="Standing"
+            status={status}
+            tone={tone}
+            date={{ ...date, now: NOW }}
+          />
+        </PageHeader.Facts>
+      ))}
+      <PageHeader.Facts data-testid="loading">
+        <PageHeader.Standing label="Authorization" isLoading />
+      </PageHeader.Facts>
+      <PageHeader.Facts data-testid="absent">
+        <PageHeader.Standing label="Authorization" />
+      </PageHeader.Facts>
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const dateOf = (id: string) =>
+      canvas.getByTestId(id).querySelector<HTMLElement>('[data-slot="page-header-standing-date"]')!;
+    // The words drawn: without the full date a DateTime keeps for its tooltip and description.
+    const words = (id: string) => {
+      const drawn = dateOf(id).cloneNode(true) as HTMLElement;
+      for (const hidden of drawn.querySelectorAll("[hidden], [data-slot='visually-hidden']"))
+        hidden.remove();
+      return drawn.textContent?.replace(/\s+/g, " ").trim();
+    };
+    await expect(dateOf("late")).toHaveAttribute("data-state", "overdue");
+    await expect(dateOf("today")).toHaveAttribute("data-state", "today");
+    await expect(words("today")).toBe("CDR due today");
+    await expect(dateOf("soon")).toHaveAttribute("data-state", "soon");
+    await expect(words("soon")).toBe("PDR due Nov 18, 2026");
+    await expect(dateOf("later")).toHaveAttribute("data-state", "upcoming");
+    await expect(words("later")).toBe("TRR due Dec 4, 2026");
+    // A later day is not flagged: no icon.
+    await expect(dateOf("later").querySelector("svg")).toBeNull();
+    for (const id of ["late", "today", "soon"])
+      await expect(dateOf(id).querySelector("svg")).not.toBeNull();
+    await expect(dateOf("expiring")).toHaveAttribute("data-state", "soon");
+    await expect(words("expiring")).toBe("expires Jan 15, 2027");
+    await expect(dateOf("expires later")).toHaveAttribute("data-state", "upcoming");
+    await expect(dateOf("expired")).toHaveAttribute("data-state", "overdue");
+    await expect(words("expired")).toBe("Waiver expired Nov 2, 2026");
+    // The date is a time element, read in the reader's format.
+    await expect(dateOf("soon").querySelector("time")).toHaveAttribute("datetime", "2026-11-18");
+    // Loading holds the place and says so; no status is an Absent, heard as Not recorded.
+    const loading = canvas.getByTestId("loading").querySelector("dd")!;
+    await expect(loading).toHaveAttribute("aria-busy", "true");
+    await expect(loading).toHaveTextContent("Loading");
+    await expect(
+      canvas.getByTestId("absent").querySelector('[data-slot="absent"]'),
+    ).toHaveTextContent("Not recorded");
   },
 };

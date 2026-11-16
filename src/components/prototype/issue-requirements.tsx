@@ -1,3 +1,18 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// An operational issue names the requirements it is about in a Requirements Section before its
+// observations, `IssueRequirements` in issue-requirements: a compact collection of the requirements
+// it names, each a link to the requirement's page with its eye previewing it beside the issue,
+// whose small secondary is Link requirement, a `RecordBrowser` over the program's requirements the
+// issue does not name yet; Unlink requirement is the row's danger action and the same item in the
+// preview's overflow menu, confirmed, through a command in issue-requirements. The link
+// (`issue_requirements`) belongs to the issue and names the requirement, not a revision. The trace
+// draws it straight from the requirement to the issue, across the evidence stage, from either
+// record, and the Posture places the issue on the requirements it names as on those its evidence
+// supports, once; the requirement's record reaches its issues through its trace.
+
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { ListChecks, MoreHorizontal, Plus } from "lucide-react";

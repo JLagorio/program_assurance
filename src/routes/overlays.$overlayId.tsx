@@ -1,3 +1,15 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// An overlay's versions are records of their own in one chain, so its version menu, Version 2 and a
+// radio row a version with its state, newest first, opens the version chosen in place of the one
+// shown; Create version 3 is the Actions menu's command on the newest published version, a
+// confirmation that says the published version stays and then opens the draft, waiting with its
+// reason on an older version, and a draft after the first is deleted with Delete draft version,
+// which opens the version before it. The register lists each overlay once, at its newest version.
+// Reference: the overlay record (src/routes/overlays.$overlayId.tsx).
+
 import { useMemo, useRef, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ChevronDown } from "lucide-react";

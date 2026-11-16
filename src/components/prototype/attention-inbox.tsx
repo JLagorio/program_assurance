@@ -1,3 +1,13 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// My work offers Tasks and Attention as distinct line-tab views. Attention combines outstanding
+// review work and changed supporting records, each with a reason and a link to its source.
+// Seen/done acknowledgment belongs to the signed-in reader and the exact source revision; a newer
+// revision resurfaces the item. Acknowledgment never changes an assessment or task status. Undo
+// restores the prior acknowledgment, and read failures remain visible with Retry.
+
 import { useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";

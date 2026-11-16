@@ -1,3 +1,30 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// A reader who may edit changes the stack's overlays with Edit overlays, the view's one primary in
+// the list's toolbar beside Replay (a secondary for each baseline where a program adopted several):
+// a `large` Dialog titled Edit overlays over the stack table, whose layer names and controls are
+// pinned at its two ends so a phone's frame scrolls the numbers between them, each overlay with
+// Move earlier, Move later and Remove, then Add overlay (a menu of the published overlays of the
+// program's catalog edition; at six, or with none left, the button says why), and What changes, a
+// KeyValue group against the baseline the program has now: controls now and after, the controls
+// added and removed by code, the program tailoring carried, the systems that move and the SSP
+// revisions that keep their baseline, with a note where part of the tailoring no longer changes
+// anything. An unchanged stack and an overlay that changes nothing where it sits are FieldErrors.
+// The primary repeats Edit overlays and asks first, since the change alters what the program owes;
+// another session's change is the Dialog's own Alert, after which the stack reads again. Where a
+// newer version of an overlay in the stack is published, a status `Alert` above the table says
+// which version the stack applies and which is published, with Take version and its number for each
+// (Take version 2 of the overlay, where several have one), which puts the newer version in the
+// older one's place in the draft; Add overlay offers each overlay at its newest published version
+// and none the stack holds in any version, and a version after the first is named with it ("Mission
+// Assurance Overlay · version 2"). Focus starts on Add overlay, stays on a moved overlay's control
+// and goes to Add overlay when a row is removed; the Dialog judges the stack it opened on, and once
+// applied a changed stack shows its last layer. Reference: control-baseline and
+// program-overlays-dialog; the command and what it does to systems and SSP revisions are in
+// control-baseline.md.
+
 import { useEffect, useId, useMemo, useRef, useState, type FormEvent } from "react";
 import { AlertCircle, ArrowDown, ArrowUp, Plus, X } from "lucide-react";
 import {

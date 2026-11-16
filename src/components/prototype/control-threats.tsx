@@ -1,3 +1,24 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// ATT&CK techniques is `ControlThreats` in control-threats: the techniques Appendix F (ATT&CK for
+// Enterprise) and Appendix G (ATT&CK for ICS) print the control against, Enterprise's first, a
+// compact collection with one line a technique. The technique is named by its identifier and name
+// together and opens its preview, the one a risk's techniques open, with every tactic it sits
+// under; then come its Matrix, Enterprise or ICS, the Tactics whose tables print the control
+// against it, the Mitigations, the Approaches and the Effects, as lists. Its count is the number of
+// techniques, its search finds a technique by any of them, and Tactics and Effects are its filters,
+// with Matrix before them once it lists techniques of both. In the program's record a Risks column
+// counts the program's risks that name each technique, by the technique's identifier, since a
+// risk's link keeps the item of the reading it was made from; a count that cannot be read is Absent
+// under the page's alert, never zero. A count above zero is a link that opens the program's POA&M &
+// risk tab at its risks (`#program-risks`), asked for exactly the risks that name the technique:
+// their ATT&CK techniques column, `programRiskTechniquesColumn` in register-views, filtered on the
+// technique by its identifier and name, through `questionSearch`; a zero opens nothing, and Back
+// returns to the control. A control neither appendix names has no Section, and none is drawn until
+// the read says which. The control preview does not carry this Section.
+
 import { useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Crosshair } from "lucide-react";

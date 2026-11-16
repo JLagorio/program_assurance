@@ -1,3 +1,26 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// A product's Overview opens the same way, `ProductStandingTray` in product-standing: the controls
+// satisfied in every configuration, over a card a scope (the core, then each configuration) with
+// how many it satisfies and one `Tally` of its statuses; a version nobody assessed says so in an
+// Alert whose action opens the version that was.
+//
+// A product's Assessment tab says what the version gives by configuration: a band (Controls,
+// Satisfied in every configuration, Differ by configuration, which opens the List at those, and
+// Covered by no configuration), then a heading beside Show as, Configurations or List
+// (`show=list`). Configurations is the key of the product statuses over one `Card` a scope, the
+// core and then each configuration, with how many controls it satisfies and how many its elements
+// cover, over a strip a mark a control; the counts differ by scope, so the key names the statuses
+// alone. List is the controls as a register with a status column for the core and for each
+// configuration, Across configurations (Same in every configuration, Differs by configuration) and
+// Control family, each a filter, under `product-assessment`. The assessment it reads is a collapsed
+// Details Section, above which Product assessments is a Section with the version's assessments as a
+// compact collection (the assessment, its State, Control baseline, Assessor and Completed day) and
+// Create product assessment as its small secondary, a Dialog with Title, Control baseline and
+// Assessor. One read answers the tab, `product_control_status`. Reference: product-standing.
+
 import { useCallback, useMemo, type ReactElement, type ReactNode } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import {

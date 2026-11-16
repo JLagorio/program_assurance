@@ -9,6 +9,31 @@
  * result and steps across a page edge. Every register's records are seeded in the run's own
  * disposable workspace.
  */
+
+// From the product pattern contract's What checks it, moved beside the check on 2026-11-16.
+//
+// `scripts/test-server-paging.mjs`, part of it, pages, sorts, filters and searches the catalog's
+// CCIs and Controls on the server. In its own workspace it seeds a program with requirements in a
+// tree, risks, operational issues, observations, assessment findings, system assets, evidence and
+// tasks, and checks the program's Requirements, the risk register, operational issues,
+// observations, assessment findings, system assets, Unrolled findings, evidence, My work and the
+// Assessment campaigns page's Objectives: one page read with the exact count and no read of the
+// tables behind the view, a sort and a filter on a derived column (an owner's name, a latest
+// severity, an allocation state, nobody assigned), asset ids sorted as they read, a page that
+// carries on inside a tree, the Portfolio's tiles counted on the server with no read of the records
+// they count and opening their register on its question, Recently updated programs read from
+// `program_activity` and its Controls satisfied from `program_control_status_counts`, never a
+// program's whole `program_control_status`, the risk matrix and Highest open risks read from
+// `risk_rows` scoped to the open risks, never a risk or a risk assessment, Highest open risks in
+// their order, saved views that count the whole register, an Export of the whole result, and Assign
+// owner on the risk register and on the Requirements (the page, then every requirement of the
+// result chosen, the requirements nobody owns given one owner in one request, each change recorded
+// in the requirement's history). It checks that a failed page keeps the one before it under one
+// alert with Retry, and steps a preview across a page edge both ways, inside a tree too, to the
+// server's count and back from a page turned by hand; that an edit that moves a previewed issue
+// keeps its place in the result and steps on, and one that takes it out of the question leaves it
+// outside the results; and that choosing another Findings tab ends the preview while the other
+// tabs' registers read nothing until shown.
 import assert from "node:assert/strict";
 import { mkdir, mkdtemp, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";

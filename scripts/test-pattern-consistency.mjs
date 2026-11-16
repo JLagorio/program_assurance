@@ -4,6 +4,15 @@
  * failed and slow loads (tests/failed-loads.mjs), and focus rings a register or a preview keeps in
  * view at desktop and phone widths (tests/focus-ring.mjs).
  */
+
+// From the product pattern contract's What checks it, moved beside the check on 2026-11-16.
+//
+// It checks that Cancel, Escape and Discard on a create or edit Dialog hand focus back to the
+// control that opened it; tabs through the Suppliers register, its preview and the Create
+// organization and Create task Dialogs and fails a focus ring that an ancestor cuts by half or more
+// (the kit's focus gate, in `scripts/tests/focus-ring.mjs`); and its failed-load checks include a
+// refresh that fails under a nested preview frame and slow choices in a Dialog's picker and in a
+// PickerSheet (`scripts/tests/failed-loads.mjs`).
 import assert from "node:assert/strict";
 import { mkdir, mkdtemp } from "node:fs/promises";
 import { tmpdir } from "node:os";

@@ -1,3 +1,53 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// Among other collections under Section headings the same group is drawn in secondaries, written so
+// on both halves, since ProductCollection cannot reach into a group: ProgramCollection takes the
+// other paths as `createMenu` and draws the group in its toolbar and in its empty state. Reference:
+// a gate's Gate criteria in program-shared, whose Create gate criterion is followed by "More ways
+// to create a gate criterion" holding Add security outcomes.
+//
+// A gate's criteria say where each came from in a Source column: the life cycle process the
+// criterion was drawn from, read once from the register's view (`gate_criterion_rows`, through
+// `useGateCriterionSources` in gate-criteria) and handed to ProgramCollection as `queries`, so the
+// collection waits on it and the rows sort, search and export by the process's name. A criterion
+// somebody wrote draws Absent.
+//
+// Every product page and preview uses a named `TabsList variant="line"`.
+//
+// `RetainedTabPanels` in program-shared draws a panel once it is first shown, so its reads start
+// then, and leaves a hidden panel as it was drawn: the record re-rendering re-renders only the
+// panel the reader sees.
+//
+// Do not add `flex-wrap`, a width class or an overflow class to `TabsList`. `TabsContent` starts
+// the panel `space.150` under a horizontal strip, so a screen adds no space between the strip and
+// its panel: no `pt-*` on `TabsContent` or on a panel's first block, no `gap-*` on `Tabs`, and no
+// `contents` on either.
+//
+// A record page's tabs live in the address: choosing one pushes a history entry, so Back returns to
+// the tab before, and an address that names no tab shows the first. Where the address owns the tab,
+// it is the only owner; the component keeps no copy of its own. A record's tab holds no second
+// strip: the collections it holds sit under Section headings, each compact with a small secondary
+// create action, as on the program's Assessment campaigns (Campaigns, Events, Scopes, then
+// Objectives, the longest, last), Schedule and POA&M & risk.
+//
+// A preview's tabs are its own state. A filter over one collection is a `ToggleGroup` or a Toolbar
+// filter, never a tab. A register page that holds more than one collection draws them as line tabs
+// under its one h1, each a register that keeps its question while another is shown, and the address
+// keeps the tab: Findings & assets, and Assessment campaigns (`assessmentTab`), the same
+// collections across every program. Reference: `AssessmentBrowser` in assessment-browser, whose
+// `layout` is `tabs` on the page and `sections` in a program.
+//
+// A record's tabs are the views a reader comes back to, at most about seven where the record allows
+// (Components/Tabs): views that hold the same kind of work share one tab under Section headings
+// (the program's POA&M & risk), and a view read rarely folds into the Overview (the program's
+// activity).
+//
+// A tab that counts its collection shows a `Count` with `max={9999}`: 0 once its rows load, and no
+// count while they load or after the load failed. A `Section`, a `Related` card or an `Item.Group`
+// that counts rows passes the same cap as `countMax={9999}`.
+
 import { useLocation } from "@tanstack/react-router";
 import { ProductCollection } from "./product-collection";
 import { useCollectionTable } from "./collection-question";

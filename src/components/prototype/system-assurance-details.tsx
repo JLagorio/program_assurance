@@ -1,3 +1,12 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// A system preview's Contains card, the elements inside a system, is a `Related` list
+// (`layout="list"`, compact): each row is its code and name with its kind as the subtle meta, and
+// opens that element's preview. It summarizes what is inside rather than being a collection to work
+// through, so it has no search, sort, eye or trailing count. Reference: system-assurance-details.
+
 import { Link } from "@tanstack/react-router";
 import {
   Absent,

@@ -11,7 +11,7 @@ A `DataTable` that leaves the prop out passes: it is responsive by default. Only
 
 ## Why
 
-A product register has to fit the space it is given: beside an open preview panel, in a narrow window, on a phone. A responsive DataTable measures its container and keeps the record's name and the row actions, moving lower-priority fields into each row's More fields ("+3"), so no field disappears and no table scrolls sideways. `responsive={false}` makes it scroll instead, which hides columns without saying so. Every product DataTable is responsive: the product patterns' Registers section is the contract ([product patterns](../../../../docs/guides/product-patterns.md#registers)), and the Data table page describes the responsive mode ([Data table](../../src/stories/patterns/DataTable.mdx)).
+A product register has to fit the space it is given: beside an open preview panel, in a narrow window, on a phone. A responsive DataTable measures its container and keeps the record's name and the row actions, moving lower-priority fields into each row's More fields ("+3"), so no field disappears and no table scrolls sideways. `responsive={false}` makes it scroll instead, which hides columns without saying so. Every product DataTable is responsive: the product patterns' Registers section is the contract ([product patterns](../../../../docs/guides/product-patterns.md#register)), and the Data table page describes the responsive mode ([Data table](../../src/stories/patterns/DataTable.mdx)).
 
 ## Instead
 

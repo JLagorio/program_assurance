@@ -23,8 +23,12 @@
  * - packages/design-system/test/dont-play-allow.json: Do and don't stories with no play that
  *   asserts what makes the Do right and the Don't wrong, per story (story-dont-play.test.mjs).
  *
- * Two more are computed, not committed:
+ * Three more are computed, not committed:
  *
+ * - The page budget ceilings in docs/guides/screen-inventory.json, per route and budget
+ *   (`budgets`) and per route, tab and budget (`tabBudgets`), which scripts/test-page-budgets.mjs
+ *   holds each page to. A ceiling may only fall; a route, a tab or a budget new since the base ref
+ *   starts where it is recorded, as a new list does.
  * - Inline directives that name a ledger rule, per file and rule, in src and the kit's src. Each
  *   one says why after ` -- ` (ledger/no-inline-config), and their counts shrink like the lists'.
  *   A disable that names no rule (bare, or a list of only commas and empty quotes) turns every
@@ -65,6 +69,8 @@ const SUPPRESSIONS = [
 const LINT_PAGE = "packages/design-system/src/stories/docs/Lint.mdx";
 const PLUGIN = "packages/design-system/eslint-plugin";
 const DIRECTIVES = "inline ledger directives in src and packages/design-system/src";
+const INVENTORY = "docs/guides/screen-inventory.json";
+const BUDGETS = `page budget ceilings in ${INVENTORY}`;
 const DIRECTIVE_ROOTS = [
   "src",
   "packages/design-system/src",
@@ -211,13 +217,18 @@ function inlineDirectives(ref) {
 const problems = [];
 const misplaced = [];
 
-/** Compares a list with its base, reports growth and landing, and prints one summary line. */
-function compare(name, current, previous) {
+/**
+ * Compares a list with its base, reports growth and landing, and prints one summary line. Where
+ * `newStarts`, an entry the base does not have starts there (a ceiling, not an allowance).
+ */
+function compare(name, current, previous, { newStarts = false } = {}) {
   let grew = 0;
   const landed = new Set();
   for (const [key, value] of current) {
     const growth = !previous.has(key)
-      ? "is new"
+      ? newStarts
+        ? undefined
+        : "is new"
       : typeof value === "number" && value > previous.get(key)
         ? `went from ${previous.get(key)} to ${value}`
         : undefined;
@@ -257,6 +268,31 @@ const kitAtBase =
   baseResolves && git("ls-tree", "--name-only", base, "--", `${PLUGIN}/index.js`).trim() !== "";
 if (kitAtBase) compare(DIRECTIVES, inlineDirectives(), inlineDirectives(base));
 else console.log(`${DIRECTIVES}: ${base} has no kit, so this is where they start`);
+
+/** Each route's budget ceilings, as `<route> › <budget>` and `<route> › <tab> › <budget>`. */
+function budgetCeilings(text) {
+  const out = new Map();
+  for (const screen of JSON.parse(text)) {
+    for (const [budget, ceiling] of Object.entries(screen.budgets ?? {}))
+      out.set(`${screen.path} › ${budget}`, ceiling);
+    for (const [tab, ceilings] of Object.entries(screen.tabBudgets ?? {}))
+      for (const [budget, ceiling] of Object.entries(ceilings))
+        out.set(`${screen.path} › ${tab} › ${budget}`, ceiling);
+  }
+  return out;
+}
+if (existsSync(INVENTORY)) {
+  let committed;
+  try {
+    committed = git("show", `${base}:${INVENTORY}`);
+  } catch {
+    console.log(`${BUDGETS}: new at ${base}, so this is where they start`);
+  }
+  if (committed !== undefined)
+    compare(BUDGETS, budgetCeilings(readFileSync(INVENTORY, "utf8")), budgetCeilings(committed), {
+      newStarts: true,
+    });
+}
 
 if (existsSync(SUPPRESSIONS[0]))
   misplaced.push(

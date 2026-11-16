@@ -1,3 +1,15 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// Its overflow menu, in either preview, holds Edit assessment results (`ResultsMoreActions` in
+// edit-results): a Dialog of the same name with Title and Description over the values and the
+// revision the reader opened it at, which saves them at the next revision (`editAssessmentResults`
+// in assessment-results); a dirty Cancel asks first, a pending save holds the Dialog, and results
+// changed since they were opened, published or gone are refused inside it, the draft kept, in words
+// that say why. Published results no longer change: the item keeps its place and says so, and
+// published results opened afresh offer nothing.
+
 import { useId, useRef, useState, type FormEvent } from "react";
 import { AlertCircle, MoreHorizontal } from "lucide-react";
 import {

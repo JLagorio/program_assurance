@@ -1,3 +1,18 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// The diagnostic inspector displays database collection labels where they identify the schema. They
+// do not replace product nouns in its forms.
+//
+// The schema record's Related records uses a headed, compact `ProductCollection` for each incoming
+// relationship, including separate headings when two fields refer to the same collection. Each
+// table reads 25 rows at a time from the server and exposes every schema column, including system
+// metadata; narrower tables keep the remaining fields in the row's More fields disclosure. Record
+// identities and foreign keys are text links to schema records. These read-only tables need only
+// headings and pagination: no search, sort, column menus or empty toolbar. Empty relationships keep
+// their column headers and a compact empty row. Reference: `RelatedRecords` in record-browser.
+
 import { AssuranceReviewPanel } from "@/components/prototype/assurance-review";
 import { AssuranceCitations } from "@/components/prototype/assurance-review-citations";
 import { useConfirmation } from "@/components/app/confirmation";

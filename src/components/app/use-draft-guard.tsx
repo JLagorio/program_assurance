@@ -1,3 +1,10 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// The surface closes through its `open` state, so its exit and focus return run before the caller
+// unmounts it.
+
 import { useRef, useState } from "react";
 import { useBlocker } from "@tanstack/react-router";
 import { discardChanges, useConfirmation } from "./confirmation";

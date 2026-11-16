@@ -13,7 +13,7 @@ The kit's names come from `eslint-plugin/components.json`, which `npm run build:
 
 ## Why
 
-A local copy of a kit part drifts from it: it misses the kit's fixes, its accessibility and its responsive behaviour, and a reader of the screen cannot tell which `Badge` it renders. The application never declares a primitive or a copy of a kit part ([component library guide](../../../../docs/guides/component-library.md#layers)). A domain concept with one visual representation, such as a status, gets one application component with a name of its own that binds the domain's words to the kit part, and every screen uses it ([product pattern contract](../../../../docs/guides/product-patterns.md#states-and-identity)).
+A local copy of a kit part drifts from it: it misses the kit's fixes, its accessibility and its responsive behaviour, and a reader of the screen cannot tell which `Badge` it renders. The application never declares a primitive or a copy of a kit part ([component library guide](../../../../docs/guides/component-library.md#layers)). A domain concept with one visual representation, such as a status, gets one application component with a name of its own that binds the domain's words to the kit part, and every screen uses it ([product pattern contract](../../../../docs/guides/product-patterns.md#states)).
 
 ## Instead
 

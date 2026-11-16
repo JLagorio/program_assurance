@@ -1,3 +1,100 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// The create and edit surface is a `Dialog` titled with the operation and the singular product
+// noun. The trigger, the dialog title and the primary use the same words: Create task, Create
+// organization, Create risk. `productRecordNoun` and `productCreateLabel` in product-records own
+// the generic vocabulary, including the party subtype. Create makes a new record; Add or Link
+// connects an existing one. A surface has one primary: the page header's, a dialog footer's or the
+// preview's record header's, and a collection beside others creates through a secondary
+// (Registers). Reference: CreateTaskDialog (src/components/prototype/create-task-dialog.tsx).
+//
+// `DialogContent` takes a `width` step (`medium` for a few fields, `large` for a form in two
+// columns), never a pixel width. `DialogBody` (in a Sheet, `SheetBody`) is the one scrolling
+// region; the form sits inside it and the footer stays outside, joined to the form through native
+// form ownership (`form` on the submit button). In `DialogFooter`, Cancel is a `DialogClose`
+// rendered as a subtle Button, before the operation's primary; a dialog whose choices apply as they
+// are made (the tailoring decisions) has no draft to cancel, and its secondary is Close. A button
+// says the operation, never OK, Submit or Save alone. Navigation styled as a button is a
+// `LinkButton` or `LinkIconButton`, never a Button that navigates.
+//
+// Every control sits in a kit `Field`, which binds its label, hint and `FieldError` to the control
+// and carries `required`, `invalid` and `disabled` to it; a form writes no ids or ARIA. The
+// wrappers in fields take the field's `error` and a `controlRef`: `TextField` for text,
+// `ChoiceField` (a Select) for a fixed list of values, `ComboboxField` for a set of records,
+// `PartyField` for a person or organization; a moment is a `DateTimeField` and a day a
+// `DatePicker`, never a native date input.
+//
+// The Field marks a required field; a placeholder never says optional. A length limit is the
+// field's `characterLimit`: a count under the field (always under several lines, from near the
+// limit under one) and a FieldError on submit that says how many characters fit; a form never sets
+// `maxLength`, which cuts a paste off without a word. A choice that waits on another answer is
+// `readOnly` with a description that says why (Choose a control first.), never `disabled`, so it
+// keeps its Tab stop.
+//
+// The first field takes focus through `initialFocus` on the dialog or sheet content, never
+// `autoFocus`. Focus returns to the opener on close, so the opener stays enabled and mounted while
+// its surface is open; where it cannot, `finalFocus` names a stable element. Validate on submit
+// with the primary enabled, then on change. Every issue marks its field with a FieldError that says
+// what fixes it. One issue moves focus to its control; several show an `ErrorSummary` above the
+// fields, which takes focus and leads to each control. `useFormFeedback` in form-feedback holds the
+// attempt, the summary and that focus. A result that is not about one field (a failed save, choices
+// that did not load, an unavailable context) is an `Alert` with an explicit role at the top of the
+// body: `role="alert"` for a failure, `role="status"` or `role="note"` for a notice. The form never
+// writes its own `role="alert"` paragraph. A primary that truly cannot run, such as for a viewer,
+// keeps its place and explains itself with `disabledReason`.
+//
+// A dirty dismissal, a route change away from a draft and a destructive decision go through
+// `useConfirmation` in confirmation (`discardChanges` for a draft), which renders the kit
+// `AlertDialog`; never `window.confirm`. `useDraftGuard` in use-draft-guard owns a form's dirty and
+// pending state: it asks before a dirty close or route change, and `start`, `finish` and `complete`
+// bracket the save.
+//
+// A link a reader can remove has a danger row action and the same item in its preview's overflow
+// menu, through a command in `src/lib` (requirement-links); `useRemovalFocus` in record-preview
+// then moves focus to the collection's primary. Reference: the requirement Allocation, Control
+// mappings and Evidence tabs. A pending save sets `pending` on the Dialog or Sheet, which cancels
+// Escape, outside dismissal and every close control; the fields sit in `FieldSet disabled`, focus
+// moves to the primary, which shows `isLoading` and is never also `disabled`, and the guard blocks
+// navigation. A failed save ends the pending state, keeps the draft and focus, and only then says
+// that retrying will not duplicate the record.
+//
+// Reload and tab-close protection is the browser's `beforeunload`, never a custom dialog.
+//
+// - Program setup is a page wizard;
+//
+// - The diagnostic schema inspector keeps addressable `/records/:collection/new` create pages.
+// Product workflows use the Dialog default; the inspector shares its validation, labels and draft
+// protection. - One supported property is an `Editable`; a filter or a reason at its button is a
+// `Popover`. - Choosing records is a `PickerSheet`; it may collect one shared rationale when
+// applying a selection, with dirty and pending protection. A PickerSheet whose candidates come from
+// queries passes `state` as its DataTable does, so its footer never says there is nothing to choose
+// from while they load or after they fail.
+//
+// A second step that authors specifications moves to a Dialog. A record's next step opens its
+// PickerSheet over the record, from the step, rather than leading away to where the records are
+// listed: a control's Map a requirement, which chooses many under one shared Relationship and
+// Rationale, and its Add to assessment campaign, which chooses one campaign (`selectable` on one
+// row at a time), both held by the region the step sits in so they outlive it (Record pages, the
+// control's records). Linking related records is a `RecordBrowser`. Their internal preview belongs
+// to the selection task. A RecordBrowser over a collection that can hold thousands of records reads
+// it a page at a time (its `server`): the caller holds the browser's question, each opening asking
+// from the first page, and reads the page that answers it through `useServerPage` in
+// collection-question over a `serverRead`, with each filter's values as `filterOptions`; the
+// browser keeps the records its choices need, so one chosen on another page is counted and linked
+// with the rest, and a version the reader made and published from its actions returns chosen
+// through `server.selected`. Reference: Add evidence in requirement-evidence. A linking form may
+// supply an explicit operation label so its trigger, title and submit button all say the same Link
+// operation.
+//
+// - The evidence version review is the modal preview above. - A record's Comments section writes a
+// comment in an inline `Composer` at the top of the section, above its newest-first `Timeline`.
+//
+// Any other create or edit form is a Dialog, never a Sheet. An `AlertDialog` may open over the
+// Dialog or Sheet that owns the decision; an independent record workflow navigates or replaces the
+// current frame instead of stacking. Dirty and pending protection survive a change of surface.
+
 import { useConfirmation } from "@/components/app/confirmation";
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { AlertCircle } from "lucide-react";

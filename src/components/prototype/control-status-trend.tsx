@@ -1,3 +1,31 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// Under the tray the same standing is drawn over time, `ProgramControlStatusTrend` in
+// control-status-trend: a `Chart` frame titled Controls satisfied over time whose `Chart.Line`, on
+// a time axis from 0% to 100%, is the share of the baseline satisfied, a point a day with the last
+// value at the line's end, its table twin (Day, Satisfied, Controls satisfied, Controls) one toggle
+// away. The trend starts on the day the first snapshot was taken and nothing is backfilled, so its
+// description says since when it is tracked ("Share of the control baseline, tracked since November
+// 13, 2026"), and it draws nothing until it holds seven days. An earlier day is the snapshot that
+// closed it; today's point is the live standing the tray shows, so the line ends at the tray's
+// share. It draws nothing while it loads, a failure is the tab's one alert with Retry, and a
+// program with no control baseline draws nothing. The days are one read, `program_posture_trend`
+// through `usePostureTrend` in posture-trend, which first asks `ensure_program_posture_snapshots`
+// to take today's snapshot of a program that has none.
+//
+// Between the share and the tally, once a program has seven days of control status snapshots, a
+// `Chart.Sparkline` in a row's size (80 by 20, unnamed, so the number is heard once) draws its
+// share satisfied over its last twelve days and ends at the number, today's point being the live
+// standing: `ControlStatusSparkline` in control-status-trend. The five rows' days are one read
+// (`useRecentPostureTrend` in posture-trend, handed to the cells by `ControlStatusTrends`), whose
+// failure joins the widget's alert and leaves the number and the tally; a program the read leaves
+// out because the reader can no longer read it (one deleted since the rows were read) draws no
+// sparkline while the other rows draw theirs. Fewer days draw no sparkline, since the number beside
+// it says it. The trend sits in the row it belongs to rather than in a chart widget of every
+// program's line, which would need a hue a program and whose points open nothing.
+
 import { createContext, useCallback, useContext, useMemo, type ReactNode } from "react";
 import type { UseQueryResult } from "@tanstack/react-query";
 import {

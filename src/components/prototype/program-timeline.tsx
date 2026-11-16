@@ -1,3 +1,12 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// The program's Lifecycle timeline is a `PhaseBar` under its labelled Progress: a gate a segment in
+// its state's colour, its name opening the gate, and a gate under way, at risk, blocked or waived
+// saying its status before its day, a `DueDate` until the gate is decided (`lifecycleGateDue`), as
+// on the Schedule's Lifecycle gates and a gate's preview.
+
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import {

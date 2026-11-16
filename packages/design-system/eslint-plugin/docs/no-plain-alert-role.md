@@ -10,7 +10,7 @@ There is one message: `role="alert" on a plain element. Use Alert with role="ale
 
 ## Why
 
-An alert interrupts a screen reader the moment it appears, so it has to be the right size of message in the right place. A paragraph with the role is announced, but it has none of what the reader then needs: no tone or icon, no title, no link to the field it is about, and no focus for a list of problems. Ledger has one part per case: an Alert with an explicit role for a result about the whole form or page, a FieldError bound to its field, and an ErrorSummary that takes focus and leads to each field. The product patterns' Forms and confirmations section says the form never writes its own `role="alert"` paragraph ([product patterns](../../../../docs/guides/product-patterns.md#forms-and-confirmations)); the Alert page says which part fits which message ([Alert](../../src/stories/components/Alert.mdx)).
+An alert interrupts a screen reader the moment it appears, so it has to be the right size of message in the right place. A paragraph with the role is announced, but it has none of what the reader then needs: no tone or icon, no title, no link to the field it is about, and no focus for a list of problems. Ledger has one part per case: an Alert with an explicit role for a result about the whole form or page, a FieldError bound to its field, and an ErrorSummary that takes focus and leads to each field. The product patterns' Forms and confirmations section says the form never writes its own `role="alert"` paragraph ([product patterns](../../../../docs/guides/product-patterns.md#flow)); the Alert page says which part fits which message ([Alert](../../src/stories/components/Alert.mdx)).
 
 ## Instead
 

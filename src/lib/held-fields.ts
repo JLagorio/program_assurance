@@ -1,3 +1,13 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// A value the record's own links hold is the same: an operational issue's Program, while the issue
+// names requirements, is `readOnly` in its edit form with a description that names them and says to
+// unlink them first, since the links keep both ends in one program and the database refuses the
+// move (`useHeldFields` in held-fields, which the generic record form asks); a move refused all the
+// same says so in the save's failure.
+
 import { useMemo } from "react";
 import { issueProgramHeldReason, useIssueProgramHold } from "./issue-requirements";
 import type { DataRecord } from "./records";

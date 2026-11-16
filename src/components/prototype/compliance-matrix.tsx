@@ -1,3 +1,30 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// A program that has received a requirements document draws two trays a document,
+// `ProgramRequirementsTrays` in compliance-matrix: its requirements by the program's answer, what
+// is not met first, and how many the product meets as delivered over what else meets them; each
+// heading opens the Compliance matrix at the document.
+//
+// The program's Compliance matrix is a focused view too: a customer's requirements document with
+// the program's answer to each requirement and what meets it. A band counts Compliant, Partially
+// compliant, Non-compliant and Unanswered, each a linked tile that opens the register at that
+// answer; an unanswered requirement is never counted as non-compliant. The register is in the
+// document's order: Reference, the Requirement by its title, a link to its record, then Compliance,
+// Met by (Product, Variant change, Program, Not allocated), Elements as a list, Verification,
+// Controls and Evidence, with Compliance, Met by, Elements and Verification as its filters. Its
+// question lives in the address under its view (`program-compliance`, `complianceSearch` in
+// compliance-link), the document's code and title head the view, and a program with more than one
+// document chooses one in a Select named Requirements document beside that heading (`document`). A
+// requirement's preview holds the customer's Statement beside the program's Compliance statement
+// and the elements it is allocated to, each with its standing (Inherited, Modified, Program's own);
+// its one primary is Create compliance statement, or Edit compliance statement once one is
+// recorded, a Dialog with Compliance, Verification method and the statement, which is required
+// where the answer is short of compliant. The toolbar's primary is Import requirements. What the
+// program recorded of the document is a collapsed Details Section. The matrix is one read,
+// `requirement_source_compliance`. Reference: compliance-matrix.
+
 import { useId, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { Link, getRouteApi, useRouterState } from "@tanstack/react-router";
 import { AlertCircle, Plus } from "lucide-react";

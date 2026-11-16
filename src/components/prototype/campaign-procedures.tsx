@@ -1,3 +1,15 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// A campaign record's Procedures tab reads its Procedures and its Procedure revisions a page at a
+// time too, each a compact collection under its Section heading, in the order the tab listed them:
+// the program's procedures, those no program owns and those the campaign's runs follow, each
+// procedure with how many revisions it has from `procedure_rows` (`CampaignProcedureList` and
+// `CampaignProcedureRevisionList` in campaign-procedures, over `campaignProcedureRead` and
+// `campaignProcedureRevisionRead` in campaign-procedures), whose preview's Edit starts from the
+// procedure as stored (`storedProcedure`).
+
 import { useMemo, useRef, type ReactNode } from "react";
 import { Absent, defineColumns, type EmptyIllustrationKind } from "@ledger/design-system";
 import {

@@ -1,3 +1,89 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// The eye opens a `Shell.Panel` with two distinct headers. The outer preview header contains only
+// global preview navigation: Back when a nested frame is open, previous/next, the full-record link
+// and Close.
+//
+// The panel's name is the record type and "preview" in sentence case (Operational issue preview),
+// which Close and the splitter repeat (Close Operational issue preview). The outer header never
+// shows the record name and holds no record actions. The collection stays mounted, so filters,
+// sort, selection and drafts survive preview navigation.
+//
+// A preview belongs to the tab its collection sits in: choosing another tab ends it, and coming
+// back shows the collection as it was without reopening the preview or moving focus (a collection
+// in a retained tab panel calls `useEndOnHide` from record-preview with the setter that closes its
+// preview). `RecordPreviewProvider` owns one panel across registers; `RecordPreviewPanel` replaces
+// a nested record frame while keeping its parent mounted for Back. Shell owns the panel's placement
+// at every width.
+//
+// Close and Escape end the whole preview from any frame, and focus returns to the shown record's
+// eye in the collection, else to the control the reader last used there. Back is the only way to
+// leave one frame: it shows the parent frame as it was and returns focus to the control in it that
+// opened the nested one. Opening a preview or a nested frame moves focus to the panel at every
+// width, so the next Tab reaches its navigation. A tooltip open on a header control takes the first
+// Escape and the preview the second. A modifier or middle click on a row opens the name's
+// destination in a new tab and leaves the preview and the collection as they are.
+//
+// Every collection preview passes `RecordPreviewActions` from record-preview to
+// `RecordPreviewPanel.navigation`: it renders the kit `PreviewNavigation` with previous, next, the
+// announced record and position and, where the record has a page, a real open-in-new-tab link to
+// it; a record with no page of its own has no such link, and never one to its schema record.
+//
+// Feed it the table's displayed rows from `useDisplayedRecords`: every row the current search,
+// filters, sort and tree state leave, across all pages, so the position counts the whole result
+// ("REQ-001 Access control, 21 of 62 records") and a row that has left the displayed order is shown
+// as outside the results. When a step crosses a page, the table turns to the page that holds the
+// shown record, and every step brings the marked row into view; turning the page by hand leaves the
+// preview where it is. The table keeps its page only while its rows and columns keep their
+// identity, so memoize what the collection passes. A server-paged register's displayed rows are its
+// page, and carry the page's place in the server's count: the position is the page's offset plus
+// the row's place on it, out of the whole result, and the endpoint is the server's count. A step
+// past the page's edge turns the table's page, waits for it and shows its first or last row, and a
+// step onto a page read before waits for that page as it is now. A page turned by hand leaves the
+// preview at its place, and its next step turns back. A record missing from the page that should
+// hold it, such as one an edit in the preview moved, is counted where the server places it now
+// (`useServerPosition` in server-table), and its steps go on from there; once the question no
+// longer finds it, it is outside the results. Pass the array `useDisplayedRecords` returns as it
+// is, never a copy. A fact the register derives from another record's name (a risk's owner) reads
+// that record by its id in the preview (`RelationName`), so the preview's own Edit shows the change
+// at once. Previous and next change the frame's content, never the frame: key the content by its
+// record, not the component that renders `RecordPreviewPanel`, so focus stays on the control the
+// reader pressed. At an endpoint the control the reader used stays focused and says it is
+// unavailable, and Escape still closes the preview. The status names the record from the frame's
+// title; pass `recordLabel` when the title draws no plain words. The kit control takes callbacks,
+// availability, position and a caller-supplied link; the application composition owns row order and
+// destinations; Shell owns placement. Neither the kit nor Shell imports application routing.
+// Reference: the requirement preview in requirements-table.
+//
+// The body starts with one inner record `PageHeader`: the record's name is its h2 title, and its
+// domain actions belong in `PageHeader.Actions`. `RecordPreviewPanel` supplies this header from
+// `title` and `recordActions`; consumers do not render a second copy. Use one small primary (Edit
+// system) and, when there is more than one action, an overflow `DropdownMenu` behind a subtle icon
+// button for the rest.
+//
+// Keep the title readable as the inner header reflows at narrow widths.
+//
+// Status, owner, dates, identifiers and editors are labelled properties below it. Do not add a
+// separate body action row or repeat the full-record link at the bottom; a property repeats the
+// name only to edit it. A collection with no domain-specific preview uses `RecordSummaryPreview` in
+// record-summary-preview, which requires the `fields` the reader asks for, never every column.
+//
+// Long authored text (a description, a provenance, a rationale) is a labelled `Prose`, not a
+// truncated value. Reference: the system preview in ProgramSystemsTree
+// (src/components/prototype/program-systems-tree.tsx).
+//
+// The one modal preview is the evidence artifact's version review, where the task must hold focus:
+// a `PreviewSheet` with global navigation in its outer header, identity and record actions in its
+// inner record header, labelled properties below, and a real full-record destination. A preview
+// inside `PickerSheet` or `RecordBrowser` belongs to the selection task and never becomes a second
+// record workflow.
+//
+// `RecordPreviewPanel.navigation` is required. A panel for a task that is not a collection
+// explicitly passes no collection navigation and names the task in its label; its record identity
+// still belongs in the inner header.
+
 import {
   createContext,
   isValidElement,

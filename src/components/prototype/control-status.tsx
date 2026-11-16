@@ -1,3 +1,37 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// The statuses are one read, `program_control_status` through `useProgramControlStatus` in
+// control-status, and the map is never the only way to the controls: the Control status view's List
+// is its table.
+//
+// In a program, both forms of the control's record open their Details with where the program stands
+// on it: Control status, its badge; Objectives mapped, Objectives with evidence and Objectives
+// assessed, numbers out of the assessment objectives the control counts (12 of 26), the first two
+// counting an objective once it is covered, or covered by a requirement that cites evidence, on
+// every system of the program whose control baseline selects the control, and the third once an
+// assessor's published results judge it, on itself, on an objective above it or on the control's
+// statement, for a control that has objectives; Determined by, once a determination decides it
+// (Program assessment, once every objective the control counts is judged, or a link to each product
+// assessment the program's variants inherit it from); and Next step, the one thing that moves it up
+// the ladder (`ControlStandingFacts` in control-status, over `controlNextStep`): Map a requirement,
+// or Map 14 more objectives where the requirements map some of them and no system covers the rest,
+// which opens Map a requirement with those objectives chosen; where every objective is covered on
+// some system and not on all, Map on R210-STD-CUSA, the first system by code it is short on, which
+// opens Map a requirement on the requirements allocated there and what the system lacks, or
+// Allocate to R210-STD-CUSA where none is allocated there, the system's own Allocate requirements
+// over the page (`AllocateRequirementsSurface` in system-requirements); Link evidence to the first
+// requirement that cites none, or, where evidence covers some objectives already, to the first that
+// covers one it does not (the control's objectives, `program_control_objectives` through
+// `useProgramControlObjectives` in control-objectives, say which); for evidence no assessor has
+// determined, or has determined on only some of the control's objectives, Add to assessment
+// campaign, Plan an assessment where no open campaign has a draft plan, or Open assessment campaign
+// once one's plan holds the control (for a control judged in part, the objectives nobody has judged
+// yet: `holds_unjudged` of `plan_control_holdings`), Open assessment findings for a determination
+// short of satisfied, Open product assessment for one the product made, and no step once it is
+// satisfied.
+
 import { useMemo, type ReactElement, type ReactNode } from "react";
 import {
   Absent,

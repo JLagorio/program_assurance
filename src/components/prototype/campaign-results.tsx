@@ -1,3 +1,34 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// The campaign record lists its results revisions, so the reader sees which results that is:
+// Assessment results, a compact collection on its Overview after the Description (what the campaign
+// set out to do, then what it found, on the tab a reader lands on from the queue and the feeds; the
+// Execution tab keeps its plan's working collections in their order), one row a results revision
+// named by its title, newest first (the latest created, then the highest version,
+// `newestResultsFirst`), with its State, Findings (how many it holds), Published by and the day it
+// was Published, the last two Absent (Not published) while it is a draft; it reads the same two
+// requests as the Actions menu (`useCampaignResults` in assessment-results) and has no create
+// action. A results revision has no page of its own, so its name is a link-styled Button that opens
+// its preview beside the page, Assessment results preview, as wide as the record's other previews:
+// the summary preview, `RecordSummaryPreview` with its State, Version, Findings, Published by,
+// Published, Assessment plan and Description, then Assessment findings, the findings the results
+// hold as a compact collection under its counted Section heading, a page at a time from
+// `assessment_finding_rows` (`resultsFindingRead` in assessment-results), each finding's name a
+// link to its record, its Determination as its status and a filter, and the Control it judges, a
+// link to the program's record of it, control by control in the catalog's order (`ResultsFindings`
+// in results-findings). The words are the vocabulary's, one results revision and several alike
+// (`assessmentResultsWords` in product-records): the collection that cannot load says Could not
+// load assessment results, while the record noun stays assessment results revision for the generic
+// forms and the schema inspector, which put an article before it. It is not the queue's Review
+// preview, whose facts (Kind, Waiting since) and navigation belong to a queue row and which knows
+// only drafts that hold findings, so previous and next step through the campaign's results in one
+// frame; the Review preview of results lists the same findings under its own facts. A draft's
+// preview carries the queue's one primary, `PublishResultsAction` in publish-results-action, for a
+// reader who may write: it says why while the draft holds no finding, and a draft published from it
+// keeps it in place, saying why it no longer runs.
+
 import { useMemo, useState } from "react";
 import { FileCheck } from "lucide-react";
 import { Absent, DateTime, Person, Prose, Section, useLedgerLocale } from "@ledger/design-system";

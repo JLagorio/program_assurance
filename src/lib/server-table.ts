@@ -1,3 +1,18 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// The read names the columns its screen draws, and a read whose preview edits the record also names
+// every column the record's form edits: the form starts from the row it is given, and saves a
+// column it was not given as empty. A column the register derives (a family, a latest severity, an
+// allocation state) comes from the register's view, `<register>_rows` with `security_invoker =
+// true`, never from joins on screen, and the read names in `models` each table the view derives
+// from (a risk's latest severity reads `risk_revisions`), so a write to one reads the page again. A
+// column that sorts in another order than its value's names the view's sort column: `code_order`
+// orders AC-2 before AC-10, and a status sorts by its `_rank` column, in the product vocabulary's
+// order. The server places a sorted column's empty values as a table does: last ascending, first
+// descending.
+
 import { useEffect, useRef } from "react";
 import {
   keepPreviousData,

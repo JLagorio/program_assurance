@@ -1,3 +1,12 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// Reordering sheets and personal favorites uses shared pointer and keyboard interactions, insertion
+// feedback, scroll assistance and announcements. Collection selection uses stable identities and
+// the visible ordered set; filtering never selects inaccessible or unloaded records. Existing row
+// actions stay independently keyboard reachable.
+
 import {
   createContext,
   useCallback,

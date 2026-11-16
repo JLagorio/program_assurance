@@ -1,3 +1,11 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// An upload shows each file in an `Attachment` row: a labelled Progress and the bytes sent of its
+// size while it uploads, Cancel named for the file, and Retry and Remove after a failure.
+// Reference: EvidenceFile (src/components/app/evidence-file.tsx).
+
 import { useEffect, useRef, useState, type Ref } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { useQueryClient } from "@tanstack/react-query";

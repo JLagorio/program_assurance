@@ -12,7 +12,7 @@ For an `IconButton` both messages name `LinkIconButton`. An element is reported 
 
 ## Why
 
-A destination that looks like a button is still a link. As a link it can be opened in a new tab, copied, middle-clicked, and announced as a link by a screen reader, and the browser shows where it goes. A Button that navigates from `onClick` gives all of that up, and a Button that renders a router Link breaks Base UI's Button, which expects a native button. Ledger's LinkButton is the button's look on a real link. The product patterns' Forms and confirmations section says navigation styled as a button is a LinkButton or LinkIconButton ([product patterns](../../../../docs/guides/product-patterns.md#forms-and-confirmations)), and the LinkButton page shows the router composition ([LinkButton](../../src/stories/components/LinkButton.mdx)).
+A destination that looks like a button is still a link. As a link it can be opened in a new tab, copied, middle-clicked, and announced as a link by a screen reader, and the browser shows where it goes. A Button that navigates from `onClick` gives all of that up, and a Button that renders a router Link breaks Base UI's Button, which expects a native button. Ledger's LinkButton is the button's look on a real link. The product patterns' Forms and confirmations section says navigation styled as a button is a LinkButton or LinkIconButton ([product patterns](../../../../docs/guides/product-patterns.md#flow)), and the LinkButton page shows the router composition ([LinkButton](../../src/stories/components/LinkButton.mdx)).
 
 ## Instead
 

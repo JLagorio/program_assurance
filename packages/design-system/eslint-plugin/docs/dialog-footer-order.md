@@ -13,7 +13,7 @@ The footer's children are read through fragments, wrapping elements such as an `
 
 ## Why
 
-A footer's order is how a reader finds the way out without reading: in every Ledger dialog the safe answer comes first and the operation last, so a keyboard reader tabs through Cancel before reaching the command, and the primary sits at the end where the eye finishes. A footer that swaps them in one place teaches the wrong position everywhere. The product patterns' Forms and confirmations section sets the order ([product patterns](../../../../docs/guides/product-patterns.md#forms-and-confirmations)), and the Dialog and AlertDialog pages describe the footer.
+A footer's order is how a reader finds the way out without reading: in every Ledger dialog the safe answer comes first and the operation last, so a keyboard reader tabs through Cancel before reaching the command, and the primary sits at the end where the eye finishes. A footer that swaps them in one place teaches the wrong position everywhere. The product patterns' Forms and confirmations section sets the order ([product patterns](../../../../docs/guides/product-patterns.md#flow)), and the Dialog and AlertDialog pages describe the footer.
 
 ## Instead
 

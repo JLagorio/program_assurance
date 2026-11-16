@@ -1,3 +1,24 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// A filter its view has no column for (Add decisions' Resiliency technique) is one value at a time:
+// a `FilterChip` over a Popover of radios, each value with its count, kept as the table's column
+// filter on a column that is never drawn, so the applied count, Clear filters and the filtered
+// empty state include it; the read takes the value's record ids in its `scope`, a hundred at most,
+// and never filters one page.
+//
+// - A PickerSheet may also collect one shared choice that applies to every chosen row (an overlay's
+// Add decisions: Adds or Removes), checked with FieldErrors when the reader applies. Reference:
+// overlay-decisions. Where reference data can answer for each row, a second shared choice says
+// where the answer comes from: Add decisions' Rationale is a radio group beside the Decision,
+// Written once for every decision or From Table E-1 of NIST SP 800-160 Vol. 2, each control its
+// own. It is read-only with its reason until the decision adds, the written field is asked for only
+// while it is the source, and a chosen control the table does not name blocks applying with a
+// FieldError on the group that says how many there are, names the first three by code and gives the
+// two ways on. The sentence each control records is written in `src/lib` (`resiliencyRationale` in
+// control-overlays).
+
 import { useMemo, useRef, useState } from "react";
 import { Plus } from "lucide-react";
 import {

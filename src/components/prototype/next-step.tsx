@@ -1,3 +1,45 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// A control read in a program offers Map a requirement where none maps it, which opens the picker
+// of the program's requirements on the control's page (one its requirements map in part, some of
+// its objectives or not on every system that selects it, holds them in the stage and offers what is
+// left under them, the step its Details' Next step offers: Map 3 more objectives, Map on
+// R210-STD-CUSA or Allocate to R210-STD-CUSA); where its requirements cite no evidence, Link
+// evidence to the first of them by code (that requirement's Evidence tab); and, where no assessor
+// has determined that evidence, Add to assessment campaign in its Assessment findings stage, the
+// picker of the program's open campaigns with a draft plan, or Plan an assessment where none has
+// one, the form that plans a campaign around the control. A control whose evidence an open
+// campaign's plan holds already is under way: the stage names it instead, Open assessment campaign
+// (its Execution tab), shown to every reader. A control its assessors have judged in part (some of
+// the objectives it counts and not all, so still Not assessed) holds their findings in that stage,
+// and so does a control whose findings all say Not assessed, which judge nothing; the stage carries
+// the same step beside them, the one its Details carry: Open assessment campaign where an open
+// campaign's plan holds the objectives nobody has judged yet, else Add to assessment campaign or
+// Plan an assessment, opening over the page as the Details' step does. A requirement offers Map
+// control and Link evidence on its own tabs; an operational issue that names no requirement offers
+// Link requirement, which opens the issue's own Link requirement (its address asks for it,
+// `link=requirement`), since the link is the issue's. A control the program's product variants
+// inherit with a determination (the control status's `determinedBy` is the product) is not missing
+// a requirement: its empty Requirements stage offers none and names the product assessment that
+// decided it instead, a link to it in the stage's words (Decided by X800 Missile version 2 product
+// assessment), shown to every reader. A stage with nothing wrong in it (No operational issue, No
+// risk recorded) offers nothing, and otherwise a record further down the chain closes nothing
+// upstream from its own page: evidence, a finding, a risk and a remediation item offer nothing. The
+// fixes are derived in next-steps (`traceGapFixes`, given the control's standing from
+// `program_control_status` and what the program's open campaigns hold of it, `useControlAssessment`
+// in control-assessment) and drawn by `NextStep` in next-step.
+//
+// A step that leads elsewhere is a link; the four done on the control itself (Map a requirement,
+// Allocate requirements, Add to assessment campaign, Plan an assessment) are link-styled buttons
+// that open where they are done over the page, so the reader makes the change without leaving the
+// control, and a viewer reads them as words alone.
+//
+// The Details and the trace each hold what their steps open (`StepSurfaceHost`), so a picker stays
+// open while the step under it changes, and once the change shows, focus goes from the step that
+// left to what replaced it in its row (`focusWhereStepWas` in step-focus).
+
 import { createContext, useCallback, useContext, useRef, useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { Button, Text, TextLink } from "@ledger/design-system";

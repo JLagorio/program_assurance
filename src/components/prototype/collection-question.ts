@@ -1,3 +1,26 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// A register whose collection can hold thousands of rows reads one page from the server: the
+// catalog's Controls and CCIs, a program's Requirements, the risk register, operational issues,
+// observations, assessment findings, system assets, Unrolled findings, evidence, the task registers
+// (My work, a program's and a workstream's tasks) and the Assessment campaigns page's Objectives, a
+// program's too (a plan holds one objective an assessment objective of each control it assesses,
+// about 1,800 for a whole program baseline), in the campaigns' order, the newest plan first and
+// each plan's in the catalog's reading order, unless the reader sorts (`assessmentObjectiveRead` in
+// assessment-objectives); a campaign record's own Objectives stay a client collection.
+//
+// The server pages, sorts, filters and searches the question ProductCollection keeps in the
+// address, and counts the whole result in the same request; the first read asks the address's
+// question, else the one the tab's session remembers. A new search, sort or filter asks from the
+// first page, a search being typed is asked once the typing pauses, and another scope (an edition,
+// a program) opens on its first page. Its states are ProductCollection's: the page the reader had
+// stays under the busy state while the next one loads, and under the one alert with Retry when it
+// fails. Its saved views count the whole register (`useServerPresetCounts`), its filters pass their
+// values as `options` (`vocabularyOptions` for a status), since one page's rows are not every value
+// there is, and its Export reads the whole result (`useServerResult`), never the page.
+
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useRouterState } from "@tanstack/react-router";
 import type { UseQueryResult } from "@tanstack/react-query";

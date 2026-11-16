@@ -1,0 +1,80 @@
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
+
+import { ViewSwitcher, ViewSwitcherItem } from "../../components";
+import * as Stories from "./ViewSwitcher.stories";
+
+<Meta of={Stories} />
+
+# ViewSwitcher
+
+**Status: Experimental.** New with the November 2026 proposal, which gives each tab of a record a few views of its own, each a page; the props may change while its first screens try it. Owned by the design system.
+
+The views a tab holds, as one named, compact row of links under the tab strip: Control status, Control baseline, Cyber resiliency. Each view is a page of its own with its own title, so the row navigates and never changes the tab in place. On a view's own page the row marks that view current; on the tab, which shows none of its views, none is.
+
+<Canvas of={Stories.Playground} />
+
+| Part              | What it is                                                                                                                                                      |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ViewSwitcher      | A `nav` landmark named by `label` ("Controls views"), holding a list in a bordered strip: `color.border.input`, `radius.medium`, `space.025` inside.            |
+| ViewSwitcher.Item | One view, a list item holding a link: 24px, `font.body.small` at medium weight in `color.text.subtle`, the neutral hover tint under the pointer.                |
+| The current view  | `aria-current="page"` on its link, drawn in the current place's fill (`color.background.current`) under `color.text` with an ink edge (`color.border.current`). |
+
+## When to use
+
+- **The views of one tab, each a page.** A record's tab lists the views that read its work (the Controls tab's Control status, Control baseline and Cyber resiliency), so they are one press away rather than inside a menu. At most four a tab.
+- **Not for content that changes in place.** A choice that redraws the same page (Grid, Skyline, List; Families or List) is a [ToggleGroup](?path=/docs/components-togglegroup--docs) named Show as. A record's own sections are [Tabs](?path=/docs/components-tabs--docs).
+- **Not for actions.** A view is a place, so its entry is a link that says where it goes, never a Button and never a menu item.
+
+## On a view's page
+
+`isActive` marks the view the page shows: its link carries `aria-current="page"`, so a screen reader says which view is open, and it takes the current place's fill with an ink edge drawn over it, so it keeps the size of the others and is told by more than its fill. The current view stays a link in the row's order. Forced colours paint it as Highlight.
+
+<Canvas of={Stories.OnAViewsPage} />
+
+## Links from a router
+
+The kit never imports a router: each Item renders an anchor, or the element given to `render`, such as a router's Link, which keeps its navigation and takes the row's look. A router link that sets `aria-current` itself where its address matches is drawn current without `isActive`; give it exact matching, so a view is never marked from a page beneath it.
+
+<Canvas of={Stories.RouterLinks} />
+
+## On a phone
+
+The row is as wide as its links. Where its frame is narrower, a phone or a panel, it scrolls in its own strip, with the edge arrows where the pointer can hover: it never wraps and never widens the page. The current view is scrolled into view as the page opens, and the keyboard reveals each link it reaches.
+
+<Canvas of={Stories.OnAPhone} />
+
+## Content
+
+- **`label` names the row after its tab:** "Controls views", "Requirements views". Two rows on one page never share a name.
+- **Each view is named as its page's title is**, in sentence case: Control status, Traceability matrix. The name is the link's text and its accessible name.
+- **Four views at most**, in the order the work reads them. A view that only some records have is left out where it does not apply, rather than shown and refused.
+
+## Accessibility
+
+- **A named navigation of links.** The row is a `nav` landmark named by `label`, holding a list, so a screen reader hears how many views there are; `role="list"` keeps the count in WebKit.
+- **The open view is said, not only drawn.** `aria-current="page"` on the current link.
+- **Tab reaches each view in order** and leaves the row after the last; no arrow-key roving, since each view is a link to a page.
+
+## Props
+
+ViewSwitcher is a `nav` that forwards native props and its ref, and names itself last with `data-slot` (`view-switcher`, with `view-switcher-list` inside). ViewSwitcher.Item is a list item (`view-switcher-item`) holding the link, which takes the native props, the ref and `render`, and names itself `view-switcher-link`. The Item is also exported as `ViewSwitcherItem`.
+
+<ArgTypes of={ViewSwitcher} />
+
+### ViewSwitcher.Item
+
+<ArgTypes of={ViewSwitcherItem} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+- [Tabs](?path=/docs/components-tabs--docs): a record's own sections, above the row.
+- [ToggleGroup](?path=/docs/components-togglegroup--docs): a choice that redraws the same page.
+- [Breadcrumb](?path=/docs/components-breadcrumb--docs): the trail a view's page carries back to its tab.
+
+## Don't
+
+Views are pages, so the row is links in a named navigation with the open view marked current, never a row of buttons that look like actions and say nothing of where the reader is.
+
+<Canvas of={Stories.DoDont} />

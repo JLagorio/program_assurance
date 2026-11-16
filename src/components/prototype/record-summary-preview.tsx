@@ -1,3 +1,12 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// It labels a fact in the product's words where the column has them (`productColumnLabel` in
+// product-records) and names a related record through the foreign key its field belongs to, alone
+// or in a composite key; a record of another schema (an account, a stored file) reads Not
+// available, never its id.
+
 import { useState, type ReactNode } from "react";
 import {
   Absent,

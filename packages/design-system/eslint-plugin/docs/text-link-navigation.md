@@ -12,7 +12,7 @@ A custom component in `render`, such as a router `Link` or an application's reco
 
 ## Why
 
-A TextLink is read and announced as a link, so it has to take the reader somewhere: it can be opened in a new tab, copied and followed with Enter, and the browser shows where it goes. Rendering it as a button, or giving it only an `onClick`, keeps the link's look and loses all of that, and a screen reader announces a link that does not navigate. An action that should read as text is a Button with `variant="link"`. The product patterns say buttons act and links navigate ([product patterns](../../../../docs/guides/product-patterns.md#registers)); the TextLink page shows the router composition ([TextLink](../../src/stories/components/TextLink.mdx)).
+A TextLink is read and announced as a link, so it has to take the reader somewhere: it can be opened in a new tab, copied and followed with Enter, and the browser shows where it goes. Rendering it as a button, or giving it only an `onClick`, keeps the link's look and loses all of that, and a screen reader announces a link that does not navigate. An action that should read as text is a Button with `variant="link"`. The product patterns say buttons act and links navigate ([product patterns](../../../../docs/guides/product-patterns.md#register)); the TextLink page shows the router composition ([TextLink](../../src/stories/components/TextLink.mdx)).
 
 ## Instead
 

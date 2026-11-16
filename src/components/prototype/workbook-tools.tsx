@@ -1,3 +1,20 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// The application adopts Ledger's shared ContextMenu for cell, header and sheet menus, using the
+// same actions and availability rules as visible controls and keyboard commands. Pointer menus
+// supplement a visible or keyboard-accessible action path. Selection, focus and editing are
+// distinct: the grid owns one active-cell indicator; an inline editor never adds a second outer
+// field border. Compact visual rows retain the kit's touch target minimum and manually sized rows
+// keep their wrapping rule.
+//
+// Find controls show the current match and total, expose previous/next and retain the query when an
+// action takes focus. Matching excerpts render plain text with semantic highlights. The application
+// owns search results, replacement eligibility and a single undo transaction. Selection actions may
+// follow a captured document, cell or line range; a keyboard-accessible fixed action path remains
+// available and reading order is preserved.
+
 import { useMemo, useState } from "react";
 import {
   Alert,

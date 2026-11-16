@@ -1,3 +1,25 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// The next working surfaces extend the existing record, workbook and review contracts. An evidence
+// reader opens an explicitly chosen published version, keeps its page and zoom controls with the
+// document, and uses selection actions to capture a quoted passage or page rectangle. Citation
+// links select their exact stored anchor. A citation of a source the workspace holds no file of has
+// nothing to read: its link and its title in Cited by open the version's review, whose Cited by
+// holds the passage and the link to its source (`CitedEvidence` and `citationHref`), a link that
+// asks for the reader of a version with no file opens the same review, and the review offers Read
+// document only where a file was captured (`EvidenceReading` in evidence-browser). A discussion can
+// attach to that passage or to a particular side and line range of an immutable requirement edit
+// event; opening the discussion shows that historical context. Assessment finding citations use
+// concrete finding identities. Rendering and selection do not assert that an evidence claim has
+// been verified or approved.
+//
+// A reader uses Ledger's renderer-neutral document parts; PDF decoding and authenticated,
+// hash-verified byte loading stay in the app. Unsupported, unreadable and unavailable files retain
+// a clear source/download alternative. Document controls and discussions remain usable at phone
+// width, where the active page or thread takes the available width.
+
 import { lazy, Suspense, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import {

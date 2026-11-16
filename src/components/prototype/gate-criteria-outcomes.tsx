@@ -1,3 +1,13 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// A PickerSheet over reference rows marks the rows the record already holds with a badge and leaves
+// them unchoosable, so the footer's total and Select all N count only what can still be added. Its
+// request id is chosen once per choice (`choiceRequests`), so the same choice sent again adds
+// nothing more and a changed choice is another request. Reference: Add security outcomes in
+// gate-criteria-outcomes.
+
 import { useMemo, useState } from "react";
 import {
   Absent,

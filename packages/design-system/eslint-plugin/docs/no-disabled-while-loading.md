@@ -11,7 +11,7 @@ A name is a bare identifier or a whole member chain (`save.isPending`, with `?.`
 
 ## Why
 
-While a save runs, focus is on the button the reader pressed. A disabled button cannot hold focus, so the browser drops it to the page, and a keyboard or screen reader user loses their place at the moment they are waiting for a result. Ledger's `isLoading` already blocks a repeat activation, shows the spinner, keeps the button's width and name, and keeps it focusable. The product patterns' Forms and confirmations section says the primary shows `isLoading` and is never also `disabled` ([product patterns](../../../../docs/guides/product-patterns.md#forms-and-confirmations)); the Button page describes `isLoading` and `disabledReason` ([Button](../../src/stories/components/Button.mdx)).
+While a save runs, focus is on the button the reader pressed. A disabled button cannot hold focus, so the browser drops it to the page, and a keyboard or screen reader user loses their place at the moment they are waiting for a result. Ledger's `isLoading` already blocks a repeat activation, shows the spinner, keeps the button's width and name, and keeps it focusable. The product patterns' Forms and confirmations section says the primary shows `isLoading` and is never also `disabled` ([product patterns](../../../../docs/guides/product-patterns.md#flow)); the Button page describes `isLoading` and `disabledReason` ([Button](../../src/stories/components/Button.mdx)).
 
 ## Instead
 

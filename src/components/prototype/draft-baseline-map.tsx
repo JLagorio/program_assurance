@@ -1,3 +1,13 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// Program setup draws the same Grid under each chosen baseline's stack table, Resulting baseline,
+// the draft's result with its program tailoring under the same key, with a joined Show as of Grid
+// and List, the List a compact collection of the catalog's controls (Control, Family, Status,
+// Changed by) whose question ends with the task (`keepQuestion={false}`): the stack table counts
+// layers, not controls, so it is not the map's table. Reference: draft-baseline-map.
+
 import { useEffect, useMemo, useState } from "react";
 import {
   Absent,

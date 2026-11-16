@@ -1,3 +1,23 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// `RecordLink` draws that button itself: it opens the collection's own preview where the caller
+// passes `onPreview` (ModelTable, AssessmentTable and ProgramCollection do it unsaid), and
+// otherwise the record's preview alone, `LinkedRecordPreview` in linked-record-preview, in the
+// panel beside the page or as a frame over the preview the name sits in. Such a preview offers no
+// fuller record, and ends with the page or the tab its name sat in. A framework item's preview is
+// named for what the item is (Security outcome preview, Life cycle process preview) and shows the
+// items that hold it by name, each under what it is to the item (a security outcome's Process and
+// Group, an approach's Technique), an approach's Architectural layers (the layers Table D-5 says it
+// can be used at, in the table's order, `ApproachLayers` in control-resiliency), then Printed in
+// and its Framework by title; what the publication prints of it is a labelled `Prose`, Definition
+// where it defines the item and Description elsewhere, then what it prints beside that: a goal's,
+// an objective's, a technique's or an approach's Discussion and an approach's Examples, a list in
+// the printed order, read through `itemGuidance` in frameworks, and an item with neither shows
+// neither. An item ATT&CK identifies is titled by its identifier and name together. The words for
+// each kind are `frameworkItemWords` in product-records.
+
 import {
   Absent,
   HeadingLevelProvider,

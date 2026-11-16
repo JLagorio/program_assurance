@@ -1,3 +1,18 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// A program tab's own collection of owned records takes the verb, the column and the filter through
+// ProgramCollection's `assignOwner`, with an Owner column among its columns (`owner_party_id`,
+// `kind: "person"`, whose names it reads once): the operational issues on Findings, and the
+// remediation items and the risks on POA&M & risk; its Evidence is the evidence register's own.
+// Such a collection holds its records whole, so No owner counts them all and Select all is the
+// table's own. Reference: the POA&M & risk tab in program-workspace.
+//
+// A register that sits under other collections on its tab is named by its Section's id
+// (`#program-risks`), which brings it into view once its rows are read and moves focus to it,
+// staying aligned while the collections above it load until the reader scrolls.
+
 import { ControlBaselineSummary, ProgramControlBaseline } from "./control-baseline";
 import { ProgramInheritance } from "./program-inheritance";
 import { ProgramViewRow, programViewTab, type ProgramViewName } from "./program-views";
@@ -495,19 +510,14 @@ export function ProgramWorkspace({
                 </TrailLink>
               )}
             </RecordTrail>
-            {/* The program's name, then its categorization and its standing as one fact. */}
+            {/* The program's name, then its facts line: its categorization and its standing as
+                one fact. */}
             <PageHeader.Heading>
-              <Stack space="space.050">
-                <PageHeader.Title>{view ?? program.name}</PageHeader.Title>
-                {/* The program's standing on its own page; a focused view is named by its h1 alone. */}
-                {!view && (
-                  <ProgramStandingFacts
-                    programId={programId}
-                    boundaries={boundaries}
-                    gates={gates}
-                  />
-                )}
-              </Stack>
+              <PageHeader.Title>{view ?? program.name}</PageHeader.Title>
+              {/* The program's standing on its own page; a focused view is named by its h1 alone. */}
+              {!view && (
+                <ProgramStandingFacts programId={programId} boundaries={boundaries} gates={gates} />
+              )}
             </PageHeader.Heading>
             <PageHeader.Actions>
               <RecordActions

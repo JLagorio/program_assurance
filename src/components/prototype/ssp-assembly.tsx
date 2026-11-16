@@ -1,3 +1,28 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// Reference: the Observations tab in observations-register, and the Controls tab in ssp-assembly,
+// where a selected control with no implementation opens its preview and a control is named by its
+// code and title together in its one identity cell, since control titles repeat across families.
+//
+// The program's Controls tab, the SSP assembly in ssp-assembly, draws the same status as a Control
+// status column beside each control's Recorded implementation, with a filter and the same fact in
+// its preview, so the SSP says which of its controls are met; a control outside the control
+// baseline reads Not in the program baseline, and the column waits until the read answers, its
+// failure said by the tab's alert. The register is one read, `ssp_control_rows` through
+// `useSspControlRows` in ssp-assembly: each control of the SSP revision's stored baseline with its
+// implementation and how many contributions, requirements and evidence versions stand behind it,
+// counted on the server, and the SSP's totals and gaps; a control's preview reads what stands
+// behind it as it opens, `ssp_control_detail`, every record its forms edit with every column they
+// edit, and `assembleSsp` puts it together under the same rules, its sections waiting under lines
+// while it loads and saying their own failure with Retry, its Edit control implementation keeping
+// its place with the reason until the record is read. A control's preview lists the requirements
+// that support it, each with its Relationship: a requirement whose mappings name objectives names
+// them by label, in the catalog's order ("Mapped to objectives SA-24a.01, SA-24a.02, and
+// SA-24a.03"), and one that maps the whole control or a statement of its text reads Mapped to
+// control (`mappedObjectives` in ssp-assembly).
+
 import { useProgramBaselines } from "@/lib/baseline-reads";
 import { RecordSummaryPreview } from "./record-summary-preview";
 import { ProductCollection } from "./product-collection";

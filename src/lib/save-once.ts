@@ -1,3 +1,14 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// A form whose save must be safe to retry chooses its record id once and saves through
+// `useSaveOnce` in save-once: it creates only when the id is absent, edits only at the revision the
+// reader saw, writes nothing when the record already holds the values, and says which conflict
+// stopped it (another session's change, a record that is gone, different values already saved). The
+// generic record form, behind `ProductRecordDialog` and the inspector's create pages, saves by the
+// same rule through `saveRecordOnce` in record-save, its id chosen once a draft.
+
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useWorkspace } from "./workspace-context";

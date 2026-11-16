@@ -1,3 +1,31 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// The Review queue is the workspace's register of everything waiting on a reviewer, across programs
+// and whoever is meant to act, and a navigation destination beside My work; Attention stays the
+// reader's own inbox, with its seen and done. A row is a state the schema records that a reviewer
+// moves, never a draft its author is still writing: an evidence artifact's latest version whose
+// latest review is pending (Evidence to accept, waiting on the reviewer the review names), a draft
+// assessment results revision that holds findings (Assessment results to publish), a draft product
+// assessment that holds determinations (Product assessment to publish, waiting on its assessor), a
+// lifecycle gate in review (Gate to decide), an authorization package's latest published version
+// submitted with no decision (Package to decide) and an open review discussion (Discussion to
+// resolve). The words are `reviewQueueKinds` in status. It is a standalone register over one
+// server-paged read, `review_queue_rows`, the record that has waited longest first: Record, Kind,
+// Program, Waiting on, Waiting since and Requested by, with Kind, Program and Waiting on as its
+// filters and no create action. A row's name opens the page its review is done on: the evidence
+// version's review, the product assessment, the package, the record a discussion was started on. A
+// gate and an assessment results revision have no page of their own, so their names open the
+// queue's preview, a gate's with Open lifecycle gates to its program's Schedule. Review preview
+// says what waits and on whom in the facts its kind holds, and a discussion's opens its thread,
+// where it is resolved.
+//
+// Published, the record leaves the queue and the preview stays on it, outside the current results,
+// its primary keeping its place and focus and saying why it no longer runs. A review recorded, an
+// assessment published, a gate or a package decided, or a discussion resolved anywhere reads the
+// queue again. References: review-queue, and the campaign's Assessment results in campaign-results.
+
 import { ProductCollection } from "./product-collection";
 import { AssuranceReviewThreadDialog } from "./assurance-review";
 import { useServerCollection, vocabularyOptions } from "./collection-question";

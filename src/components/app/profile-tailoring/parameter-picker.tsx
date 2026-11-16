@@ -1,3 +1,23 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// Profile control decisions and parameter overrides use Dialogs, including when they edit the
+// program wizard’s draft. They do not extend the element Sheet exception. A parameter whose values
+// name a reference vocabulary is picked from it rather than typed, in the same Dialog and by the
+// same entry modes as a source's own choices. SA-24's five parameters (cyber resiliency goals,
+// objectives, techniques, implementation approaches and design principles) offer the items of the
+// cyber resiliency framework, several at once and one line an option: boxes for a list the
+// publication prints as one (4 goals, 8 objectives, 14 techniques), and for a list it prints under
+// headings a searched list with the chosen ones as chips (50 approaches under their techniques, the
+// design principles under Strategic and Structural), where typing a heading's words lists what
+// stands under it. The values are saved as the items' titles in the publication's order, since a
+// parameter value is text. The vocabulary is read as the Dialog opens on a set that holds one of
+// the five: while it loads the field keeps its place and the primary says why, a load that fails is
+// an Alert with Try again over typed text, and where the framework's reference data is not loaded,
+// or a recorded value names nothing in the vocabulary, the values are typed and nothing is said of
+// a vocabulary. Reference: parameter-picker.
+
 import { useConfirmation, discardChanges } from "@/components/app/confirmation";
 import { useFormFeedback, type FormIssue } from "@/components/app/form-feedback";
 import { useDraftGuard } from "@/components/app/use-draft-guard";

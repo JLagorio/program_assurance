@@ -1,4 +1,4 @@
-import { Button, PageHeader, type PageHeaderStandingBeat } from "../src/index";
+import { Button, Fact, PageHeader, type PageHeaderStandingDate } from "../src/index";
 
 // The action slot has four forms and no others: one of advance, sign and waitingOn, or none.
 const act = () => {};
@@ -25,17 +25,26 @@ export const forms = (
   </>
 );
 
-// The standing is one beat or two, never three.
-const beat: PageHeaderStandingBeat = { value: 42, total: 61, label: "satisfied" };
+// The standing is one fact of the facts line: status words in a tone, and at most one date.
+const late: PageHeaderStandingDate = { value: "2026-10-12", name: "PDR" };
 export const standing = (
-  <>
-    <PageHeader.Standing beats={[beat]} />
-    <PageHeader.Standing beats={[beat, { value: 2, label: "to review", tone: "warning" }]} />
-    {/* @ts-expect-error Three beats is not a headline. */}
-    <PageHeader.Standing beats={[beat, beat, beat]} />
-    {/* @ts-expect-error A standing has a beat. */}
-    <PageHeader.Standing beats={[]} />
-  </>
+  <PageHeader.Facts>
+    <Fact label="Categorization">High · High · Moderate</Fact>
+    <PageHeader.Standing label="Authorization" status="ATO with conditions" tone="warning" />
+    <PageHeader.Standing label="Authorization" status="ATO" tone="success" date={late} />
+    <PageHeader.Standing
+      label="Authorization"
+      status="ATO"
+      date={{ value: "2029-09-17", kind: "expiry", soonWithin: 90 }}
+    />
+    <PageHeader.Standing label="Authorization" isLoading />
+    {/* @ts-expect-error A standing is named for assistive technology. */}
+    <PageHeader.Standing status="ATO" />
+    {/* @ts-expect-error A standing is a few words, never a figure out of a total. */}
+    <PageHeader.Standing label="Controls" beats={[{ value: 42, total: 61 }]} />
+    {/* @ts-expect-error A standing has one date. */}
+    <PageHeader.Standing label="Authorization" status="ATO" date={[late, late]} />
+  </PageHeader.Facts>
 );
 
 // A sign Button takes its signer; the size and the look are its own.

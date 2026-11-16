@@ -1,3 +1,10 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// An evidence artifact's record is `/evidence/:id`; its versions are reviewed in the modal version
+// review, which the address names (`version`).
+
 import { EvidenceReaderWorkspace, type EvidenceReaderWorkspaceProps } from "./evidence-reader";
 import { AssuranceReviewPanel } from "./assurance-review";
 import { AssuranceCitations } from "./assurance-review-citations";

@@ -1,3 +1,21 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// Where a newer version of the product is published, the view opens with a status `Alert` that says
+// so and the version the variant is at, whose action, for a reader who may edit, is Take version
+// and its number: a Dialog of the same name that reviews before it writes. It counts the elements
+// kept, added, that become the program's own and that stay removed, says in a note when the newer
+// version has no published product assessment (every control the variant takes from it then reads
+// Not assessed) and when a kept element's library pin differs, and lists every element with its
+// outcome (Added, Program's own, Not added, Stays removed, Kept, still modified, Kept) and its code
+// in the system, a read-only review table as on Take version of a library component. The command
+// saves the variant at the revision the reader saw, with one request id for the review, so taking
+// it again changes nothing; a refusal stays inside the Dialog, and once it is taken focus goes to
+// the heading that counts what is owed. One read answers the view, `variant_control_delta` through
+// `useVariantControlDelta` in product-assurance, and the review is `variant_version_changes` and
+// the command `take_product_version` beside it. Reference: product-delta and product-version-take.
+
 import { useId, useMemo, useRef, useState, type FormEvent, type RefObject } from "react";
 import { AlertCircle } from "lucide-react";
 import {

@@ -1,3 +1,10 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// A half-typed moment blocks the submission with the field's own message, also when Enter submits
+// from inside the field (`unsettledMoment` in form-feedback).
+
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { ErrorSummaryIssue } from "@ledger/design-system";
 

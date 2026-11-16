@@ -1,3 +1,21 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// A form that imports rows reads them before it sends them: Import requirements takes a CSV, the
+// first sheet of an Excel workbook that holds anything, or a ReqIF file through a `FileTrigger`, or
+// rows pasted from a spreadsheet, and says in a status group how many requirements and which
+// columns it read and how many rows it passed over; a missing Reference or Statement column, a
+// reference given twice, more than 2,000 rows and a file that cannot be read are FieldErrors on the
+// file or the pasted rows, and a chosen file says its error as soon as it is read. An Elements
+// column allocates each requirement to the program's elements it names by code, and a code the
+// program does not hold stops the import whole. It adds to a document the program holds or records
+// a new one, its request id is chosen again whenever the choice changes, a failure says that
+// nothing was imported, and the toast says how many allocations were made. Reading is
+// `readRequirementTable` in requirement-import-file, over `readRequirementRows` for text,
+// `workbookTable` for a workbook read by the spreadsheet core and `readReqif` for ReqIF (a ReqIF
+// object's attributes by their long names); it finds a column by what its heading says.
+
 import type { ImportedRequirement } from "./product-assurance";
 import { requirementTypes } from "./requirement-edit";
 

@@ -1,3 +1,11 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// Business lines is a register of its own and a destination of the navigation, beside Products; a
+// business line's record holds its Products and its Programs, each a compact collection under its
+// Section heading, its Description, and its owner in its Details. Reference: business-lines.
+
 import { useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import {

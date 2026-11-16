@@ -1,3 +1,68 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// One page-level h1 names the record. The breadcrumb goes in `PageHeader.Lead` as a `RecordTrail`
+// of `TrailLink`s from record-trail, which matches exactly and marks only its last level current. A
+// record inside a program (a requirement, a control, a component, a system) is trailed Programs ›
+// the program › the program tab that lists it › any element that contains it: program-record draws
+// it for the system, component and control records, and requirement-record for a requirement. The
+// name goes in `PageHeader.Title` through `RecordHeading` in work-common, with the record's
+// `StatusBadge` beside it where it has a status or state (a control's is its control status), and
+// `RecordActions` goes in `PageHeader.Actions`: the edit as its one primary, the record's other
+// commands as its children in one Actions menu, which a reader with none does not see. A code goes
+// in the trail or in Details, never in place of the name, except a control's: a control named by
+// itself (its h1, trail, browser title, preview title, a toast) is its code and title, AC-2 Account
+// Management (`controlName` in product-records).
+//
+// The header has no back-chevron row, sentence description, property editor or second action row.
+// Reference: the task record (src/routes/tasks.$taskId.tsx).
+//
+// State, owner, identifiers and dates sit in an `Inspector` group named Details, in a `Shell.Aside`
+// named after the record type, `<Record type> details` (Task details, System details, Program
+// details), whose `summary` is the record's `StatusBadge` where the record has a status or a state.
+// The Aside is the `aside` of an `AsideLayout` around the body it belongs to: everything after the
+// PageHeader (and its error alert) on a record without tabs, and the content of Overview's panel on
+// a tabbed record, so the header and the tab strip span the page on every tab and the Details leave
+// with Overview. Where the layout leaves the body room, the Details are the rail at the body's end,
+// under the tab strip, staying in view as the page scrolls; narrower (a phone, a narrow window,
+// beside an open panel or a widened side nav) they are a closed Details disclosure above the body
+// whose row carries the state, so state, priority and due are one tap from the top and the
+// collections keep their place. A `Shell.Aside` is never rendered outside an `AsideLayout`. A tab
+// that is a register fills the work area without the Details; the System record's Overview, the
+// elements inside the system, is the one register beside them. Reference: the task record
+// (src/routes/tasks.$taskId.tsx), and the program's Overview in program-workspace.
+//
+// A `KeyValue.Group` in the rail or a preview takes a named `labelWidth` (`default`, or `wide` for
+// labels of about twenty characters), and one in a record body takes `labelWidth="auto"`; never a
+// pixel width. A property edited in place (an owner, a type) is an `Editable` row in Details beside
+// the identifiers and state, and a due day is `Editable.Date`; the body holds the authored text (a
+// title, a statement, criteria, a rationale).
+//
+// A larger change follows the form contract. A version chooser in the rail is one of its facts, a
+// KeyValue whose value is the Select. A record whose tabs all read one revision names it in a
+// version menu in `PageHeader.Actions` instead, before the Actions menu and shown on every tab: a
+// trigger reading Revision and its version, and a radio row per revision with its state; creating a
+// revision is one of the Actions menu's commands, and a reader of a shared reference record, which
+// nobody in the workspace authors, sees no menu. Its Overview carries the revision's substance,
+// with the provenance in a collapsed Section. Reference: the profile record
+// (src/routes/profiles.$profileId.tsx).
+//
+// Comments and activity are a `Timeline` in a `Section` of the record body, newest first, each time
+// with its minutes through the reader's locale and zone;
+//
+// A reader who may comment writes in the Comments section's `Composer` (see the closed list under
+// Forms).
+//
+// A missing record is an `Empty` with the search illustration, a clear title, an explanation and a
+// route back. It is never an error alert or an empty title. Loading and failure are different
+// states from not found.
+//
+// It posts through a command in `src/lib` (task-comments) as the reader, keeps the draft and says
+// why after a failure (sending it again never posts it twice), and asks before a page with an
+// unsent draft is left, as a form does. A reader who may not comment sees the feed alone.
+// Reference: the task record (src/routes/tasks.$taskId.tsx).
+
 import { ProgramCollection } from "@/components/prototype/program-shared";
 import { useRef, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";

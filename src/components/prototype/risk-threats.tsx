@@ -1,3 +1,44 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// A risk also names the threat it concerns in ATT&CK's words, and its Overview shows which of the
+// controls that counter it the program holds: two Sections between the latest assessment and the
+// remediation, drawn by `RiskThreats` in risk-threats from one read, `risk_threats` through
+// `useRiskThreats` in risk-threats. ATT&CK techniques is a compact collection of the techniques the
+// risk names, of ATT&CK for Enterprise or ATT&CK for ICS, Enterprise's first, one line a row: the
+// technique by its identifier and name together in its one identity cell (T1190 Exploit
+// Public-Facing Application), its Tactics as a list and its Matrix, Enterprise or ICS, which tells
+// T1190 from T0819 of the same name. A technique has no page of its own, so its name opens its
+// preview: its matrix and its tactics, the mitigations and the controls NIST SP 800-160 Vol. 2 Rev.
+// 1 prints against it (Appendix F for Enterprise, Appendix G for ICS) with their approaches and
+// effects, and, in a collapsed Details section, the source and rights of its appendix's reference
+// data. The Section's action is Link ATT&CK technique, a RecordBrowser over both appendices'
+// techniques, Enterprise's first, with a Matrix column and filter and a Tactics filter, since a
+// technique is read before it is chosen; Unlink ATT&CK technique is the row's danger action and the
+// same item in the preview's overflow menu. The link is the risk's own: it is made and removed
+// whatever the state of its assessments. Countering controls lists each control either appendix
+// prints against those techniques once, one line a row and numbers: the control by its code and
+// title, linked to the program's control record, its Approaches and Effects as lists, its Baseline
+// (In baseline or Not selected, from the control baseline the program adopted), its Objectives
+// mapped, Objectives with evidence and Objectives assessed (12 of 26: the assessment objectives the
+// program's requirements cover, cover by a requirement that cites evidence and its assessors have
+// judged, out of those the control counts, counted as the control status counts them, in the
+// program's baseline or not, and Absent for a control that counts none), its Requirements and how
+// many of them are With evidence, counted as a control's own band counts them. It opens with what
+// the program holds least first, which is its Baseline column's order, by objectives as the control
+// status counts them (not in the baseline, then not every objective mapped, then not every
+// objective evidenced, the catalog's order among equals; a control that counts no objective by its
+// requirements, one that maps it and then one that cites evidence); once the risk names more than
+// one technique, a Techniques column and filter say which each control counters. With no technique
+// named, each Section is its compact empty with the same Link action; a workspace without the
+// ATT&CK reference data says so and offers nothing to link. A technique is not a stage of the
+// chain: the band's numbers and the trace do not change. The program's risks, under their Section
+// on its POA&M & risk tab, list the techniques each names in an ATT&CK techniques column, by
+// identifier and name, with a filter on it, read once for the program's risks
+// (`useProgramRiskTechniques` in risk-threats), the reads a control's Risks column counts from, so
+// a count and the risks it opens agree.
+
 import { useMemo, useRef, useState } from "react";
 import { Crosshair, MoreHorizontal, Plus, ShieldCheck } from "lucide-react";
 import {

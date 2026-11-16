@@ -1,3 +1,31 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// When a join row's visible name is another record (an allocation names its system, an issue's
+// observation the observation), the name is that record's own link, the row click opens it and the
+// eye previews the join row; an EntitySection that names the record it links (`links`) does it
+// unsaid, and reads the linked records' names once for the table, so the rows sort, search and
+// export by the name and every row control says it (Preview Signature test report), never the
+// link's id.
+//
+// A register, a record page, a tab and a Details rail never read the record schema, so every route
+// in the screen inventory but /schema and /records/* opens with no `app_schema` read:
+//
+// a column's kind and label are declared on it (`kind`, `statuses`, `label`), else its key decides;
+// a record section that links existing records names the record it links (EntitySection `links`),
+// and its action says Link and that record. A surface that needs the schema (a create or edit
+// Dialog, a preview, a picker) reads it as it opens and says its own failure with Retry; a preview
+// needs it only for a fact that does not say what it is, so a `RecordSummaryPreview` whose fields
+// each draw themselves, carry a vocabulary or declare their `kind` reads none (an assessment
+// results preview, a risk's, a task's, a framework item's); a preview's Edit asks the role, and the
+// form it opens waits on the schema. Reference: EntitySection and ModelFacts in record-tools.
+//
+// A cell or field that names another record reads the name through `useRecordName` in record-names,
+// which reads a page's names together, one request per collection. Reference data (catalog
+// editions, profiles, CCI releases, the NIST SP 800-160 frameworks) is loaded by a workspace
+// administrator; an empty reference collection says so and never asks the reader to import.
+
 import { ProductCollection, type ProductCollectionProps } from "./product-collection";
 import { useCollectionTable } from "./collection-question";
 import { RecordSummaryPreview } from "./record-summary-preview";

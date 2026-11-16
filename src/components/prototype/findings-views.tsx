@@ -1,3 +1,14 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// An operational issue's observations are folded into its record: a `Timeline` in the order they
+// were observed, each opening its preview, with Link observation as the Section's action. An
+// observation has no page of its own.
+//
+// An assessment finding's band sits above what the assessor wrote and the observations, evidence
+// citations and risk assessments it rests on.
+
 import {
   EmptyMessage,
   MissingRecord,

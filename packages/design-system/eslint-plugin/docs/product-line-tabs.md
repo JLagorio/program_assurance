@@ -12,7 +12,7 @@ One element can have both reports. Only a `TabsList` imported from `@ledger/desi
 
 ## Why
 
-Every product page and preview uses the same tab strip: a line under the tabs that spans the content, a selected indicator that slides, and one row that scrolls when the labels do not fit, on a desktop preview and a phone alike. The kit owns that scroller, so a wrapping, fitted or hand-scrolled strip breaks the underline and the keyboard behaviour that come with it. The product patterns' Tabs section is the contract ([product patterns](../../../../docs/guides/product-patterns.md#tabs)); the Tabs page describes both variants ([Tabs](../../src/stories/components/Tabs.mdx)).
+Every product page and preview uses the same tab strip: a line under the tabs that spans the content, a selected indicator that slides, and one row that scrolls when the labels do not fit, on a desktop preview and a phone alike. The kit owns that scroller, so a wrapping, fitted or hand-scrolled strip breaks the underline and the keyboard behaviour that come with it. The product patterns' Tabs section is the contract ([product patterns](../../../../docs/guides/product-patterns.md#every-page)); the Tabs page describes both variants ([Tabs](../../src/stories/components/Tabs.mdx)).
 
 ## Instead
 

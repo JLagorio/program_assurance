@@ -1,3 +1,10 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// An inline choice offers the values its command accepts (`requirementTypes` in requirement-edit),
+// not the schema's.
+
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { useWorkspace } from "./workspace-context";

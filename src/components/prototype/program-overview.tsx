@@ -1,3 +1,34 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// A record's Overview says where the record stands before it lists anything, in counted groups:
+// each a `Tray` whose heading is the count and opens the tab or the view that holds what it counts
+// ("43 open issues"), over the parts a reader acts on first, one `Stat.Row` a line in a
+// `Stat.List`, worst first, a line of zero left out. A row is toned only where the value itself is
+// a problem (a blocked task, a critical or high issue). Trays sit side by side in one `Grid` that
+// follows its own width; a tray that cannot be read says Could not load in its heading under the
+// page's alert, and a number is never a zero because it could not be read.
+//
+// The program's Overview opens with three, `ProgramOpenWork`: open tasks by status, open
+// operational issues by severity and open risks by status. A line that counts something opens its
+// tab's register asked for exactly those records (`registerViews.programOperationalIssues`,
+// `programRisks`, `programTasksView`). The operational issues and the risks end with No owner, how
+// many of the open ones nobody owns, each counted on the server from its register's view
+// (`useProgramUnowned` in owner-assign); its line asks the tab's register for the open records with
+// No owner (`unownedQuestions`), so the 43 it counts are the 43 the register lists, and a count
+// that could not be read draws no line under the page's alert.
+//
+// Under them one tray counts the controls of the program's control baseline and opens the Control
+// status view: `ProgramControlStatusTray` draws the whole baseline as one `Tally`,
+// `ControlStatusTally` from control-status, each control status its share, under a
+// `ControlStatusKey` that counts each status, with the share satisfied at the heading's end. No
+// number there is a dead end: a count of the key is a link that opens the view's List at that
+// status (No evidence 235 lists those 235); the view draws a mark a control. A program with no
+// control baseline draws no such tray.
+//
+// Reference: program-overview and program-timeline.
+
 import { useMemo, type ReactElement, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import {

@@ -32,6 +32,7 @@ export const FROM_REPO = [
   "tsconfig.json",
   "scripts/lint-allow.json",
   "docs/guides/product-patterns.md",
+  "docs/guides/product-patterns-core.md",
   "docs/guides/component-library.md",
 ];
 

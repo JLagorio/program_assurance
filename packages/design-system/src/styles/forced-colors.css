@@ -94,6 +94,7 @@
   [aria-pressed="true"],
   [role="tree"] [role="treeitem"][aria-selected="true"],
   [data-slot="shell-sidenav-item"][aria-current="page"],
+  [data-slot="view-switcher-link"][aria-current="page"],
   [data-slot="pagination-item"] > [aria-current="page"] {
     forced-color-adjust: none;
     background-color: Highlight;
@@ -116,6 +117,7 @@
       [aria-pressed="true"],
       [role="tree"] [role="treeitem"][aria-selected="true"],
       [data-slot="shell-sidenav-item"][aria-current="page"],
+      [data-slot="view-switcher-link"][aria-current="page"],
       [data-slot="pagination-item"] > [aria-current="page"]
     )
     * {
@@ -135,6 +137,7 @@
     [aria-pressed="true"],
     [role="tree"] [role="treeitem"][aria-selected="true"],
     [data-slot="shell-sidenav-item"][aria-current="page"],
+    [data-slot="view-switcher-link"][aria-current="page"],
     [data-slot="pagination-item"] > [aria-current="page"]
   ):focus-visible {
     outline-color: CanvasText;
@@ -186,10 +189,12 @@
   }
 }
 
-/* TOOLBAR: the current page's bar (PaginationItem) gives way to the Highlight fill above, as the
-   pressed edge and the selected bar do. */
+/* TOOLBAR: the current page's bar (PaginationItem) and the current view's ink edge
+   (ViewSwitcher) give way to the Highlight fill above, as the pressed edge and the selected bar
+   do. */
 @media (forced-colors: active) {
-  [data-slot="pagination-item"] > [aria-current="page"]::after {
+  [data-slot="pagination-item"] > [aria-current="page"]::after,
+  [data-slot="view-switcher-link"][aria-current="page"]::after {
     display: none;
   }
 }

@@ -1,3 +1,41 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// A control has two records. The catalog's, `/catalog/controls/:id`, trailed Catalog › Controls, is
+// its text as the catalog prints it, then where each program of the workspace stands on it (one row
+// a program: Objectives mapped, Objectives with evidence and Objectives assessed, each 12 of 26 as
+// the program's control status counts them, then requirements, with evidence, open issues, open
+// risks; the objectives are one read for every row, `control_objective_counts` through
+// `useControlObjectiveCounts` in control-objectives, and the table waits on it), its enhancements,
+// and its assessment objectives, parameters and links in collapsed Sections. The program's,
+// `/programs/:id/controls/:id`, trailed Programs › the program › Controls, is the band and trace
+// kept to that program, then the same text with the program's values for its parameters in place of
+// the catalog's placeholders; that address also names a control the program has implemented, by its
+// implementation, whose record opens with the same band and then keeps its own body: the
+// implementation narrative, its statements and the components that contribute. A control's name
+// opens the program's record wherever it is read inside a program (`program_id` on what
+// `RecordLink` is given) and the catalog's elsewhere. On the program's record a parameter of the
+// control's text, its statement and its assessment objectives, prints the program's value where the
+// program has one: the value as the program's control baseline resolves it, one read,
+// `program_control_parameters` through `useProgramControlParameters` in control-parameters: the
+// nearest layer of the stack that sets the parameter, else the catalog's own value. A value stands
+// in the text's colour at medium weight, a `Text`, so it reads as the program's words and stays
+// told from the prose, and hovering it names the parameter and the layer (cyber resiliency goals,
+// set by Program tailoring); a parameter nothing sets keeps its placeholder, subtle and in
+// brackets, as the catalog prints it. Where the program's control baselines set different values,
+// each reads in turn, joined by "or", a baseline that sets none by its placeholder. The Parameters
+// Section says the same: Program value as the text prints it, or Not set; Set by, the layer by its
+// name and what it is (Baseline, Overlay, Tailoring) or the catalog; and the setting's Rationale;
+// where the baselines disagree, one line each with the baselines that read so. While the values
+// load the text waits, and when they cannot be read the placeholders stand under the page's alert.
+// A control none of the program's baselines selects, and the catalog's record, print the
+// placeholders.
+//
+// The closed Details say the control status in their row; the catalog's own status reads Catalog
+// status beside it, and an implemented control's Implementation. Each says what NIST SP 800-160
+// gives the control, in two Sections after its text.
+
 import { useMemo, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import {

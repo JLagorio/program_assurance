@@ -1,3 +1,18 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// A collection's schema (a column's choices, a generic form's columns, what the role may do) comes
+// from `useCollection`, `useColumnChoices` or `useSchemaCatalog` in collections, for the schema
+// inspector, the generic record forms and the previews that name their facts from it; it loads on
+// demand, and a surface waits on it like any query: a create or edit action keeps its place while
+// it loads, never a read-only note.
+//
+// A screen that only asks whether the reader may create, edit or remove records of a collection
+// every member writes (systems, requirements and their revisions, allocations, control mappings,
+// evidence links, and the records of a program collection) asks the workspace role, every member
+// but a viewer, and row-level security decides each write.
+
 import { useMemo } from "react";
 import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 import { useWorkspace } from "./workspace-context";

@@ -1,3 +1,140 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// The generic record noun is owned by `productRecordNoun`; a create or edit trigger, Dialog title
+// and primary repeat that operation. Use these terms in columns, collection headings and labels:
+//
+// Operational issue / Operational issues. Findings is a workspace grouping when
+// it includes issues and observations.
+//
+// Assessment result: Assessment finding / Assessment findings. It is distinct from an operational
+// issue. Assessment results are the revision of a campaign's plan that holds its findings: a draft
+// until Publish assessment results freezes it.
+//
+// System / Systems. A scope names a recorded assessment scope, not a system; old parameter
+// names do not set UI vocabulary. Create system from product makes a new system, a product variant.
+//
+// Task / Tasks. My work is the personal register; Schedule is the program workspace
+// containing tasks, lifecycle gates and responsibilities.
+//
+// Suppliers is the register and navigation label; its records are organizations, so the
+// operation is Create organization.
+//
+// Risk / Risks; Risk register is the standalone collection, POA&M & risk register is the
+// combined workspace, and POA&M & risk the program tab holding its POA&M plans, remediation items
+// and risks.
+//
+// Overlay / Overlays: a reusable set of control decisions in the library; the operation is
+// Create overlay. A decision Adds or Removes a control. Tailoring is a program's or a system's own
+// last layer, never called an overlay. Control baseline is the result; Configuration baseline is
+// the configuration-management record. Delete overlay removes a draft no program's stack applies.
+// Edit overlays changes the overlays of a program's control baseline, the program's tailoring
+// staying last.
+//
+// Campaign: Assessment campaign / Assessment campaigns, including the program tab and global
+// navigation. Add to assessment campaign puts a control into a campaign's draft plan as the
+// assessment objectives it counts, one plan objective each (one aimed at its statement for a
+// control that counts none), and a plan that holds some takes the rest; of a control its assessors
+// have judged in part, only the objectives nobody has judged (Only what's left); Plan an assessment
+// plans a new campaign around a control the same way, and Plan delta assessment one over the
+// controls a variant owes. Publish assessment results freezes a campaign's draft results and their
+// findings, which the program's control statuses and traces read from then on.
+//
+// Remediation item is the ongoing record; remediation commitment is its version. A
+// POA&M plan groups the items.
+//
+// Record lifecycle: Status for operational progress; State for draft/published version state.
+//
+// Due date in a form, Due in a column and in Details: a calendar day (`due_on`), never a
+// moment. A risk response's due stays a moment.
+//
+// Responsibility: Owner for accountability; Sponsor, Assessor and Observer remain distinct recorded
+// roles. Avoid Lead as a synonym for Owner. Assign owner gives the records chosen in a register one
+// owner, a person or an organization; No owner names the records nobody owns, as the Owner filter's
+// last value.
+//
+// Operations: Create makes a new identity. Edit changes it. Add or Link selects and connects
+// existing records. Map control creates a mapping relationship; Allocate requirement records an
+// allocation.
+//
+// Resiliency technique / Resiliency techniques: one of the 14 cyber resiliency
+// techniques of NIST SP 800-160 Vol. 2. Approach / Approaches: one of the 50 implementation
+// approaches under them. Architectural layer / Architectural layers: one of the 11 layers Table D-5
+// says an approach can be used at, from Hardware and Firmware to Environment of Operation; an
+// approach's are its Architectural layers. A control supports a technique where Table E-1 says so.
+// Control family names the catalog's own grouping beside it. Cyber resiliency is the Section on a
+// control's record and the program's focused view of the ladder. Controls held counts the controls
+// Table E-1 names that the baseline selects; an approach with nothing behind it is one none of
+// whose supporting controls the baseline holds. Guidance is what Table D-4 says of a technique or
+// an approach: its Definition, its Examples and its Discussion, with an approach's one-line
+// description under its name; as a column it counts examples ("13 examples"). The framework's other
+// lists are Resiliency goal, Resiliency objective, and Strategic design principle and Structural
+// design principle.
+//
+// Security outcome / Security outcomes: what a system life cycle process achieves
+// (NIST SP 800-160 Vol. 1), named by its sentence. Add security outcomes draws a gate's criteria
+// from them; Create gate criterion writes one. A drawn criterion's Source is its process, and its
+// preview names the outcome as Security outcome.
+//
+// Life cycle process / Life cycle processes: one of the 30 system life cycle
+// processes of NIST SP 800-160 Vol. 1, in its process group. Process group / Process groups: one of
+// its four groups. Process and Group inside the outcome picker, whose title already says whose they
+// are, and as the facts of an outcome's preview.
+//
+// ATT&CK technique / ATT&CK techniques: a technique of MITRE ATT&CK as NIST SP
+// 800-160 Vol. 2 Rev. 1 names it, Appendix F for ATT&CK for Enterprise and Appendix G for ATT&CK
+// for ICS, read by its identifier and name together (T1190 Exploit Public-Facing Application).
+// Matrix says which a technique belongs to: Enterprise or ICS; T0819 is ICS's Exploit Public-Facing
+// Application. A risk names the techniques it concerns: the operations are Link ATT&CK technique
+// and Unlink ATT&CK technique, never Create or Add. Tactic, Mitigation, Approach and Effect keep
+// the appendix's words; a mitigation the appendix defines itself is a Candidate mitigation, and
+// beside one a mitigation of ATT&CK's own reads ATT&CK mitigation. A specific effect names the
+// High-level effect that holds it. A control counters a technique where the appendix prints the
+// control against it: on a control's record the Section is ATT&CK techniques, and its Risks column
+// counts the program's risks that name each, a count opening them. The free-text Threat stays a
+// field of the risk assessment.
+//
+// Assessment objective: Objective / Objectives: what SP 800-53A asks an assessor to determine of a
+// control, by its label and text (AC-02a.[01], account types allowed for use within the system are
+// defined and documented). A control counts its leaf objectives, those with no objective under
+// them, and each heading that prints a sentence of its own besides the objectives under it (PM-24,
+// a Data Integrity Board is established), nine in SP 800-53 Rev 5: 26 for AC-2, 9 for AC-8 with its
+// heading AC-08a.; an objective above others is the heading they sit under, and mapping it maps
+// every objective under it, while mapping all of them without it leaves its own sentence uncovered.
+// Both Map dialogs ask Objectives: Whole control, the default, or Chosen objectives, one mapping an
+// objective (`mappingCoverages` in status). Objectives mapped and Objectives with evidence count a
+// control's objectives as numbers, 12 of 26, each mapped, or with evidence, on every system that
+// selects the control (`objectiveWords` in product-records); in both Map dialogs a counted heading
+// chosen covers the objectives under it, which read Covered by AC-08a. and are not chosen again;
+// beside a requirement in Map a requirement, Maps 12 of 26 objectives. An assessment objective of a
+// plan is another record: Add to assessment campaign, Plan an assessment and Plan delta assessment
+// write one for each objective a control counts, titled by the objective's label and text and aimed
+// at it, and a plan holds the control once it holds them all or the control's statement; beside a
+// campaign whose plan holds some, Holds 12 of 26 objectives. Of a control its assessors have judged
+// in part, Add to assessment campaign and Plan an assessment write only the objectives nobody has
+// judged (AC-2 with 3 of its 26 judged takes 23), and a plan holds the control once it holds those;
+// beside a campaign whose plan holds some of them, Holds 5 of 23 left to judge. A campaign's
+// Objectives list them in the catalog's reading order, their Target an objective by its label
+// (AC-08a.01) and a statement as Control statement.
+//
+// Countering control / Countering controls: a control the appendix prints
+// against an ATT&CK technique. Its Baseline is In baseline or Not selected; Objectives mapped,
+// Objectives with evidence and Objectives assessed count the assessment objectives the program's
+// requirements cover, cover by a requirement that cites evidence and its assessors have judged, out
+// of those the control counts, as its control status counts them; Requirements counts the program's
+// requirements that map it and With evidence those of them that cite evidence.
+//
+// Business line / Business lines: the level above products, which a program may
+// belong to too. Business lines is its own register and navigation destination, beside Products.
+// The operation is Create business line.
+//
+// Framework item: Never a product noun: a record of a reference framework is named for what it is
+// (a security outcome, a resiliency technique, a tactic). Its facts are the items that hold it,
+// Printed in (where the publication prints it) and Framework (the publication it belongs to); what
+// the publication prints of it is its Definition where the publication defines it and its
+// Description elsewhere.
+
 import type { Database } from "./database.types";
 import type { TableName } from "./models";
 import { labelFor, type Column } from "./records";

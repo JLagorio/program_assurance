@@ -1,3 +1,17 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// A program's choice for SA-24 is one read, `program_resiliency_choice` through
+// `useProgramResiliencyChoice` in resiliency-choice: whether the program's control baseline selects
+// the control, and the framework items the effective values of its five parameters name, by code. A
+// screen that reads a program's cyber resiliency by technique leads with that choice where the
+// program made one: the Posture's columns are the chosen techniques with all of them one toggle
+// away, the Control baseline's Select lists them first, and the Cyber resiliency view marks them,
+// on the ladder and in its Layers. Where the program has not selected SA-24 or has named no
+// technique, every technique stands and nothing is said of a choice; a choice that could not be
+// read is said by the page's alert, never read as nothing chosen.
+
 import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";

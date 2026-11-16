@@ -11,7 +11,7 @@ The step named is the one of the part's own map nearest the width the lint reads
 
 ## Why
 
-A dialog's width is a decision about the task, and Ledger makes it once: a few named steps, each of which narrows to the window less a gutter, so a dialog on a phone is the phone's width and dialogs of the same kind open at the same size. A pixel width in `style` or a width class skips both: it does not narrow, or narrows differently, and it starts a second scale. The product patterns' Forms and confirmations section says `DialogContent` takes a `width` step, never a pixel width ([product patterns](../../../../docs/guides/product-patterns.md#forms-and-confirmations)); the Dialog page lists the steps ([Dialog](../../src/stories/components/Dialog.mdx)).
+A dialog's width is a decision about the task, and Ledger makes it once: a few named steps, each of which narrows to the window less a gutter, so a dialog on a phone is the phone's width and dialogs of the same kind open at the same size. A pixel width in `style` or a width class skips both: it does not narrow, or narrows differently, and it starts a second scale. The product patterns' Forms and confirmations section says `DialogContent` takes a `width` step, never a pixel width ([product patterns](../../../../docs/guides/product-patterns.md#flow)); the Dialog page lists the steps ([Dialog](../../src/stories/components/Dialog.mdx)).
 
 ## Instead
 

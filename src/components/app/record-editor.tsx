@@ -1,3 +1,16 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// A record without a dedicated form opens `ProductRecordDialog` over the generic `RecordEditor` in
+// record-editor: its fields follow the schema, its labels come from `productFieldLabel` (Owner, not
+// Owner party), its status choices read as their badges, a value the context fixes shows as
+// labelled text instead of a field, and once the context sets one member of a polymorphic target
+// group (`productTargetGroups`) the others are hidden. A column only a command records (the
+// security outcome a gate criterion was drawn from) is never a field: `isDerivedRecordField` in
+// records leaves it out of the form and of what the form saves, the database refuses a direct write
+// of it, and a preview names it in the product's words (`productColumnLabel`: Security outcome).
+
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type FormEvent } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";

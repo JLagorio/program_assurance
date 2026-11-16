@@ -547,9 +547,46 @@ test("every route declares a screen family and browser assertion", async () => {
     "redirect",
     "exception",
   ]);
+  // Pass one's seven page types: what a page is for decides its budgets and its one primary.
+  const archetypes = new Set([
+    "Overview",
+    "Register",
+    "Record",
+    "Workspace",
+    "Flow",
+    "Home",
+    "Library",
+  ]);
   for (const screen of inventory) {
     assert.ok(families.has(screen.family), screen.file);
     assert.ok(screen.path && screen.title, screen.file);
+    assert.ok(archetypes.has(screen.archetype), `${screen.file}: one of the seven page types`);
+    assert.ok(
+      typeof screen.purpose === "string" &&
+        screen.purpose.split(/\s+/).length <= 12 &&
+        !screen.purpose.includes("\n"),
+      `${screen.file}: its purpose, one line of at most 12 words`,
+    );
+    assert.ok(
+      typeof screen.primary === "string" && screen.primary,
+      `${screen.file}: its one primary action, or "none"`,
+    );
+    // The page budgets sweep holds every route it opens to ceilings that only fall.
+    const ceilings = [screen.budgets, ...Object.values(screen.tabBudgets ?? {})];
+    if (!["redirect", "exception"].includes(screen.family))
+      assert.ok(screen.budgets, `${screen.file}: record its budgets (test-page-budgets --update)`);
+    for (const ceiling of ceilings.filter(Boolean))
+      assert.ok(
+        Object.values(ceiling).every((value) => Number.isInteger(value) && value >= 0),
+        `${screen.file}: a budget ceiling is a count`,
+      );
+    for (const tab of Object.keys(screen.tabBudgets ?? {}))
+      assert.ok(
+        [...(screen.collectionTabs ?? []), ...Object.keys(screen.tabExceptions ?? {})].includes(
+          tab,
+        ),
+        `${screen.file}: ${tab} has budgets and is no declared tab`,
+      );
     if (["exception", "redirect", "wizard", "inspector"].includes(screen.family))
       assert.ok(screen.reason, screen.file);
     if (screen.family === "redirect") assert.ok(screen.redirectTo, screen.file);

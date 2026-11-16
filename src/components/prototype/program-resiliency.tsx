@@ -1,3 +1,44 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// The program's Cyber resiliency is a focused view too: the ladder of NIST SP 800-160 Vol. 2
+// (goals, objectives, techniques, approaches) with what the control baseline holds of the controls
+// Table E-1 prints behind each. It opens with a `Stat.Grid frame="band"` of two numbers, Controls
+// held and Approaches with nothing behind them; the second is a linked tile that narrows the view
+// to those approaches and back (`only=gaps`). The stack is a `Stepper orientation="responsive"`
+// named Baseline layers, each step with what it added and removed among those controls and the
+// running count ("+70 −3 · 131"); choosing a step reads the view after that layer and the address
+// keeps it (`layer`), and Replay walks the steps from the first, writing only the one it ends on. A
+// joined `ToggleGroup` named Show as chooses Ladder or Layers (`show=layers`). Ladder is Ledger's
+// `Ladder` over every relation the publication prints, those that pass over a level included (the
+// objectives an approach supports itself), under a `TileMap.Key` of the baseline statuses: a node
+// says how many of the controls behind it the baseline holds, over a `Tally` of them, an approach
+// none of whose controls it holds is flagged, an item the program named for SA-24 wears the
+// ladder's round mark, which the key says beside the statuses (Chosen for SA-24) only where the
+// program chose, and choosing a node keeps the paths through it and dims the rest, and opens its
+// preview in the panel beside the page. One map of the baseline statuses, a tone and a fill each
+// (`marks` in baseline-map), feeds the key, every `Tally` and every mark, so the view keeps no
+// second colour for a status. The ladder is given no width and no sideways scroller: it keeps its
+// wires while its levels have the room they need, which a 1280px window leaves beside the view's
+// 360px preview, and in less (a phone, a narrower window beside the preview) its levels stack in
+// order with no wires. Layers is the kit `Table` of the same numbers, a technique a row and a step
+// a column, each cell the count beside a `Tally` of what the layer found, added and removed; a
+// Switch named Approaches lists the approaches under each technique (`rows=approaches`), and a
+// technique the program chose for SA-24 wears a badge. A goal, an objective and a technique open
+// Resiliency goal preview, Resiliency objective preview and Resiliency technique preview: how many
+// of the controls behind it the baseline holds at the step shown, then its Definition and the
+// Discussion Tables 2, 3 and D-4 print beside it (`itemGuidance`), and for a technique a link to
+// the Control baseline read by it; previous and next step through its level. An approach has no
+// page of its own: its row or its name opens Approach preview in the panel beside the page (the
+// ladder's `onSelect`, never its `details` card, which is for a part with no preview), which holds
+// what Table D-4 says of it (its definition, NIST's examples and its discussion, through
+// `itemGuidance`), its Architectural layers (Table D-5, `ApproachLayers`) and then the controls
+// that support it, those in the baseline first, each a link to the program's control record with
+// its requirement count; previous and next step through the approaches listed, all fifty or the
+// ones the view is narrowed to. The view counts every technique whatever the program chose for
+// SA-24. The numbers are derived in resiliency-ladder. Reference: program-resiliency.
+
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { getRouteApi, Link } from "@tanstack/react-router";
 import { CornerDownRight } from "lucide-react";

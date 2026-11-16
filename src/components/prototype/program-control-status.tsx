@@ -1,3 +1,30 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// The program's Control status is a focused view too, and says where the program stands on each
+// control of that baseline, which the Control baseline view does not: its heading counts the
+// controls and the share satisfied ("546 controls, 0% satisfied"), and a joined `ToggleGroup` named
+// Show as chooses Families or List, which the address keeps (`show=list`; an address that names
+// none shows the families). Families is a `ControlStatusKey` over one `Card` a control family, in a
+// `Grid` that follows its own width: the family's code and name as the card's title, a link that
+// opens the List at that family; how many of its controls are satisfied and how many cite evidence
+// ("0 / 51 satisfied", "36 with evidence"); and a `ControlStatusMap` strip of its controls, each
+// mark a button that opens its control. A count of the key opens the List at that status. List is
+// the same controls as a register: the control by its code and title, its Control status,
+// Determined by (Program assessment or Product assessment, Absent while nobody has determined it),
+// Objectives mapped, Objectives with evidence and Objectives assessed, each a number out of the
+// control's assessment objectives (12 of 26), its Requirements and how many of them are With
+// evidence, and its Control family, with Control status, Determined by and Control family as its
+// filters. A control whose requirements map some of its objectives stands at No requirement beside
+// its Objectives mapped, and a mark of the families says how many. Its question lives in the
+// address under its view (`program-control-status`, in register-views), so every count that links
+// to it opens what it counts, through `controlStatusListSearch` in control-status-link. The view
+// reads `show` from the address the page is drawn on, as ProductCollection reads the question, so a
+// link that asks for the List and its question in one step never opens the List on the question it
+// asked before. The view has no Stat band and no prose: the key, the cards and the register say the
+// counts. One read answers both, `program_control_status`. Reference: program-control-status.
+
 import { useCallback, useMemo } from "react";
 import { Link, getRouteApi, useRouterState } from "@tanstack/react-router";
 import {

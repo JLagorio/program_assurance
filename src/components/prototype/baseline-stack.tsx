@@ -1,3 +1,16 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// A program's control baseline is the exception that is shown: how it is formed is a
+// `BaselineStackTable` from baseline-stack, the kit `Table` as an ordered definition list, one line
+// a row and numbers only (the reference baseline, a second one combined with it where the program
+// starts from two, each overlay and the tailoring in the order they apply, how many controls each
+// added and removed, how many parameters it sets values for and the running count; no description
+// or second line in a cell), on the program's Overview, in its focused Control baseline view and
+// under each chosen baseline in program setup; its order is its meaning, so it has no search or
+// sort.
+
 import type { ReactNode } from "react";
 import { Table, Text } from "@ledger/design-system";
 import { layerKinds, type BaselineLayer } from "@/lib/baseline-stack";

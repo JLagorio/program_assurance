@@ -1,11 +1,20 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// The program's header has, under its name, its categorization and its standing as one fact: the
+// newest authorization decision in RMF's short words (ATO, ATO with conditions, ATO expired, DATO,
+// ATD; with none, the authorization every boundary records, else Package submitted, Package in
+// draft or No authorization package) and its most urgent date, an open gate's due day or the
+// authorization's expiry (ATO with conditions · CDR 46d late), `ProgramStandingFacts` over
+// `programStanding` in program-standing.
+
 import { useMemo } from "react";
 import {
-  DateTime,
-  Inline,
-  Skeleton,
-  Text,
-  VisuallyHidden,
+  Fact,
+  PageHeader,
   useLedgerLocale,
+  type PageHeaderStandingDate,
 } from "@ledger/design-system";
 import type { UseQueryResult } from "@tanstack/react-query";
 import {
@@ -20,34 +29,17 @@ import {
 import { authorizationStandings, impactLevels, statusLabel, statusTone } from "@/lib/status";
 import { ReportFailures } from "./work-common";
 
-/** A due day this close is said in the warning tone, as a due date's Due soon is. */
-const SOON_DAYS = 2;
-/** An authorization expiring within this many days is said in the warning tone. */
+/** An authorization expiring within this many days is flagged as soon; a gate, within two. */
 const EXPIRY_NOTICE_DAYS = 90;
 
-/** The urgent date in the header's words: "PDR 35d late", "CDR due today", "expires Sep 17, 2029". */
-function UrgentWords({ urgent }: { urgent: UrgentDate }) {
-  const { formatNumber } = useLedgerLocale();
-  const late = urgent.days < 0;
-  const near =
-    urgent.kind === "gate" ? urgent.days <= SOON_DAYS : urgent.days <= EXPIRY_NOTICE_DAYS;
-  const color = late ? "color.text.danger" : near ? "color.text.warning" : undefined;
-  const words =
-    urgent.kind === "expiry" ? (
-      <>
-        expires <DateTime value={urgent.day} format="date" />
-      </>
-    ) : late ? (
-      `${urgent.name} ${formatNumber(-urgent.days)}d late`
-    ) : urgent.days === 0 ? (
-      `${urgent.name} due today`
-    ) : (
-      <>
-        {urgent.name} due <DateTime value={urgent.day} format="date" />
-      </>
-    );
-  return <Text {...(color ? { color } : {})}>{words}</Text>;
-}
+/**
+ * The urgent date as the header's standing says it: a gate by its title ("PDR 35d late", "CDR due
+ * today"), an expiry after the authorization's words alone ("expires Sep 17, 2029").
+ */
+const standingDate = (urgent: UrgentDate): PageHeaderStandingDate =>
+  urgent.kind === "expiry"
+    ? { value: urgent.day, kind: "expiry", soonWithin: EXPIRY_NOTICE_DAYS }
+    : { value: urgent.day, name: urgent.name };
 
 /**
  * The program's header facts, under its name: its security categorization (each of
@@ -89,41 +81,25 @@ export function ProgramStandingFacts({
   return (
     <>
       <ReportFailures queries={queries} />
-      <Inline space="space.200" rowSpace="space.050" alignBlock="baseline" shouldWrap>
+      <PageHeader.Facts>
         {categorization && (
-          <Text>
-            <Text color="color.text.subtle">Categorization</Text>{" "}
-            <Text weight="medium">
-              {categorization.map((level) => statusLabel(impactLevels, level)).join(" · ")}
-            </Text>
-          </Text>
+          <Fact label="Categorization">
+            {categorization.map((level) => statusLabel(impactLevels, level)).join(" · ")}
+          </Fact>
         )}
         {ready ? (
-          <Text>
-            <Text
-              weight="medium"
-              {...(statusTone(authorizationStandings, ready.standing) === "danger"
-                ? { color: "color.text.danger" as const }
-                : {})}
-            >
-              {statusLabel(authorizationStandings, ready.standing)}
-            </Text>
-            {ready.urgent && (
-              <>
-                {" · "}
-                <UrgentWords urgent={ready.urgent} />
-              </>
-            )}
-          </Text>
+          <PageHeader.Standing
+            label="Authorization"
+            status={statusLabel(authorizationStandings, ready.standing)}
+            tone={statusTone(authorizationStandings, ready.standing)}
+            {...(ready.urgent ? { date: standingDate(ready.urgent) } : {})}
+          />
         ) : failed ? (
-          <Text color="color.text.subtle">Could not load</Text>
+          <PageHeader.Standing label="Authorization" status="Could not load" />
         ) : (
-          <>
-            <Skeleton shape="line" width={180} />
-            <VisuallyHidden>Loading the authorization standing</VisuallyHidden>
-          </>
+          <PageHeader.Standing label="Authorization" isLoading />
         )}
-      </Inline>
+      </PageHeader.Facts>
     </>
   );
 }

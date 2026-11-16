@@ -1,3 +1,38 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// Every register, record page and dashboard starts with `Page` from the app shell
+// (src/components/app/shell.tsx): its `PageHeader`, then its body, `space.200` apart, kept inside
+// Main (`min-w-0`) and rising in once as the page opens; a loading or missing-record state inside
+// it takes the same `Page` without rising again. A screen never builds its own root `Stack`.
+//
+// The app uses `Shell collapsedSideNav="icons"`: minimizing the desktop navigation keeps a compact
+// rail of destination icons and the account avatar. Keep the active destination visible, give every
+// top-level destination an icon, and expose its label on hover and keyboard focus.
+//
+// The schema inspector is not a destination: Settings opens it, under Diagnostics, and no record's
+// menu links into it.
+//
+// The app mark stays in place; in the minimized header, the expand control appears over that mark
+// on hover or keyboard focus, and shows there at rest on a screen without hover (a tablet in
+// landscape). Expanding restores the labels and the reader's chosen width; the preference survives
+// a reload. The desktop sidebar smoothly changes width in both directions; the phone overlay slides
+// in and out with its scrim. Closing content stops accepting input immediately, and reversing an
+// animation continues from its current position. Use Ledger's motion tokens and honor reduced
+// motion; restoring the saved layout does not animate. Reference: the app shell
+// (src/components/app/shell.tsx). The Shell icon-rail story and the responsive app workflow check
+// this behavior.
+//
+// The top nav holds the app mark, Search and actions, and the end actions. `Shell.TopNav.Search`
+// opens the shared `CommandPalette` over matching records, saved views, personal destinations and
+// registered page commands; ⌘K opens the same launcher. Record results include source context and
+// excerpts; commands keep their existing handlers and disabled explanations. End actions are
+// `Shell.TopNav.Item`s, so the top nav folds them on a narrow screen. The account is a menu in the
+// side nav's footer, with Sign out last. `Shell locationKey` takes the resolved pathname, so a page
+// change moves focus to Main and announces the page, and choosing a search result hands focus to
+// the new page.
+
 import {
   PersonalNavigationProvider,
   PersonalNavigationSection,

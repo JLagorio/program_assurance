@@ -1,3 +1,17 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// A requirement's own Map control, the Dialog of its Control mappings tab, asks the same Objectives
+// after its System and Control, read-only with its reason until a control is chosen: Whole control,
+// or Objectives to map, several at once, a chosen heading covering the objectives under it as in
+// the picker, written as one mapping an objective in one request whose ids are chosen once per
+// system and objective, an objective that already has the relationship on that system a FieldError;
+// Edit control mapping changes one mapping, which covers the whole control or one Objective to map
+// (`MappingDialog` in requirement-control-mappings). Its Coverage column says what each mapping
+// covers: Whole control, an objective by its label with its text, or a statement of the control's
+// text, which points into it and covers the whole control.
+
 import { ControlProse, useControlPlaceholders } from "./library-controls";
 import { ObjectiveCoverage, ObjectivesField, type MappingCoverage } from "./objective-choice";
 import { ProductCollection } from "./product-collection";

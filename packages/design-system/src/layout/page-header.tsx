@@ -10,18 +10,29 @@ import {
 } from "react";
 import { Avatar, AvatarFallback, avatarHue, avatarInitials } from "../components/avatar";
 import { Button, IconButton } from "../components/button";
-import { RelativeTime, type DateTimeValue } from "../components/date-time";
+import {
+  DateTime,
+  dueStateLook,
+  RelativeTime,
+  useDueState,
+  type DateLabelKind,
+  type DateTimeValue,
+} from "../components/date-time";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "../components/dropdown-menu";
 import { LinkButton } from "../components/link-button";
+import { Skeleton } from "../components/skeleton";
+import { Absent } from "../components/typography";
 import { cn } from "../lib/cn";
 import { useLedgerLocale } from "../lib/locale";
+import type { LedgerMessages } from "../lib/locale-format";
 import { toneClasses, type Tone } from "../lib/status-tone";
 import { Heading } from "../primitives/heading";
 import { headingTag, useHeadingLevel } from "../primitives/heading-level";
+import { VisuallyHidden } from "../primitives/visually-hidden";
 
 /** Native header props and ref; `render` sets the element. A `div` by default: the page's own header is not a banner landmark, and inside a dialog or a sheet a `header` would become one. */
 export type PageHeaderProps = useRender.ComponentProps<"header">;
@@ -292,69 +303,179 @@ export function PageHeaderSlot({
   );
 }
 
-/* ---------- the standing headline ---------- */
+/* ---------- the facts line and the standing ---------- */
 
-/** One beat of a standing: a count out of a total, or a few words. */
-export type PageHeaderStandingBeat = {
-  /** The figure or the words: 42, "ATO with conditions". A number is written in the reader's locale, in tabular figures. */
-  value: number | string;
-  /** What the figure is out of, in the subtle weight after it: 61 reads "42 of 61". */
-  total?: number | undefined;
-  /** What the figure counts, after it: "satisfied", "to review". */
-  label?: string | undefined;
-  /** A colour only when the beat is a judgement: late in `danger`. Most beats stay `neutral`, the text colour. */
-  tone?: Tone | undefined;
-};
-
-export type PageHeaderStandingProps = Omit<ComponentProps<"div">, "children"> & {
-  /** One beat, or two in reading order: where the record stands, then what needs doing ("42 of 61 satisfied", "2 to review"). */
-  beats:
-    readonly [PageHeaderStandingBeat] | readonly [PageHeaderStandingBeat, PageHeaderStandingBeat];
+export type PageHeaderFactsProps = Omit<ComponentProps<"dl">, "children"> & {
+  /** Facts and at most one PageHeader.Standing, in the order the reader needs them: four at most. */
+  children: ReactNode;
 };
 
 /**
- * Where the record stands, in the display size: one line under the name and the slot, of two
- * beats at most, each a count out of a total or a few words. It reads its own width: under 32rem,
- * a phone or a narrow panel, each beat takes a line of its own. Not a heading: the name stays the
- * h1, and a beat is never a link.
+ * The header's facts line, under the Title in PageHeader.Heading: a short row of labelled facts in
+ * the body size, each a Fact (its label small and subtle, its value at medium weight) or the
+ * record's standing (PageHeader.Standing). One line where it has the room; narrower, a phone or a
+ * panel, it wraps between facts, so every fact stays whole on its line. A `dl`, as Fact.Group is.
  */
-export function PageHeaderStanding({ beats, className, ...props }: PageHeaderStandingProps) {
-  const { formatNumber, t } = useLedgerLocale();
+export function PageHeaderFacts({ className, ...props }: PageHeaderFactsProps) {
+  return (
+    <dl
+      {...props}
+      data-slot="page-header-facts"
+      className={cn("flex min-w-0 flex-wrap items-baseline gap-x-300 gap-y-075 pt-050", className)}
+    />
+  );
+}
+
+/** The standing's most urgent date: a gate due, a decision that expires. */
+export type PageHeaderStandingDate = {
+  /** The day: an ISO day, compared with the reader's today, or an instant, compared with now in the provider's zone, as DateLabel reads it. */
+  value: DateTimeValue;
+  /** What falls due on it, before the words: "PDR" reads "PDR 35d late", "PDR due today", "PDR due Dec 4, 2026". Without it the words follow the status alone: "expires Sep 17, 2029". */
+  name?: string | undefined;
+  /** As DateLabel's: `due` (the default) reads late, due today and due on the day; `expiry`, the day a decision stops holding, reads expired, expires today and expires on the day. */
+  kind?: DateLabelKind | undefined;
+  /** How many days ahead read as soon, in the warning tone, as DateLabel's: 2 by default. A decision that expires is often flagged a quarter ahead (90). */
+  soonWithin?: number | undefined;
+  /** The moment the date is judged from; by default the clock at render. */
+  now?: Date | number | undefined;
+};
+
+export type PageHeaderStandingProps = Omit<ComponentProps<"div">, "children"> & {
+  /** What the fact is, heard before its words and not drawn: "Authorization". The status words name themselves, as a status beside a name does. */
+  label: string;
+  /** Where the record stands, in its own short words: "ATO with conditions". Without it, and not loading, the fact is an Absent. */
+  status?: string | undefined;
+  /** The tone the status's badge takes, which colours its words. `neutral`, the subtle colour, by default. */
+  tone?: Tone | undefined;
+  /** The record's most urgent date, after the status: flagged as DateLabel flags a date, with an icon, a tone and words, while it is late, due today or due soon. */
+  date?: PageHeaderStandingDate | undefined;
+  /** The standing is still being read: a line holds its place and a screen reader hears Loading. */
+  isLoading?: boolean | undefined;
+};
+
+const DAY_UNIT = { style: "unit", unit: "day" } as const;
+
+/** The standing's date in words, in its state's tone, with its icon while it is flagged. */
+function PageHeaderStandingDateWords({ date }: { date: PageHeaderStandingDate }) {
+  const { t, formatNumber } = useLedgerLocale();
+  const kind = date.kind ?? "due";
+  const due = useDueState(date.value, {
+    kind,
+    soonWithin: date.soonWithin,
+    now: date.now,
+    part: "PageHeader.Standing",
+  });
+  if (!due) return null;
+  const { state, days } = due;
+  const name = date.name ?? "";
+  // A day that has passed reads how long ago ("35d late"; a screen reader hears "35 days"); an
+  // instant passed earlier today reads due today, in the late tone.
+  const late = kind === "due" && state === "overdue" && days < 0;
+  const key: keyof LedgerMessages =
+    kind === "expiry"
+      ? state === "overdue"
+        ? "pageHeaderStandingExpired"
+        : state === "today"
+          ? "pageHeaderStandingExpiresToday"
+          : "pageHeaderStandingExpires"
+      : late
+        ? "pageHeaderStandingLate"
+        : state === "overdue" || state === "today"
+          ? "pageHeaderStandingDueToday"
+          : "pageHeaderStandingDue";
+  const words = (unitDisplay: "narrow" | "long") =>
+    t(key, { name, duration: formatNumber(-days, { ...DAY_UNIT, unitDisplay }) })
+      .replace(/\s{2,}/g, " ")
+      .trim();
+  const shown = words("narrow");
+  const spoken = words("long");
+  const [before = "", after = ""] = shown.split("{date}");
+  const phrase = shown.includes("{date}") ? (
+    <>
+      {before}
+      {/* A day never needs the line, but a value made long wraps rather than paint past it. */}
+      <DateTime value={date.value} format="date" className="whitespace-normal break-words" />
+      {after}
+    </>
+  ) : shown === spoken ? (
+    shown
+  ) : (
+    <>
+      <span aria-hidden="true">{shown}</span>
+      <VisuallyHidden>{spoken}</VisuallyHidden>
+    </>
+  );
+  const flagged = state === "overdue" || state === "today" || state === "soon";
+  return (
+    <span
+      data-slot="page-header-standing-date"
+      data-state={state}
+      data-kind={kind}
+      className={cn(
+        "inline-flex min-w-0 max-w-full items-center gap-050 [&>svg]:size-icon-small [&>svg]:shrink-0",
+        state === "overdue"
+          ? toneClasses.danger.text
+          : flagged
+            ? toneClasses.warning.text
+            : "text-default",
+      )}
+    >
+      {flagged ? dueStateLook[state].icon : null}
+      <span className="min-w-0 self-baseline break-words">{phrase}</span>
+    </span>
+  );
+}
+
+/**
+ * Where the record stands, as one fact of PageHeader.Facts: its status in its tone ("ATO with
+ * conditions") and, after it, its most urgent date flagged as DateLabel flags one ("PDR 35d
+ * late"), never a headline. Its label is heard, not drawn. It reads as one fact and wraps whole.
+ */
+export function PageHeaderStanding({
+  label,
+  status,
+  tone = "neutral",
+  date,
+  isLoading,
+  className,
+  ...props
+}: PageHeaderStandingProps) {
+  const { t } = useLedgerLocale();
   return (
     <div
       {...props}
       data-slot="page-header-standing"
-      className={cn("@container/standing min-w-0", className)}
+      data-tone={tone}
+      className={cn("flex min-w-0 items-baseline", className)}
     >
-      <div className="flex flex-wrap items-baseline gap-x-300 @max-lg/standing:flex-col @max-lg/standing:items-start">
-        {beats.map((beat, index) => {
-          const figure = typeof beat.value === "number" ? formatNumber(beat.value) : beat.value;
-          const [before = "", after = ""] =
-            beat.total === undefined
-              ? []
-              : t("pageHeaderStandingOf", { total: formatNumber(beat.total) }).split("{value}");
-          const tone = beat.tone ?? "neutral";
-          return (
-            <Heading
-              // A beat's place is its identity: there are one or two, in reading order.
-              key={index}
-              size="display"
-              as="div"
-              data-slot="page-header-standing-beat"
-              data-tone={tone}
-              className={cn(
-                "min-w-0 break-words tabular-nums",
-                tone === "neutral" ? "text-default" : toneClasses[tone].text,
-              )}
-            >
-              {before ? <span className="font-regular text-subtle">{before}</span> : null}
-              {figure}
-              {after ? <span className="font-regular text-subtle">{after}</span> : null}
-              {beat.label ? ` ${beat.label}` : null}
-            </Heading>
-          );
-        })}
-      </div>
+      <dt className="sr-only">{label}</dt>
+      <dd
+        aria-busy={isLoading ? true : undefined}
+        className="flex min-w-0 flex-wrap items-baseline gap-x-075 break-words font-body font-medium"
+      >
+        {isLoading ? (
+          <>
+            <Skeleton width={160} className="inline-block align-middle" />
+            <VisuallyHidden>{t("loading")}</VisuallyHidden>
+          </>
+        ) : status ? (
+          <>
+            <span data-slot="page-header-standing-status" className={toneClasses[tone].text}>
+              {status}
+            </span>
+            {date ? (
+              <>
+                <span aria-hidden="true" className="text-subtle">
+                  ·
+                </span>
+                <PageHeaderStandingDateWords date={date} />
+              </>
+            ) : null}
+          </>
+        ) : (
+          <Absent />
+        )}
+      </dd>
     </div>
   );
 }
@@ -367,5 +488,6 @@ export const PageHeader = Object.assign(PageHeaderRoot, {
   Description: PageHeaderDescription,
   Actions: PageHeaderActions,
   Slot: PageHeaderSlot,
+  Facts: PageHeaderFacts,
   Standing: PageHeaderStanding,
 });

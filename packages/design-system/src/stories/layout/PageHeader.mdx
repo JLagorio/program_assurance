@@ -1,6 +1,7 @@
 import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
 import {
   PageHeader,
+  PageHeaderFacts,
   PageHeaderLead,
   PageHeaderSlot,
   PageHeaderStanding,
@@ -20,7 +21,7 @@ One composable page header for collections and records. Two columns: Heading, wh
 <Canvas of={Stories.Record} />
 <Canvas of={Stories.Constrained} />
 
-Compose a Heading with a Title, an optional Lead and one primary action or an Actions menu. A breadcrumb is the Lead through `render={<Breadcrumb />}`; a category line is a Lead with text. A register's header is its name alone: its create action is the toolbar's primary. A record's header is the trail, the name and its actions: a code goes in the trail, and record fields, owner and status editors and property strips belong in the work area or the Aside, not in PageHeader or a preview header.
+Compose a Heading with a Title, an optional Lead and one primary action or an Actions menu. A breadcrumb is the Lead through `render={<Breadcrumb />}`; a category line is a Lead with text. A register's header is its name alone: its create action is the toolbar's primary. A record's header is the trail, the name, its facts line and its actions: a code goes in the trail, and under the name PageHeader.Facts says where the record stands and the few facts the reader acts on, each labelled (below). Editors, property strips and the record's other facts belong in the work area or the Aside, not in PageHeader or a preview header.
 
 <Canvas of={Stories.DoDont} />
 
@@ -55,18 +56,21 @@ A destination in an Actions menu is a link item (`DropdownMenuLinkItem`, or an i
 
 `more` is the record's other commands behind a subtle 36px icon button at the slot's end: `label` names the record ("More control actions") and `items` are the menu's items, Inspect record last. Every form may have it. A slot with no form and no `more` draws nothing.
 
-The slot never shows a disabled primary: when the reader cannot take the next step, the record waits on someone (Waiting) or has none (None). One slot a record, and nothing else in the header's actions. The slot and the standing are experimental: their API may change before they are stable.
+The slot never shows a disabled primary: when the reader cannot take the next step, the record waits on someone (Waiting) or has none (None). One slot a record, and nothing else in the header's actions. The slot, the facts line and the standing are experimental: their API may change before they are stable.
 
 <Canvas of={Stories.ActionSlot} />
 
-## The standing headline
+## The facts line and the standing
 
-`PageHeader.Standing` says where the record stands, in the display size (32/40), on one line under the name and the slot: a direct child of PageHeader after the slot, it takes the header's full width. `beats` is one beat or two, never more: on an Overview, where the record stands and then what needs doing. A beat is a count (`value` in the reader's locale, `total` after it in the subtle weight, "42 of 61", then its `label`, "satisfied") or a few words ("ATO with conditions."); `tone` colours a beat that is a judgement, "PDR 35d late." in `danger`, and most stay in the text colour. The name stays the h1, and the standing is not a heading or a link.
+`PageHeader.Facts` is the line under the name, inside PageHeader.Heading after the Title: a short row of labelled facts in the body size, four at most, each a [Fact](?path=/docs/components-fact--docs) (its label small and subtle, its value at medium weight), in the order the reader needs them. It is a definition list, so a screen reader hears each label with its value. Where the line has the room the facts share it; narrower, on a phone or in a panel, it wraps between facts, and every fact stays whole on its line.
 
-It reads its own width, never the window's: where the line has the room the beats share it, and under 32rem, a phone or a narrow panel, each beat takes a line of its own.
+`PageHeader.Standing` is one fact of that line, the one that says where the record stands: its `status` in its own short words ("ATO with conditions"), coloured by the `tone` its badge would take, and after it the record's most urgent `date`, flagged as [DateLabel](?path=/docs/components-datetime--docs) flags one: late in the danger tone with its icon and how long ago ("PDR 35d late", heard "35 days"), due today and due soon in the warning tone with theirs, a later day plainly ("TRR due Dec 4, 2026"). A date's `name` says what falls due; `kind="expiry"` reads expires and expired, and `soonWithin` flags a decision that expires a quarter ahead (90). Its `label` ("Authorization") is heard before its words and not drawn, since the status words name themselves, as a status beside a name does. `isLoading` holds its place with a line while it is read, and with no status it is an Absent.
 
-<Canvas of={Stories.Standing} />
-<Canvas of={Stories.StandingOnAPhone} />
+The status in the header is this one fact in the body size: never a headline, never a badge among the actions, and never a coloured title. The name stays the h1 and the only heading.
+
+<Canvas of={Stories.Facts} />
+<Canvas of={Stories.FactsOnAPhone} />
+<Canvas of={Stories.StandingDates} />
 
 <Canvas of={Stories.WithDescription} />
 
@@ -88,7 +92,7 @@ The Title is a [Heading](?path=/docs/primitives-heading--docs) at `page`, 24/30 
 
 ## Props
 
-The root and Lead are a `div` or the element given to `render`, Heading and Actions are `div`s, and Description a `p`; each takes its element's native props and ref, and names itself last with `data-slot`. Title takes `render` and its element's props. Slot and Standing are `div`s with props of their own, below. Every part is also exported by name (`PageHeaderLead`, `PageHeaderHeading`, `PageHeaderTitle`, `PageHeaderDescription`, `PageHeaderActions`, `PageHeaderSlot`, `PageHeaderStanding`), the same component as the member.
+The root and Lead are a `div` or the element given to `render`, Heading and Actions are `div`s, and Description a `p`; each takes its element's native props and ref, and names itself last with `data-slot`. Title takes `render` and its element's props. Facts is a `dl` and Slot and Standing are `div`s, each with props of its own, below; the Standing holds its `dt` and `dd`. Every part is also exported by name (`PageHeaderLead`, `PageHeaderHeading`, `PageHeaderTitle`, `PageHeaderDescription`, `PageHeaderActions`, `PageHeaderSlot`, `PageHeaderFacts`, `PageHeaderStanding`), the same component as the member.
 
 <ArgTypes of={PageHeader} />
 
@@ -103,6 +107,10 @@ The root and Lead are a `div` or the element given to `render`, Heading and Acti
 ### PageHeader.Slot
 
 <ArgTypes of={PageHeaderSlot} />
+
+### PageHeader.Facts
+
+<ArgTypes of={PageHeaderFacts} />
 
 ### PageHeader.Standing
 

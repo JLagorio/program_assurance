@@ -1,3 +1,12 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// A tree register pages top-down: its view orders each part right after the row that holds it, a
+// page nests the parts it holds under the rows above them, and a part whose parent is on an earlier
+// page leads its page; an order the reader chooses lists every row on its own. Reference: the
+// program's Requirements in requirements-table.
+
 import { ProductCollection } from "./product-collection";
 import { useServerCollection, useServerPresetCounts } from "./collection-question";
 import { useOwnerAssignment, useOwnerOptions } from "./assign-owner";

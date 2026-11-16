@@ -1,3 +1,28 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// Assessment results to publish are published from their preview: Publish assessment results is its
+// record header's one small primary, for a reader who may write, and the same command is an item of
+// the assessment campaign record's Actions menu, for the campaign's latest draft results that hold
+// a finding (`useCampaignResultsToPublish` in assessment-results), where it stays in place and says
+// why while there are none (This campaign has no assessment results to publish; its draft results
+// hold no finding yet; they are all published).
+//
+// Each confirms first (`usePublishResults` in publish-results): the prompt names the results and
+// how many findings they hold, and says publishing freezes them, since the program's control
+// statuses and traces read them from then on. It runs `publish_assessment_results` as its action,
+// at the revision the reader saw and holding the findings the reader was told, one request a
+// prompt, which the command answers again as it first did; a refusal (results another session
+// published first, results changed since, results with no finding) shows inside the prompt, and a
+// toast reports the publication. The command also records the publication in the program's
+// activity, one activity event naming the publisher's party, the program and the campaign, so the
+// Portfolio's Recent activity and the program's Activity read "Priya Raghavan published assessment
+// results of Continuous monitoring FY2027" over the results and the findings they froze ("Interim
+// results: 20 findings."), linked to the campaign record; a direct update of a revision's state, as
+// the seeds and the tests publish, writes no event, and results published before the command
+// recorded one have none.
+
 import type { RefObject } from "react";
 import { toast, useLedgerLocale } from "@ledger/design-system";
 import { useConfirmation } from "@/components/app/confirmation";

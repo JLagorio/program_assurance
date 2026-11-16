@@ -1,3 +1,26 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// Cyber resiliency is `ControlResiliency` in control-resiliency: the kit `Table` with one line a
+// technique in the order Table E-1 of Vol. 2 Rev. 1 prints them, strongest first, its approaches
+// beside it and, under Guidance, how many examples they come with ("13 examples"). A row opens in
+// place, through `Table.Disclosure` and `Table.Detail`, onto what Table D-4 says, its chevron given
+// the detail row's id as `controls`, so it is named for what it opens (Show details for
+// Segmentation) and says whether it is open: the technique's definition and discussion once, then
+// each approach under its own heading with its one-line description, its Definition, its Examples
+// as a `List` and its Discussion, read through `supportedGuidance` in control-resiliency. Rows
+// start closed and stay as the reader left them, and a preview that steps to another control starts
+// closed. Its count is the number of techniques and its description names the two tables; a control
+// the table does not name has no Section, and none is drawn until the read says which. A part the
+// reference data does not hold is left out without a word, and the Guidance column with it; when
+// the guidance cannot be read the techniques are still listed, no row opens and the page's alert
+// says so. Where the frame is narrower than its columns the count leaves and the two names wrap, so
+// the table never scrolls sideways. In the program's record a technique's name opens that program's
+// Control baseline read by it; in the catalog's it is plain text. The control preview carries the
+// same Section, closed, above the control's text, which is where an implemented control's record
+// shows it (Read control and assessment objectives).
+
 import { Fragment, useId, useLayoutEffect, useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import {

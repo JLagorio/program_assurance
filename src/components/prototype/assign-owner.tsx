@@ -1,3 +1,23 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// The one verb so far is Assign owner, `useOwnerAssignment` in assign-owner: a Dialog titled Assign
+// owner with one required Owner field, a person or an organization, which says how many records are
+// chosen and that the owner replaces any they have now. It applies in one request,
+// `assign_record_owner` through owner-assign: every chosen record takes the owner or none does, and
+// a record that already holds it is left as it is, so sending it again changes nothing. A toast
+// says how many took it, the selection clears and focus goes to the table's select-all. A register
+// that assigns owners draws an Owner column (`c.person`) and an Owner filter, the last of its
+// filters, whose values are every person and organization by name and then No owner with how many
+// records of the whole register nobody owns (`useOwnerOptions`), so they are one choice away; it
+// adds no saved view for them, which would take the filters' place in the row. Its read reaches the
+// column by the owner's name (`ownerField`). Reference: the risk register in assurance-views;
+// operational issues, evidence and a program's Requirements do the same. A requirement's owner is
+// on its details, which take it at their next revision, and each change is an entry of the
+// requirement's edit history, as an edit of its owner is; a requirement whose details are not
+// recorded takes no owner, so its row cannot be chosen and Select all leaves it out.
+
 import { useMemo, useRef, useState, type ReactNode } from "react";
 import {
   Button,

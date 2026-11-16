@@ -53,6 +53,8 @@ jobs:
         env:
           DS_BASE_REF: ${{ github.event.pull_request.base.sha || github.event.before || 'HEAD^' }}
         run: npm run check:allow-lists
+      - name: The product contract stays within the word caps its decisions log sets
+        run: npm run check:contract-budget
       - name: A change to the lint comes with a changelog entry
         env:
           DS_BASE_REF: ${{ github.event.pull_request.base.sha || github.event.before || 'HEAD^' }}
@@ -157,6 +159,8 @@ jobs:
         run: npm run test:shared-interactions
       - name: Every product screen passes axe and logs no errors, within its allowance
         run: npm run test:app-a11y
+      - name: Every route stays within its page budget ceilings, which only fall
+        run: npm run test:budgets
       - uses: actions/upload-artifact@v4
         if: always()
         with:

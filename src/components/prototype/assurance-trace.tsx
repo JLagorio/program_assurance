@@ -1,3 +1,74 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// A control, a requirement, an evidence artifact, an assessment finding, an operational issue, a
+// risk and a remediation item sit on one chain: a control is met by requirements, a requirement is
+// supported by evidence, an assessor's finding judges a control and cites the evidence it examined,
+// an issue cites evidence, names the requirement it is about or is what a finding became, a risk
+// rests on an issue or was raised by a finding, and a remediation item answers an issue or a risk
+// its commitment cites. Each of the seven records opens with the same band, `TraceBand` in
+// assurance-trace: a `Stat.Grid frame="band"` of up to four numbers that say where the record
+// stands (its severity, what it rests on or reaches, how its remediation's milestones stand), then
+// a Section named Trace holding Ledger's `Trace`.
+//
+// The numbers are the record's own, and the page names its kind (`kind`) so their labels hold their
+// place while the trace loads: a requirement's are the controls it meets, its evidence and how much
+// of it a reviewer accepted, and the open issues that name it or cite that evidence and the risks
+// they lead to; a remediation item's are its milestones reached and its planned day, the open
+// issues it answers, the open risks and the controls it reaches; an assessment finding's are its
+// determination (with the day it was made, or Draft results), the controls it judges by code, the
+// open risks it led to and how the remediation answering them stands; a control's are the
+// requirements that map it, noted with how many of its assessment objectives are mapped and how
+// many have evidence, both counted on every system that selects it ("3 of 6 objectives · 0 with
+// evidence", from the control status the Details read, for a control of the program's baseline that
+// has objectives; a control with none notes how many of its requirements cite evidence; the tile
+// waits on that read, and says Could not load where it fails, under the page's alert), the findings
+// of published results short of satisfied on its parts, out of all its findings and in the worst
+// one's tone, and its open issues and risks.
+//
+// The trace draws the seven stages in order (Controls, Requirements, Evidence, Assessment findings,
+// Operational issues, Risks, Remediation) with the record itself current, every record a link to
+// its page, and a stage the record does not reach saying so (No evidence cited, No assessment
+// finding, No risk recorded): the gap is part of what the page shows, and a link that passes it is
+// drawn through it.
+//
+// A finding says its determination in its tone and words; a walk reaches findings of published
+// results only, since an assessor's draft decides nothing, and a finding of draft results stands in
+// its own trace alone.
+//
+// A gap the reader can close from the record carries its fix, the stage's `action`, under those
+// words, or under the stage's records where it holds part of what it needs: a small link that says
+// the step and leads to where it is made, for a reader who may make it, or, for a fix made on the
+// control itself, a link-styled button in the same words that opens it over the page (`NextStep` in
+// next-step).
+//
+// The band spans the page: it comes after the PageHeader, inside Overview's panel on a tabbed
+// record, and before the `AsideLayout` that holds the body and the Details. It has no prose of its
+// own. Its numbers hold their place while the trace loads, wait while another record's trace
+// replaces the one drawn, and say Could not load when the read fails, under the page's one alert
+// with Retry, as a dashboard's tiles do; a number never reads as zero because it could not be read.
+//
+// The trace is one read, `assurance_trace` through `useAssuranceTrace` in assurance-trace, walked
+// outward from the record and never back, and the sections under the band draw from the same
+// answer. A finding stands on the chain through what the schema records of it: the control of the
+// part it judges, the evidence it cites, the operational issue it became (one resting on an
+// observation the finding rests on) and the risks it names; no table links it to remediation, which
+// answers it through that issue and those risks. A control reaches the findings on it in its
+// program, a risk the findings that raised it and those its issues came from, and evidence and a
+// requirement the findings that cite the evidence.
+//
+// Under the band a page keeps what the trace does not say: authored text as labelled `Prose`, the
+// record's remediation as a `TraceRemediationSection` (each item with its status, its milestones
+// reached and its planned day, in the order they are due), and the collections a reader edits.
+//
+// A requirement's band opens its Overview, above the statement it edits in place, and a remediation
+// item's sits above its commitments and milestones.
+//
+// References: the risk's Overview and the remediation item in assurance-views, the operational
+// issue and the assessment finding in findings-views, the evidence artifact in evidence-browser,
+// the requirement in requirement-record and the control in control-record.
+
 import { useMemo, type ReactNode } from "react";
 import type { UseQueryResult } from "@tanstack/react-query";
 import {

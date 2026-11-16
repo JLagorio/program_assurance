@@ -1,3 +1,9 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// in development the console names any read that pages past 5,000 rows.
+
 import {
   keepPreviousData,
   useMutation,

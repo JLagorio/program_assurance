@@ -1,3 +1,19 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// The global Search and actions launcher uses CommandPalette with bounded server results across
+// programs, requirements, controls, evidence, risks and findings, alongside saved views and
+// contextual commands. SearchDialog remains available for dedicated record-only search tasks.
+// Matching excerpts are plain text. Navigation opens the exact record or source passage;
+// inaccessible records never appear. Search errors retain usable results and offer Retry.
+//
+// The global launcher combines record search, saved views and available scoped actions. It shares
+// one shortcut owner and keeps text editing shortcuts intact. Favorites and recently opened items
+// belong to the current reader and workspace; destinations and names resolve from authorized
+// records. A favorite saved view must apply its stored settings or show a visible failure, rather
+// than silently opening an unfiltered collection.
+
 import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate, useRouterState } from "@tanstack/react-router";

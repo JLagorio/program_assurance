@@ -1,3 +1,18 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// its path is a `Stepper orientation="responsive"` labelled Program setup, at every width: down the
+// page in a `StickyRail from="lg"` beside the form, never a hand-written sticky class, and above
+// the form where Main is narrow, across where its column fits four steps and down the page where it
+// does not; its element Sheet edits the wizard's own draft. It validates each step on Continue with
+// FieldErrors and an ErrorSummary, each step change moves focus to the step's heading, and the
+// element Sheet checks its row on Done, with Keep as draft. Under a chosen reference baseline,
+// Combine with (a `ChoiceField` of the catalog's other reference baselines, with No second
+// baseline) starts that program profile's stack from the union of the two, and its stack table
+// shows both baselines as its first rows; a second baseline that adds nothing is a FieldError on
+// Combine with.
+
 import { useRows } from "@/lib/models";
 import { useEffect, useId, useMemo, useRef, useState, type FormEvent } from "react";
 import { useNavigate } from "@tanstack/react-router";

@@ -1,3 +1,14 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// The frameworks (the cyber resiliency constructs with Table E-1, Appendix F's ATT&CK techniques,
+// and the system life cycle processes) are read through frameworks: a framework is named by its
+// code and an item by its `code`, since ids change when a publication is read again, and a control
+// link's technique is the one its table prints (`technique_code`), never the approach's parent. A
+// screen that reads Table E-1 whole asks for the nine columns its counts and lists use
+// (`useResiliencyControlLinks`, a supporting control by its id), never every column of a link.
+
 import { useMemo } from "react";
 import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 import type { SupabaseClient } from "@supabase/supabase-js";

@@ -1,3 +1,15 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// When its rows run past one page, choosing the page with the header's checkbox offers Select all N
+// in the footer, and the primary applies the whole choice in one request, with an id chosen once
+// per choice, so it is all applied or none and a retry adds only the rest. Reference: Allocate
+// requirements in system-requirements. A PickerSheet over a server-paged collection reads the whole
+// result for its ids when the offer is taken (`useServerResult`), chooses every row that can still
+// be chosen, and keeps the offer in its place with a `disabledReason` once nothing is left to
+// choose, so focus stays where the reader pressed.
+
 import {
   RecordLink,
   RecordPreviewActions,

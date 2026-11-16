@@ -1,3 +1,81 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// A dashboard says what needs attention across registers and leaves the work to them. It is one
+// `PageHeader` that holds only the name, a Stat band, then its widgets in the page's own columns:
+// the chart and top-N widgets take two thirds and the activity feed one third while Main has room
+// (an `@container` grid, never the viewport), and they stack in one column when a panel or a phone
+// narrows it. Reference: the Portfolio (src/routes/index.tsx).
+//
+// The Stat band is one `Stat.Grid frame="band"`, a named group of up to four linked `Stat.Tile`s.
+// Each tile counts one thing a reader acts on (open risks, open operational issues), its note names
+// the part to look at first ("12 high or critical"; on Open risks, "41 without an owner", or "All
+// have an owner", since the matrix and Highest open risks under the band say their severity), and
+// its `link` opens the register it counts on the tile's question, through `questionSearch`: a tile
+// that counts part of a register carries its filter, and one that counts the whole register clears
+// the filters (`{ filters: [] }`), so it opens what it counts whatever the register last asked. The
+// value is the number itself, which the tile writes in the reader's locale and mutes at zero.
+// `isLoading` holds its place while it loads; a count that cannot load is `Absent` with a "Could
+// not load" note, under one alert with Retry above the band. A linked tile holds no other control.
+//
+// A chart widget is a `Chart` frame. Its title says what it counts and how it splits it (Open risks
+// by likelihood and impact), a heading at the widgets' level (`titleLevel`), its description says
+// what the plot leaves out (open risks not yet assessed), and its table twin is one toggle away. It
+// loads as the plot's skeleton. A failure is one alert with Retry above it (`QueryState`), as on
+// the other widgets: a failed refresh keeps the plot, and a failed first load says Could not load
+// in the plot's place. Each mark that holds records links to the register filtered to them through
+// the register's address question (`link` on `Chart.Heatmap`, built with `questionSearch`), and the
+// table twin carries the same links; a mark of zero does not link, and a mark never opens a card. A
+// chart reads what it places from the register's view, scoped to the records it counts and the
+// columns it places them by, never every record and revision behind them: the risk matrix reads
+// each open risk's latest likelihood and impact from `risk_rows`, those columns alone
+// (`useServerResultRows` in server-table). Reference: the risk matrix in the Portfolio
+// (src/routes/index.tsx).
+//
+// A top-N widget is a `Section` whose title says which records and in what order (Highest open
+// risks, Recently updated programs) and whose action is a View all `TextLink` to the register,
+// which opens it unasked (`questionSearch(view, { filters: [] })`) rather than on the question it
+// last asked in the tab. Its body is a `DataTable` with no toolbar: at most five rows in the order
+// the title names, the record's name as its `RecordLink`, and a row click that follows it. Its rows
+// are read on the server in that order, five of them: Highest open risks reads `risk_rows` scoped
+// to the open risks, the highest latest severity first, the unassessed last, then the latest
+// changed, with the program's and the owner's names. Recently updated programs orders a program by
+// the latest moment anything in it was recorded or changed, read in one request from
+// `program_activity` (its activity events, its published assessment results, a change to its
+// requirements, operational issues, risks and their assessments, tasks and evidence artifacts, else
+// its own last edit), and its Updated column is that moment. It has no Columns, Settings, column
+// menu (`pinnable` and `hideable` are off), sort, filters, pagination or eye; the register has
+// them. It loads under skeleton rows, and a failure is one alert with Retry that keeps any rows
+// already shown. Its empty state is the compact empty with an icon, a title and one line, with a
+// create action only where the register it stands for would offer one to an empty workspace (Create
+// program). A column may say where each of its records stands, read for the rows shown and never
+// for a register's every row: Recently updated programs has Controls satisfied, the share of the
+// program's control baseline an assessor found satisfied beside a `Tally` of its six control
+// statuses in the Overview's marks (`ControlStatusTally` in control-status), named with each status
+// and its count. The five rows' counts are one read of the counts alone
+// (`program_control_status_counts` through `useProgramsControlStatusCounts` in control-status,
+// handed to the cells by `ProgramStandings`), counted as the status counts its totals, never a
+// program's whole control status; a program with no control baseline draws Absent, a program the
+// read leaves out because the reader can no longer read it (one deleted since the rows were read)
+// draws Absent (Not available) while the other rows draw their counts, and a read that fails says
+// Could not load in its cell under the widget's alert, with the rows kept.
+//
+// The activity feed is a `Section` holding a `Timeline size="small" wrap`, newest first and a
+// handful of entries long. It reads the workspace's latest events with the columns an entry draws
+// (`recentActivityRead` in activity-entries), never every event; an event that names a record by
+// its code reads its kind and the code over what changed. Each entry's title says who did what
+// ("Priya Raghavan assigned …"), links to the record it names when that record has a page, carries
+// the program as its meta and what was said as its description, and shows its time as relative
+// words with the full moment in the reader's zone (`dateTime` alone). An event names its program,
+// the one record of it the event is about, or that record and its program: a publication of
+// assessment results names the program and the campaign, so it reads "Priya Raghavan published
+// assessment results of Continuous monitoring FY2027" over the results and their findings, links to
+// the campaign, whose record lists its results, and stands in the program's Activity too.
+// Consecutive edits of one record by one person are one entry that says what changed and in how
+// many edits. A filterable audit log is a register, not this feed, and a record's own activity is
+// the Timeline in its body (Record pages).
+
 import { EmptyMessage, QueryState, type QueryStatus } from "@/components/prototype/work-common";
 import { ControlStatusTally } from "@/components/prototype/control-status";
 import {

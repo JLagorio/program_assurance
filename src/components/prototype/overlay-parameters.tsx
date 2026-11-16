@@ -1,3 +1,16 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// An overlay's parameter values are set in the same Dialog and by the same entry modes
+// (`ParameterValueEntry`, `entryMode` in parameter-offers): Set parameter values, a small secondary
+// of the overlay record's Parameter values Section, over the edition's parameters, the ones the
+// overlay sets and those of the controls it adds until a search finds any other by its control, id
+// or name (the first 100 matches listed); each parameter's values are saved on their own with a
+// required rationale, the Dialog stays open for the next, a refusal is the editor's own Alert with
+// the values kept, and a dirty close asks first. A row's Edit values opens it on that parameter and
+// Remove values asks first. Reference: overlay-parameters.
+
 import { useId, useMemo, useRef, useState, type RefObject } from "react";
 import { AlertCircle } from "lucide-react";
 import {

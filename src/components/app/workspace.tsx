@@ -1,3 +1,14 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// Sign-in, the workspace and the session end follow workspace. The sign-in form stays up while it
+// is pending and says what fixes a failure beside its field. While the workspace opens there is a
+// loading screen; when it cannot open, the screen is Workspace unavailable with Retry and Sign out.
+// Sign out first asks every open draft, as a route change does. A session that ends on its own
+// keeps the page, its drafts and its place behind a Sign in again prompt; signing in again as the
+// same person carries on.
+
 import {
   createContext,
   useCallback,

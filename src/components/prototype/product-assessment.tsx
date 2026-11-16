@@ -1,3 +1,21 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// A product assessment has a record of its own, trailed Products › the product, with Product
+// assessment details beside the sheet an assessor works: an Element select (the product as a whole
+// first, then each element), which opens on the first in its order that holds a determination, else
+// the first that claims a control, and keeps it while the page is open, an element the reader
+// chooses winning and kept in the address (`element`); a labelled Progress, Controls determined,
+// and the baseline's controls as a selectable register (Control, Determination, Claim, which says
+// what the element's library component claims, Rationale, Control family). Its verbs are Record
+// determination, a Dialog with Determination and a Rationale that is required short of satisfied,
+// and Clear determination, a confirmation; both apply to every chosen row in one request and only
+// while the assessment is a draft. Publish product assessment is the Actions menu's command, which
+// waits with its reason until a determination is recorded and confirms before it freezes the
+// assessment. The sheet is one read, `product_assessment_sheet`, and the verbs one command,
+// `record_product_determinations`, through product-assessment. Reference: product-assessment.
+
 import { useId, useMemo, useRef, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { AlertCircle, Plus } from "lucide-react";

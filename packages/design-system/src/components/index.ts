@@ -602,6 +602,12 @@ export {
   type TabsProps,
   type TabsTriggerProps,
 } from "./tabs";
+export {
+  ViewSwitcher,
+  ViewSwitcherItem,
+  type ViewSwitcherItemProps,
+  type ViewSwitcherProps,
+} from "./view-switcher";
 export { TextLink, type TextLinkProps } from "./text-link";
 export {
   Timeline,

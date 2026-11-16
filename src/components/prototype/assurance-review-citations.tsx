@@ -1,3 +1,17 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// Evidence citations keep the exact evidence version and recorded hash, source URI and quoted
+// passage, with an optional page, anchor or normalized page rectangle. References and Referenced by
+// use a Section or Related collection in the record body. Citation creation uses a Dialog; a
+// citation opens its recorded source and location. A link to an external PDF is labelled as such
+// and does not imply an embedded document viewer. Requirement, mapping, evidence and saved
+// workbook-cell discussions use Composer and Timeline with author, replies and resolve/reopen. They
+// appear in record sections or an explicitly opened workbook review Dialog, never a permanent rail
+// on every program tab. The application owns identity, revision anchoring, authorization and
+// storage.
+
 import { useState } from "react";
 import {
   Alert,

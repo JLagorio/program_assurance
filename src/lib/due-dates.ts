@@ -1,3 +1,16 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// A due is a calendar day, never a moment: a task's and a scheduled assessment task's due, a
+// remediation commitment's planned completion and a milestone's planned date. A form asks for it
+// with a `DatePicker` labelled Due date, and a record's Details edits it in place with
+// `Editable.Date` and `due`, which says the same at rest, through a command in due-dates at
+// revision + 1. While the work is open, a day before the reader's today reads Overdue, today Due
+// today and the next two days Due soon; done work's day reads plainly, and only a remediation
+// item's latest commitment is still due. An expiry (an evidence version's, an authorization's)
+// passes `kind="expiry"`, which says Expired and Expires soon instead.
+
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";

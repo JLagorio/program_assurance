@@ -328,7 +328,8 @@ export const dueStateLook: Record<DateLabelState, { className: string; icon: Rea
 };
 
 /**
- * Where a due date stands against now and the words that say so, or null where there is no date.
+ * Where a due date stands against now, the words that say so and how many whole days away it is,
+ * or null where there is no date.
  * Today is the reader's: the day the LedgerProvider's zone is on, for a calendar day as for an
  * instant, so a day reads overdue from the reader's midnight and a server render agrees with the
  * browser's. DateLabel and Editable.Date's `due` read it.
@@ -349,7 +350,7 @@ export function useDueState(
     /** The part asking, for the warning a value that is no date earns. */
     part?: string | undefined;
   } = {},
-): { state: DateLabelState; words: string | null } | null {
+): { state: DateLabelState; words: string | null; days: number } | null {
   const { t, locale, zonedParts } = useLedgerLocale();
   const read = useRead(value, part);
   if (!read) return null;
@@ -379,7 +380,9 @@ export function useDueState(
     upcoming: null,
     complete: null,
   };
-  return { state, words: words[state] };
+  // `days` is whole calendar days from the reader's today to the date: negative once it has
+  // passed, 0 for a completed item, whose date is not judged.
+  return { state, words: words[state], days };
 }
 
 /**

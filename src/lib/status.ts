@@ -1,3 +1,64 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// Control status: where a program stands on a control of its control baseline, the
+// furthest step reached. No requirement, No evidence and Not assessed say what the program records
+// against it, by the control's assessment objectives where it has them: No requirement until the
+// program's requirements map every objective (a control mapped in part stays here), No evidence
+// until each objective is mapped by a requirement that cites evidence; a mapping of the whole
+// control covers every objective. Every system counts: an objective, or a control with none, is
+// mapped only once mapped on every system of the program whose control baseline selects the control
+// (its authorization boundaries, the systems that hold an SSP; a mapping on an element counts on
+// its boundary, one that names no system on every system, and a control no system selects is
+// covered by any mapping). Other than satisfied, Partially satisfied and Satisfied are a
+// determination: the worst among the control's objectives once an assessor has judged every
+// objective the control counts, each objective decided by the latest published determination that
+// judges it (a determination on an objective judges it and the objectives under it, one on the
+// statement or an item of its text judges them all, and the newest of them decides: Latest per
+// objective), else the worst a product assessment made where every variant inherits the control; a
+// control judged on some of its objectives reads No requirement, No evidence or Not assessed,
+// whichever it reaches, and no one's determination (Not assessed until all). Objectives assessed
+// counts the objectives judged (3 of 26). Determined by says whose: Program assessment or Product
+// assessment. `controlStatuses` and `controlDeterminers` in status own the words. It is not the
+// Baseline standing (In baseline, Added, Removed, Not selected), which says how the baseline was
+// formed. Next step is the one thing that moves a control up the ladder, in the words of the
+// operation: Map a requirement (Map 14 more objectives for a control mapped in part; Map on
+// R210-STD-CUSA for one short on a system, or Allocate to R210-STD-CUSA where no requirement is
+// allocated there), Link evidence to REQ-442, Add to assessment campaign, Plan an assessment, Open
+// assessment campaign (for a control judged in part, the campaign whose plan holds the objectives
+// not yet judged), Open assessment findings, Open product assessment. Map a requirement, Allocate
+// requirements, Add to assessment campaign and Plan an assessment are done on the control itself,
+// over its page. On its trace a control the product decided offers no requirement and names the
+// assessment instead: Decided by X800 Missile version 2 product assessment.
+//
+// Product delta: Delta: where a control of a variant's control baseline stands against the product
+// the variant was created from. Inherited (as the product delivers it), Shared (the product covers
+// part), Changed here (an element behind it was modified or removed) and Program only (the product
+// gives nothing for it); `variantDeltas` in status owns the words. The controls to assess are those
+// Changed here and Program only. Mark as modified records what a program changed in an element it
+// inherited (Software, Firmware, Hardware, Data) and why; Mark as inherited withdraws it. An
+// element's Change is Modified or Removed. Plan delta assessment makes an assessment campaign over
+// what is owed, each control as the assessment objectives it counts; such a campaign is a delta
+// assessment, and its Variant is the system it assesses. Take version brings a newer product
+// version into the variant; what the program changed stays.
+//
+// Product status: what a product version gives for a control, in its core or in one
+// configuration: Satisfied, Partially satisfied, Other than satisfied, Not assessed (an element
+// claims it and nobody judged it) and Not covered (nothing of the scope claims it);
+// `productControlStatuses` owns the words. Core is the elements every configuration includes. A
+// Product assessment judges a published version against a control baseline. It is not the Control
+// status, which is a program's. Its verbs are Record determination and Clear determination; Publish
+// product assessment freezes it.
+//
+// Compliance: a program's answer to a requirement of a customer's document: Compliant,
+// Partially compliant, Non-compliant or Not applicable, and Unanswered while nobody has answered.
+// Requirements document is the customer's document and Reference the requirement's paragraph in it.
+// Compliance statement is the answer's record: Create compliance statement, Edit compliance
+// statement. Met by says what meets the requirement: Product (as delivered), Variant change,
+// Program or Not allocated. Import requirements reads a document in; Compliance matrix is the
+// program's focused view of one.
+
 import { labelFor } from "./records";
 
 /**

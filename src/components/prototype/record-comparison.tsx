@@ -1,3 +1,19 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// Open beside is an explicit, dismissible comparison action. The existing record preview keeps its
+// active workflow; a pinned reference is independent and read only. Comparison panes preserve their
+// content and scroll positions when switching at narrow widths. They do not add supporting
+// properties outside the Overview tab. Linked-record peeks use a shared hover/focus/tap
+// presentation, resolve only when requested, and expose Open and Compare without replacing the
+// record's full preview.
+//
+// Narrative comparison extends the existing Diff with view controls, change navigation and
+// annotations on identified original lines. Comments on historical edits use the immutable edit
+// event, field and side rather than a new requirement publication workflow. Applying or reverting
+// business changes remains an explicit authorized command.
+
 import { createContext, useContext, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { PinOff } from "lucide-react";

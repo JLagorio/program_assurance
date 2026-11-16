@@ -1,3 +1,52 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// Add to assessment campaign is a `PickerSheet` that chooses one of the program's planned or active
+// campaigns whose latest plan is a draft, with its status, draft plan, objectives and window, under
+// a line that says what the plan takes of the control (AC-2 joins the campaign's draft plan as its
+// 26 assessment objectives; a plan that holds some takes only the rest; for a control judged in
+// part, AC-2 joins the campaign's draft plan as the 23 of its 26 assessment objectives nobody has
+// judged): a campaign whose plan holds some of what the control takes says how many beside its name
+// (Holds 12 of 26 objectives; for a control judged in part, Holds 5 of 23 left to judge, a short
+// note, since a badge keeps its width while the name gives way) and stays choosable, and one whose
+// plan holds all of it already (the control, or for a control judged in part every objective nobody
+// has judged, as the step's Open assessment campaign reads `holds_unjudged`) or whose SSP does not
+// select it is marked and not chosen (`AssessmentSurface` in assessment-step); with none, its empty
+// state opens Plan an assessment in its place. Plan an assessment is a Dialog with Title (the
+// control's code and assessment unsaid) and SSP, the latest published SSP of each of the program's
+// systems that selects the control, preselected when there is one. Above them it says what it plans
+// before its primary runs, as the picker's line does: Plans AC-2's 26 assessment objectives; for a
+// control judged in part, Plans the 23 of AC-2's 26 assessment objectives nobody has judged; for a
+// control that counts none, Plans AC-2 as one objective, aimed at its statement. The line is read
+// as the Dialog opens, `plan_control_holdings` naming no plan (`usePlanTakes` in
+// control-assessment): while that read loads, the line keeps its place and the primary waits with
+// its reason (The objectives the plan will hold are still being counted.), and a failure is the
+// Dialog's alert with Retry counting objectives, the primary saying it waits on that. Each writes
+// the control as the assessment objectives it counts, the list `program_control_objectives` gives
+// in its order, one plan objective each, titled by its label and text (AC-02a.[01] account types
+// allowed for use within the system are defined and documented) and aimed at that objective, and a
+// control that counts none as one objective aimed at its statement, titled by its code and title.
+// Only what's left: of a control the program's assessors have judged in part (some of the
+// objectives it counts and not all), each writes only the objectives nobody has judged, so AC-2
+// with 3 of its 26 judged takes 23; a control nobody has judged, or one judged on every objective
+// (a reassessment its step never offers), is written whole. A plan holds the control once it holds
+// every objective the control counts, or its statement, as every plan written before plans took
+// objectives does; an objective aimed at a heading holds the objectives under it, and a plan that
+// holds some takes only the rest. Each is one request whose id is chosen once per choice:
+// `add_controls_to_assessment_plan` at the plan revision the reader saw, refused once the plan
+// changed or was published, and `plan_control_assessment`, a planned campaign with its first plan a
+// draft on the chosen SSP, both through control-assessment; what each open campaign's plan holds of
+// the control, and how many of its objectives the program's assessors have judged, which the step
+// and the picker read, is one read, `plan_control_holdings` through `useControlAssessment`, what is
+// taken said by `assessmentTakes` in control-assessment. A toast says what was added, the control
+// by its code and title: 26 objectives of AC-2 Account Management added to Continuous monitoring
+// FY2027, or 14 more objectives of AC-2 Account Management where the plan held some, and 9
+// objectives of AC-8 System Use Notification planned in AC-8 assessment; for a control judged in
+// part, 23 objectives of AC-2 Account Management nobody has judged added to Continuous monitoring
+// FY2027 (18 more where the plan held 5 of them) or planned in AC-2 assessment; a control written
+// as its statement is named with no count.
+
 import { useId, useMemo, useRef, useState, type FormEvent } from "react";
 import { AlertCircle } from "lucide-react";
 import {

@@ -1,3 +1,39 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// Loading, errors and retry go through `QueryState` in work-common, which keeps stale content
+// usable after a failed refresh; libraries recover the same way. A record page and each retained
+// tab panel is a failure region (`QueryState region`; `RetainedTabPanels` makes every panel one,
+// through failure-region): each QueryState and ProductCollection inside hands its failures to the
+// region's one alert, whose Retry refetches all of them, and a block with nothing to show keeps its
+// place with a quiet Could not load. A strip of plain `TabsContent` wraps each panel in `QueryState
+// region`. Reads whose values say Could not load in place (`QueryValue`) hand their failures to the
+// region through `ReportFailures` in work-common, and `QueryState` is never drawn inside a value or
+// a cell. The page's region also says the reads its header and Details are drawn from, the record's
+// own first (as its `queries`, or through `ReportFailures` beside them), and a program's focused
+// view is such a page: its blocks hand their failures to the page's one alert. Reference: the task
+// record (src/routes/tasks.$taskId.tsx), and the program sub-records in program-record. The Details
+// render in the page's or the tab's region, so they hand their failures to its alert too; a block
+// drawn through a portal (a dialog, a preview panel) says its own. A related record's name in a
+// value or a cell is `RelationName` from record-tools, never a QueryState of its own. `Empty`
+// describes an empty region (`size="compact"` in a small one); `Absent` describes a missing scalar,
+// heard as "Not recorded" unless a `label` says more ("Not available" for a record the reader
+// cannot see, "No due date"). A screen never writes a dash, "Not recorded" or "Unassigned" in place
+// of a value; a row value that feeds search and sort stays null, and its cell draws Absent. Words
+// stay only where the value is itself a statement (No versions, Tailored out). A status, state,
+// severity or impact renders through the components in status over the one map in src/lib/status
+// (src/lib/status.ts), and `c.status` takes the same vocabulary; a screen keeps no tone mapper of
+// its own. Every date goes through `DateTime` or the `LedgerProvider` formatters in the reader's
+// zone, never `toLocaleString` or a raw ISO string. A due date, an expiry or a milestone's planned
+// date is the kit's `DateLabel`, through `DueDate` in work-common for work that can be done or
+// cancelled: overdue, due today and due soon say so beside the date while the work is open.
+//
+// Where only text fits (a Stat tile's note, a trace node's line), `useDueSaying` in work-common
+// gives the same words and tone: a remediation's band reads "Due Oct 6, 2026 · Overdue".
+//
+// A failure is never a blank table, and a load in progress is never an empty state.
+
 import { productRecordNoun } from "@/lib/product-records";
 import {
   Children,

@@ -1,3 +1,162 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// A standalone register is one `PageHeader` with the name in `PageHeader.Heading` /
+// `PageHeader.Title`, followed by a frameless `DataTable` with `fill`. Nothing else: no sentence
+// under the title, no `Section` around the only table, no create button in the page header (the
+// toolbar carries it). Reference: WorkTable (src/components/prototype/work-table.tsx). All product
+// collections compose ProductCollection (src/components/prototype/product-collection.tsx); domain
+// adapters retain their typed columns and relationships, and delegate the toolbar, query recovery,
+// responsive table and empty region to it.
+//
+// Pass the collection's queries as `queries` rather than wrapping it in `QueryState`: a first load
+// keeps the toolbar over skeleton rows, a failed refresh keeps the rows under one alert with Retry,
+// and a page, search or filter on its way over the last one's rows (a query that keeps its previous
+// data) keeps them under the table's busy state. ProductCollection draws `DataTable.Sort` and keeps
+// the reader's question (search, sort, filters, page) in the address, its parameters named after
+// the table's `view` (`risk-register.q`, `risk-register.filters`), so Back, a reload and a shared
+// link ask it again and two collections on one page keep their own. The tab's session remembers it
+// too, so a register reached with no question in the address asks the last one it asked and writes
+// it back. A link that opens a register on a question builds its search with `questionSearch` from
+// collection-question, naming a view from register-views, and a route's own navigation (a tab
+// change) merges over the current search rather than replacing it. A collection inside a dialog,
+// sheet or picker passes `keepQuestion={false}`, since its question ends with the task and stays
+// out of the address, and one whose order is its meaning passes `sort={false}`.
+//
+// The toolbar is the kit `Toolbar`: search first, saved views in `views`, filters in `filters` with
+// the count of applied filters in `activeFilters` (`table.state.columnFilters.length`, which
+// ProductCollection passes), Columns and Settings as its children, and one small primary in
+// `actions`. A register, and a tab whose only content is a collection, keeps that small primary. In
+// a record body or a preview that holds collections under Section headings, each collection's
+// create action is a small secondary, and the page header or the preview's record header keeps the
+// surface's one primary:
+//
+// ProductCollection draws a `compact` collection's create action, in its toolbar and its empty
+// state, as a secondary unsaid (`actionVariant`), and a headed EntitySection, a `section`
+// ProgramCollection and a compact AssessmentTable are compact. A create drawn where
+// ProductCollection cannot reach it, such as a menu trigger's `render`, is written
+// `variant="secondary"`.
+//
+// Reference: the program's Schedule tab in program-workspace.
+//
+// The search says Find and the collection, as its placeholder and its name (Find risks, Find
+// assessment findings); ProductCollection writes it from the collection's noun when the caller
+// names none.
+//
+// A compact collection in a preview whose task asks nothing of a search (an evidence artifact's
+// Versions) passes `search={false}` and keeps its create action.
+//
+// A register that holds the records of several programs draws a Program column and a Program
+// filter, by the program's name (`useProgramOptions` in program-filter), and leaves both out inside
+// a program. Optional collection commands such as Export belong in the labelled Collection actions
+// overflow beside Columns and Settings.
+//
+// This is the recommended home for secondary collection operations: the primary still creates the
+// record, and export remains available without a second visible toolbar action.
+//
+// When a collection has a second way to create its record, the primary is a `ButtonGroup`: the one
+// create action, then a labelled icon menu for the other paths ("More ways to create a system" in
+// ProgramSystemsTree (src/components/prototype/program-systems-tree.tsx)); a single path stays a
+// plain small primary.
+//
+// Omit a capability the collection or the reader's role has no use for. Never rebuild the row with
+// an `Inline` or a second wrapper.
+//
+// A register whose records a reader acts on several at once is `selectable`, for a reader who may
+// edit, and hands its verbs to ProductCollection as `selection`: while rows are chosen the table's
+// `DataTable.SelectionBar` takes the toolbar's place with the count, the verbs as small Buttons and
+// Clear, so the rows stay where they were. The checkbox alone chooses a row; its name and its row
+// click still open it. The verbs act on every chosen row, the ones on other pages too. On a
+// server-paged register, once the page is chosen and the question finds more, the bar offers the
+// whole result as a second, explicit step (Select all 62 risks), read through `useServerResult`. A
+// viewer sees no checkbox and no verb.
+//
+// Columns come from `defineColumns` by kind. A date is `c.date` with the raw value at its kind's
+// width; formatting never becomes the sort value. A person (an owner, a sponsor, a reviewer) is
+// `c.person`, or `kind: "person"` on a ModelTable, EntitySection or ProgramCollection column, which
+// reads the people's names once and sorts, filters and searches by them; several values in one cell
+// (assignees, types) are a `c.list`, or `items` on a ProgramCollection column, whose filter lists
+// each value once, never an array joined into a text column. The record's name is a `TextLink`
+// rendering a router `Link` to its record page, through `RecordLink` in record-preview; in a table
+// the kit draws a row's name in the text colour at medium weight, underlined under the pointer,
+// whether it is a link or a button that opens a preview, so a register's colour stays with its
+// statuses and a screen adds no colour or weight to a name; a record with no stored name links as
+// "Unnamed <noun>", never as a missing value. A name never leads into the schema inspector:
+// `recordDestination` gives a record's page, or nothing. A record with no page of its own (an
+// observation, an organization, a CCI, a procedure, an ATT&CK technique, a link row) is named by a
+// link-styled `Button` that opens its preview, and its row click does the same.
+//
+// Inside a Dialog or a Sheet, where no preview can open beside the task, the name is plain text. A
+// row click goes where the name goes, through `useOpenRecord`. A revision opens the record it is a
+// version of: an evidence version its artifact at that version, a risk assessment its risk's
+// Assessments.
+//
+// A name that needs the record's kind, a mark or a second line takes `icon`, `badge` and
+// `description` on its column (Ledger's `Table.Name`), never an `Inline` or a `Stack` in `cell`.
+//
+// A row click follows the name's destination and is never the only opener.
+//
+// Buttons act; links navigate.
+//
+// A tab whose only content is a collection starts with its toolbar and table, after the tab's row
+// of views where it has one. The tab already names the collection: do not repeat its heading or put
+// explanatory prose above it. Multiple distinct collections in a record body use `Section`
+// headings, h2, or h3 under a dialog title; never a second page h1. A title no kit part draws is a
+// `Heading` at the size it matches (`page` for a page or record title, `section` for a section's,
+// `overlay` inside an overlay), never a raw `h1`–`h6` with type classes. Authored descriptions
+// belong in labelled record properties. A Section's description is an instruction or an authored
+// definition, never a computed sentence: a count is the Section's `count` (`countMax={9999}` for
+// rows), and progress is a labelled `Progress` whose value says the count (Gates completed, 14 of
+// 19), as on the Lifecycle timeline in program-timeline.
+//
+// Other provenance, counts and derivation belong in a collapsed Details section; genuine warnings,
+// missing prerequisites and instructions inside a picker or form remain visible where they affect
+// the task. A shared adapter carries table and data rules only, never a copy of a kit part;
+// headings are an explicit decision of the caller (`Section`, `showHeading`, or `section` for a
+// domain collection), and default to absent; a new adapter needs a domain responsibility beyond
+// renaming the table's props.
+//
+// Record collections use `DataTable` even when embedded: component Structure and Program uses,
+// product Variants, and requirement Adopted by follow this shape. Three named uses keep the kit
+// `Table`: component/product version history selects the current version with an explicit button, a
+// profile's Source imports describes its ordered lineage and selection rules, and a control's Cyber
+// resiliency lists the techniques it supports in the order Table E-1 prints them, strongest first,
+// one line a technique with its approaches, each row opening in place onto NIST's guidance for
+// them. A fourth is the Layers take of the program's Cyber resiliency view, techniques by baseline
+// layer with a number and a `Tally` a cell, in the framework's order and the stack's. These are
+// version-selection, definition and derivation lists, not collection previews. Preserve their
+// meaningful order; do not add search, sorting or an eye merely to resemble a register. This
+// exception depends on the task, not an assumed small row count.
+//
+// Every product DataTable is responsive, which is the DataTable's default: product code never
+// writes `responsive={false}`, and a DataTable that takes a prop spread writes `responsive` after
+// it.
+//
+// Give the primary name `priority: 0` and a readable width/minimum (usually 180–220px); lower
+// numbers stay in the row longer. An unsized name takes the spare width, and a register's column
+// that says one thing on every row of its result (three rows or more; a date by its day) folds into
+// More fields and gives the name its width (ProductCollection's `fold`). No field disappears:
+// resize must not change stored column visibility, filters, sorting, selection, preview state or
+// export. Do not solve narrow tables with a page overflow rule or a smaller font. Reference:
+// ProgramSystemsTree (src/components/prototype/program-systems-tree.tsx).
+//
+// A collection that pages takes 25 rows a page through `useCollectionTable` in collection-question
+// (ModelTable, EntitySection and ProgramCollection do it unsaid), and another `pageSize` only where
+// its task needs one. One that can hold more than about 200 rows pages or sets `virtualize` on its
+// table, in a dialog, a sheet or a picker as on a page. Never draw every row at once.
+//
+// It is `useServerCollection` in collection-question over a `serverRead` from server-table, spread
+// into ProductCollection (`<ProductCollection {...collection} />`).
+//
+// A collection that stays small, a record's own collection under a few hundred rows, keeps client
+// paging. Reference: the catalog's CCIs in catalog.
+//
+// Every empty collection supplies an illustration, a title, a one-line explanation and the same
+// create action as its toolbar, under the same role check. A filtered result with nothing in it
+// uses the table's built-in Clear filters unless the collection needs different copy. Empty data
+// and an empty filter result are different states.
+
 import { CollectionSavedViews } from "./saved-views";
 import { Inbox, MoreHorizontal } from "lucide-react";
 import {

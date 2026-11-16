@@ -1,3 +1,44 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// Map a requirement is a `PickerSheet` of the program's requirements, read a page at a time from
+// `program_requirement_rows` in code order, with search and an Allocation filter, and, where more
+// than one system selects the control, a strip of facts that says how much is mapped on each
+// (R210-STD-CUSA 0 of 17 objectives mapped) and a System filter over the systems each requirement
+// is allocated in, which opens on the system a step named (`MapRequirementSurface` in
+// map-requirement): one Relationship (Maps to unsaid), one Objectives and one Rationale for every
+// chosen requirement, Select all N past one page, and one write that maps them all or none.
+// Objectives is a radio group, Whole control (unsaid) or Chosen objectives, the second asking for
+// Objectives to map, a searched list of the control's assessment objectives each by its label and
+// with its text (AC-02a.[01], account types allowed for use within the system are defined and
+// documented), the chosen ones as chips (`ObjectiveCoverage` and `ObjectivesField` in
+// objective-choice, the objectives from `program_control_objectives`); a heading that counts covers
+// the objectives under it: chosen, its chip says so (AC-08a. and 4 under it), the objectives under
+// it are listed as covered by it and cannot be chosen apart from it, the hint counts what the
+// choice covers (Covers 5 of 9 objectives), and the write maps the heading alone, one mapping a
+// system (`fewestTargets` in requirement-control-mappings). Opened from Map 14 more objectives, it
+// starts on Chosen objectives with the objectives no system covers yet, and opened from Map on
+// R210-STD-CUSA on what that system lacks, both as the fewest mappings: a heading whose own
+// sentence and every objective under it are left is chosen as the heading. Each mapping is one the
+// requirement's own Map control records, the whole control or one chosen objective on one system: a
+// requirement maps on each system it is allocated to whose control baseline selects the control, so
+// every one of those systems' SSPs lists it under the control, each mapping's id chosen once per
+// requirement, system and objective so a retry adds only the rest (`mapRequirementsToControl` in
+// requirement-links, what to write from `requirementMappingStanding` in
+// requirement-control-mappings, which leaves out what a system's mappings cover already, a mapping
+// that names no system counting on every system, as the status counts it). A requirement whose
+// mappings cover some of the control's objectives says so beside its name (Maps 12 of 26
+// objectives), one mapped on some of those systems already says on how many (Mapped on 1 of 2
+// systems), and either stays choosable and gets only what is missing; one that cannot take a
+// mapping is marked with why and cannot be chosen: Maps AC-2 or Maps the chosen objectives (on
+// every such system), Details not recorded, Not allocated, Not selected on its systems.
+//
+// The footer counts the program's allocated requirements, and the toast counts requirements, not
+// mappings (2 requirements mapped to AC-2 Account Management). A program with no requirements says
+// so in the sheet, whose Create engineering requirement opens the create Dialog in its place, and
+// the new requirement's page once it is saved.
+
 import { useMemo, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import {

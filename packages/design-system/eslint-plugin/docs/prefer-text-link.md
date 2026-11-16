@@ -15,7 +15,7 @@ TextLink and Button are the kit's, recognised through a name, an alias or a name
 
 ## Why
 
-TextLink is navigation that reads as text, and the kit owns everything that makes it one: the brand colour, the underline (at rest inside a sentence, on hover when it stands alone), the focus outline and the hit area on a touch screen. Classes copied onto an anchor reproduce one of those states and drift from the rest. A link that opens a new tab moves the reader without warning unless it says so; `newTab` sets `rel`, adds the external-link icon and reads "(opens in a new tab)" after the name ([TextLink](../../src/stories/components/TextLink.mdx)). In the application a record's name is a TextLink to its record page ([product pattern contract](../../../../docs/guides/product-patterns.md#registers)).
+TextLink is navigation that reads as text, and the kit owns everything that makes it one: the brand colour, the underline (at rest inside a sentence, on hover when it stands alone), the focus outline and the hit area on a touch screen. Classes copied onto an anchor reproduce one of those states and drift from the rest. A link that opens a new tab moves the reader without warning unless it says so; `newTab` sets `rel`, adds the external-link icon and reads "(opens in a new tab)" after the name ([TextLink](../../src/stories/components/TextLink.mdx)). In the application a record's name is a TextLink to its record page ([product pattern contract](../../../../docs/guides/product-patterns.md#register)).
 
 ## Instead
 

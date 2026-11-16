@@ -48,11 +48,16 @@ Twelve parts, each built on one that ships, through `/ledger-add-part`; the shee
 - [x] Chain rail, `Trace.Rail` (sheet: The chain)
 - [x] Work row, `WorkRow` (sheet: Rows)
 - [x] Decision keys and the foot bar, `DecisionKeys` and `FootBar` (sheet: Review workspace)
-- [ ] Align two wave-1 parts with the decisions: `PageHeader.Standing` becomes one header fact beside the categorization (not the display-size headline); `PageHeader.Slot` is role-true (offered by the roles a program records)
+- [x] `PageHeader.Standing` is one fact on `PageHeader.Facts`, the line under the name (the program: categorization, then ATO with conditions · CDR 46d late)
+- [x] `ViewSwitcher`: the views row as a kit part, used by the program's tabs
+- [ ] `PageHeader.Slot` role-true: offered by the roles a program records (needs each program's roles recorded)
 
 ## 2. Contract and words
 
-- [ ] `docs/guides/product-patterns.md`: seven page types (Overview, Register, Record, Workspace, Flow, Home, Library); a screen that fits none gets a written exception first
+- [x] The contract under 4,000 words (D7): `product-patterns-core.md` (loaded in every session, under 1,500) and `product-patterns.md`, held by `check:contract-budget` in CI; per-screen rules moved into their files' header comments
+- [x] The lab lane: `src/components/prototype/lab/`, 30 days a form, held by a test
+- [x] The decisions log, `docs/decisions.md`, which a raise of the contract's cap must cite
+- [x] Budgets B1 to B16: ceilings per route and tab in `screen-inventory.json` (with each route's archetype, purpose and primary), measured by `test:budgets`, which only fall
 - [ ] Navigation, two scopes in one side nav. Organization: Home, Portfolio, Programs, Library (Frameworks, Overlays, Guidance, Components). Work, under a product or a program's system: Overview, System, Baseline, Controls, Requirements, Evidence, Findings, POA&M, Risks, Assessments, Authorization
 - [ ] Words in `src/lib/status.ts` and `product-records.ts`: Component (one) and Component set; Offer to owner, Withdraw offer, Accept, Return; Verified for reviewed evidence, Satisfied stays the assessor's; To review
 - [ ] `docs/guides/screen-inventory.json`: every new route

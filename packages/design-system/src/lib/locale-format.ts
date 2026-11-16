@@ -496,8 +496,18 @@ export const defaultMessages = {
   pageHeaderSigningAs: "Signing as {role}",
   pageHeaderWaitingOn: "Waiting on {name}",
   pageHeaderRemind: "Remind",
-  /** A standing beat that counts out of a total: the figure, then the rest in the subtle weight. */
-  pageHeaderStandingOf: "{value} of {total}",
+  /** A standing's date that has passed, after its status: "PDR 35d late". `{name}` is what fell due, and may be empty; `{duration}` is how many days ago, narrow on screen ("35d") and long for a screen reader ("35 days"). */
+  pageHeaderStandingLate: "{name} {duration} late",
+  /** A standing's date that falls today: "CDR due today". */
+  pageHeaderStandingDueToday: "{name} due today",
+  /** A standing's date ahead: "PDR due {date}", the date drawn in the reader's format where `{date}` stands. */
+  pageHeaderStandingDue: "{name} due {date}",
+  /** A standing's expiry that has passed: "ATO expired {date}". */
+  pageHeaderStandingExpired: "{name} expired {date}",
+  /** A standing's expiry that falls today. */
+  pageHeaderStandingExpiresToday: "{name} expires today",
+  /** A standing's expiry ahead: "expires {date}" after the status, where no name is given. */
+  pageHeaderStandingExpires: "{name} expires {date}",
   /** What a decision key chose, said when the reader's focus is not on its card: "Other than satisfied chosen". */
   decisionKeysChosen: "{label} chosen",
   /** Read after a decision card's label when the answer also judges the records under it: "Satisfied and 6 under it". The card draws "+6". */

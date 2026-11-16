@@ -1,3 +1,18 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// Every route sets its browser title as `<Screen or record type> — Program Assurance` in its
+// `head()`; a child route never inherits its parent's title. Once its record loads, a record route
+// names it first, in the words of its h1: `<record name> — <record type> — Program Assurance`,
+// through `useRecordTitle` in browser-title. A focused program view names itself first: `<view> —
+// <program name> — Program Assurance`, through `useViewTitle`. While the record loads, and when it
+// is missing, the type alone stands. A screen that stands in for the route titles itself through
+// `useBrowserTitle`: the sign-in form is `Sign in — Program Assurance`, and a workspace that cannot
+// open is `Workspace unavailable — Program Assurance`. The root renders the one `<title>`; a screen
+// never renders its own. Labels use the same words across program tabs, global registers, create
+// actions and forms.
+
 import { useEffect, useSyncExternalStore } from "react";
 
 /**

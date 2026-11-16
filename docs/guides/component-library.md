@@ -323,4 +323,4 @@ ARIA behavior through the public parts. Screens import the package's documented 
 
 Forms belongs under **Patterns** in Storybook. The [Forms pattern](http://localhost:6007/?path=/docs/patterns-forms--docs) composes Field, the controls and primitives, with TanStack Form for state and Zod for validation in its examples, and documents the mapping to shadcn's TanStack guidance; the kit exports presentation, not form state. The create or edit Dialog is the form recipe on Guidance/Recipes.
 
-The application's forms follow the form contract in [product-patterns.md](product-patterns.md) (Forms and confirmations). Its reference is `CreateTaskDialog` in `src/components/prototype/create-task-dialog.tsx`, and `useDraftGuard` in `src/components/app/use-draft-guard.tsx` holds its dirty and pending protection with the kit's `pending` lock.
+The application's forms follow the form contract in [product-patterns.md](product-patterns.md) (Flow). Its reference is `CreateTaskDialog` in `src/components/prototype/create-task-dialog.tsx`, and `useDraftGuard` in `src/components/app/use-draft-guard.tsx` holds its dirty and pending protection with the kit's `pending` lock.

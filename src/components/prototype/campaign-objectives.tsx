@@ -1,3 +1,24 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// A campaign's Objectives, there and on the campaign record's Execution tab, list each campaign's
+// objectives together (by the campaign's title, then the newest plan first) in the catalog's
+// reading order: a control's objectives as the catalog prints them (AC-08a.01 before AC-08a.02, a
+// heading before the objectives under it, the control's statement before its objectives), the
+// controls in code order (AC-2 before AC-10), then an objective aimed at no control part by its
+// title. Both read them a page at a time from `assessment_objective_rows`, whose rows carry their
+// place, and the server orders the result (`assessmentObjectiveRead` and `campaignObjectiveRead` in
+// assessment-objectives), since a whole-baseline plan by objective holds about 1,800. The record's
+// is a compact collection under its Section heading among the Execution tab's, which counts the
+// campaign's objectives on the server, with its search over what a row shows, its sort, its small
+// secondary Create assessment objective and its preview stepping across the pages; its question
+// lives in the address under the campaign's own name (`campaign-objectives-<campaign>.page`), so a
+// page asked of one campaign is never asked of the next (`CampaignObjectives` in
+// campaign-objectives). Their Target column names what each objective is aimed at: an assessment
+// objective by its label (AC-08a.01), the control's statement as Control statement, a requirement
+// revision as Requirement revision (`objectiveTarget`).
+
 import { useMemo, useRef, type ReactNode } from "react";
 import { Absent, Section, defineColumns, type EmptyIllustrationKind } from "@ledger/design-system";
 import {

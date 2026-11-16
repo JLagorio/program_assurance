@@ -1,3 +1,21 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// Saved views are named workspace records, with a private or shared visibility setting. They
+// persist the collection question (filters, search and sorting) and presentation (column order,
+// visibility and density), separately from canonical records. Use a toolbar menu and the standard
+// form Dialog for create, rename and deletion. The author edits a view; other workspace readers can
+// apply shared views or save their own copy. Applying a view is reversible through the existing
+// collection controls and preserves the collection's URL question contract. Workbook views also
+// retain their sheet identity and selected analytical view.
+//
+// Named views use controlled SavedView picker, manager and editor presentation; discussion and
+// citation displays use generic ReviewThread and Citation patterns. Records, permissions, revision
+// identities, mutation calls, conflicts and draft dismissal remain application responsibilities.
+// These patterns compose existing controls and feedback instead of adding a second persistence
+// layer.
+
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { usePersonalNavigation } from "@/components/app/personal-navigation";

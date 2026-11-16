@@ -1,11 +1,19 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// Each program tab lists its focused views first, in a row of small LinkButtons named `<tab> views`
+// (`ProgramViewRow` in program-views; the Overview's leads its body), only those that apply:
+// Product delta once a system was created from a product, Compliance matrix once a requirements
+// document was received. A view is never only in a menu. A focused program view's h1 is the view's
+// name, its trail is Programs › the program › the tab that lists it, and its browser title is
+// `<view> — <program name> — Program Assurance` (`useViewTitle`); it shows no tab strip and uses
+// the full work area without the program's Details. The program's Details and References belong
+// only to its Overview tab; focused views, including Workbook, Traceability matrix and Program
+// transfer, do not render that rail or its narrow-screen disclosure.
+
 import { Link } from "@tanstack/react-router";
-import {
-  Inline,
-  LinkButton,
-  Scroller,
-  ScrollerArrow,
-  ScrollerViewport,
-} from "@ledger/design-system";
+import { ViewSwitcher } from "@ledger/design-system";
 import { useProgramVariants } from "@/lib/product-assurance";
 import { useRequirementSources } from "@/lib/requirement-compliance";
 import type { ProgramTab } from "./program-workspace";
@@ -60,11 +68,12 @@ export function programViewTab(name: ProgramViewName): ProgramTab {
 }
 
 /**
- * A tab's views, as one row of links before the tab's content, named after the tab ("Controls
- * views"). Only the views that apply to the program are listed: Product delta once a system was
- * created from a product, Compliance matrix once a requirements document was received; the reads
- * that say so are the Overview trays' own. The row scrolls on its own when it is wider than the
- * frame, as a tab strip does. A tab with no view draws nothing.
+ * A tab's views, as the kit's ViewSwitcher before the tab's content, named after the tab
+ * ("Controls views"). Only the views that apply to the program are listed: Product delta once a
+ * system was created from a product, Compliance matrix once a requirements document was received;
+ * the reads that say so are the Overview trays' own. The row scrolls in its own strip when it is
+ * wider than the frame, as a tab strip does. The tab shows none of its views, so none is current.
+ * A tab with no view draws nothing.
  */
 export function ProgramViewRow({ programId, tab }: { programId: string; tab: ProgramTab }) {
   const listed = programViews.filter((view) => view.tab === tab);
@@ -85,25 +94,13 @@ export function ProgramViewRow({ programId, tab }: { programId: string; tab: Pro
     <>
       <ReportFailures queries={reads} />
       {shown.length > 0 && (
-        <nav aria-label={`${tab} views`} className="min-w-0">
-          <Scroller orientation="horizontal">
-            <ScrollerViewport>
-              <Inline space="space.100">
-                {shown.map((view) => (
-                  <LinkButton
-                    key={view.to}
-                    size="small"
-                    render={<Link to={view.to} params={{ programId }} />}
-                  >
-                    {view.name}
-                  </LinkButton>
-                ))}
-              </Inline>
-            </ScrollerViewport>
-            <ScrollerArrow edge="start" />
-            <ScrollerArrow edge="end" />
-          </Scroller>
-        </nav>
+        <ViewSwitcher label={`${tab} views`}>
+          {shown.map((view) => (
+            <ViewSwitcher.Item key={view.to} render={<Link to={view.to} params={{ programId }} />}>
+              {view.name}
+            </ViewSwitcher.Item>
+          ))}
+        </ViewSwitcher>
       )}
     </>
   );

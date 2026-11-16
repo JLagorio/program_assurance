@@ -1,3 +1,39 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// Under it, a program that holds a system created from a product draws one tray a variant,
+// `ProgramProductDeltaTrays` in product-delta: its heading counts the controls the program owes an
+// assessment on and opens the Product delta view, with how many stand on the product at its end,
+// over the baseline as one strip coloured by delta under a key whose counts open the view's List at
+// that delta.
+//
+// The program's Product delta is a focused view too: what a variant takes from its product, and
+// what the program owes. It opens with a `Stat.Grid frame="band"` of the four deltas (Inherited,
+// Shared, Changed here, Program only), each a linked tile that opens the List at that delta.
+// Changed elements is a compact collection of the product's elements the program modified or left
+// out, one line an element: its Change (Modified or Removed), What changed as a list (Software,
+// Firmware, Hardware, Data) and how many Controls stand on it, a link that lists them; it has no
+// search or sort. A heading then counts what is owed ("230 of 370 controls to assess") beside a
+// joined `ToggleGroup` named Show as, Families or List, which the address keeps (`show=list`); a
+// program with more than one variant chooses one in a Select named Variant beside it (`system`),
+// its variants in the order the program took them, so the view and the Overview's trays lead with
+// the one it was created around. Families is the delta key over one `Card` a control family, as the
+// Control status view draws them: the family's name opens the List at that family, with how many of
+// its controls are to assess and how many are changed here, over a strip a mark a control. List is
+// the same controls as a register with Delta, Product status, Changed elements and Control family,
+// each a filter; its question lives in the address under its view (`program-product-delta`), so
+// every count that links to it opens what it counts, through `productDeltaSearch` in
+// product-delta-link. Delta assessments is a `Related` list of the assessment campaigns Plan delta
+// assessment made for the variant, with that action as its small secondary: the Dialog says how
+// many objectives the plan will hold, each control the variant owes as the assessment objectives it
+// counts, as Add to assessment campaign writes one (`delta_assessment_objectives`, read as it
+// opens, the primary waiting on it with its reason), and how many controls are not assessed again,
+// shows the command's refusal (a variant whose SSP is still a draft) inside itself, and opens the
+// campaign once it is planned, its toast saying the objectives and the controls (693 objectives
+// over 95 controls). Where the standing is read from (the product, its version and a newer one, the
+// configuration, the product assessment and the element counts) is a collapsed Details Section.
+
 import {
   useCallback,
   useId,

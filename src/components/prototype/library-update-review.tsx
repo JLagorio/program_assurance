@@ -1,3 +1,13 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// A read-only review table inside a Dialog (Take version's changes, Add from library's claims) is a
+// `compact` ProductCollection with `sort={false}` and `keepQuestion={false}`, over a table whose
+// `pinnable` and `hideable` are off and whose columns are not `sortable`: search only, in the order
+// the review lists, with no Sort, Columns, Settings, column menu or sorting heading. Reference: the
+// changes table in library-update-review.
+
 import { AlertCircle } from "lucide-react";
 import { useEffect, useId, useMemo, useRef, useState, type FormEvent } from "react";
 import {

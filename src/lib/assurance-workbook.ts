@@ -1,3 +1,14 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// The assurance workbook's Stage control mapping maps the whole control the same way: a
+// Requirement, then a Control from the baselines of the systems it is allocated to, staged as one
+// mapping on each of those systems whose baseline selects the control and holds no mapping of it
+// yet, which the review Dialog names system by system, and a requirement allocated to no system is
+// refused on its field, never mapped on no system (`workbookMappingPlacement` in
+// assurance-workbook).
+
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";

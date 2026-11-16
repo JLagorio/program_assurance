@@ -1,3 +1,13 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// The prompt's safe action is Keep editing, which keeps the values and the location; an explicit
+// discard may close or navigate. A destructive or irreversible decision (Remove allocation, Unlink
+// evidence, Publish version) passes its command to `confirm` as `action`: the prompt stays open and
+// pending while it runs, shows a failure inside itself with its action as the retry, and closes on
+// success, which a toast reports.
+
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AlertCircle } from "lucide-react";
 import {

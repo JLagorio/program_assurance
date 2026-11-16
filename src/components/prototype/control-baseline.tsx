@@ -1,3 +1,63 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// The program's Control baseline is a focused view, and one `WorkPane`: the stack is its list and
+// the catalog at the chosen layer its detail. The list is the reference baseline and then each
+// layer in the order it applies, each row with what it added and removed and the running count
+// ("+201 −17 · 554"); choosing a row shows the baseline after that layer, the last row being the
+// program's baseline, and Replay above the rows walks them from the start. The rows are `Item`s
+// that choose a step in place, each layer's with a small `Switch` in its `actions` named Apply and
+// the layer, for a what-if: a layer switched off keeps its place, reads Not applied and changes
+// nothing, every layer after it applies again to what is beneath it (`stackWithout` in
+// baseline-stack), and the count, the map, its key and the List read that stack at each step; a
+// step switched off is headed "549 controls without Deployed Platform Overlay". While a layer is
+// off, a status `Alert` above the pane says "What-if: 5 more and 0 fewer controls than the saved
+// baseline", names the layers not applied and offers Back to saved, which moves focus to the step
+// being read (its row, or the detail's heading where the list is hidden). Nothing is saved. The
+// address keeps the layers switched off as `off`, the first eight characters of each layer's key,
+// comma-separated, so each switch is a step Back returns from, a reload and a shared link keep the
+// what-if while those layers stand, and a control opened from the List comes back to it; a switch
+// never moves the pane to the detail, and a changed stack (Edit overlays) clears it. The detail's
+// heading says the count and the layer ("549 controls after Mission Assurance Overlay"), and a
+// joined `ToggleGroup` named Show as chooses Grid, Skyline or List. Grid and Skyline are the one
+// map in the application, a `BaselineMap` from baseline-map over Ledger's `TileMap`: every active
+// catalog control as one mark by family, an enhancement beside or above its control, in the
+// baseline statuses and nothing else (one hue for Added, a hollow mark for Removed), under a
+// `TileMap.Key` that counts each; a mark says its control and its standing, and opens its family in
+// the List. The List is the map's table at the same step, a compact collection with each control's
+// family, status (In baseline, Added, Removed, Not selected, from `controlStanding`), the layer
+// that changed it and its requirement count, under a Progress for the baseline controls with a
+// requirement. A map never stands without the table of the same records one toggle away.
+//
+// Beside Show as, a `Select` named Resiliency technique reads the view by one cyber resiliency
+// technique of NIST SP 800-160 Vol. 2: All controls, then the techniques in the framework's order,
+// each with its count at the step shown ("Segmentation · 16 of 41": the baseline's controls at that
+// step that support it, of the catalog's active controls that support it in Table E-1), the
+// techniques the program chose for SA-24 first under Chosen for SA-24 and the rest under Other
+// techniques. The address keeps the choice as `technique`, the technique's code after `technique.`
+// (`technique=segmentation`, `techniqueSlug` in control-resiliency); a choice pushes a history
+// entry, as the Posture's reading does, and no technique is all controls. Read by a technique, the
+// heading counts its controls ("16 of 41 Segmentation controls after Customer A Tailoring"), the
+// map colours and the key counts only the controls that support it, and the List holds only those.
+// On the map a supporting control the baseline leaves out is hollow in the neutral tone, the gap
+// the reader looks for, and every other control wears the faint mark and says it does not support
+// the technique, so the catalog keeps its shape; a family with none shows no count. The List's last
+// column is one cyber resiliency column under one id (`c.list`): Techniques over all controls, each
+// technique's approaches in its card, the first column a narrow table folds; Approaches when read
+// by a technique, kept beside the status. Choosing a layer, Replay and a family opened from a mark
+// keep the technique, so Replay shows its count rise layer by layer. The address keeps the step and
+// the take too, as it keeps the technique: `layer` is how many layers are applied (`layer=0` the
+// reference baseline alone) and `show` is `skyline` or `list`; a choice pushes a history entry, an
+// address that names neither shows the last layer as a Grid, and Replay writes only the step it
+// ends on, replacing the entry. Where the pane shows one side at a time, the side follows the
+// address: one that names a step, a take or a technique opens on the detail, Back to one that names
+// none returns to the layers, and the pane's own Back to layers keeps the address. The techniques
+// and Table E-1 are reference data: where they read empty, no technique and no column is offered;
+// when a read of them fails, all controls stay drawn under the page's alert, and a technique the
+// address asks for waits on them. The view has no Section headings, Stat band or explanatory prose:
+// the list and the key say the counts.
+
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getRouteApi, Link } from "@tanstack/react-router";
 import {

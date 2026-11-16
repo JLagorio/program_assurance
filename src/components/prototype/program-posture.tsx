@@ -1,3 +1,66 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// The Posture's band does the same.
+//
+// The program's Posture is a focused view too: a `Stat.Grid frame="band"` of four numbers
+// (objectives mapped, of those the program's control baseline holds; without evidence; open issues;
+// open risks), then one `Chart` frame holding a `Chart.Heatmap` of the program's system elements by
+// the control families of their control baselines, counted in assessment objectives where the
+// requirements' mappings place them: a mapping stands on the element it names, where that element's
+// control baseline selects the control (one that names no element, on each element its requirement
+// is allocated to whose baseline selects it), and covers there the objective it names and every one
+// under it, or every objective the control counts where it names none. A joined `ToggleGroup` named
+// Count, in the frame's `actions`, chooses what a cell counts (Objectives mapped, Without evidence,
+// Open issues, Open risks), and the address keeps it (`reading`): the family's objectives the
+// mappings on the element and the elements inside it cover, each once; those of them no requirement
+// that cites evidence covers there; and the open issues and open risks that stand there, an issue
+// where the requirements it names and those its evidence supports stand (a requirement where its
+// mappings stand) and a risk where its issues stand. A second joined group named Columns chooses
+// what the columns are, Control families or Resiliency techniques, and the address keeps it
+// (`columns=techniques`; an address that names none shows the families). By technique the columns
+// are the cyber resiliency techniques of NIST SP 800-160 Vol. 2 in the framework's order, each
+// headed by its title: an objective stands under every technique its control supports in Table E-1,
+// so it may stand under several, and it counts once on an element's line and once in the totals. A
+// technique's title has no short form, so by technique the grid sets `columnHeadings="vertical"`:
+// each title reads up the page from its column, a column keeps its cells' width, and all fourteen
+// stand beside the element names with no sideways scroll at a desktop width. The families keep
+// their codes on one line, and a title is never abbreviated on screen. Where the program chose
+// techniques for SA-24 (`useProgramResiliencyChoice` in resiliency-choice), the columns are its own
+// and a third group named Techniques offers Chosen and All (`techniques=all`); where it chose none,
+// or its choice cannot be read, every technique stands, and the page's alert says a failed read.
+// Each joined group sits in a horizontal `Scroller`, so one wider than a phone's frame scrolls in
+// its own strip. The elements are rows in the system's tree order (`rowLevel`), an element that
+// holds others is a `summary` row that pools what stands on it and inside it, and every number
+// counts an objective or a record once: an objective one of its elements covers with evidence has
+// evidence there, so on a program of one authorization boundary the boundary's row reads as its
+// control status. A zero is quiet in every reading: its number is in the cell's title and said to
+// assistive technology, never drawn, so the cells that hold something are what a reader sees. A
+// count of objectives is one hue (`sequential` with `zeroStep`); open issues and open risks wear
+// the worst severity among them, critical in the bold danger so it never reads as high, under a
+// `Chart.Scale scale="status"` key. A cell opens the kit's card with what stands in it (`details`):
+// the element, the family or the technique, its Objectives mapped and Objectives with evidence, and
+// what the reading counts there, each a link: the controls whose objectives stand there, each with
+// how many of all it counts ("12 of 26"), since an objective has no page of its own and its
+// control's record lists it with its coverage; the requirements to evidence, which cite none and
+// cover objectives no requirement with evidence covers there, the one that covers most first ("10
+// without evidence"); or the open issues or open risks. The frame's Table toggle and CSV are the
+// same numbers. The frame's title says what a cell counts and the columns, and its description says
+// what is not placed, such as a requirement none of whose mappings is on an element whose control
+// baseline selects the control, an open issue no requirement it names or its evidence supports
+// stands on an element, or, by technique, a requirement whose controls support no technique. While
+// other columns are read the grid the reader had stays under the frame's busy state, and under the
+// page's alert when they cannot be read; the band's four numbers are the same by either. Its first
+// two are the program's control baseline as its control status counts it
+// (`program_control_objective_cover`): an objective mapped once covered on every system that
+// selects its control, and evidenced once evidenced on every one, so the band and the Control
+// status view always agree. The numbers are one read, `program_posture`, and a cell's records
+// another, `program_posture_cell`; by technique they are `program_resiliency_posture` and
+// `program_resiliency_posture_cell`, which name the program alone and a technique by its code, all
+// through program-posture, and all four read where the mappings stand and what they cover from one
+// internal read, `program_objective_placement`. Reference: program-posture.
+
 import { useCallback, useMemo, type ReactNode } from "react";
 import { getRouteApi } from "@tanstack/react-router";
 import {

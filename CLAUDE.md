@@ -13,9 +13,9 @@ The project is connected to Lovable. Never force-push, rebase, amend or squash c
 
 ## Screens
 
-Every screen follows the product pattern contract in `docs/guides/product-patterns.md`: which Ledger part this application uses for each shape (register, preview, record, form, states, titles), the closed exceptions, the file to copy and what checks it. Read it before creating or changing a screen; do not infer a shape from a neighbouring screen. It is imported below so it is always in context.
+Every screen follows the product pattern contract in `docs/guides/product-patterns.md`: which Ledger part this application uses for each shape (register, preview, record, form, states, titles), the closed exceptions, the file to copy and what checks it. Read it before creating or changing a screen; do not infer a shape from a neighbouring screen. Its core (principles, page types, actions, budgets, under 1,500 words) is imported below so it is always in context; `product-patterns.md` is part two.
 
-@docs/guides/product-patterns.md
+@docs/guides/product-patterns-core.md
 
 ## Commands
 
@@ -61,6 +61,7 @@ npm run test:products
 npm run test:overlays           # overlay commands, program creation with overlays, a program's stack change (no browser)
 npm run test:patterns           # headers, row openers, date sorting, draft guards, focus return, cut focus rings, failed and slow loads, no record-schema read as a route or tab opens, no link into the schema inspector and no control named by a record id on a product route, server-paged registers and their previews (test-server-paging.mjs), publishing assessment results from the Review queue, and a results preview's findings and Edit assessment results (test-publish-results.mjs) (app on 8080, or APP_TEST_URL)
 npm run test:app-a11y           # axe and the console over every route in docs/guides/screen-inventory.json at 1440px and a 390px phone; allowances in scripts/app-a11y-allow.json
+npm run test:budgets            # page budgets B1–B16 on every inventory route and tab at 1440×900, held to the inventory's `budgets` and `tabBudgets` ceilings, which only fall (-- --update lowers them, -- --gaps lists what is over pass one's targets)
 npm run test:demo               # demo seed mapping and rollback
 npm run test:chain              # the assurance chain reads: a trace from every kind of record (an assessment finding included), a program's posture, the tenant boundary
 npm run test:reference          # pinned reference sources, normalization, provenance
@@ -93,7 +94,7 @@ npm run ds:check                               # every exported catalog part has
 npm run ds:api:check / ds:api:update           # public API baseline in packages/design-system/api/public-api.json
 ```
 
-CI (`.github/workflows/ci.yml`) runs five jobs side by side: **check** (tokens regenerate cleanly, `ds-check`, `check:allow-lists`, `check:lint-changelog`, package typecheck/lint/test, `lint:corpus --check`, `test:api` and the API baseline, package build, `test:consumer`, `npm pack`); **stories** (`test:a11y`, `test:layout`, `test:gates`); **storybook** (the static Storybook builds and `test:docs` renders every docs page); **app** (app typecheck + lint + format check, `test:app`, `npm run build`); **product-patterns** (a disposable Supabase stack with the pinned reference data, then `test:patterns`, `test:workbook`, the spreadsheet workers in Firefox and WebKit, `test:workspace-capabilities`, `test:review-workspace`, `test:shared-interactions` and `test:app-a11y`). Run the same set before calling a batch done. The workflow file is the list, and a job stops at its first failing step. A check that passes on this machine can fail on the runner, which starts from a fresh checkout (no built kit until a step builds it, no `out/`) and draws slower, so read the run after a push: `gh run list --branch design-system`.
+CI (`.github/workflows/ci.yml`) runs five jobs side by side: **check** (tokens regenerate cleanly, `ds-check`, `check:allow-lists`, `check:lint-changelog`, package typecheck/lint/test, `lint:corpus --check`, `test:api` and the API baseline, package build, `test:consumer`, `npm pack`); **stories** (`test:a11y`, `test:layout`, `test:gates`); **storybook** (the static Storybook builds and `test:docs` renders every docs page); **app** (app typecheck + lint + format check, `test:app`, `npm run build`); **product-patterns** (a disposable Supabase stack with the pinned reference data, then `test:patterns`, `test:workbook`, the spreadsheet workers in Firefox and WebKit, `test:workspace-capabilities`, `test:review-workspace`, `test:shared-interactions`, `test:app-a11y` and `test:budgets`). Run the same set before calling a batch done. The workflow file is the list, and a job stops at its first failing step. A check that passes on this machine can fail on the runner, which starts from a fresh checkout (no built kit until a step builds it, no `out/`) and draws slower, so read the run after a push: `gh run list --branch design-system`.
 
 Storybook MCP (`.mcp.json`, `http://localhost:6007/mcp`) is available when the package Storybook is running; prefer its `stories-preview` / `test-run` tools for verifying kit changes.
 

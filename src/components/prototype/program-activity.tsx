@@ -1,3 +1,9 @@
+// From the product pattern contract (docs/guides/product-patterns.md), moved here on
+// 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
+// full wording of rules the contract now states in fewer words.
+//
+// the program's activity is the last Section of its Overview, grouped by month.
+
 import { useMemo } from "react";
 import { Section, Timeline, useLedgerLocale } from "@ledger/design-system";
 import {
