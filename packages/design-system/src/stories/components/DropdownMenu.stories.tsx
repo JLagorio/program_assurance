@@ -704,7 +704,10 @@ export const Scrolling: Story = {
     await waitFor(() => expect(arrow("end")).toBeVisible());
     await expect(arrow("start")).toBeNull();
     await user.hover(arrow("end")!);
-    await waitFor(() => expect(viewport.scrollTop).toBeGreaterThan(0));
+    // Hover until the start arrow shows: it shows once the viewport is past its first pixel, so a
+    // hover that stops at the first scroll can leave it under a pixel, with no start arrow at all.
+    await waitFor(() => expect(arrow("start")).toBeVisible());
+    await expect(viewport.scrollTop).toBeGreaterThan(1);
     await user.unhover(arrow("end")!);
     await waitFor(() => expect(arrow("start")).toBeVisible());
     await user.keyboard("{End}");
