@@ -13,6 +13,7 @@ export type FakeCall = { table: string; steps: [string, unknown[]][] };
 const CHAIN = [
   "select",
   "insert",
+  "upsert",
   "update",
   "delete",
   "eq",

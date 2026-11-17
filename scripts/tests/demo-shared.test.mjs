@@ -275,24 +275,60 @@ test("one Cyber T&E campaign is planned for WS-X90: cooperative vulnerability id
   assert.ok(scenario.watchedPrograms.includes(test_.program));
 });
 
-test("version 2 of the X800 set is a draft that changes the Mission Computer's software and affects two controls", () => {
+test("version 2 of the X800 set is published on 2026-11-12, changes the Mission Computer's software and lists four controls", () => {
   const [entry, ...rest] = scenario.sharedVersions;
   assert.deepEqual(rest, []);
   assert.equal(entry.definition, "x800-components");
   assert.equal(entry.version, 2);
-  // Left a draft, so nobody is behind yet.
-  assert.equal(entry.state, "draft");
+  // Published, and taken by nobody: every consumer stays on version 1.
+  assert.equal(entry.state, "published");
+  assert.equal(entry.publishedAt.slice(0, 10), "2026-11-12");
+  // Before the finding was offered on version 1, which it does not change.
+  assert.ok(entry.publishedAt < scenario.sharedFindings[0].offer.offeredAt);
   assert.match(entry.remarks, /authored, illustrative demo content/);
   assert.deepEqual(
     entry.changes.map((change) => [change.component, change.kinds, change.controls]),
-    [["Mission Computer", ["software"], ["RA-5", "SI-2"]]],
+    [["Mission Computer", ["software"], ["AC-17(2)", "SC-23", "SI-2", "RA-5"]]],
   );
-  assert.match(entry.changes[0].summary, /OpenSSH server 9\.8p1/);
-  // The controls its change affects are the ones the CVE bears on.
-  assert.deepEqual(entry.changes[0].controls, scenario.sharedVulnerabilities[0].controls);
-  // It is a version of a set the scenario assessed, of a component it shares.
+  assert.match(entry.changes[0].summary, /OpenSSH server 9\.8p1 in place of 9\.6p1/);
+  assert.match(entry.changes[0].summary, /Nothing else in the image changes/);
+  // The controls the CVE bears on are among those the owner lists.
+  for (const code of scenario.sharedVulnerabilities[0].controls)
+    assert.ok(entry.changes[0].controls.includes(code), `${code} is not listed`);
+  // It is a version of a set the scenario assessed, of a component it shares, whose owner lists
+  // what the change affects.
   const set = scenario.sharedComponents.find((item) => item.definition === entry.definition);
   assert.ok(set.components.some((component) => component.name === entry.changes[0].component));
+  assert.equal(set.owner, "Priya Raghavan");
+});
+
+test("version 2 reads 52 determinations carried from version 1, two controls to review and seven not assessed", () => {
+  const [entry] = scenario.sharedVersions;
+  const [standing, ...rest] = entry.standing;
+  assert.deepEqual(rest, []);
+  assert.equal(standing.component, "Mission Computer");
+  assert.deepEqual(standing.totals, {
+    controls: 61,
+    satisfied: 42,
+    partially_satisfied: 6,
+    other_than_satisfied: 4,
+    not_assessed: 9,
+    carried: 52,
+    to_review: 2,
+  });
+  // Nobody assessed version 2, so every determination that stands is carried; the two it leaves to
+  // review were satisfied on version 1, and SI-2 and RA-5, which it does not claim, change nothing.
+  const [component] = scenario.sharedComponents[0].components;
+  const { satisfied, partially_satisfied, other_than_satisfied } = standing.totals;
+  assert.equal(satisfied + partially_satisfied + other_than_satisfied, standing.totals.carried);
+  assert.equal(
+    scenario.determinationCount(component) - standing.toReview.length,
+    standing.totals.carried,
+  );
+  assert.equal(component.determinations.satisfied - standing.toReview.length, satisfied);
+  assert.deepEqual(standing.toReview, ["AC-17(2)", "SC-23"]);
+  // The seven version 1 was never judged on stay not assessed.
+  assert.equal(standing.totals.not_assessed - standing.totals.to_review, 7);
 });
 
 test("its SBOM is the first one's components with the fixed OpenSSH server, and records the CVE as fixed", () => {
@@ -306,6 +342,9 @@ test("its SBOM is the first one's components with the fixed OpenSSH server, and 
   assert.equal(sbom.specVersion, first.specVersion);
   assert.notEqual(sbom.serial, first.serial);
   assert.ok(sbom.generatedOn > first.generatedOn);
+  // Generated the day the version is published.
+  assert.equal(sbom.generatedOn, "2026-11-12");
+  assert.equal(sbom.generatedOn, entry.publishedAt.slice(0, 10));
   // The same thirteen components, in the same places, but for the server.
   assert.equal(sbom.components.length, 13);
   const differing = sbom.components.filter(
@@ -406,10 +445,13 @@ test("the plan says what would be written, and nothing stops a workspace that ho
   assert.deepEqual(plan.summary.versions, [
     {
       version:
-        "x800-components version 2, a draft: every component of version 1 with what it claims",
-      changes: ["Mission Computer: software; affects RA-5, SI-2"],
+        "x800-components version 2, published 2026-11-12: every component of version 1 with what it claims",
+      changes: ["Mission Computer: software; affects AC-17(2), SC-23, SI-2, RA-5"],
+      standing: [
+        "Mission Computer: 61 controls, 52 carried forward (42 satisfied, 6 partially satisfied, 4 other than satisfied), 2 to review (AC-17(2), SC-23), 7 not assessed",
+      ],
       sboms: [
-        "Mission Computer maintenance image SBOM, version 2: CycloneDX 1.5, generated 2026-11-15, 13 components, openssh-server 9.8p1; CVE-2024-6387 fixed",
+        "Mission Computer maintenance image SBOM, version 2: CycloneDX 1.5, generated 2026-11-12, 13 components, openssh-server 9.8p1; CVE-2024-6387 fixed",
       ],
     },
   ]);
@@ -615,12 +657,12 @@ test("what the seed is meant to change is said as before and after, and nothing 
         "PRG-1090 remediation items": { items: 40, open: 33, milestones: 120 },
       },
       after: {
-        "component set versions": { versions: 3, published: 2, drafts: 1, changes: 1 },
+        "component set versions": { versions: 3, published: 3, drafts: 0, changes: 1 },
         "PRG-1090 remediation items": { items: 41, open: 34, milestones: 123 },
       },
     }),
     [
-      "component set versions: versions 2 to 3, drafts 0 to 1, changes 0 to 1",
+      "component set versions: versions 2 to 3, published 2 to 3, changes 0 to 1",
       "PRG-1090 remediation items: items 40 to 41, open 33 to 34, milestones 120 to 123",
     ],
   );

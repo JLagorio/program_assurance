@@ -79,6 +79,37 @@ describe("a save that is safe to retry", () => {
     ).rejects.toMatchObject({ reason: "changed" });
   });
 
+  it("says a conflict in the form's own words", async () => {
+    const { client: db } = client({ id, revision: 4, rationale: "Theirs" });
+    await expect(
+      saveOnce(db, context, {
+        table: "requirement_control_links",
+        id,
+        values: { rationale: "Mine" },
+        revision: 3,
+        conflicts: { changed: "This mapping changed in another session." },
+      }),
+    ).rejects.toMatchObject({
+      reason: "changed",
+      message: "This mapping changed in another session.",
+    });
+  });
+
+  it("names an update refused at its revision another session's change", async () => {
+    const { client: db } = client(
+      { id, revision: 3, rationale: "Before" },
+      { data: null, error: { code: "PT409", message: "Record revision conflict" } },
+    );
+    await expect(
+      saveOnce(db, context, {
+        table: "requirement_control_links",
+        id,
+        values: { rationale: "After" },
+        revision: 3,
+      }),
+    ).rejects.toMatchObject({ reason: "changed" });
+  });
+
   it("refuses an edit of a record that is gone", async () => {
     const { client: db } = client(null);
     await expect(
@@ -117,6 +148,48 @@ describe("a save that is safe to retry", () => {
     });
     expect(result.outcome).toBe("unchanged");
     expect(calls).toHaveLength(1);
+  });
+
+  it("finds a first try that landed after its lookup, refused on its own id", async () => {
+    const answers: FakeResult[] = [
+      { data: null, error: null },
+      { data: null, error: { code: "23505", message: "duplicate key value" } },
+      { data: { id, revision: 1, ...values }, error: null },
+    ];
+    const { client: db, calls } = fakeClient(() => answers.shift()!);
+    const result = await saveOnce(db, context, { table: "requirement_revisions", id, values });
+    expect(result.outcome).toBe("unchanged");
+    expect(calls).toHaveLength(3);
+  });
+
+  it("says what `taken` says when another record holds a unique value", async () => {
+    const taken = () => new Error("Another configuration already has the code GL.");
+    const answers = (): FakeResult[] => [
+      { data: null, error: null },
+      { data: null, error: { code: "23505", message: "duplicate key value" } },
+      { data: null, error: null },
+    ];
+    let queue = answers();
+    const { client: db } = fakeClient(() => queue.shift()!);
+    await expect(
+      saveOnce(db, context, { table: "requirement_revisions", id, values, taken }),
+    ).rejects.toThrow("Another configuration already has the code GL.");
+    queue = answers();
+    await expect(
+      saveOnce(db, context, { table: "requirement_revisions", id, values }),
+    ).rejects.toThrow("duplicate key value");
+  });
+
+  it("refuses a create whose id another try saved with other values meanwhile", async () => {
+    const answers: FakeResult[] = [
+      { data: null, error: null },
+      { data: null, error: { code: "23505", message: "duplicate key value" } },
+      { data: { id, revision: 1, ...values, title: "Other" }, error: null },
+    ];
+    const { client: db } = fakeClient(() => answers.shift()!);
+    await expect(
+      saveOnce(db, context, { table: "requirement_revisions", id, values }),
+    ).rejects.toMatchObject({ reason: "different" });
   });
 
   it("says what the lookup's failure was", async () => {

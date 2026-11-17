@@ -14,7 +14,9 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { useWorkspace } from "./workspace-context";
 import { database, requireIdentity } from "./database";
 import {
+  CHANGED_ELSEWHERE,
   invalidateModel,
+  isTenantScoped,
   writeRow,
   type Insert,
   type ReadContext,
@@ -34,7 +36,18 @@ export type SaveOnce<T extends TableName> = {
   create?: Partial<Insert<T>> | undefined;
   /** The revision the reader edited; absent when the form creates the record. */
   revision?: number | undefined;
+  /**
+   * What a create says when another record already holds a value that must be unique (a code, or
+   * the one answer a requirement takes), so nothing of the draft was written. Unsaid, the server's
+   * words stand.
+   */
+  taken?: (() => Error) | undefined;
+  /** Each conflict in the form's own words; unsaid, the generic words stand. */
+  conflicts?: ConflictWords | undefined;
 };
+
+/** What each conflict says, in a form's own words. */
+export type ConflictWords = Partial<Record<"different" | "changed" | "missing", string>>;
 
 export type SaveOnceOutcome = "created" | "updated" | "unchanged";
 
@@ -115,50 +128,84 @@ export function holds(record: Record<string, unknown>, values: Record<string, un
 export function onceStep(
   found: Record<string, unknown> | null,
   { values, revision }: { values: Record<string, unknown>; revision?: number | undefined },
+  words: ConflictWords = {},
 ): "unchanged" | "create" | "update" {
   if (found) {
     if (holds(found, values)) return "unchanged";
-    if (revision === undefined) throw new SaveOnceConflict("different", conflicts.different);
-    if (found["revision"] !== revision) throw new SaveOnceConflict("changed", conflicts.changed);
+    if (revision === undefined)
+      throw new SaveOnceConflict("different", words.different ?? conflicts.different);
+    if (found["revision"] !== revision)
+      throw new SaveOnceConflict("changed", words.changed ?? conflicts.changed);
     return "update";
   }
-  if (revision !== undefined) throw new SaveOnceConflict("missing", conflicts.missing);
+  if (revision !== undefined)
+    throw new SaveOnceConflict("missing", words.missing ?? conflicts.missing);
   return "create";
 }
 
 /**
  * A save that is safe to retry after an uncertain response: it reads the record by the id the
  * form chose, and creates it only when it is not there, updates it only at the revision the reader
- * edited, and writes nothing when the record already holds the reader's values.
+ * edited, and writes nothing when the record already holds the reader's values. A create refused on
+ * a unique key looks for its id again, since a first try may have landed after the lookup; when it
+ * is not there, another record holds the unique value and `taken` says so.
  */
 export async function saveOnce<T extends TableName>(
   client: Client,
   context: ReadContext,
-  { table, id, values, create, revision }: SaveOnce<T>,
+  { table, id, values, create, revision, taken, conflicts: words = {} }: SaveOnce<T>,
 ): Promise<{ outcome: SaveOnceOutcome; record: Row<T> }> {
-  const { data: existing, error } = await client
-    .from(table)
-    .select()
-    .eq("tenant_id", context.tenantId)
-    .eq("id", id)
-    .setHeader("Authorization", `Bearer ${context.token}`)
-    .maybeSingle();
-  if (error) throw new Error(error.message);
-  const current = existing as Row<T> | null;
-  const step = onceStep(current as Record<string, unknown> | null, { values, revision });
+  const authorization = `Bearer ${context.token}`;
+  const lookup = async () => {
+    const { data, error } = await client
+      .from(table)
+      .select()
+      .eq("tenant_id", context.tenantId)
+      .eq("id", id)
+      .setHeader("Authorization", authorization)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    return data as Row<T> | null;
+  };
+  const current = await lookup();
+  const step = onceStep(current as Record<string, unknown> | null, { values, revision }, words);
   if (step === "unchanged") return { outcome: "unchanged", record: current! };
   if (step === "update") {
-    const record = await writeRow(client, context, table, {
-      values: values as Insert<T>,
-      id,
-      revision,
-    });
-    return { outcome: "updated", record };
+    try {
+      const record = await writeRow(client, context, table, {
+        values: values as Insert<T>,
+        id,
+        revision,
+      });
+      return { outcome: "updated", record };
+    } catch (cause) {
+      // The record moved on between the lookup and the update: the conflict the lookup would name.
+      if (cause instanceof Error && cause.message === CHANGED_ELSEWHERE)
+        throw new SaveOnceConflict("changed", words.changed ?? conflicts.changed);
+      throw cause;
+    }
   }
-  const record = await writeRow(client, context, table, {
-    values: { ...create, ...values, id } as Insert<T>,
-  });
-  return { outcome: "created", record };
+  const { data, error } = await client
+    .from(table)
+    .insert({
+      ...create,
+      ...values,
+      id,
+      ...(isTenantScoped(table) ? { tenant_id: context.tenantId } : {}),
+    } as Insert<T>)
+    .select()
+    .setHeader("Authorization", authorization)
+    .single();
+  if (error?.code === "23505") {
+    const landed = await lookup();
+    // Found again: the first try's own record, or a conflict that `onceStep` names.
+    if (landed && onceStep(landed as Record<string, unknown>, { values }, words) === "unchanged")
+      return { outcome: "unchanged", record: landed };
+    throw taken ? taken() : new Error(error.message);
+  }
+  if (error?.code === "PT409" || error?.code === "PGRST116") throw new Error(CHANGED_ELSEWHERE);
+  if (error) throw new Error(error.message);
+  return { outcome: "created", record: data as Row<T> };
 }
 
 /**

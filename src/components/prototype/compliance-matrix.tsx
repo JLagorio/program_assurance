@@ -93,6 +93,7 @@ import {
   useRequirementAnswer,
   useRequirementSources,
 } from "@/lib/requirement-compliance";
+import { SaveOnceConflict } from "@/lib/save-once";
 import {
   IMPORT_FIELD_LABELS,
   importFileKind,
@@ -268,16 +269,22 @@ function ComplianceStatementDialog({
   const workspace = useWorkspace();
   const formId = useId();
   const recorded = useRequirementAnswer(requirement.id);
-  const existing = recorded.data?.[0];
-  const operation = requirement.status
-    ? "Edit compliance statement"
-    : "Create compliance statement";
+  // The answer as the reader opened it, held through every try: its id and the revision they saw,
+  // or for a first answer an id chosen once, so a retry after a lost answer finds the first try.
+  const [firstId] = useState(() => crypto.randomUUID());
+  const [seen, setSeen] = useState<{ id: string; revision: number } | null | undefined>(undefined);
+  const loaded = recorded.data?.[0];
+  if (seen === undefined && recorded.data)
+    setSeen(loaded ? { id: loaded.id, revision: loaded.revision } : null);
+  const [operation] = useState(
+    requirement.status ? "Edit compliance statement" : "Create compliance statement",
+  );
   const [open, setOpen] = useState(true);
   const [status, setStatus] = useState<string | null>(requirement.status);
   const [method, setMethod] = useState<string | null>(requirement.verificationMethod);
   const [statement, setStatement] = useState(requirement.complianceStatement ?? "");
   const [dirty, setDirty] = useState(false);
-  const [failure, setFailure] = useState<string | null>(null);
+  const [failure, setFailure] = useState<{ title: string; message: string } | null>(null);
   const submitRef = useRef<HTMLButtonElement>(null);
   const feedback = useFormFeedback<AnswerField>();
   const save = useAnswerRequirement();
@@ -293,11 +300,11 @@ function ComplianceStatementDialog({
   );
   const unavailable = !writable
     ? "An editor, admin, or owner can answer a requirement."
-    : recorded.isError
-      ? "Load the recorded answer before saving."
-      : recorded.isPending
-        ? "The recorded answer is loading."
-        : undefined;
+    : seen !== undefined
+      ? undefined
+      : recorded.isError
+        ? "Load the recorded answer before saving."
+        : "The recorded answer is loading.";
   async function submit(event: FormEvent) {
     event.preventDefault();
     if (guard.busy || unavailable) return;
@@ -308,7 +315,8 @@ function ComplianceStatementDialog({
     try {
       await save.mutateAsync({
         requirementId: requirement.id,
-        existing: existing ? { id: existing.id, revision: existing.revision } : null,
+        id: seen?.id ?? firstId,
+        revision: seen?.revision,
         status: status as ComplianceStatus,
         verificationMethod: (method as VerificationMethod | null) ?? null,
         statement,
@@ -318,7 +326,24 @@ function ComplianceStatementDialog({
       guard.finish();
       guard.complete();
     } catch (cause) {
-      setFailure(`${causeText(cause)} Your answer is kept.`);
+      // A conflict says which, in the words `answerRequirement` gives it; any other failure keeps
+      // the answer, and a retry finds what a first try saved.
+      setFailure(
+        cause instanceof SaveOnceConflict
+          ? {
+              title:
+                cause.reason === "different"
+                  ? "The compliance statement was already saved"
+                  : "The compliance statement was not saved",
+              message: cause.message,
+            }
+          : {
+              title: "The compliance statement was not saved",
+              message: seen
+                ? `${causeText(cause)} Your answer is kept, so you can try again.`
+                : `${causeText(cause)} Your answer is kept, and trying again will not make a second compliance statement.`,
+            },
+      );
       guard.finish();
     }
   }
@@ -346,7 +371,7 @@ function ComplianceStatementDialog({
         <DialogBody>
           <form id={formId} noValidate onSubmit={(event) => void submit(event)}>
             <Stack space="space.200">
-              {recorded.isError ? (
+              {recorded.isError && seen === undefined ? (
                 <Alert variant="destructive" role="alert">
                   <AlertCircle aria-hidden />
                   <AlertTitle>The recorded answer could not be loaded</AlertTitle>
@@ -356,8 +381,8 @@ function ComplianceStatementDialog({
               {failure ? (
                 <Alert variant="destructive" role="alert">
                   <AlertCircle aria-hidden />
-                  <AlertTitle>The compliance statement was not saved</AlertTitle>
-                  <AlertDescription>{failure}</AlertDescription>
+                  <AlertTitle>{failure.title}</AlertTitle>
+                  <AlertDescription>{failure.message}</AlertDescription>
                 </Alert>
               ) : null}
               <ErrorSummary issues={feedback.summary} focusKey={feedback.attempts} />

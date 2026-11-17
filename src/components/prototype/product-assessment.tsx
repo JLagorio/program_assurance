@@ -86,6 +86,7 @@ import {
   type SheetElement,
   type SheetRow,
 } from "@/lib/product-assessment";
+import { SaveOnceConflict } from "@/lib/save-once";
 import { determinations, revisionStates } from "@/lib/status";
 import { useCollectionTable } from "./collection-question";
 import { LibrarySelect, QueryValue } from "./library-shared";
@@ -154,7 +155,9 @@ function CreateProductAssessmentDialog({
   const [assessor, setAssessor] = useState<string | null>(null);
   const [started, setStarted] = useState("");
   const [dirty, setDirty] = useState(false);
-  const [failure, setFailure] = useState<string | null>(null);
+  const [failure, setFailure] = useState<{ title: string; message: string } | null>(null);
+  // Chosen once for the draft, so a retry after a lost answer finds the first try's assessment.
+  const [assessmentId] = useState(() => crypto.randomUUID());
   const created = useRef<string | null>(null);
   const submitRef = useRef<HTMLButtonElement>(null);
   const feedback = useFormFeedback<CreateField>();
@@ -183,19 +186,31 @@ function CreateProductAssessmentDialog({
     submitRef.current?.focus();
     if (!guard.start()) return;
     try {
-      const row = await create.mutateAsync({
+      const { record } = await create.mutateAsync({
+        id: assessmentId,
         productRevisionId: revision.id,
         profileResolutionId: baseline,
         title,
         assessorPartyId: assessor,
         startedOn: started || null,
       });
-      created.current = row.id;
+      created.current = record.id;
       setDirty(false);
       guard.finish();
       guard.complete();
     } catch (cause) {
-      setFailure(`${causeText(cause)} Your entry is kept.`);
+      setFailure(
+        cause instanceof SaveOnceConflict && cause.reason === "different"
+          ? {
+              title: "The product assessment was already created",
+              message:
+                "An earlier try created this product assessment before you changed its details. Your changes are kept; close the form and edit the product assessment to apply them.",
+            }
+          : {
+              title: "The product assessment was not created",
+              message: `${causeText(cause)} Your details are kept, and trying again will not make a second product assessment.`,
+            },
+      );
       guard.finish();
     }
   }
@@ -233,8 +248,8 @@ function CreateProductAssessmentDialog({
               {failure ? (
                 <Alert variant="destructive" role="alert">
                   <AlertCircle aria-hidden />
-                  <AlertTitle>The product assessment was not created</AlertTitle>
-                  <AlertDescription>{failure}</AlertDescription>
+                  <AlertTitle>{failure.title}</AlertTitle>
+                  <AlertDescription>{failure.message}</AlertDescription>
                 </Alert>
               ) : null}
               <ErrorSummary issues={feedback.summary} focusKey={feedback.attempts} />

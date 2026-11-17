@@ -2,16 +2,21 @@ import { useConfirmation } from "@/components/app/confirmation";
 import { Page } from "@/components/app/shell";
 import { TextField } from "@/components/app/fields";
 import { useFormFeedback, type FormIssue } from "@/components/app/form-feedback";
+import { causeText } from "@/components/app/sentence";
 import { StatusBadge } from "@/components/app/status";
 import { useDraftGuard } from "@/components/app/use-draft-guard";
 import { useWorkspace } from "@/components/app/workspace";
 import { idSet, useModelSave, useRow, useRows, type Row } from "@/lib/models";
 import { elementIdsInOrder, productElementSpecs, useElementLibrary } from "@/lib/product-items";
 import {
+  CodeTaken,
+  configurationCodeTaken,
   useCopyProductRevision,
+  useCreateProductConfiguration,
   useIncludeAllElements,
   useProductComponentDefinition,
 } from "@/lib/product-revisions";
+import { SaveOnceConflict } from "@/lib/save-once";
 import { recordLifecycleStates, revisionStates, statusLabel } from "@/lib/status";
 import {
   Absent,
@@ -1292,7 +1297,7 @@ function NewConfigurationDialog({
 }) {
   const formId = useId();
   const [open, setOpen] = useState(true);
-  const save = useModelSave("product_configurations");
+  const create = useCreateProductConfiguration();
   const includeAll = useIncludeAllElements();
   const { formatPlural } = useLedgerLocale();
   const feedback = useFormFeedback<ConfigurationField>();
@@ -1302,8 +1307,12 @@ function NewConfigurationDialog({
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [includeEverything, setIncludeEverything] = useState(true);
+  // Chosen once for the draft, so a retry after a lost answer finds the first try's configuration.
+  const [draftId] = useState(() => crypto.randomUUID());
   // Set once the configuration is saved, so a retry only finishes including its elements.
   const [createdId, setCreatedId] = useState<string | null>(null);
+  // A code another configuration of the product holds, as the server refused it.
+  const [takenCode, setTakenCode] = useState<string | null>(null);
   const [failure, setFailure] = useState<{ title: string; message: string } | null>(null);
   const guard = useDraftGuard({
     dirty: !createdId && !!(code || name || description || !includeEverything),
@@ -1311,7 +1320,11 @@ function NewConfigurationDialog({
     description: "The configuration details you entered will be lost.",
   });
   const issues: FormIssue<ConfigurationField>[] = [
-    ...(code.trim() ? [] : [{ field: "code" as const, message: "Enter a code." }]),
+    ...(!code.trim()
+      ? [{ field: "code" as const, message: "Enter a code." }]
+      : code.trim() === takenCode
+        ? [{ field: "code" as const, message: configurationCodeTaken(takenCode) }]
+        : []),
     ...(name.trim() ? [] : [{ field: "name" as const, message: "Enter a name." }]),
   ];
   const errors = new Map(
@@ -1334,16 +1347,16 @@ function NewConfigurationDialog({
     let configurationId = createdId;
     try {
       if (!configurationId) {
-        const created = await save.mutateAsync({
-          values: {
-            product_id: product.id,
-            code: code.trim(),
-            name: name.trim(),
-            description: description.trim() || null,
-          },
+        // A retry after a lost answer finds the first try under the draft's id and writes nothing.
+        const { record } = await create.mutateAsync({
+          id: draftId,
+          productId: product.id,
+          code,
+          name,
+          description,
         });
-        configurationId = created.id;
-        setCreatedId(created.id);
+        configurationId = record.id;
+        setCreatedId(record.id);
       }
       const including = includeEverything && elementIds.length > 0;
       if (including)
@@ -1360,18 +1373,30 @@ function NewConfigurationDialog({
       });
       guard.complete();
     } catch (cause) {
+      guard.finish();
+      // A code another configuration holds is the Code field's own issue: nothing was written.
+      if (cause instanceof CodeTaken) {
+        setTakenCode(cause.code);
+        feedback.report([{ field: "code", message: cause.message }]);
+        return;
+      }
       setFailure(
         configurationId
           ? {
               title: "The elements were not included",
               message: `${messageOf(cause)} The configuration is saved. Create configuration again to finish including its elements.`,
             }
-          : {
-              title: "The configuration was not created",
-              message: `${messageOf(cause)} Your details are kept.`,
-            },
+          : cause instanceof SaveOnceConflict && cause.reason === "different"
+            ? {
+                title: "The configuration was already created",
+                message:
+                  "An earlier try created this configuration before you changed its details. Your changes are kept; close the form and edit the configuration to apply them.",
+              }
+            : {
+                title: "The configuration was not created",
+                message: `${causeText(cause)} Your details are kept, and trying again will not make a second configuration.`,
+              },
       );
-      guard.finish();
     }
   }
   return (

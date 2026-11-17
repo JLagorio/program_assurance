@@ -11,11 +11,12 @@
  * it: an SBOM of the Mission Computer, the CVE the finding names as a record of its own (on the
  * SBOM's OpenSSH server, bearing on two controls, with WS-X90's issue as its row there), and one
  * Cyber T&E campaign planned for WS-X90. Then the component's next version: version 2 of the X800
- * Missile component set, a draft that copies version 1's components and claims, says what it
- * changes in the Mission Computer and which controls that affects, and holds the SBOM of the
- * rebuilt image with the CVE recorded as fixed; and the remediation item in WS-X90's POA&M that
- * answers the issue, with its milestones. The version is left a draft, so nobody is behind and no
- * status read moves for it.
+ * Missile component set, which copies version 1's components and claims, says what it changes in
+ * the Mission Computer and which controls its owner lists as affected, holds the SBOM of the
+ * rebuilt image with the CVE recorded as fixed, and is published; and the remediation item in
+ * WS-X90's POA&M that answers the issue, with its milestones. Nobody takes the version, so every
+ * consumer stays on version 1 and reads one behind, and no consumer's status read moves for it;
+ * the seed stops unless the version reads what the scenario says it reads.
  *
  * The scenario is authored (scripts/demo/shared-scenario.mjs) and stands on the demo import
  * (npm run seed:demo) and the products scenario (npm run seed:demo-products). What it adds is
@@ -440,10 +441,14 @@ export function buildPlan({ target }) {
           `${test.program}: ${test.title}, phase ${test.phase}, ${test.status}, ${test.startsAt.slice(0, 10)} to ${test.endsAt.slice(0, 10)}, owned by ${test.owner}, with no plan yet`,
       ),
       versions: scenario.versions().map((entry) => ({
-        version: `${entry.definition} version ${entry.version}, a ${entry.state}: every component of version ${entry.version - 1} with what it claims`,
+        version: `${entry.definition} version ${entry.version}, ${entry.state === "published" ? `published ${entry.publishedAt.slice(0, 10)}` : "a draft"}: every component of version ${entry.version - 1} with what it claims`,
         changes: entry.changes.map(
           (change) =>
             `${change.component}: ${change.kinds.join(", ")}; affects ${change.controls.join(", ")}`,
+        ),
+        standing: (entry.standing ?? []).map(
+          ({ component, totals, toReview }) =>
+            `${component}: ${totals.controls} controls, ${totals.carried} carried forward (${totals.satisfied} satisfied, ${totals.partially_satisfied} partially satisfied, ${totals.other_than_satisfied} other than satisfied), ${totals.to_review} to review (${toReview.join(", ")}), ${totals.not_assessed - totals.to_review} not assessed`,
         ),
         sboms: entry.sboms.map(
           (sbom) =>

@@ -1,5 +1,6 @@
 -- Run with psql -v ON_ERROR_STOP=1 after migrations. Every test row rolls back.
--- Component inheritance: who may reach the internal reads and write the integration set; and, with
+-- Component inheritance: who may reach the internal reads and write the integration set, and the
+-- placement read held to plans made for the program asked about; and, with
 -- the pinned references installed (a catalog and a reference baseline), a component set assessed
 -- once and read from below. A draft component assessment decides nothing. A product element takes
 -- its component's determination, the product's own stands over it, and a control marked for
@@ -51,6 +52,13 @@ begin
       raise exception '% does not run as its caller', v_function;
     end if;
   end loop;
+  -- The placement read is planned for the program it is asked about on every call, never by a
+  -- generic plan estimated for an average program (20261117185710_placement_planned_for_its_program).
+  if not exists (select 1 from pg_catalog.pg_proc p
+      where p.oid = 'public.program_objective_placement_answer(uuid, uuid[])'::regprocedure
+        and p.proconfig @> array['plan_cache_mode=force_custom_plan']) then
+    raise exception 'The placement read may run a generic plan';
+  end if;
   if has_table_privilege('anon', 'public.product_integration_controls', 'select')
     or not has_table_privilege('authenticated', 'public.product_integration_controls', 'select')
     or not (select c.relrowsecurity from pg_catalog.pg_class c where c.oid = 'public.product_integration_controls'::regclass) then
