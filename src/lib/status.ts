@@ -137,6 +137,26 @@ export const reviewQueueKinds = vocabulary([
   ["discussion", "Discussion to resolve", "neutral"],
   ["component_offer", "Offer to review", "neutral"],
 ]);
+/**
+ * The roles a program records who holds (`program_role_assignments.role`), in RMF's order: the
+ * authorizing official signs (records the program's authorization decisions), the lead assessor
+ * publishes its assessment results, assessors judge, the ISSM and the ISSO keep its security, and
+ * the system owner (the program manager, in RMF's words) answers for the system; program manager,
+ * control owner and reviewer are the program's other recorded responsibilities. A role is not a
+ * judgment, so every one is neutral. The database keeps the same order (`program_role_vocabulary`),
+ * which program-roles reads.
+ */
+export const programRoles = vocabulary([
+  ["authorizing_official", "Authorizing official", "neutral"],
+  ["lead_assessor", "Lead assessor", "neutral"],
+  ["assessor", "Assessor", "neutral"],
+  ["security_manager", "ISSM", "neutral"],
+  ["security_officer", "ISSO", "neutral"],
+  ["system_owner", "System owner", "neutral"],
+  ["program_manager", "Program manager", "neutral"],
+  ["control_owner", "Control owner", "neutral"],
+  ["reviewer", "Reviewer", "neutral"],
+]);
 export const taskStatuses = vocabulary([
   ["open", "Open", "neutral"],
   ["in_progress", "In progress", "information"],

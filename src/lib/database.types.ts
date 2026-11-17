@@ -1423,6 +1423,13 @@ export type Database = {
             foreignKeyName: "assurance_citations_tenant_id_evidence_version_id_fkey";
             columns: ["tenant_id", "evidence_version_id"];
             isOneToOne: false;
+            referencedRelation: "evidence_version_rows";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "assurance_citations_tenant_id_evidence_version_id_fkey";
+            columns: ["tenant_id", "evidence_version_id"];
+            isOneToOne: false;
             referencedRelation: "evidence_versions";
             referencedColumns: ["tenant_id", "id"];
           },
@@ -5095,6 +5102,13 @@ export type Database = {
             foreignKeyName: "defined_component_evidence_tenant_id_evidence_version_id_fkey";
             columns: ["tenant_id", "evidence_version_id"];
             isOneToOne: false;
+            referencedRelation: "evidence_version_rows";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "defined_component_evidence_tenant_id_evidence_version_id_fkey";
+            columns: ["tenant_id", "evidence_version_id"];
+            isOneToOne: false;
             referencedRelation: "evidence_versions";
             referencedColumns: ["tenant_id", "id"];
           },
@@ -5666,6 +5680,13 @@ export type Database = {
             foreignKeyName: "evidence_create_requests_tenant_id_version_id_fkey";
             columns: ["tenant_id", "version_id"];
             isOneToOne: false;
+            referencedRelation: "evidence_version_rows";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "evidence_create_requests_tenant_id_version_id_fkey";
+            columns: ["tenant_id", "version_id"];
+            isOneToOne: false;
             referencedRelation: "evidence_versions";
             referencedColumns: ["tenant_id", "id"];
           },
@@ -5715,6 +5736,13 @@ export type Database = {
           updated_by?: string | null;
         };
         Relationships: [
+          {
+            foreignKeyName: "evidence_reviews_tenant_id_evidence_version_id_fkey";
+            columns: ["tenant_id", "evidence_version_id"];
+            isOneToOne: false;
+            referencedRelation: "evidence_version_rows";
+            referencedColumns: ["tenant_id", "id"];
+          },
           {
             foreignKeyName: "evidence_reviews_tenant_id_evidence_version_id_fkey";
             columns: ["tenant_id", "evidence_version_id"];
@@ -5812,6 +5840,13 @@ export type Database = {
             columns: ["tenant_id", "component_contribution_id"];
             isOneToOne: false;
             referencedRelation: "component_contributions";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "evidence_uses_tenant_id_evidence_version_id_fkey";
+            columns: ["tenant_id", "evidence_version_id"];
+            isOneToOne: false;
+            referencedRelation: "evidence_version_rows";
             referencedColumns: ["tenant_id", "id"];
           },
           {
@@ -6024,6 +6059,13 @@ export type Database = {
           updated_by?: string | null;
         };
         Relationships: [
+          {
+            foreignKeyName: "finding_evidence_tenant_id_evidence_version_id_fkey";
+            columns: ["tenant_id", "evidence_version_id"];
+            isOneToOne: false;
+            referencedRelation: "evidence_version_rows";
+            referencedColumns: ["tenant_id", "id"];
+          },
           {
             foreignKeyName: "finding_evidence_tenant_id_evidence_version_id_fkey";
             columns: ["tenant_id", "evidence_version_id"];
@@ -6890,6 +6932,13 @@ export type Database = {
             foreignKeyName: "gate_evidence_tenant_id_evidence_version_id_fkey";
             columns: ["tenant_id", "evidence_version_id"];
             isOneToOne: false;
+            referencedRelation: "evidence_version_rows";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "gate_evidence_tenant_id_evidence_version_id_fkey";
+            columns: ["tenant_id", "evidence_version_id"];
+            isOneToOne: false;
             referencedRelation: "evidence_versions";
             referencedColumns: ["tenant_id", "id"];
           },
@@ -7020,6 +7069,13 @@ export type Database = {
             columns: ["tenant_id", "implemented_requirement_id"];
             isOneToOne: false;
             referencedRelation: "implemented_requirements";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "implementation_evidence_tenant_id_evidence_version_id_fkey";
+            columns: ["tenant_id", "evidence_version_id"];
+            isOneToOne: false;
+            referencedRelation: "evidence_version_rows";
             referencedColumns: ["tenant_id", "id"];
           },
           {
@@ -7709,6 +7765,13 @@ export type Database = {
           updated_by?: string | null;
         };
         Relationships: [
+          {
+            foreignKeyName: "issue_evidence_tenant_id_evidence_version_id_fkey";
+            columns: ["tenant_id", "evidence_version_id"];
+            isOneToOne: false;
+            referencedRelation: "evidence_version_rows";
+            referencedColumns: ["tenant_id", "id"];
+          },
           {
             foreignKeyName: "issue_evidence_tenant_id_evidence_version_id_fkey";
             columns: ["tenant_id", "evidence_version_id"];
@@ -8645,6 +8708,13 @@ export type Database = {
             foreignKeyName: "observation_evidence_tenant_id_evidence_version_id_fkey";
             columns: ["tenant_id", "evidence_version_id"];
             isOneToOne: false;
+            referencedRelation: "evidence_version_rows";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "observation_evidence_tenant_id_evidence_version_id_fkey";
+            columns: ["tenant_id", "evidence_version_id"];
+            isOneToOne: false;
             referencedRelation: "evidence_versions";
             referencedColumns: ["tenant_id", "id"];
           },
@@ -9286,6 +9356,13 @@ export type Database = {
             columns: ["tenant_id", "assessment_results_revision_id"];
             isOneToOne: false;
             referencedRelation: "assessment_results_revisions";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "package_documents_tenant_id_evidence_version_id_fkey";
+            columns: ["tenant_id", "evidence_version_id"];
+            isOneToOne: false;
+            referencedRelation: "evidence_version_rows";
             referencedColumns: ["tenant_id", "id"];
           },
           {
@@ -10494,6 +10571,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "tenants";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "procedure_revisions_tenant_id_procedure_id_fkey";
+            columns: ["tenant_id", "procedure_id"];
+            isOneToOne: false;
+            referencedRelation: "procedure_rows";
+            referencedColumns: ["tenant_id", "id"];
           },
           {
             foreignKeyName: "procedure_revisions_tenant_id_procedure_id_fkey";
@@ -13125,6 +13209,13 @@ export type Database = {
             foreignKeyName: "requirement_evidence_tenant_id_evidence_version_id_fkey";
             columns: ["tenant_id", "evidence_version_id"];
             isOneToOne: false;
+            referencedRelation: "evidence_version_rows";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "requirement_evidence_tenant_id_evidence_version_id_fkey";
+            columns: ["tenant_id", "evidence_version_id"];
+            isOneToOne: false;
             referencedRelation: "evidence_versions";
             referencedColumns: ["tenant_id", "id"];
           },
@@ -13767,6 +13858,13 @@ export type Database = {
           updated_by?: string | null;
         };
         Relationships: [
+          {
+            foreignKeyName: "review_decisions_tenant_id_evidence_version_id_fkey";
+            columns: ["tenant_id", "evidence_version_id"];
+            isOneToOne: false;
+            referencedRelation: "evidence_version_rows";
+            referencedColumns: ["tenant_id", "id"];
+          },
           {
             foreignKeyName: "review_decisions_tenant_id_evidence_version_id_fkey";
             columns: ["tenant_id", "evidence_version_id"];
@@ -15190,6 +15288,13 @@ export type Database = {
             foreignKeyName: "step_result_evidence_tenant_id_evidence_version_id_fkey";
             columns: ["tenant_id", "evidence_version_id"];
             isOneToOne: false;
+            referencedRelation: "evidence_version_rows";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "step_result_evidence_tenant_id_evidence_version_id_fkey";
+            columns: ["tenant_id", "evidence_version_id"];
+            isOneToOne: false;
             referencedRelation: "evidence_versions";
             referencedColumns: ["tenant_id", "id"];
           },
@@ -15987,6 +16092,13 @@ export type Database = {
             foreignKeyName: "task_evidence_tenant_id_evidence_version_id_fkey";
             columns: ["tenant_id", "evidence_version_id"];
             isOneToOne: false;
+            referencedRelation: "evidence_version_rows";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "task_evidence_tenant_id_evidence_version_id_fkey";
+            columns: ["tenant_id", "evidence_version_id"];
+            isOneToOne: false;
             referencedRelation: "evidence_versions";
             referencedColumns: ["tenant_id", "id"];
           },
@@ -16538,6 +16650,13 @@ export type Database = {
           updated_by?: string | null;
         };
         Relationships: [
+          {
+            foreignKeyName: "test_run_evidence_tenant_id_evidence_version_id_fkey";
+            columns: ["tenant_id", "evidence_version_id"];
+            isOneToOne: false;
+            referencedRelation: "evidence_version_rows";
+            referencedColumns: ["tenant_id", "id"];
+          },
           {
             foreignKeyName: "test_run_evidence_tenant_id_evidence_version_id_fkey";
             columns: ["tenant_id", "evidence_version_id"];
@@ -18223,6 +18342,34 @@ export type Database = {
           updated_by: string | null;
           versions: number | null;
         };
+        Insert: {
+          created_at?: string | null;
+          created_by?: string | null;
+          description?: string | null;
+          id?: string | null;
+          owner_party_id?: string | null;
+          program_id?: string | null;
+          revision?: number | null;
+          tenant_id?: string | null;
+          title?: string | null;
+          updated_at?: string | null;
+          updated_by?: string | null;
+          versions?: never;
+        };
+        Update: {
+          created_at?: string | null;
+          created_by?: string | null;
+          description?: string | null;
+          id?: string | null;
+          owner_party_id?: string | null;
+          program_id?: string | null;
+          revision?: number | null;
+          tenant_id?: string | null;
+          title?: string | null;
+          updated_at?: string | null;
+          updated_by?: string | null;
+          versions?: never;
+        };
         Relationships: [
           {
             foreignKeyName: "procedures_tenant_id_fkey";
@@ -18724,6 +18871,20 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "tenants";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "component_contributions_tenant_id_system_component_id_fkey";
+            columns: ["tenant_id", "id"];
+            isOneToOne: false;
+            referencedRelation: "system_component_element_links";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "component_contributions_tenant_id_system_component_id_fkey";
+            columns: ["tenant_id", "id"];
+            isOneToOne: false;
+            referencedRelation: "system_components";
+            referencedColumns: ["tenant_id", "id"];
           },
         ];
       };
@@ -19710,6 +19871,18 @@ export type Database = {
           isSetofReturn: true;
         };
       };
+      program_reader_roles: {
+        Args: { p_program_id: string };
+        Returns: {
+          assignment_id: string;
+          ends_on: string;
+          holder_party_id: string;
+          party_id: string;
+          role: string;
+          role_rank: number;
+          starts_on: string;
+        }[];
+      };
       program_resiliency_choice: {
         Args: { p_program_id: string };
         Returns: Json;
@@ -19725,6 +19898,47 @@ export type Database = {
           p_technique_code?: string;
         };
         Returns: Json;
+      };
+      program_role_held_by: {
+        Args: {
+          p_on?: string;
+          p_party_id: string;
+          p_program_id: string;
+          p_role: string;
+        };
+        Returns: boolean;
+      };
+      program_role_recorded: {
+        Args: { p_program_id: string; p_role: string };
+        Returns: boolean;
+      };
+      program_role_refusal: {
+        Args: {
+          p_act: string;
+          p_party_id: string;
+          p_program_id: string;
+          p_role: string;
+        };
+        Returns: string;
+      };
+      program_role_vocabulary: {
+        Args: never;
+        Returns: {
+          one_holder: boolean;
+          role: string;
+          role_rank: number;
+          words: string;
+        }[];
+      };
+      program_roles: {
+        Args: { p_program_id: string };
+        Returns: {
+          holders: Json;
+          one_holder: boolean;
+          recorded: boolean;
+          role: string;
+          role_rank: number;
+        }[];
       };
       program_system_counts: {
         Args: { p_program_id: string };
