@@ -488,8 +488,17 @@ try {
     relationship_type: "maps_to",
   });
   await page.goto(`${origin}/programs/${twoSystems.programId}/controls/${ac1.id}`);
-  const nextStep = page.locator('[data-slot="key-value"]', { hasText: "Next step" }).first();
-  await page.getByText("0 of 17 objectives · 0 with evidence", { exact: true }).waitFor();
+  // The control's next step is its header's slot; how much is mapped and evidenced, its rail's
+  // Objectives.
+  const nextStep = page.locator('[data-slot="page-header-slot"]');
+  const objectiveRow = (label, count) =>
+    page
+      .locator('[data-slot="key-value"]', { has: page.locator("dt", { hasText: label }) })
+      .filter({ hasText: count })
+      .waitFor();
+  await objectiveRow("Mapped", "0 of 17");
+  await objectiveRow("With evidence", "0 of 17");
+  await nextStep.getByText("No requirement on SYS-TWO", { exact: true }).waitFor();
   await nextStep.getByRole("button", { name: "Allocate to SYS-TWO", exact: true }).click();
   let sheet = page.getByRole("dialog", { name: "Allocate requirements", exact: true });
   await sheet.getByRole("checkbox", { name: /REQ-TWO/ }).click();
@@ -519,8 +528,10 @@ try {
     ).map((link) => [link.system_id, link.control_part_id]),
     [[sysTwo, null]],
   );
-  await nextStep.getByText("Link evidence to REQ-ONE", { exact: true }).waitFor();
-  await page.getByText("17 of 17 objectives · 0 with evidence", { exact: true }).waitFor();
+  await nextStep.getByText("REQ-ONE cites none", { exact: true }).waitFor();
+  await nextStep.getByRole("button", { name: "Add evidence", exact: true }).waitFor();
+  await objectiveRow("Mapped", "17 of 17");
+  await objectiveRow("With evidence", "0 of 17");
   // AC-8 from its own page: AC-08a. chosen covers the four under it and maps once on each system.
   for (const target of [sysOne, sysTwo])
     await insert("requirement_allocations", {
@@ -569,7 +580,7 @@ try {
       .sort(),
     ["SYS-ONE true", "SYS-TWO true"],
   );
-  await nextStep.getByText("Map 4 more objectives", { exact: true }).waitFor();
+  await nextStep.getByRole("button", { name: "Map 4 more objectives", exact: true }).waitFor();
   // Back to the first requirement's Control mappings, which a viewer reads next.
   await page.goto(url);
   otherOwner = await localWorkspace("control-mapping-owner");

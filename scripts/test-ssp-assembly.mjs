@@ -169,7 +169,7 @@ try {
     claim: "Control-level support",
   });
 
-  await page.goto(`${origin}/programs/${program.id}?tab=Controls`);
+  await page.goto(`${origin}/programs/${program.id}?tab=Controls&view=implementation`);
   await page.getByLabel("Email", { exact: true }).fill(workspace.email);
   await page.getByLabel("Password", { exact: true }).fill(workspace.password);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();

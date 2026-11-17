@@ -205,7 +205,7 @@ try {
   await page.getByRole("link", { name: requirement.code, exact: true }).first().waitFor();
   await capture("requirements");
 
-  await visit(`/programs/${controlProgram.id}?tab=Controls`, "Controls");
+  await visit(`/programs/${controlProgram.id}?tab=Controls&view=implementation`, "Controls");
   await find("Find implemented requirements", control.code);
   await capture("controls");
 

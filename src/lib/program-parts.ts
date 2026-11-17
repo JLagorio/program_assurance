@@ -112,3 +112,27 @@ export function partAddress(part: ProgramPart): {
     ...(part === "Risks" ? { hash: programSections.risks } : {}),
   };
 }
+
+/**
+ * The Controls part's two views in place (the boards' Controls › Status and › Implementation): Status,
+ * where the program stands on each control of its baseline, which the part opens on, and
+ * Implementation, the SSP as work (`view=implementation`). The part's switch lists them before
+ * Baseline (the Control baseline view) and the views listed under Controls.
+ */
+export const controlsViews = ["Status", "Implementation"] as const;
+export type ControlsView = (typeof controlsViews)[number];
+
+/** The Controls view an address names: Implementation by `view=implementation`, else Status. */
+export function controlsView(value: unknown): ControlsView {
+  return String(value ?? "").toLowerCase() === "implementation" ? "Implementation" : "Status";
+}
+
+/** Where a Controls view is: the part's address, and for Implementation its `view`. */
+export function controlsViewSearch(view: ControlsView): {
+  tab: "Controls";
+  view?: "implementation";
+} {
+  return view === "Implementation"
+    ? { tab: "Controls", view: "implementation" }
+    : { tab: "Controls" };
+}

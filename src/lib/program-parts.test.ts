@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { programEntry, programDestinations } from "./navigation-scope";
 import {
+  controlsView,
+  controlsViewSearch,
+  controlsViews,
   partAddress,
   programPart,
   programParts,
@@ -56,5 +59,23 @@ describe("a program record's parts", () => {
       expect(label).toBe(part in expected ? expected[part] : part);
       if (labels.includes(part)) expect(label).toBe(part);
     }
+  });
+});
+
+describe("the Controls part's views", () => {
+  it("opens on Status, and on Implementation where the address names it", () => {
+    expect(controlsView(undefined)).toBe("Status");
+    expect(controlsView("status")).toBe("Status");
+    expect(controlsView("implementation")).toBe("Implementation");
+    expect(controlsView("Implementation")).toBe("Implementation");
+  });
+
+  it("keeps each view at the part's address", () => {
+    for (const view of controlsViews) {
+      const search = controlsViewSearch(view);
+      expect(programPart(programTab(search.tab), "")).toBe("Controls");
+      expect(controlsView(search.view)).toBe(view);
+    }
+    expect(controlsViewSearch("Status")).toEqual(partAddress("Controls").search);
   });
 });

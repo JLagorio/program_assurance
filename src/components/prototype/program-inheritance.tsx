@@ -7,9 +7,9 @@ import { ProgramCollection } from "./program-shared";
 import { RecordLink, useOpenRecord } from "./record-preview";
 
 /**
- * The program's Inheritance resolution: what it inherits from other systems and organizations,
- * read from the inheritance its latest SSP of each boundary accepts, and then the capabilities it
- * provides for others to inherit.
+ * The program's Inheritance view (once Inheritance resolution, the Controls switch's Inheritance):
+ * what it inherits from other systems and organizations, read from the inheritance its latest SSP
+ * of each boundary accepts, and then the capabilities it provides for others to inherit.
  */
 export function ProgramInheritance({
   programId,

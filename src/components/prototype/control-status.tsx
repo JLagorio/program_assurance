@@ -169,6 +169,7 @@ export function ControlStatusTally({
   label,
   size = "large",
   order = "key",
+  scale,
 }: {
   status: Pick<ProgramControlStatus, "total" | "counts">;
   /** The bar's name: whose baseline it is. */
@@ -180,6 +181,8 @@ export function ControlStatusTally({
    * rung first and what reached the top last, under the rungs of a climb.
    */
   order?: "key" | "climb" | undefined;
+  /** The bar's length as a share of its box: its whole against the largest of a column's. */
+  scale?: number | undefined;
 }) {
   const { formatNumber } = useLedgerLocale();
   const segments = (order === "climb" ? CONTROL_STATUS_ORDER : KEY_ORDER).map(
@@ -190,7 +193,7 @@ export function ControlStatusTally({
       ...marks[key],
     }),
   );
-  return <Tally segments={segments} total={status.total} size={size} label={label} />;
+  return <Tally segments={segments} total={status.total} size={size} label={label} scale={scale} />;
 }
 
 /**

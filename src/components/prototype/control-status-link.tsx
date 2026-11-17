@@ -1,17 +1,19 @@
 import { Link } from "@tanstack/react-router";
 import type { ControlStatus } from "@/lib/control-status";
+import { controlsViewSearch } from "@/lib/program-parts";
 import { registerViews } from "@/lib/register-views";
 import { questionSearch } from "./collection-question";
 
 /*
- * The links into a program's Control status List: every count that says how many controls stand
- * somewhere opens the List asked for those controls. The List's question lives in the address
- * under its view, so the link is the question.
+ * The links into a program's Controls › Status register: every count that says how many controls
+ * stand somewhere opens the register asked for those controls. The register's question lives in
+ * the address under its view, so the link is the question.
  */
 
 /**
- * The search that opens a program's Control status List on a question: the controls at a status,
- * or a family's. A link from the Overview's key, from the view's own key and from a family's card.
+ * The search that opens a program's Controls › Status register on a question: the controls at a
+ * status, or a family's, or both. A link from the Overview's key, from the view's own band and from
+ * a family's row.
  */
 export function controlStatusListSearch(question: {
   status?: ControlStatus | undefined;
@@ -21,7 +23,7 @@ export function controlStatusListSearch(question: {
 }): Record<string, unknown> {
   const statuses = question.statuses ?? (question.status ? [question.status] : []);
   return {
-    show: "list",
+    ...controlsViewSearch("Status"),
     ...questionSearch(registerViews.controlStatus, {
       search: "",
       filters: [
@@ -32,11 +34,11 @@ export function controlStatusListSearch(question: {
   };
 }
 
-/** A link to a program's Control status List asked for one status. */
+/** A link to a program's Controls › Status register asked for one status. */
 export const controlStatusLink = (programId: string) => (status: ControlStatus) => (
   <Link
-    to="/programs/$programId/control-status"
+    to="/programs/$programId"
     params={{ programId }}
-    search={controlStatusListSearch({ status })}
+    search={controlStatusListSearch({ status }) as never}
   />
 );

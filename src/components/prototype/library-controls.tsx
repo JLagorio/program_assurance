@@ -359,6 +359,28 @@ function PartProse({ text, index }: { text: string; index: Placeholders }) {
 
 const NO_PLACEHOLDERS: Placeholders = new Map();
 
+/** One control's parameters as its prose inserts them, by id and alternative id. */
+export type ParameterPlaceholders = Placeholders;
+
+/**
+ * One control's parameters as its prose prints them, with what each reads in the program where
+ * `values` gives it: for prose shown part by part (a control's Implementation), with `ControlProse`.
+ */
+export function programPlaceholders(
+  parameters: readonly ParameterText[],
+  choices: readonly ParameterChoice[],
+  values?: ProgramParameterValues | null | undefined,
+): ParameterPlaceholders {
+  return placeholderIndex(parameters, choices, values);
+}
+
+/** The parameters a part's prose inserts, by the id the prose names them by, each once in order. */
+export function insertedParameters(text: string | null | undefined): string[] {
+  return [...new Set([...(text ?? "").matchAll(INSERT)].map((match) => match[1] ?? ""))].filter(
+    Boolean,
+  );
+}
+
 /** Every control's parameter placeholders, by control id: prose shown away from the control preview. */
 export type ControlPlaceholders = ReadonlyMap<string, Placeholders>;
 

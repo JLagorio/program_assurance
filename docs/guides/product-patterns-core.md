@@ -31,7 +31,7 @@ Each kind of action has one home, so a reader knows where the next step is befor
 
 | Kind     | Examples                                                       | Home                                                                    | Weight                                                   |
 | -------- | -------------------------------------------------------------- | ----------------------------------------------------------------------- | -------------------------------------------------------- |
-| Advance  | Map a requirement, Add to assessment campaign, Publish assessment results | a record's Next step (Details, trace stage); a preview; a program slot  | a link-styled Button that opens over the page, or the primary |
+| Advance  | Map a requirement, Add to assessment campaign, Publish assessment results | a record's slot or trace stage; a preview                               | a link-styled Button that opens over the page, or the primary |
 | Sign     | Record decision, Accept risk                                    | the same slots, for its role only                                       | others see it with its reason; never in a selection bar  |
 | Create   | Create risk                                                    | a register's toolbar; a section's toolbar elsewhere                     | small primary on a register, small secondary elsewhere   |
 | Global   | Edit, Delete, Create version 3                                  | the record header: Edit, then the Actions menu                          | primary, then menu                                       |

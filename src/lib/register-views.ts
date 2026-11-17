@@ -15,7 +15,7 @@ export const registerViews = {
   reviewQueue: "review-queue",
   /** The Assessment campaigns page's Objectives, and a program's: every campaign's objectives. */
   assessmentObjectives: "assessment-objectives",
-  /** The List of a program's Control status view: its controls by where the program stands. */
+  /** The register of a program's Controls › Status view: its controls by where it stands. */
   controlStatus: "program-control-status",
   /** The List of a program's Product delta view: a variant's controls against its product. */
   productDelta: "program-product-delta",

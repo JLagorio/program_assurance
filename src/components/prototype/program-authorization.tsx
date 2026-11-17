@@ -22,7 +22,7 @@
 // dotted after it. Every authorization stop names its package and opens its page; a gate
 // opens its preview. Under the lanes, Control status is the baseline's climb from the program's
 // control status counts (`BaselineClimb`): one bar to scale, then each rung's count and what
-// stopped under it, every number a link to the Control status view asked for exactly those
+// stopped under it, every number a link to Controls › Status asked for exactly those
 // controls, a zero no link. A program with neither a decision nor a gate says so in the lanes'
 // place; one with no control baseline draws no climb.
 //
@@ -89,6 +89,7 @@ import {
 import { Page } from "@/components/app/shell";
 import { ControlStatusTally } from "./control-status";
 import { controlStatusListSearch } from "./control-status-link";
+import { controlsViewSearch } from "@/lib/program-parts";
 import { AuthorizationDecisionFacts } from "./package-views";
 import { ProgramStandingFacts } from "./program-standing";
 import { ProgramHeaderSlot } from "./program-slot";
@@ -851,8 +852,8 @@ const RUNGS: readonly {
 /**
  * The control baseline as it climbs the four rungs of the control status ladder: one bar with each
  * status to scale in the map's marks, then the whole and each rung's count with what stopped under
- * it. Every number is a link to the Control status view asked for exactly the controls it counts
- * (the whole opens the view itself), and a zero is no link. The kit's Climb draws the same form;
+ * it. Every number is a link to the Controls part's Status view asked for exactly the controls it
+ * counts (the whole opens the view itself), and a zero is no link. The kit's Climb draws the same form;
  * its numbers are text, so the climb is composed from Tally and links until Climb takes them.
  */
 function BaselineClimb({ programId }: { programId: string }) {
@@ -861,9 +862,9 @@ function BaselineClimb({ programId }: { programId: string }) {
   const totals = counts.data?.get(programId);
   const listLink = (statuses: readonly ControlStatus[]) => (
     <Link
-      to="/programs/$programId/control-status"
+      to="/programs/$programId"
       params={{ programId }}
-      search={controlStatusListSearch({ statuses })}
+      search={controlStatusListSearch({ statuses }) as never}
     />
   );
   const number = (value: number, link: ReactElement) =>
@@ -900,7 +901,11 @@ function BaselineClimb({ programId }: { programId: string }) {
                 <Text size="large" weight="semibold" numeric>
                   {number(
                     totals.total,
-                    <Link to="/programs/$programId/control-status" params={{ programId }} />,
+                    <Link
+                      to="/programs/$programId"
+                      params={{ programId }}
+                      search={controlsViewSearch("Status")}
+                    />,
                   )}
                 </Text>
                 <Text size="small" color="color.text.subtle">

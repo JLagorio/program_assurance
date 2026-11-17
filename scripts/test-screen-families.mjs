@@ -512,10 +512,11 @@ try {
       await bounds(width, path);
       console.log(`PASS ${width}px ${screen.family} ${path}`);
     }
-    // The Controls tab's name link opens the implemented control's record, not its schema row.
+    // The Controls part's Implementation view, the SSP as work: a name link opens the implemented
+    // control's record, not its schema row.
     const program = fixtures.programs[0];
     const controlPath = `/programs/${program.id}/controls/${implementation.id}`;
-    await page.goto(`${origin}/programs/${program.id}?tab=Controls`);
+    await page.goto(`${origin}/programs/${program.id}?tab=Controls&view=implementation`);
     const assembly = page.getByRole("table", { name: "SSP control assembly", exact: true });
     await expect(assembly).toBeVisible();
     await page
@@ -534,7 +535,7 @@ try {
     await bounds(width, controlPath);
     console.log(`PASS ${width}px program Controls name link opens ${controlPath}`);
     // A control with no implementation names no schema row: its name opens its preview.
-    await page.goto(`${origin}/programs/${program.id}?tab=Controls`);
+    await page.goto(`${origin}/programs/${program.id}?tab=Controls&view=implementation`);
     await page
       .getByRole("searchbox", { name: "Find selected controls", exact: true })
       .fill(unimplementedControl.code);
@@ -558,7 +559,7 @@ try {
     );
     // Every focused view is a link in the row of views on one part of the program's record, never
     // only inside a menu, unless the side nav names it (Baseline, Authorization), which no row
-    // repeats. A view that applies to some programs alone is listed where it applies: the swept
+    // repeats but the Controls part's switch, whose Baseline is the Control baseline. A view that applies to some programs alone is listed where it applies: the swept
     // program has no variant and no requirements document, so Product delta and the Compliance
     // matrix are left out of its rows.
     const record = inventory.find((screen) => screen.path === "/programs/$programId");
@@ -584,7 +585,12 @@ try {
       const href = routePath(screen);
       if (await sideNav.locator(`a[href="${href}"]`).count()) navNamedViews.add(href);
       if (navNamedViews.has(href)) {
-        assert.ok(!listed.has(href), `${screen.path}, which the side nav names, is in no row`);
+        // Only the Controls part's switch leads to one, the Control baseline as its Baseline.
+        const row = listed.get(href);
+        assert.ok(
+          !row || (row.tab === "Controls" && row.name === "Baseline"),
+          `${screen.path}, which the side nav names, is in no row but the Controls switch`,
+        );
         continue;
       }
       if (conditional.has(screen.path)) {

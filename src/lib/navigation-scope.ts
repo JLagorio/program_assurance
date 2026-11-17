@@ -168,7 +168,8 @@ export function organizationEntry(pathname: string): OrganizationKey | undefined
 
 /**
  * A program's work, in the chain's order, then the quieter Assess and authorize. Each leads to the
- * program's tab or focused view that holds that work: Baseline the Control baseline view,
+ * program's tab or focused view that holds that work: Controls the part, which opens on its Status
+ * view (its switch also leads to Baseline), Baseline the Control baseline view,
  * Authorization its view, POA&M and Risks the POA&M & risk tab at each Section, Assessments the
  * Assessment campaigns tab.
  */
@@ -214,6 +215,7 @@ const programPages: Readonly<Record<string, ProgramEntry>> = {
   compliance: "requirements",
   workbook: "requirements",
   sctm: "requirements",
+  // The Control status view's old address, which opens the Controls part's Status view.
   "control-status": "controls",
   resiliency: "controls",
   "product-delta": "controls",

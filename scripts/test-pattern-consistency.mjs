@@ -709,7 +709,7 @@ try {
   );
 
   // A failed background refresh keeps an open SSP narrative draft, its focus and the register.
-  await page.goto(`${origin}/programs/${program.id}?tab=Controls`);
+  await page.goto(`${origin}/programs/${program.id}?tab=Controls&view=implementation`);
   const sspTable = page.getByRole("table", { name: "SSP control assembly", exact: true });
   const revisionPicker = page.getByRole("combobox", { name: "SSP revision", exact: true });
   await expect(revisionPicker).toHaveText(/^SSP 2 · /);

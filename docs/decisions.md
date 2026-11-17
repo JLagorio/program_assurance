@@ -4,8 +4,12 @@ Josef's decisions, one line each: the day, the screen or area, the decision. A r
 
 ## 2026-11-17
 
+- 2026-11-17 · Controls · The Controls part opens on Status (board controls.html), Implementation is the SSP as work (`view=implementation`, impl.html), and its switch reads Status · Implementation · Baseline · Inheritance, then Cyber resiliency and Product delta where it applies; the Control status view's address opens Status, and Inheritance resolution is Inheritance.
+- 2026-11-17 · Budgets · The Controls switch leads the views listed under Controls too, each marked current on its page: Inheritance 43 words above the fold, Cyber resiliency 25, Product delta 26.
 - 2026-11-17 · Components · One component a record, followed across its set's versions by its name, at the address of the version shown (`/library/components/<version id>`); the component sets move to `/library/component-sets`, and a set's old address opens the set (wave 9).
 - 2026-11-17 · Budgets · The Components register is a new screen at the Component sets' old address: 24 words, from 21, and one folded table, from none (its count, the Component sets fact and the board's columns); a set's Structure tab holds 11 buttons, from 3, since the screen fixtures now give its version a component, which the register and the record open.
+- 2026-11-17 · Budgets · The program's control record was measured with its Implementation, Requirements and Evidence tabs as empty stubs; drawn as board impl-control.html draws them (the control text part by part beside its narrative, contributing components and parameters, Write narrative per part, the strip's Findings in its severity), the record opens at 182 words above the fold, 15 buttons and 1 status hue; Requirements holds 42 words and its toolbar's Map a requirement (1 primary, 3 buttons); Evidence 36 words.
+- 2026-11-17 · Budgets · A system's SSP tab draws the SSP register as the Controls part's Implementation view lays it out (Implementation, Narrative, Requirements, Evidence, Determination): 34 words, 28 buttons, and its Narrative column reads Not written on every row (no SSP records statements yet), a constant column the tab's compact register does not fold.
 
 ## 2026-11-16
 
@@ -66,3 +70,4 @@ Josef's decisions, one line each: the day, the screen or area, the decision. A r
 - 2026-11-17 · Budgets · The Portfolio's register costs its toolbar's Create product (1 primary), the Needs a look strip with the toolbar's controls (9 buttons) and a column that says one thing folded (1 table).
 - 2026-11-17 · Budgets · A product's Structure draws the Elements by reuse strip and a Configuration filter (board prod-structure.html): 49 words above the fold and 8 buttons.
 - 2026-11-17 · Budgets · The component record's Findings, SBOM and Versions were measured on empty stubs; drawn as boards review-up.html, component--sbom.html and component--versions.html draw them, Findings holds 39 words above the fold, SBOM 59 words, 2 Sections and 3 buttons (the SBOM's facts, its programs and Import SBOM), and Versions 53 words, 1 Section and 1 mark in a cell (What version 2 changes and its state).
+- 2026-11-17 · Budgets · The program's control record draws five tabs in one strip (boards impl-control.html and control-inherited.html: Implementation, Requirements, Evidence, Assessment, Findings), each a declared tab exception (5 tabs, 5 exceptions). Its route ceilings stay at their earlier values, and its Implementation, Requirements and Evidence tabs were measured on empty stubs another panel fills, so they rise when that panel lands.

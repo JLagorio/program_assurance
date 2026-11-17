@@ -2,7 +2,8 @@ import { useConfirmation } from "@/components/app/confirmation";
 import { useDraftGuard } from "@/components/app/use-draft-guard";
 import { ProductCollection } from "./product-collection";
 import { useServerPage } from "./collection-question";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import type { UseQueryResult } from "@tanstack/react-query";
 import { Link, useBlocker } from "@tanstack/react-router";
 import { MoreHorizontal, Plus } from "lucide-react";
 import {
@@ -348,71 +349,11 @@ export function RequirementEvidence({
     { columns: linkedArtifactColumns, enabled: links.isSuccess },
   );
   const parties = useRows("parties", undefined, { columns: ["id", "name"] });
-  const [surface, setSurface] = useState<"browse" | "create" | "prepare" | null>(null);
-  // What the browser offers is read once it first opens, a page at a time from the server: the
-  // published versions of this program's evidence and of the workspace's unscoped artifacts that
-  // the requirement does not cite yet, each with what the browser's columns draw. The browser
-  // holds no question of its own: each opening asks from the first page again.
-  const [browsed, setBrowsed] = useState(false);
-  const [offerQuestion, setOfferQuestion] = useState(FIRST_OFFER);
-  const linkedKey = linkedIds.join(",");
-  const offerReadNow = useMemo(
-    () => offerRead(programId, linkedKey ? linkedKey.split(",") : []),
-    [programId, linkedKey],
-  );
-  const offer = useServerPage<OfferRow>(offerReadNow, offerQuestion, {
-    enabled: browsed && links.isSuccess,
-  });
-  const offerPage = offer.page;
-  const offerRows = useMemo(() => (offerPage?.rows ?? []).map(offerChoice), [offerPage]);
-  // How many there are to choose from, search and filters aside: what the page that answers the
-  // opening question counts.
-  const [offerTotal, setOfferTotal] = useState<number | undefined>(undefined);
-  const unasked = !!offerPage && !offerPage.question.search && !offerPage.question.filters?.length;
-  if (unasked && offerPage.count !== offerTotal) setOfferTotal(offerPage.count);
-  // With nothing to offer, the browser says why: how many versions are published (all linked),
-  // how many are drafts, and how many drafts have no file or reference yet. Counted once it knows.
-  const nothingOffered = unasked && offerPage.count === 0;
-  const offeredReadNow = useMemo(() => offeredRead(programId), [programId]);
-  const offeredCounts = useServerCountQueries(offeredReadNow, OFFERED, {
-    enabled: browsed && nothingOffered,
-  });
-  const [publishedCount = 0, draftCount = 0, draftsWithoutSource = 0] = offeredCounts.map(
-    (count) => count.data,
-  );
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  // Whether the browser, or a form it opened, is open: the preview stays closed meanwhile.
+  const [browsing, setBrowsing] = useState(false);
   const [previewId, setPreviewId] = useState<string | null>(null);
   // A preview belongs to its tab: it ends when the record's tab hides this collection.
   useEndOnHide(() => setPreviewId(null));
-  const [created, setCreated] = useState<CreateEvidenceResult | null>(null);
-  // A version published here returns chosen to the browser, though no page it reads may hold it
-  // yet: its row, from what Prepare evidence read of it and its artifact.
-  const createdVersion = useRow("evidence_versions", created?.versionId);
-  const createdArtifact = useRow("evidence_artifacts", created?.artifactId);
-  const createdChoice = useMemo<OfferChoice | undefined>(() => {
-    const version = createdVersion.data;
-    const artifact = createdArtifact.data;
-    if (!version || !artifact || version.state !== "published") return undefined;
-    const owner = artifact.owner_party_id
-      ? (parties.data?.find((party) => party.id === artifact.owner_party_id)?.name ?? null)
-      : null;
-    return offerChoice({
-      id: version.id,
-      artifact_id: artifact.id,
-      title: artifact.title,
-      artifact_kind: artifact.artifact_kind,
-      program_id: artifact.program_id,
-      owner_party_id: artifact.owner_party_id,
-      owner_name: owner,
-      version_number: version.version_number,
-      state: version.state,
-      collected_at: version.collected_at,
-      context: artifact.program_id ? "program" : "workspace",
-    });
-  }, [createdVersion.data, createdArtifact.data, parties.data]);
-  const pendingCreated = useRef<CreateEvidenceResult | null>(null);
-  const inFlight = useRef(false);
-  const link = useLinkRequirementEvidence();
   const remove = useRemoveRequirementLink();
   const { confirm, confirmation } = useConfirmation();
   // Every member but a viewer links and unlinks the workspace's own requirement evidence, and
@@ -426,19 +367,6 @@ export function RequirementEvidence({
   // Loaded once every query has data; a failed refresh keeps what was loaded.
   const loaded = queries.every((query) => query.data !== undefined);
   const loadFailed = queries.some((query) => query.data === undefined && query.isError);
-  // The browser's reads beside the tab's: it waits on both and says either's failure, and with
-  // nothing to offer it waits on the counts its empty state says too.
-  const browserQueries = [...queries, ...offer.queries, ...(nothingOffered ? offeredCounts : [])];
-  // The browser's state: a failed load, or a failed refresh whose rows stay under the alert (the
-  // alert stays while its Try again runs, so focus stays on it); then the page on its way, a
-  // search being typed included, under the rows the reader has.
-  const browserState = browserQueries.some((query) => query.isError)
-    ? "error"
-    : !browserQueries.every((query) => query.data !== undefined)
-      ? "loading"
-      : offer.typing || offer.result.isPlaceholderData || offer.result.isFetching
-        ? "refreshing"
-        : "ready";
   const requirementName = identity.data
     ? `${identity.data.code} · ${requirement.data?.title ?? ""}`
     : (requirement.data?.title ?? "This requirement");
@@ -452,15 +380,6 @@ export function RequirementEvidence({
         linkFor.has(row.id),
       ),
     [versions.data, artifacts.data, parties.data, linkFor],
-  );
-  // The Owner filter's values: every person and organization by name, since one page's owners are
-  // not every owner there is.
-  const ownerOptions = useMemo<FilterOption[]>(
-    () =>
-      [...new Set((parties.data ?? []).map((party) => party.name))]
-        .sort((a, b) => a.localeCompare(b))
-        .map((value) => ({ value })),
-    [parties.data],
   );
   const preview = linked.find((row) => row.id === previewId);
   const focus = useRemovalFocus(linked);
@@ -547,42 +466,9 @@ export function RequirementEvidence({
     reorderable: true,
   });
   const displayed = useDisplayedRecords(table);
-  useBlocker({ shouldBlockFn: () => inFlight.current, enableBeforeUnload: () => inFlight.current });
-  function closeBrowser() {
-    if (inFlight.current) return;
-    setSurface(null);
-    setSelectedIds([]);
-  }
-  /** Opens the browser on the first page of what it offers, as each opening of it starts afresh. */
-  function browse() {
-    setOfferQuestion(FIRST_OFFER);
-    setSurface("browse");
-  }
   function beginBrowse() {
     setPreviewId(null);
-    setSelectedIds([]);
-    setBrowsed(true);
-    browse();
-  }
-  async function confirmLink(records: OfferChoice[]) {
-    if (inFlight.current) return;
-    if (!writable || !contextValid || !loaded)
-      throw new Error("Reload this requirement before linking evidence.");
-    inFlight.current = true;
-    try {
-      await link.mutateAsync({
-        programId,
-        requirementRevisionId,
-        evidenceVersionIds: records.map((row) => row.id),
-      });
-      toast.add({
-        type: "success",
-        title: `${plural(records.length, "evidence version")} linked`,
-        description: records.map((row) => `${row.title}, ${row.versionLabel}`).join("; "),
-      });
-    } finally {
-      inFlight.current = false;
-    }
+    setBrowsing(true);
   }
   const unavailable = !loaded
     ? loadFailed
@@ -606,38 +492,6 @@ export function RequirementEvidence({
     </Button>
   ) : null;
   const previewLink = preview ? linkFor.get(preview.id) : undefined;
-  // With nothing eligible, the browser says why and what makes something to link.
-  const noneEligible = {
-    illustration: "document" as const,
-    title: publishedCount
-      ? "All available evidence is already linked"
-      : "No published evidence available",
-    description: [
-      publishedCount
-        ? `${plural(publishedCount, "published version")} ${publishedCount === 1 ? "is" : "are"} already linked to this requirement.`
-        : draftCount
-          ? `${plural(draftCount, "draft evidence version")} ${draftCount === 1 ? "becomes" : "become"} available here once published.`
-          : "This program and the workspace have no published evidence versions to link.",
-      publishedCount && draftCount
-        ? `${plural(draftCount, "more draft version")} ${draftCount === 1 ? "is" : "are"} waiting for publication.`
-        : "",
-      draftsWithoutSource
-        ? `${draftsWithoutSource} of the drafts still ${draftsWithoutSource === 1 ? "needs" : "need"} an uploaded file or an external reference before publication.`
-        : "",
-    ]
-      .filter(Boolean)
-      .join(" "),
-    secondary: (
-      <LinkButton
-        variant="secondary"
-        render={
-          <Link to="/programs/$programId" params={{ programId }} search={{ tab: "Evidence" }} />
-        }
-      >
-        Open program evidence
-      </LinkButton>
-    ),
-  };
   return (
     <Stack space="space.150">
       <ProductCollection
@@ -658,38 +512,21 @@ export function RequirementEvidence({
       />
       {writable ? (
         // Mounted while the tab is, so the browser plays its exit; each opening starts afresh,
-        // with the chosen versions kept here across the create and prepare steps.
-        <RecordBrowser
-          open={surface === "browse"}
+        // with the chosen versions kept across the create and prepare steps.
+        <EvidenceLinkBrowser
+          open={browsing}
+          onClose={() => setBrowsing(false)}
+          programId={programId}
+          requirementRevisionId={requirementRevisionId}
+          linkedVersionIds={links.data ? linkedIds : undefined}
+          queries={queries}
+          blocked={
+            !contextValid || !loaded
+              ? "Reload this requirement before linking evidence."
+              : undefined
+          }
           title="Add evidence"
           description="Find, preview and choose the published versions to link to this requirement."
-          records={offerRows}
-          server={{
-            query: offerQuestion,
-            onQueryChange: setOfferQuestion,
-            rowCount: offerPage?.count ?? 0,
-            total: offerTotal,
-            filterOptions: { kind: kindOptions, owner: ownerOptions, context: contextOptions },
-            selected: createdChoice ? [createdChoice] : undefined,
-          }}
-          columns={pickerColumns}
-          filters={["kind", "owner", "context"]}
-          previewColumn="title"
-          searchPlaceholder="Find evidence to link"
-          recordTitle={(row) => row.title}
-          recordLabel={(row) => `${row.title}, ${row.versionLabel.toLowerCase()}`}
-          recordCode={(row) => row.versionLabel}
-          state={browserState}
-          error="The evidence could not be loaded."
-          onRetry={() => {
-            for (const query of browserQueries) if (query.isError) void query.refetch();
-          }}
-          empty={noneEligible}
-          renderPreview={(row) => <CandidateDetails choice={row} />}
-          selectedIds={selectedIds}
-          onSelectionChange={setSelectedIds}
-          onClose={closeBrowser}
-          onConfirm={confirmLink}
           confirmLabel="Link evidence"
           context={
             <Stack space="space.100">
@@ -700,49 +537,9 @@ export function RequirementEvidence({
               </Text>
             </Stack>
           }
-          actions={
-            <Button
-              size="small"
-              onClick={() => {
-                if (!inFlight.current) setSurface("create");
-              }}
-            >
-              Create evidence artifact
-            </Button>
-          }
         />
       ) : null}
-      {surface === "create" ? (
-        <CreateEvidenceDialog
-          programId={programId}
-          // The opener leaves with the browser; the next surface takes focus when it opens.
-          finalFocus={false}
-          onCreated={(result) => {
-            pendingCreated.current = result;
-            setCreated(result);
-          }}
-          onClose={() => {
-            if (pendingCreated.current) setSurface("prepare");
-            else browse();
-            pendingCreated.current = null;
-          }}
-        />
-      ) : null}
-      {surface === "prepare" && created ? (
-        <PrepareEvidence
-          versionId={created.versionId}
-          artifactId={created.artifactId}
-          onClose={(published) => {
-            // A version published here is what the reader came to link: it returns chosen.
-            if (published)
-              setSelectedIds((current) =>
-                current.includes(created.versionId) ? current : [...current, created.versionId],
-              );
-            browse();
-          }}
-        />
-      ) : null}
-      {preview && !surface ? (
+      {preview && !browsing ? (
         <RecordPreviewPanel
           title={preview.title}
           label="Evidence version preview"
@@ -798,6 +595,294 @@ export function RequirementEvidence({
       ) : null}
       {confirmation}
     </Stack>
+  );
+}
+
+/** A read the browser waits on beside its own: its data, its failure and its retry. */
+type BrowserQuery = Pick<UseQueryResult<unknown, Error>, "data" | "isError" | "refetch">;
+
+/**
+ * Add evidence to one requirement revision: a RecordBrowser over the published versions of the
+ * program's evidence and of the workspace's unscoped artifacts that the revision does not cite yet,
+ * a page at a time from the server, with Create evidence artifact and its Prepare evidence step,
+ * which return the version published there chosen; the chosen versions are linked in one request
+ * (`link_requirement_evidence`). The requirement's Evidence tab and a control's Add evidence both
+ * open it; each opening asks from the first page again. `onClose` runs once the browser and the
+ * forms it opened have closed.
+ */
+export function EvidenceLinkBrowser({
+  open,
+  onClose,
+  programId,
+  requirementRevisionId,
+  linkedVersionIds,
+  queries,
+  blocked,
+  title,
+  description,
+  confirmLabel,
+  context,
+  onLinked,
+}: {
+  open: boolean;
+  onClose: () => void;
+  programId: string;
+  requirementRevisionId: string;
+  /** The versions the revision cites already, which it does not offer; none until they are read. */
+  linkedVersionIds: readonly string[] | undefined;
+  /** The caller's reads the browser waits on, whose failure it says with its own. */
+  queries: readonly BrowserQuery[];
+  /** Why the chosen versions cannot be linked now, said when the reader confirms. */
+  blocked?: string | undefined;
+  title: string;
+  description: string;
+  confirmLabel: string;
+  context: ReactNode;
+  /** After the link, once its toast is shown: the caller says what it moved. */
+  onLinked?: ((count: number) => void) | undefined;
+}) {
+  const parties = useRows("parties", undefined, { columns: ["id", "name"] });
+  const [surface, setSurface] = useState<"browse" | "create" | "prepare" | null>(null);
+  // What the browser offers is read once it first opens, a page at a time from the server: the
+  // published versions of this program's evidence and of the workspace's unscoped artifacts that
+  // the requirement does not cite yet, each with what the browser's columns draw. The browser
+  // holds no question of its own: each opening asks from the first page again.
+  const [browsed, setBrowsed] = useState(false);
+  const [offerQuestion, setOfferQuestion] = useState(FIRST_OFFER);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  // Each opening starts afresh: the first page, nothing chosen.
+  const [wasOpen, setWasOpen] = useState(false);
+  if (open !== wasOpen) {
+    setWasOpen(open);
+    if (open) {
+      setBrowsed(true);
+      setOfferQuestion(FIRST_OFFER);
+      setSelectedIds([]);
+      setSurface("browse");
+    } else setSurface(null);
+  }
+  const linkedKey = (linkedVersionIds ?? []).join(",");
+  const offerReadNow = useMemo(
+    () => offerRead(programId, linkedKey ? linkedKey.split(",") : []),
+    [programId, linkedKey],
+  );
+  const offer = useServerPage<OfferRow>(offerReadNow, offerQuestion, {
+    enabled: browsed && linkedVersionIds !== undefined,
+  });
+  const offerPage = offer.page;
+  const offerRows = useMemo(() => (offerPage?.rows ?? []).map(offerChoice), [offerPage]);
+  // How many there are to choose from, search and filters aside: what the page that answers the
+  // opening question counts.
+  const [offerTotal, setOfferTotal] = useState<number | undefined>(undefined);
+  const unasked = !!offerPage && !offerPage.question.search && !offerPage.question.filters?.length;
+  if (unasked && offerPage.count !== offerTotal) setOfferTotal(offerPage.count);
+  // With nothing to offer, the browser says why: how many versions are published (all linked),
+  // how many are drafts, and how many drafts have no file or reference yet. Counted once it knows.
+  const nothingOffered = unasked && offerPage.count === 0;
+  const offeredReadNow = useMemo(() => offeredRead(programId), [programId]);
+  const offeredCounts = useServerCountQueries(offeredReadNow, OFFERED, {
+    enabled: browsed && nothingOffered,
+  });
+  const [publishedCount = 0, draftCount = 0, draftsWithoutSource = 0] = offeredCounts.map(
+    (count) => count.data,
+  );
+  const [created, setCreated] = useState<CreateEvidenceResult | null>(null);
+  // A version published here returns chosen to the browser, though no page it reads may hold it
+  // yet: its row, from what Prepare evidence read of it and its artifact.
+  const createdVersion = useRow("evidence_versions", created?.versionId);
+  const createdArtifact = useRow("evidence_artifacts", created?.artifactId);
+  const createdChoice = useMemo<OfferChoice | undefined>(() => {
+    const version = createdVersion.data;
+    const artifact = createdArtifact.data;
+    if (!version || !artifact || version.state !== "published") return undefined;
+    const owner = artifact.owner_party_id
+      ? (parties.data?.find((party) => party.id === artifact.owner_party_id)?.name ?? null)
+      : null;
+    return offerChoice({
+      id: version.id,
+      artifact_id: artifact.id,
+      title: artifact.title,
+      artifact_kind: artifact.artifact_kind,
+      program_id: artifact.program_id,
+      owner_party_id: artifact.owner_party_id,
+      owner_name: owner,
+      version_number: version.version_number,
+      state: version.state,
+      collected_at: version.collected_at,
+      context: artifact.program_id ? "program" : "workspace",
+    });
+  }, [createdVersion.data, createdArtifact.data, parties.data]);
+  const pendingCreated = useRef<CreateEvidenceResult | null>(null);
+  const inFlight = useRef(false);
+  const link = useLinkRequirementEvidence();
+  // The browser's reads beside the caller's: it waits on both and says either's failure, and with
+  // nothing to offer it waits on the counts its empty state says too.
+  const browserQueries = [
+    ...queries,
+    parties,
+    ...offer.queries,
+    ...(nothingOffered ? offeredCounts : []),
+  ];
+  // The browser's state: a failed load, or a failed refresh whose rows stay under the alert (the
+  // alert stays while its Try again runs, so focus stays on it); then the page on its way, a
+  // search being typed included, under the rows the reader has.
+  const browserState = browserQueries.some((query) => query.isError)
+    ? "error"
+    : !browserQueries.every((query) => query.data !== undefined)
+      ? "loading"
+      : offer.typing || offer.result.isPlaceholderData || offer.result.isFetching
+        ? "refreshing"
+        : "ready";
+  // The Owner filter's values: every person and organization by name, since one page's owners are
+  // not every owner there is.
+  const ownerOptions = useMemo<FilterOption[]>(
+    () =>
+      [...new Set((parties.data ?? []).map((party) => party.name))]
+        .sort((a, b) => a.localeCompare(b))
+        .map((value) => ({ value })),
+    [parties.data],
+  );
+  useBlocker({ shouldBlockFn: () => inFlight.current, enableBeforeUnload: () => inFlight.current });
+  function closeBrowser() {
+    if (inFlight.current) return;
+    setSurface(null);
+    setSelectedIds([]);
+    onClose();
+  }
+  /** Opens the browser on the first page of what it offers, as each opening of it starts afresh. */
+  function browse() {
+    setOfferQuestion(FIRST_OFFER);
+    setSurface("browse");
+  }
+  async function confirmLink(records: OfferChoice[]) {
+    if (inFlight.current) return;
+    if (blocked) throw new Error(blocked);
+    inFlight.current = true;
+    try {
+      await link.mutateAsync({
+        programId,
+        requirementRevisionId,
+        evidenceVersionIds: records.map((row) => row.id),
+      });
+      toast.add({
+        type: "success",
+        title: `${plural(records.length, "evidence version")} linked`,
+        description: records.map((row) => `${row.title}, ${row.versionLabel}`).join("; "),
+      });
+      onLinked?.(records.length);
+    } finally {
+      inFlight.current = false;
+    }
+  }
+  // With nothing eligible, the browser says why and what makes something to link.
+  const noneEligible = {
+    illustration: "document" as const,
+    title: publishedCount
+      ? "All available evidence is already linked"
+      : "No published evidence available",
+    description: [
+      publishedCount
+        ? `${plural(publishedCount, "published version")} ${publishedCount === 1 ? "is" : "are"} already linked to this requirement.`
+        : draftCount
+          ? `${plural(draftCount, "draft evidence version")} ${draftCount === 1 ? "becomes" : "become"} available here once published.`
+          : "This program and the workspace have no published evidence versions to link.",
+      publishedCount && draftCount
+        ? `${plural(draftCount, "more draft version")} ${draftCount === 1 ? "is" : "are"} waiting for publication.`
+        : "",
+      draftsWithoutSource
+        ? `${draftsWithoutSource} of the drafts still ${draftsWithoutSource === 1 ? "needs" : "need"} an uploaded file or an external reference before publication.`
+        : "",
+    ]
+      .filter(Boolean)
+      .join(" "),
+    secondary: (
+      <LinkButton
+        variant="secondary"
+        render={
+          <Link to="/programs/$programId" params={{ programId }} search={{ tab: "Evidence" }} />
+        }
+      >
+        Open program evidence
+      </LinkButton>
+    ),
+  };
+  return (
+    <>
+      <RecordBrowser
+        open={surface === "browse"}
+        title={title}
+        description={description}
+        records={offerRows}
+        server={{
+          query: offerQuestion,
+          onQueryChange: setOfferQuestion,
+          rowCount: offerPage?.count ?? 0,
+          total: offerTotal,
+          filterOptions: { kind: kindOptions, owner: ownerOptions, context: contextOptions },
+          selected: createdChoice ? [createdChoice] : undefined,
+        }}
+        columns={pickerColumns}
+        filters={["kind", "owner", "context"]}
+        previewColumn="title"
+        searchPlaceholder="Find evidence to link"
+        recordTitle={(row) => row.title}
+        recordLabel={(row) => `${row.title}, ${row.versionLabel.toLowerCase()}`}
+        recordCode={(row) => row.versionLabel}
+        state={browserState}
+        error="The evidence could not be loaded."
+        onRetry={() => {
+          for (const query of browserQueries) if (query.isError) void query.refetch();
+        }}
+        empty={noneEligible}
+        renderPreview={(row) => <CandidateDetails choice={row} />}
+        selectedIds={selectedIds}
+        onSelectionChange={setSelectedIds}
+        onClose={closeBrowser}
+        onConfirm={confirmLink}
+        confirmLabel={confirmLabel}
+        context={context}
+        actions={
+          <Button
+            size="small"
+            onClick={() => {
+              if (!inFlight.current) setSurface("create");
+            }}
+          >
+            Create evidence artifact
+          </Button>
+        }
+      />
+      {surface === "create" ? (
+        <CreateEvidenceDialog
+          programId={programId}
+          // The opener leaves with the browser; the next surface takes focus when it opens.
+          finalFocus={false}
+          onCreated={(result) => {
+            pendingCreated.current = result;
+            setCreated(result);
+          }}
+          onClose={() => {
+            if (pendingCreated.current) setSurface("prepare");
+            else browse();
+            pendingCreated.current = null;
+          }}
+        />
+      ) : null}
+      {surface === "prepare" && created ? (
+        <PrepareEvidence
+          versionId={created.versionId}
+          artifactId={created.artifactId}
+          onClose={(published) => {
+            // A version published here is what the reader came to link: it returns chosen.
+            if (published)
+              setSelectedIds((current) =>
+                current.includes(created.versionId) ? current : [...current, created.versionId],
+              );
+            browse();
+          }}
+        />
+      ) : null}
+    </>
   );
 }
 

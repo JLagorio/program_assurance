@@ -125,7 +125,13 @@ import {
 import { programRiskTechniquesColumn } from "@/lib/register-views";
 import { codedName, useProgramRiskTechniques } from "@/lib/risk-threats";
 import { serverRead, useServerCountQueries } from "@/lib/server-table";
-import { programParts, type ProgramPart, type ProgramTab } from "@/lib/program-parts";
+import {
+  programParts,
+  type ControlsView,
+  type ProgramPart,
+  type ProgramTab,
+} from "@/lib/program-parts";
+import { useProgramControlStatus } from "@/lib/control-status";
 
 export type { ProgramTab, RetiredProgramTab } from "@/lib/program-parts";
 
@@ -161,10 +167,13 @@ export function ProgramWorkspace({
   requirementTab,
   postureReading,
   onPostureReading,
+  controlsView = "Status",
 }: {
   programId: string;
   /** The part the address names (`programPart`); the Overview unless it names another. */
   part?: ProgramPart | undefined;
+  /** The Controls part's view the address names (`controlsView`): Status unless Implementation. */
+  controlsView?: ControlsView | undefined;
   /** A focused view, which the page shows in place of the parts, named by its h1. */
   view?: ProgramViewName | undefined;
   requirementId?: string | undefined;
@@ -181,6 +190,8 @@ export function ProgramWorkspace({
   const requirementCount = useProgramCount("engineering_requirements", programId);
   const campaignCount = useProgramCount("assessment_campaigns", programId);
   const evidenceCount = useProgramCount("evidence_artifacts", programId);
+  // The Controls part counts its baseline's controls, from the read its Status view draws.
+  const controlStatus = useProgramControlStatus(!view && part === "Controls" ? programId : null);
   // What the Overview's open work reads: ids and statuses, not records.
   const tasks = useRows("tasks", { program_id: programId }, { columns: ["id", "status"] });
   const issues = useRows(
@@ -211,6 +222,7 @@ export function ProgramWorkspace({
     ...(counted(requirementCount) && { Requirements: requirementCount.data }),
     ...(counted(campaignCount) && { Assessments: campaignCount.data }),
     ...(counted(evidenceCount) && { Evidence: evidenceCount.data }),
+    ...(controlStatus.data?.baseline && { Controls: controlStatus.data.total }),
   };
   // The Overview's open work: its three reads, said in one alert when one fails.
   const queues: QueryStatus[] = [tasks, issues, risks];
@@ -350,7 +362,12 @@ export function ProgramWorkspace({
           />
         );
       case "Controls":
-        return <ProgramSspAssembly programId={programId} />;
+        // Status, where the program stands on each control, or Implementation, the SSP as work.
+        return controlsView === "Implementation" ? (
+          <ProgramSspAssembly programId={programId} band />
+        ) : (
+          <ProgramControlStatusView programId={programId} />
+        );
       case "Assessments":
         return (
           // Campaigns, events, objectives and scopes under Section headings, with no tab strip.
@@ -520,6 +537,10 @@ export function ProgramWorkspace({
           {view ? (
             // Focused views use the full work area; program Details belong to Overview.
             <Stack space="space.300" className="min-w-0">
+              {/* A view listed under Controls keeps the part's switch, itself marked current. */}
+              {viewPart === "Controls" && (
+                <ProgramViewRow programId={programId} part="Controls" current={view} />
+              )}
               {view === "Traceability matrix" ? (
                 <AssuranceWorkbench programId={programId} initialSheet="mappings" />
               ) : view === "Workbook" ? (
@@ -530,8 +551,6 @@ export function ProgramWorkspace({
                   reading={postureReading}
                   onReadingChange={onPostureReading ?? (() => {})}
                 />
-              ) : view === "Control status" ? (
-                <ProgramControlStatusView programId={programId} />
               ) : view === "Product delta" ? (
                 <ProgramProductDeltaView programId={programId} />
               ) : view === "Compliance matrix" ? (
@@ -562,7 +581,13 @@ export function ProgramWorkspace({
                 <>
                   {/* The part's views, first: each a page of its own that reads the part's work.
                       The Overview's lead its body, beside the program's Details. */}
-                  {name !== "Overview" && <ProgramViewRow programId={programId} part={name} />}
+                  {name !== "Overview" && (
+                    <ProgramViewRow
+                      programId={programId}
+                      part={name}
+                      current={name === "Controls" ? controlsView : undefined}
+                    />
+                  )}
                   {partContent(name)}
                 </>
               )}
@@ -1095,7 +1120,7 @@ function ProgramFocusedView({
         prerequisite="A configuration baseline belongs to a system. Create a system first."
       />
     );
-  if (view === "Inheritance resolution")
+  if (view === "Inheritance")
     return <ProgramInheritance programId={programId} systemIds={systemIds} />;
   if (view === "Scanner ingestion")
     return (

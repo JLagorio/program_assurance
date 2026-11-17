@@ -22,11 +22,27 @@
 // them by label, in the catalog's order ("Mapped to objectives SA-24a.01, SA-24a.02, and
 // SA-24a.03"), and one that maps the whole control or a statement of its text reads Mapped to
 // control (`mappedObjectives` in ssp-assembly).
+//
+// The Controls part's Implementation view (wave 10, the boards impl.html and impl--publish.html)
+// is the SSP as work: the assembly with `band`, whose band leads with the boundary and SSP revision
+// pickers ("SSP 3 · Draft"), what stands beside the SSP (the SSP published before it and when, the
+// controls it inherits from another system, `inheritance_acceptances`, which open the Inheritance
+// view) and, for a draft, its one primary, Publish SSP N; then one linked Stat.Tile a recorded
+// implementation state (Not implemented, Planned, Partial, Implemented, and the rest where a
+// control holds them), and Judged short, the controls the SSP claims Implemented that a
+// determination found other than satisfied or partially satisfied, each opening the register asked
+// for exactly those controls. Publish SSP N confirms first: the prompt says what publishing freezes
+// (the controls by implementation state, how many are judged short, the SSP it follows), and its
+// action is the one update `publishSspRevision` (ssp-publish) makes, at the revision the reader saw;
+// a refusal shows inside the prompt and a toast reports the publication. The register reads Control,
+// Implementation, Narrative (Written or Not written: the schema records a narrative a control, and
+// statements a part, which no demo SSP holds), Requirements and Evidence (counted on the
+// server), Control status and Control family, with Implementation, Control status, Narrative and
+// Control family as its filters.
 
-import { useProgramBaselines } from "@/lib/baseline-reads";
 import { RecordSummaryPreview } from "./record-summary-preview";
 import { ProductCollection } from "./product-collection";
-import { useCollectionTable } from "./collection-question";
+import { questionSearch, useCollectionTable } from "./collection-question";
 import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import {
@@ -69,17 +85,24 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  Inline,
   Skeleton,
   Stack,
+  Stat,
   Text,
   TextLink,
   VisuallyHidden,
   defineColumns,
+  toast,
   useDataTable,
+  useLedgerLocale,
 } from "@ledger/design-system";
 import { FileText, ListChecks, MoreHorizontal, TriangleAlert } from "lucide-react";
 import { StatusBadge } from "@/components/app/status";
 import { useWorkspace } from "@/components/app/workspace";
+import { useConfirmation } from "@/components/app/confirmation";
+import { usePublishSspRevision } from "@/lib/ssp-publish";
+import { controlsViewSearch } from "@/lib/program-parts";
 import { useRows, type Row } from "@/lib/models";
 import type { DataRecord } from "@/lib/records";
 import {
@@ -96,7 +119,11 @@ import {
   revisionStates,
   statusLabel,
 } from "@/lib/status";
-import { useProgramControlStatus, type ControlStatus } from "@/lib/control-status";
+import {
+  useProgramControlStatus,
+  type ControlStanding,
+  type ControlStatus,
+} from "@/lib/control-status";
 import { EvidenceVersionDetails } from "./evidence-version-details";
 import { ProductRecordDialog } from "./product-record-dialog";
 import type { ProgramTableName } from "./program-shared";
@@ -129,6 +156,8 @@ const PLAN_COLUMNS = [
   "profile_resolution_id",
   "version_number",
   "state",
+  "revision",
+  "published_at",
 ] as const;
 type Plan = Pick<Row<"ssp_revisions">, (typeof PLAN_COLUMNS)[number]>;
 
@@ -155,9 +184,12 @@ function useFollowFocus() {
 export function ProgramSspAssembly({
   programId,
   fill = true,
+  band = false,
 }: {
   programId: string;
   fill?: boolean | undefined;
+  /** The SSP as work, the Controls part's Implementation view: its band leads the register. */
+  band?: boolean | undefined;
 }) {
   const systems = useRows("systems", { program_id: programId }, { columns: SYSTEM_COLUMNS });
   const [chosen, setChosen] = useState<string>();
@@ -194,6 +226,7 @@ export function ProgramSspAssembly({
       programId={programId}
       systemId={boundary.id}
       fill={fill}
+      band={band}
       scope={
         boundaries.length > 1 ? (
           <Select
@@ -249,15 +282,23 @@ type ControlRow = {
   implementationId: string | null;
   /** The implementation's status; `unrecorded` while there is none. */
   status: string;
-  narrative: "Recorded" | "Not recorded";
-  contributionCount: number;
+  narrative: "Written" | "Not written";
   requirementCount: number;
   evidenceCount: number;
-  /** Where the program's control baseline gets the control: the reference baseline or a layer. */
-  origin: string | null;
   /** Where the program stands on the control; none for a control outside its control baseline. */
   controlStatus: ControlStatus | null;
+  /** The control's family by its code and name ("SI System and Information Integrity"). */
+  family: string;
 };
+
+/**
+ * A control's family as the register names it: its code and name from the control status, or its
+ * code's letters for a control outside the program's baseline ("SI").
+ */
+const controlFamily = (standing: ControlStanding | undefined, code: string) =>
+  standing?.family
+    ? [standing.family, standing.familyTitle].filter(Boolean).join(" ")
+    : (code.split("-")[0] ?? code);
 
 /** Boundary SSP assembly. Every selected control is visible, even before anyone
  * has authored its implementation. The selected plan retains its exact baseline.
@@ -268,11 +309,14 @@ export function SspAssembly({
   programId,
   systemId,
   fill = false,
+  band = false,
   scope,
 }: {
   programId: string;
   systemId: string;
   fill?: boolean | undefined;
+  /** The band of the SSP as work, which also holds the boundary and revision pickers. */
+  band?: boolean | undefined;
   scope?: ReactNode;
 }) {
   const workspace = useWorkspace();
@@ -288,6 +332,11 @@ export function SspAssembly({
   const created = useRef(false);
   const ordered = [...(plans.data ?? [])].sort((a, b) => b.version_number - a.version_number);
   const plan = ordered.find((item) => item.id === chosenId) ?? ordered[0];
+  // The SSP published before the one shown: the newest published revision under it.
+  const previous = ordered.find(
+    (item) =>
+      item.state === "published" && plan !== undefined && item.version_number < plan.version_number,
+  );
   const loaded = systems.data !== undefined && plans.data !== undefined;
   const system = systems.data?.find((row) => row.id === systemId);
   const boundary = !!system && system.is_authorization_boundary;
@@ -323,6 +372,8 @@ export function SspAssembly({
         plan={plan}
         systems={systems.data ?? []}
         fill={fill}
+        band={band}
+        previous={previous}
         context={[plans, systems]}
         onEdit={setEditor}
         views={
@@ -417,17 +468,215 @@ export function SspAssembly({
   );
 }
 
+/** The register's view: its column layout, and the parameters its question takes in the address. */
+// v2: the code is part of the control's name, no longer a column of its own.
+const SSP_REGISTER = "ssp-control-assembly-v2";
+
+/** The recorded implementation states the band counts, in the order of the work: what is owed first. */
+const IMPLEMENTATION_TILES = [
+  "unrecorded",
+  "not_implemented",
+  "planned",
+  "partial",
+  "implemented",
+  "alternative",
+  "not_applicable",
+] as const;
+
+/** The determinations short of satisfied, which judge an Implemented claim short. */
+const JUDGED_SHORT: readonly ControlStatus[] = ["other_than_satisfied", "partially_satisfied"];
+
+/**
+ * The SSP as work, over its register: the boundary and revision pickers ("SSP 3 · Draft"), the SSP
+ * published before it and when, the controls it inherits, and, for a draft a reader may edit, its
+ * one primary, Publish SSP N; then a linked tile a recorded implementation state and Judged short,
+ * the controls it claims Implemented that a determination found short of satisfied, each opening
+ * the register asked for exactly those controls. A zero is no tile.
+ */
+function SspBand({
+  programId,
+  plan,
+  previous,
+  pickers,
+  rows,
+  ready,
+  boundaryName,
+}: {
+  programId: string;
+  plan: Plan;
+  previous: Plan | undefined;
+  pickers: ReactNode;
+  rows: readonly ControlRow[];
+  /** The register and the control statuses have answered: until then the tiles hold their place. */
+  ready: boolean;
+  boundaryName: string;
+}) {
+  const workspace = useWorkspace();
+  const { formatNumber, formatDate } = useLedgerLocale();
+  const inherited = useRows(
+    "inheritance_acceptances",
+    { ssp_revision_id: plan.id },
+    { columns: ["id"] },
+  );
+  const publish = usePublishSspRevision();
+  const { confirm, confirmation } = useConfirmation();
+  const counts = new Map<string, number>();
+  for (const row of rows) counts.set(row.status, (counts.get(row.status) ?? 0) + 1);
+  const short = rows.filter(
+    (row) =>
+      row.status === "implemented" &&
+      row.controlStatus !== null &&
+      JUDGED_SHORT.includes(row.controlStatus),
+  ).length;
+  const register = (filters: { id: string; value: string[] }[]) => (
+    <Link
+      to="/programs/$programId"
+      params={{ programId }}
+      search={
+        {
+          ...controlsViewSearch("Implementation"),
+          ...questionSearch(SSP_REGISTER, { search: "", filters }),
+        } as never
+      }
+      resetScroll={false}
+    />
+  );
+  const tiles = IMPLEMENTATION_TILES.filter((key) => (counts.get(key) ?? 0) > 0);
+  const day = (value: string | null) =>
+    value ? formatDate(new Date(value), { dateStyle: "medium" }) : undefined;
+  const name = `SSP ${plan.version_number}`;
+  const ask = async () => {
+    const frozen = tiles
+      .map(
+        (key) =>
+          `${formatNumber(counts.get(key) ?? 0)} ${recordedImplementationStatuses[key].label.toLowerCase()}`,
+      )
+      .join(", ");
+    const published = await confirm({
+      title: `Publish ${name}?`,
+      description: [
+        `Publishing freezes its ${formatNumber(rows.length)} controls as they are: ${frozen}.`,
+        short ? `${formatNumber(short)} claimed implemented are judged short.` : "",
+        previous
+          ? `SSP ${previous.version_number}, published ${day(previous.published_at) ?? ""}, stays as it is.`
+          : "",
+        "A change after it is a new SSP revision.",
+      ]
+        .filter(Boolean)
+        .join(" "),
+      confirmLabel: `Publish ${name}`,
+      variant: "primary",
+      failureTitle: `${name} was not published`,
+      action: () => publish.mutateAsync({ id: plan.id, revision: plan.revision }),
+    });
+    if (published)
+      toast.add({ type: "success", title: `${name} published`, description: boundaryName });
+  };
+  const inheritedCount = inherited.data?.length ?? 0;
+  return (
+    <Stack space="space.200" className="min-w-0">
+      <ReportFailures queries={[inherited]} />
+      <Inline space="space.200" alignBlock="center" spread="space-between" shouldWrap>
+        <Inline space="space.200" alignBlock="center" shouldWrap>
+          {pickers}
+          {plan.state === "published" && plan.published_at ? (
+            <Text size="small" color="color.text.subtle">
+              Published {day(plan.published_at)}
+            </Text>
+          ) : previous ? (
+            <Text size="small" color="color.text.subtle">
+              SSP {previous.version_number} published {day(previous.published_at)}
+            </Text>
+          ) : null}
+          {inheritedCount > 0 && (
+            <Text size="small" color="color.text.subtle">
+              Inherited{" "}
+              <TextLink
+                tone="neutral"
+                render={<Link to="/programs/$programId/inheritance" params={{ programId }} />}
+              >
+                {formatNumber(inheritedCount)}
+              </TextLink>
+            </Text>
+          )}
+        </Inline>
+        {plan.state === "draft" && (
+          <Button
+            variant="primary"
+            {...(workspace.role === "viewer"
+              ? { disabledReason: "A viewer cannot publish an SSP." }
+              : !ready
+                ? { disabledReason: "The SSP's controls are still being read." }
+                : {})}
+            onClick={() => void ask()}
+          >
+            Publish {name}
+          </Button>
+        )}
+      </Inline>
+      {(tiles.length > 0 || !ready) && (
+        <Stat.Grid
+          frame="band"
+          cols={Math.min(6, Math.max(2, tiles.length + (short ? 1 : 0))) as 2 | 3 | 4 | 5 | 6}
+          aria-label={`${name} by implementation`}
+        >
+          {ready ? (
+            <>
+              {tiles.map((key) => (
+                <Stat.Tile
+                  key={key}
+                  label={recordedImplementationStatuses[key].label}
+                  value={counts.get(key) ?? 0}
+                  link={register([{ id: "status", value: [key] }])}
+                />
+              ))}
+              {short > 0 && (
+                <Stat.Tile
+                  label="Judged short"
+                  value={short}
+                  tone="warning"
+                  note="Claimed implemented"
+                  link={register([
+                    { id: "status", value: ["implemented"] },
+                    { id: "controlStatus", value: [...JUDGED_SHORT] },
+                  ])}
+                />
+              )}
+            </>
+          ) : (
+            (["not_implemented", "planned", "partial", "implemented"] as const).map((key) => (
+              <Stat.Tile
+                key={key}
+                label={recordedImplementationStatuses[key].label}
+                value={0}
+                isLoading
+              />
+            ))
+          )}
+        </Stat.Grid>
+      )}
+      {confirmation}
+    </Stack>
+  );
+}
+
 function SspAssemblyPlan({
   programId,
   plan,
   systems,
   views,
   fill,
+  band,
+  previous,
   context,
   onEdit,
 }: {
   programId: string;
   plan: Plan;
+  /** Whether the band of the SSP as work leads the register, holding `views`. */
+  band: boolean;
+  /** The SSP published before this one, which the band names. */
+  previous: Plan | undefined;
   /** The program's systems: the boundary's name, and an element's path in a control's preview. */
   systems: readonly ProgramSystem[];
   /** The controls that choose what the register shows (the boundary, the SSP revision). */
@@ -451,28 +700,11 @@ function SspAssemblyPlan({
   const openRecord = useOpenRecord();
   // Each control is named by its code and title together ("AC-2(1) Automated system account
   // management"), so the code never folds away from a title that repeats across families.
-  // Where the program's baseline gets each control, by the catalog control: the program's stack
-  // is read once, and a program with no recorded baseline shows no Origin column.
-  const { baselines } = useProgramBaselines(programId, { only: "origins" });
-  const origins = useMemo(() => {
-    const map = new Map<string, string>();
-    for (const baseline of baselines) {
-      const titles = new Map(baseline.derivation.layers.map((layer) => [layer.key, layer.title]));
-      for (const [controlId, origin] of baseline.derivation.origins)
-        if (!map.has(controlId))
-          map.set(
-            controlId,
-            origin.layerKey ? (titles.get(origin.layerKey) ?? "A layer") : "Baseline",
-          );
-    }
-    return map;
-  }, [baselines]);
-  const hasBaseline = baselines.length > 0;
   // Where the program stands on each control of its control baseline, by the catalog control: the
   // one read the Overview and the Control status view draw. The column shows once it answers.
   const controlStatus = useProgramControlStatus(programId);
   const standings = useMemo(
-    () => new Map(controlStatus.data?.controls.map((control) => [control.id, control.status])),
+    () => new Map(controlStatus.data?.controls.map((control) => [control.id, control])),
     [controlStatus.data],
   );
   const hasStatus = controlStatus.data?.baseline === true;
@@ -489,15 +721,14 @@ function SspAssemblyPlan({
           name: `${code} ${title}`,
           implementationId: row.implementationId,
           status: row.implementationStatus ?? "unrecorded",
-          narrative: row.narrative ? "Recorded" : "Not recorded",
-          contributionCount: row.contributions,
+          narrative: row.narrative ? "Written" : "Not written",
           requirementCount: row.requirements,
           evidenceCount: row.evidence,
-          origin: origins.get(row.controlId) ?? null,
-          controlStatus: standings.get(row.controlId) ?? null,
+          controlStatus: standings.get(row.controlId)?.status ?? null,
+          family: controlFamily(standings.get(row.controlId), code),
         };
       }),
-    [register.data, origins, standings],
+    [register.data, standings],
   );
   const selected = controlRows.find((row) => row.id === selectedId);
   // The previewed control's records, read as its preview opens: what stands behind it, assembled
@@ -553,8 +784,8 @@ function SspAssemblyPlan({
           },
         }),
         c.status("status", {
-          header: "Recorded implementation",
-          width: 212,
+          header: "Implementation",
+          width: 180,
           statuses: recordedImplementationStatuses,
           cell: (row) =>
             row.implementationId ? (
@@ -579,21 +810,12 @@ function SspAssemblyPlan({
               }),
             ]
           : []),
-        ...(hasBaseline
-          ? [
-              c.text("origin", {
-                header: "Origin",
-                width: 220,
-                cell: (row) => row.origin ?? <Absent label="Not in the program baseline" />,
-              }),
-            ]
-          : []),
-        c.text("narrative", { header: "Control narrative", width: 160 }),
-        c.number("contributionCount", { header: "Contributions", width: 140 }),
+        c.text("narrative", { header: "Narrative", width: 130 }),
         c.number("requirementCount", { header: "Requirements", width: 130 }),
         c.number("evidenceCount", { header: "Evidence", width: 105 }),
+        c.text("family", { header: "Control family", width: 260 }),
       ]),
-    [controlRecord, openPreview, hasBaseline, hasStatus],
+    [controlRecord, openPreview, hasStatus],
   );
   // Each preview is its table's, so opening or stepping through one never rebuilds the columns.
   const controlPreview = useMemo(
@@ -606,8 +828,7 @@ function SspAssemblyPlan({
     getRowId: (row) => row.id,
     preview: controlPreview,
     label: "SSP control assembly",
-    // v2: the code is part of the control's name, no longer a column of its own.
-    view: "ssp-control-assembly-v2",
+    view: SSP_REGISTER,
     resizable: true,
   });
   const displayedRows = useDisplayedRecords(table);
@@ -760,7 +981,7 @@ function SspAssemblyPlan({
   );
   const partLabel = (statement: SspStatement) =>
     partLabels.get(statement.control_part_id) ?? "Control statement";
-  const authored = controlRows.filter((row) => row.narrative === "Recorded").length;
+  const authored = controlRows.filter((row) => row.narrative === "Written").length;
   const gaps = register.data?.gaps ?? [];
   const boundaryName = systems.find((row) => row.id === plan.system_id)?.name ?? "Boundary";
   const openNarrative = (row: ControlRow, control: SspControlAssembly | undefined) =>
@@ -873,6 +1094,17 @@ function SspAssemblyPlan({
     );
   return (
     <Stack space="space.200">
+      {band && (
+        <SspBand
+          programId={programId}
+          plan={plan}
+          previous={previous}
+          pickers={views}
+          rows={controlRows}
+          ready={register.data !== undefined && !controlStatus.isPending}
+          boundaryName={boundaryName}
+        />
+      )}
       {register.data?.boundaryDiffers && (
         <Alert tone="warning" role="status">
           <TriangleAlert aria-hidden />
@@ -930,12 +1162,13 @@ function SspAssemblyPlan({
         }}
         fill={fill}
         searchLabel="Find selected controls"
-        views={views}
+        views={band ? undefined : views}
         filters={
           <>
+            <DataTable.Filter table={table} column="status" />
             {hasStatus ? <DataTable.Filter table={table} column="controlStatus" /> : null}
-            {hasBaseline ? <DataTable.Filter table={table} column="origin" /> : null}
             <DataTable.Filter table={table} column="narrative" />
+            <DataTable.Filter table={table} column="family" />
           </>
         }
       />

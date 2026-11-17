@@ -4,6 +4,7 @@ import { useBrowserTitle } from "@/components/app/browser-title";
 import { useRow } from "@/lib/models";
 import { ProgramWorkspace } from "@/components/prototype/program-workspace";
 import {
+  controlsView,
   isRiskTab,
   programPart,
   programTab,
@@ -21,6 +22,11 @@ export const Route = createFileRoute("/programs/$programId")({
     tab?: ProgramTab | RiskTab;
     requirementId?: string | undefined;
     requirementTab?: RequirementTab | undefined;
+    /**
+     * The Controls part's view: `implementation`, or Status unsaid. Typed as text, since another
+     * route's search names a view of its own (My work's `attention`) that a merge may carry.
+     */
+    view?: string | undefined;
   } => ({
     // A word for the Risks part stays as it was typed until beforeLoad replaces it: the server
     // replaces an address whose search reads otherwise before beforeLoad runs, and drops its hash.
@@ -30,6 +36,7 @@ export const Route = createFileRoute("/programs/$programId")({
         ? search["requirementId"]
         : undefined,
     requirementTab: search["requirementTab"] ? requirementTab(search["requirementTab"]) : undefined,
+    view: controlsView(search["view"]) === "Implementation" ? "implementation" : undefined,
   }),
   // An address that names a retired or aliased tab (?tab=risk, ?tab=POA%26M, ?tab=activity) is
   // replaced by the one that names where its content went, so the address says the part shown:
@@ -53,7 +60,7 @@ export const Route = createFileRoute("/programs/$programId")({
 function ProgramRecord() {
   const { programId } = Route.useParams();
   const record = useRow("programs", programId);
-  const { tab, requirementId, requirementTab } = Route.useSearch();
+  const { tab, requirementId, requirementTab, view } = Route.useSearch();
   const hash = useLocation({ select: (location) => location.hash });
   const part = programPart(programTab(tab), hash);
   // The Overview names the program, "<program> — Program — …"; a part names itself first, as its
@@ -66,6 +73,7 @@ function ProgramRecord() {
       part={part}
       requirementId={requirementId}
       requirementTab={requirementTab}
+      controlsView={controlsView(view)}
     />
   );
 }

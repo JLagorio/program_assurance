@@ -1,6 +1,5 @@
-import { controlName, productRecordNoun } from "@/lib/product-records";
+import { productRecordNoun } from "@/lib/product-records";
 import {
-  EmptyMessage,
   MissingRecord,
   NoOwner,
   RecordActions,
@@ -13,15 +12,12 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import {
   Absent,
   AsideLayout,
-  DateTime,
   DropdownMenuItem,
   Id,
   Inline,
   Inspector,
   KeyValue,
   PageHeader,
-  Prose,
-  Section,
   Shell,
   Skeleton,
   Stack,
@@ -32,8 +28,6 @@ import {
   TextLink,
   VisuallyHidden,
 } from "@ledger/design-system";
-import { useAssuranceTrace } from "@/lib/assurance-trace";
-import { useProgramControlStatus } from "@/lib/control-status";
 import { useRow } from "@/lib/models";
 import { useProductLookup } from "@/lib/product-items";
 import type { SystemElement } from "@/lib/system-tree";
@@ -42,15 +36,12 @@ import type { SystemAssuranceRow } from "@/lib/system-assurance";
 import {
   authorizationStatuses,
   componentStatuses,
-  controlStatuses,
-  implementationStatuses,
   revisionStates,
   systemLifecycleStatuses,
 } from "@/lib/status";
 import { StatusBadge } from "@/components/app/status";
 import { useWorkspace } from "@/components/app/workspace";
 import { Page } from "@/components/app/shell";
-import { ControlInspector } from "@/components/prototype/library-controls";
 import { ProgramSystemsTree } from "./program-systems-tree";
 import { SystemElementDialog } from "./system-element-dialog";
 import { SystemControls } from "./system-baseline";
@@ -65,8 +56,6 @@ import {
   impactProvenance,
 } from "./system-assurance-details";
 import { useSystemAssurance } from "./use-system-assurance";
-import { TraceBand } from "./assurance-trace";
-import { ControlStandingFacts } from "./control-status";
 import { RelationName } from "./record-tools";
 import { ProgramTrail, TrailLink } from "./record-trail";
 import { SspAssembly } from "./ssp-assembly";
@@ -714,154 +703,3 @@ export function ProgramComponentRecord({
   );
 }
 export { ProgramRequirementRecord } from "./requirement-record";
-
-export function ProgramControlRecord({
-  programId,
-  implementationId,
-}: {
-  programId: string;
-  implementationId: string;
-}) {
-  const implementation = useRow("implemented_requirements", implementationId);
-  const plan = useRow("ssp_revisions", implementation.data?.ssp_revision_id);
-  const system = useRow("systems", plan.data?.system_id);
-  const selected = useRow("selected_controls", implementation.data?.selected_control_id);
-  const control = useRow("controls", selected.data?.control_id);
-  // The control status the Details read: one read for the whole baseline, shared with them.
-  const statuses = useProgramControlStatus(programId);
-  const standing = statuses.data?.controls.find((item) => item.id === control.data?.id);
-  // The control's chain in this program: the requirements that meet it here, and what follows.
-  const trace = useAssuranceTrace(
-    control.data ? { kind: "control", id: control.data.id, programId } : null,
-  );
-  const [showSource, setShowSource] = useState(false);
-  const pending =
-    implementation.isPending ||
-    (implementation.data &&
-      (plan.isPending || system.isPending || selected.isPending || control.isPending));
-  const error =
-    implementation.error ?? plan.error ?? system.error ?? selected.error ?? control.error;
-  if (
-    (pending || error) &&
-    [implementation, plan, system, selected, control].some((query) => query.data === undefined)
-  )
-    return <ProgramQueryState queries={[implementation, plan, system, selected, control]} />;
-  if (!implementation.data || system.data?.program_id !== programId)
-    return (
-      <MissingRecord
-        backTo="/programs"
-        kind="Control implementation"
-        description="This record is unavailable in this program."
-      />
-    );
-  const row = implementation.data;
-  return (
-    <ProgramRecordFrame
-      programId={programId}
-      table="implemented_requirements"
-      recordType="Control"
-      readOnly={plan.data?.state === "published"}
-      row={row as DataRecord}
-      title={control.data ? controlName(control.data) : "Control implementation"}
-      collection={{ tab: "Controls" }}
-      summary={<StatusBadge statuses={implementationStatuses} value={row.implementation_status} />}
-      // Where the program stands on the control, as its record outside the SSP says it.
-      status={
-        standing ? <StatusBadge statuses={controlStatuses} value={standing.status} /> : undefined
-      }
-      actions={
-        control.data && (
-          <DropdownMenuItem onClick={() => setShowSource(true)}>
-            Read control and assessment objectives
-          </DropdownMenuItem>
-        )
-      }
-      band={
-        control.data && (
-          <TraceBand
-            trace={trace}
-            kind="control"
-            name={`the control ${control.data.code} ${control.data.title}`}
-            programId={programId}
-          />
-        )
-      }
-      properties={
-        <KeyValue.Group>
-          {/* Where the program stands on the control, before what its SSP records of it. */}
-          <ControlStandingFacts
-            programId={programId}
-            controlId={control.data?.id}
-            requirements={trace.data?.requirements}
-          />
-          <KeyValue label="Code">
-            {control.data?.code ? <Id>{control.data.code}</Id> : <Absent />}
-          </KeyValue>
-          <KeyValue label="Implementation">
-            <StatusBadge statuses={implementationStatuses} value={row.implementation_status} />
-          </KeyValue>
-          {/* Why the control does not apply: a fact only once the status says it does not. */}
-          {(row.implementation_status === "not_applicable" || row.not_applicable_rationale) && (
-            <KeyValue label="Rationale" wrap>
-              {row.not_applicable_rationale ? (
-                <Text preserveLineBreaks>{row.not_applicable_rationale}</Text>
-              ) : (
-                <Absent />
-              )}
-            </KeyValue>
-          )}
-          <KeyValue label="Updated" wrap>
-            <DateTime value={row.updated_at} format="date" />
-          </KeyValue>
-        </KeyValue.Group>
-      }
-      queries={[implementation, plan, system, selected, control]}
-    >
-      <Section title="Implementation">
-        {row.description ? (
-          <Prose>{row.description}</Prose>
-        ) : (
-          <EmptyMessage
-            compact
-            title="No implementation narrative yet"
-            description="The narrative says how this system meets the control."
-          />
-        )}
-      </Section>
-      <ProgramCollection
-        name="implementation_statements"
-        section
-        title="Statement implementations"
-        filters={{ implemented_requirement_id: row.id }}
-        initialValues={{ ssp_revision_id: row.ssp_revision_id }}
-        columns={[
-          { key: "description", title: "Implementation narrative" },
-          { key: "updated_at", title: "Updated" },
-        ]}
-        canCreate={plan.data?.state === "draft"}
-        readOnly={plan.data?.state === "published"}
-      />
-      <ProgramCollection
-        name="component_contributions"
-        section
-        title="Component contributions"
-        filters={{ implemented_requirement_id: row.id }}
-        initialValues={{ ssp_revision_id: row.ssp_revision_id }}
-        columns={[
-          { key: "description", title: "Contribution" },
-          { key: "implementation_status", title: "Implementation" },
-        ]}
-        canCreate={plan.data?.state === "draft"}
-        readOnly={plan.data?.state === "published"}
-      />
-      {showSource && control.data && (
-        <ControlInspector
-          task="Control source inspection"
-          control={control.data}
-          programId={programId}
-          onClose={() => setShowSource(false)}
-        />
-      )}
-    </ProgramRecordFrame>
-  );
-}

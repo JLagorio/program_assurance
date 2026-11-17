@@ -19,12 +19,12 @@
 // No owner (`unownedQuestions`), so the 43 it counts are the 43 the register lists, and a count
 // that could not be read draws no line under the page's alert.
 //
-// Under them one tray counts the controls of the program's control baseline and opens the Control
-// status view: `ProgramControlStatusTray` draws the whole baseline as one `Tally`,
+// Under them one tray counts the controls of the program's control baseline and opens Controls ›
+// Status: `ProgramControlStatusTray` draws the whole baseline as one `Tally`,
 // `ControlStatusTally` from control-status, each control status its share, under a
 // `ControlStatusKey` that counts each status, with the share satisfied at the heading's end. No
-// number there is a dead end: a count of the key is a link that opens the view's List at that
-// status (No evidence 235 lists those 235); the view draws a mark a control. A program with no
+// number there is a dead end: a count of the key is a link that opens the view's register at that
+// status (No evidence 235 lists those 235). A program with no
 // control baseline draws no such tray.
 //
 // Reference: program-overview and program-timeline.
@@ -56,6 +56,7 @@ import {
 import { questionSearch } from "./collection-question";
 import { ControlStatusKey, ControlStatusTally } from "./control-status";
 import { controlStatusLink } from "./control-status-link";
+import { controlsViewSearch } from "@/lib/program-parts";
 import { QueryState, ReportFailures, type QueryStatus } from "./work-common";
 
 /** The program tabs that hold open work: the address of the part that holds each. */
@@ -261,9 +262,9 @@ export function ProgramOpenWork({
 
 /**
  * Where the program stands on every control of its control baseline: a Tray whose heading counts
- * the controls and opens the Control status view, over the whole baseline as one Tally, each status
- * its share in the map's marks, under a key that counts each. A count of the key opens the view's
- * List at that status, so no number here is a dead end; the view draws a mark a control. A program
+ * the controls and opens Controls › Status, over the whole baseline as one Tally, each status its
+ * share in the map's marks, under a key that counts each. A count of the key opens the view's
+ * register at that status, so no number here is a dead end. A program
  * with no baseline draws nothing here: the Control baseline section under it says so.
  */
 export function ProgramControlStatusTray({
@@ -277,7 +278,9 @@ export function ProgramControlStatusTray({
   const status = useProgramControlStatus(programId);
   const statusLink = useMemo(() => controlStatusLink(programId), [programId]);
   if (status.data && !status.data.baseline) return null;
-  const view = <Link to="/programs/$programId/control-status" params={{ programId }} />;
+  const view = (
+    <Link to="/programs/$programId" params={{ programId }} search={controlsViewSearch("Status")} />
+  );
   return (
     <QueryState queries={[status]}>
       <Tray

@@ -7,7 +7,8 @@
 // its objectives or not on every system that selects it, holds them in the stage and offers what is
 // left under them, the step its Details' Next step offers: Map 3 more objectives, Map on
 // R210-STD-CUSA or Allocate to R210-STD-CUSA); where its requirements cite no evidence, Link
-// evidence to the first of them by code (that requirement's Evidence tab); and, where no assessor
+// evidence to the first of them by code (that requirement's Evidence tab; on the control's own
+// record the slot's Add evidence does it over the page, ControlAddEvidence); and, where no assessor
 // has determined that evidence, Add to assessment campaign in its Assessment findings stage, the
 // picker of the program's open campaigns with a draft plan, or Plan an assessment where none has
 // one, the form that plans a campaign around the control. A control whose evidence an open
@@ -40,7 +41,15 @@
 // open while the step under it changes, and once the change shows, focus goes from the step that
 // left to what replaced it in its row (`focusWhereStepWas` in step-focus).
 
-import { createContext, useCallback, useContext, useRef, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useRef,
+  useState,
+  type ReactElement,
+  type ReactNode,
+} from "react";
 import { Link } from "@tanstack/react-router";
 import { Button, Text, TextLink } from "@ledger/design-system";
 import { AssessmentSurface } from "./assessment-step";
@@ -128,6 +137,34 @@ export function StepSurfaceHost({ children }: { children: ReactNode }) {
   );
 }
 
+/**
+ * Opens a step done on the control from a control that is not a NextStep (the record's slot, whose
+ * primary is the kit's): what it opens is held by the nearest `StepSurfaceHost`, and focus comes
+ * back to `opener`, which stays in `slot` while the step under it changes.
+ */
+export function useOpenStep() {
+  const open = useContext(StepSurfaces);
+  return useCallback(
+    (
+      step: Extract<ControlNextStep, { kind: InPlaceStepKind }>,
+      programId: string,
+      control: StepControl,
+      opener: HTMLElement | null,
+      slot: HTMLElement | null,
+    ) =>
+      open?.({
+        kind: step.kind,
+        programId,
+        control,
+        rest: "rest" in step && !!step.rest,
+        system: "system" in step ? step.system : undefined,
+        opener,
+        slot,
+      }),
+    [open],
+  );
+}
+
 /** A step done on the control itself: the link-styled button that opens it over the page. */
 function InPlaceStep({
   step,
@@ -171,7 +208,82 @@ const shortOfSatisfied = Object.keys(determinations).filter(
 );
 
 /** A step that leads to where it is done: every step but the ones done on the control itself. */
-type LinkStep = Exclude<ControlNextStep | TraceGapFix, { kind: InPlaceStepKind }>;
+export type LinkStep = Exclude<ControlNextStep | TraceGapFix, { kind: InPlaceStepKind }>;
+
+/**
+ * Where a step that leads elsewhere is done, as the link element a TextLink or a LinkButton
+ * renders: the requirement's Evidence or Control mappings tab, the campaign's Execution tab, the
+ * assessment findings short of satisfied, the product assessment, or an issue's Link requirement.
+ */
+export function stepDestination(step: LinkStep, programId: string): ReactElement {
+  switch (step.kind) {
+    case "link_evidence":
+      return step.requirement ? (
+        <Link
+          to="/programs/$programId/requirements/$requirementId"
+          params={{
+            programId: step.requirement.programId,
+            requirementId: step.requirement.id,
+          }}
+          search={{ tab: "Evidence" }}
+        />
+      ) : (
+        <Link to="/programs/$programId" params={{ programId }} search={{ tab: "Requirements" }} />
+      );
+    case "map_control":
+      return (
+        <Link
+          to="/programs/$programId/requirements/$requirementId"
+          params={{
+            programId: step.requirement.programId,
+            requirementId: step.requirement.id,
+          }}
+          search={{ tab: "Control mappings" }}
+        />
+      );
+    // The campaign's plans, events and objectives are on its Execution tab.
+    case "open_campaign":
+      return (
+        <Link
+          to="/campaigns/$campaignId"
+          params={{ campaignId: step.campaign.id }}
+          search={{ tab: "Execution" }}
+        />
+      );
+    case "review_findings":
+      return (
+        <Link
+          to="/findings"
+          search={{
+            tab: "findings",
+            ...questionSearch(registerViews.assessmentFindings, {
+              filters: [{ id: "determination", value: shortOfSatisfied }],
+            }),
+          }}
+        />
+      );
+    case "review_product_assessment":
+    case "decided_by_product":
+      return (
+        <Link
+          to="/library/product-assessments/$assessmentId"
+          params={{ assessmentId: step.assessment.id }}
+        />
+      );
+    case "link_requirement":
+      // The issue's own page, asked to open its Link requirement: the address is taken back
+      // once the browser opens, and the step replaces the entry, so Back leaves the issue.
+      return (
+        <Link
+          to="/issues/$issueId"
+          params={{ issueId: step.issue.id }}
+          search={{ link: "requirement" }}
+          replace
+          resetScroll={false}
+        />
+      );
+  }
+}
 
 /**
  * A next step as the link that leads to where it is done: the requirement's Evidence or Control
@@ -194,75 +306,7 @@ function NextStepLink({
   size?: "small" | "medium" | undefined;
 }) {
   const label = own && step.kind === "link_evidence" ? "Link evidence" : nextStepLabel(step);
-  const link = (() => {
-    switch (step.kind) {
-      case "link_evidence":
-        return step.requirement ? (
-          <Link
-            to="/programs/$programId/requirements/$requirementId"
-            params={{
-              programId: step.requirement.programId,
-              requirementId: step.requirement.id,
-            }}
-            search={{ tab: "Evidence" }}
-          />
-        ) : (
-          <Link to="/programs/$programId" params={{ programId }} search={{ tab: "Requirements" }} />
-        );
-      case "map_control":
-        return (
-          <Link
-            to="/programs/$programId/requirements/$requirementId"
-            params={{
-              programId: step.requirement.programId,
-              requirementId: step.requirement.id,
-            }}
-            search={{ tab: "Control mappings" }}
-          />
-        );
-      // The campaign's plans, events and objectives are on its Execution tab.
-      case "open_campaign":
-        return (
-          <Link
-            to="/campaigns/$campaignId"
-            params={{ campaignId: step.campaign.id }}
-            search={{ tab: "Execution" }}
-          />
-        );
-      case "review_findings":
-        return (
-          <Link
-            to="/findings"
-            search={{
-              tab: "findings",
-              ...questionSearch(registerViews.assessmentFindings, {
-                filters: [{ id: "determination", value: shortOfSatisfied }],
-              }),
-            }}
-          />
-        );
-      case "review_product_assessment":
-      case "decided_by_product":
-        return (
-          <Link
-            to="/library/product-assessments/$assessmentId"
-            params={{ assessmentId: step.assessment.id }}
-          />
-        );
-      case "link_requirement":
-        // The issue's own page, asked to open its Link requirement: the address is taken back
-        // once the browser opens, and the step replaces the entry, so Back leaves the issue.
-        return (
-          <Link
-            to="/issues/$issueId"
-            params={{ issueId: step.issue.id }}
-            search={{ link: "requirement" }}
-            replace
-            resetScroll={false}
-          />
-        );
-    }
-  })();
+  const link = stepDestination(step, programId);
   return (
     <TextLink render={link} {...(size ? { size } : {})}>
       {label}

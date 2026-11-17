@@ -6,21 +6,29 @@
 // named `<part> views` (`ProgramViewRow` in program-views; the Overview's leads its body), only
 // those that apply: Product delta once a system was created from a product, Compliance matrix once
 // a requirements document was received. A view is never only in a menu. A row lists only the views
-// the side nav does not name: Control baseline (the nav's Baseline) and Authorization are in no
-// row, so the Overview's row holds Program transfer alone. The row also leads to a part the side
-// nav does not name, under the part it belongs to: System's lists Library. A focused program
-// view's h1 is the view's name, its trail is the program's code › the part that lists it
-// (`ProgramTrail` in record-trail; a view the nav names has none), and its browser title is
-// `<view> — <program name> — Program Assurance` (`useViewTitle`); it uses the full work area
-// without the program's Details. The program's Details and References belong only to its
-// Overview; focused views, including Workbook, Traceability matrix and Program transfer, do not
-// render that rail or its narrow-screen disclosure.
+// the side nav does not name: Authorization is in no row, so the Overview's row holds Program
+// transfer alone. The Controls part's row is its view switch (wave 10, the boards' Controls ›
+// Status): its own two views in place first, Status and Implementation, then Baseline, the Control
+// baseline view the side nav also names, then the views listed under Controls (Inheritance, Cyber
+// resiliency, Product delta where it applies); it marks the view shown current, on the part and on
+// each of those views' pages. The row also leads to a part the side nav does not name, under the
+// part it belongs to: System's lists Library. A focused program view's h1 is the view's name, its
+// trail is the program's code › the part that lists it (`ProgramTrail` in record-trail; a view the
+// nav names has none), and its browser title is `<view> — <program name> — Program Assurance`
+// (`useViewTitle`); it uses the full work area without the program's Details. The program's Details
+// and References belong only to its Overview; focused views, including Workbook, Traceability
+// matrix and Program transfer, do not render that rail or its narrow-screen disclosure.
 
 import { Link } from "@tanstack/react-router";
 import { ViewSwitcher } from "@ledger/design-system";
 import { useProgramVariants } from "@/lib/product-assurance";
 import { useRequirementSources } from "@/lib/requirement-compliance";
-import { partAddress, type ProgramPart } from "@/lib/program-parts";
+import {
+  controlsViewSearch,
+  partAddress,
+  type ControlsView,
+  type ProgramPart,
+} from "@/lib/program-parts";
 import { ReportFailures, type QueryStatus } from "./work-common";
 
 /**
@@ -44,8 +52,8 @@ export const programViews = [
   },
   { name: "Workbook", to: "/programs/$programId/workbook", part: "Requirements" },
   { name: "Traceability matrix", to: "/programs/$programId/sctm", part: "Requirements" },
-  { name: "Control status", to: "/programs/$programId/control-status", part: "Controls" },
   { name: "Control baseline", to: "/programs/$programId/control-baseline", nav: "Baseline" },
+  { name: "Inheritance", to: "/programs/$programId/inheritance", part: "Controls" },
   { name: "Cyber resiliency", to: "/programs/$programId/resiliency", part: "Controls" },
   {
     name: "Product delta",
@@ -53,7 +61,6 @@ export const programViews = [
     part: "Controls",
     when: "variant",
   },
-  { name: "Inheritance resolution", to: "/programs/$programId/inheritance", part: "Controls" },
   { name: "Continuous monitoring", to: "/programs/$programId/conmon", part: "Assessments" },
   { name: "Scanner ingestion", to: "/programs/$programId/ingestion", part: "Assessments" },
   { name: "Residual risk", to: "/programs/$programId/risk", part: "Risks" },
@@ -82,16 +89,36 @@ export function programViewPart(name: ProgramViewName): ProgramPart | undefined 
 const partsUnder: Partial<Record<ProgramPart, readonly ProgramPart[]>> = { System: ["Library"] };
 
 /**
- * A part's views, as the kit's ViewSwitcher before the part's content, named after the part
- * ("Controls views"). Only the views that apply to the program are listed: Product delta once a
- * system was created from a product, Compliance matrix once a requirements document was received;
- * the reads that say so are the Overview trays' own. Then the parts the side nav does not name
- * that belong to this one (System's Library), each at its address. The row scrolls in its own
- * strip when it is wider than the frame, as a tab strip does. The part shows none of its views,
- * so none is current. A part with no view draws nothing.
+ * The Controls part's own views, which lead its row: Status and Implementation in place, then
+ * Baseline, the Control baseline view, which the side nav names too.
  */
-export function ProgramViewRow({ programId, part }: { programId: string; part: ProgramPart }) {
+const controlsLeads = [
+  { name: "Status", view: "Status" },
+  { name: "Implementation", view: "Implementation" },
+  { name: "Baseline", to: "/programs/$programId/control-baseline" },
+] as const satisfies readonly ({ name: string } & ({ view: ControlsView } | { to: string }))[];
+
+/**
+ * A part's views, as the kit's ViewSwitcher before the part's content, named after the part
+ * ("Controls views"). The Controls part's row leads with its own views (`controlsLeads`). Only the
+ * views that apply to the program are listed: Product delta once a system was created from a
+ * product, Compliance matrix once a requirements document was received; the reads that say so are
+ * the Overview trays' own. Then the parts the side nav does not name that belong to this one
+ * (System's Library), each at its address. The row scrolls in its own strip when it is wider than
+ * the frame, as a tab strip does. `current` names the view shown, marked current: a Controls view
+ * on the part, or a view's own name on its page. A part with no view draws nothing.
+ */
+export function ProgramViewRow({
+  programId,
+  part,
+  current,
+}: {
+  programId: string;
+  part: ProgramPart;
+  current?: string | undefined;
+}) {
   const listed = programViews.filter((view) => "part" in view && view.part === part);
+  const leads = part === "Controls" ? controlsLeads : [];
   const under = partsUnder[part] ?? [];
   const waits = (on: "variant" | "document") =>
     listed.some((view) => "when" in view && view.when === on);
@@ -106,13 +133,39 @@ export function ProgramViewRow({ programId, part }: { programId: string; part: P
     ...(waits("variant") ? [variants.query] : []),
     ...(waits("document") ? [documents.query] : []),
   ];
+  // Exact matching, so a router link never marks itself current: `current` says which is.
+  const exact = { exact: true, includeSearch: true } as const;
   return (
     <>
       <ReportFailures queries={reads} />
-      {shown.length + under.length > 0 && (
+      {leads.length + shown.length + under.length > 0 && (
         <ViewSwitcher label={`${part} views`}>
+          {leads.map((lead) => (
+            <ViewSwitcher.Item
+              key={lead.name}
+              isActive={current === lead.name}
+              render={
+                "view" in lead ? (
+                  <Link
+                    to="/programs/$programId"
+                    params={{ programId }}
+                    search={controlsViewSearch(lead.view)}
+                    activeOptions={exact}
+                  />
+                ) : (
+                  <Link to={lead.to} params={{ programId }} activeOptions={exact} />
+                )
+              }
+            >
+              {lead.name}
+            </ViewSwitcher.Item>
+          ))}
           {shown.map((view) => (
-            <ViewSwitcher.Item key={view.to} render={<Link to={view.to} params={{ programId }} />}>
+            <ViewSwitcher.Item
+              key={view.to}
+              isActive={current === view.name}
+              render={<Link to={view.to} params={{ programId }} activeOptions={exact} />}
+            >
               {view.name}
             </ViewSwitcher.Item>
           ))}
@@ -124,7 +177,7 @@ export function ProgramViewRow({ programId, part }: { programId: string; part: P
                   to="/programs/$programId"
                   params={{ programId }}
                   {...partAddress(name)}
-                  activeOptions={{ exact: true, includeSearch: true }}
+                  activeOptions={exact}
                 />
               }
             >
