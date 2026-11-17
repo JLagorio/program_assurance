@@ -9,7 +9,7 @@
 // risks; the objectives are one read for every row, `control_objective_counts` through
 // `useControlObjectiveCounts` in control-objectives, and the table waits on it), its enhancements,
 // and its assessment objectives, parameters and links in collapsed Sections. The program's,
-// `/programs/:id/controls/:id`, trailed Programs › the program › Controls, is the band and trace
+// `/programs/:id/controls/:id`, trailed the program's code › Controls, is the band and trace
 // kept to that program, then the same text with the program's values for its parameters in place of
 // the catalog's placeholders; that address also names a control the program has implemented, by its
 // implementation, whose record opens with the same band and then keeps its own body: the
@@ -71,7 +71,7 @@ import { ControlLinks, ControlStatement, ParameterGroup } from "./library-contro
 import { ControlStandingFacts, ObjectiveCount } from "./control-status";
 import { ProductCollection } from "./product-collection";
 import { RecordLink, useOpenRecord } from "./record-preview";
-import { RecordTrail, TrailLink } from "./record-trail";
+import { ProgramTrail, RecordTrail, TrailLink } from "./record-trail";
 import {
   EmptyMessage,
   MissingRecord,
@@ -555,19 +555,7 @@ export function ProgramControl({ programId, controlId }: { programId: string; co
         {control && program.data ? (
           <>
             <PageHeader>
-              <RecordTrail current={controlName(control)}>
-                <TrailLink to="/programs">Programs</TrailLink>
-                <TrailLink to="/programs/$programId" params={{ programId }}>
-                  {`${program.data.code} · ${program.data.name}`}
-                </TrailLink>
-                <TrailLink
-                  to="/programs/$programId"
-                  params={{ programId }}
-                  search={{ tab: "Controls" }}
-                >
-                  Controls
-                </TrailLink>
-              </RecordTrail>
+              <ProgramTrail programId={programId} part="Controls" />
               <RecordHeading
                 status={
                   standing ? (

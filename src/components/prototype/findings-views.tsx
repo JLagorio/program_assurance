@@ -68,7 +68,7 @@ import {
 import { TraceBand } from "./assurance-trace";
 import { IssueRequirements } from "./issue-requirements";
 import { RecordSummaryPreview, type RecordSummaryField } from "./record-summary-preview";
-import { RecordTrail, TrailLink } from "./record-trail";
+import { ProgramTrail, RecordTrail, TrailLink } from "./record-trail";
 import {
   EntityEditor,
   EntitySection,
@@ -601,6 +601,14 @@ export function FindingRecord({ id }: { id: string }) {
   );
   const [editing, setEditing] = useState<DataRecord | null>(null);
   const row = query.data;
+  // Its program is its results' campaign's, which the trace says, as the side nav reads it: `null`
+  // where it names none or cannot be read, `undefined` while it is read (a trace kept from the
+  // finding before answers nothing of this one).
+  const programId = trace.isError
+    ? null
+    : trace.data && !trace.isPlaceholderData
+      ? (trace.data.findings.find((finding) => finding.id === id)?.program_id ?? null)
+      : undefined;
   const readOnly =
     workspace.role === "viewer" ||
     results.isPending ||
@@ -612,9 +620,15 @@ export function FindingRecord({ id }: { id: string }) {
         {row ? (
           <>
             <PageHeader>
-              <RecordTrail current={row.title}>
-                <TrailLink to="/findings">Findings & assets</TrailLink>
-              </RecordTrail>
+              {programId ? (
+                <ProgramTrail programId={programId} part="Findings" />
+              ) : (
+                programId === null && (
+                  <RecordTrail current={row.title}>
+                    <TrailLink to="/findings">Findings & assets</TrailLink>
+                  </RecordTrail>
+                )
+              )}
               <RecordHeading
                 status={
                   row.determination ? (
@@ -901,9 +915,7 @@ export function IssueRecord({
         {row ? (
           <>
             <PageHeader>
-              <RecordTrail current={row.title}>
-                <TrailLink to="/findings">Findings & assets</TrailLink>
-              </RecordTrail>
+              <ProgramTrail programId={row.program_id} part="Findings" />
               <RecordHeading
                 status={<StatusBadge statuses={operationalIssueStatuses} value={row.status} />}
               >
@@ -1022,15 +1034,32 @@ export function AssetRecord({ id }: { id: string }) {
   const query = useRow("inventory_items", id);
   const [editing, setEditing] = useState<DataRecord | null>(null);
   const row = query.data;
+  // Its program is its system's, whose record lists it, as the side nav reads it.
+  const system = useRow("systems", row?.system_id);
   return (
     <Page>
       <QueryState query={query} shape="record" region>
         {row ? (
           <>
             <PageHeader>
-              <RecordTrail current={row.name}>
-                <TrailLink to="/findings">Findings & assets</TrailLink>
-              </RecordTrail>
+              {/* In its system's program: the program's code › System › the system that holds
+                  it. An asset of no system stays in the organization, under its register. */}
+              {system.data ? (
+                <ProgramTrail programId={system.data.program_id} part="System">
+                  <TrailLink
+                    to="/programs/$programId/systems/$scopeId"
+                    params={{ programId: system.data.program_id, scopeId: system.data.id }}
+                  >
+                    {system.data.name}
+                  </TrailLink>
+                </ProgramTrail>
+              ) : (
+                (!row.system_id || system.data === null || system.isError) && (
+                  <RecordTrail current={row.name}>
+                    <TrailLink to="/findings">Findings & assets</TrailLink>
+                  </RecordTrail>
+                )
+              )}
               {/* An asset records no status: its name alone. */}
               <RecordHeading>{row.name}</RecordHeading>
               <PageHeader.Actions>

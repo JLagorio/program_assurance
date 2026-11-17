@@ -7,6 +7,7 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 import { chromium } from "playwright";
 import { createClient } from "@supabase/supabase-js";
+import { removeDisposableTenant } from "./tests/local-workspace.mjs";
 
 const dockerEnv = {
   ...process.env,
@@ -295,33 +296,11 @@ try {
       .from("evidence_versions")
       .select("storage_object_name")
       .eq("tenant_id", tenantId);
+    // Every row the test's own workspace holds goes with it, whatever the app wrote as the test used
+    // it (opening the program records a visit in assurance_navigation_items), as the suites on
+    // localWorkspace clean up.
     try {
-      execFileSync(
-        "docker",
-        [
-          "exec",
-          "-i",
-          "supabase_db_program-assurance",
-          "psql",
-          "-X",
-          "-q",
-          "-v",
-          "ON_ERROR_STOP=1",
-          "-v",
-          `tenant_id=${tenantId}`,
-          "-U",
-          "postgres",
-          "-d",
-          "postgres",
-        ],
-        {
-          env: dockerEnv,
-          encoding: "utf8",
-          stdio: ["pipe", "pipe", "pipe"],
-          input:
-            "begin; delete from public.evidence_versions where tenant_id = :'tenant_id'::uuid; delete from public.evidence_artifacts where tenant_id = :'tenant_id'::uuid; delete from public.systems where tenant_id = :'tenant_id'::uuid; delete from public.programs where tenant_id = :'tenant_id'::uuid; delete from public.tenants where id = :'tenant_id'::uuid; commit;",
-        },
-      );
+      removeDisposableTenant({ tenantId, userId, email, dockerEnv });
     } catch (error) {
       cleanupErrors.push(error.message);
     }

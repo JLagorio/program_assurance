@@ -3,8 +3,7 @@ import { Page, RecordPending } from "@/components/app/shell";
 import { QueryValue } from "@/components/prototype/library-shared";
 import { ProgramQueryState } from "@/components/prototype/program-shared";
 import { programViewPart } from "@/components/prototype/program-views";
-import { partAddress } from "@/lib/program-parts";
-import { RecordTrail, TrailLink } from "@/components/prototype/record-trail";
+import { ProgramTrail } from "@/components/prototype/record-trail";
 import { MissingRecord } from "@/components/prototype/work-common";
 import { useRow, useRows } from "@/lib/models";
 import {
@@ -100,19 +99,7 @@ function ProgramExport() {
   return (
     <Page>
       <PageHeader>
-        <RecordTrail current="Program transfer">
-          <TrailLink to="/programs">Programs</TrailLink>
-          <TrailLink to="/programs/$programId" params={{ programId }}>
-            {record.code} · {record.name}
-          </TrailLink>
-          <TrailLink
-            to="/programs/$programId"
-            params={{ programId }}
-            {...partAddress(programViewPart("Program transfer"))}
-          >
-            {programViewPart("Program transfer")}
-          </TrailLink>
-        </RecordTrail>
+        <ProgramTrail programId={programId} part={programViewPart("Program transfer")} />
         <PageHeader.Heading>
           <PageHeader.Title>Program transfer</PageHeader.Title>
         </PageHeader.Heading>

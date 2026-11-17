@@ -59,7 +59,7 @@
       "Regression": "Derived comparison rows with an explanation, not a record collection."
     },
     "budgets": {
-      "words": 42,
+      "words": 37,
       "primaries": 1,
       "zeros": 0,
       "constantColumns": 0,
@@ -83,7 +83,7 @@
     },
     "tabBudgets": {
       "Runs": {
-        "words": 35,
+        "words": 30,
         "primaries": 1,
         "zeros": 0,
         "constantColumns": 0,
@@ -104,7 +104,7 @@
         "statusHues": 0
       },
       "Execution": {
-        "words": 40,
+        "words": 35,
         "primaries": 1,
         "zeros": 0,
         "constantColumns": 0,
@@ -125,7 +125,7 @@
         "statusHues": 0
       },
       "Procedures": {
-        "words": 55,
+        "words": 50,
         "primaries": 1,
         "zeros": 0,
         "constantColumns": 0,
@@ -146,7 +146,7 @@
         "statusHues": 0
       },
       "Regression": {
-        "words": 33,
+        "words": 28,
         "primaries": 1,
         "zeros": 0,
         "constantColumns": 0,
@@ -215,15 +215,17 @@
       "current": "Frameworks"
     },
     "archetype": "Library",
-    "purpose": "Read the control catalog, its CCIs and their sources.",
+    "purpose": "Read the catalog by family and baseline, its CCIs and sources.",
     "primary": "none",
     "model": "controls",
     "tabList": "Framework views",
     "collectionTabs": ["Controls", "CCIs", "Sources"],
-    "tabExceptions": {},
+    "tabExceptions": {
+      "Baselines": "The edition by family against its reference baselines (a chart), then the programs that start from each: not one collection."
+    },
     "previewOnly": ["CCIs", "Sources"],
     "budgets": {
-      "words": 32,
+      "words": 35,
       "primaries": 0,
       "zeros": 0,
       "constantColumns": 0,
@@ -236,8 +238,8 @@
       "longStrings": 0,
       "longEmptyLines": 0,
       "buttons": 19,
-      "tabs": 3,
-      "tabExceptions": 0,
+      "tabs": 4,
+      "tabExceptions": 1,
       "cellMarks": 1,
       "charts": 0,
       "constantStatuses": 0,
@@ -247,7 +249,7 @@
     },
     "tabBudgets": {
       "CCIs": {
-        "words": 28,
+        "words": 29,
         "primaries": 0,
         "zeros": 0,
         "constantColumns": 0,
@@ -268,7 +270,7 @@
         "statusHues": 0
       },
       "Sources": {
-        "words": 12,
+        "words": 13,
         "primaries": 0,
         "zeros": 0,
         "constantColumns": 0,
@@ -283,6 +285,27 @@
         "buttons": 8,
         "cellMarks": 1,
         "charts": 0,
+        "constantStatuses": 0,
+        "cutNames": 0,
+        "foldedTables": 0,
+        "statusHues": 0
+      },
+      "Baselines": {
+        "words": 55,
+        "primaries": 0,
+        "zeros": 0,
+        "constantColumns": 0,
+        "repeatedPairs": 0,
+        "emptyFacts": 0,
+        "railRows": 0,
+        "sections": 1,
+        "adjacentEmptySections": 0,
+        "longDescriptions": 0,
+        "longStrings": 0,
+        "longEmptyLines": 0,
+        "buttons": 2,
+        "cellMarks": 0,
+        "charts": 1,
         "constantStatuses": 0,
         "cutNames": 0,
         "foldedTables": 0,
@@ -379,7 +402,7 @@
     "primary": "Edit evidence artifact",
     "model": "evidence_artifacts",
     "budgets": {
-      "words": 72,
+      "words": 71,
       "primaries": 1,
       "zeros": 0,
       "constantColumns": 0,
@@ -604,12 +627,12 @@
       "current": "Guidance"
     },
     "archetype": "Library",
-    "purpose": "Read the supplemental guidance beside the catalog: NIST SP 800-160.",
+    "purpose": "Read the NIST SP 800-160 frameworks: their items, tied controls and use.",
     "primary": "none",
     "model": "frameworks",
     "previewOnly": true,
     "budgets": {
-      "words": 8,
+      "words": 60,
       "primaries": 0,
       "zeros": 0,
       "constantColumns": 0,
@@ -621,11 +644,11 @@
       "longDescriptions": 0,
       "longStrings": 0,
       "longEmptyLines": 0,
-      "buttons": 7,
+      "buttons": 8,
       "tabs": 0,
       "tabExceptions": 0,
       "cellMarks": 0,
-      "charts": 0,
+      "charts": 1,
       "constantStatuses": 0,
       "cutNames": 0,
       "foldedTables": 0,
@@ -684,7 +707,7 @@
     "primary": "Edit operational issue",
     "model": "operational_issues",
     "budgets": {
-      "words": 128,
+      "words": 125,
       "primaries": 1,
       "zeros": 0,
       "constantColumns": 0,
@@ -1054,7 +1077,7 @@
       "Versions": "The contract preserves the ordered version-selection Table."
     },
     "budgets": {
-      "words": 43,
+      "words": 40,
       "primaries": 1,
       "zeros": 0,
       "constantColumns": 0,
@@ -1078,27 +1101,6 @@
     },
     "tabBudgets": {
       "Structure": {
-        "words": 35,
-        "primaries": 1,
-        "zeros": 0,
-        "constantColumns": 0,
-        "repeatedPairs": 0,
-        "emptyFacts": 0,
-        "railRows": 0,
-        "sections": 0,
-        "adjacentEmptySections": 0,
-        "longDescriptions": 0,
-        "longStrings": 0,
-        "longEmptyLines": 0,
-        "buttons": 3,
-        "cellMarks": 0,
-        "charts": 0,
-        "constantStatuses": 0,
-        "cutNames": 0,
-        "foldedTables": 0,
-        "statusHues": 0
-      },
-      "Configurations": {
         "words": 32,
         "primaries": 1,
         "zeros": 0,
@@ -1119,8 +1121,29 @@
         "foldedTables": 0,
         "statusHues": 0
       },
-      "Variants": {
+      "Configurations": {
         "words": 29,
+        "primaries": 1,
+        "zeros": 0,
+        "constantColumns": 0,
+        "repeatedPairs": 0,
+        "emptyFacts": 0,
+        "railRows": 0,
+        "sections": 0,
+        "adjacentEmptySections": 0,
+        "longDescriptions": 0,
+        "longStrings": 0,
+        "longEmptyLines": 0,
+        "buttons": 3,
+        "cellMarks": 0,
+        "charts": 0,
+        "constantStatuses": 0,
+        "cutNames": 0,
+        "foldedTables": 0,
+        "statusHues": 0
+      },
+      "Variants": {
+        "words": 26,
         "primaries": 1,
         "zeros": 0,
         "constantColumns": 0,
@@ -1141,7 +1164,7 @@
         "statusHues": 0
       },
       "Assessment": {
-        "words": 44,
+        "words": 41,
         "primaries": 1,
         "zeros": 0,
         "constantColumns": 0,
@@ -1162,7 +1185,7 @@
         "statusHues": 0
       },
       "Versions": {
-        "words": 21,
+        "words": 18,
         "primaries": 1,
         "zeros": 0,
         "constantColumns": 0,
@@ -1384,7 +1407,7 @@
     "primary": "Edit authorization package",
     "model": "authorization_packages",
     "budgets": {
-      "words": 37,
+      "words": 34,
       "primaries": 1,
       "zeros": 0,
       "constantColumns": 0,
@@ -1459,7 +1482,7 @@
     "primary": "Edit POA&M plan",
     "model": "poam_documents",
     "budgets": {
-      "words": 37,
+      "words": 33,
       "primaries": 1,
       "zeros": 0,
       "constantColumns": 0,
@@ -1656,7 +1679,7 @@
     },
     "previewOnly": ["Library"],
     "budgets": {
-      "words": 117,
+      "words": 114,
       "primaries": 1,
       "zeros": 0,
       "constantColumns": 0,
@@ -1764,7 +1787,7 @@
         "statusHues": 0
       },
       "Controls": {
-        "words": 37,
+        "words": 35,
         "primaries": 0,
         "zeros": 0,
         "constantColumns": 0,
@@ -1911,7 +1934,7 @@
     },
     "previewOnly": ["Decisions"],
     "budgets": {
-      "words": 30,
+      "words": 23,
       "primaries": 1,
       "zeros": 0,
       "constantColumns": 0,
@@ -1935,7 +1958,7 @@
     },
     "tabBudgets": {
       "Decisions": {
-        "words": 31,
+        "words": 24,
         "primaries": 1,
         "zeros": 0,
         "constantColumns": 0,
@@ -1956,7 +1979,7 @@
         "statusHues": 0
       },
       "Package": {
-        "words": 27,
+        "words": 20,
         "primaries": 1,
         "zeros": 0,
         "constantColumns": 0,
@@ -1992,7 +2015,7 @@
     "primary": "Edit program",
     "model": "programs",
     "budgets": {
-      "words": 27,
+      "words": 21,
       "primaries": 1,
       "zeros": 0,
       "constantColumns": 0,
@@ -2029,7 +2052,7 @@
     "primary": "Edit program",
     "model": "programs",
     "budgets": {
-      "words": 25,
+      "words": 17,
       "primaries": 1,
       "zeros": 0,
       "constantColumns": 0,
@@ -2066,7 +2089,7 @@
     "primary": "Edit program",
     "model": "programs",
     "budgets": {
-      "words": 25,
+      "words": 19,
       "primaries": 1,
       "zeros": 0,
       "constantColumns": 0,
@@ -2103,7 +2126,7 @@
     "primary": "Edit program",
     "model": "programs",
     "budgets": {
-      "words": 25,
+      "words": 19,
       "primaries": 1,
       "zeros": 0,
       "constantColumns": 0,
@@ -2140,7 +2163,7 @@
     "primary": "Edit program",
     "model": "programs",
     "budgets": {
-      "words": 103,
+      "words": 98,
       "primaries": 1,
       "zeros": 2,
       "constantColumns": 0,
@@ -2177,7 +2200,7 @@
     "primary": "Edit program",
     "model": "programs",
     "budgets": {
-      "words": 28,
+      "words": 20,
       "primaries": 1,
       "zeros": 0,
       "constantColumns": 0,
@@ -2214,7 +2237,7 @@
     "primary": "Edit program",
     "model": "programs",
     "budgets": {
-      "words": 25,
+      "words": 19,
       "primaries": 1,
       "zeros": 0,
       "constantColumns": 0,
@@ -2306,7 +2329,7 @@
     "primary": "Edit program",
     "model": "programs",
     "budgets": {
-      "words": 21,
+      "words": 15,
       "primaries": 1,
       "zeros": 0,
       "constantColumns": 0,
@@ -2348,7 +2371,7 @@
       "reason": "The address names a control implementation or a catalog control read inside the program; an id that is neither is a missing control. The SSP workflows seed an implementation, and the Controls name link check opens one."
     },
     "budgets": {
-      "words": 113,
+      "words": 105,
       "primaries": 1,
       "zeros": 0,
       "constantColumns": 0,
@@ -2397,7 +2420,7 @@
     "primary": "Export record register",
     "model": "programs",
     "budgets": {
-      "words": 46,
+      "words": 40,
       "primaries": 1,
       "zeros": 1,
       "constantColumns": 0,
@@ -2434,7 +2457,7 @@
     "primary": "Edit program",
     "model": "programs",
     "budgets": {
-      "words": 27,
+      "words": 21,
       "primaries": 1,
       "zeros": 0,
       "constantColumns": 0,
@@ -2471,7 +2494,7 @@
     "primary": "Edit program",
     "model": "programs",
     "budgets": {
-      "words": 44,
+      "words": 38,
       "primaries": 1,
       "zeros": 0,
       "constantColumns": 0,
@@ -2550,7 +2573,7 @@
     "primary": "Edit program",
     "model": "programs",
     "budgets": {
-      "words": 26,
+      "words": 20,
       "primaries": 1,
       "zeros": 0,
       "constantColumns": 0,
@@ -2587,7 +2610,7 @@
     "primary": "Edit program",
     "model": "programs",
     "budgets": {
-      "words": 106,
+      "words": 100,
       "primaries": 1,
       "zeros": 0,
       "constantColumns": 0,
@@ -2630,7 +2653,7 @@
     },
     "previewOnly": ["Library"],
     "budgets": {
-      "words": 64,
+      "words": 58,
       "primaries": 1,
       "zeros": 0,
       "constantColumns": 0,
@@ -2654,7 +2677,7 @@
     },
     "tabBudgets": {
       "Controls": {
-        "words": 50,
+        "words": 44,
         "primaries": 1,
         "zeros": 0,
         "constantColumns": 0,
@@ -2675,7 +2698,7 @@
         "statusHues": 0
       },
       "Requirements": {
-        "words": 35,
+        "words": 29,
         "primaries": 2,
         "zeros": 0,
         "constantColumns": 0,
@@ -2696,7 +2719,7 @@
         "statusHues": 0
       },
       "Library": {
-        "words": 41,
+        "words": 35,
         "primaries": 1,
         "zeros": 0,
         "constantColumns": 0,
@@ -2717,7 +2740,7 @@
         "statusHues": 0
       },
       "Evidence": {
-        "words": 37,
+        "words": 31,
         "primaries": 1,
         "zeros": 0,
         "constantColumns": 0,
@@ -2738,7 +2761,7 @@
         "statusHues": 0
       },
       "Inventory": {
-        "words": 37,
+        "words": 31,
         "primaries": 1,
         "zeros": 0,
         "constantColumns": 0,
@@ -2759,7 +2782,7 @@
         "statusHues": 0
       },
       "SSP": {
-        "words": 38,
+        "words": 32,
         "primaries": 1,
         "zeros": 0,
         "constantColumns": 0,
@@ -2809,7 +2832,7 @@
     "model": "programs",
     "reason": "Program workbook: editable source grids, analysis sheets, and reviewed atomic changes, following the workbook contract.",
     "budgets": {
-      "words": 102,
+      "words": 97,
       "primaries": 1,
       "zeros": 0,
       "constantColumns": 0,
@@ -3094,7 +3117,7 @@
     "primary": "Edit remediation item",
     "model": "poam_items",
     "budgets": {
-      "words": 93,
+      "words": 89,
       "primaries": 1,
       "zeros": 0,
       "constantColumns": 0,
@@ -3139,7 +3162,7 @@
       "Evidence": "Requires an assessment revision; this independent fixture checks its prerequisite empty state."
     },
     "budgets": {
-      "words": 112,
+      "words": 109,
       "primaries": 1,
       "zeros": 0,
       "constantColumns": 0,
@@ -3163,7 +3186,7 @@
     },
     "tabBudgets": {
       "Assessments": {
-        "words": 30,
+        "words": 27,
         "primaries": 1,
         "zeros": 0,
         "constantColumns": 0,
@@ -3184,7 +3207,7 @@
         "statusHues": 0
       },
       "Work": {
-        "words": 29,
+        "words": 26,
         "primaries": 1,
         "zeros": 0,
         "constantColumns": 0,
@@ -3205,7 +3228,7 @@
         "statusHues": 0
       },
       "Activity": {
-        "words": 25,
+        "words": 22,
         "primaries": 1,
         "zeros": 0,
         "constantColumns": 0,
@@ -3226,7 +3249,7 @@
         "statusHues": 0
       },
       "Responses": {
-        "words": 27,
+        "words": 24,
         "primaries": 1,
         "zeros": 0,
         "constantColumns": 0,
@@ -3247,7 +3270,7 @@
         "statusHues": 0
       },
       "Evidence": {
-        "words": 28,
+        "words": 25,
         "primaries": 1,
         "zeros": 0,
         "constantColumns": 0,
@@ -3403,7 +3426,7 @@
     "primary": "Edit task",
     "model": "tasks",
     "budgets": {
-      "words": 58,
+      "words": 52,
       "primaries": 1,
       "zeros": 0,
       "constantColumns": 0,
@@ -3516,7 +3539,7 @@
     "primary": "Edit workstream",
     "model": "workstreams",
     "budgets": {
-      "words": 34,
+      "words": 28,
       "primaries": 1,
       "zeros": 0,
       "constantColumns": 0,

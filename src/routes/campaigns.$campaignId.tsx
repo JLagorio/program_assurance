@@ -27,7 +27,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AssessmentCampaign } from "@/components/prototype/assessment-campaign";
 import { CampaignResults } from "@/components/prototype/campaign-results";
 import { usePublishResults } from "@/components/prototype/publish-results";
-import { RecordTrail, TrailLink } from "@/components/prototype/record-trail";
+import { ProgramTrail } from "@/components/prototype/record-trail";
 import { RelationName } from "@/components/prototype/record-tools";
 import { useRecordTitle } from "@/components/app/browser-title";
 import { Page, RecordPending } from "@/components/app/shell";
@@ -72,12 +72,8 @@ function CampaignDetail() {
                 on the other tabs alone: one alert for one outage. */}
             {tab !== "Overview" && <ReportFailures queries={toPublish.queries} />}
             <PageHeader>
-              <RecordTrail current={campaign.title}>
-                <TrailLink to="/campaigns">Assessment campaigns</TrailLink>
-                <TrailLink to="/programs/$programId" params={{ programId: campaign.program_id }}>
-                  <RelationName table="programs" id={campaign.program_id} peek={false} />
-                </TrailLink>
-              </RecordTrail>
+              {/* In its program's work scope: the program's code › Assessments. */}
+              <ProgramTrail programId={campaign.program_id} part="Assessments" />
               <RecordHeading
                 status={<StatusBadge statuses={campaignStatuses} value={campaign.status} />}
               >

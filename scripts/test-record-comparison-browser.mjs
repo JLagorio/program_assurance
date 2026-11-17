@@ -133,7 +133,11 @@ try {
     animations: "disabled",
   });
   console.log("PASS: pinned source remains beside the workbook.");
-  await page.getByRole("link", { name: "Programs", exact: true }).first().click();
+  // The workbook is in the program's work scope, whose trail and side nav hold no Programs link:
+  // Home leads back to the organization's side nav, which does.
+  const sideNav = page.getByRole("navigation", { name: "Side navigation", exact: true });
+  await sideNav.getByRole("link", { name: "Home", exact: true }).click();
+  await sideNav.getByRole("link", { name: "Programs", exact: true }).click();
   await page.getByRole("link", { name: "Comparison validation", exact: true }).waitFor();
   await reference.getByRole("heading", { name: "Alpha reference", exact: true }).waitFor();
   await page.getByRole("button", { name: "Unpin reference", exact: true }).click();

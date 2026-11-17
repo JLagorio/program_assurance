@@ -308,8 +308,11 @@ function useFoldedColumns<T extends { id: string }>(table: DataTableInstance<T>,
         if (!meta || !column.accessorFn || held.has(column.id)) return false;
         if (meta.priority === 0 || ["id", "actions", "custom"].includes(meta.kind)) return false;
         const read = meta.kind === "date" ? day : sameness;
-        const first = read(rows[0]!.getValue(column.id));
-        return rows.every((row) => read(row.getValue(column.id)) === first);
+        // The accessor, not the row's cached value: a column whose values arrive in a later read
+        // (a name read after the rows) keeps the value the row first cached until the data changes.
+        const accessor = column.accessorFn;
+        const first = read(accessor(rows[0]!.original, rows[0]!.index));
+        return rows.every((row) => read(accessor(row.original, row.index)) === first);
       })
       .map((column) => column.id);
     return folded.length ? folded : undefined;

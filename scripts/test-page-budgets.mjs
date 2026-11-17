@@ -7,7 +7,9 @@
  * (each other declared tab) in docs/guides/screen-inventory.json; they may only fall, as the allow
  * lists do: check-allow-lists fails a ceiling that rose against the base ref, and this sweep fails a
  * page that measures over its ceiling, naming the route, the tab, the budget, the value and the
- * ceiling. A page under its ceiling passes and says the ceiling can fall.
+ * ceiling. A page under its ceiling passes and says the ceiling can fall. A blank view (no h1 in
+ * Main, or one a dev-server reload left white) is measured again, then opened a second time; still
+ * blank, it fails by name and is never compared, so --update never lowers a ceiling from it.
  *
  *   node scripts/test-page-budgets.mjs            # measure and compare (APP_TEST_URL, else :8080)
  *   node scripts/test-page-budgets.mjs --update   # lower the ceilings to what was measured; record
@@ -136,11 +138,13 @@ const measured = inventory.filter(
  */
 function measure({ fold }) {
   const main = document.querySelector("main");
-  // A page the dev server is reloading has no Main yet: measured again once it has.
-  if (!main || !main.querySelector("h1")) return null;
   const visible = (element) =>
     element.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true }) &&
     [...element.getClientRects()].some((rect) => rect.width > 1 && rect.height > 1);
+  // A blank page is not measured: one the dev server is reloading has no Main or no h1 yet, and
+  // one still rising in, or left mid-load, draws its h1 nowhere a reader sees it.
+  const heading = main?.querySelector("h1");
+  if (!heading || !visible(heading) || !/[\p{L}\p{N}]/u.test(heading.innerText)) return null;
   // A table's rows are its data; an empty state drawn in a table's body is the page's.
   const inRows = (element) =>
     Boolean(element.closest("tbody tr")) && !element.closest('[data-slot="empty"]');
@@ -513,25 +517,53 @@ async function settle(page, inflight) {
   await page.evaluate(() => document.fonts.ready);
 }
 
-/** Measures the page once it reads the same twice in a row. */
-async function stableMeasure(page, inflight) {
+/**
+ * Measures the page once it reads the same twice in a row, both in one document: a page the dev
+ * server reloads under the sweep (as it does once it has optimized a dependency a route loads
+ * first, such as the spreadsheet engine) is measured again once the new document has settled, and
+ * a blank page (no h1 in Main, or one drawn nowhere a reader sees it) once it has settled again.
+ * Answers null for a page still blank after that, which the caller fails rather than records.
+ */
+async function stableMeasure(page, inflight, documents) {
   let last;
-  for (let attempt = 0; attempt < 6; attempt += 1) {
-    await expect(page.getByRole("main").getByRole("heading", { level: 1 })).toBeVisible();
-    await settle(page, inflight);
-    await page.evaluate(() => {
-      window.scrollTo(0, 0);
-      for (const element of document.querySelectorAll("main, main *"))
-        if (element.scrollTop) element.scrollTop = 0;
-    });
-    const next = await page.evaluate(measure, { fold: FOLD });
-    if (!next) continue;
+  let blank = 0;
+  for (let attempt = 0; attempt < 10 && blank < 4; attempt += 1) {
+    const loaded = documents.loaded;
+    let next = null;
+    try {
+      await expect(page.getByRole("main").getByRole("heading", { level: 1 })).toBeVisible({
+        timeout: 15000,
+      });
+      await settle(page, inflight);
+      await page.evaluate(() => {
+        window.scrollTo(0, 0);
+        for (const element of document.querySelectorAll("main, main *"))
+          if (element.scrollTop) element.scrollTop = 0;
+      });
+      next = await page.evaluate(measure, { fold: FOLD });
+    } catch (error) {
+      // A reload destroys the context a read ran in, and a page with no h1 is blank; any other
+      // failure is the sweep's own.
+      const noHeading = /toBeVisible/.test(error.message);
+      if (documents.loaded === loaded && !noHeading) throw error;
+    }
+    if (documents.loaded !== loaded) {
+      // A new document since this attempt began: nothing read before it counts.
+      last = undefined;
+      continue;
+    }
+    if (!next) {
+      blank += 1;
+      last = undefined;
+      await page.waitForTimeout(1000);
+      continue;
+    }
+    blank = 0;
     if (last && JSON.stringify(last.values) === JSON.stringify(next.values)) return next;
     last = next;
     await page.waitForTimeout(400);
   }
-  assert.ok(last, `${page.url()}: the page drew no Main to measure`);
-  return last;
+  return last ?? null;
 }
 
 /** A declared tab, by its name before any count. */
@@ -542,6 +574,8 @@ function tabNamed(tabs, tabName) {
 }
 
 const results = [];
+/** The views still blank once measured again: each fails, and is never compared or recorded. */
+const blank = [];
 const workspace = await localWorkspace("page-budgets");
 let browser;
 try {
@@ -563,13 +597,35 @@ try {
   });
   for (const event of ["requestfinished", "requestfailed"])
     page.on(event, (request) => inflight.delete(request));
+  // Each document the page loads, a reload the dev server asks for included.
+  const documents = { loaded: 0 };
+  page.on("load", () => (documents.loaded += 1));
   await signIn(page, origin, workspace, expect);
+  /**
+   * Opens a view and measures it. A view still blank once measured again is opened a second time
+   * (a reload the dev server asks for can leave the page it reloads white) and measured again; one
+   * blank again fails by name, and is never compared or recorded.
+   */
+  async function measureView(where, open, shot) {
+    for (let opening = 0; opening < 2; opening += 1) {
+      if (opening) console.log(`REOPENED ${where}: blank once measured again, so opened again`);
+      await open(opening > 0);
+      const view = await stableMeasure(page, inflight, documents);
+      if (shots) await page.screenshot({ path: shot });
+      if (view) return view;
+    }
+    blank.push(`${where} drew a blank page, opened twice (${page.url()})`);
+    console.log(`BLANK ${where}`);
+    return null;
+  }
   for (const screen of measured) {
     const path = routePath(fixtures, screen);
-    await page.goto(`${origin}${path}`);
-    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-    const opened = await stableMeasure(page, inflight);
-    if (shots) await page.screenshot({ path: shotName(screen) });
+    const opened = await measureView(
+      screen.path,
+      () => page.goto(`${origin}${path}`),
+      shotName(screen),
+    );
+    if (!opened) continue;
     const fixture = fixtures[screen.model]?.[0];
     const result = {
       screen,
@@ -587,10 +643,20 @@ try {
         if (tabName === screen.tabAddress.opens) continue;
         const url = new URL(`${origin}${path}`);
         url.searchParams.set(screen.tabAddress.search, tabName);
-        await page.goto(url.href);
-        await expect(page.getByRole("heading", { level: 1 })).toHaveText(tabName);
-        const view = await stableMeasure(page, inflight);
-        if (shots) await page.screenshot({ path: shotName(screen, tabName) });
+        const title = page.getByRole("main").getByRole("heading", { level: 1 });
+        const view = await measureView(
+          `${screen.path} tab ${tabName}`,
+          async () => {
+            await page.goto(url.href);
+            // The part's own h1, not the workspace opening; a blank page is measureView's to judge.
+            await expect(title)
+              .toHaveText(tabName)
+              .catch(() => {});
+          },
+          shotName(screen, tabName),
+        );
+        if (!view) continue;
+        await expect(title).toHaveText(tabName);
         const { tabs: _strip, ...perTab } = view.values;
         result.tabs[tabName] = perTab;
       }
@@ -602,10 +668,19 @@ try {
         .trim();
       for (const tabName of [...screen.collectionTabs, ...Object.keys(screen.tabExceptions)]) {
         if (tabName === selected) continue;
-        await tabNamed(strip, tabName).click();
-        await expect(tabNamed(strip, tabName)).toHaveAttribute("aria-selected", "true");
-        const view = await stableMeasure(page, inflight);
-        if (shots) await page.screenshot({ path: shotName(screen, tabName) });
+        const view = await measureView(
+          `${screen.path} tab ${tabName}`,
+          async (again) => {
+            if (again) {
+              await page.goto(`${origin}${path}`);
+              await expect(strip).toBeVisible();
+            }
+            await tabNamed(strip, tabName).click();
+            await expect(tabNamed(strip, tabName)).toHaveAttribute("aria-selected", "true");
+          },
+          shotName(screen, tabName),
+        );
+        if (!view) continue;
         const { tabs: _strip, ...perTab } = view.values;
         result.tabs[tabName] = perTab;
       }
@@ -622,7 +697,7 @@ try {
 }
 
 // Compare with the ceilings; with --update, lower them and record what had none.
-const failures = [];
+const failures = [...blank];
 const lower = [];
 const recorded = [];
 const order = BUDGETS.map((budget) => budget.key);
@@ -752,7 +827,7 @@ if (gaps) {
 }
 
 if (failures.length) {
-  console.error(`\nPages over their budget ceilings:\n  ${failures.join("\n  ")}`);
+  console.error(`\nPages over their budget ceilings, or blank:\n  ${failures.join("\n  ")}`);
   process.exit(1);
 }
 console.log(

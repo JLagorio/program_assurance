@@ -67,7 +67,7 @@ import {
   RevisionName,
   type DisplayColumn,
 } from "./record-tools";
-import { RecordTrail, TrailLink } from "./record-trail";
+import { ProgramTrail } from "./record-trail";
 import { RetainedTabPanels } from "./program-shared";
 import { TraceBand, TraceRemediationSection } from "./assurance-trace";
 import { RiskThreats } from "./risk-threats";
@@ -190,15 +190,14 @@ const versionColumns: DisplayColumn[] = [
   { key: "published_at", label: "Published" },
 ];
 
-/** The trail every POA&M and risk record starts from, back to the collection the record is in. */
-function RegisterTrail({ current, tab }: { current: string; tab: RegisterTab }) {
-  return (
-    <RecordTrail current={current}>
-      <TrailLink to="/register" search={{ tab }}>
-        POA&M & risk register
-      </TrailLink>
-    </RecordTrail>
-  );
+/**
+ * The trail a POA&M or risk record starts from. A record of a program is in its work scope, so it
+ * is trailed the program's code › the part that lists it (Risks, else POA&M), as the side nav marks
+ * it; one whose program is still being read draws none yet, as the nav keeps the organization.
+ */
+function RegisterTrail({ tab, programId }: { tab: RegisterTab; programId: string | undefined }) {
+  if (!programId) return null;
+  return <ProgramTrail programId={programId} part={tab === "risks" ? "Risks" : "POA&M"} />;
 }
 
 /** A register's root: the page's own when it is the page, a block of a tab when it sits in one. */
@@ -540,7 +539,7 @@ export function RiskRecord({
         {record ? (
           <>
             <PageHeader>
-              <RegisterTrail current={record.title} tab="risks" />
+              <RegisterTrail tab="risks" programId={record.program_id} />
               <RecordHeading status={<StatusBadge statuses={riskStatuses} value={record.status} />}>
                 {record.title}
               </RecordHeading>
@@ -1101,6 +1100,8 @@ export function PoamRecord({ id }: { id: string }) {
   const [editing, setEditing] = useState<DataRecord | null>(null),
     [selected, setSelected] = useState<string | null>(null);
   const record = query.data;
+  // Its program is its POA&M plan's, which the side nav reads too.
+  const plan = useRow("poam_documents", record?.poam_document_id);
   // The latest commitment is the one still due; an earlier one was replaced by it.
   const latest = versions.data?.slice().sort((a, b) => b.version_number - a.version_number)[0];
   const version = versions.data?.find((row) => row.id === selected) ?? latest;
@@ -1110,7 +1111,7 @@ export function PoamRecord({ id }: { id: string }) {
         {record ? (
           <>
             <PageHeader>
-              <RegisterTrail current={record.title} tab="poam" />
+              <RegisterTrail tab="poam" programId={plan.data?.program_id} />
               <RecordHeading
                 status={<StatusBadge statuses={remediationStatuses} value={record.status} />}
               >
@@ -1352,7 +1353,7 @@ export function PoamDocument({ id }: { id: string }) {
         {query.data ? (
           <>
             <PageHeader>
-              <RegisterTrail current={query.data.title} tab="documents" />
+              <RegisterTrail tab="documents" programId={query.data.program_id} />
               {/* A POA&M plan records no status of its own: its name alone. */}
               <RecordHeading>{query.data.title}</RecordHeading>
               <PageHeader.Actions>

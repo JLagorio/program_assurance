@@ -32,7 +32,7 @@ import { useWorkspace } from "@/components/app/workspace";
 import { Page } from "@/components/app/shell";
 import { type DataRecord } from "@/lib/records";
 import { revisionStates } from "@/lib/status";
-import { RecordTrail, TrailLink } from "./record-trail";
+import { ProgramTrail } from "./record-trail";
 import { useProgramNames } from "./program-filter";
 import {
   EntityEditor,
@@ -238,9 +238,9 @@ export function PackageRecord({ id }: { id: string }) {
         {row ? (
           <>
             <PageHeader>
-              <RecordTrail current={row.title}>
-                <TrailLink to="/packages">Authorization packages</TrailLink>
-              </RecordTrail>
+              {/* In its program's work scope: the program's code › Authorization, whose Package
+                  tab lists it. */}
+              <ProgramTrail programId={row.program_id} part="Authorization" />
               {/* A package records no status of its own: each version keeps its state. */}
               <RecordHeading>{row.title}</RecordHeading>
               <PageHeader.Actions>

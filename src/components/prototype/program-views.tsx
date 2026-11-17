@@ -5,13 +5,16 @@
 // Each part of a program's record lists its focused views first, in a row of small LinkButtons
 // named `<part> views` (`ProgramViewRow` in program-views; the Overview's leads its body), only
 // those that apply: Product delta once a system was created from a product, Compliance matrix once
-// a requirements document was received. A view is never only in a menu. The row also leads to a
-// part the side nav does not name, under the part it belongs to: System's lists Library. A focused
-// program view's h1 is the view's name, its trail is Programs › the program › the part that lists
-// it, and its browser title is `<view> — <program name> — Program Assurance` (`useViewTitle`); it
-// uses the full work area without the program's Details. The program's Details and References
-// belong only to its Overview; focused views, including Workbook, Traceability matrix and Program
-// transfer, do not render that rail or its narrow-screen disclosure.
+// a requirements document was received. A view is never only in a menu. A row lists only the views
+// the side nav does not name: Control baseline (the nav's Baseline) and Authorization are in no
+// row, so the Overview's row holds Program transfer alone. The row also leads to a part the side
+// nav does not name, under the part it belongs to: System's lists Library. A focused program
+// view's h1 is the view's name, its trail is the program's code › the part that lists it
+// (`ProgramTrail` in record-trail; a view the nav names has none), and its browser title is
+// `<view> — <program name> — Program Assurance` (`useViewTitle`); it uses the full work area
+// without the program's Details. The program's Details and References belong only to its
+// Overview; focused views, including Workbook, Traceability matrix and Program transfer, do not
+// render that rail or its narrow-screen disclosure.
 
 import { Link } from "@tanstack/react-router";
 import { ViewSwitcher } from "@ledger/design-system";
@@ -22,13 +25,14 @@ import { ReportFailures, type QueryStatus } from "./work-common";
 
 /**
  * The program's focused views, each a page of its own under the program, listed under the part
- * whose work it reads. A view that repeats a part ("Cyber T&E phases", the Assessments part) or
- * lands back on the Overview (the old dashboard address) is not one. A view that only applies to
- * some programs says what it waits on: `variant`, a system created from a product; `document`, a
- * customer's requirements document.
+ * whose work it reads, or named by the side nav itself (`nav`: Baseline, Authorization), which
+ * lists it in no part's row. A view that repeats a part ("Cyber T&E phases", the Assessments part)
+ * or lands back on the Overview (the old dashboard address) is not one. A view that only applies
+ * to some programs says what it waits on: `variant`, a system created from a product; `document`,
+ * a customer's requirements document.
  */
 export const programViews = [
-  { name: "Authorization", to: "/programs/$programId/authorization", part: "Overview" },
+  { name: "Authorization", to: "/programs/$programId/authorization", nav: "Authorization" },
   { name: "Program transfer", to: "/programs/$programId/export", part: "Overview" },
   { name: "Configuration baseline", to: "/programs/$programId/baseline", part: "System" },
   { name: "Posture", to: "/programs/$programId/posture", part: "Requirements" },
@@ -41,7 +45,7 @@ export const programViews = [
   { name: "Workbook", to: "/programs/$programId/workbook", part: "Requirements" },
   { name: "Traceability matrix", to: "/programs/$programId/sctm", part: "Requirements" },
   { name: "Control status", to: "/programs/$programId/control-status", part: "Controls" },
-  { name: "Control baseline", to: "/programs/$programId/control-baseline", part: "Controls" },
+  { name: "Control baseline", to: "/programs/$programId/control-baseline", nav: "Baseline" },
   { name: "Cyber resiliency", to: "/programs/$programId/resiliency", part: "Controls" },
   {
     name: "Product delta",
@@ -53,19 +57,22 @@ export const programViews = [
   { name: "Continuous monitoring", to: "/programs/$programId/conmon", part: "Assessments" },
   { name: "Scanner ingestion", to: "/programs/$programId/ingestion", part: "Assessments" },
   { name: "Residual risk", to: "/programs/$programId/risk", part: "Risks" },
-] as const satisfies readonly {
+] as const satisfies readonly ({
   name: string;
   to: string;
-  part: ProgramPart;
   when?: "variant" | "document";
-}[];
+} & ({ part: ProgramPart } | { nav: "Baseline" | "Authorization" }))[];
 
 export type ProgramView = (typeof programViews)[number];
 export type ProgramViewName = ProgramView["name"];
 
-/** The part a view is listed under, which its trail names between the program and the view. */
-export function programViewPart(name: ProgramViewName): ProgramPart {
-  return programViews.find((view) => view.name === name)!.part;
+/**
+ * The part a view is listed under, which its trail names after the program; none for a view the
+ * side nav names, which has no trail.
+ */
+export function programViewPart(name: ProgramViewName): ProgramPart | undefined {
+  const view = programViews.find((each) => each.name === name);
+  return view && "part" in view ? view.part : undefined;
 }
 
 /**
@@ -84,7 +91,7 @@ const partsUnder: Partial<Record<ProgramPart, readonly ProgramPart[]>> = { Syste
  * so none is current. A part with no view draws nothing.
  */
 export function ProgramViewRow({ programId, part }: { programId: string; part: ProgramPart }) {
-  const listed = programViews.filter((view) => view.part === part);
+  const listed = programViews.filter((view) => "part" in view && view.part === part);
   const under = partsUnder[part] ?? [];
   const waits = (on: "variant" | "document") =>
     listed.some((view) => "when" in view && view.when === on);

@@ -234,7 +234,7 @@ export function ProgramLibrary({
         empty={{
           illustration: "records",
           title: "Nothing applied from the library yet",
-          description: "Use Add from library on a System tab element.",
+          description: "Use Add from library on an element in System.",
           // The way to where the work happens: the program's System tab, where elements add from the library.
           action: (
             <LinkButton

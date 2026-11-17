@@ -4,10 +4,11 @@
 //
 // One page-level h1 names the record. The breadcrumb goes in `PageHeader.Lead` as a `RecordTrail`
 // of `TrailLink`s from record-trail, which matches exactly and marks only its last level current. A
-// record inside a program (a requirement, a control, a component, a system) is trailed Programs ›
-// the program › the program tab that lists it › any element that contains it: program-record draws
-// it for the system, component and control records, and requirement-record for a requirement. The
-// name goes in `PageHeader.Title` through `RecordHeading` in work-common, with the record's
+// page in a program's work scope (each record of the program, whatever its address, and a focused
+// view the side nav does not name) is trailed by `ProgramTrail`: the program's code › the part that
+// lists it › any element that contains it, with no current level, as the pass-six boards draw it
+// (a task through Schedule, a workstream by its program alone); a part, and a view the nav names,
+// has none. A record of no program keeps its register's trail. The name goes in `PageHeader.Title` through `RecordHeading` in work-common, with the record's
 // `StatusBadge` beside it where it has a status or state (a control's is its control status), and
 // `RecordActions` goes in `PageHeader.Actions`: the edit as its one primary, the record's other
 // commands as its children in one Actions menu, which a reader with none does not see. A code goes
@@ -104,7 +105,7 @@ import { Page, RecordPending } from "@/components/app/shell";
 import { useWorkspace } from "@/components/app/workspace";
 import { useDraftGuard } from "@/components/app/use-draft-guard";
 import { LevelIndicator, StatusBadge } from "@/components/app/status";
-import { RecordTrail, TrailLink } from "@/components/prototype/record-trail";
+import { ProgramTrail } from "@/components/prototype/record-trail";
 import { RelationName } from "@/components/prototype/record-tools";
 import {
   DetailFacts,
@@ -321,12 +322,8 @@ function TaskDetail({ taskId }: { taskId: string }) {
         {task ? (
           <>
             <PageHeader>
-              <RecordTrail current={task.title}>
-                <TrailLink to="/work">My work</TrailLink>
-                <TrailLink to="/programs/$programId" params={{ programId: task.program_id }}>
-                  <RelationName table="programs" id={task.program_id} peek={false} />
-                </TrailLink>
-              </RecordTrail>
+              {/* In its program's work scope: the program's code › Schedule, which lists it. */}
+              <ProgramTrail programId={task.program_id} part="Schedule" />
               <RecordHeading status={<StatusBadge statuses={taskStatuses} value={task.status} />}>
                 {task.title}
               </RecordHeading>

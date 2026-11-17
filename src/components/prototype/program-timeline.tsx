@@ -143,7 +143,7 @@ export function ProgramTimeline({
         <EmptyMessage
           compact
           title="No lifecycle gates yet"
-          description="Gates are set on the Schedule tab."
+          description="Gates are set in Schedule."
           action={
             <LinkButton size="small" render={schedule}>
               Set up program work

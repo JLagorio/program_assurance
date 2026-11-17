@@ -68,7 +68,7 @@ import { useSystemAssurance } from "./use-system-assurance";
 import { TraceBand } from "./assurance-trace";
 import { ControlStandingFacts } from "./control-status";
 import { RelationName } from "./record-tools";
-import { RecordTrail, TrailLink } from "./record-trail";
+import { ProgramTrail, TrailLink } from "./record-trail";
 import { SspAssembly } from "./ssp-assembly";
 import {
   ProgramCollection,
@@ -129,8 +129,8 @@ function ProgramRecordFrame({
   children: ReactNode;
   readOnly?: boolean;
   renderEditor?: ((onClose: () => void) => ReactNode) | undefined;
-  /** The program tab that holds this record's collection: the trail's level after the program. */
-  collection: { label: string; tab: "System" | "Controls" };
+  /** The program part that lists this record: the trail's level after the program. */
+  collection: { tab: "System" | "Controls" };
   /** Levels between the collection and this record, outermost first: TrailLinks to the containing elements. */
   trail?: ReactNode[] | undefined;
   /** The record's other commands, as menu items, in the Actions menu after its Edit primary. */
@@ -158,20 +158,11 @@ function ProgramRecordFrame({
       <ProgramQueryState region>
         <ReportFailures queries={[program, ...queries]} />
         <PageHeader>
-          <RecordTrail current={title}>
-            <TrailLink to="/programs">Programs</TrailLink>
-            <TrailLink to="/programs/$programId" params={{ programId }}>
-              {program.data ? `${program.data.code} · ${program.data.name}` : "Program"}
-            </TrailLink>
-            <TrailLink
-              to="/programs/$programId"
-              params={{ programId }}
-              search={{ tab: collection.tab }}
-            >
-              {collection.label}
-            </TrailLink>
+          {/* The work scope's trail: the program's code › the part that lists the record › the
+              elements that hold it; the h1 names the record. */}
+          <ProgramTrail programId={programId} part={collection.tab}>
             {trail}
-          </RecordTrail>
+          </ProgramTrail>
           <RecordHeading status={status}>{title}</RecordHeading>
           <PageHeader.Actions>
             <RecordActions
@@ -290,7 +281,7 @@ export function ProgramSystemRecord({
       recordType="System"
       row={system as DataRecord}
       title={system.name}
-      collection={{ label: "System", tab: "System" }}
+      collection={{ tab: "System" }}
       trail={ancestors.map((ancestor) => (
         <TrailLink
           key={ancestor.id}
@@ -640,7 +631,7 @@ export function ProgramComponentRecord({
       row={record as DataRecord}
       title={record.name}
       readOnly
-      collection={{ label: "System", tab: "System" }}
+      collection={{ tab: "System" }}
       summary={<StatusBadge statuses={componentStatuses} value={record.status} />}
       status={<StatusBadge statuses={componentStatuses} value={record.status} />}
       trail={[
@@ -772,7 +763,7 @@ export function ProgramControlRecord({
       readOnly={plan.data?.state === "published"}
       row={row as DataRecord}
       title={control.data ? controlName(control.data) : "Control implementation"}
-      collection={{ label: "Controls", tab: "Controls" }}
+      collection={{ tab: "Controls" }}
       summary={<StatusBadge statuses={implementationStatuses} value={row.implementation_status} />}
       // Where the program stands on the control, as its record outside the SSP says it.
       status={

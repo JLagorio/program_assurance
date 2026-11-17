@@ -61,6 +61,7 @@ Twelve parts, each built on one that ships, through `/ledger-add-part`; the shee
 - [x] Navigation, two scopes in one side nav (`scope-navigation.tsx`, `navigation-scope.ts`; each route's scope and entry in the inventory's `nav`). Organization: Home, Portfolio, Programs, Library (Frameworks, Overlays, Guidance, Components), and a Registers group holding the other destinations until they have a place. Work, under a product or a program: the switcher, Overview, System, Baseline, Controls, Requirements, Evidence, Findings, POA&M, Risks, Assessments, Authorization
 - [x] The program's tab strip goes, now the work scope repeats it: each entry is a part at its old address, named by its h1 (`src/lib/program-parts.ts`)
 - [x] A program's records open in its work scope (risk, remediation item, POA&M plan, issue, finding, asset, evidence, campaign, package), their entry current; a task and a workstream mark none
+- [x] One trail in a work scope: program code › the part that lists the page › its element; a part and a view the nav names have none
 - [x] Library names match their pages: Frameworks (the catalog), Guidance (`/guidance`, the four SP 800-160 frameworks; the board's counts, In use column and family matrix are not built)
 - [x] Words in `src/lib/status.ts` and `product-records.ts`: Component (one) and Component set; Offer to owner, Withdraw offer, Accept, Return; Verified for reviewed evidence, Satisfied stays the assessor's; RMF's short decision words (IATT and ATU wait for D5's data). To review comes with the component screens, the first to show it
 - [x] Page budgets, first pass: catalog Sources a register (401 words to 12), empty facts and zero tiles drawn as nothing, empty-state lines under 10 words; the buttons left on SSP, Controls and the catalog are the table's own pager and column menus
@@ -79,7 +80,7 @@ Built over real records, then `/verify-screen`. Each link opens the flow's first
 - [ ] 1 · [The organization](https://claude.ai/artifact/Fm8T8rkFfeiARpGBB7U7jM#portfolio): 8 screens. Portfolio, product Structure, Components register, the component record's five tabs
 - [ ] 2 · [Assess once, use everywhere](https://claude.ai/artifact/Fm8T8rkFfeiARpGBB7U7jM#component-assess): 7. Component assessment, Assessments, the System page's Library tab, Take version, a control decided by inheritance
 - [ ] 3 · [Found below, reviewed above](https://claude.ai/artifact/Fm8T8rkFfeiARpGBB7U7jM#finding-cve--offer): 4. Offer to owner, Home, the offer on the component's Findings tab, after Accept
-- [ ] 4 · [The libraries](https://claude.ai/artifact/Fm8T8rkFfeiARpGBB7U7jM#lib-frameworks): 3
+- [ ] 4 · [The libraries](https://claude.ai/artifact/Fm8T8rkFfeiARpGBB7U7jM#lib-frameworks): 3. Built: Guidance (band, frameworks by publication, Named by, Controls tied by family) and Frameworks › Baselines (Controls by family, Programs by baseline); Overlays and Components as they were
 - [ ] 5 · [Know the system](https://claude.ai/artifact/Fm8T8rkFfeiARpGBB7U7jM#sys-overview): 3
 - [ ] 6 · [Select the baseline](https://claude.ai/artifact/Fm8T8rkFfeiARpGBB7U7jM#baseline): 2
 - [ ] 7 · [Implement and map](https://claude.ai/artifact/Fm8T8rkFfeiARpGBB7U7jM#impl): 4

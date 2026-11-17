@@ -31,6 +31,8 @@ export const registerViews = {
   components: "library-components",
   /** A component record's offers: what programs offered its owner, across its versions. */
   componentOffers: "component-offers",
+  /** The Frameworks page's Controls: an edition's controls, a page at a time. */
+  catalogControls: "live-library-controls-v2",
 } as const;
 
 /**

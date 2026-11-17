@@ -5,6 +5,65 @@ import { randomUUID } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 import { localDockerEnv } from "../local-docker-env.mjs";
 
+/**
+ * Deletes one disposable test workspace: every row of the tenant in each public table that carries
+ * a `tenant_id` (what the app writes as the test uses it too, such as a visit the side nav records in
+ * `assurance_navigation_items`), then the tenant. It first checks that the tenant is the personal
+ * workspace of that exact `@example.test` account, so it never reaches a workspace the test did not
+ * create. Trigger bypass is transaction-local and every delete is tenant-filtered. The account
+ * itself, and any stored file, are the caller's to remove after it.
+ */
+export function removeDisposableTenant({ tenantId, userId, email, dockerEnv }) {
+  const sql = `begin;
+    select set_config('test.cleanup_tenant', :'tenant_id', true);
+    select set_config('test.cleanup_user', :'user_id', true);
+    select set_config('test.cleanup_email', :'test_email', true);
+    do $cleanup$
+    declare target_table record; target_tenant uuid := current_setting('test.cleanup_tenant')::uuid;
+    begin
+      if not exists (
+        select 1 from public.tenants t join auth.users u on u.id=t.personal_owner_id
+        where t.id=target_tenant and u.id=current_setting('test.cleanup_user')::uuid
+        and u.email=current_setting('test.cleanup_email') and u.email like '%@example.test'
+      ) then raise exception 'Disposable test workspace identity did not match'; end if;
+      perform set_config('session_replication_role','replica',true);
+      for target_table in
+        select c.relname from pg_class c join pg_namespace n on n.oid=c.relnamespace
+        where n.nspname='public' and c.relkind='r'
+        and exists (select 1 from pg_attribute a where a.attrelid=c.oid and a.attname='tenant_id' and not a.attisdropped)
+      loop
+        execute format('delete from public.%I where tenant_id=$1',target_table.relname) using target_tenant;
+      end loop;
+      delete from public.tenants where id=target_tenant;
+      perform set_config('session_replication_role','origin',true);
+    end $cleanup$;
+    commit;`;
+  execFileSync(
+    "docker",
+    [
+      "exec",
+      "-i",
+      "supabase_db_program-assurance",
+      "psql",
+      "-X",
+      "-q",
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-v",
+      `tenant_id=${tenantId}`,
+      "-v",
+      `user_id=${userId}`,
+      "-v",
+      `test_email=${email}`,
+      "-U",
+      "supabase_admin",
+      "-d",
+      "postgres",
+    ],
+    { env: dockerEnv, encoding: "utf8", stdio: ["pipe", "pipe", "pipe"], input: sql },
+  );
+}
+
 export async function localWorkspace(prefix = "program-wizard") {
   assert.match(prefix, /^[a-z-]+$/);
   const dockerEnv = localDockerEnv();
@@ -35,58 +94,7 @@ export async function localWorkspace(prefix = "program-wizard") {
   });
   let tenantId;
   const cleanup = async () => {
-    // Check the exact disposable identity and its personal workspace before any
-    // cleanup. Trigger bypass is transaction-local and every delete is tenant-filtered.
-    if (tenantId) {
-      const sql = `begin;
-        select set_config('test.cleanup_tenant', :'tenant_id', true);
-        select set_config('test.cleanup_user', :'user_id', true);
-        select set_config('test.cleanup_email', :'test_email', true);
-        do $cleanup$
-        declare target_table record; target_tenant uuid := current_setting('test.cleanup_tenant')::uuid;
-        begin
-          if not exists (
-            select 1 from public.tenants t join auth.users u on u.id=t.personal_owner_id
-            where t.id=target_tenant and u.id=current_setting('test.cleanup_user')::uuid
-            and u.email=current_setting('test.cleanup_email') and u.email like '%@example.test'
-          ) then raise exception 'Disposable test workspace identity did not match'; end if;
-          perform set_config('session_replication_role','replica',true);
-          for target_table in
-            select c.relname from pg_class c join pg_namespace n on n.oid=c.relnamespace
-            where n.nspname='public' and c.relkind='r'
-            and exists (select 1 from pg_attribute a where a.attrelid=c.oid and a.attname='tenant_id' and not a.attisdropped)
-          loop
-            execute format('delete from public.%I where tenant_id=$1',target_table.relname) using target_tenant;
-          end loop;
-          delete from public.tenants where id=target_tenant;
-          perform set_config('session_replication_role','origin',true);
-        end $cleanup$;
-        commit;`;
-      execFileSync(
-        "docker",
-        [
-          "exec",
-          "-i",
-          "supabase_db_program-assurance",
-          "psql",
-          "-X",
-          "-q",
-          "-v",
-          "ON_ERROR_STOP=1",
-          "-v",
-          `tenant_id=${tenantId}`,
-          "-v",
-          `user_id=${userId}`,
-          "-v",
-          `test_email=${email}`,
-          "-U",
-          "supabase_admin",
-          "-d",
-          "postgres",
-        ],
-        { env: dockerEnv, encoding: "utf8", stdio: ["pipe", "pipe", "pipe"], input: sql },
-      );
-    }
+    if (tenantId) removeDisposableTenant({ tenantId, userId, email, dockerEnv });
     const removed = await admin.auth.admin.deleteUser(userId);
     assert.ifError(removed.error);
   };

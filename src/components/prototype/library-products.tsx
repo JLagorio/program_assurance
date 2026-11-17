@@ -71,7 +71,6 @@ import { RetainedTabPanels } from "./program-shared";
 import { RecordLink, useDisplayedRecords, useEndOnHide, useOpenRecord } from "./record-preview";
 import { RelationName } from "./record-tools";
 import { RecordSummaryPreview } from "./record-summary-preview";
-import { RecordTrail, TrailLink } from "./record-trail";
 import {
   EmptyMessage,
   MissingRecord,
@@ -489,9 +488,8 @@ export function ProductLibraryRecord({
   return (
     <Page>
       <PageHeader>
-        <RecordTrail current={product.data.name}>
-          <TrailLink to="/library/products">Products</TrailLink>
-        </RecordTrail>
+        {/* No trail: the product's work scope names it in its switcher and its parts in the side
+            nav, as a program's parts have none. */}
         {/* The state of the version the page reads, as its Details say it. */}
         <RecordHeading
           status={

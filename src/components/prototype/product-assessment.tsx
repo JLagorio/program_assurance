@@ -2,7 +2,8 @@
 // 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
 // full wording of rules the contract now states in fewer words.
 //
-// A product assessment has a record of its own, trailed Products › the product, with Product
+// A product assessment has a record of its own, in its product's work scope and trailed as a
+// program's records are: the product's name › Assessments, with no current level, and Product
 // assessment details beside the sheet an assessor works: an Element select (the product as a whole
 // first, then each element), which opens on the first in its order that holds a determination, else
 // the first that claims a control, and keeps it while the page is open, an element the reader
@@ -807,18 +808,24 @@ export function ProductAssessmentRecord({
           <>
             <ReportFailures queries={[revision, product]} />
             <PageHeader>
-              <RecordTrail current={sheet.assessment.title}>
-                <TrailLink to="/library/products">Products</TrailLink>
-                {product.data && (
+              {product.data && (
+                <RecordTrail>
+                  <TrailLink
+                    to="/library/products/$productKey"
+                    params={{ productKey: product.data.id }}
+                    search={{ version: sheet.assessment.productRevisionId }}
+                  >
+                    {product.data.name}
+                  </TrailLink>
                   <TrailLink
                     to="/library/products/$productKey"
                     params={{ productKey: product.data.id }}
                     search={{ version: sheet.assessment.productRevisionId, tab: "Assessment" }}
                   >
-                    {product.data.name}
+                    Assessments
                   </TrailLink>
-                )}
-              </RecordTrail>
+                </RecordTrail>
+              )}
               <RecordHeading
                 status={<StatusBadge statuses={revisionStates} value={sheet.assessment.state} />}
               >

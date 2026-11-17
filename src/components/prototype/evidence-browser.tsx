@@ -45,7 +45,7 @@ import {
   useEndOnHide,
   useOpenRecord,
 } from "./record-preview";
-import { RecordTrail, TrailLink } from "./record-trail";
+import { ProgramTrail, RecordTrail, TrailLink } from "./record-trail";
 import { TraceBand } from "./assurance-trace";
 import { useAssuranceTrace } from "@/lib/assurance-trace";
 import { useAssuranceCitation } from "@/lib/assurance-review";
@@ -801,9 +801,15 @@ export function EvidenceRecord({
         {artifact ? (
           <>
             <PageHeader>
-              <RecordTrail current={artifact.title}>
-                <TrailLink to="/evidence">Evidence</TrailLink>
-              </RecordTrail>
+              {/* A program's evidence is in its work scope: the program's code › Evidence. The
+                  workspace's own stays under the register. */}
+              {artifact.program_id ? (
+                <ProgramTrail programId={artifact.program_id} part="Evidence" />
+              ) : (
+                <RecordTrail current={artifact.title}>
+                  <TrailLink to="/evidence">Evidence</TrailLink>
+                </RecordTrail>
+              )}
               {/* Its latest review, as the Details say it, once the trace has read it. */}
               <RecordHeading
                 status={

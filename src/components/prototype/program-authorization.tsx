@@ -2,8 +2,8 @@
 // Standing, Timeline, Words): the dated path to the program's next decision is this view, not the
 // page a system opens on. What holds for this screen alone:
 //
-// Its h1 is Authorization, trailed Programs › the program › the tab that lists the view, and its
-// header says the program's categorization and its standing as one fact (`ProgramStandingFacts`).
+// Its h1 is Authorization, with no trail, since the side nav names it (Assess and authorize ›
+// Authorization), and its header says the program's categorization and its standing as one fact (`ProgramStandingFacts`).
 // Edit program is the header's one primary. Its three parts are line tabs the address keeps
 // (`tab`, Schedule when it names none): Schedule, Decisions and Package.
 //
@@ -82,8 +82,6 @@ import { ControlStatusTally } from "./control-status";
 import { controlStatusListSearch } from "./control-status-link";
 import { AuthorizationDecisionFacts } from "./package-views";
 import { ProgramStandingFacts } from "./program-standing";
-import { programViewPart } from "./program-views";
-import { partAddress } from "@/lib/program-parts";
 import {
   ProgramCollection,
   ProgramEditor,
@@ -92,7 +90,6 @@ import {
 } from "./program-shared";
 import { RecordPreviewActions, RecordPreviewPanel } from "./record-preview";
 import { ModelTable, type DisplayColumn } from "./record-tools";
-import { RecordTrail, TrailLink } from "./record-trail";
 import {
   EmptyMessage,
   MissingRecord,
@@ -150,19 +147,6 @@ export function ProgramAuthorization({
         {/* The page is one failure region, and each part another. */}
         <QueryState queries={[query]} region>
           <PageHeader>
-            <RecordTrail current="Authorization">
-              <TrailLink to="/programs">Programs</TrailLink>
-              <TrailLink to="/programs/$programId" params={{ programId }}>
-                {`${program.code} · ${program.name}`}
-              </TrailLink>
-              <TrailLink
-                to="/programs/$programId"
-                params={{ programId }}
-                {...partAddress(programViewPart("Authorization"))}
-              >
-                {programViewPart("Authorization")}
-              </TrailLink>
-            </RecordTrail>
             <PageHeader.Heading>
               <PageHeader.Title>Authorization</PageHeader.Title>
               <ProgramStandingFacts programId={programId} boundaries={boundaries} gates={gates} />
@@ -344,7 +328,7 @@ type Piece = "walked" | "ahead" | undefined;
 /** Each lane's rail column, on the row's one line. */
 const RAIL_COLUMN: Record<ScheduleLane, string> = {
   authorization: "col-start-2 row-start-1 relative w-300",
-  acquisition: "col-start-4 row-start-1 relative w-300",
+  acquisition: "col-start-5 row-start-1 relative w-300",
 };
 /** The piece above a stop's mark, from the row's top to the mark's middle. */
 const ABOVE: Record<"walked" | "ahead", string> = {
@@ -465,8 +449,8 @@ function When({ stop, today }: { stop: ScheduleStop; today: string }) {
   return <DateTime value={stop.at ?? stop.day} format={format(stop.day)} focusable={false} />;
 }
 
-/** What a stop says on its line: its name, what it is and who holds it. */
-function StopLine({
+/** What a stop says on its line: its name and what it is, then who holds it (`end`). */
+function stopWords({
   stop,
   names,
   codes,
@@ -476,7 +460,7 @@ function StopLine({
   names: ReadonlyMap<string, string>;
   codes: ReadonlyMap<string, string>;
   onGate: (id: string) => void;
-}) {
+}): { line: ReactNode; end: ReactNode } {
   const toPackage = (packageId: string) => (
     <Link to="/packages/$pkgId" params={{ pkgId: packageId }} />
   );
@@ -530,16 +514,8 @@ function StopLine({
       meta = statusLabel(lifecycleGateStatuses, stop.gate.status);
       break;
   }
-  return (
-    // Who holds the stop ends its line, and takes a line of its own where the lane is narrow.
-    <Inline
-      space="space.150"
-      rowSpace="space.025"
-      shouldWrap
-      spread="space-between"
-      alignBlock="start"
-      className="min-h-300 min-w-0"
-    >
+  return {
+    line: (
       <Inline shouldWrap space="space.100" rowSpace="space.025" alignBlock="baseline">
         <VisuallyHidden>{`${LANES[stop.lane].words}: `}</VisuallyHidden>
         <Text weight="medium">{label}</Text>
@@ -549,21 +525,23 @@ function StopLine({
           </Text>
         )}
       </Inline>
-      {end && (
-        <Text size="small" color="color.text.subtle">
-          {end}
-        </Text>
-      )}
-    </Inline>
-  );
+    ),
+    end: end && (
+      <Text size="small" color="color.text.subtle">
+        {end}
+      </Text>
+    ),
+  };
 }
 
 /**
- * The two lanes on one grid the rows share (when · authorization rail · authorization · acquisition
- * rail · acquisition), so every stop stands on the row of its day whichever lane it is in, and a
- * lane's rail runs from its first stop to its last through the rows of the other lane. Under a
- * narrow container the day moves above each name and today's word to the rule's end, as the kit's
- * dated path does.
+ * The two lanes on one grid the rows share (when · authorization rail · authorization · who ·
+ * acquisition rail · acquisition), so every stop stands on the row of its day whichever lane it is
+ * in, and a lane's rail runs from its first stop to its last through the rows of the other lane.
+ * Who decided or reviewed stands in the authorization lane's own last column, start-aligned and
+ * clear of the acquisition rail, as the board draws it, so a person never reads as the gate lane's.
+ * Under a narrow container the day moves above each name, who holds a stop to a line under it and
+ * today's word to the rule's end, as the kit's dated path does.
  */
 function AuthorizationLanes({
   schedule,
@@ -608,8 +586,8 @@ function AuthorizationLanes({
         // The authorization lane takes three fifths where there is room; on a phone the lanes share
         // it, so a gate's late day keeps its words.
         templateColumns={{
-          base: "auto auto minmax(0, 1fr) auto minmax(0, 1fr)",
-          md: "auto auto minmax(0, 3fr) auto minmax(0, 2fr)",
+          base: "auto auto minmax(0, 1fr) auto auto minmax(0, 1fr)",
+          md: "auto auto minmax(0, 3fr) auto auto minmax(0, 2fr)",
         }}
       >
         {/* The lanes' names, over their columns; a lane with nothing in it says so. */}
@@ -618,7 +596,7 @@ function AuthorizationLanes({
             key={lane}
             paddingBlockEnd="space.150"
             className={
-              lane === "authorization" ? "col-start-2 col-span-2" : "col-start-4 col-span-2"
+              lane === "authorization" ? "col-start-2 col-span-3" : "col-start-5 col-span-2"
             }
           >
             <Text size="small" weight="medium" color="color.text.subtle">
@@ -654,7 +632,7 @@ function AuthorizationLanes({
                 <Inline
                   space="space.100"
                   alignBlock="center"
-                  className="col-start-2 col-end-6 row-start-1 h-300"
+                  className="col-start-2 col-end-7 row-start-1 h-300"
                 >
                   <span aria-hidden className="flex-1 border-t border-current-default" />
                   <Text size="small" weight="medium" className="hidden @max-md/lanes:inline">
@@ -663,29 +641,9 @@ function AuthorizationLanes({
                 </Inline>
               </Grid>
             ) : (
-              <Grid key={row.key} as="li" templateColumns="subgrid" className="col-span-full">
-                <Box
-                  paddingInlineEnd="space.150"
-                  className="col-start-1 row-start-1 min-h-300 text-end @max-md/lanes:hidden"
-                >
-                  <Text size="small" color={whenColor(row)}>
-                    <When stop={row} today={today} />
-                  </Text>
-                </Box>
-                {rails(i, row)}
-                <Box
-                  paddingBlockEnd="space.200"
-                  paddingInlineStart="space.100"
-                  className={BODY_COLUMN[row.lane]}
-                >
-                  <Box className="hidden @max-md/lanes:block">
-                    <Text size="small" color={whenColor(row)}>
-                      <When stop={row} today={today} />
-                    </Text>
-                  </Box>
-                  <StopLine stop={row} names={names} codes={codes} onGate={onGate} />
-                </Box>
-              </Grid>
+              <StopRow key={row.key} stop={row} today={today} rails={rails(i, row)}>
+                {stopWords({ stop: row, names, codes, onGate })}
+              </StopRow>
             ),
           )}
         </Grid>
@@ -694,10 +652,71 @@ function AuthorizationLanes({
   );
 }
 
+/** One stop's row: its day, the rails, its line in its lane and, in the authorization lane, who. */
+function StopRow({
+  stop,
+  today,
+  rails,
+  children: { line, end },
+}: {
+  stop: ScheduleStop;
+  today: string;
+  rails: ReactNode;
+  children: { line: ReactNode; end: ReactNode };
+}) {
+  // Who stands in its own column in the authorization lane while the lanes are side by side; in
+  // the acquisition lane, the last, it ends the stop's line.
+  const ownColumn = stop.lane === "authorization";
+  return (
+    <Grid as="li" templateColumns="subgrid" className="col-span-full">
+      <Box
+        paddingInlineEnd="space.150"
+        className="col-start-1 row-start-1 min-h-300 text-end @max-md/lanes:hidden"
+      >
+        <Text size="small" color={whenColor(stop)}>
+          <When stop={stop} today={today} />
+        </Text>
+      </Box>
+      {rails}
+      <Box
+        paddingBlockEnd="space.200"
+        paddingInlineStart="space.100"
+        paddingInlineEnd="space.200"
+        className={BODY_COLUMN[stop.lane]}
+      >
+        <Box className="hidden @max-md/lanes:block">
+          <Text size="small" color={whenColor(stop)}>
+            <When stop={stop} today={today} />
+          </Text>
+        </Box>
+        <Inline
+          space="space.150"
+          rowSpace="space.025"
+          shouldWrap
+          spread="space-between"
+          alignBlock="start"
+          className="min-h-300 min-w-0"
+        >
+          {line}
+          {end && <Box className={ownColumn ? "hidden @max-md/lanes:block" : undefined}>{end}</Box>}
+        </Inline>
+      </Box>
+      {ownColumn && end && (
+        <Box
+          paddingInlineEnd="space.600"
+          className="col-start-4 row-start-1 min-h-300 @max-md/lanes:hidden"
+        >
+          {end}
+        </Box>
+      )}
+    </Grid>
+  );
+}
+
 /** Each lane's column for a stop's line. */
 const BODY_COLUMN: Record<ScheduleLane, string> = {
   authorization: "col-start-3 row-start-1 min-w-0",
-  acquisition: "col-start-5 row-start-1 min-w-0",
+  acquisition: "col-start-6 row-start-1 min-w-0",
 };
 
 /** A late stop's day in the danger tone, one at risk in the warning tone. */

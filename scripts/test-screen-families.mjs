@@ -148,13 +148,15 @@ async function verifyCollection(screen, width, tabName) {
   // The work area repeats no collection heading. An empty state's title heads its own region,
   // the Details beside a collection are a region of their own whose Inspector groups are h2s by
   // design, and provenance may sit in a collapsed Details section (its heading is the closed
-  // disclosure).
+  // disclosure). A chart under the collection (the Guidance page's by-family matrix) is titled for
+  // what it counts, never the collection.
   await expect(
     page
       .getByRole("main")
       .getByRole("heading", { level: 2 })
       .and(page.locator(':not([data-slot="empty-title"])'))
       .and(page.locator(':not([data-slot="shell-aside"] *)'))
+      .and(page.locator(':not([data-slot="chart-frame"] *)'))
       .and(page.locator(':not(:has(> [aria-expanded="false"]))')),
   ).toHaveCount(0);
   if (!(await table.count())) {
@@ -418,6 +420,8 @@ try {
   fixtures = seeded.fixtures;
   const { implementation, implementedControl, unimplementedControl } = seeded;
   browser = await chromium.launch({ headless: true });
+  // The views the side nav names, read from the nav where it is drawn (a phone keeps it closed).
+  const navNamedViews = new Set();
   for (const width of [1440, 390]) {
     const context = await browser.newContext({
       viewport: { width, height: 1000 },
@@ -553,9 +557,10 @@ try {
       `PASS ${width}px program Controls name without an implementation opens its preview`,
     );
     // Every focused view is a link in the row of views on one part of the program's record, never
-    // only inside a menu. A view that applies to some programs alone is listed where it applies:
-    // the swept program has no variant and no requirements document, so Product delta and the
-    // Compliance matrix are left out of its rows.
+    // only inside a menu, unless the side nav names it (Baseline, Authorization), which no row
+    // repeats. A view that applies to some programs alone is listed where it applies: the swept
+    // program has no variant and no requirements document, so Product delta and the Compliance
+    // matrix are left out of its rows.
     const record = inventory.find((screen) => screen.path === "/programs/$programId");
     const listed = new Map();
     for (const tabName of [...record.collectionTabs, ...Object.keys(record.tabExceptions)]) {
@@ -574,15 +579,22 @@ try {
       "/programs/$programId/product-delta",
       "/programs/$programId/compliance",
     ]);
+    const sideNav = page.getByRole("navigation", { name: "Side navigation", exact: true });
     for (const screen of inventory.filter((item) => item.family === "program-view")) {
       const href = routePath(screen);
+      if (await sideNav.locator(`a[href="${href}"]`).count()) navNamedViews.add(href);
+      if (navNamedViews.has(href)) {
+        assert.ok(!listed.has(href), `${screen.path}, which the side nav names, is in no row`);
+        continue;
+      }
       if (conditional.has(screen.path)) {
         assert.ok(!listed.has(href), `${screen.path} is listed only where it applies`);
         continue;
       }
       assert.equal(listed.get(href)?.name, screen.title, `${screen.path} is in a row of views`);
     }
-    // A view's page is named by its h1 and trailed through the part that lists it.
+    // A view's page is named by its h1 and trailed up to the part that lists it, after the
+    // program's code, with no level for itself.
     const posture = routePath(inventory.find((screen) => screen.title === "Posture"));
     const postureTab = listed.get(posture).tab;
     await page.goto(`${origin}/programs/${program.id}?tab=${encodeURIComponent(postureTab)}`);
@@ -592,16 +604,16 @@ try {
       .click();
     await expect(page).toHaveURL(`${origin}${posture}`);
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Posture");
-    await expect(
-      page
-        .getByRole("navigation", { name: "breadcrumb" })
-        .getByRole("link", { name: postureTab, exact: true }),
-    ).toHaveAttribute(
+    const trail = page.getByRole("navigation", { name: "breadcrumb" });
+    await expect(trail.getByRole("link", { name: postureTab, exact: true })).toHaveAttribute(
       "href",
       `/programs/${program.id}?tab=${encodeURIComponent(postureTab).replace(/%20/g, "+")}`,
     );
+    await expect(trail.getByRole("listitem")).toHaveText([program.code, postureTab]);
     await bounds(width, posture);
-    console.log(`PASS ${width}px every program view is in a row of views on its part`);
+    console.log(
+      `PASS ${width}px every program view is in a row of views on its part or in the side nav`,
+    );
     await context.close();
   }
   assert.deepEqual(errors, [], "Every declared product route renders without a browser exception");

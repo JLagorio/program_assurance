@@ -1,4 +1,14 @@
+// The Library's Frameworks: the control catalog an administrator loads, in four line tabs whose
+// choice the address keeps (`tab`), each reading the edition the address names (`edition`, the
+// newest published unsaid). Controls is the edition's register, a page at a time from the server,
+// with the edition's Select first among its filters. Baselines (framework-baselines.tsx) is the
+// edition by control family against its reference baselines, a `Chart.Heatmap` whose cells open
+// Controls asked for what they count (`catalogControlsSearch`), then the programs whose control
+// baselines start from each baseline; it is the page's one tab that is not a collection. CCIs and
+// Sources are registers whose records have no page, so their names open their previews.
+
 import { ControlInspector } from "@/components/prototype/library-controls";
+import { FrameworkBaselines } from "@/components/prototype/framework-baselines";
 import { ProductCollection } from "@/components/prototype/product-collection";
 import { useServerCollection, vocabularyOptions } from "@/components/prototype/collection-question";
 import {
@@ -14,6 +24,7 @@ import type { DataRecord } from "@/lib/records";
 import { Constants } from "@/lib/database.types";
 import { idSet, useRows, type Row } from "@/lib/models";
 import { labelFor } from "@/lib/records";
+import { registerViews } from "@/lib/register-views";
 import { serverRead, type ServerRow } from "@/lib/server-table";
 import { cciStatuses, controlPublicationStatuses, referenceResolutionStatuses } from "@/lib/status";
 import { Page } from "@/components/app/shell";
@@ -43,7 +54,7 @@ import {
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState, type ReactNode } from "react";
 
-const catalogTabs = ["Controls", "CCIs", "Sources"] as const;
+const catalogTabs = ["Controls", "Baselines", "CCIs", "Sources"] as const;
 type CatalogTab = (typeof catalogTabs)[number];
 
 export const Route = createFileRoute("/catalog")({
@@ -99,6 +110,28 @@ function CatalogPage() {
     [revisions.data],
   );
   const current = editions.find((row) => row.id === edition) ?? editions[0];
+  // The edition the Controls and Baselines tabs read, first among their filters.
+  const editionSelect = (
+    <Select
+      value={current?.id ?? ""}
+      onValueChange={(value) => {
+        if (value) void navigate({ search: (previous) => ({ ...previous, edition: value }) });
+      }}
+    >
+      <SelectTrigger aria-label="Catalog edition" size="small">
+        <SelectValue placeholder="Catalog edition">
+          {current ? `${catalogTitle(current)} · ${current.version}` : "Catalog edition"}
+        </SelectValue>
+      </SelectTrigger>
+      <SelectContent>
+        {editions.map((row) => (
+          <SelectItem key={row.id} value={row.id}>
+            {catalogTitle(row)} · {row.version}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
   return (
     <Page>
       <PageHeader>
@@ -132,31 +165,13 @@ function CatalogPage() {
                 selectedId={control?.id}
                 onSelect={setControl}
                 onDisplayedRowsChange={setDisplayedControls}
-                editionSelect={
-                  <Select
-                    value={current?.id ?? ""}
-                    onValueChange={(value) => {
-                      if (value)
-                        void navigate({ search: (previous) => ({ ...previous, edition: value }) });
-                    }}
-                  >
-                    <SelectTrigger aria-label="Catalog edition" size="small">
-                      <SelectValue placeholder="Catalog edition">
-                        {current
-                          ? `${catalogTitle(current)} · ${current.version}`
-                          : "Catalog edition"}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {editions.map((row) => (
-                        <SelectItem key={row.id} value={row.id}>
-                          {catalogTitle(row)} · {row.version}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                }
+                editionSelect={editionSelect}
               />
+            </QueryState>
+          )}
+          {tab === "Baselines" && (
+            <QueryState queries={[revisions, catalogs]}>
+              <FrameworkBaselines edition={current?.id} editionSelect={editionSelect} />
             </QueryState>
           )}
           {tab === "CCIs" && <CciTable />}
@@ -342,7 +357,7 @@ function CatalogControls({
     // the row's controls are named by code and title, also once a narrow frame folds the code.
     rowLabel: (row) => `${row.code} · ${row.title}`,
     label: "Catalog controls",
-    view: "live-library-controls-v2",
+    view: registerViews.catalogControls,
     resizable: true,
     reorderable: true,
   });

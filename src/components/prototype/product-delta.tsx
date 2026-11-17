@@ -544,7 +544,7 @@ function ChangedElements({ programId, delta }: { programId: string; delta: Varia
         empty={{
           title: "No element changed",
           description:
-            "Every element is as the product delivers it. Mark an element as modified on the System tab when the program changes it.",
+            "Every element is as the product delivers it. Mark an element as modified in System when the program changes it.",
         }}
       />
     </Section>
@@ -1028,7 +1028,7 @@ export function ProgramProductDeltaView({ programId }: { programId: string }) {
         <EmptyMessage
           illustration="tree"
           title="No system created from a product"
-          description="Create a system from a product on the System tab."
+          description="Create a system from a product in System."
         />
       ) : (
         <VariantDeltaBody

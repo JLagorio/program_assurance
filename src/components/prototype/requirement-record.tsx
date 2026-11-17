@@ -46,7 +46,7 @@ import { requirementIdentityLinks } from "@/lib/requirement-tree";
 import { revisionStates } from "@/lib/status";
 import { TraceBand } from "./assurance-trace";
 import { RelationName } from "./record-tools";
-import { RecordTrail, TrailLink } from "./record-trail";
+import { ProgramTrail } from "./record-trail";
 import { RequirementEvidence } from "./requirement-evidence";
 import { RequirementControlMappings } from "./requirement-control-mappings";
 import { RequirementAllocations } from "./requirement-allocations";
@@ -741,8 +741,6 @@ export function ProgramRequirementRecord({
         description="This requirement is unavailable in this program."
       />
     );
-  // The program as every program sub-record's trail names it: its code and its name.
-  const programName = `${program.data.code} · ${program.data.name}`;
   return (
     <RequirementRecordContent
       key={requirementId}
@@ -757,19 +755,7 @@ export function ProgramRequirementRecord({
           <ProgramQueryState region>
             <ReportFailures queries={[program]} />
             <PageHeader>
-              <RecordTrail current={title}>
-                <TrailLink to="/programs">Programs</TrailLink>
-                <TrailLink to="/programs/$programId" params={{ programId }}>
-                  {programName}
-                </TrailLink>
-                <TrailLink
-                  to="/programs/$programId"
-                  params={{ programId }}
-                  search={{ tab: "Requirements" }}
-                >
-                  Requirements
-                </TrailLink>
-              </RecordTrail>
+              <ProgramTrail programId={programId} part="Requirements" />
               <RecordHeading status={status}>{title}</RecordHeading>
               <PageHeader.Actions>
                 <RecordActions

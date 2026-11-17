@@ -2,7 +2,7 @@ import { useRecordTitle } from "@/components/app/browser-title";
 import { Page, RecordPending } from "@/components/app/shell";
 import { StatusBadge } from "@/components/app/status";
 import { RelationName } from "@/components/prototype/record-tools";
-import { RecordTrail, TrailLink } from "@/components/prototype/record-trail";
+import { ProgramTrail } from "@/components/prototype/record-trail";
 import { WorkTable } from "@/components/prototype/work-table";
 import {
   DetailFacts,
@@ -43,7 +43,6 @@ function WorkstreamDetail({ workstreamId }: { workstreamId: string }) {
   const query = useRow("workstreams", workstreamId);
   const row = query.data;
   useRecordTitle("Workstream", row?.title);
-  const program = useRow("programs", row?.program_id);
   const [editing, setEditing] = useState<DataRecord | null>(null);
   return (
     <Page>
@@ -57,17 +56,8 @@ function WorkstreamDetail({ workstreamId }: { workstreamId: string }) {
         {row ? (
           <>
             <PageHeader>
-              <RecordTrail current={row.title}>
-                <TrailLink to="/programs">Programs</TrailLink>
-                <TrailLink to="/programs/$programId" params={{ programId: row.program_id }}>
-                  {/* The program as every program page names it; loading and failure as RelationName says them. */}
-                  {program.data ? (
-                    `${program.data.code} · ${program.data.name}`
-                  ) : (
-                    <RelationName table="programs" id={row.program_id} peek={false} />
-                  )}
-                </TrailLink>
-              </RecordTrail>
+              {/* In its program's work scope, where no part lists it: the program's code. */}
+              <ProgramTrail programId={row.program_id} />
               <RecordHeading
                 status={<StatusBadge statuses={workstreamStatuses} value={row.status} />}
               >

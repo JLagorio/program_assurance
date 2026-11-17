@@ -4,6 +4,9 @@ Josef's decisions, one line each: the day, the screen or area, the decision. A r
 
 ## 2026-11-16
 
+- 2026-11-16 · Budgets · Frameworks › Controls draws its Selected by column whichever read answers first (the table folded it as constant when the profiles' names came after the rows): 35 words, from 33.
+- 2026-11-16 · Trail · One trail in a work scope, as the pass-six boards draw it (wave 7, after Josef's review): the program's code › the part listing the page › any element holding it, with no current level; a part, and a view the side nav names, has none.
+- 2026-11-16 · Budgets · The Library pages take what the pass-six boards draw and the reference data fills: Guidance a band, the frameworks by publication and Controls tied by family (60 words above the fold, from 8; one chart; 8 buttons); Frameworks a Baselines tab, its one tab exception, with Controls by family and the programs by baseline (four line tabs; one more word on each tab).
 - 2026-11-16 · Budgets · The Authorization view's ceilings rise where its decided form (Path, Timeline) costs them: three line tabs (Schedule, Decisions, Package), Schedule their one tab exception, and 30 words above the fold, from 19.
 - 2026-11-16 · Program record · Two scopes in one side nav, so the program's tab strip goes: each nav entry is a part at its old address, named by its h1; POA&M and Risks are two parts.
 - 2026-11-16 · Budgets · Ceilings rise only where a decision costs words: Component set and Verified on four component set pages (1 or 2 words each), the empty seat's No owner on eight records (one status hue each; two words on a business line and a system), and Sources as a register (8 buttons, 1 primary).

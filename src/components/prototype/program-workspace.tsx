@@ -99,7 +99,7 @@ import { ProgramComplianceView, ProgramRequirementsTrays } from "./compliance-ma
 import { ProgramTimeline } from "./program-timeline";
 import { ProgramActivity } from "./program-activity";
 import { ProgramSspAssembly } from "./ssp-assembly";
-import { RecordTrail, TrailLink } from "./record-trail";
+import { ProgramTrail } from "./record-trail";
 import { RelationName } from "./record-tools";
 import { ProductCollection } from "./product-collection";
 import { useCollectionTable } from "./collection-question";
@@ -119,7 +119,7 @@ import {
 import { programRiskTechniquesColumn } from "@/lib/register-views";
 import { codedName, useProgramRiskTechniques } from "@/lib/risk-threats";
 import { serverRead, useServerCountQueries } from "@/lib/server-table";
-import { partAddress, programParts, type ProgramPart, type ProgramTab } from "@/lib/program-parts";
+import { programParts, type ProgramPart, type ProgramTab } from "@/lib/program-parts";
 
 export type { ProgramTab, RetiredProgramTab } from "@/lib/program-parts";
 
@@ -200,7 +200,6 @@ export function ProgramWorkspace({
     return <ProgramQueryState queries={[query]} />;
   if (!query.data) return <MissingRecord backTo="/programs" kind="Program" />;
   const program = query.data;
-  const programName = `${program.code} · ${program.name}`;
   const counts: Partial<Record<ProgramPart, number>> = {
     ...(systems.isSuccess && { System: systems.data.length }),
     ...(counted(requirementCount) && { Requirements: requirementCount.data }),
@@ -274,7 +273,7 @@ export function ProgramWorkspace({
                     empty={{
                       title: "No systems yet",
                       description:
-                        "Create a system on the System tab before selecting baselines or recording implementation.",
+                        "Create a system in System before selecting baselines or recording implementation.",
                     }}
                   >
                     {boundaries.map((system) => (
@@ -454,24 +453,11 @@ export function ProgramWorkspace({
             has no parts, so its blocks' failures read as the page's one alert. */}
         <ProgramQueryState queries={[query]} region>
           <PageHeader>
-            {/* A focused view is a page of its own, named by its h1 and trailed through the part
-                that lists it. The Overview and the parts have no trail: the side nav names the
-                program and marks the part. */}
-            {view && viewPart && (
-              <RecordTrail current={view}>
-                <TrailLink to="/programs">Programs</TrailLink>
-                <TrailLink to="/programs/$programId" params={{ programId }}>
-                  {programName}
-                </TrailLink>
-                <TrailLink
-                  to="/programs/$programId"
-                  params={{ programId }}
-                  {...partAddress(viewPart)}
-                >
-                  {viewPart}
-                </TrailLink>
-              </RecordTrail>
-            )}
+            {/* A focused view is a page of its own, named by its h1 and trailed up to the part
+                that lists it. The Overview, the parts and a view the side nav names (Control
+                baseline, the nav's Baseline) have no trail: the side nav names the program and
+                marks them. */}
+            {view && viewPart && <ProgramTrail programId={programId} part={viewPart} />}
             {view || part === "Overview" ? (
               // The program's name, then its facts line: its categorization and its standing as
               // one fact. A focused view is named by its h1 alone.

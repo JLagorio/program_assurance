@@ -338,7 +338,7 @@ export function IssueRequirements({
               : {
                   illustration: "shield",
                   title: "No requirements in this program",
-                  description: "A requirement is created on the program's Requirements tab.",
+                  description: "A requirement is created in the program's Requirements.",
                   secondary: (
                     <LinkButton
                       variant="secondary"
