@@ -8,7 +8,8 @@
 // together and opens its preview, the one a risk's techniques open, with every tactic it sits
 // under; then come its Matrix, Enterprise or ICS, the Tactics whose tables print the control
 // against it, the Mitigations, the Approaches and the Effects, as lists. Its count is the number of
-// techniques, its search finds a technique by any of them, and Tactics and Effects are its filters,
+// techniques, its description names the two appendices and nothing more, its search finds a
+// technique by any of them, and Tactics and Effects are its filters,
 // with Matrix before them once it lists techniques of both. In the program's record a Risks column
 // counts the program's risks that name each technique, by the technique's identifier, since a
 // risk's link keeps the item of the reading it was made from; a count that cannot be read is Absent
@@ -339,7 +340,7 @@ export function ControlThreats({
       title="ATT&CK techniques"
       count={links.data ? techniques.length : undefined}
       countMax={9999}
-      description="The ATT&CK techniques this control counters, with the mitigations, approaches and effects, from NIST SP 800-160 Vol. 2 Rev. 1, Appendices F (ATT&CK for Enterprise) and G (ATT&CK for ICS)."
+      description="NIST SP 800-160 Vol. 2 Rev. 1, Appendices F and G"
     >
       <ReportFailures queries={uncounted} />
       <ProductCollection

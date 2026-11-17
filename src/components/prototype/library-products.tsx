@@ -1001,8 +1001,7 @@ function ProductRevision({
                     empty={{
                       illustration: "tree",
                       title: "No variants yet",
-                      description:
-                        "A program creates a variant from a configuration of this product.",
+                      description: "A program creates a variant from a configuration.",
                     }}
                     searchLabel="Find variants"
                     filters={
@@ -1229,8 +1228,7 @@ function ConfigurationsTab({
         empty={{
           illustration: "records",
           title: "No configurations",
-          description:
-            "A configuration is one way this product is built; a program starts from one.",
+          description: "Each configuration is one build; a program starts from one.",
           action: createButton("medium"),
         }}
         fill

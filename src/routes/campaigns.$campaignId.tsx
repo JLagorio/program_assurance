@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ProductRecordDialog } from "@/components/prototype/product-record-dialog";
 import {
   MissingRecord,
+  NoOwner,
   QueryState,
   RecordActions,
   RecordHeading,
@@ -128,15 +129,24 @@ function CampaignDetail() {
                           <KeyValue label="Status">
                             <StatusBadge statuses={campaignStatuses} value={campaign.status} />
                           </KeyValue>
+                          {/* A missing owner says so; a missing day is not drawn. */}
                           <KeyValue label="Owner">
-                            <RelationName table="parties" id={campaign.owner_party_id} />
+                            {campaign.owner_party_id ? (
+                              <RelationName table="parties" id={campaign.owner_party_id} />
+                            ) : (
+                              <NoOwner />
+                            )}
                           </KeyValue>
-                          <KeyValue label="Starts">
-                            <DateTime value={campaign.starts_at} format="date" />
-                          </KeyValue>
-                          <KeyValue label="Ends">
-                            <DateTime value={campaign.ends_at} format="date" />
-                          </KeyValue>
+                          {campaign.starts_at && (
+                            <KeyValue label="Starts">
+                              <DateTime value={campaign.starts_at} format="date" />
+                            </KeyValue>
+                          )}
+                          {campaign.ends_at && (
+                            <KeyValue label="Ends">
+                              <DateTime value={campaign.ends_at} format="date" />
+                            </KeyValue>
+                          )}
                         </KeyValue.Group>
                       </Inspector.Group>
                     </Shell.Aside>

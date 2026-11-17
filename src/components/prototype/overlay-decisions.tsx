@@ -286,7 +286,7 @@ export function OverlayDecisions({
         empty={{
           title: "No control decisions yet",
           description: canAuthor
-            ? "Add the controls this overlay adds to or removes from a baseline, each with its rationale."
+            ? "Add each control it adds or removes, with its rationale."
             : "This overlay adds and removes no controls.",
           action,
         }}

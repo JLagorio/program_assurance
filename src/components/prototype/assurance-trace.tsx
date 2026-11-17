@@ -14,7 +14,7 @@
 //
 // The numbers are the record's own, and the page names its kind (`kind`) so their labels hold their
 // place while the trace loads: a requirement's are the controls it meets, its evidence and how much
-// of it a reviewer accepted, and the open issues that name it or cite that evidence and the risks
+// of it a reviewer verified, and the open issues that name it or cite that evidence and the risks
 // they lead to; a remediation item's are its milestones reached and its planned day, the open
 // issues it answers, the open risks and the controls it reaches; an assessment finding's are its
 // determination (with the day it was made, or Draft results), the controls it judges by code, the
@@ -48,6 +48,8 @@
 // own. Its numbers hold their place while the trace loads, wait while another record's trace
 // replaces the one drawn, and say Could not load when the read fails, under the page's one alert
 // with Retry, as a dashboard's tiles do; a number never reads as zero because it could not be read.
+// Once read, a zero is not drawn, and a band of only zeros is not drawn at all (B3): the trace
+// under it says each stage the record does not reach.
 //
 // The trace is one read, `assurance_trace` through `useAssuranceTrace` in assurance-trace, walked
 // outward from the record and never back, and the sections under the band draw from the same
@@ -493,12 +495,13 @@ function useTiles(
       note,
       ...(severity ? { tone: statusTone(severityLevels, severity) } : {}),
     });
-    // The evidence a trace reaches, and how much of it a reviewer has accepted.
-    const accepted = trace.evidence.filter((evidence) => evidence.review === "accepted").length;
+    // The evidence a trace reaches, and how much of it a reviewer has verified (a review's
+    // accepted outcome, which reads Verified).
+    const verified = trace.evidence.filter((evidence) => evidence.review === "accepted").length;
     const evidence: Tile = {
       label: "Evidence",
       value: trace.evidence.length,
-      note: trace.evidence.length ? `${accepted} accepted` : undefined,
+      note: trace.evidence.length ? `${verified} verified` : undefined,
     };
     switch (trace.focus.kind) {
       case "risk": {
@@ -732,20 +735,25 @@ export function TraceBand({
       ? { label, value: <Absent label="Not available" />, note: "Could not load" }
       : { label, value: 0 },
   );
+  // Once read, a number that is zero is not drawn, and a band of nothing but zeros is not drawn
+  // at all: the trace under it says each stage the record does not reach.
+  const shown = loading || failed ? held : tiles.filter((tile) => tile.value !== 0);
   return (
     <Stack space="space.250" className="min-w-0">
-      <Stat.Grid frame="band" cols={4} aria-label={`Where ${name} stands`}>
-        {(loading || failed ? held : tiles).map((tile: Tile) => (
-          <Stat.Tile
-            key={tile.label}
-            label={tile.label}
-            value={tile.value}
-            note={tile.note}
-            tone={tile.tone}
-            isLoading={loading || tile.isLoading}
-          />
-        ))}
-      </Stat.Grid>
+      {shown.length > 0 && (
+        <Stat.Grid frame="band" cols={4} aria-label={`Where ${name} stands`}>
+          {shown.map((tile: Tile) => (
+            <Stat.Tile
+              key={tile.label}
+              label={tile.label}
+              value={tile.value}
+              note={tile.note}
+              tone={tile.tone}
+              isLoading={loading || tile.isLoading}
+            />
+          ))}
+        </Stat.Grid>
+      )}
       <Section title="Trace">
         {/* The trace holds what a fix opens, so it stays open while the stage under it fills. */}
         <StepSurfaceHost>
@@ -856,8 +864,7 @@ export function TraceRemediationSection({
         onRowClick={(row) => open("poam_items", row)}
         empty={{
           title: "No remediation item",
-          description:
-            "A remediation item appears here once it answers an operational issue here, or its commitment cites a risk here.",
+          description: "Listed once remediation answers an issue or risk here.",
           icon: <ClipboardCheck />,
         }}
       />

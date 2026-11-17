@@ -6,7 +6,7 @@
 // and whoever is meant to act, and a navigation destination beside My work; Attention stays the
 // reader's own inbox, with its seen and done. A row is a state the schema records that a reviewer
 // moves, never a draft its author is still writing: an evidence artifact's latest version whose
-// latest review is pending (Evidence to accept, waiting on the reviewer the review names), a draft
+// latest review is pending (Evidence to verify, waiting on the reviewer the review names), a draft
 // assessment results revision that holds findings (Assessment results to publish), a draft product
 // assessment that holds determinations (Product assessment to publish, waiting on its assessor), a
 // lifecycle gate in review (Gate to decide), an authorization package's latest published version
@@ -368,7 +368,7 @@ export function ReviewQueue() {
           illustration: "done",
           title: "Nothing waiting on a reviewer",
           description:
-            "Evidence to accept, results to publish, gates to decide and open discussions appear here.",
+            "Evidence to verify, results to publish, gates to decide and open discussions appear here.",
         }}
         searchLabel="Find reviews"
         filters={

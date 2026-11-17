@@ -58,8 +58,10 @@ Twelve parts, each built on one that ships, through `/ledger-add-part`; the shee
 - [x] The lab lane: `src/components/prototype/lab/`, 30 days a form, held by a test
 - [x] The decisions log, `docs/decisions.md`, which a raise of the contract's cap must cite
 - [x] Budgets B1 to B16: ceilings per route and tab in `screen-inventory.json` (with each route's archetype, purpose and primary), measured by `test:budgets`, which only fall
-- [ ] Navigation, two scopes in one side nav. Organization: Home, Portfolio, Programs, Library (Frameworks, Overlays, Guidance, Components). Work, under a product or a program's system: Overview, System, Baseline, Controls, Requirements, Evidence, Findings, POA&M, Risks, Assessments, Authorization
-- [ ] Words in `src/lib/status.ts` and `product-records.ts`: Component (one) and Component set; Offer to owner, Withdraw offer, Accept, Return; Verified for reviewed evidence, Satisfied stays the assessor's; To review
+- [x] Navigation, two scopes in one side nav (`scope-navigation.tsx`, `navigation-scope.ts`; each route's scope and entry in the inventory's `nav`). Organization: Home, Portfolio, Programs, Library (Frameworks, Overlays, Guidance, Components), and a Registers group holding the other destinations until they have a place. Work, under a product or a program: the switcher, Overview, System, Baseline, Controls, Requirements, Evidence, Findings, POA&M, Risks, Assessments, Authorization
+- [ ] The program's tab strip goes, now the work scope repeats it; a program's risk, issue, task and campaign records join its work scope (their addresses are global today)
+- [x] Words in `src/lib/status.ts` and `product-records.ts`: Component (one) and Component set; Offer to owner, Withdraw offer, Accept, Return; Verified for reviewed evidence, Satisfied stays the assessor's; RMF's short decision words (IATT and ATU wait for D5's data). To review comes with the component screens, the first to show it
+- [x] Page budgets, first pass: catalog Sources a register (401 words to 12), empty facts and zero tiles drawn as nothing, empty-state lines under 10 words; the buttons left on SSP, Controls and the catalog are the table's own pager and column menus
 - [ ] `docs/guides/screen-inventory.json`: every new route
 
 ## 3. Data (`supabase/`, `src/lib`)

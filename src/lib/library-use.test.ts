@@ -175,7 +175,7 @@ describe("library uses", () => {
       inherited: true,
     });
     expect(uses[1]).toMatchObject({
-      kind: "Component definition",
+      kind: "Component set",
       name: "Corporate audit policy",
       detail: "Audit policy",
       category: "organizational_baseline",

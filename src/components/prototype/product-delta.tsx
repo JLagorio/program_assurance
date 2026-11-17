@@ -1028,7 +1028,7 @@ export function ProgramProductDeltaView({ programId }: { programId: string }) {
         <EmptyMessage
           illustration="tree"
           title="No system created from a product"
-          description="Create a system from a product on the System tab to see what the program inherits and what it owes."
+          description="Create a system from a product on the System tab."
         />
       ) : (
         <VariantDeltaBody

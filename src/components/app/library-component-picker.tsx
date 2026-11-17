@@ -17,7 +17,7 @@ const columns = defineColumns<LibraryComponentRow>((c) => [
   c.number("controlCount", { header: "Controls", width: 96 }),
 ]);
 
-/** Choose one published component definition from the library, at its latest published version. */
+/** Choose one component of a published component set, at the set's latest published version. */
 export function LibraryComponentPicker({
   open,
   parentLabel,
@@ -95,7 +95,7 @@ export function LibraryComponentPicker({
         empty={{
           illustration: "records",
           title: "Nothing published to add",
-          description: "Publish a component definition version in the library first.",
+          description: "Publish a component set version in the library first.",
         }}
       />
     </PickerSheet>

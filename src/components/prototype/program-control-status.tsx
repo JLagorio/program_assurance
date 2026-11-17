@@ -291,7 +291,7 @@ export function ProgramControlStatusView({ programId }: { programId: string }) {
         <EmptyMessage
           illustration="document"
           title="No control baseline recorded"
-          description="A program made outside the setup flow records no catalog or baseline choice, so there is no control to stand on."
+          description="A program made outside setup records no baseline choice."
         />
       ) : (
         <Stack space="space.200" className="min-w-0">

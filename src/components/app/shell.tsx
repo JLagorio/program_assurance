@@ -9,7 +9,8 @@
 //
 // The app uses `Shell collapsedSideNav="icons"`: minimizing the desktop navigation keeps a compact
 // rail of destination icons and the account avatar. Keep the active destination visible, give every
-// top-level destination an icon, and expose its label on hover and keyboard focus.
+// top-level destination an icon, and expose its label on hover and keyboard focus. The side nav
+// has two scopes, the organization's and a program's or product's work (scope-navigation).
 //
 // The schema inspector is not a destination: Settings opens it, under Diagnostics, and no record's
 // menu links into it.
@@ -33,11 +34,8 @@
 // change moves focus to Main and announces the page, and choosing a search result hands focus to
 // the new page.
 
-import {
-  PersonalNavigationProvider,
-  PersonalNavigationSection,
-  FavoriteCurrentRecord,
-} from "./personal-navigation";
+import { PersonalNavigationProvider, FavoriteCurrentRecord } from "./personal-navigation";
+import { ScopeNavigation } from "./scope-navigation";
 import { WorkspaceActionsProvider } from "./workspace-actions";
 import { RecordSearch } from "./workspace-search";
 import {
@@ -85,88 +83,13 @@ import {
   useMode,
   type ColorMode,
 } from "@ledger/design-system";
-import {
-  Archive,
-  Boxes,
-  Briefcase,
-  Bug,
-  CircleHelp,
-  ClipboardList,
-  FileCheck2,
-  FlaskConical,
-  Gauge,
-  Gavel,
-  Inbox,
-  Layers,
-  Library,
-  ListChecks,
-  LogOut,
-  Package,
-  Settings,
-  ShieldAlert,
-  ShieldCheck,
-  Stamp,
-  Users,
-} from "lucide-react";
+import { CircleHelp, Inbox, LogOut, Settings } from "lucide-react";
 import { labelFor } from "@/lib/records";
 import { AccountMenu, useSignOut, useWorkspace } from "./workspace";
 import { SchemaLayout } from "./schema-shell";
 
-const groups = [
-  {
-    label: "Work",
-    items: [
-      { label: "My work", to: "/work", icon: Inbox },
-      { label: "Review queue", to: "/review-queue", icon: Stamp },
-      { label: "Programs", to: "/programs", icon: ClipboardList },
-      { label: "Assessment campaigns", to: "/campaigns", icon: FlaskConical },
-      { label: "Portfolio", to: "/", icon: Gauge },
-    ],
-  },
-  {
-    label: "Assessment",
-    items: [
-      { label: "Evidence", to: "/evidence", icon: Archive },
-      { label: "Findings & assets", to: "/findings", icon: Bug },
-      { label: "POA&M & risk register", to: "/register", icon: ShieldAlert },
-      { label: "Packages", to: "/packages", icon: Package },
-      { label: "Authorization decisions", to: "/briefing", icon: Gavel },
-    ],
-  },
-  {
-    label: "Libraries",
-    items: [
-      { label: "Catalog", to: "/catalog", icon: FileCheck2 },
-      { label: "Profiles", to: "/profiles", icon: ShieldCheck },
-      { label: "Overlays", to: "/overlays", icon: Layers },
-      { label: "Components", to: "/library/components", icon: Library },
-      { label: "Business lines", to: "/library/business-lines", icon: Briefcase },
-      { label: "Products", to: "/library/products", icon: Boxes },
-      { label: "Requirements", to: "/library/requirements", icon: ListChecks },
-    ],
-  },
-  {
-    label: "System",
-    items: [{ label: "Suppliers", to: "/vendors", icon: Users }],
-  },
-] as const;
-
 /** A record with no page of its own is previewed in the panel, as a collection's rows are. */
 const linkedPreview: LinkedRecordRenderer = (props) => <LinkedRecordPreview {...props} />;
-
-/** The address itself, or a page under it: `/programs` holds `/programs/…`, not `/programsx`. */
-const within = (pathname: string, to: string) => pathname === to || pathname.startsWith(`${to}/`);
-
-/** Records whose pages belong to a section other than their own address, as their trails say. */
-const sections: ReadonlyArray<readonly [page: string, section: string]> = [
-  ["/tasks", "/work"],
-  ["/workstreams", "/programs"],
-  ["/issues", "/findings"],
-  ["/risks", "/register"],
-  ["/poam-documents", "/register"],
-];
-const sectionFor = (pathname: string) =>
-  sections.find(([page]) => within(pathname, page))?.[1] ?? pathname;
 
 /** Whether a Page is already drawn above: the route's root, which rises in once. */
 const InPage = createContext(false);
@@ -229,12 +152,10 @@ export function AppLayout({ children }: { children: ReactNode }) {
 function PrototypeLayout({ children }: { children: ReactNode }) {
   const workspace = useWorkspace();
   const signOut = useSignOut();
-  const pathname = useRouterState({ select: (state) => state.location.pathname });
   // The page Main shows once it has rendered: a tab or a filter in the search keeps the page.
   const page = useRouterState({
     select: (state) => (state.resolvedLocation ?? state.location).pathname,
   });
-  const section = sectionFor(pathname);
   const [helpOpen, setHelpOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   return (
@@ -272,33 +193,20 @@ function PrototypeLayout({ children }: { children: ReactNode }) {
         </Shell.TopNav.End>
       </Shell.TopNav>
       <Shell.SideNav>
-        <Shell.SideNav.Body>
-          <PersonalNavigationSection />
-          {groups.map((group) => (
-            <Shell.SideNav.Section key={group.label} heading={group.label}>
-              {group.items.map((item) => (
-                <Shell.SideNav.Item
-                  key={item.to}
-                  icon={item.icon}
-                  isActive={item.to === "/" ? pathname === "/" : within(section, item.to)}
-                  render={<Link to={item.to} />}
-                >
-                  {item.label}
-                </Shell.SideNav.Item>
-              ))}
-            </Shell.SideNav.Section>
-          ))}
-        </Shell.SideNav.Body>
-        <Shell.SideNav.Footer>
-          <AccountMenu>
-            <AppearanceItems />
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => setSettingsOpen(true)}>
-              <Settings aria-hidden />
-              Settings
-            </DropdownMenuItem>
-          </AccountMenu>
-        </Shell.SideNav.Footer>
+        {/* Two scopes: the organization's, and the work of the program or product the page is
+            in (scope-navigation). The account menu sits at the foot of both. */}
+        <ScopeNavigation
+          account={
+            <AccountMenu>
+              <AppearanceItems />
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => setSettingsOpen(true)}>
+                <Settings aria-hidden />
+                Settings
+              </DropdownMenuItem>
+            </AccountMenu>
+          }
+        />
         <Shell.SideNav.Splitter label="Resize side navigation" />
       </Shell.SideNav>
       <RecordPreviewProvider linked={linkedPreview}>

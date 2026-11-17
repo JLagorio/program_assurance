@@ -462,7 +462,12 @@ export function BusinessLineRecord({ lineId }: { lineId: string }) {
                           <StatusBadge statuses={recordLifecycleStates} value={line.state} />,
                         ],
                         ["Code", <Id>{line.code}</Id>],
-                        ["Owner", <RelationName table="parties" id={line.owner_party_id} />],
+                        [
+                          "Owner",
+                          line.owner_party_id ? (
+                            <RelationName table="parties" id={line.owner_party_id} />
+                          ) : null,
+                        ],
                       ]}
                     />
                   </Inspector.Group>

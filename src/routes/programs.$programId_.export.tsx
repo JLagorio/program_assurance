@@ -135,7 +135,7 @@ function ProgramExport() {
         )}
         <Section
           title="Record register"
-          description="A JSON file of the program and the records below. Evidence files and full OSCAL documents stay in their libraries."
+          description="A JSON file of the program and these records, without evidence files."
         >
           <Stat.Grid cols={4} role="group" aria-label="Records in the export">
             {collections.map((item) => (

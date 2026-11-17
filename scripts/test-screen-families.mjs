@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 /**
  * The declared route inventory drives identity, collection and touch-preview checks, the check
- * that no route outside the schema inspector reads the record schema as it opens, and the check
- * that no such route draws a link into the schema inspector.
+ * that no route outside the schema inspector reads the record schema as it opens, the check
+ * that no such route draws a link into the schema inspector, and the side nav's scope and current
+ * entry on each route.
  */
 
 // From the product pattern contract's What checks it, moved beside the check on 2026-11-16.
@@ -328,6 +329,25 @@ async function sweepSchemaReads(screen, withTabs, inflight, width) {
   opening = null;
 }
 
+/**
+ * The side nav marks the route's own entry in the scope it opens, as the inventory declares (`nav`):
+ * the organization's, or a program's or product's work, whose switcher leads back to the
+ * Portfolio. A product's page whose product cannot be found is in the organization, at Products.
+ */
+async function verifyNavigation(screen, fixture) {
+  const expected =
+    screen.nav.scope === "product" && !fixture
+      ? { scope: "organization", current: "Products" }
+      : screen.nav;
+  const nav = page.getByRole("navigation", { name: "Side navigation", exact: true });
+  const current = nav.locator('[aria-current="page"]');
+  await expect(current).toHaveCount(expected.current === null ? 0 : 1);
+  if (expected.current !== null) await expect(current).toHaveText(expected.current);
+  const switcher = nav.locator('a[data-slot="shell-profile"]');
+  if (expected.scope === "organization") await expect(switcher).toHaveCount(0);
+  else await expect(switcher).toHaveAttribute("href", "/");
+  if (expected.scope === "program") await expect(switcher).toContainText(fixtures.programs[0].code);
+}
 async function verifyMissingRecord(screen) {
   const expected = screen.missingRecord;
   assert.ok(
@@ -405,6 +425,9 @@ try {
           );
         else await verifyMissingRecord(screen);
       }
+      // The desktop side nav, on the address the route opened at, before any tab is chosen; on a
+      // phone it is the closed overlay.
+      if (width === 1440 && screen.nav) await verifyNavigation(screen, fixture);
       if (screen.family === "redirect") {
         assert.ok(screen.redirectTo, `${screen.path}: declare the canonical redirect destination`);
         // The same destination, however the query encodes a space (`%20` or `+`).

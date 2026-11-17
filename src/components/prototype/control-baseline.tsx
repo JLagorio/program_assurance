@@ -305,8 +305,7 @@ const noGroups: readonly BaselineFamily[] = [];
 
 const noBaseline = {
   title: "No control baseline recorded",
-  description:
-    "A program made outside the setup flow records no catalog or baseline choice, so there is no derivation to show.",
+  description: "A program made outside setup records no baseline choice.",
 };
 
 /**

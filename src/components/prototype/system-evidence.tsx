@@ -460,8 +460,7 @@ export function SystemEvidence({
           title: includeInside
             ? "No evidence at this element or inside it yet"
             : "No evidence at this element yet",
-          description:
-            "Evidence proposed by applied library items appears here for a decision, beside evidence linked to this element's narratives and requirements.",
+          description: "Evidence linked here, or offered by applied library items.",
           ...(scopeEmpties
             ? {
                 filtered: {

@@ -19,6 +19,7 @@ import {
   Section,
   Shell,
   Stack,
+  Text,
   TextLink,
   defineColumns,
   toast,
@@ -518,32 +519,28 @@ export function RequirementLibraryRecord({
                               onChange={selectVersion}
                             />
                           ) : (
-                            (current?.version_number ?? <Absent label="No versions" />)
+                            // No version yet is a statement, said in words.
+                            (current?.version_number ?? (
+                              <Text color="color.text.subtle">No versions</Text>
+                            ))
                           )
                         }
                       </QueryValue>
                     </KeyValue>
-                    <KeyValue label="State">
-                      <QueryValue queries={[revisions]}>
-                        {() => (
-                          <StatusBadge
-                            statuses={revisionStates}
-                            value={current?.state}
-                            absentLabel="No versions"
-                          />
+                    {/* A version's facts stand once there is one; a draft has no Published day. */}
+                    {current && (
+                      <>
+                        <KeyValue label="State">
+                          <StatusBadge statuses={revisionStates} value={current.state} />
+                        </KeyValue>
+                        <KeyValue label="Type">{labelFor(current.requirement_type)}</KeyValue>
+                        {current.published_at && (
+                          <KeyValue label="Published">
+                            <DateTime value={current.published_at} format="date" />
+                          </KeyValue>
                         )}
-                      </QueryValue>
-                    </KeyValue>
-                    <KeyValue label="Type">
-                      {current ? labelFor(current.requirement_type) : <Absent />}
-                    </KeyValue>
-                    <KeyValue label="Published">
-                      <DateTime
-                        value={current?.published_at ?? null}
-                        format="date"
-                        absentLabel="Not published"
-                      />
-                    </KeyValue>
+                      </>
+                    )}
                     <KeyValue label="Adopted by">
                       <QueryValue queries={[revisions, adoptions]}>
                         {() =>
@@ -601,8 +598,8 @@ export function RequirementLibraryRecord({
                   title="No versions yet"
                   description={
                     editable
-                      ? "Author the first version: its statement, acceptance criteria and type. Programs adopt a version once it is published."
-                      : "An editor authors this definition's versions; programs adopt a version once it is published."
+                      ? "Author the first version; programs adopt it once published."
+                      : "Programs adopt a version once an editor publishes it."
                   }
                   action={
                     editable ? (

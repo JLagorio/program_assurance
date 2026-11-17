@@ -308,7 +308,7 @@ export function ProductStructure({
           illustration: "tree",
           title: "No elements in this version",
           description: canEdit
-            ? "Add a subsystem or a component, or add one from the library."
+            ? "Add a subsystem or component, or one from the library."
             : "Nobody has added an element to this version.",
           action: createButton("medium"),
         }}

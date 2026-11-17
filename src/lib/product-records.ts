@@ -195,13 +195,15 @@ const nouns = {
   change_requests: "change request",
   comments: "comment",
   component_assessment_requests: "component assessment publication request",
-  // One assessment of a published component version; its determinations judge that version's
-  // defined components.
+  // One assessment of a published component set version; its determinations judge that version's
+  // components.
   component_assessments: "component assessment",
   component_contributions: "component contribution",
-  component_definition_revisions: "component version",
-  // The library's reusable component; the parts its versions define are defined components.
-  component_definitions: "component",
+  // A version of a component set.
+  component_definition_revisions: "component set version",
+  // What groups the library's components: a component set (decided 2026-11-15). Each version of
+  // the set defines its components (`defined_components`), each a component.
+  component_definitions: "component set",
   component_determinations: "component determination",
   // A program's offer of a finding or of determinations to a shared component's owner, what it
   // holds, each program's own issue once a finding is accepted, and the commands' receipts.
@@ -214,9 +216,9 @@ const nouns = {
   component_owners: "component owner",
   component_pins: "component pin",
   component_relationships: "component relationship",
-  // The components register: a defined component of each definition's latest version, with its
-  // owner, who uses it and where it stands.
-  component_rows: "defined component",
+  // The components register: a component of each set's latest version, with its owner, who uses
+  // it and where it stands.
+  component_rows: "component",
   // What a component of a version changes against the version before, a control that change
   // affects, and the receipts of Take version.
   component_version_change_controls: "affected control",
@@ -234,7 +236,9 @@ const nouns = {
   controls: "control",
   defined_component_evidence: "evidence citation",
   defined_component_implementations: "control implementation",
-  defined_components: "defined component",
+  // One component of a component set's version: a single component, as the Components register
+  // lists it.
+  defined_components: "component",
   demo_import_batches: "demo import batch",
   demo_import_records: "demo import record",
   demo_import_sources: "demo import source",
@@ -378,7 +382,7 @@ const nouns = {
   result_observations: "result observation",
   result_sets: "result set",
   review_decisions: "review decision",
-  // The Review queue: a record of any kind waiting on a reviewer (evidence to accept, a gate to
+  // The Review queue: a record of any kind waiting on a reviewer (evidence to verify, a gate to
   // decide, a discussion to resolve).
   review_queue_rows: "review",
   // An ATT&CK technique a risk concerns, from NIST SP 800-160 Vol. 2 Rev. 1, Appendix F.
@@ -610,6 +614,17 @@ const columnLabels: Record<string, Record<string, string>> = {
 };
 
 /**
+ * Columns that name the library's components alike in every table that holds them: what groups
+ * them is a component set, each version of the set defines its components, and a single one is a
+ * component (decided 2026-11-15), whatever the schema calls them.
+ */
+const componentColumnLabels: Record<string, string> = {
+  component_definition_id: "Component set",
+  component_definition_revision_id: "Component set version",
+  defined_component_id: "Component",
+};
+
+/**
  * The product's own words for a column, where it has them; a form or a preview derives the rest.
  * `values` are the record's, for a column whose words depend on what the record is: the item that
  * holds a framework item is a security outcome's Process and an approach's Technique.
@@ -621,7 +636,10 @@ export function productColumnLabel(
 ): string | undefined {
   if (isFrameworkItems(table) && column === "parent_item_id")
     return frameworkItemWords(values?.["kind"])?.holders[0];
-  return columnLabels[table]?.[column];
+  return (
+    columnLabels[table]?.[column] ??
+    (Object.hasOwn(componentColumnLabels, column) ? componentColumnLabels[column] : undefined)
+  );
 }
 
 /**

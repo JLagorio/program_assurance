@@ -9,6 +9,8 @@ import {
   useOpenRecord,
 } from "@/components/prototype/record-preview";
 import { EmptyMessage, QueryState } from "@/components/prototype/work-common";
+import { ModelTable, type DisplayColumn } from "@/components/prototype/record-tools";
+import type { DataRecord } from "@/lib/records";
 import { Constants } from "@/lib/database.types";
 import { idSet, useRows, type Row } from "@/lib/models";
 import { labelFor } from "@/lib/records";
@@ -18,16 +20,13 @@ import { Page } from "@/components/app/shell";
 import { StatusBadge } from "@/components/app/status";
 import {
   Absent,
-  Badge,
   DataTable,
   DateTime,
   Id,
-  Inline,
   Inspector,
   KeyValue,
   PageHeader,
   Prose,
-  Section,
   Select,
   SelectContent,
   SelectItem,
@@ -587,58 +586,99 @@ function sourceName(uri: string) {
   }
 }
 
+/** What a reference source is: one the publisher issues, or a copy or a transcription of one. */
+const sourceKinds = { true: "Authoritative", false: "Mirror or derived" } as const;
+
+/** The Sources register's columns, one list for every render. */
+const sourceColumns: DisplayColumn[] = [
+  // The authority is in the title's own words (NIST, DISA) and whole in the preview.
+  { key: "title", label: "Source" },
+  {
+    key: "kind",
+    label: "Kind",
+    kind: "category",
+    width: 160,
+    value: (row) => sourceKinds[row["authoritative"] ? "true" : "false"],
+  },
+  {
+    key: "file",
+    label: "File",
+    width: 240,
+    value: (row) => sourceName(String(row["source_uri"] ?? "")),
+    render: (row) => (
+      <TextLink href={String(row["source_uri"])} newTab>
+        {sourceName(String(row["source_uri"]))}
+      </TextLink>
+    ),
+  },
+];
+
+/**
+ * The reference sources the catalog's publications were read from, one line a source: its title,
+ * whether it is the publisher's own, and the file it was read from. Its authority, what the
+ * workspace may do with it (its rights) and how it was read (its notes) are its preview's.
+ */
 function SourcesList() {
   const sources = useRows("ref_sources", undefined, {
     columns: ["id", "title", "authority", "source_uri", "authoritative", "rights", "notes"],
   });
+  const [preview, setPreview] = useState<DataRecord | null>(null);
+  const [displayed, setDisplayed] = useState<DataRecord[]>([]);
+  const shown = preview ? (sources.data?.find((row) => row.id === preview.id) ?? null) : null;
   return (
-    <QueryState queries={[sources]}>
-      <Stack space="space.300">
-        {sources.data?.length ? (
-          sources.data.map((source) => (
-            <Section key={source.id}>
-              <Section.Header divided>
-                <Section.Heading>
-                  <Inline space="space.100" alignBlock="baseline" shouldWrap>
-                    <Section.Title>{source.title}</Section.Title>
-                    <Badge
-                      variant="secondary"
-                      size="xsmall"
-                      tone={source.authoritative ? "success" : "warning"}
-                    >
-                      {source.authoritative ? "Authoritative source" : "Mirror or derived source"}
-                    </Badge>
-                  </Inline>
-                </Section.Heading>
-              </Section.Header>
-              <KeyValue.Group>
-                <KeyValue label="Authority">{source.authority}</KeyValue>
-                <KeyValue label="Source" wrap>
-                  <TextLink href={source.source_uri} newTab>
-                    {sourceName(source.source_uri)}
-                  </TextLink>
-                </KeyValue>
-                {source.rights && (
-                  <KeyValue label="Rights" wrap>
-                    {source.rights}
-                  </KeyValue>
-                )}
-                {source.notes && (
-                  <KeyValue label="Notes" wrap>
-                    {source.notes}
-                  </KeyValue>
-                )}
-              </KeyValue.Group>
-            </Section>
-          ))
-        ) : (
-          <EmptyMessage
-            illustration="document"
-            title="No reference sources"
-            description="Reference sources appear here once a pinned publication is imported."
-          />
-        )}
-      </Stack>
-    </QueryState>
+    <>
+      <ModelTable
+        model="ref_sources"
+        queries={[sources]}
+        rows={(sources.data ?? []) as DataRecord[]}
+        columns={sourceColumns}
+        selectedId={preview?.id}
+        onPreview={setPreview}
+        onDisplayedRowsChange={setDisplayed}
+        fill
+        searchLabel="Find sources"
+        noun={{ one: "source", other: "sources" }}
+        view="catalog-sources"
+        empty={{
+          illustration: "document",
+          title: "No reference sources",
+          description: "A source appears once its publication is imported.",
+        }}
+      />
+      {preview && shown && (
+        <RecordPreviewPanel
+          title={shown.title}
+          label="Reference source preview"
+          defaultWidth={560}
+          onClose={() => setPreview(null)}
+          navigation={
+            <RecordPreviewActions
+              table="ref_sources"
+              record={preview}
+              rows={displayed}
+              onSelect={setPreview}
+            />
+          }
+        >
+          <Stack space="space.200">
+            <KeyValue.Group>
+              <KeyValue label="Authority" wrap>
+                {shown.authority}
+              </KeyValue>
+              <KeyValue label="Kind">
+                {sourceKinds[shown.authoritative ? "true" : "false"]}
+              </KeyValue>
+              <KeyValue label="File" wrap>
+                <TextLink href={shown.source_uri} newTab>
+                  {sourceName(shown.source_uri)}
+                </TextLink>
+              </KeyValue>
+            </KeyValue.Group>
+            {shown.rights && <Prose label="Rights">{shown.rights}</Prose>}
+            {shown.notes && <Prose label="Notes">{shown.notes}</Prose>}
+          </Stack>
+        </RecordPreviewPanel>
+      )}
+    </>
   );
 }

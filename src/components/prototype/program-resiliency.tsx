@@ -149,8 +149,7 @@ const notLoaded = {
 };
 const noBaseline = {
   title: "No control baseline recorded",
-  description:
-    "A program made outside the setup flow records no catalog or baseline choice, so there is nothing to read its cyber resiliency against.",
+  description: "A program made outside setup records no baseline choice.",
 };
 
 /** One step of the stack as the view names it: the reference baseline, then each layer. */

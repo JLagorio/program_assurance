@@ -30,14 +30,14 @@ export const Route = createFileRoute("/library/components/$componentKey")({
     ...(typeof search["version"] === "string" ? { version: search["version"] } : {}),
     ...(isComponentTab(search["tab"]) ? { tab: search["tab"] } : {}),
   }),
-  head: () => ({ meta: [{ title: "Component — Program Assurance" }] }),
+  head: () => ({ meta: [{ title: "Component set — Program Assurance" }] }),
   pendingComponent: RecordPending,
   component: ComponentPage,
 });
 function ComponentPage() {
   const { componentKey } = Route.useParams();
   const record = useRow("component_definitions", componentKey);
-  useRecordTitle("Component", record.data?.name);
+  useRecordTitle("Component set", record.data?.name);
   const { version, tab } = Route.useSearch();
   const navigate = Route.useNavigate();
   return (

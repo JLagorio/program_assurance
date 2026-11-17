@@ -744,8 +744,8 @@ function ProfileRevision({
                       </EmptyTitle>
                       <EmptyDescription>
                         {inspection?.kind === "reference"
-                          ? "This profile selects its controls straight from the catalog. Its selection rules are below."
-                          : "What a tailored profile takes out of and adds to its base profile appears here once it has a published resolution."}
+                          ? "This profile selects its controls straight from the catalog."
+                          : "Shown once this tailored profile has a published resolution."}
                       </EmptyDescription>
                     </EmptyHeader>
                   </Empty>

@@ -26,7 +26,7 @@ export function ProgramInheritance({
         section
         empty={{
           title: "No provider capabilities yet",
-          description: "Name a capability this program provides for other systems to inherit.",
+          description: "Name a capability other systems can inherit from this program.",
         }}
         title="Provider capabilities"
         owner="program"
@@ -304,8 +304,7 @@ function InheritedControls({
         empty={{
           illustration: "shield",
           title: "No inherited controls",
-          description:
-            "The program's SSPs accept no implementation offered by another system or organization.",
+          description: "The program's SSPs accept no offered implementation.",
         }}
       />
     </Section>

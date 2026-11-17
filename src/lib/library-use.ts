@@ -4,7 +4,7 @@ import { baselineSource, type SystemAssuranceRow } from "./system-assurance";
 /** One row on an element's Library tab: what is applied here or inherited, with its four facts and three flags. */
 export type LibraryUseRow = {
   id: string;
-  kind: "Baseline" | "Component definition";
+  kind: "Baseline" | "Component set";
   name: string;
   detail: string | null;
   category: string | null;
@@ -90,7 +90,7 @@ export function newerRevision(
   return latest ? { revisionId: latest.id, version: latest.version_number } : null;
 }
 
-/** Rows for one element: the baseline first, then each applied component definition by code. */
+/** Rows for one element: the baseline first, then each applied component set by code. */
 export function libraryUses(input: LibraryUseInput): LibraryUseRow[] {
   const targets = input.includeInside
     ? subtree(input.element, input.rows)
@@ -163,7 +163,7 @@ export function libraryUses(input: LibraryUseInput): LibraryUseRow[] {
     }).length;
     out.push({
       id: component.id,
-      kind: "Component definition",
+      kind: "Component set",
       name: definition?.name ?? component.name,
       detail: defined ? defined.name : null,
       category: definition?.category ?? null,

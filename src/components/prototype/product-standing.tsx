@@ -506,7 +506,7 @@ export function ProductAssessmentTab({
           <EmptyMessage
             illustration="document"
             title="Nothing assessed yet"
-            description="Pin library components to this version's elements, then publish a product assessment to say what the product gives."
+            description="Pin library components to elements, then publish a product assessment."
           />
           {assessments}
         </Stack>

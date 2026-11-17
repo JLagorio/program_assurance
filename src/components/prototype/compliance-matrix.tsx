@@ -1230,7 +1230,7 @@ export function ProgramComplianceView({ programId }: { programId: string }) {
           <EmptyMessage
             illustration="document"
             title="No requirements document"
-            description="Import a customer's requirements to answer each one and show what meets it."
+            description="Import a customer's requirements to answer each one."
             action={
               canEdit ? (
                 <Button variant="primary" iconBefore={<Plus />} onClick={() => setImporting(true)}>

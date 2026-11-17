@@ -48,6 +48,7 @@ import {
 } from "react";
 import {
   Absent,
+  EmptySeat,
   Alert,
   AlertAction,
   AlertDescription,
@@ -95,6 +96,7 @@ import { VocabularyValue } from "@/components/app/status";
 import { type DataRecord, type RecordValue } from "@/lib/records";
 import { neutralVocabulary, vocabularyForValue, type StatusVocabulary } from "@/lib/status";
 import { useRow, type TableName } from "@/lib/models";
+import { NO_OWNER } from "@/lib/owner-assign";
 
 /**
  * A stored status looked up by its value alone.
@@ -420,7 +422,7 @@ const missingRecordDestinations = {
   "/register": "Open POA&M and risk register",
   "/packages": "Open authorization packages",
   "/profiles": "Open profiles",
-  "/library/components": "Open components",
+  "/library/components": "Open component sets",
   "/library/business-lines": "Open business lines",
   "/library/products": "Open products",
   "/library/requirements": "Open requirements",
@@ -506,8 +508,14 @@ const isNothing = (value: ReactNode) =>
 /** Past this many characters a label outgrows KeyValue's `default` label column. */
 const LONG_LABEL = 14;
 
+/** A missing owner, as a fact says it: the empty seat in warning words, never a silent dash. */
+export function NoOwner() {
+  return <EmptySeat label={NO_OWNER} />;
+}
+
 /**
- * A record's facts as one definition list: one label width, nothing as a labelled Absent. The
+ * A record's facts as one definition list, one label width. A fact with nothing to say is not
+ * drawn, since absence is silent, except a missing Owner, which says so in warning words. The
  * width is the kit's `default` unless a label is long, when the whole group takes `wide`.
  */
 export function DetailFacts({
@@ -517,13 +525,17 @@ export function DetailFacts({
   facts: [string, ReactNode][];
   labelWidth?: KeyValueLabelWidth | undefined;
 }) {
+  const drawn = facts.flatMap(([name, value]): [string, ReactNode][] =>
+    !isNothing(value) ? [[name, value]] : name === "Owner" ? [[name, <NoOwner />]] : [],
+  );
   const width =
-    labelWidth ?? (facts.some(([name]) => name.length > LONG_LABEL) ? "wide" : undefined);
+    labelWidth ?? (drawn.some(([name]) => name.length > LONG_LABEL) ? "wide" : undefined);
+  if (!drawn.length) return null;
   return (
     <KeyValue.Group {...(width === undefined ? {} : { labelWidth: width })}>
-      {facts.map(([name, value]) => (
+      {drawn.map(([name, value]) => (
         <KeyValue key={name} label={name} wrap>
-          {isNothing(value) ? <Absent /> : value}
+          {value}
         </KeyValue>
       ))}
     </KeyValue.Group>

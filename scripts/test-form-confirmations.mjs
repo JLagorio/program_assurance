@@ -28,7 +28,7 @@ const errors = [];
 const prompt = () => page.getByRole("alertdialog", { name: "Discard changes?", exact: true });
 const organization = () => page.getByRole("dialog", { name: "Create organization", exact: true });
 const task = () => page.getByRole("dialog", { name: "Create task", exact: true });
-// The top navigation also links to My work; destinations are chosen in the side navigation.
+// The top navigation also links to My work (Home); destinations are chosen in the side navigation.
 const sideNavigation = () => page.getByRole("navigation", { name: "Side navigation", exact: true });
 const orgName = () => organization().getByRole("textbox", { name: /^Name/ });
 /** Opens Create organization and returns the control that opened it. */
@@ -233,7 +233,10 @@ try {
   await expect(editedParty()).toBeHidden();
   await expectFocusReturned(page, editOpener, "Discard after Cancel on Edit organization");
   // Two SPA entries let browser Back exercise TanStack's async blocker.
-  await sideNavigation().getByRole("link", { name: "My work", exact: true }).click();
+  // Home is My work; Suppliers sits in Registers, the organization's quiet group, which opens in place.
+  await sideNavigation().getByRole("link", { name: "Home", exact: true }).click();
+  const registers = sideNavigation().getByRole("button", { name: "Registers", exact: true });
+  if ((await registers.getAttribute("aria-expanded")) !== "true") await registers.click();
   await sideNavigation().getByRole("link", { name: "Suppliers", exact: true }).click();
   await openOrganization();
   await orgName().fill("Navigation draft");
@@ -339,10 +342,10 @@ try {
   });
   await page.goto(`${origin}/library/components/${definition.id}`);
   await page.getByRole("tab", { name: "Structure", exact: true }).click();
-  await page.getByRole("button", { name: "Create defined component", exact: true }).first().click();
-  const component = page.getByRole("dialog", { name: "Create defined component", exact: true });
+  await page.getByRole("button", { name: "Create component", exact: true }).first().click();
+  const component = page.getByRole("dialog", { name: "Create component", exact: true });
   await expect(component).toBeVisible();
-  await captureForm(component, "library-component", "Create defined component");
+  await captureForm(component, "library-component", "Create component");
   await component.getByRole("button", { name: "Cancel", exact: true }).click();
   await expect(component).toBeHidden();
   await expect(prompt()).toBeHidden();

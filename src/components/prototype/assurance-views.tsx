@@ -61,6 +61,7 @@ import {
   EntityEditor,
   EntitySection,
   ModelFacts,
+  NoOwner,
   QueryState,
   RelationName,
   RevisionName,
@@ -78,6 +79,8 @@ const party = (key = "owner_party_id", label = "Owner"): DisplayColumn => ({
   label,
   kind: "person",
   render: (row) => <RelationName table="parties" id={row[key] as string | null} />,
+  // A record nobody owns says so in warning words.
+  ...(key === "owner_party_id" ? { absent: <NoOwner /> } : {}),
 });
 const program: DisplayColumn = {
   key: "program_id",
@@ -781,7 +784,7 @@ function RiskOverview({
                 <EmptyMessage
                   compact
                   title="No risk assessment yet"
-                  description="An assessment records the threat, the vulnerability, and how likely and severe the risk is."
+                  description="An assessment rates the threat, vulnerability, likelihood and impact."
                 />
               ) : authored.length ? (
                 <Stack space="space.200">

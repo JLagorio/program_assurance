@@ -129,7 +129,7 @@ export const attentionStates = vocabulary([
  * to a shared component's owner comes last. A kind is not a judgment, so every one is neutral.
  */
 export const reviewQueueKinds = vocabulary([
-  ["evidence", "Evidence to accept", "neutral"],
+  ["evidence", "Evidence to verify", "neutral"],
   ["assessment_results", "Assessment results to publish", "neutral"],
   ["product_assessment", "Product assessment to publish", "neutral"],
   ["gate", "Gate to decide", "neutral"],
@@ -306,18 +306,43 @@ export const recordedImplementationStatuses: StatusVocabulary<
   unrecorded: Object.freeze({ label: "Not recorded", tone: "neutral", rank: -1 } as const),
   ...implementationStatuses,
 });
+/**
+ * An authorization decision in RMF's short words (NIST SP 800-37 Rev. 2), defined once: every
+ * screen that shows a decision reads them here, through the vocabularies below (a decision on a
+ * package, the authorization a system records, a program's standing). IATT (interim authorization
+ * to test) and ATU (authorization to use) have no stored value yet: no record can hold them until
+ * the data change lands, so no screen shows them today.
+ */
+export const authorizationTypes = vocabulary([
+  ["ato", "ATO", "success"],
+  ["ato_with_conditions", "ATO with conditions", "warning"],
+  ["iatt", "IATT", "information"],
+  ["atu", "ATU", "success"],
+  ["dato", "DATO", "danger"],
+  ["atd", "ATD", "danger"],
+]);
+type AuthorizationType = keyof typeof authorizationTypes;
+/** A stored value that records a decision of a type, in that type's words and tone. */
+const decided = <const Value extends string>(value: Value, type: AuthorizationType) =>
+  [value, authorizationTypes[type].label, authorizationTypes[type].tone] as const;
+/** An authorization whose expiry has passed: the type's words, then expired ("ATO expired"). */
+const lapsed = <const Value extends string>(value: Value) =>
+  [value, `${authorizationTypes.ato.label} expired`, "danger"] as const;
+
+/** The authorization a system records (`systems.authorization_status`). */
 export const authorizationStatuses = vocabulary([
   ["not_assessed", "Not assessed", "neutral"],
   ["in_progress", "In progress", "information"],
-  ["authorized", "Authorized", "success"],
-  ["denied", "Denied", "danger"],
-  ["expired", "Expired", "danger"],
+  decided("authorized", "ato"),
+  decided("denied", "dato"),
+  lapsed("expired"),
 ]);
+/** A decision recorded on a package version (`authorization_decisions.decision`). */
 export const authorizationDecisions = vocabulary([
-  ["authorized", "Authorized", "success"],
-  ["authorized_with_conditions", "Authorized with conditions", "warning"],
-  ["denied", "Denied", "danger"],
-  ["revoked", "Revoked", "danger"],
+  decided("authorized", "ato"),
+  decided("authorized_with_conditions", "ato_with_conditions"),
+  decided("denied", "dato"),
+  decided("revoked", "atd"),
 ]);
 /**
  * A program's authorization standing in RMF's short words, as its header says it beside its
@@ -326,18 +351,22 @@ export const authorizationDecisions = vocabulary([
  * `programStanding` in program-standing; no column stores it.
  */
 export const authorizationStandings = vocabulary([
-  ["ato_expired", "ATO expired", "danger"],
-  ["dato", "DATO", "danger"],
-  ["atd", "ATD", "danger"],
+  lapsed("ato_expired"),
+  decided("dato", "dato"),
+  decided("atd", "atd"),
   ["no_package", "No authorization package", "neutral"],
   ["package_draft", "Package in draft", "neutral"],
   ["package_submitted", "Package submitted", "information"],
-  ["ato_with_conditions", "ATO with conditions", "warning"],
-  ["ato", "ATO", "success"],
+  decided("ato_with_conditions", "ato_with_conditions"),
+  decided("ato", "ato"),
 ]);
+/**
+ * An evidence version's review. Its accepted outcome reads Verified (decided 2026-11-14), so it is
+ * never taken for the assessor's Satisfied; the stored value stays `accepted`.
+ */
 export const evidenceReviewDecisions = vocabulary([
   ["pending", "Pending", "neutral"],
-  ["accepted", "Accepted", "success"],
+  ["accepted", "Verified", "success"],
   ["needs_revision", "Needs revision", "warning"],
   ["rejected", "Rejected", "danger"],
 ]);
@@ -348,6 +377,19 @@ export const componentOfferStates = vocabulary([
   ["returned", "Returned", "warning"],
   ["withdrawn", "Withdrawn", "neutral"],
 ]);
+/**
+ * What a reader does with an offer, in the words every screen that acts on one says: the program's
+ * side offers it to the component's owner and may withdraw it while it waits; the owner's side
+ * accepts it or returns it with a note (`offer_to_component`, `withdraw_component_offer`,
+ * `review_component_offer`). The Review queue lists an offer that waits, as Offer to review, but
+ * no screen acts on one yet.
+ */
+export const componentOfferVerbs = {
+  offer: "Offer to owner",
+  withdraw: "Withdraw offer",
+  accept: "Accept",
+  return: "Return",
+} as const;
 export const evidenceUseDecisions = vocabulary([
   ["pending", "Pending", "neutral"],
   ["accepted", "Accepted", "success"],
@@ -726,8 +768,10 @@ const byValue: readonly StatusVocabulary[] = [
   revisionStates,
   determinations,
   implementationStatuses,
-  evidenceReviewDecisions,
+  // A review decision before an evidence review's: an "accepted" found by its value alone reads
+  // Accepted, never the evidence review's Verified.
   reviewDecisions,
+  evidenceReviewDecisions,
   programStatuses,
   campaignStatuses,
   workstreamStatuses,

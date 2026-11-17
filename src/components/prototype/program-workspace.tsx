@@ -797,7 +797,7 @@ function ProgramDetailsAside({ program }: { program: Row<"programs"> }) {
               <EmptyHeader>
                 <EmptyTitle>No references recorded</EmptyTitle>
                 <EmptyDescription>
-                  A program made outside the setup flow records no catalog or profile choice.
+                  A program made outside setup records no baseline choice.
                 </EmptyDescription>
               </EmptyHeader>
             </Empty>
@@ -982,7 +982,7 @@ function ProgramMonitoring({ programId }: { programId: string }) {
           },
         ]}
         canCreate={planIds.size > 0}
-        prerequisite="A scheduled assessment belongs to an assessment plan. Plan an assessment campaign first."
+        prerequisite="Plan an assessment campaign first."
         empty={{
           title: "No monitoring scheduled yet",
           illustration: "calendar",

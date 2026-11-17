@@ -73,7 +73,8 @@ import {
   type StatusVocabulary,
 } from "@/lib/status";
 import type { QueryStatus } from "./work-common";
-export { QueryState } from "./work-common";
+export { NoOwner, QueryState } from "./work-common";
+import { NoOwner } from "./work-common";
 import {
   RecordLink,
   RecordPreviewActions,
@@ -275,7 +276,13 @@ export type DisplayColumn = {
    * Program, whose `value` is the program's name.
    */
   filter?: boolean | undefined;
+  /**
+   * What a fact (ModelFacts) says when its value is empty: a missing owner's warning words
+   * (`<NoOwner />`). A fact without it is not drawn while empty, since absence is silent.
+   */
+  absent?: ReactNode | undefined;
 };
+
 export type ModelTableEmpty = {
   title?: string;
   description?: string;
@@ -798,9 +805,21 @@ export function ModelFacts({
   /** The label column: the kit's `default`, or `wide` when a label is longer than fits. */
   labelWidth?: KeyValueLabelWidth | undefined;
 }) {
-  const columns = fields.map((field): DisplayColumn =>
-    typeof field === "string" ? { key: field } : field,
-  );
+  // A stored fact with no value is not drawn, unless it says what its absence means; a fact the
+  // record does not store (a render of another read) draws itself.
+  const columns = fields
+    .map((field): DisplayColumn => (typeof field === "string" ? { key: field } : field))
+    .filter((column) => {
+      if (column.absent !== undefined) return true;
+      if (column.render && !column.value && !(column.key in record)) return true;
+      const value = column.value ? column.value(record) : record[column.key];
+      return !(
+        value === null ||
+        value === undefined ||
+        value === "" ||
+        (Array.isArray(value) && value.length === 0)
+      );
+    });
   const labels = columns.map((column) => column.label ?? labelFor(column.key.replace(/_id$/, "")));
   const width =
     labelWidth ?? (labels.some((label) => label.length > LONG_LABEL) ? "wide" : undefined);
@@ -809,9 +828,13 @@ export function ModelFacts({
     <KeyValue.Group {...(width === undefined ? {} : { labelWidth: width })}>
       {columns.map((column, index) => {
         const value = column.value ? column.value(record) : record[column.key];
+        const missing =
+          column.absent !== undefined && (value === null || value === undefined || value === "");
         return (
           <KeyValue key={column.key} label={labels[index]!} wrap>
-            {column.render ? (
+            {missing ? (
+              column.absent
+            ) : column.render ? (
               column.render(record)
             ) : column.statuses ? (
               <VocabularyValue

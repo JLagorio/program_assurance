@@ -289,8 +289,7 @@ export function ObservationsRegister({
         empty={{
           illustration: "records",
           title: "No observations recorded",
-          description:
-            "Observations are recorded from assessment test runs and events, and appear here as they are made.",
+          description: "Observations come from assessment test runs and events.",
         }}
         filters={
           <>

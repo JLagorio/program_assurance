@@ -2,6 +2,7 @@ import { controlName, productRecordNoun } from "@/lib/product-records";
 import {
   EmptyMessage,
   MissingRecord,
+  NoOwner,
   RecordActions,
   RecordHeading,
   ReportFailures,
@@ -547,7 +548,11 @@ function SystemProperties({
           </KeyValue>
         ))}
         <KeyValue label="Owner" wrap>
-          <RelationName table="parties" id={system.system_owner_party_id} />
+          {system.system_owner_party_id ? (
+            <RelationName table="parties" id={system.system_owner_party_id} />
+          ) : (
+            <NoOwner />
+          )}
         </KeyValue>
         {!system.is_authorization_boundary && (
           <KeyValue label="Boundary" wrap>
@@ -577,15 +582,16 @@ function SystemProperties({
             </TextLink>
           </KeyValue>
         )}
-        {system.is_authorization_boundary && (
-          <>
-            <KeyValue label="Lifecycle" wrap>
-              <StatusBadge statuses={systemLifecycleStatuses} value={system.lifecycle_status} />
-            </KeyValue>
-            <KeyValue label="Authorization" wrap>
-              <StatusBadge statuses={authorizationStatuses} value={system.authorization_status} />
-            </KeyValue>
-          </>
+        {/* A boundary's lifecycle and authorization, once recorded: an empty fact is not drawn. */}
+        {system.is_authorization_boundary && system.lifecycle_status && (
+          <KeyValue label="Lifecycle" wrap>
+            <StatusBadge statuses={systemLifecycleStatuses} value={system.lifecycle_status} />
+          </KeyValue>
+        )}
+        {system.is_authorization_boundary && system.authorization_status && (
+          <KeyValue label="Authorization" wrap>
+            <StatusBadge statuses={authorizationStatuses} value={system.authorization_status} />
+          </KeyValue>
         )}
         {row?.baselineTitle && (
           <KeyValue label="Baseline" wrap>

@@ -308,7 +308,7 @@ export function WorkTable({
           illustration: "tasks",
           icon: <ListTodo />,
           title: "No tasks yet",
-          description: "Create a task and assign a person to start tracking work.",
+          description: "Create a task and assign a person to it.",
           action: create(fill ? "medium" : "small"),
           ...(onlyMine
             ? {

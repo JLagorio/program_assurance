@@ -333,7 +333,7 @@ export function OverlayParameters({
         empty={{
           title: "No parameter values",
           description: canAuthor
-            ? "Set the values a program applying this overlay gives a control's parameters, each with its rationale."
+            ? "Set the parameter values it gives, each with a rationale."
             : "This overlay sets no parameter values.",
           action,
         }}

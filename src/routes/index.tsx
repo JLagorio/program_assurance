@@ -418,7 +418,7 @@ function RiskMatrix({
         statusText={
           missing
             ? "The matrix appears here once the open risks load."
-            : "An open risk appears here once its assessment records a likelihood and an impact."
+            : "Shown once an open risk's assessment rates likelihood and impact."
         }
       >
         <Stack space="space.150">
@@ -1017,7 +1017,7 @@ function Portfolio() {
                   <EmptyMessage
                     compact
                     title="No activity yet"
-                    description="Changes to tasks, requirements and risks appear here as they are recorded."
+                    description="Changes to tasks, requirements and risks appear here."
                   />
                 )}
               </QueryState>

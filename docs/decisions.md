@@ -4,6 +4,7 @@ Josef's decisions, one line each: the day, the screen or area, the decision. A r
 
 ## 2026-11-16
 
+- 2026-11-16 · Budgets · Ceilings rise only where a decision costs words: Component set and Verified on four component set pages (1 or 2 words each), the empty seat's No owner on eight records (one status hue each; two words on a business line and a system), and Sources as a register (8 buttons, 1 primary).
 - 2026-11-16 · Contract budget · The contract holds at most 4,000 words and its core at most 1,500 words (D7).
 - 2026-11-16 · Contract · A short one, and a lab lane (D7): under 4,000 words with its budgets in the tests, and 30 days to try a form before it becomes a kit part.
 - 2026-11-16 · Start · Phase 0 first (D8): one week of ten quick fixes visible on every screen, once the artifacts are approved.

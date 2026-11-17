@@ -4,7 +4,11 @@ import { expectCenteredIcon } from "./action-layout.mjs";
 
 const expect = playwrightExpect.configure({ timeout: 30000 });
 
-/** The application's desktop icon rail keeps the same destinations and mobile overlay. */
+/**
+ * The application's desktop icon rail keeps the same destinations and mobile overlay. It opens on a
+ * system of a program, in the program's work scope: System is current, Baseline follows it, the
+ * phone overlay opens Evidence, and the switcher leads back to the organization's Portfolio.
+ */
 export async function expectIconSideNavigation(page, { screenshot }) {
   const returnTo = page.url();
   const nav = page.getByRole("navigation", { name: "Side navigation", exact: true });
@@ -95,8 +99,8 @@ export async function expectIconSideNavigation(page, { screenshot }) {
       href: element.getAttribute("href"),
     })),
   );
-  assert.ok(destinations.length > 10, "The full application navigation is present");
-  await expect(link("Programs")).toHaveAttribute("aria-current", "page");
+  assert.ok(destinations.length > 10, "The program's whole work scope is present");
+  await expect(link("System")).toHaveAttribute("aria-current", "page");
   await screenshot("navigation-expanded-1440");
 
   await toggle.click();
@@ -138,30 +142,30 @@ export async function expectIconSideNavigation(page, { screenshot }) {
     await expect(item.locator("svg")).toBeVisible();
     await expectCenteredIcon(item);
   }
-  await expect(link("Programs")).toHaveAttribute("aria-current", "page");
+  await expect(link("System")).toHaveAttribute("aria-current", "page");
   await screenshot("navigation-icons-1440");
 
-  await link("Programs").hover();
+  await link("System").hover();
   await expect(tooltip).toBeVisible();
-  await expect(tooltip).toHaveText("Programs");
+  await expect(tooltip).toHaveText("System");
   await screenshot("navigation-tooltip-1440");
   await page.mouse.move(1000, 500);
   await expect(tooltip).toHaveCount(0);
-  await link("Programs").focus();
+  await link("System").focus();
   await page.keyboard.press("Tab");
-  await expect(link("Assessment campaigns")).toBeFocused();
+  await expect(link("Baseline")).toBeFocused();
   await expect(tooltip).toBeVisible();
-  await expect(tooltip).toHaveText("Assessment campaigns");
+  await expect(tooltip).toHaveText("Baseline");
   await page.keyboard.press("Enter");
-  await expect(page).toHaveURL(/\/campaigns$/);
-  await expect(link("Assessment campaigns")).toHaveAttribute("aria-current", "page");
-  await expect(link("Programs")).not.toHaveAttribute("aria-current");
+  await expect(page).toHaveURL(/\/control-baseline$/);
+  await expect(link("Baseline")).toHaveAttribute("aria-current", "page");
+  await expect(link("System")).not.toHaveAttribute("aria-current");
   await rail();
 
   await page.reload();
   await rail();
   await restingBrand();
-  await expect(link("Assessment campaigns")).toHaveAttribute("aria-current", "page");
+  await expect(link("Baseline")).toHaveAttribute("aria-current", "page");
   await expect(items).toHaveCount(destinations.length);
   await screenshot("navigation-icons-reloaded-1440");
 
@@ -218,7 +222,7 @@ export async function expectIconSideNavigation(page, { screenshot }) {
   await noOverflow();
   await screenshot("navigation-overlay-390");
   await link("Evidence").click();
-  await expect(page).toHaveURL(/\/evidence$/);
+  await expect(page).toHaveURL(/\?tab=Evidence$/);
   await expect(nav).toBeHidden();
   await expect(toggle).toHaveAttribute("aria-expanded", "false");
   await noOverflow();
@@ -237,7 +241,20 @@ export async function expectIconSideNavigation(page, { screenshot }) {
   await expect(nav).not.toHaveAttribute("data-collapsed");
   await page.goto(returnTo);
   await brandAligned();
-  await expect(link("Programs")).toHaveAttribute("aria-current", "page");
+  await expect(link("System")).toHaveAttribute("aria-current", "page");
   await noOverflow();
   await screenshot("navigation-restored-1440");
+  // The switcher names the program and leads back to the organization: its Portfolio, then the
+  // Library and Registers, where the work scope's chain is no longer drawn.
+  const switcher = nav.locator('a[data-slot="shell-profile"]');
+  await expect(switcher).toHaveAttribute("href", "/");
+  await switcher.click();
+  await expect(page).toHaveURL(/\/$/);
+  await expect(link("Portfolio")).toHaveAttribute("aria-current", "page");
+  await expect(link("Programs")).toBeVisible();
+  await expect(link("Frameworks")).toBeVisible();
+  await expect(nav.getByRole("button", { name: "Registers", exact: true })).toBeVisible();
+  await expect(link("Baseline")).toHaveCount(0);
+  await page.goto(returnTo);
+  await expect(link("System")).toHaveAttribute("aria-current", "page");
 }

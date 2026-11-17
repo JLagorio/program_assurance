@@ -467,7 +467,7 @@ function ControlPrograms({ control }: { control: Control }) {
         onRowClick={(row) => open("controls", { id: control.id, program_id: row.id })}
         empty={{
           title: "No program meets this control yet",
-          description: "A program appears here once one of its requirements maps the control.",
+          description: "Listed once a program's requirement maps it.",
           icon: <ShieldCheck />,
         }}
       />

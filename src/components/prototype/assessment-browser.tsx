@@ -500,7 +500,7 @@ export function AssessmentBrowser({
       empty={{
         illustration: "calendar",
         title: "No events yet",
-        description: "Add an assessment event under a campaign to schedule its window.",
+        description: "Add an event under a campaign to schedule its window.",
         action: add("Events", "medium"),
       }}
       columns={[
@@ -564,8 +564,7 @@ export function AssessmentBrowser({
       empty={{
         illustration: "shield",
         title: "No objectives yet",
-        description:
-          "Record what each assessment plan sets out to show, and the control or requirement it targets.",
+        description: "Record what each plan sets out to show.",
         action: add("Objectives", "medium"),
       }}
     />
@@ -615,7 +614,7 @@ export function AssessmentBrowser({
         ]}
         empty={{
           title: "No scopes yet",
-          description: "Create a scope to categorize a subset of a system for assessment.",
+          description: "A scope categorizes part of a system for assessment.",
         }}
       />
     </QueryState>

@@ -21,7 +21,7 @@ Every screen is one of seven page types. One that fits none gets a dated entry i
 | Overview  | Where does it stand, and what moves it? | Portfolio, Authorization decisions, a record's Overview tab, a program's standing views | none: each count opens the register that does the work | 80, four figures, one chart |
 | Register  | Which records, and which first?        | every standalone register; a tab that is one collection                                   | Create, small, in the toolbar; the selection bar's verbs | 40 of chrome, seven columns |
 | Record    | What is it, what state, what next?     | every record page and its preview                                                         | Edit in the header; a preview's one small primary     | 120, three sections         |
-| Workspace | One job over many records              | Workbook, Traceability matrix, Control baseline                                           | the job's finalizing verb                             | 60, one visual              |
+| Workspace | One job over many records              | Workbook, Traceability matrix, Control baseline                                           | the job's finalizing verb                             | 60, one visual; B10 spares its toolbar |
 | Flow      | One decision                           | Dialog, PickerSheet, RecordBrowser, confirmation, Program setup                           | the footer's, in its trigger's words                  | 80 a step, eight fields     |
 | Library   | Read reference data                    | the catalog and its controls, profiles, framework items                                   | none; Publish on a draft                              | 60 of chrome                |
 
@@ -42,7 +42,7 @@ Each kind of action has one home, so a reader knows where the next step is befor
 
 ## Budgets
 
-Rules every route keeps. A route's values sit beside it in the screen inventory and may only fall, as the allow lists do; raising one takes a dated entry in the decisions log.
+Rules every route keeps. A route's values sit beside it in the screen inventory and may only fall; raising one takes a dated entry in the decisions log.
 
 - **B1** Words above the fold within the page type's budget (40 to 120).
 - **B2** Exactly one filled primary per surface.

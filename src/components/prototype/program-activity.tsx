@@ -170,7 +170,7 @@ export function ProgramActivity({ programId }: { programId: string }) {
           <EmptyMessage
             compact
             title="No activity yet"
-            description="Changes to this program's records appear here as the team works."
+            description="Changes to this program's records appear here."
           />
         )}
       </QueryState>

@@ -64,7 +64,7 @@ import { currentOpener } from "./opener";
 
 type Source = "component" | "profile" | "requirement";
 const sourceLabels: Record<Source, string> = {
-  component: "Component definition",
+  component: "Component set",
   profile: "Profile (control baseline)",
   requirement: "Requirement definition",
 };
@@ -1037,8 +1037,8 @@ export function AddFromLibrary({
             description:
               source === "component"
                 ? controlId
-                  ? "No published component definition covers this control."
-                  : "Publish a component definition version in the library first."
+                  ? "No published component set covers this control."
+                  : "Publish a component set version in the library first."
                 : source === "profile"
                   ? "No published, resolved profile is available."
                   : "Publish a requirement definition in the library first.",

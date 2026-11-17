@@ -1,9 +1,10 @@
 import { useRows, type Row } from "./models";
-import { authorizationStandings, impactLevels } from "./status";
+import { authorizationStandings, impactLevels, statusLabel } from "./status";
 
 /**
  * A program's standing, the one fact its header says beside its categorization: where its
- * authorization stands, in RMF's short words, and its most urgent date ("ATO with conditions · PDR
+ * authorization stands, in RMF's short words (`authorizationTypes` in status, read through
+ * `authorizationStandings`), and its most urgent date ("ATO with conditions · PDR
  * 35d late"). Derived from what the program's Authorization and lifecycle reads already hold: the
  * decisions recorded on its packages' versions, the versions themselves and its lifecycle gates.
  */
@@ -24,7 +25,7 @@ export type StandingBoundary = Pick<Row<"systems">, "authorization_status">;
 /** The program's most urgent date: an open gate's due day, or the standing authorization's expiry. */
 export type UrgentDate = {
   kind: "gate" | "expiry";
-  /** The gate's title; for an expiry, the authorization's words ("ATO"). */
+  /** The gate's title; for an expiry, the authorization's words from the vocabulary ("ATO"). */
   name: string;
   /** The calendar day, `YYYY-MM-DD`. */
   day: string;
@@ -99,7 +100,13 @@ export function programStanding({
     if (authorized && latest.expires_on) {
       const days = daysBetween(today, latest.expires_on);
       if (days < 0) standing = "ato_expired";
-      else expiry = { kind: "expiry", name: "ATO", day: latest.expires_on.slice(0, 10), days };
+      else
+        expiry = {
+          kind: "expiry",
+          name: statusLabel(authorizationStandings, standing),
+          day: latest.expires_on.slice(0, 10),
+          days,
+        };
     }
   } else if (
     boundaries.length > 0 &&

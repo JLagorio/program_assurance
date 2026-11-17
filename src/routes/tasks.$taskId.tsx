@@ -489,7 +489,7 @@ function TaskDetail({ taskId }: { taskId: string }) {
                             <EmptyTitle>No comments yet</EmptyTitle>
                             <EmptyDescription>
                               {canEdit
-                                ? "Write the first comment to share an update about this task."
+                                ? "Write the first comment to share an update."
                                 : "Comments about this task will appear here."}
                             </EmptyDescription>
                           </EmptyHeader>

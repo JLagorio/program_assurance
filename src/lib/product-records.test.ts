@@ -93,8 +93,11 @@ describe("product nouns", () => {
   it("uses the product vocabulary for the records the audit named", () => {
     expect(productRecordNoun("requirement_control_links")).toBe("control mapping");
     expect(productRecordNoun("requirement_allocations")).toBe("allocation");
-    expect(productRecordNoun("component_definitions")).toBe("component");
-    expect(productRecordNoun("defined_components")).toBe("defined component");
+    expect(productRecordNoun("component_definitions")).toBe("component set");
+    expect(productRecordNoun("component_definition_revisions")).toBe("component set version");
+    expect(productRecordNoun("defined_components")).toBe("component");
+    expect(productCreateLabel("component_definitions")).toBe("Create component set");
+    expect(productCollectionNoun("component_definitions")).toBe("component sets");
     expect(productRecordNoun("poam_items")).toBe("remediation item");
     expect(productRecordNoun("issue_observations")).toBe("linked observation");
     expect(productRecordNoun("finding_evidence")).toBe("evidence citation");
@@ -127,6 +130,14 @@ describe("product field labels", () => {
     expect(productFieldLabel("programs", "sponsor_party_id")).toBe("Sponsor");
     expect(productFieldLabel("risks", "program_id")).toBe("Program");
     expect(productFieldLabel("programs", "starts_on")).toBe("Starts on");
+    // The library's component set, its version and a single component, in every table.
+    expect(productFieldLabel("component_definition_revisions", "component_definition_id")).toBe(
+      "Component set",
+    );
+    expect(productFieldLabel("defined_components", "component_definition_revision_id")).toBe(
+      "Component set version",
+    );
+    expect(productFieldLabel("product_elements", "defined_component_id")).toBe("Component");
   });
 
   it("asks for a due as a day, in Create task's words", () => {

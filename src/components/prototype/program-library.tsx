@@ -36,7 +36,7 @@ const CHANGE_MODELS: readonly TableName[] = [
 type Line = {
   id: string;
   name: string;
-  kind: "Component definition" | "Baseline";
+  kind: "Component set" | "Baseline";
   category: string;
   version: string;
   elements: { key: string; label: string; meta: string }[];
@@ -104,7 +104,7 @@ export function ProgramLibrary({
     }).map<Line>((row) => ({
       id: row.id,
       name: row.name,
-      kind: "Component definition",
+      kind: "Component set",
       category: row.category ? labelFor(row.category) : "",
       version: String(row.version),
       elements: row.elements.map((element) => ({
@@ -222,7 +222,7 @@ export function ProgramLibrary({
       <ProductCollection
         table={table}
         fill={fill}
-        // A component definition opens its library record; a baseline's resolved profile has no
+        // A component set opens its library record; a baseline's resolved profile has no
         // page, so its row opens this preview.
         onRowClick={(row) =>
           openRecord(
@@ -234,8 +234,7 @@ export function ProgramLibrary({
         empty={{
           illustration: "records",
           title: "Nothing applied from the library yet",
-          description:
-            "Open an element in the System tab and use Add from library. What is applied anywhere in the program is listed here once per version.",
+          description: "Use Add from library on a System tab element.",
           // The way to where the work happens: the program's System tab, where elements add from the library.
           action: (
             <LinkButton

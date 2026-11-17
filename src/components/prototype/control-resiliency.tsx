@@ -304,7 +304,7 @@ export function ControlResiliency({
       title="Cyber resiliency"
       count={links.data ? supported.length : undefined}
       countMax={9999}
-      description="The techniques this control supports, strongest first, with NIST's guidance for each approach, from NIST SP 800-160 Vol. 2 Rev. 1, Tables D-4 and E-1."
+      description="NIST SP 800-160 Vol. 2 Rev. 1, Tables D-4 and E-1"
       // A failure is said in the open, never behind a closed heading.
       {...(isCollapsible && !failed ? { isCollapsible: true } : {})}
     >

@@ -288,7 +288,8 @@ export function ControlStandingFacts({
             standing ? (
               <StatusBadge statuses={controlStatuses} value={standing.status} />
             ) : (
-              <Absent label="Not in the control baseline" />
+              // A statement, not a missing value: said in words.
+              <Text color="color.text.subtle">Not in the control baseline</Text>
             )
           }
         </QueryValue>

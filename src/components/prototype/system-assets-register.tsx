@@ -235,7 +235,7 @@ export function SystemAssetsRegister() {
           illustration: "records",
           title: "No system assets yet",
           description: canAdd
-            ? "An asset is a hardware or software item in a system's inventory."
+            ? "An asset is hardware or software in a system's inventory."
             : "Nothing has been recorded here yet.",
           icon: <FileText />,
           action: add("medium"),

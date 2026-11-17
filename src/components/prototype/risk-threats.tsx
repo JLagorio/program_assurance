@@ -31,7 +31,8 @@
 // objective evidenced, the catalog's order among equals; a control that counts no objective by its
 // requirements, one that maps it and then one that cites evidence); once the risk names more than
 // one technique, a Techniques column and filter say which each control counters. With no technique
-// named, each Section is its compact empty with the same Link action; a workspace without the
+// named, ATT&CK techniques is its compact empty with the Link action and Countering controls is not
+// drawn, since nothing is countered yet (B7); a workspace without the
 // ATT&CK reference data says so and offers nothing to link. A technique is not a stage of the
 // chain: the band's numbers and the trace do not change. The program's risks, under their Section
 // on its POA&M & risk tab, list the techniques each names in an ATT&CK techniques column, by
@@ -916,44 +917,37 @@ export function RiskThreats({
         )}
         {confirmation}
       </Section>
-      <Section
-        title="Countering controls"
-        count={data ? data.totals.controls : undefined}
-        countMax={9999}
-      >
-        <ProductCollection
-          compact
-          keepQuestion={false}
-          table={controlTable}
-          queries={[threats]}
-          noun={controlNoun}
-          onRowClick={(row) =>
-            open("controls", { id: row.id, ...(programId ? { program_id: programId } : {}) })
-          }
-          filters={
-            <>
-              <DataTable.Filter table={controlTable} column="baseline" />
-              {several && <DataTable.Filter table={controlTable} column="techniques" />}
-            </>
-          }
-          empty={
-            techniques.length
-              ? {
-                  title: "No countering controls",
-                  description: "Appendices F and G print no control against these techniques.",
-                  icon: <ShieldCheck />,
-                }
-              : {
-                  title: "No countering controls",
-                  description: loaded
-                    ? "The controls that counter a technique appear once this risk names one."
-                    : NOT_LOADED,
-                  icon: <ShieldCheck />,
-                  action: linkAction(false),
-                }
-          }
-        />
-      </Section>
+      {/* Countering controls follow from the techniques: with none named there is nothing to
+          counter, and the Section above already offers the link. */}
+      {techniques.length > 0 && (
+        <Section
+          title="Countering controls"
+          count={data ? data.totals.controls : undefined}
+          countMax={9999}
+        >
+          <ProductCollection
+            compact
+            keepQuestion={false}
+            table={controlTable}
+            queries={[threats]}
+            noun={controlNoun}
+            onRowClick={(row) =>
+              open("controls", { id: row.id, ...(programId ? { program_id: programId } : {}) })
+            }
+            filters={
+              <>
+                <DataTable.Filter table={controlTable} column="baseline" />
+                {several && <DataTable.Filter table={controlTable} column="techniques" />}
+              </>
+            }
+            empty={{
+              title: "No countering controls",
+              description: "Appendices F and G print no control against these techniques.",
+              icon: <ShieldCheck />,
+            }}
+          />
+        </Section>
+      )}
     </>
   );
 }

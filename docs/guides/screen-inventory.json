@@ -4,12 +4,16 @@
     "path": "/briefing",
     "title": "Authorization decisions",
     "family": "dashboard",
+    "nav": {
+      "scope": "organization",
+      "current": "Authorization decisions"
+    },
     "archetype": "Home",
     "purpose": "Which authorizations stand, lapse or wait on a decision?",
     "primary": "none",
     "reason": "Authorization decisions and published packages are distinct collections.",
     "budgets": {
-      "words": 40,
+      "words": 39,
       "primaries": 0,
       "zeros": 0,
       "constantColumns": 0,
@@ -20,7 +24,7 @@
       "adjacentEmptySections": 0,
       "longDescriptions": 0,
       "longStrings": 0,
-      "longEmptyLines": 1,
+      "longEmptyLines": 0,
       "buttons": 1,
       "tabs": 0,
       "tabExceptions": 0,
@@ -37,6 +41,10 @@
     "path": "/campaigns/$campaignId",
     "title": "Assessment campaign",
     "family": "record",
+    "nav": {
+      "scope": "organization",
+      "current": "Assessment campaigns"
+    },
     "archetype": "Record",
     "purpose": "How far an assessment campaign got, and what it found.",
     "primary": "Edit assessment campaign",
@@ -50,18 +58,18 @@
       "Regression": "Derived comparison rows with an explanation, not a record collection."
     },
     "budgets": {
-      "words": 55,
+      "words": 42,
       "primaries": 1,
       "zeros": 0,
       "constantColumns": 0,
       "repeatedPairs": 0,
-      "emptyFacts": 3,
-      "railRows": 4,
+      "emptyFacts": 0,
+      "railRows": 2,
       "sections": 2,
       "adjacentEmptySections": 0,
       "longDescriptions": 0,
       "longStrings": 0,
-      "longEmptyLines": 1,
+      "longEmptyLines": 0,
       "buttons": 3,
       "tabs": 5,
       "tabExceptions": 4,
@@ -70,11 +78,11 @@
       "constantStatuses": 0,
       "cutNames": 0,
       "foldedTables": 0,
-      "statusHues": 0
+      "statusHues": 1
     },
     "tabBudgets": {
       "Runs": {
-        "words": 45,
+        "words": 35,
         "primaries": 1,
         "zeros": 0,
         "constantColumns": 0,
@@ -85,7 +93,7 @@
         "adjacentEmptySections": 0,
         "longDescriptions": 0,
         "longStrings": 0,
-        "longEmptyLines": 1,
+        "longEmptyLines": 0,
         "buttons": 3,
         "cellMarks": 0,
         "charts": 0,
@@ -95,19 +103,19 @@
         "statusHues": 0
       },
       "Execution": {
-        "words": 171,
+        "words": 40,
         "primaries": 1,
         "zeros": 0,
         "constantColumns": 0,
         "repeatedPairs": 0,
         "emptyFacts": 0,
         "railRows": 0,
-        "sections": 5,
-        "adjacentEmptySections": 4,
+        "sections": 1,
+        "adjacentEmptySections": 0,
         "longDescriptions": 0,
         "longStrings": 0,
-        "longEmptyLines": 5,
-        "buttons": 7,
+        "longEmptyLines": 0,
+        "buttons": 3,
         "cellMarks": 0,
         "charts": 0,
         "constantStatuses": 0,
@@ -116,7 +124,7 @@
         "statusHues": 0
       },
       "Procedures": {
-        "words": 64,
+        "words": 55,
         "primaries": 1,
         "zeros": 0,
         "constantColumns": 0,
@@ -127,7 +135,7 @@
         "adjacentEmptySections": 1,
         "longDescriptions": 0,
         "longStrings": 0,
-        "longEmptyLines": 2,
+        "longEmptyLines": 0,
         "buttons": 4,
         "cellMarks": 0,
         "charts": 0,
@@ -137,7 +145,7 @@
         "statusHues": 0
       },
       "Regression": {
-        "words": 46,
+        "words": 33,
         "primaries": 1,
         "zeros": 0,
         "constantColumns": 0,
@@ -148,7 +156,7 @@
         "adjacentEmptySections": 0,
         "longDescriptions": 0,
         "longStrings": 0,
-        "longEmptyLines": 1,
+        "longEmptyLines": 0,
         "buttons": 2,
         "cellMarks": 0,
         "charts": 0,
@@ -164,6 +172,10 @@
     "path": "/campaigns",
     "title": "Assessment campaigns",
     "family": "register",
+    "nav": {
+      "scope": "organization",
+      "current": "Assessment campaigns"
+    },
     "archetype": "Register",
     "purpose": "Which assessment campaigns are planned, under way or done?",
     "primary": "Create assessment campaign",
@@ -197,21 +209,23 @@
     "path": "/catalog",
     "title": "Catalog",
     "family": "register",
+    "nav": {
+      "scope": "organization",
+      "current": "Frameworks"
+    },
     "archetype": "Library",
     "purpose": "Read the control catalog, its CCIs and their sources.",
     "primary": "none",
     "model": "controls",
     "tabList": "Catalog views",
-    "collectionTabs": ["Controls", "CCIs"],
-    "tabExceptions": {
-      "Sources": "Imported source metadata, not a register."
-    },
-    "previewOnly": ["CCIs"],
+    "collectionTabs": ["Controls", "CCIs", "Sources"],
+    "tabExceptions": {},
+    "previewOnly": ["CCIs", "Sources"],
     "budgets": {
-      "words": 38,
+      "words": 32,
       "primaries": 0,
       "zeros": 0,
-      "constantColumns": 1,
+      "constantColumns": 0,
       "repeatedPairs": 0,
       "emptyFacts": 0,
       "railRows": 0,
@@ -222,7 +236,7 @@
       "longEmptyLines": 0,
       "buttons": 19,
       "tabs": 3,
-      "tabExceptions": 1,
+      "tabExceptions": 0,
       "cellMarks": 1,
       "charts": 0,
       "constantStatuses": 0,
@@ -232,10 +246,10 @@
     },
     "tabBudgets": {
       "CCIs": {
-        "words": 32,
+        "words": 28,
         "primaries": 0,
         "zeros": 0,
-        "constantColumns": 1,
+        "constantColumns": 0,
         "repeatedPairs": 0,
         "emptyFacts": 0,
         "railRows": 0,
@@ -253,25 +267,25 @@
         "statusHues": 0
       },
       "Sources": {
-        "words": 401,
+        "words": 12,
         "primaries": 0,
         "zeros": 0,
         "constantColumns": 0,
-        "repeatedPairs": 12,
+        "repeatedPairs": 0,
         "emptyFacts": 0,
         "railRows": 0,
-        "sections": 4,
+        "sections": 0,
         "adjacentEmptySections": 0,
         "longDescriptions": 0,
-        "longStrings": 15,
+        "longStrings": 0,
         "longEmptyLines": 0,
-        "buttons": 0,
-        "cellMarks": 0,
+        "buttons": 8,
+        "cellMarks": 1,
         "charts": 0,
         "constantStatuses": 0,
         "cutNames": 0,
         "foldedTables": 0,
-        "statusHues": 2
+        "statusHues": 0
       }
     }
   },
@@ -280,12 +294,16 @@
     "path": "/catalog/controls/$controlId",
     "title": "Control",
     "family": "record",
+    "nav": {
+      "scope": "organization",
+      "current": "Frameworks"
+    },
     "archetype": "Library",
     "purpose": "What a control says, and where each program stands on it.",
     "primary": "none",
     "model": "controls",
     "budgets": {
-      "words": 215,
+      "words": 174,
       "primaries": 0,
       "zeros": 0,
       "constantColumns": 0,
@@ -294,9 +312,9 @@
       "railRows": 5,
       "sections": 5,
       "adjacentEmptySections": 0,
-      "longDescriptions": 2,
-      "longStrings": 2,
-      "longEmptyLines": 1,
+      "longDescriptions": 0,
+      "longStrings": 0,
+      "longEmptyLines": 0,
       "buttons": 9,
       "tabs": 0,
       "tabExceptions": 0,
@@ -313,6 +331,10 @@
     "path": "/evidence",
     "title": "Evidence",
     "family": "register",
+    "nav": {
+      "scope": "organization",
+      "current": "Evidence"
+    },
     "archetype": "Register",
     "purpose": "Which evidence exists, and which waits on review?",
     "primary": "Create evidence artifact",
@@ -346,18 +368,22 @@
     "path": "/evidence/$artifactId",
     "title": "Evidence artifact",
     "family": "record",
+    "nav": {
+      "scope": "organization",
+      "current": "Evidence"
+    },
     "archetype": "Record",
     "purpose": "What an evidence artifact holds, version by version.",
     "primary": "Edit evidence artifact",
     "model": "evidence_artifacts",
     "budgets": {
-      "words": 101,
+      "words": 72,
       "primaries": 1,
-      "zeros": 4,
+      "zeros": 0,
       "constantColumns": 0,
       "repeatedPairs": 0,
-      "emptyFacts": 5,
-      "railRows": 9,
+      "emptyFacts": 0,
+      "railRows": 5,
       "sections": 2,
       "adjacentEmptySections": 0,
       "longDescriptions": 0,
@@ -371,7 +397,7 @@
       "constantStatuses": 0,
       "cutNames": 0,
       "foldedTables": 0,
-      "statusHues": 1
+      "statusHues": 2
     }
   },
   {
@@ -379,6 +405,10 @@
     "path": "/findings/$findingId",
     "title": "Assessment finding",
     "family": "record",
+    "nav": {
+      "scope": "organization",
+      "current": "Findings & assets"
+    },
     "archetype": "Record",
     "purpose": "What an assessor found, and where it leads.",
     "primary": "Edit assessment finding",
@@ -417,6 +447,10 @@
     "path": "/findings/assets/$assetId",
     "title": "Asset",
     "family": "record",
+    "nav": {
+      "scope": "organization",
+      "current": "Findings & assets"
+    },
     "archetype": "Record",
     "purpose": "What an asset is, and what was observed on it.",
     "primary": "Edit inventory item",
@@ -455,6 +489,10 @@
     "path": "/findings/",
     "title": "Findings & assets",
     "family": "register",
+    "nav": {
+      "scope": "organization",
+      "current": "Findings & assets"
+    },
     "archetype": "Register",
     "purpose": "Which issues, observations, findings and assets need work?",
     "primary": "Create operational issue",
@@ -488,7 +526,7 @@
     },
     "tabBudgets": {
       "Observations": {
-        "words": 27,
+        "words": 19,
         "primaries": 0,
         "zeros": 0,
         "constantColumns": 0,
@@ -499,7 +537,7 @@
         "adjacentEmptySections": 0,
         "longDescriptions": 0,
         "longStrings": 0,
-        "longEmptyLines": 1,
+        "longEmptyLines": 0,
         "buttons": 0,
         "cellMarks": 0,
         "charts": 0,
@@ -509,7 +547,7 @@
         "statusHues": 0
       },
       "Assessment findings": {
-        "words": 31,
+        "words": 25,
         "primaries": 1,
         "zeros": 0,
         "constantColumns": 0,
@@ -520,7 +558,7 @@
         "adjacentEmptySections": 0,
         "longDescriptions": 0,
         "longStrings": 0,
-        "longEmptyLines": 1,
+        "longEmptyLines": 0,
         "buttons": 1,
         "cellMarks": 0,
         "charts": 0,
@@ -530,7 +568,7 @@
         "statusHues": 0
       },
       "Assets": {
-        "words": 27,
+        "words": 25,
         "primaries": 1,
         "zeros": 0,
         "constantColumns": 0,
@@ -541,7 +579,7 @@
         "adjacentEmptySections": 0,
         "longDescriptions": 0,
         "longStrings": 0,
-        "longEmptyLines": 1,
+        "longEmptyLines": 0,
         "buttons": 1,
         "cellMarks": 0,
         "charts": 0,
@@ -557,12 +595,16 @@
     "path": "/",
     "title": "Portfolio",
     "family": "dashboard",
+    "nav": {
+      "scope": "organization",
+      "current": "Portfolio"
+    },
     "archetype": "Home",
     "purpose": "Where the workspace's risks and work stand today.",
     "primary": "none",
     "reason": "The dashboard shape: a band of linked Stat tiles that open their registers filtered to what they count, a risk-matrix chart whose cells open the filtered risk register, top-N widgets with View all and no toolbar or pager, and a Timeline activity feed.",
     "budgets": {
-      "words": 106,
+      "words": 98,
       "primaries": 0,
       "zeros": 1,
       "constantColumns": 6,
@@ -573,7 +615,7 @@
       "adjacentEmptySections": 0,
       "longDescriptions": 0,
       "longStrings": 0,
-      "longEmptyLines": 2,
+      "longEmptyLines": 0,
       "buttons": 1,
       "tabs": 0,
       "tabExceptions": 0,
@@ -590,23 +632,27 @@
     "path": "/issues/$issueId",
     "title": "Operational issue",
     "family": "record",
+    "nav": {
+      "scope": "organization",
+      "current": "Findings & assets"
+    },
     "archetype": "Record",
     "purpose": "What an operational issue is, and what it reaches.",
     "primary": "Edit operational issue",
     "model": "operational_issues",
     "budgets": {
-      "words": 154,
+      "words": 128,
       "primaries": 1,
-      "zeros": 3,
+      "zeros": 0,
       "constantColumns": 0,
       "repeatedPairs": 0,
-      "emptyFacts": 5,
-      "railRows": 7,
+      "emptyFacts": 0,
+      "railRows": 3,
       "sections": 5,
       "adjacentEmptySections": 3,
       "longDescriptions": 0,
       "longStrings": 0,
-      "longEmptyLines": 1,
+      "longEmptyLines": 0,
       "buttons": 7,
       "tabs": 0,
       "tabExceptions": 0,
@@ -615,7 +661,7 @@
       "constantStatuses": 0,
       "cutNames": 0,
       "foldedTables": 0,
-      "statusHues": 0
+      "statusHues": 1
     }
   },
   {
@@ -623,17 +669,21 @@
     "path": "/library/business-lines/$lineId",
     "title": "Business line",
     "family": "record",
+    "nav": {
+      "scope": "organization",
+      "current": "Business lines"
+    },
     "archetype": "Record",
     "purpose": "Which products and programs a business line holds.",
     "primary": "Edit business line",
     "model": "business_lines",
     "budgets": {
-      "words": 50,
+      "words": 46,
       "primaries": 1,
       "zeros": 0,
       "constantColumns": 0,
       "repeatedPairs": 0,
-      "emptyFacts": 1,
+      "emptyFacts": 0,
       "railRows": 3,
       "sections": 3,
       "adjacentEmptySections": 0,
@@ -648,7 +698,7 @@
       "constantStatuses": 0,
       "cutNames": 0,
       "foldedTables": 1,
-      "statusHues": 1
+      "statusHues": 2
     }
   },
   {
@@ -656,6 +706,10 @@
     "path": "/library/business-lines/",
     "title": "Business lines",
     "family": "register",
+    "nav": {
+      "scope": "organization",
+      "current": "Business lines"
+    },
     "archetype": "Register",
     "purpose": "Which business lines the workspace holds.",
     "primary": "Create business line",
@@ -687,13 +741,17 @@
   {
     "file": "library.components.$componentKey.tsx",
     "path": "/library/components/$componentKey",
-    "title": "Component",
+    "title": "Component set",
     "family": "record",
+    "nav": {
+      "scope": "organization",
+      "current": "Components"
+    },
     "archetype": "Library",
-    "purpose": "What a library component claims, and where it is used.",
-    "primary": "Edit component",
+    "purpose": "What a component set's components claim, and where they are used.",
+    "primary": "Edit component set",
     "model": "component_definitions",
-    "tabList": "Component sections",
+    "tabList": "Component set sections",
     "collectionTabs": ["Controls", "Structure", "Programs"],
     "tabExceptions": {
       "Overview": "Authored description and Details rail.",
@@ -702,7 +760,7 @@
       "Versions": "The contract preserves the ordered version-selection Table."
     },
     "budgets": {
-      "words": 38,
+      "words": 36,
       "primaries": 1,
       "zeros": 0,
       "constantColumns": 0,
@@ -726,7 +784,7 @@
     },
     "tabBudgets": {
       "Controls": {
-        "words": 33,
+        "words": 35,
         "primaries": 1,
         "zeros": 0,
         "constantColumns": 0,
@@ -747,7 +805,7 @@
         "statusHues": 0
       },
       "Structure": {
-        "words": 33,
+        "words": 34,
         "primaries": 1,
         "zeros": 0,
         "constantColumns": 0,
@@ -768,7 +826,7 @@
         "statusHues": 0
       },
       "Programs": {
-        "words": 35,
+        "words": 33,
         "primaries": 1,
         "zeros": 0,
         "constantColumns": 0,
@@ -779,7 +837,7 @@
         "adjacentEmptySections": 0,
         "longDescriptions": 0,
         "longStrings": 0,
-        "longEmptyLines": 1,
+        "longEmptyLines": 0,
         "buttons": 2,
         "cellMarks": 0,
         "charts": 0,
@@ -789,7 +847,7 @@
         "statusHues": 0
       },
       "Requirements": {
-        "words": 37,
+        "words": 32,
         "primaries": 1,
         "zeros": 0,
         "constantColumns": 0,
@@ -800,7 +858,7 @@
         "adjacentEmptySections": 0,
         "longDescriptions": 0,
         "longStrings": 0,
-        "longEmptyLines": 1,
+        "longEmptyLines": 0,
         "buttons": 2,
         "cellMarks": 0,
         "charts": 0,
@@ -810,7 +868,7 @@
         "statusHues": 0
       },
       "Evidence": {
-        "words": 37,
+        "words": 32,
         "primaries": 1,
         "zeros": 0,
         "constantColumns": 0,
@@ -821,7 +879,7 @@
         "adjacentEmptySections": 0,
         "longDescriptions": 0,
         "longStrings": 0,
-        "longEmptyLines": 1,
+        "longEmptyLines": 0,
         "buttons": 2,
         "cellMarks": 0,
         "charts": 0,
@@ -831,7 +889,7 @@
         "statusHues": 0
       },
       "Versions": {
-        "words": 21,
+        "words": 22,
         "primaries": 1,
         "zeros": 0,
         "constantColumns": 0,
@@ -856,14 +914,18 @@
   {
     "file": "library.components.index.tsx",
     "path": "/library/components/",
-    "title": "Components",
+    "title": "Component sets",
     "family": "register",
+    "nav": {
+      "scope": "organization",
+      "current": "Components"
+    },
     "archetype": "Library",
-    "purpose": "Which reusable components the library holds.",
-    "primary": "Create component",
+    "purpose": "Which component sets the library holds.",
+    "primary": "Create component set",
     "model": "component_definitions",
     "budgets": {
-      "words": 19,
+      "words": 21,
       "primaries": 1,
       "zeros": 0,
       "constantColumns": 5,
@@ -891,6 +953,10 @@
     "path": "/library/product-assessments/$assessmentId",
     "title": "Product assessment",
     "family": "record",
+    "nav": {
+      "scope": "product",
+      "current": "Assessments"
+    },
     "archetype": "Workspace",
     "purpose": "Judge a product version's controls, then publish.",
     "primary": "none",
@@ -929,6 +995,10 @@
     "path": "/library/products/$productKey",
     "title": "Product",
     "family": "record",
+    "nav": {
+      "scope": "product",
+      "current": "Overview"
+    },
     "archetype": "Record",
     "purpose": "What a product delivers, by configuration and version.",
     "primary": "Edit product",
@@ -941,7 +1011,7 @@
       "Versions": "The contract preserves the ordered version-selection Table."
     },
     "budgets": {
-      "words": 47,
+      "words": 43,
       "primaries": 1,
       "zeros": 0,
       "constantColumns": 0,
@@ -965,7 +1035,7 @@
     },
     "tabBudgets": {
       "Structure": {
-        "words": 37,
+        "words": 35,
         "primaries": 1,
         "zeros": 0,
         "constantColumns": 0,
@@ -976,7 +1046,7 @@
         "adjacentEmptySections": 0,
         "longDescriptions": 0,
         "longStrings": 0,
-        "longEmptyLines": 1,
+        "longEmptyLines": 0,
         "buttons": 3,
         "cellMarks": 0,
         "charts": 0,
@@ -986,27 +1056,6 @@
         "statusHues": 0
       },
       "Configurations": {
-        "words": 36,
-        "primaries": 1,
-        "zeros": 0,
-        "constantColumns": 0,
-        "repeatedPairs": 0,
-        "emptyFacts": 0,
-        "railRows": 0,
-        "sections": 0,
-        "adjacentEmptySections": 0,
-        "longDescriptions": 0,
-        "longStrings": 0,
-        "longEmptyLines": 1,
-        "buttons": 3,
-        "cellMarks": 0,
-        "charts": 0,
-        "constantStatuses": 0,
-        "cutNames": 0,
-        "foldedTables": 0,
-        "statusHues": 0
-      },
-      "Variants": {
         "words": 32,
         "primaries": 1,
         "zeros": 0,
@@ -1018,7 +1067,28 @@
         "adjacentEmptySections": 0,
         "longDescriptions": 0,
         "longStrings": 0,
-        "longEmptyLines": 1,
+        "longEmptyLines": 0,
+        "buttons": 3,
+        "cellMarks": 0,
+        "charts": 0,
+        "constantStatuses": 0,
+        "cutNames": 0,
+        "foldedTables": 0,
+        "statusHues": 0
+      },
+      "Variants": {
+        "words": 29,
+        "primaries": 1,
+        "zeros": 0,
+        "constantColumns": 0,
+        "repeatedPairs": 0,
+        "emptyFacts": 0,
+        "railRows": 0,
+        "sections": 0,
+        "adjacentEmptySections": 0,
+        "longDescriptions": 0,
+        "longStrings": 0,
+        "longEmptyLines": 0,
         "buttons": 2,
         "cellMarks": 0,
         "charts": 0,
@@ -1028,7 +1098,7 @@
         "statusHues": 0
       },
       "Assessment": {
-        "words": 52,
+        "words": 44,
         "primaries": 1,
         "zeros": 0,
         "constantColumns": 0,
@@ -1039,7 +1109,7 @@
         "adjacentEmptySections": 0,
         "longDescriptions": 0,
         "longStrings": 0,
-        "longEmptyLines": 1,
+        "longEmptyLines": 0,
         "buttons": 2,
         "cellMarks": 0,
         "charts": 0,
@@ -1049,7 +1119,7 @@
         "statusHues": 0
       },
       "Versions": {
-        "words": 22,
+        "words": 21,
         "primaries": 1,
         "zeros": 0,
         "constantColumns": 0,
@@ -1076,15 +1146,19 @@
     "path": "/library/products/",
     "title": "Products",
     "family": "register",
+    "nav": {
+      "scope": "organization",
+      "current": "Products"
+    },
     "archetype": "Register",
     "purpose": "Which products the workspace builds.",
     "primary": "Create product",
     "model": "products",
     "budgets": {
-      "words": 25,
+      "words": 23,
       "primaries": 1,
       "zeros": 0,
-      "constantColumns": 6,
+      "constantColumns": 5,
       "repeatedPairs": 0,
       "emptyFacts": 0,
       "railRows": 0,
@@ -1109,23 +1183,27 @@
     "path": "/library/requirements/$definitionKey",
     "title": "Requirement definition",
     "family": "record",
+    "nav": {
+      "scope": "organization",
+      "current": "Requirements"
+    },
     "archetype": "Library",
     "purpose": "What a reusable requirement says, and who adopted it.",
     "primary": "Edit requirement",
     "model": "requirement_definitions",
     "budgets": {
-      "words": 54,
+      "words": 34,
       "primaries": 1,
       "zeros": 0,
       "constantColumns": 0,
       "repeatedPairs": 0,
-      "emptyFacts": 4,
-      "railRows": 6,
+      "emptyFacts": 0,
+      "railRows": 3,
       "sections": 0,
       "adjacentEmptySections": 0,
       "longDescriptions": 0,
       "longStrings": 0,
-      "longEmptyLines": 1,
+      "longEmptyLines": 0,
       "buttons": 4,
       "tabs": 0,
       "tabExceptions": 0,
@@ -1142,6 +1220,10 @@
     "path": "/library/requirements/",
     "title": "Requirements",
     "family": "register",
+    "nav": {
+      "scope": "organization",
+      "current": "Requirements"
+    },
     "archetype": "Library",
     "purpose": "Which requirement templates programs can reuse.",
     "primary": "Create requirement",
@@ -1175,12 +1257,16 @@
     "path": "/overlays/$overlayId",
     "title": "Overlay",
     "family": "record",
+    "nav": {
+      "scope": "organization",
+      "current": "Overlays"
+    },
     "archetype": "Library",
     "purpose": "What an overlay adds or removes, version by version.",
     "primary": "Edit overlay",
     "model": "control_overlays",
     "budgets": {
-      "words": 84,
+      "words": 72,
       "primaries": 1,
       "zeros": 0,
       "constantColumns": 0,
@@ -1191,7 +1277,7 @@
       "adjacentEmptySections": 1,
       "longDescriptions": 0,
       "longStrings": 0,
-      "longEmptyLines": 2,
+      "longEmptyLines": 0,
       "buttons": 6,
       "tabs": 0,
       "tabExceptions": 0,
@@ -1208,15 +1294,19 @@
     "path": "/overlays/",
     "title": "Overlays",
     "family": "register",
+    "nav": {
+      "scope": "organization",
+      "current": "Overlays"
+    },
     "archetype": "Library",
     "purpose": "Which overlays programs can apply to a baseline.",
     "primary": "Create overlay",
     "model": "control_overlays",
     "budgets": {
-      "words": 19,
+      "words": 17,
       "primaries": 1,
       "zeros": 0,
-      "constantColumns": 7,
+      "constantColumns": 6,
       "repeatedPairs": 0,
       "emptyFacts": 0,
       "railRows": 0,
@@ -1241,18 +1331,22 @@
     "path": "/packages/$pkgId",
     "title": "Authorization package",
     "family": "record",
+    "nav": {
+      "scope": "organization",
+      "current": "Packages"
+    },
     "archetype": "Record",
     "purpose": "What an authorization package holds, and its decision.",
     "primary": "Edit authorization package",
     "model": "authorization_packages",
     "budgets": {
-      "words": 40,
+      "words": 37,
       "primaries": 1,
       "zeros": 0,
       "constantColumns": 0,
       "repeatedPairs": 0,
-      "emptyFacts": 1,
-      "railRows": 3,
+      "emptyFacts": 0,
+      "railRows": 2,
       "sections": 1,
       "adjacentEmptySections": 0,
       "longDescriptions": 0,
@@ -1274,6 +1368,10 @@
     "path": "/packages/",
     "title": "Authorization packages",
     "family": "register",
+    "nav": {
+      "scope": "organization",
+      "current": "Packages"
+    },
     "archetype": "Register",
     "purpose": "Which authorization packages are drafted, submitted or decided?",
     "primary": "Create authorization package",
@@ -1307,18 +1405,22 @@
     "path": "/poam-documents/$documentId",
     "title": "POA&M plan",
     "family": "record",
+    "nav": {
+      "scope": "organization",
+      "current": "POA&M & risk register"
+    },
     "archetype": "Record",
     "purpose": "Which remediation items a POA&M plan groups.",
     "primary": "Edit POA&M plan",
     "model": "poam_documents",
     "budgets": {
-      "words": 40,
+      "words": 37,
       "primaries": 1,
       "zeros": 0,
       "constantColumns": 0,
       "repeatedPairs": 0,
-      "emptyFacts": 1,
-      "railRows": 4,
+      "emptyFacts": 0,
+      "railRows": 3,
       "sections": 1,
       "adjacentEmptySections": 0,
       "longDescriptions": 0,
@@ -1340,6 +1442,10 @@
     "path": "/profiles/$profileId",
     "title": "Profile",
     "family": "record",
+    "nav": {
+      "scope": "organization",
+      "current": "Profiles"
+    },
     "archetype": "Library",
     "purpose": "How a baseline profile is derived and tailored.",
     "primary": "none",
@@ -1376,10 +1482,10 @@
     },
     "tabBudgets": {
       "Controls": {
-        "words": 41,
+        "words": 39,
         "primaries": 0,
         "zeros": 0,
-        "constantColumns": 2,
+        "constantColumns": 1,
         "repeatedPairs": 0,
         "emptyFacts": 0,
         "railRows": 0,
@@ -1418,7 +1524,7 @@
         "statusHues": 1
       },
       "Tailoring": {
-        "words": 49,
+        "words": 44,
         "primaries": 0,
         "zeros": 0,
         "constantColumns": 0,
@@ -1429,7 +1535,7 @@
         "adjacentEmptySections": 0,
         "longDescriptions": 0,
         "longStrings": 0,
-        "longEmptyLines": 1,
+        "longEmptyLines": 0,
         "buttons": 2,
         "cellMarks": 0,
         "charts": 0,
@@ -1445,15 +1551,19 @@
     "path": "/profiles/",
     "title": "Profiles",
     "family": "register",
+    "nav": {
+      "scope": "organization",
+      "current": "Profiles"
+    },
     "archetype": "Library",
     "purpose": "Which control baselines programs can adopt.",
     "primary": "Create profile",
     "model": "profiles",
     "budgets": {
-      "words": 18,
+      "words": 16,
       "primaries": 1,
       "zeros": 0,
-      "constantColumns": 1,
+      "constantColumns": 0,
       "repeatedPairs": 0,
       "emptyFacts": 0,
       "railRows": 0,
@@ -1478,6 +1588,10 @@
     "path": "/programs/$programId",
     "title": "Program",
     "family": "record",
+    "nav": {
+      "scope": "program",
+      "current": "Overview"
+    },
     "archetype": "Overview",
     "purpose": "Where a program stands on its way to a decision.",
     "primary": "Edit program",
@@ -1494,7 +1608,7 @@
     },
     "previewOnly": ["Library"],
     "budgets": {
-      "words": 163,
+      "words": 131,
       "primaries": 1,
       "zeros": 0,
       "constantColumns": 0,
@@ -1505,8 +1619,8 @@
       "adjacentEmptySections": 2,
       "longDescriptions": 0,
       "longStrings": 0,
-      "longEmptyLines": 4,
-      "buttons": 6,
+      "longEmptyLines": 0,
+      "buttons": 4,
       "tabs": 10,
       "tabExceptions": 6,
       "cellMarks": 0,
@@ -1518,7 +1632,7 @@
     },
     "tabBudgets": {
       "System": {
-        "words": 48,
+        "words": 44,
         "primaries": 2,
         "zeros": 0,
         "constantColumns": 0,
@@ -1530,7 +1644,7 @@
         "longDescriptions": 0,
         "longStrings": 0,
         "longEmptyLines": 0,
-        "buttons": 14,
+        "buttons": 13,
         "cellMarks": 2,
         "charts": 0,
         "constantStatuses": 0,
@@ -1539,28 +1653,7 @@
         "statusHues": 0
       },
       "Library": {
-        "words": 63,
-        "primaries": 1,
-        "zeros": 0,
-        "constantColumns": 0,
-        "repeatedPairs": 0,
-        "emptyFacts": 0,
-        "railRows": 0,
-        "sections": 0,
-        "adjacentEmptySections": 0,
-        "longDescriptions": 0,
-        "longStrings": 0,
-        "longEmptyLines": 1,
-        "buttons": 2,
-        "cellMarks": 0,
-        "charts": 0,
-        "constantStatuses": 0,
-        "cutNames": 0,
-        "foldedTables": 0,
-        "statusHues": 0
-      },
-      "Requirements": {
-        "words": 48,
+        "words": 46,
         "primaries": 1,
         "zeros": 0,
         "constantColumns": 0,
@@ -1572,7 +1665,28 @@
         "longDescriptions": 0,
         "longStrings": 0,
         "longEmptyLines": 0,
-        "buttons": 5,
+        "buttons": 2,
+        "cellMarks": 0,
+        "charts": 0,
+        "constantStatuses": 0,
+        "cutNames": 0,
+        "foldedTables": 0,
+        "statusHues": 0
+      },
+      "Requirements": {
+        "words": 47,
+        "primaries": 1,
+        "zeros": 0,
+        "constantColumns": 0,
+        "repeatedPairs": 0,
+        "emptyFacts": 0,
+        "railRows": 0,
+        "sections": 0,
+        "adjacentEmptySections": 0,
+        "longDescriptions": 0,
+        "longStrings": 0,
+        "longEmptyLines": 0,
+        "buttons": 2,
         "cellMarks": 0,
         "charts": 0,
         "constantStatuses": 0,
@@ -1581,7 +1695,7 @@
         "statusHues": 0
       },
       "Evidence": {
-        "words": 51,
+        "words": 50,
         "primaries": 1,
         "zeros": 0,
         "constantColumns": 0,
@@ -1602,10 +1716,10 @@
         "statusHues": 0
       },
       "Controls": {
-        "words": 69,
+        "words": 64,
         "primaries": 1,
         "zeros": 0,
-        "constantColumns": 1,
+        "constantColumns": 0,
         "repeatedPairs": 0,
         "emptyFacts": 0,
         "railRows": 0,
@@ -1614,7 +1728,7 @@
         "longDescriptions": 0,
         "longStrings": 0,
         "longEmptyLines": 0,
-        "buttons": 23,
+        "buttons": 19,
         "cellMarks": 1,
         "charts": 0,
         "constantStatuses": 0,
@@ -1623,7 +1737,7 @@
         "statusHues": 0
       },
       "Assessment campaigns": {
-        "words": 104,
+        "words": 91,
         "primaries": 1,
         "zeros": 0,
         "constantColumns": 0,
@@ -1634,8 +1748,8 @@
         "adjacentEmptySections": 1,
         "longDescriptions": 0,
         "longStrings": 0,
-        "longEmptyLines": 3,
-        "buttons": 14,
+        "longEmptyLines": 0,
+        "buttons": 12,
         "cellMarks": 1,
         "charts": 0,
         "constantStatuses": 0,
@@ -1644,7 +1758,7 @@
         "statusHues": 0
       },
       "Schedule": {
-        "words": 80,
+        "words": 79,
         "primaries": 1,
         "zeros": 0,
         "constantColumns": 0,
@@ -1665,7 +1779,7 @@
         "statusHues": 0
       },
       "Findings": {
-        "words": 64,
+        "words": 55,
         "primaries": 1,
         "zeros": 0,
         "constantColumns": 0,
@@ -1676,7 +1790,7 @@
         "adjacentEmptySections": 0,
         "longDescriptions": 0,
         "longStrings": 0,
-        "longEmptyLines": 1,
+        "longEmptyLines": 0,
         "buttons": 10,
         "cellMarks": 1,
         "charts": 0,
@@ -1686,7 +1800,7 @@
         "statusHues": 0
       },
       "POA&M & risk": {
-        "words": 63,
+        "words": 62,
         "primaries": 1,
         "zeros": 0,
         "constantColumns": 0,
@@ -1698,7 +1812,7 @@
         "longDescriptions": 0,
         "longStrings": 0,
         "longEmptyLines": 0,
-        "buttons": 21,
+        "buttons": 20,
         "cellMarks": 1,
         "charts": 0,
         "constantStatuses": 0,
@@ -1713,6 +1827,10 @@
     "path": "/programs/$programId/authorization",
     "title": "Authorization",
     "family": "program-view",
+    "nav": {
+      "scope": "program",
+      "current": "Authorization"
+    },
     "archetype": "Overview",
     "purpose": "Where the program's authorization stands, and its conditions.",
     "primary": "Edit program",
@@ -1746,6 +1864,10 @@
     "path": "/programs/$programId/baseline",
     "title": "Configuration baseline",
     "family": "program-view",
+    "nav": {
+      "scope": "program",
+      "current": "System"
+    },
     "archetype": "Record",
     "purpose": "What the program's configuration baseline holds.",
     "primary": "Edit program",
@@ -1779,12 +1901,16 @@
     "path": "/programs/$programId/control-baseline",
     "title": "Control baseline",
     "family": "program-view",
+    "nav": {
+      "scope": "program",
+      "current": "Baseline"
+    },
     "archetype": "Workspace",
     "purpose": "How the control baseline is formed, layer by layer.",
     "primary": "Edit program",
     "model": "programs",
     "budgets": {
-      "words": 36,
+      "words": 25,
       "primaries": 1,
       "zeros": 0,
       "constantColumns": 0,
@@ -1795,7 +1921,7 @@
       "adjacentEmptySections": 0,
       "longDescriptions": 0,
       "longStrings": 0,
-      "longEmptyLines": 1,
+      "longEmptyLines": 0,
       "buttons": 1,
       "tabs": 0,
       "tabExceptions": 0,
@@ -1812,12 +1938,16 @@
     "path": "/programs/$programId/compliance",
     "title": "Compliance matrix",
     "family": "program-view",
+    "nav": {
+      "scope": "program",
+      "current": "Requirements"
+    },
     "archetype": "Workspace",
     "purpose": "How the program answers a customer's requirements.",
     "primary": "Edit program",
     "model": "programs",
     "budgets": {
-      "words": 30,
+      "words": 25,
       "primaries": 1,
       "zeros": 0,
       "constantColumns": 0,
@@ -1828,7 +1958,7 @@
       "adjacentEmptySections": 0,
       "longDescriptions": 0,
       "longStrings": 0,
-      "longEmptyLines": 1,
+      "longEmptyLines": 0,
       "buttons": 2,
       "tabs": 0,
       "tabExceptions": 0,
@@ -1845,12 +1975,16 @@
     "path": "/programs/$programId/control-status",
     "title": "Control status",
     "family": "program-view",
+    "nav": {
+      "scope": "program",
+      "current": "Controls"
+    },
     "archetype": "Overview",
     "purpose": "Where the program stands on each control of its baseline.",
     "primary": "Edit program",
     "model": "programs",
     "budgets": {
-      "words": 37,
+      "words": 25,
       "primaries": 1,
       "zeros": 0,
       "constantColumns": 0,
@@ -1861,7 +1995,7 @@
       "adjacentEmptySections": 0,
       "longDescriptions": 0,
       "longStrings": 0,
-      "longEmptyLines": 1,
+      "longEmptyLines": 0,
       "buttons": 1,
       "tabs": 0,
       "tabExceptions": 0,
@@ -1878,12 +2012,16 @@
     "path": "/programs/$programId/posture",
     "title": "Posture",
     "family": "program-view",
+    "nav": {
+      "scope": "program",
+      "current": "Requirements"
+    },
     "archetype": "Overview",
     "purpose": "Where coverage stands, by element and control family.",
     "primary": "Edit program",
     "model": "programs",
     "budgets": {
-      "words": 108,
+      "words": 103,
       "primaries": 1,
       "zeros": 2,
       "constantColumns": 0,
@@ -1911,12 +2049,16 @@
     "path": "/programs/$programId/product-delta",
     "title": "Product delta",
     "family": "program-view",
+    "nav": {
+      "scope": "program",
+      "current": "Controls"
+    },
     "archetype": "Overview",
     "purpose": "What a variant takes from its product, and owes.",
     "primary": "Edit program",
     "model": "programs",
     "budgets": {
-      "words": 38,
+      "words": 28,
       "primaries": 1,
       "zeros": 0,
       "constantColumns": 0,
@@ -1927,7 +2069,7 @@
       "adjacentEmptySections": 0,
       "longDescriptions": 0,
       "longStrings": 0,
-      "longEmptyLines": 1,
+      "longEmptyLines": 0,
       "buttons": 1,
       "tabs": 0,
       "tabExceptions": 0,
@@ -1944,12 +2086,16 @@
     "path": "/programs/$programId/resiliency",
     "title": "Cyber resiliency",
     "family": "program-view",
+    "nav": {
+      "scope": "program",
+      "current": "Controls"
+    },
     "archetype": "Overview",
     "purpose": "What the baseline holds behind each resiliency technique.",
     "primary": "Edit program",
     "model": "programs",
     "budgets": {
-      "words": 39,
+      "words": 25,
       "primaries": 1,
       "zeros": 0,
       "constantColumns": 0,
@@ -1960,7 +2106,7 @@
       "adjacentEmptySections": 0,
       "longDescriptions": 0,
       "longStrings": 0,
-      "longEmptyLines": 1,
+      "longEmptyLines": 0,
       "buttons": 1,
       "tabs": 0,
       "tabExceptions": 0,
@@ -1977,6 +2123,10 @@
     "path": "/programs/$programId/components/$componentId",
     "title": "Program component",
     "family": "record",
+    "nav": {
+      "scope": "program",
+      "current": "System"
+    },
     "archetype": "Record",
     "purpose": "What a program's component implements, and from where.",
     "primary": "Edit system component",
@@ -2027,12 +2177,16 @@
     "path": "/programs/$programId/conmon",
     "title": "Continuous monitoring",
     "family": "program-view",
+    "nav": {
+      "scope": "program",
+      "current": "Assessments"
+    },
     "archetype": "Overview",
     "purpose": "What continuous monitoring watches, and what is due.",
     "primary": "Edit program",
     "model": "programs",
     "budgets": {
-      "words": 30,
+      "words": 22,
       "primaries": 1,
       "zeros": 0,
       "constantColumns": 0,
@@ -2043,7 +2197,7 @@
       "adjacentEmptySections": 0,
       "longDescriptions": 0,
       "longStrings": 0,
-      "longEmptyLines": 1,
+      "longEmptyLines": 0,
       "buttons": 1,
       "tabs": 0,
       "tabExceptions": 0,
@@ -2060,6 +2214,10 @@
     "path": "/programs/$programId/controls/$controlId",
     "title": "Program control",
     "family": "record",
+    "nav": {
+      "scope": "program",
+      "current": "Controls"
+    },
     "archetype": "Record",
     "purpose": "Where the program stands on one control, and what next.",
     "primary": "Edit control implementation",
@@ -2070,12 +2228,12 @@
       "reason": "The address names a control implementation or a catalog control read inside the program; an id that is neither is a missing control. The SSP workflows seed an implementation, and the Controls name link check opens one."
     },
     "budgets": {
-      "words": 126,
+      "words": 113,
       "primaries": 1,
-      "zeros": 4,
+      "zeros": 0,
       "constantColumns": 0,
       "repeatedPairs": 0,
-      "emptyFacts": 1,
+      "emptyFacts": 0,
       "railRows": 4,
       "sections": 4,
       "adjacentEmptySections": 1,
@@ -2110,12 +2268,16 @@
     "path": "/programs/$programId/export",
     "title": "Program transfer",
     "family": "program-view",
+    "nav": {
+      "scope": "program",
+      "current": "Overview"
+    },
     "archetype": "Flow",
     "purpose": "Export a program's records, or import them.",
     "primary": "Export record register",
     "model": "programs",
     "budgets": {
-      "words": 54,
+      "words": 46,
       "primaries": 1,
       "zeros": 1,
       "constantColumns": 0,
@@ -2124,8 +2286,8 @@
       "railRows": 0,
       "sections": 1,
       "adjacentEmptySections": 0,
-      "longDescriptions": 1,
-      "longStrings": 1,
+      "longDescriptions": 0,
+      "longStrings": 0,
       "longEmptyLines": 0,
       "buttons": 1,
       "tabs": 0,
@@ -2143,6 +2305,10 @@
     "path": "/programs/$programId/ingestion",
     "title": "Scanner ingestion",
     "family": "program-view",
+    "nav": {
+      "scope": "program",
+      "current": "Assessments"
+    },
     "archetype": "Flow",
     "purpose": "Bring scanner results into the program.",
     "primary": "Edit program",
@@ -2176,12 +2342,16 @@
     "path": "/programs/$programId/inheritance",
     "title": "Inheritance resolution",
     "family": "program-view",
+    "nav": {
+      "scope": "program",
+      "current": "Controls"
+    },
     "archetype": "Workspace",
     "purpose": "Resolve what the program's systems inherit.",
     "primary": "Edit program",
     "model": "programs",
     "budgets": {
-      "words": 50,
+      "words": 44,
       "primaries": 1,
       "zeros": 0,
       "constantColumns": 0,
@@ -2192,7 +2362,7 @@
       "adjacentEmptySections": 1,
       "longDescriptions": 0,
       "longStrings": 0,
-      "longEmptyLines": 2,
+      "longEmptyLines": 0,
       "buttons": 2,
       "tabs": 0,
       "tabExceptions": 0,
@@ -2209,6 +2379,10 @@
     "path": "/programs/$programId/requirements/$requirementId",
     "title": "Program requirement",
     "family": "record",
+    "nav": {
+      "scope": "program",
+      "current": "Requirements"
+    },
     "archetype": "Record",
     "purpose": "What a requirement asks, and what meets it.",
     "primary": "Edit engineering requirement",
@@ -2247,6 +2421,10 @@
     "path": "/programs/$programId/risk",
     "title": "Residual risk",
     "family": "program-view",
+    "nav": {
+      "scope": "program",
+      "current": "Risks"
+    },
     "archetype": "Overview",
     "purpose": "Which risks remain after their responses.",
     "primary": "Edit program",
@@ -2280,12 +2458,16 @@
     "path": "/programs/$programId/sctm",
     "title": "Traceability matrix",
     "family": "program-view",
+    "nav": {
+      "scope": "program",
+      "current": "Requirements"
+    },
     "archetype": "Workspace",
     "purpose": "Trace requirements to controls and evidence, and edit them.",
     "primary": "Edit program",
     "model": "programs",
     "budgets": {
-      "words": 232,
+      "words": 106,
       "primaries": 1,
       "zeros": 0,
       "constantColumns": 0,
@@ -2313,6 +2495,10 @@
     "path": "/programs/$programId/systems/$scopeId",
     "title": "System",
     "family": "record",
+    "nav": {
+      "scope": "program",
+      "current": "System"
+    },
     "archetype": "Record",
     "purpose": "What a system holds, and its security plan.",
     "primary": "Edit system",
@@ -2324,12 +2510,12 @@
     },
     "previewOnly": ["Library"],
     "budgets": {
-      "words": 75,
+      "words": 64,
       "primaries": 1,
       "zeros": 0,
       "constantColumns": 0,
       "repeatedPairs": 0,
-      "emptyFacts": 2,
+      "emptyFacts": 1,
       "railRows": 10,
       "sections": 0,
       "adjacentEmptySections": 0,
@@ -2344,14 +2530,14 @@
       "constantStatuses": 0,
       "cutNames": 0,
       "foldedTables": 1,
-      "statusHues": 0
+      "statusHues": 1
     },
     "tabBudgets": {
       "Controls": {
-        "words": 55,
+        "words": 50,
         "primaries": 1,
         "zeros": 0,
-        "constantColumns": 2,
+        "constantColumns": 0,
         "repeatedPairs": 0,
         "emptyFacts": 0,
         "railRows": 0,
@@ -2369,7 +2555,7 @@
         "statusHues": 0
       },
       "Requirements": {
-        "words": 39,
+        "words": 35,
         "primaries": 2,
         "zeros": 0,
         "constantColumns": 0,
@@ -2380,7 +2566,7 @@
         "adjacentEmptySections": 0,
         "longDescriptions": 0,
         "longStrings": 0,
-        "longEmptyLines": 1,
+        "longEmptyLines": 0,
         "buttons": 4,
         "cellMarks": 0,
         "charts": 0,
@@ -2411,7 +2597,7 @@
         "statusHues": 0
       },
       "Evidence": {
-        "words": 48,
+        "words": 37,
         "primaries": 1,
         "zeros": 0,
         "constantColumns": 0,
@@ -2422,7 +2608,7 @@
         "adjacentEmptySections": 0,
         "longDescriptions": 0,
         "longStrings": 0,
-        "longEmptyLines": 1,
+        "longEmptyLines": 0,
         "buttons": 2,
         "cellMarks": 0,
         "charts": 0,
@@ -2453,10 +2639,10 @@
         "statusHues": 0
       },
       "SSP": {
-        "words": 40,
+        "words": 38,
         "primaries": 1,
         "zeros": 0,
-        "constantColumns": 1,
+        "constantColumns": 0,
         "repeatedPairs": 0,
         "emptyFacts": 0,
         "railRows": 0,
@@ -2492,13 +2678,17 @@
     "path": "/programs/$programId/workbook",
     "title": "Workbook",
     "family": "program-view",
+    "nav": {
+      "scope": "program",
+      "current": "Requirements"
+    },
     "archetype": "Workspace",
     "purpose": "Edit a program's requirements and mappings as sheets.",
     "primary": "Edit program",
     "model": "programs",
     "reason": "Program workbook: editable source grids, analysis sheets, and reviewed atomic changes, following the workbook contract.",
     "budgets": {
-      "words": 228,
+      "words": 102,
       "primaries": 1,
       "zeros": 0,
       "constantColumns": 0,
@@ -2526,12 +2716,16 @@
     "path": "/programs/new",
     "title": "Create program",
     "family": "wizard",
+    "nav": {
+      "scope": "organization",
+      "current": "Programs"
+    },
     "archetype": "Flow",
     "purpose": "Set up a program: its baseline, systems and team.",
     "primary": "Continue",
     "reason": "Program setup is the page wizard named in the contract.",
     "budgets": {
-      "words": 68,
+      "words": 57,
       "primaries": 1,
       "zeros": 0,
       "constantColumns": 0,
@@ -2559,6 +2753,10 @@
     "path": "/programs",
     "title": "Programs",
     "family": "register",
+    "nav": {
+      "scope": "organization",
+      "current": "Programs"
+    },
     "archetype": "Register",
     "purpose": "Which programs the workspace runs, and where each stands.",
     "primary": "Create program",
@@ -2598,7 +2796,7 @@
     "model": "parties",
     "reason": "Addressable new-record page shares this route with inspector records.",
     "budgets": {
-      "words": 144,
+      "words": 130,
       "primaries": 0,
       "zeros": 0,
       "constantColumns": 0,
@@ -2632,10 +2830,10 @@
     "model": "parties",
     "heading": "Parties",
     "budgets": {
-      "words": 7,
+      "words": 5,
       "primaries": 1,
       "zeros": 0,
-      "constantColumns": 1,
+      "constantColumns": 0,
       "repeatedPairs": 0,
       "emptyFacts": 0,
       "railRows": 0,
@@ -2660,6 +2858,10 @@
     "path": "/register/",
     "title": "POA&M & risk register",
     "family": "register",
+    "nav": {
+      "scope": "organization",
+      "current": "POA&M & risk register"
+    },
     "archetype": "Register",
     "purpose": "Which remediation items and risks need work, across programs?",
     "primary": "Create remediation item",
@@ -2692,10 +2894,10 @@
     },
     "tabBudgets": {
       "Risks": {
-        "words": 27,
+        "words": 25,
         "primaries": 1,
         "zeros": 0,
-        "constantColumns": 6,
+        "constantColumns": 5,
         "repeatedPairs": 0,
         "emptyFacts": 0,
         "railRows": 0,
@@ -2761,17 +2963,21 @@
     "path": "/register/poam/$poamId",
     "title": "Remediation item",
     "family": "record",
+    "nav": {
+      "scope": "organization",
+      "current": "POA&M & risk register"
+    },
     "archetype": "Record",
     "purpose": "What a remediation item commits to, and by when.",
     "primary": "Edit remediation item",
     "model": "poam_items",
     "budgets": {
-      "words": 106,
+      "words": 93,
       "primaries": 1,
-      "zeros": 4,
+      "zeros": 0,
       "constantColumns": 0,
       "repeatedPairs": 0,
-      "emptyFacts": 1,
+      "emptyFacts": 0,
       "railRows": 3,
       "sections": 2,
       "adjacentEmptySections": 0,
@@ -2786,7 +2992,7 @@
       "constantStatuses": 0,
       "cutNames": 0,
       "foldedTables": 0,
-      "statusHues": 0
+      "statusHues": 1
     }
   },
   {
@@ -2794,6 +3000,10 @@
     "path": "/register/risks/$riskId",
     "title": "Risk",
     "family": "record",
+    "nav": {
+      "scope": "organization",
+      "current": "POA&M & risk register"
+    },
     "archetype": "Record",
     "purpose": "What a risk is, how severe, and how it is answered.",
     "primary": "Edit risk",
@@ -2806,19 +3016,19 @@
       "Evidence": "Requires an assessment revision; this independent fixture checks its prerequisite empty state."
     },
     "budgets": {
-      "words": 164,
+      "words": 112,
       "primaries": 1,
-      "zeros": 3,
+      "zeros": 0,
       "constantColumns": 0,
       "repeatedPairs": 0,
-      "emptyFacts": 2,
-      "railRows": 4,
-      "sections": 5,
-      "adjacentEmptySections": 3,
+      "emptyFacts": 0,
+      "railRows": 3,
+      "sections": 4,
+      "adjacentEmptySections": 2,
       "longDescriptions": 0,
       "longStrings": 0,
-      "longEmptyLines": 3,
-      "buttons": 5,
+      "longEmptyLines": 0,
+      "buttons": 4,
       "tabs": 6,
       "tabExceptions": 3,
       "cellMarks": 0,
@@ -2826,7 +3036,7 @@
       "constantStatuses": 0,
       "cutNames": 0,
       "foldedTables": 0,
-      "statusHues": 0
+      "statusHues": 1
     },
     "tabBudgets": {
       "Assessments": {
@@ -2941,6 +3151,10 @@
     "path": "/review-queue",
     "title": "Review queue",
     "family": "register",
+    "nav": {
+      "scope": "organization",
+      "current": "Review queue"
+    },
     "archetype": "Home",
     "purpose": "What waits on a reviewer, oldest first.",
     "primary": "none",
@@ -2986,15 +3200,19 @@
     "path": "/risks",
     "title": "Risk register",
     "family": "register",
+    "nav": {
+      "scope": "organization",
+      "current": "POA&M & risk register"
+    },
     "archetype": "Register",
     "purpose": "Which risks are open, and which to work first?",
     "primary": "Create risk",
     "model": "risks",
     "budgets": {
-      "words": 19,
+      "words": 17,
       "primaries": 1,
       "zeros": 0,
-      "constantColumns": 6,
+      "constantColumns": 5,
       "repeatedPairs": 0,
       "emptyFacts": 0,
       "railRows": 0,
@@ -3052,23 +3270,27 @@
     "path": "/tasks/$taskId",
     "title": "Task",
     "family": "record",
+    "nav": {
+      "scope": "organization",
+      "current": "Home"
+    },
     "archetype": "Record",
     "purpose": "What a task asks, who does it, and by when.",
     "primary": "Edit task",
     "model": "tasks",
     "budgets": {
-      "words": 74,
+      "words": 58,
       "primaries": 1,
       "zeros": 0,
       "constantColumns": 0,
       "repeatedPairs": 0,
-      "emptyFacts": 3,
-      "railRows": 5,
+      "emptyFacts": 0,
+      "railRows": 2,
       "sections": 4,
       "adjacentEmptySections": 1,
       "longDescriptions": 0,
       "longStrings": 0,
-      "longEmptyLines": 1,
+      "longEmptyLines": 0,
       "buttons": 8,
       "tabs": 0,
       "tabExceptions": 0,
@@ -3085,6 +3307,10 @@
     "path": "/vendors",
     "title": "Suppliers",
     "family": "register",
+    "nav": {
+      "scope": "organization",
+      "current": "Suppliers"
+    },
     "archetype": "Register",
     "purpose": "Which supplier organizations the workspace records.",
     "primary": "Create organization",
@@ -3119,6 +3345,10 @@
     "path": "/work",
     "title": "My work",
     "family": "register",
+    "nav": {
+      "scope": "organization",
+      "current": "Home"
+    },
     "archetype": "Home",
     "purpose": "What needs me today?",
     "primary": "Create task",
@@ -3152,23 +3382,27 @@
     "path": "/workstreams/$workstreamId",
     "title": "Workstream",
     "family": "record",
+    "nav": {
+      "scope": "organization",
+      "current": "Programs"
+    },
     "archetype": "Record",
     "purpose": "What a workstream holds, and how far it got.",
     "primary": "Edit workstream",
     "model": "workstreams",
     "budgets": {
-      "words": 45,
+      "words": 34,
       "primaries": 1,
       "zeros": 0,
       "constantColumns": 0,
       "repeatedPairs": 0,
-      "emptyFacts": 3,
-      "railRows": 4,
+      "emptyFacts": 0,
+      "railRows": 2,
       "sections": 2,
       "adjacentEmptySections": 0,
       "longDescriptions": 0,
       "longStrings": 0,
-      "longEmptyLines": 1,
+      "longEmptyLines": 0,
       "buttons": 3,
       "tabs": 0,
       "tabExceptions": 0,
@@ -3177,7 +3411,7 @@
       "constantStatuses": 0,
       "cutNames": 0,
       "foldedTables": 0,
-      "statusHues": 0
+      "statusHues": 1
     }
   }
 ]

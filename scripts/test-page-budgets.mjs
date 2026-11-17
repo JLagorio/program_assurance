@@ -75,7 +75,13 @@ const BUDGETS = [
   ["longDescriptions", "B8", "descriptions over 80 characters", 0],
   ["longStrings", "B9", "UI strings over 12 words (errors and authored prose aside)", 0],
   ["longEmptyLines", "B9", "empty-state lines over 10 words", 0],
-  ["buttons", "B10", "visible buttons in Main outside table rows", 12],
+  [
+    "buttons",
+    "B10",
+    "visible buttons in Main outside table rows",
+    // A workspace's own toolbar is its tool, not the page's commands (the contract's Workspace).
+    (type) => (type === "Workspace" ? Infinity : 12),
+  ],
   ["tabs", "B11", "tabs in one tab strip", 7, "route"],
   ["tabExceptions", "B11", "tab exceptions declared in the inventory", 0, "route"],
   ["cellMarks", "B12", "marks in one table cell (badges, icons, bars), row controls aside", 2],
@@ -147,11 +153,20 @@ function measure({ fold }) {
   const wordCount = (value) =>
     value.split(/\s+/).filter((word) => /[\p{L}\p{N}]/u.test(word)).length;
   const all = (selector, root = main) => [...root.querySelectorAll(selector)].filter(visible);
+  /**
+   * A visually hidden label (`sr-only`, VisuallyHidden): its box is 1px square, though its text
+   * lays out at its own width inside it. It is heard, not read.
+   */
+  const heardOnly = (element) => {
+    const box = element?.getBoundingClientRect();
+    return Boolean(box) && box.width <= 1 && box.height <= 1;
+  };
   /** The words an element draws: its text nodes with a box, a visually hidden label left out. */
   const drawnText = (element) => {
     const parts = [];
     const walk = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
     for (let node = walk.nextNode(); node; node = walk.nextNode()) {
+      if (heardOnly(node.parentElement)) continue;
       const range = document.createRange();
       range.selectNodeContents(node);
       if ([...range.getClientRects()].some((rect) => rect.width > 1 && rect.height > 1))
@@ -183,12 +198,13 @@ function measure({ fold }) {
       continue;
     }
     if (!/[\p{L}\p{N}]/u.test(node.textContent)) continue;
+    // A visually hidden label is 1px square: it is heard, not read.
+    if (heardOnly(parent)) continue;
     const range = document.createRange();
     range.selectNodeContents(node);
     const rects = [...range.getClientRects()].filter((rect) => rect.width > 1 && rect.height > 1);
     if (!rects.length || !parent.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true }))
       continue;
-    // A visually hidden label is 1px square: it is heard, not read.
     if (rects.every((rect) => rect.top >= fold || rect.bottom <= 0)) continue;
     words += wordCount(node.textContent);
   }

@@ -73,7 +73,7 @@ function Suppliers() {
           illustration: "people",
           title: "No organizations yet",
           description:
-            "Record supplier organizations, then connect them to actual component definitions. No assurance status or vendor risk score is inferred.",
+            "Record supplier organizations, then connect them to actual component sets. No assurance status or vendor risk score is inferred.",
           action: canEdit ? (
             <Button variant="primary" iconBefore={<Plus />} onClick={() => edit("new")}>
               {createLabel}

@@ -622,7 +622,7 @@ export function Briefing() {
                   {...(publishedPackages.length ? { count: publishedPackages.length } : {})}
                   empty={{
                     title: "No published package versions",
-                    description: "A package appears here once one of its versions is published.",
+                    description: "A package shows once one of its versions is published.",
                     action: (
                       <TextLink size="small" render={<Link to="/packages" />}>
                         Open authorization packages

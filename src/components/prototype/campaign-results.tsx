@@ -155,8 +155,7 @@ export function CampaignResults({
         onDisplayedRowsChange={setDisplayed}
         empty={{
           icon: <FileCheck />,
-          description:
-            "Assessment results hold the findings an assessor records against this campaign's plans.",
+          description: "Results hold the findings an assessor records here.",
         }}
       />
       {preview && (

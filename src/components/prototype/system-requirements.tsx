@@ -400,7 +400,7 @@ export function SystemRequirements({
             : "No requirements allocated here",
           description:
             canWrite && element
-              ? "Allocate the program's requirements to this element to start this collection."
+              ? "Allocate the program's requirements to this element."
               : canAdopt
                 ? "Adopt a reusable requirement from the library to allocate it here."
                 : "Nothing has been allocated to this element yet.",

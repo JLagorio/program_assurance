@@ -3,12 +3,19 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { Constants } from "./database.types";
 import {
+  authorizationDecisions,
+  authorizationStandings,
+  authorizationStatuses,
+  authorizationTypes,
   compareStatus,
+  componentOfferVerbs,
+  evidenceReviewDecisions,
   fieldVocabularies,
   impactLevels,
   neutralVocabulary,
   programStatuses,
   recordLifecycleStates,
+  reviewQueueKinds,
   revisionStates,
   riskStatuses,
   severityLevels,
@@ -17,6 +24,7 @@ import {
   statusTone,
   taskStatuses,
   vocabularyFor,
+  vocabularyForValue,
   vocabularyKind,
   type StatusVocabulary,
 } from "./status";
@@ -114,8 +122,9 @@ describe("status vocabulary", () => {
       expect(new Set(entries.map((entry) => entry.label)).size).toBe(entries.length);
       for (const entry of entries) {
         expect(TONES.has(entry.tone)).toBe(true);
-        // Sentence case: the first letter capital, the rest as the product writes them.
-        expect(entry.label).toMatch(/^[A-Z][a-z]/);
+        // Sentence case: the first letter capital, the rest as the product writes them; an
+        // acronym leads as it is written (ATO with conditions).
+        expect(entry.label).toMatch(/^([A-Z][a-z]|[A-Z]{2,}(\s|$))/);
       }
     }
   });
@@ -158,6 +167,48 @@ describe("status vocabulary", () => {
     for (const values of levels)
       for (const low of ["low", "very_low"])
         if (statusEntry(values, low)) expect(statusTone(values, low), low).toBe("neutral");
+  });
+
+  it("says an authorization decision in RMF's short words, defined once", () => {
+    expect(Object.values(authorizationTypes).map((entry) => entry.label)).toEqual([
+      "ATO",
+      "ATO with conditions",
+      "IATT",
+      "ATU",
+      "DATO",
+      "ATD",
+    ]);
+    // Every vocabulary that shows a decision reads the words, and the tones, from that one map.
+    const types = new Map(Object.values(authorizationTypes).map((entry) => [entry.label, entry]));
+    const shown = [authorizationDecisions, authorizationStatuses, authorizationStandings].flatMap(
+      (values) => Object.values(values),
+    );
+    for (const entry of shown)
+      if (types.has(entry.label)) expect(entry.tone).toBe(types.get(entry.label)!.tone);
+    expect(statusLabel(authorizationDecisions, "authorized")).toBe("ATO");
+    expect(statusLabel(authorizationDecisions, "authorized_with_conditions")).toBe(
+      "ATO with conditions",
+    );
+    expect(statusLabel(authorizationDecisions, "denied")).toBe("DATO");
+    expect(statusLabel(authorizationDecisions, "revoked")).toBe("ATD");
+    expect(statusLabel(authorizationStatuses, "authorized")).toBe("ATO");
+    expect(statusLabel(authorizationStatuses, "expired")).toBe("ATO expired");
+    // No stored value is an IATT or an ATU yet: no field reads either until the data change lands.
+    for (const [, values] of registered)
+      for (const entry of Object.values(values)) expect(entry.label).not.toMatch(/^(IATT|ATU)$/);
+  });
+
+  it("reads reviewed evidence as Verified, and the offer verbs as decided", () => {
+    expect(statusLabel(evidenceReviewDecisions, "accepted")).toBe("Verified");
+    expect(statusLabel(reviewQueueKinds, "evidence")).toBe("Evidence to verify");
+    // An "accepted" read by its value alone, with no field to say whose, stays Accepted.
+    expect(statusLabel(vocabularyForValue("accepted"), "accepted")).toBe("Accepted");
+    expect(componentOfferVerbs).toEqual({
+      offer: "Offer to owner",
+      withdraw: "Withdraw offer",
+      accept: "Accept",
+      return: "Return",
+    });
   });
 
   it("sorts by rank with unknown values last", () => {

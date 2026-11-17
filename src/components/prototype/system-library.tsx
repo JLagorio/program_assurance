@@ -44,7 +44,7 @@ type Line = LibraryUseRow & {
   appliedByName: string | null;
 };
 
-/** The record a library line names: a component definition, a resolved profile, or the element. */
+/** The record a library line names: a component set, a resolved profile, or the element. */
 const libraryRecord = (row: LibraryUseRow, programId: string) =>
   row.definitionId
     ? ({ table: "component_definitions", record: { id: row.definitionId } } as const)
@@ -168,7 +168,7 @@ export function SystemLibrary({
           minWidth: 200,
           priority: 0,
           hideable: false,
-          // Under the name: a baseline's control count, a component definition's component.
+          // Under the name: a baseline's control count, a component set's component.
           description: (row) => row.detail,
           cell: (row) => (
             <RecordLink
@@ -262,7 +262,7 @@ export function SystemLibrary({
           illustration: "records",
           title: "Nothing from the library yet",
           description:
-            "Apply a profile, a component definition or a requirement definition to this element.",
+            "Apply a profile, a component set or a requirement definition to this element.",
           action: addAction,
           // The way back from the scope, only while the scope leaves nothing; a search of the
           // table's own that hides the element's rows keeps the kit's Nothing matches and Clear filters.
@@ -329,7 +329,7 @@ export function SystemLibrary({
               <KeyValue.Group>
                 <KeyValue label="Kind">{selected.kind}</KeyValue>
                 {selected.detail && (
-                  // A baseline's detail is its control count, a component definition's its component.
+                  // A baseline's detail is its control count, a component set's its component.
                   <KeyValue label={selected.kind === "Baseline" ? "Selection" : "Component"}>
                     {selected.detail}
                   </KeyValue>
@@ -351,7 +351,7 @@ export function SystemLibrary({
                 {selected.rationale || <Absent label="No rationale recorded" />}
               </Prose>
             </Inspector.Group>
-            {selected.kind === "Component definition" && (
+            {selected.kind === "Component set" && (
               <Inspector.Group title={`Narratives · ${selectedContributions.length}`}>
                 {selectedContributions.length ? (
                   // One line per seeded narrative: its control, its status and whether it changed here.

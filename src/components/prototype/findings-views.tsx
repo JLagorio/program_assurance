@@ -73,6 +73,7 @@ import {
   EntityEditor,
   EntitySection,
   ModelFacts,
+  NoOwner,
   QueryState,
   RelationName,
   RevisionName,
@@ -466,7 +467,7 @@ function AssessmentFindingRegister() {
           title: "No assessment findings yet",
           description:
             workspace.role !== "viewer"
-              ? "An assessment finding records a determination against a control statement or objective in an assessment's results."
+              ? "A finding records a determination on a control or objective."
               : "Nothing has been recorded here yet.",
           action: create("medium"),
         }}
@@ -867,7 +868,7 @@ function IssueObservations({ issue }: { issue: Row<"operational_issues"> }) {
           <EmptyMessage
             compact
             title="No observations linked"
-            description="An observation records what was seen, and the evidence for it."
+            description="An observation records what was seen and its evidence."
           />
         )}
       </QueryState>
@@ -950,6 +951,7 @@ export function IssueRecord({
                         {
                           key: "owner_party_id",
                           label: "Owner",
+                          absent: <NoOwner />,
                           render: (record) => (
                             <RelationName
                               table="parties"

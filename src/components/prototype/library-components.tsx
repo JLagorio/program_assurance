@@ -63,7 +63,7 @@ import {
   ReportFailures,
 } from "./work-common";
 
-/** A definition with what its latest version says. */
+/** A component set with what its latest version says. */
 type ComponentRow = Row<"component_definitions"> & {
   categoryLabel: string;
   version: number | null;
@@ -74,6 +74,8 @@ type ComponentRow = Row<"component_definitions"> & {
 };
 
 const componentLabel = productCreateLabel("component_definitions");
+/** A new version of the set: the menu item, the empty state's action and the Dialog say it alike. */
+const versionLabel = productCreateLabel("component_definition_revisions");
 
 /** What the register reads of a definition's version: enough to find and describe its latest. */
 type LatestVersion = Pick<
@@ -153,7 +155,7 @@ export function ComponentLibraryIndex() {
           priority: 1,
         }),
         c.text("name", {
-          header: "Component definition",
+          header: "Component set",
           hideable: false,
           priority: 0,
           minWidth: 200,
@@ -188,7 +190,7 @@ export function ComponentLibraryIndex() {
     getRowId: (row) => row.id,
     // The row's controls are named by code and name, also once a narrow frame folds the ID.
     rowLabel: (row) => `${row.code} · ${row.name}`,
-    label: "Reusable component library",
+    label: "Component sets",
     view: "live-component-library",
     resizable: true,
     reorderable: true,
@@ -204,7 +206,7 @@ export function ComponentLibraryIndex() {
     <Page>
       <PageHeader>
         <PageHeader.Heading>
-          <PageHeader.Title>Components</PageHeader.Title>
+          <PageHeader.Title>Component sets</PageHeader.Title>
         </PageHeader.Heading>
       </PageHeader>
       {creating && (
@@ -229,7 +231,7 @@ export function ComponentLibraryIndex() {
                 (records) => downloadLibraryRecords("component-library.json", records),
                 () =>
                   toast.add({
-                    title: "The component library could not be exported",
+                    title: "The component sets could not be exported",
                     type: "error",
                     timeout: 8000,
                     description: "Its records could not be read. Try again.",
@@ -250,12 +252,12 @@ export function ComponentLibraryIndex() {
         empty={{
           action: canCreate ? create("medium") : undefined,
           illustration: "tree",
-          title: "No reusable components",
+          title: "No component sets",
           description: canCreate
-            ? "Create a component definition, then add its versioned implementation content."
-            : "Component definitions an editor creates here appear in this library.",
+            ? "Create a component set, then add its versioned implementation content."
+            : "Component sets an editor creates here appear in this library.",
         }}
-        searchLabel="Find components"
+        searchLabel="Find component sets"
         filters={
           <>
             <DataTable.Filter table={table} column="categoryLabel" />
@@ -406,7 +408,7 @@ export function ComponentLibraryRecord({
   if (!definition.data)
     return (
       <QueryState queries={[definition]}>
-        <MissingRecord backTo="/library/components" kind="Component" />
+        <MissingRecord backTo="/library/components" kind="Component set" />
       </QueryState>
     );
   const record = definition.data;
@@ -414,7 +416,7 @@ export function ComponentLibraryRecord({
     <Page>
       <PageHeader>
         <RecordTrail current={record.name}>
-          <TrailLink to="/library/components">Components</TrailLink>
+          <TrailLink to="/library/components">Component sets</TrailLink>
         </RecordTrail>
         {/* The state of the version the page reads, as its Details say it. */}
         <RecordHeading
@@ -428,7 +430,7 @@ export function ComponentLibraryRecord({
           {/* The edit is the primary; a reader who authors nothing here sees no menu. */}
           <RecordActions
             table="component_definitions"
-            editLabel="Edit component"
+            editLabel={`Edit ${productRecordNoun("component_definitions")}`}
             {...(editable
               ? {
                   onEdit: () =>
@@ -451,7 +453,7 @@ export function ComponentLibraryRecord({
                       })}
                   onClick={createVersion}
                 >
-                  Create component version
+                  {versionLabel}
                 </DropdownMenuItem>
                 {current?.state === "draft" && (
                   <>
@@ -463,7 +465,7 @@ export function ComponentLibraryRecord({
                         })
                       }
                     >
-                      Edit component version
+                      Edit {productRecordNoun("component_definition_revisions")}
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       {...(publishReason ? { disabledReason: publishReason } : {})}
@@ -508,12 +510,12 @@ export function ComponentLibraryRecord({
             description={
               editable
                 ? "Create the first version, then add its components and their control implementations. Programs add a version once it is published."
-                : "An editor authors this component's versions; programs add a version once it is published."
+                : "An editor authors this component set's versions; programs add a version once it is published."
             }
             action={
               editable ? (
                 <Button variant="primary" iconBefore={<Plus />} onClick={createVersion}>
-                  Create component version
+                  {versionLabel}
                 </Button>
               ) : undefined
             }
@@ -894,7 +896,7 @@ function ComponentRevision({
         />
       )}
       <Tabs value={tab} onValueChange={(value) => onTab(value as ComponentTab)}>
-        <TabsList variant="line" aria-label="Component sections">
+        <TabsList variant="line" aria-label="Component set sections">
           {componentTabs.map((name) => (
             <TabsTrigger key={name} value={name}>
               {name}
@@ -919,7 +921,7 @@ function ComponentRevision({
                   <AsideLayout
                     aside={
                       <Shell.Aside
-                        label="Component details"
+                        label="Component set details"
                         summary={<StatusBadge statuses={revisionStates} value={revision.state} />}
                       >
                         <Stack space="space.200">
@@ -1058,7 +1060,7 @@ function ComponentRevision({
               case "Versions":
                 return (
                   <VersionHistory
-                    label="Component versions"
+                    label="Component set versions"
                     versions={versions}
                     shownId={revision.id}
                     shownRef={versionFocus.shown}
@@ -1080,8 +1082,7 @@ function ComponentRevision({
                     empty={{
                       illustration: "tree",
                       title: "No program uses yet",
-                      description:
-                        "A program's use appears here once it adds this component version from the library.",
+                      description: "Listed once a program adds this version from the library.",
                     }}
                     searchLabel="Find component instances"
                     filters={<DataTable.Filter table={usesTable} column="programName" />}
@@ -1360,7 +1361,7 @@ function ComponentTraceability({
     data: requirementRows,
     columns: requirementColumns,
     getRowId: (row) => row.id,
-    label: "Requirements traced to this component",
+    label: "Requirements traced to this component set",
     view: "component-definition-requirements",
     resizable: true,
   });
@@ -1398,13 +1399,12 @@ function ComponentTraceability({
     columns: evidenceColumns,
     getRowId: (row) => row.id,
     rowLabel: (row) => `${row.title} version ${row.version_number}`,
-    label: "Evidence traced to this component",
+    label: "Evidence traced to this component set",
     view: "component-definition-evidence",
     resizable: true,
   });
   const displayedEvidence = useDisplayedRecords(evidenceTable);
-  const derived =
-    "Links appear here when a program that uses this component version links them to its implementation.";
+  const derived = "Listed once a program using this version links them.";
   return kind === "Requirements" ? (
     <>
       <ProductCollection
