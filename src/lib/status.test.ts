@@ -190,7 +190,7 @@ describe("status vocabulary", () => {
       "ATO with conditions",
     );
     expect(statusLabel(authorizationDecisions, "denied")).toBe("DATO");
-    expect(statusLabel(authorizationDecisions, "revoked")).toBe("ATD");
+    expect(statusLabel(authorizationDecisions, "revoked")).toBe("Revoked");
     expect(statusLabel(authorizationStatuses, "authorized")).toBe("ATO");
     expect(statusLabel(authorizationStatuses, "expired")).toBe("ATO expired");
     // No stored value is an IATT or an ATU yet: no field reads either until the data change lands.

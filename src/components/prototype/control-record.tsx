@@ -2,10 +2,10 @@
 // 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
 // full wording of rules the contract now states in fewer words.
 //
-// A control has two records. The catalog's, `/catalog/controls/:id`, trailed Catalog › Controls, is
-// its text as the catalog prints it, then where each program of the workspace stands on it (one row
-// a program: Objectives mapped, Objectives with evidence and Objectives assessed, each 12 of 26 as
-// the program's control status counts them, then requirements, with evidence, open issues, open
+// A control has two records. The catalog's, `/catalog/controls/:id`, trailed Frameworks › Controls,
+// is its text as the catalog prints it, then where each program of the workspace stands on it (one
+// row a program: Objectives mapped, Objectives with evidence and Objectives assessed, each 12 of 26
+// as the program's control status counts them, then requirements, with evidence, open issues, open
 // risks; the objectives are one read for every row, `control_objective_counts` through
 // `useControlObjectiveCounts` in control-objectives, and the table waits on it), its enhancements,
 // and its assessment objectives, parameters and links in collapsed Sections. The program's,
@@ -87,7 +87,7 @@ type Control = Row<"controls">;
 function useControlContext(control: Control | null | undefined) {
   const family = useRow("catalog_groups", control?.group_id);
   const edition = useRow("catalog_revisions", control?.catalog_revision_id);
-  // An edition reads as its catalog's short title and its version, as the Catalog's picker does.
+  // An edition reads as its catalog's short title and its version, as the Frameworks picker does.
   const catalog = useRow("catalogs", edition.data?.catalog_id);
   const parent = useRow("controls", control?.parent_control_id);
   return { family, edition, catalog, parent };
@@ -491,7 +491,7 @@ export function CatalogControlRecord({ id }: { id: string }) {
           <>
             <PageHeader>
               <RecordTrail current={controlName(control)}>
-                <TrailLink to="/catalog">Catalog</TrailLink>
+                <TrailLink to="/catalog">Frameworks</TrailLink>
                 <TrailLink to="/catalog" search={{ edition: control.catalog_revision_id }}>
                   Controls
                 </TrailLink>

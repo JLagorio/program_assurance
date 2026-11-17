@@ -2,7 +2,8 @@
  * The side nav's two scopes (Josef's decision of 2026-11-14): the organization's, on every page
  * outside a program or a product, and a work scope that opens under a program or a product, its
  * work as a chain in order. Which scope an address opens, where each destination leads and which
- * one the address marks current are derived here from the address alone; the shell draws them
+ * one the address marks current are derived here from the address alone, a program's record at an
+ * address of its own taking its program from the record; the shell draws them
  * (src/components/app/scope-navigation.tsx).
  */
 
@@ -10,23 +11,67 @@
 export type NavigationScope =
   | { kind: "organization" }
   | { kind: "program"; programId: string }
+  /** A program's record at an address of its own: its program's work, once the record names it. */
+  | { kind: "program-record"; record: ProgramRecord; recordId: string }
   | { kind: "product"; productId: string }
   /** A product assessment's record: its product's work, once the assessment names the product. */
   | { kind: "product-assessment"; assessmentId: string };
 
 /**
+ * A program's records whose pages sit at an address outside the program's, by that address, and
+ * the entry of the program's work that lists each: a risk Risks, a remediation item and a POA&M
+ * plan POA&M, an operational issue and an assessment finding Findings, an asset System (its
+ * system's record lists it), evidence Evidence, a campaign Assessments, a package Authorization. A
+ * task and a workstream mark none: the program's Schedule lists its tasks and holds no entry, and
+ * no part of the program lists its workstreams.
+ */
+export const programRecordPages = {
+  risk: { path: "/register/risks", entry: "risks" },
+  remediation: { path: "/register/poam", entry: "poam" },
+  "poam-plan": { path: "/poam-documents", entry: "poam" },
+  issue: { path: "/issues", entry: "findings" },
+  finding: { path: "/findings", entry: "findings" },
+  asset: { path: "/findings/assets", entry: "system" },
+  evidence: { path: "/evidence", entry: "evidence" },
+  campaign: { path: "/campaigns", entry: "assessments" },
+  package: { path: "/packages", entry: "authorization" },
+  task: { path: "/tasks", entry: null },
+  workstream: { path: "/workstreams", entry: null },
+} as const satisfies Record<string, { path: string; entry: ProgramEntry | null }>;
+
+export type ProgramRecord = keyof typeof programRecordPages;
+
+/**
  * The scope an address opens. A program's record, its tabs, its focused views and its records
- * under `/programs/:id/…` open its work; a product's record and a product assessment's open the
- * product's. Program setup (`/programs/new`) and everything else stay in the organization.
+ * under `/programs/:id/…` open its work, and so does a program's record at an address of its own
+ * (`programRecordPages`) once the record names its program; a product's record and a product
+ * assessment's open the product's. Program setup (`/programs/new`) and everything else stay in the
+ * organization.
  */
 export function navigationScope(pathname: string): NavigationScope {
-  const [first, second, third] = pathname.split("/").filter(Boolean);
+  const segments = pathname.split("/").filter(Boolean);
+  const [first, second, third] = segments;
   if (first === "programs" && second && second !== "new")
     return { kind: "program", programId: second };
   if (first === "library" && second === "products" && third)
     return { kind: "product", productId: third };
   if (first === "library" && second === "product-assessments" && third)
     return { kind: "product-assessment", assessmentId: third };
+  // The record's own address, its id one segment under its register's: `/findings/assets/:id` is
+  // an asset, `/findings/:id` a finding.
+  for (const [record, page] of Object.entries(programRecordPages) as [
+    ProgramRecord,
+    { path: string },
+  ][]) {
+    const prefix = page.path.split("/").filter(Boolean);
+    const recordId = segments[prefix.length];
+    if (
+      recordId &&
+      segments.length === prefix.length + 1 &&
+      prefix.every((part, index) => segments[index] === part)
+    )
+      return { kind: "program-record", record, recordId };
+  }
   return { kind: "organization" };
 }
 
@@ -34,23 +79,21 @@ export function navigationScope(pathname: string): NavigationScope {
 const within = (pathname: string, to: string) => pathname === to || pathname.startsWith(`${to}/`);
 
 /**
- * A destination of the organization scope: where it leads (`to`, and the catalog `tab` it opens
- * on) and the addresses whose pages it holds, which mark it current. A record whose page sits at
- * another address than its register's (a task, a workstream, an issue, a risk, a POA&M plan) is
- * held where its trail says it belongs.
+ * A destination of the organization scope: where it leads (`to`) and the addresses whose pages it
+ * holds, which mark it current. A record whose page sits at another address than its register's (a
+ * task, a workstream, an issue, a risk, a POA&M plan) is held where its trail says it belongs.
  */
 type OrganizationDestination = {
   key: string;
   label: string;
   to: string;
-  tab?: string;
   holds: readonly string[];
 };
 
 /**
  * The organization's destinations: Home, Portfolio and Programs, then the Library. Home is My work
- * until a desk exists; Frameworks is the catalog; Guidance the catalog's reference sources, the
- * publications behind it (NIST SP 800-160 among them). Every other destination the application had
+ * until a desk exists; Frameworks is the control catalog, its CCIs and their sources; Guidance the
+ * supplemental guidance beside it (NIST SP 800-160). Every other destination the application had
  * is under Registers, one quiet group after the Library, named for what they are.
  */
 export const organizationDestinations = {
@@ -62,7 +105,7 @@ export const organizationDestinations = {
   library: [
     { key: "frameworks", label: "Frameworks", to: "/catalog", holds: ["/catalog"] },
     { key: "overlays", label: "Overlays", to: "/overlays", holds: ["/overlays"] },
-    { key: "guidance", label: "Guidance", to: "/catalog", tab: "Sources", holds: [] },
+    { key: "guidance", label: "Guidance", to: "/guidance", holds: ["/guidance"] },
     {
       key: "components",
       label: "Components",
@@ -115,9 +158,8 @@ export type OrganizationKey =
   (typeof organizationDestinations)[keyof typeof organizationDestinations][number]["key"];
 
 /** The organization destination an address marks current, if any. */
-export function organizationEntry(pathname: string, tab: unknown): OrganizationKey | undefined {
+export function organizationEntry(pathname: string): OrganizationKey | undefined {
   if (pathname === "/") return "portfolio";
-  if (pathname === "/catalog" && String(tab ?? "").toLowerCase() === "sources") return "guidance";
   const all = Object.values(organizationDestinations).flat() as readonly OrganizationDestination[];
   return all.find((destination) => destination.holds.some((to) => within(pathname, to)))?.key as
     OrganizationKey | undefined;

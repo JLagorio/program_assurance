@@ -2,7 +2,8 @@ import { useViewTitle } from "@/components/app/browser-title";
 import { Page, RecordPending } from "@/components/app/shell";
 import { QueryValue } from "@/components/prototype/library-shared";
 import { ProgramQueryState } from "@/components/prototype/program-shared";
-import { programViewTab } from "@/components/prototype/program-views";
+import { programViewPart } from "@/components/prototype/program-views";
+import { partAddress } from "@/lib/program-parts";
 import { RecordTrail, TrailLink } from "@/components/prototype/record-trail";
 import { MissingRecord } from "@/components/prototype/work-common";
 import { useRow, useRows } from "@/lib/models";
@@ -107,9 +108,9 @@ function ProgramExport() {
           <TrailLink
             to="/programs/$programId"
             params={{ programId }}
-            search={{ tab: programViewTab("Program transfer") }}
+            {...partAddress(programViewPart("Program transfer"))}
           >
-            {programViewTab("Program transfer")}
+            {programViewPart("Program transfer")}
           </TrailLink>
         </RecordTrail>
         <PageHeader.Heading>

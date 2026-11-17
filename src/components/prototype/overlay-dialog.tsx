@@ -31,7 +31,7 @@ import {
 import { useRows } from "@/lib/models";
 
 /**
- * The catalog editions an overlay can decide on, newest first, each named as the Catalog page
+ * The catalog editions an overlay can decide on, newest first, each named as the Frameworks page
  * names it: the catalog's short name and the edition's version.
  */
 export function useCatalogEditions() {

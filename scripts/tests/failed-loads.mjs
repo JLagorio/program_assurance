@@ -97,11 +97,11 @@ export async function checkFailedLoads(
 
   // A record page keeps its header and its other sections when one collection fails.
   {
-    // The Schedule tab's tasks, which the program's task register reads a page at a time.
+    // The Schedule's tasks, which the program's task register reads a page at a time.
     const { message, restore } = await failGets(page, "task_rows");
     await page.goto(`${origin}/programs/${program.id}?tab=Schedule`);
     await expect(
-      page.getByRole("heading", { level: 1, name: program.name, exact: true }),
+      page.getByRole("heading", { level: 1, name: "Schedule", exact: true }),
     ).toBeVisible();
     await expect(page.getByRole("heading", { name: "Lifecycle gates", exact: true })).toBeVisible();
     const alert = main.getByRole("alert").filter({ hasText: message });

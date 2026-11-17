@@ -30,7 +30,7 @@
 // it is the only owner; the component keeps no copy of its own. A record's tab holds no second
 // strip: the collections it holds sit under Section headings, each compact with a small secondary
 // create action, as on the program's Assessment campaigns (Campaigns, Events, Scopes, then
-// Objectives, the longest, last), Schedule and POA&M & risk.
+// Objectives, the longest, last), Schedule and POA&M.
 //
 // A preview's tabs are its own state. A filter over one collection is a `ToggleGroup` or a Toolbar
 // filter, never a tab. A register page that holds more than one collection draws them as line tabs
@@ -41,8 +41,8 @@
 //
 // A record's tabs are the views a reader comes back to, at most about seven where the record allows
 // (Components/Tabs): views that hold the same kind of work share one tab under Section headings
-// (the program's POA&M & risk), and a view read rarely folds into the Overview (the program's
-// activity).
+// (the program's POA&M plans and remediation items), and a view read rarely folds into the
+// Overview (the program's activity).
 //
 // A tab that counts its collection shows a `Count` with `max={9999}`: 0 once its rows load, and no
 // count while they load or after the load failed. A `Section`, a `Related` card or an `Item.Group`
@@ -246,6 +246,73 @@ export function RetainedTabPanels<T extends string>({
               </Stack>
             </Activity>
           </TabsContent>
+        ))}
+    </>
+  );
+}
+/** Where the shell's Main is, which a page change hands focus to. */
+const MAIN = '[data-shell-area="main"]';
+
+/**
+ * A record's parts with no tab strip, one shown at a time: the program's, which the side nav
+ * reaches and the address names. Like RetainedTabPanels, each is drawn the first time it is shown
+ * and kept while another is, so a register keeps its rows, scroll, selection and question; a hidden
+ * part's effects pause (React's Activity), so it loads nothing and its preview leaves the shell;
+ * each is a failure region; and a hidden part is left as it was drawn. When a link inside a part
+ * opens another (an Overview tray), the part it sat in hides and the browser drops its focus, so
+ * focus goes to Main, as a page change moves it.
+ */
+export function RetainedParts<T extends string>({
+  parts,
+  value,
+  space = "space.300",
+  children,
+}: {
+  parts: readonly T[];
+  value: T;
+  space?: StackProps["space"];
+  /** A part's content. */
+  children: (part: T) => ReactNode;
+}) {
+  const [visited, setVisited] = useState<readonly T[]>([value]);
+  if (!visited.includes(value)) setVisited([...visited, value]);
+  const shownPart = useRef<HTMLDivElement | null>(null);
+  const shownValue = useRef(value);
+  useEffect(() => {
+    if (shownValue.current === value) return;
+    shownValue.current = value;
+    const active = document.activeElement;
+    const dropped =
+      !active ||
+      active === document.body ||
+      !active.isConnected ||
+      !!active.closest("[data-retained-part][hidden]") ||
+      active.checkVisibility?.() === false;
+    if (!dropped) return;
+    shownPart.current?.closest<HTMLElement>(MAIN)?.focus({ preventScroll: true });
+  }, [value]);
+  return (
+    <>
+      {parts
+        .filter((part) => part === value || visited.includes(part))
+        .map((part) => (
+          <div
+            key={part}
+            data-retained-part={part}
+            // Hidden in the same render the part changes, so two parts never show for a frame.
+            hidden={part !== value}
+            ref={part === value ? shownPart : undefined}
+            className="min-w-0"
+          >
+            <Activity mode={part === value ? "visible" : "hidden"}>
+              <Stack space={space} className="min-w-0">
+                {/* The part is a failure region: an outage reads as one alert at its top. */}
+                <QueryState region>
+                  <RetainedContent hidden={part !== value}>{children(part)}</RetainedContent>
+                </QueryState>
+              </Stack>
+            </Activity>
+          </div>
         ))}
     </>
   );

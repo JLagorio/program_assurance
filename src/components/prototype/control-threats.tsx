@@ -13,12 +13,12 @@
 // with Matrix before them once it lists techniques of both. In the program's record a Risks column
 // counts the program's risks that name each technique, by the technique's identifier, since a
 // risk's link keeps the item of the reading it was made from; a count that cannot be read is Absent
-// under the page's alert, never zero. A count above zero is a link that opens the program's POA&M &
-// risk tab at its risks (`#program-risks`), asked for exactly the risks that name the technique:
-// their ATT&CK techniques column, `programRiskTechniquesColumn` in register-views, filtered on the
-// technique by its identifier and name, through `questionSearch`; a zero opens nothing, and Back
-// returns to the control. A control neither appendix names has no Section, and none is drawn until
-// the read says which. The control preview does not carry this Section.
+// under the page's alert, never zero. A count above zero is a link that opens the program's Risks
+// (the POA&M & risk address at `#program-risks`), asked for exactly the risks that name the
+// technique: their ATT&CK techniques column, `programRiskTechniquesColumn` in register-views,
+// filtered on the technique by its identifier and name, through `questionSearch`; a zero opens
+// nothing, and Back returns to the control. A control neither appendix names has no Section, and
+// none is drawn until the read says which. The control preview does not carry this Section.
 
 import { useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
@@ -75,9 +75,9 @@ const named = (records: readonly { code: string; title: string }[]) =>
   records.map((record) => ({ key: record.code, label: record.title }));
 
 /**
- * The program's POA&M & risk tab with its risks asked for exactly the ones that name a technique,
- * by the technique's identifier and name, as the risks' ATT&CK techniques column lists it; the
- * address names the risks' Section, which brings it into view.
+ * The program's Risks asked for exactly the ones that name a technique, by the technique's
+ * identifier and name, as the risks' ATT&CK techniques column lists it; the address's hash names
+ * the Risks part of the POA&M & risk address.
  */
 const risksNaming = (technique: string) => ({
   tab: "POA&M & risk" as const,

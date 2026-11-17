@@ -14,6 +14,7 @@ import { Route as BriefingRouteImport } from './routes/briefing'
 import { Route as CampaignsRouteImport } from './routes/campaigns'
 import { Route as CatalogRouteImport } from './routes/catalog'
 import { Route as EvidenceRouteImport } from './routes/evidence'
+import { Route as GuidanceRouteImport } from './routes/guidance'
 import { Route as ProgramsRouteImport } from './routes/programs'
 import { Route as ReviewQueueRouteImport } from './routes/review-queue'
 import { Route as RisksRouteImport } from './routes/risks'
@@ -99,6 +100,11 @@ const CatalogRoute = CatalogRouteImport.update({
 const EvidenceRoute = EvidenceRouteImport.update({
   id: '/evidence',
   path: '/evidence',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GuidanceRoute = GuidanceRouteImport.update({
+  id: '/guidance',
+  path: '/guidance',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProgramsRoute = ProgramsRouteImport.update({
@@ -440,6 +446,7 @@ export interface FileRoutesByFullPath {
   '/campaigns': typeof CampaignsRouteWithChildren
   '/catalog': typeof CatalogRoute
   '/evidence': typeof EvidenceRoute
+  '/guidance': typeof GuidanceRoute
   '/programs': typeof ProgramsRouteWithChildren
   '/review-queue': typeof ReviewQueueRoute
   '/risks': typeof RisksRouteWithChildren
@@ -508,6 +515,7 @@ export interface FileRoutesByTo {
   '/campaigns': typeof CampaignsRouteWithChildren
   '/catalog': typeof CatalogRoute
   '/evidence': typeof EvidenceRoute
+  '/guidance': typeof GuidanceRoute
   '/programs': typeof ProgramsRouteWithChildren
   '/review-queue': typeof ReviewQueueRoute
   '/risks': typeof RisksRouteWithChildren
@@ -577,6 +585,7 @@ export interface FileRoutesById {
   '/campaigns': typeof CampaignsRouteWithChildren
   '/catalog': typeof CatalogRoute
   '/evidence': typeof EvidenceRoute
+  '/guidance': typeof GuidanceRoute
   '/programs': typeof ProgramsRouteWithChildren
   '/review-queue': typeof ReviewQueueRoute
   '/risks': typeof RisksRouteWithChildren
@@ -647,6 +656,7 @@ export interface FileRouteTypes {
     | '/campaigns'
     | '/catalog'
     | '/evidence'
+    | '/guidance'
     | '/programs'
     | '/review-queue'
     | '/risks'
@@ -715,6 +725,7 @@ export interface FileRouteTypes {
     | '/campaigns'
     | '/catalog'
     | '/evidence'
+    | '/guidance'
     | '/programs'
     | '/review-queue'
     | '/risks'
@@ -783,6 +794,7 @@ export interface FileRouteTypes {
     | '/campaigns'
     | '/catalog'
     | '/evidence'
+    | '/guidance'
     | '/programs'
     | '/review-queue'
     | '/risks'
@@ -852,6 +864,7 @@ export interface RootRouteChildren {
   CampaignsRoute: typeof CampaignsRouteWithChildren
   CatalogRoute: typeof CatalogRoute
   EvidenceRoute: typeof EvidenceRoute
+  GuidanceRoute: typeof GuidanceRoute
   ProgramsRoute: typeof ProgramsRouteWithChildren
   ReviewQueueRoute: typeof ReviewQueueRoute
   RisksRoute: typeof RisksRouteWithChildren
@@ -923,6 +936,13 @@ declare module '@tanstack/react-router' {
       path: '/evidence'
       fullPath: '/evidence'
       preLoaderRoute: typeof EvidenceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/guidance': {
+      id: '/guidance'
+      path: '/guidance'
+      fullPath: '/guidance'
+      preLoaderRoute: typeof GuidanceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/programs': {
@@ -1455,6 +1475,7 @@ const rootRouteChildren: RootRouteChildren = {
   CampaignsRoute: CampaignsRouteWithChildren,
   CatalogRoute: CatalogRoute,
   EvidenceRoute: EvidenceRoute,
+  GuidanceRoute: GuidanceRoute,
   ProgramsRoute: ProgramsRouteWithChildren,
   ReviewQueueRoute: ReviewQueueRoute,
   RisksRoute: RisksRouteWithChildren,

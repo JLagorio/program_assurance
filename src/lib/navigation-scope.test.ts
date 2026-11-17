@@ -9,6 +9,7 @@ import {
   productEntry,
   programDestinations,
   programEntry,
+  programRecordPages,
   programSections,
   scopeMark,
 } from "./navigation-scope";
@@ -17,7 +18,12 @@ type Screen = {
   file: string;
   path: string;
   family: string;
-  nav?: { scope: "organization" | "program" | "product"; current: string | null };
+  nav?: {
+    scope: "organization" | "program" | "product" | "program-record";
+    current: string | null;
+    /** A program record's entry while it loads, and for a record of no program. */
+    organization?: string | null;
+  };
 };
 
 const inventory = JSON.parse(
@@ -29,22 +35,40 @@ const inventory = JSON.parse(
 
 const id = "5b834025-4245-5e6b-81a0-98538930a36c";
 
-/** The label of the entry an address marks current in the scope it opens, as the shell draws it. */
+const programLabel = (key: string | null | undefined) =>
+  [...programDestinations.chain, ...programDestinations.quiet].find((entry) => entry.key === key)
+    ?.label ?? null;
+
+const organizationLabel = (pathname: string) => {
+  const key = organizationEntry(pathname);
+  return (
+    Object.values(organizationDestinations)
+      .flat()
+      .find((entry) => entry.key === key)?.label ?? null
+  );
+};
+
+/**
+ * The label of the entry an address marks current in the scope it opens, as the shell draws it: a
+ * program's record at an address of its own says both, the program's entry once the record names
+ * its program and the organization's while it loads or where it names none.
+ */
 function marked(pathname: string, search: Record<string, unknown> = {}, hash = "") {
   const scope = navigationScope(pathname);
-  if (scope.kind === "program") {
-    const key = programEntry(pathname, search["tab"], hash);
-    const all = [...programDestinations.chain, ...programDestinations.quiet];
-    return { scope: "program", current: all.find((entry) => entry.key === key)?.label ?? null };
-  }
+  if (scope.kind === "program")
+    return { scope: "program", current: programLabel(programEntry(pathname, search["tab"], hash)) };
+  if (scope.kind === "program-record")
+    return {
+      scope: "program-record",
+      current: programLabel(programRecordPages[scope.record].entry),
+      organization: organizationLabel(pathname),
+    };
   if (scope.kind === "product" || scope.kind === "product-assessment") {
     const key = productEntry(pathname, search["tab"], search["show"]);
     const all = [...productDestinations.chain, ...productDestinations.quiet];
     return { scope: "product", current: all.find((entry) => entry.key === key)?.label ?? null };
   }
-  const key = organizationEntry(pathname, search["tab"]);
-  const all = Object.values(organizationDestinations).flat();
-  return { scope: "organization", current: all.find((entry) => entry.key === key)?.label ?? null };
+  return { scope: "organization", current: organizationLabel(pathname) };
 }
 
 describe("the side nav's scopes", () => {
@@ -62,7 +86,50 @@ describe("the side nav's scopes", () => {
       kind: "product-assessment",
       assessmentId: id,
     });
-    expect(navigationScope("/register/risks/x")).toEqual({ kind: "organization" });
+    expect(navigationScope("/register")).toEqual({ kind: "organization" });
+    expect(navigationScope("/findings/")).toEqual({ kind: "organization" });
+  });
+
+  it("opens a program's record at an address of its own in its program's work", () => {
+    expect(navigationScope(`/register/risks/${id}`)).toEqual({
+      kind: "program-record",
+      record: "risk",
+      recordId: id,
+    });
+    expect(navigationScope(`/findings/assets/${id}`)).toMatchObject({ record: "asset" });
+    expect(navigationScope(`/findings/${id}`)).toMatchObject({ record: "finding" });
+    expect(navigationScope(`/register/poam/${id}`)).toMatchObject({ record: "remediation" });
+    expect(navigationScope(`/evidence/${id}/x`)).toEqual({ kind: "organization" });
+    const entries = Object.fromEntries(
+      Object.entries(programRecordPages).map(([record, page]) => [
+        record,
+        programLabel(page.entry),
+      ]),
+    );
+    expect(entries).toEqual({
+      risk: "Risks",
+      remediation: "POA&M",
+      "poam-plan": "POA&M",
+      issue: "Findings",
+      finding: "Findings",
+      asset: "System",
+      evidence: "Evidence",
+      campaign: "Assessments",
+      package: "Authorization",
+      task: null,
+      workstream: null,
+    });
+    // While it loads, and for a record of no program, it stays where its register is.
+    expect(marked(`/register/risks/${id}`)).toEqual({
+      scope: "program-record",
+      current: "Risks",
+      organization: "POA&M & risk register",
+    });
+    expect(marked(`/tasks/${id}`)).toEqual({
+      scope: "program-record",
+      current: null,
+      organization: "Home",
+    });
   });
 
   // Every route the application has is in the inventory (design-system-boundary.test.mjs), so
@@ -101,19 +168,20 @@ describe("the side nav's scopes", () => {
     expect(marked(path, { tab: "Versions" }).current).toBeNull();
   });
 
-  it("marks the catalog's sources as Guidance and the rest of the catalog as Frameworks", () => {
+  it("marks the catalog as Frameworks and the supplemental guidance as Guidance", () => {
     expect(marked("/catalog").current).toBe("Frameworks");
     expect(marked("/catalog", { tab: "CCIs" }).current).toBe("Frameworks");
-    expect(marked("/catalog", { tab: "Sources" }).current).toBe("Guidance");
-    expect(marked("/catalog", { tab: "sources" }).current).toBe("Guidance");
+    expect(marked("/catalog", { tab: "Sources" }).current).toBe("Frameworks");
+    expect(marked(`/catalog/controls/${id}`).current).toBe("Frameworks");
+    expect(marked("/guidance").current).toBe("Guidance");
   });
 
-  it("keeps a record whose page sits elsewhere under its register", () => {
-    expect(marked(`/tasks/${id}`).current).toBe("Home");
-    expect(marked(`/workstreams/${id}`).current).toBe("Programs");
-    expect(marked(`/issues/${id}`).current).toBe("Findings & assets");
+  it("keeps a record whose page sits elsewhere under its register in the organization", () => {
+    expect(marked(`/tasks/${id}`).organization).toBe("Home");
+    expect(marked(`/workstreams/${id}`).organization).toBe("Programs");
+    expect(marked(`/issues/${id}`).organization).toBe("Findings & assets");
     expect(marked("/risks").current).toBe("POA&M & risk register");
-    expect(marked(`/poam-documents/${id}`).current).toBe("POA&M & risk register");
+    expect(marked(`/poam-documents/${id}`).organization).toBe("POA&M & risk register");
     expect(marked("/programsx").current).toBeNull();
   });
 

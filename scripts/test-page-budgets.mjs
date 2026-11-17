@@ -2,7 +2,8 @@
 /**
  * The page budgets, B1 to B16 of the UX proposal's pass one, measured on every route of the screen
  * inventory at 1440 by 900 (the fold) over the screen-family fixtures, as each route opens and under
- * each of its declared tabs. A route's ceilings are its `budgets` (as it opens) and `tabBudgets`
+ * each of its declared tabs (a program's parts, which draw no strip, each at its address,
+ * `tabAddress`). A route's ceilings are its `budgets` (as it opens) and `tabBudgets`
  * (each other declared tab) in docs/guides/screen-inventory.json; they may only fall, as the allow
  * lists do: check-allow-lists fails a ceiling that rose against the base ref, and this sweep fails a
  * page that measures over its ceiling, naming the route, the tab, the budget, the value and the
@@ -579,7 +580,21 @@ try {
       hues: opened.hues,
       tabs: {},
     };
-    if (screen.tabList && fixture) {
+    if (screen.tabAddress && fixture) {
+      // A route whose tabs draw no strip (a program's parts, which the side nav reaches): each
+      // tab but the one the route opens on is opened at its address.
+      for (const tabName of [...screen.collectionTabs, ...Object.keys(screen.tabExceptions)]) {
+        if (tabName === screen.tabAddress.opens) continue;
+        const url = new URL(`${origin}${path}`);
+        url.searchParams.set(screen.tabAddress.search, tabName);
+        await page.goto(url.href);
+        await expect(page.getByRole("heading", { level: 1 })).toHaveText(tabName);
+        const view = await stableMeasure(page, inflight);
+        if (shots) await page.screenshot({ path: shotName(screen, tabName) });
+        const { tabs: _strip, ...perTab } = view.values;
+        result.tabs[tabName] = perTab;
+      }
+    } else if (screen.tabList && fixture) {
       const strip = page.getByRole("tablist", { name: screen.tabList, exact: true });
       await expect(strip).toBeVisible();
       const selected = (await strip.getByRole("tab", { selected: true }).first().textContent())

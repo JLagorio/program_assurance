@@ -2,21 +2,36 @@
 // 2026-11-16 when the contract was cut to its rules: what holds for this screen alone, and the
 // full wording of rules the contract now states in fewer words.
 //
-// A program tab's own collection of owned records takes the verb, the column and the filter through
-// ProgramCollection's `assignOwner`, with an Owner column among its columns (`owner_party_id`,
-// `kind: "person"`, whose names it reads once): the operational issues on Findings, and the
-// remediation items and the risks on POA&M & risk; its Evidence is the evidence register's own.
-// Such a collection holds its records whole, so No owner counts them all and Select all is the
-// table's own. Reference: the POA&M & risk tab in program-workspace.
+// The program's record has no tab strip (Josef's decision of 2026-11-16): the side nav's work
+// scope names its parts, and each part keeps the address its tab had (`?tab=`, the POA&M & risk
+// address's hash telling POA&M from Risks, src/lib/program-parts.ts), so Back, a reload and every
+// link that named a tab open the same part. Each part is a page of its own: its h1 is the part's
+// name, beside the count the strip used to show (System, Requirements, Assessments, Evidence), and
+// its browser title is `<part> — <program name> — Program Assurance`; it has no trail, and the
+// program's header stays on the Overview alone, whose h1 is the program's name over its
+// categorization and its one standing fact, with Edit program as its primary. A part keeps Edit
+// program in its Actions menu. Each part is drawn the first time it is shown and kept while another
+// is, so a register keeps its question, rows and selection (`RetainedParts` in program-shared).
+// Library and Schedule are parts the side nav does not name: Library is in System's row of views;
+// Schedule opens from the Overview's open tasks, its Lifecycle timeline and a gate in the Review
+// queue.
 //
-// A register that sits under other collections on its tab is named by its Section's id
-// (`#program-risks`), which brings it into view once its rows are read and moves focus to it,
+// A program part's own collection of owned records takes the verb, the column and the filter
+// through ProgramCollection's `assignOwner`, with an Owner column among its columns
+// (`owner_party_id`, `kind: "person"`, whose names it reads once): the operational issues on
+// Findings, the remediation items on POA&M and the risks on Risks; its Evidence is the evidence
+// register's own. Such a collection holds its records whole, so No owner counts them all and
+// Select all is the table's own. Reference: the POA&M and Risks parts in program-workspace.
+//
+// A register that sits under other collections on its part is named by its Section's id
+// (`#program-<table>`), which brings it into view once its rows are read and moves focus to it,
 // staying aligned while the collections above it load until the reader scrolls.
 
 import { ControlBaselineSummary, ProgramControlBaseline } from "./control-baseline";
 import { ProgramInheritance } from "./program-inheritance";
-import { ProgramViewRow, programViewTab, type ProgramViewName } from "./program-views";
+import { ProgramViewRow, programViewPart, type ProgramViewName } from "./program-views";
 import {
+  DetailFacts,
   DueDate,
   EmptyMessage,
   MissingRecord,
@@ -32,6 +47,7 @@ import {
   Badge,
   Count,
   DateTime,
+  DropdownMenuItem,
   DropdownMenuLinkItem,
   Empty,
   EmptyDescription,
@@ -49,9 +65,6 @@ import {
   Section,
   Shell,
   Stack,
-  Tabs,
-  TabsList,
-  TabsTrigger,
   TextLink,
   DataTable,
   defineColumns,
@@ -100,14 +113,17 @@ import {
   ProgramCollection,
   ProgramQueryState,
   ProgramEditor,
-  RetainedTabPanels,
+  RetainedParts,
   type ProgramColumn,
 } from "./program-shared";
 import { programRiskTechniquesColumn } from "@/lib/register-views";
 import { codedName, useProgramRiskTechniques } from "@/lib/risk-threats";
 import { serverRead, useServerCountQueries } from "@/lib/server-table";
+import { partAddress, programParts, type ProgramPart, type ProgramTab } from "@/lib/program-parts";
 
-/** The collections a program's tab strip counts beyond its systems, which it reads anyway. */
+export type { ProgramTab, RetiredProgramTab } from "@/lib/program-parts";
+
+/** The collections a part's header counts beyond its systems, which it reads anyway. */
 type CountedCollection = "engineering_requirements" | "assessment_campaigns" | "evidence_artifacts";
 
 /**
@@ -123,7 +139,7 @@ function useProgramCount(source: CountedCollection, programId: string) {
 }
 
 /**
- * A tab's count once it is this program's: none while it loads, after a failure, or while another
+ * A part's count once it is this program's: none while it loads, after a failure, or while another
  * program's count still stands in.
  */
 const counted = (
@@ -131,48 +147,9 @@ const counted = (
 ): count is ReturnType<typeof useProgramCount> & { data: number } =>
   count.isSuccess && !count.isPlaceholderData;
 
-export const programTabs = [
-  "Overview",
-  "System",
-  "Library",
-  "Requirements",
-  "Controls",
-  "Assessment campaigns",
-  "Schedule",
-  "Findings",
-  "Evidence",
-  "POA&M & risk",
-] as const;
-export type ProgramTab = (typeof programTabs)[number];
-/** Tab names the program no longer has, which still reach their content's tab. */
-export type RetiredProgramTab = "POA&M" | "Risk" | "Activity";
-/**
- * The tab an address names. A retired tab lands where its content went: POA&M and Risk in POA&M &
- * risk, Activity on the Overview, whose activity Timeline it now is; anything else is Overview.
- */
-export function programTab(value: unknown): ProgramTab {
-  const text = String(value ?? "").toLowerCase();
-  const alias: Record<string, ProgramTab> = {
-    systems: "System",
-    tasks: "Schedule",
-    work: "Schedule",
-    team: "Schedule",
-    "poa&m": "POA&M & risk",
-    poam: "POA&M & risk",
-    poams: "POA&M & risk",
-    risk: "POA&M & risk",
-    risks: "POA&M & risk",
-    activity: "Overview",
-    requirements: "Requirements",
-    assessment: "Assessment campaigns",
-    assessments: "Assessment campaigns",
-  };
-  return programTabs.find((tab) => tab.toLowerCase() === text) ?? alias[text] ?? "Overview";
-}
-
 export function ProgramWorkspace({
   programId,
-  tab: tabName = "Overview",
+  part = "Overview",
   view,
   requirementId,
   requirementTab,
@@ -180,23 +157,21 @@ export function ProgramWorkspace({
   onPostureReading,
 }: {
   programId: string;
-  /** The tab; a retired name shows the tab its content moved to. */
-  tab?: ProgramTab | RetiredProgramTab | undefined;
-  /** A focused view, which the page shows in place of the tabs, named by its h1. */
+  /** The part the address names (`programPart`); the Overview unless it names another. */
+  part?: ProgramPart | undefined;
+  /** A focused view, which the page shows in place of the parts, named by its h1. */
   view?: ProgramViewName | undefined;
   requirementId?: string | undefined;
   requirementTab?: RequirementTab | undefined;
-  /** The Assessment campaigns tab's own tab, which the address keeps. */
   /** What the Posture view counts, which the address keeps, and how it is chosen. */
   postureReading?: PostureReading | undefined;
   onPostureReading?: ((reading: PostureReading) => void) | undefined;
 }) {
-  const tab = programTab(tabName);
   const workspace = useWorkspace();
   const navigate = useNavigate();
   const query = useRow("programs", programId);
   const systems = useRows("systems", { program_id: programId }, { columns: SHELL_SYSTEM_COLUMNS });
-  // What the tab strip counts: how many the program holds, counted on the server, never read.
+  // What a part's header counts: how many the program holds, counted on the server, never read.
   const requirementCount = useProgramCount("engineering_requirements", programId);
   const campaignCount = useProgramCount("assessment_campaigns", programId);
   const evidenceCount = useProgramCount("evidence_artifacts", programId);
@@ -210,7 +185,7 @@ export function ProgramWorkspace({
   const risks = useRows("risks", { program_id: programId }, { columns: ["id", "status"] });
   const gates = useRows("lifecycle_gates", { program_id: programId });
   const parties = useRows("parties", undefined, { columns: ["id", "name"] });
-  // Loaded with the program on every tab, for the rail and the dialogs that read the same rows.
+  // Loaded with the program on every part, for the rail and the dialogs that read the same rows.
   useProgramReferences(programId);
   const [editing, setEditing] = useState(false);
   const boundaries = useMemo(
@@ -221,29 +196,15 @@ export function ProgramWorkspace({
     () => new Set((systems.data ?? []).map((system) => system.id)),
     [systems.data],
   );
-  function select(next: ProgramTab) {
-    void navigate({
-      to: "/programs/$programId",
-      params: { programId },
-      // The tab joins the address's other parameters, so each collection keeps the question it
-      // asks there. A preview belongs to its tab, so the requirement preview ends with it.
-      search: (current) => ({
-        ...current,
-        tab: next,
-        requirementId: undefined,
-        requirementTab: undefined,
-      }),
-    });
-  }
   if (!query.data && (query.isPending || query.error))
     return <ProgramQueryState queries={[query]} />;
   if (!query.data) return <MissingRecord backTo="/programs" kind="Program" />;
   const program = query.data;
   const programName = `${program.code} · ${program.name}`;
-  const counts: Partial<Record<ProgramTab, number>> = {
+  const counts: Partial<Record<ProgramPart, number>> = {
     ...(systems.isSuccess && { System: systems.data.length }),
     ...(counted(requirementCount) && { Requirements: requirementCount.data }),
-    ...(counted(campaignCount) && { "Assessment campaigns": campaignCount.data }),
+    ...(counted(campaignCount) && { Assessments: campaignCount.data }),
     ...(counted(evidenceCount) && { Evidence: evidenceCount.data }),
   };
   // The Overview's open work: its three reads, said in one alert when one fails.
@@ -257,8 +218,8 @@ export function ProgramWorkspace({
       {...(section ? { hash: section } : {})}
     />
   );
-  /** A tab's content: drawn the first time the tab is chosen, and kept while another is shown. */
-  const tabContent = (name: ProgramTab): ReactNode => {
+  /** A part's content: drawn the first time the part is shown, and kept while another is. */
+  const partContent = (name: ProgramPart): ReactNode => {
     switch (name) {
       case "Overview":
         return (
@@ -266,8 +227,8 @@ export function ProgramWorkspace({
           // closed disclosure above it whose row says the status. They leave with the tab.
           <AsideLayout aside={<ProgramDetailsAside program={program} />}>
             <Stack space="space.300" className="min-w-0">
-              {/* The Overview's views lead its body, so the Details stay under the tab strip. */}
-              <ProgramViewRow programId={programId} tab="Overview" />
+              {/* The Overview's views lead its body, beside the program's Details. */}
+              <ProgramViewRow programId={programId} part="Overview" />
               {queues.some((queue) => queue.isError) && <ProgramQueryState queries={queues} />}
               <ProgramOpenWork
                 programId={programId}
@@ -385,10 +346,9 @@ export function ProgramWorkspace({
         );
       case "Controls":
         return <ProgramSspAssembly programId={programId} />;
-      case "Assessment campaigns":
+      case "Assessments":
         return (
-          // Campaigns, events, objectives and scopes under Section headings: the program's strip
-          // is the only tab strip on the page.
+          // Campaigns, events, objectives and scopes under Section headings, with no tab strip.
           <AssessmentBrowser programId={programId} layout="sections" />
         );
       case "Schedule":
@@ -479,52 +439,83 @@ export function ProgramWorkspace({
         );
       case "Evidence":
         return <EvidenceBrowser programId={programId} />;
-      case "POA&M & risk":
-        return <ProgramPoamsAndRisks programId={programId} />;
+      case "POA&M":
+        return <ProgramPoams programId={programId} />;
+      case "Risks":
+        return <ProgramRisks programId={programId} />;
     }
   };
+  const viewPart = view ? programViewPart(view) : undefined;
   return (
     <>
       <Page>
-        {/* The page is one failure region, and each of its tabs another: an outage reads as one
+        {/* The page is one failure region, and each of its parts another: an outage reads as one
             alert where it happened, whose Retry reloads every failed read in it. A focused view
-            has no tabs, so its blocks' failures read as the page's one alert. */}
+            has no parts, so its blocks' failures read as the page's one alert. */}
         <ProgramQueryState queries={[query]} region>
           <PageHeader>
-            {/* A focused view is a page of its own, named by its h1 and trailed through the tab
-                that lists it. */}
-            <RecordTrail current={view ?? programName}>
-              <TrailLink to="/programs">Programs</TrailLink>
-              {view && (
+            {/* A focused view is a page of its own, named by its h1 and trailed through the part
+                that lists it. The Overview and the parts have no trail: the side nav names the
+                program and marks the part. */}
+            {view && viewPart && (
+              <RecordTrail current={view}>
+                <TrailLink to="/programs">Programs</TrailLink>
                 <TrailLink to="/programs/$programId" params={{ programId }}>
                   {programName}
                 </TrailLink>
-              )}
-              {view && (
                 <TrailLink
                   to="/programs/$programId"
                   params={{ programId }}
-                  search={{ tab: programViewTab(view) }}
+                  {...partAddress(viewPart)}
                 >
-                  {programViewTab(view)}
+                  {viewPart}
                 </TrailLink>
-              )}
-            </RecordTrail>
-            {/* The program's name, then its facts line: its categorization and its standing as
-                one fact. */}
-            <PageHeader.Heading>
-              <PageHeader.Title>{view ?? program.name}</PageHeader.Title>
-              {/* The program's standing on its own page; a focused view is named by its h1 alone. */}
-              {!view && (
-                <ProgramStandingFacts programId={programId} boundaries={boundaries} gates={gates} />
-              )}
-            </PageHeader.Heading>
+              </RecordTrail>
+            )}
+            {view || part === "Overview" ? (
+              // The program's name, then its facts line: its categorization and its standing as
+              // one fact. A focused view is named by its h1 alone.
+              <PageHeader.Heading>
+                <PageHeader.Title>{view ?? program.name}</PageHeader.Title>
+                {!view && (
+                  <ProgramStandingFacts
+                    programId={programId}
+                    boundaries={boundaries}
+                    gates={gates}
+                  />
+                )}
+              </PageHeader.Heading>
+            ) : (
+              // A part is named by its h1, beside how many records it holds where it counts them.
+              <PageHeader.Heading>
+                {counts[part] !== undefined ? (
+                  <Inline space="space.100" alignBlock="center" shouldWrap>
+                    <PageHeader.Title>{part}</PageHeader.Title>
+                    <Count value={counts[part]} max={9999} />
+                  </Inline>
+                ) : (
+                  <PageHeader.Title>{part}</PageHeader.Title>
+                )}
+              </PageHeader.Heading>
+            )}
             <PageHeader.Actions>
-              <RecordActions
-                table="programs"
-                editLabel="Edit program"
-                onEdit={() => setEditing(true)}
-              />
+              {view || part === "Overview" ? (
+                <RecordActions
+                  table="programs"
+                  editLabel="Edit program"
+                  onEdit={() => setEditing(true)}
+                />
+              ) : (
+                // A part keeps the program's edit in its Actions menu: the part's own primary is
+                // its collection's.
+                <RecordActions table="programs">
+                  {canEditProgram && (
+                    <DropdownMenuItem onClick={() => setEditing(true)}>
+                      Edit program
+                    </DropdownMenuItem>
+                  )}
+                </RecordActions>
+              )}
             </PageHeader.Actions>
           </PageHeader>
           {view ? (
@@ -566,27 +557,17 @@ export function ProgramWorkspace({
               )}
             </Stack>
           ) : (
-            // Keyed by the program: its tabs' retained state ends when another program opens.
-            <Tabs key={programId} value={tab} onValueChange={(value) => select(programTab(value))}>
-              <TabsList variant="line" aria-label="Program work">
-                {programTabs.map((name) => (
-                  <TabsTrigger key={name} value={name}>
-                    {name}
-                    {counts[name] !== undefined && <Count value={counts[name]!} max={9999} />}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-              <RetainedTabPanels tabs={programTabs} value={tab}>
-                {(name) => (
-                  <>
-                    {/* The tab's views, first: each a page of its own that reads the tab's work.
-                        The Overview's lead its body, beside the program's Details. */}
-                    {name !== "Overview" && <ProgramViewRow programId={programId} tab={name} />}
-                    {tabContent(name)}
-                  </>
-                )}
-              </RetainedTabPanels>
-            </Tabs>
+            // Keyed by the program: its parts' retained state ends when another program opens.
+            <RetainedParts key={programId} parts={programParts} value={part}>
+              {(name) => (
+                <>
+                  {/* The part's views, first: each a page of its own that reads the part's work.
+                      The Overview's lead its body, beside the program's Details. */}
+                  {name !== "Overview" && <ProgramViewRow programId={programId} part={name} />}
+                  {partContent(name)}
+                </>
+              )}
+            </RetainedParts>
           )}
         </ProgramQueryState>
       </Page>
@@ -675,32 +656,29 @@ function ProgramDetailsAside({ program }: { program: Row<"programs"> }) {
       label="Program details"
       summary={<StatusBadge statuses={programStatuses} value={program.status} />}
     >
+      {/* A fact with nothing recorded is not drawn: no sponsor, no start or end day. */}
       <Inspector.Group title="Details">
-        <KeyValue.Group>
-          <KeyValue label="Status">
-            <StatusBadge statuses={programStatuses} value={program.status} />
-          </KeyValue>
-          <KeyValue label="Code">
-            <Id>{program.code}</Id>
-          </KeyValue>
-          {program.business_line_id && (
-            <KeyValue label="Business line">
-              <RelationName table="business_lines" id={program.business_line_id} />
-            </KeyValue>
-          )}
-          <KeyValue label="Sponsor">
-            <RelationName table="parties" id={program.sponsor_party_id} />
-          </KeyValue>
-          <KeyValue label="Starts" wrap>
-            <DateTime value={program.starts_on} />
-          </KeyValue>
-          <KeyValue label="Ends" wrap>
-            <DateTime value={program.ends_on} />
-          </KeyValue>
-          <KeyValue label="Updated" wrap>
-            <DateTime value={program.updated_at} format="date" />
-          </KeyValue>
-        </KeyValue.Group>
+        <DetailFacts
+          facts={[
+            ["Status", <StatusBadge statuses={programStatuses} value={program.status} />],
+            ["Code", <Id>{program.code}</Id>],
+            [
+              "Business line",
+              program.business_line_id && (
+                <RelationName table="business_lines" id={program.business_line_id} />
+              ),
+            ],
+            [
+              "Sponsor",
+              program.sponsor_party_id && (
+                <RelationName table="parties" id={program.sponsor_party_id} />
+              ),
+            ],
+            ["Starts", program.starts_on && <DateTime value={program.starts_on} />],
+            ["Ends", program.ends_on && <DateTime value={program.ends_on} />],
+            ["Updated", <DateTime value={program.updated_at} format="date" />],
+          ]}
+        />
       </Inspector.Group>
       <Inspector.Group title="References">
         <ProgramQueryState
@@ -756,41 +734,43 @@ function ProgramDetailsAside({ program }: { program: Row<"programs"> }) {
                   </Stack>
                 </KeyValue>
               ) : null}
-              <KeyValue label="Program profiles" wrap>
-                <Stack space="space.050">
-                  {(references.data ?? []).map((choice) => {
-                    const resolution = profileResolutions.data?.find(
-                      (row) => row.id === choice.profile_resolution_id,
-                    );
-                    const revision = profileRevisions.data?.find(
-                      (row) => row.id === resolution?.profile_revision_id,
-                    );
-                    const layered = !!resolution?.base_profile_resolution_id;
-                    const record = profiles.data?.find((row) => row.id === revision?.profile_id);
-                    return revision ? (
-                      <Inline key={choice.id} space="space.075" alignBlock="center" shouldWrap>
-                        <TextLink
-                          render={
-                            <Link
-                              to="/profiles/$profileId"
-                              params={{ profileId: revision.profile_id }}
-                            />
-                          }
-                        >
-                          {record?.title ?? revision.title} · {revision.version}
-                        </TextLink>
-                        {layered && (
-                          <Badge size="xsmall" variant="secondary" tone="information">
-                            Tailored
-                          </Badge>
-                        )}
-                      </Inline>
-                    ) : (
-                      <Absent key={choice.id} label="Not available" />
-                    );
-                  })}
-                </Stack>
-              </KeyValue>
+              {references.data?.length ? (
+                <KeyValue label="Program profiles" wrap>
+                  <Stack space="space.050">
+                    {references.data.map((choice) => {
+                      const resolution = profileResolutions.data?.find(
+                        (row) => row.id === choice.profile_resolution_id,
+                      );
+                      const revision = profileRevisions.data?.find(
+                        (row) => row.id === resolution?.profile_revision_id,
+                      );
+                      const layered = !!resolution?.base_profile_resolution_id;
+                      const record = profiles.data?.find((row) => row.id === revision?.profile_id);
+                      return revision ? (
+                        <Inline key={choice.id} space="space.075" alignBlock="center" shouldWrap>
+                          <TextLink
+                            render={
+                              <Link
+                                to="/profiles/$profileId"
+                                params={{ profileId: revision.profile_id }}
+                              />
+                            }
+                          >
+                            {record?.title ?? revision.title} · {revision.version}
+                          </TextLink>
+                          {layered && (
+                            <Badge size="xsmall" variant="secondary" tone="information">
+                              Tailored
+                            </Badge>
+                          )}
+                        </Inline>
+                      ) : (
+                        <Absent key={choice.id} label="Not available" />
+                      );
+                    })}
+                  </Stack>
+                </KeyValue>
+              ) : null}
             </KeyValue.Group>
           ) : (
             <Empty size="compact">
@@ -1001,35 +981,12 @@ function ProgramMonitoring({ programId }: { programId: string }) {
 const NO_TECHNIQUES: readonly { key: string; label: string }[] = [];
 
 /**
- * The POA&M & risk tab: the program's POA&M plans and their remediation items, then its risks,
- * three collections under their Section headings. The risks list the ATT&CK techniques each names,
- * by identifier and name, with a filter on them, which a control's Risks count opens.
+ * The POA&M part: the program's POA&M plans and their remediation items, two collections under
+ * their Section headings.
  */
-function ProgramPoamsAndRisks({ programId }: { programId: string }) {
+function ProgramPoams({ programId }: { programId: string }) {
   const documents = useRows("poam_documents", { program_id: programId });
   const ids = new Set((documents.data ?? []).map((document) => document.id));
-  // Read once for the program's risks; the columns stay the same while the reads do.
-  const threats = useProgramRiskTechniques(programId);
-  const techniques = threats.risks;
-  const riskColumns = useMemo((): ProgramColumn[] => {
-    const named = new Map(
-      [...(techniques ?? [])].map(([riskId, list]) => [
-        riskId,
-        list.map((technique) => ({ key: technique.code, label: codedName(technique) })),
-      ]),
-    );
-    return [
-      { key: "title", title: "Risk" },
-      { key: "status", title: "Status" },
-      { key: "owner_party_id", title: "Owner", kind: "person" },
-      {
-        key: programRiskTechniquesColumn,
-        title: "ATT&CK techniques",
-        items: (row) => named.get(row.id) ?? NO_TECHNIQUES,
-      },
-      { key: "updated_at", title: "Updated" },
-    ];
-  }, [techniques]);
   return (
     <Stack space="space.300">
       <ProgramCollection
@@ -1063,17 +1020,48 @@ function ProgramPoamsAndRisks({ programId }: { programId: string }) {
           assignOwner
         />
       )}
-      <ProgramCollection
-        name="risks"
-        section
-        empty={{ title: "No risks yet" }}
-        title="Risks"
-        filters={{ program_id: programId }}
-        columns={riskColumns}
-        queries={threats.queries}
-        assignOwner
-      />
     </Stack>
+  );
+}
+
+/**
+ * The Risks part: the program's risks, its only collection. They list the ATT&CK techniques each
+ * names, by identifier and name, with a filter on them, which a control's Risks count opens.
+ */
+function ProgramRisks({ programId }: { programId: string }) {
+  // Read once for the program's risks; the columns stay the same while the reads do.
+  const threats = useProgramRiskTechniques(programId);
+  const techniques = threats.risks;
+  const riskColumns = useMemo((): ProgramColumn[] => {
+    const named = new Map(
+      [...(techniques ?? [])].map(([riskId, list]) => [
+        riskId,
+        list.map((technique) => ({ key: technique.code, label: codedName(technique) })),
+      ]),
+    );
+    return [
+      { key: "title", title: "Risk" },
+      { key: "status", title: "Status" },
+      { key: "owner_party_id", title: "Owner", kind: "person" },
+      {
+        key: programRiskTechniquesColumn,
+        title: "ATT&CK techniques",
+        items: (row) => named.get(row.id) ?? NO_TECHNIQUES,
+      },
+      { key: "updated_at", title: "Updated" },
+    ];
+  }, [techniques]);
+  return (
+    <ProgramCollection
+      name="risks"
+      fill
+      empty={{ title: "No risks yet" }}
+      title="Risks"
+      filters={{ program_id: programId }}
+      columns={riskColumns}
+      queries={threats.queries}
+      assignOwner
+    />
   );
 }
 function ProgramFocusedView({
@@ -1106,23 +1094,6 @@ function ProgramFocusedView({
         ]}
         canCreate={systemIds.size > 0}
         prerequisite="A configuration baseline belongs to a system. Create a system first."
-      />
-    );
-  if (view === "Authorization")
-    return (
-      <ProgramCollection
-        name="authorization_packages"
-        fill
-        empty={{ title: "No authorization packages yet" }}
-        title="Authorization packages"
-        filters={{ program_id: programId }}
-        initialValues={systemDefault}
-        columns={[
-          { key: "title", title: "Package" },
-          { key: "updated_at", title: "Updated" },
-        ]}
-        canCreate={systemIds.size > 0}
-        prerequisite="An authorization package covers a system. Create a system first."
       />
     );
   if (view === "Inheritance resolution")

@@ -168,20 +168,28 @@ export function ControlStatusTally({
   status,
   label,
   size = "large",
+  order = "key",
 }: {
   status: Pick<ProgramControlStatus, "total" | "counts">;
   /** The bar's name: whose baseline it is. */
   label: string;
   /** `large` beside a number in a cell; `xlarge` where the bar is the reading, as in a tray. */
   size?: "large" | "xlarge" | undefined;
+  /**
+   * `key`, the key's order, satisfied first; `climb`, the ladder's, what stopped under the first
+   * rung first and what reached the top last, under the rungs of a climb.
+   */
+  order?: "key" | "climb" | undefined;
 }) {
   const { formatNumber } = useLedgerLocale();
-  const segments = KEY_ORDER.map((key): TallySegment => ({
-    key,
-    value: status.counts[key],
-    label: `${formatNumber(status.counts[key])} ${controlStatuses[key].label.toLowerCase()}`,
-    ...marks[key],
-  }));
+  const segments = (order === "climb" ? CONTROL_STATUS_ORDER : KEY_ORDER).map(
+    (key): TallySegment => ({
+      key,
+      value: status.counts[key],
+      label: `${formatNumber(status.counts[key])} ${controlStatuses[key].label.toLowerCase()}`,
+      ...marks[key],
+    }),
+  );
   return <Tally segments={segments} total={status.total} size={size} label={label} />;
 }
 

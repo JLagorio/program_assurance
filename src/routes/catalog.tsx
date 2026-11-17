@@ -61,7 +61,7 @@ export const Route = createFileRoute("/catalog")({
       return tab && tab !== "Controls" ? { tab } : {};
     })(),
   }),
-  head: () => ({ meta: [{ title: "Catalog — Program Assurance" }] }),
+  head: () => ({ meta: [{ title: "Frameworks — Program Assurance" }] }),
   component: CatalogPage,
 });
 
@@ -103,7 +103,7 @@ function CatalogPage() {
     <Page>
       <PageHeader>
         <PageHeader.Heading>
-          <PageHeader.Title>Catalog</PageHeader.Title>
+          <PageHeader.Title>Frameworks</PageHeader.Title>
         </PageHeader.Heading>
       </PageHeader>
       <Tabs
@@ -116,7 +116,7 @@ function CatalogPage() {
           });
         }}
       >
-        <TabsList variant="line" aria-label="Catalog views">
+        <TabsList variant="line" aria-label="Framework views">
           {catalogTabs.map((name) => (
             // A register's tabs name its views; how many rows each holds is the table's to say.
             <TabsTrigger key={name} value={name}>

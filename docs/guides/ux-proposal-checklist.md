@@ -59,7 +59,9 @@ Twelve parts, each built on one that ships, through `/ledger-add-part`; the shee
 - [x] The decisions log, `docs/decisions.md`, which a raise of the contract's cap must cite
 - [x] Budgets B1 to B16: ceilings per route and tab in `screen-inventory.json` (with each route's archetype, purpose and primary), measured by `test:budgets`, which only fall
 - [x] Navigation, two scopes in one side nav (`scope-navigation.tsx`, `navigation-scope.ts`; each route's scope and entry in the inventory's `nav`). Organization: Home, Portfolio, Programs, Library (Frameworks, Overlays, Guidance, Components), and a Registers group holding the other destinations until they have a place. Work, under a product or a program: the switcher, Overview, System, Baseline, Controls, Requirements, Evidence, Findings, POA&M, Risks, Assessments, Authorization
-- [ ] The program's tab strip goes, now the work scope repeats it; a program's risk, issue, task and campaign records join its work scope (their addresses are global today)
+- [x] The program's tab strip goes, now the work scope repeats it: each entry is a part at its old address, named by its h1 (`src/lib/program-parts.ts`)
+- [x] A program's records open in its work scope (risk, remediation item, POA&M plan, issue, finding, asset, evidence, campaign, package), their entry current; a task and a workstream mark none
+- [x] Library names match their pages: Frameworks (the catalog), Guidance (`/guidance`, the four SP 800-160 frameworks; the board's counts, In use column and family matrix are not built)
 - [x] Words in `src/lib/status.ts` and `product-records.ts`: Component (one) and Component set; Offer to owner, Withdraw offer, Accept, Return; Verified for reviewed evidence, Satisfied stays the assessor's; RMF's short decision words (IATT and ATU wait for D5's data). To review comes with the component screens, the first to show it
 - [x] Page budgets, first pass: catalog Sources a register (401 words to 12), empty facts and zero tiles drawn as nothing, empty-state lines under 10 words; the buttons left on SSP, Controls and the catalog are the table's own pager and column menus
 - [ ] `docs/guides/screen-inventory.json`: every new route
@@ -83,7 +85,7 @@ Built over real records, then `/verify-screen`. Each link opens the flow's first
 - [ ] 7 · [Implement and map](https://claude.ai/artifact/Fm8T8rkFfeiARpGBB7U7jM#impl): 4
 - [ ] 8 · [Prove with evidence](https://claude.ai/artifact/Fm8T8rkFfeiARpGBB7U7jM#evidence): 3
 - [ ] 9 · [Find and fix](https://claude.ai/artifact/Fm8T8rkFfeiARpGBB7U7jM#findings): 5
-- [ ] 10 · [Assess, remediate, authorize](https://claude.ai/artifact/Fm8T8rkFfeiARpGBB7U7jM#assess): 18
+- [ ] 10 · [Assess, remediate, authorize](https://claude.ai/artifact/Fm8T8rkFfeiARpGBB7U7jM#assess): 18. Built: the Authorization view (Schedule in two lanes with the climb, Decisions, Package). Not in the data: an ATO's conditions as dated items (`authorization_conditions`), the annual review and its checks, who signs and package routing (program roles), whether a gate's criteria are met
 
 Not built as drawn: flows A to P, the earlier explorations on the old navigation. The authorizing official's desk and the phone frames are set aside.
 

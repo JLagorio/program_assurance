@@ -103,7 +103,7 @@ describe("program standing", () => {
           today,
         }).standing,
       ),
-    ).toBe("ATD");
+    ).toBe("Revoked");
   });
 
   it("reads the authorization the boundaries record where no decision is recorded here", () => {

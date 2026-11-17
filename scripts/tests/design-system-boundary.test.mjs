@@ -595,7 +595,17 @@ test("every route declares a screen family and browser assertion", async () => {
       assert.ok(screen.missingRecord.backTo, screen.file);
       assert.ok(screen.missingRecord.reason, screen.file);
     }
-    if (screen.tabList) {
+    // A route's tabs are a strip (`tabList`) or parts the side nav reaches, each at its address
+    // (`tabAddress`: the search parameter that names one, and the one the route opens on).
+    if (screen.tabAddress)
+      assert.ok(
+        typeof screen.tabAddress.search === "string" &&
+          [...(screen.collectionTabs ?? []), ...Object.keys(screen.tabExceptions ?? {})].includes(
+            screen.tabAddress.opens,
+          ),
+        `${screen.file}: a part's address names its search parameter and the part it opens on`,
+      );
+    if (screen.tabList || screen.tabAddress) {
       assert.ok(Array.isArray(screen.collectionTabs), screen.file);
       assert.ok(
         screen.tabExceptions &&

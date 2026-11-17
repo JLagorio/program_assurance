@@ -4,7 +4,7 @@
 //
 // The program's header has, under its name, its categorization and its standing as one fact: the
 // newest authorization decision in RMF's short words (ATO, ATO with conditions, ATO expired, DATO,
-// ATD; with none, the authorization every boundary records, else Package submitted, Package in
+// Revoked; with none, the authorization every boundary records, else Package submitted, Package in
 // draft or No authorization package) and its most urgent date, an open gate's due day or the
 // authorization's expiry (ATO with conditions · CDR 46d late), `ProgramStandingFacts` over
 // `programStanding` in program-standing.

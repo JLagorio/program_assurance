@@ -3,7 +3,8 @@
  * The declared route inventory drives identity, collection and touch-preview checks, the check
  * that no route outside the schema inspector reads the record schema as it opens, the check
  * that no such route draws a link into the schema inspector, and the side nav's scope and current
- * entry on each route.
+ * entry on each route. A route whose tabs draw no strip, since the side nav reaches them (a
+ * program's parts), declares `tabAddress`: each is opened at its address and named by its h1.
  */
 
 // From the product pattern contract's What checks it, moved beside the check on 2026-11-16.
@@ -252,7 +253,20 @@ async function verifyCollection(screen, width, tabName) {
   );
 }
 
-async function verifyTabs(screen, width) {
+async function verifyTabs(screen, width, path, fixture) {
+  if (screen.tabAddress) {
+    // A page whose tabs the side nav reaches draws no strip: each is opened at its address and
+    // named by its h1, as a page of its own.
+    for (const tabName of [...screen.collectionTabs, ...Object.keys(screen.tabExceptions)]) {
+      await openPart(screen, path, tabName, fixture);
+      await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
+      if (screen.collectionTabs.includes(tabName)) await verifyCollection(screen, width, tabName);
+      else assert.ok(screen.tabExceptions[tabName], `${screen.path}: ${tabName} has a reason`);
+      await bounds(width, `${screen.path} ${tabName}`);
+      console.log(`PASS ${width}px part ${screen.path} ${tabName}`);
+    }
+    return;
+  }
   if (!screen.tabList) return;
   const tabs = page.getByRole("tablist", { name: screen.tabList, exact: true });
   await expect(tabs).toBeVisible();
@@ -273,6 +287,20 @@ async function verifyTabs(screen, width) {
     await bounds(width, `${screen.path} ${tabName}`);
     console.log(`PASS ${width}px tab ${screen.path} ${tabName}`);
   }
+}
+
+/**
+ * A part of a page with no tab strip (a program's, which the side nav reaches), opened at its
+ * address (`?tab=Requirements`). Its h1 names it: the part the route opens on names the record,
+ * every other part itself.
+ */
+async function openPart(screen, path, tabName, fixture) {
+  const url = new URL(`${origin}${path}`);
+  url.searchParams.set(screen.tabAddress.search, tabName);
+  await page.goto(url.href);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+    tabName === screen.tabAddress.opens && fixture ? name(fixture) : tabName,
+  );
 }
 
 /**
@@ -303,11 +331,22 @@ function tabNamed(tabs, tabName) {
  * before any preview, so a tab's schema read is counted against it. It ends on the tab the route
  * opened on, so the checks after it start where the route did.
  */
-async function sweepSchemaReads(screen, withTabs, inflight, width) {
+async function sweepSchemaReads(screen, withTabs, inflight, width, path, fixture) {
   await settled(inflight);
   await sweepSchemaLinks(width, screen.path);
   await sweepIdNames(width, screen.path);
-  if (withTabs && screen.tabList) {
+  if (withTabs && screen.tabAddress) {
+    for (const tabName of [...screen.collectionTabs, ...Object.keys(screen.tabExceptions)]) {
+      opening = `${screen.path} part ${tabName}`;
+      await openPart(screen, path, tabName, fixture);
+      await settled(inflight);
+      await sweepSchemaLinks(width, opening);
+      await sweepIdNames(width, opening);
+    }
+    opening = null;
+    await page.goto(`${origin}${path}`);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
+  } else if (withTabs && screen.tabList) {
     const tabs = page.getByRole("tablist", { name: screen.tabList, exact: true });
     const opened = await tabs
       .getByRole("tab")
@@ -333,12 +372,19 @@ async function sweepSchemaReads(screen, withTabs, inflight, width) {
  * The side nav marks the route's own entry in the scope it opens, as the inventory declares (`nav`):
  * the organization's, or a program's or product's work, whose switcher leads back to the
  * Portfolio. A product's page whose product cannot be found is in the organization, at Products.
+ * A program's record at an address of its own (`program-record`) opens its program's work once the
+ * record names it (every fixture is a record of the first program), and is in the organization,
+ * at its register (`organization`), where its record cannot be found.
  */
 async function verifyNavigation(screen, fixture) {
   const expected =
     screen.nav.scope === "product" && !fixture
       ? { scope: "organization", current: "Products" }
-      : screen.nav;
+      : screen.nav.scope === "program-record"
+        ? fixture
+          ? { scope: "program", current: screen.nav.current }
+          : { scope: "organization", current: screen.nav.organization }
+        : screen.nav;
   const nav = page.getByRole("navigation", { name: "Side navigation", exact: true });
   const current = nav.locator('[aria-current="page"]');
   await expect(current).toHaveCount(expected.current === null ? 0 : 1);
@@ -438,13 +484,16 @@ try {
             url.pathname === destination.pathname &&
             url.searchParams.toString() === destination.searchParams.toString(),
         );
-        await expect(page.getByRole("heading", { level: 1 })).toHaveText(name(fixture));
+        // A redirect to a program's part lands on the part, which its h1 names (`heading`).
+        await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+          screen.heading ?? name(fixture),
+        );
       }
       if (opening) {
         const found = schemaReads.length;
         const linked = schemaLinks.length;
         const named = idNames.length;
-        await sweepSchemaReads(screen, !!fixture, inflight, width);
+        await sweepSchemaReads(screen, !!fixture, inflight, width, path, fixture);
         for (const read of schemaReads.slice(found)) console.log(`FAIL schema read ${read}`);
         for (const link of schemaLinks.slice(linked)) console.log(`FAIL schema link ${link}`);
         for (const control of idNames.slice(named)) console.log(`FAIL id name ${control}`);
@@ -455,7 +504,7 @@ try {
         );
         await verifyCollection(screen, width);
       }
-      if (fixture) await verifyTabs(screen, width);
+      if (fixture) await verifyTabs(screen, width, path, fixture);
       await bounds(width, path);
       console.log(`PASS ${width}px ${screen.family} ${path}`);
     }
@@ -503,15 +552,14 @@ try {
     console.log(
       `PASS ${width}px program Controls name without an implementation opens its preview`,
     );
-    // Every focused view is a link in the row of views on one tab of the program's record, never
+    // Every focused view is a link in the row of views on one part of the program's record, never
     // only inside a menu. A view that applies to some programs alone is listed where it applies:
     // the swept program has no variant and no requirements document, so Product delta and the
     // Compliance matrix are left out of its rows.
     const record = inventory.find((screen) => screen.path === "/programs/$programId");
     const listed = new Map();
     for (const tabName of [...record.collectionTabs, ...Object.keys(record.tabExceptions)]) {
-      await page.goto(`${origin}/programs/${program.id}?tab=${encodeURIComponent(tabName)}`);
-      await expect(page.getByRole("tabpanel").filter({ visible: true })).toHaveCount(1);
+      await openPart(record, `/programs/${program.id}`, tabName, program);
       await settled(inflight);
       const links = page
         .getByRole("navigation", { name: `${tabName} views`, exact: true })
@@ -534,7 +582,7 @@ try {
       }
       assert.equal(listed.get(href)?.name, screen.title, `${screen.path} is in a row of views`);
     }
-    // A view's page is named by its h1 and trailed through the tab that lists it.
+    // A view's page is named by its h1 and trailed through the part that lists it.
     const posture = routePath(inventory.find((screen) => screen.title === "Posture"));
     const postureTab = listed.get(posture).tab;
     await page.goto(`${origin}/programs/${program.id}?tab=${encodeURIComponent(postureTab)}`);
@@ -553,7 +601,7 @@ try {
       `/programs/${program.id}?tab=${encodeURIComponent(postureTab).replace(/%20/g, "+")}`,
     );
     await bounds(width, posture);
-    console.log(`PASS ${width}px every program view is in a row of views on its tab`);
+    console.log(`PASS ${width}px every program view is in a row of views on its part`);
     await context.close();
   }
   assert.deepEqual(errors, [], "Every declared product route renders without a browser exception");

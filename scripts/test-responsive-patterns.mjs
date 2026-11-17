@@ -346,7 +346,10 @@ try {
     includeHidden: true,
   });
   await expect(row(table, requirements[3].id)).toBeVisible();
-  await tabsFit(page.getByRole("tablist", { name: "Program work", exact: true }));
+  // The program's record draws no tab strip: the side nav reaches its parts, and the part's h1
+  // says which one this is.
+  await expect(page.getByRole("tablist", { name: "Program work", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Requirements");
   await search.fill("Responsive");
   await expect(table.locator("tbody tr[data-row-id]")).toHaveCount(3);
   const sorted = table.locator("th").filter({

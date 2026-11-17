@@ -468,10 +468,11 @@ try {
   await expect(page).toHaveURL(new RegExp(`/programs/${program.id}\\?tab=System$`));
   await expect(table().locator("tr[data-row-id]")).toHaveCount(38);
 
-  // Scopes live under their heading on the program's Assessment campaigns tab, with the
-  // campaigns, events and objectives: the program's strip is the page's only tab strip.
+  // Scopes live under their heading on the program's Assessments, with the campaigns, events
+  // and objectives: the part draws no tab strip, and its h1 names it.
   await page.goto(`${origin}/programs/${program.id}?tab=Assessments`);
-  await expect(page.locator("main").getByRole("tablist")).toHaveCount(1);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Assessments");
+  await expect(page.locator("main").getByRole("tablist")).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Scopes", exact: true })).toBeVisible();
   const scopesTable = page.getByRole("table", { name: "Scopes", exact: true });
   await expect(scopesTable).toContainText(assessment.name);

@@ -12,7 +12,7 @@
 //
 // The program's Overview opens with three, `ProgramOpenWork`: open tasks by status, open
 // operational issues by severity and open risks by status. A line that counts something opens its
-// tab's register asked for exactly those records (`registerViews.programOperationalIssues`,
+// part's register asked for exactly those records (`registerViews.programOperationalIssues`,
 // `programRisks`, `programTasksView`). The operational issues and the risks end with No owner, how
 // many of the open ones nobody owns, each counted on the server from its register's view
 // (`useProgramUnowned` in owner-assign); its line asks the tab's register for the open records with
@@ -58,7 +58,7 @@ import { ControlStatusKey, ControlStatusTally } from "./control-status";
 import { controlStatusLink } from "./control-status-link";
 import { QueryState, ReportFailures, type QueryStatus } from "./work-common";
 
-/** The program tabs that hold open work. */
+/** The program tabs that hold open work: the address of the part that holds each. */
 type WorkTab = "Schedule" | "Findings" | "POA&M & risk";
 
 type Line = { key: string; label: string; value: number; tone: StatusTone };
@@ -180,7 +180,7 @@ export function ProgramOpenWork({
       query: risks,
       ask: (value) =>
         questionSearch(registerViews.programRisks, { filters: [{ id: "status", value: [value] }] }),
-      // Risks follow the POA&M plans and remediation items on their tab.
+      // The risks' Section, which on the POA&M & risk address is the Risks part.
       section: registerViews.programRisks,
       open: openRisks?.length,
       lines: lines(openRisks ?? [], (risk) => risk.status, riskStatuses, [
@@ -217,8 +217,8 @@ export function ProgramOpenWork({
         return (
           <Tray
             key={queue.title}
-            // A queue's heading opens the tab that holds it.
-            link={tabLink(queue.tab)}
+            // A queue's heading opens the part that holds it: the risks' Section is the Risks part.
+            link={tabLink(queue.tab, undefined, queue.section)}
             {...(failed
               ? { title: `Could not load ${queue.title}` }
               : { title: queue.title, value: queue.open ?? null, isLoading: loading })}

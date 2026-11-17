@@ -482,6 +482,38 @@ function PackageVersion({
   });
 }
 
+/**
+ * An authorization decision's preview body: the decision in RMF's words, who made it and its days,
+ * then its rationale and its conditions as written. The Authorization decisions dashboard and a
+ * program's Authorization view share it.
+ */
+export function AuthorizationDecisionFacts({ record }: { record: DataRecord }) {
+  return (
+    <Stack space="space.250">
+      <ModelFacts
+        record={record}
+        table="authorization_decisions"
+        fields={[
+          { key: "decision", label: "Decision" },
+          {
+            key: "decision_maker_party_id",
+            label: "Decision maker",
+            kind: "person",
+            render: (row) => (
+              <RelationName table="parties" id={row["decision_maker_party_id"] as string} />
+            ),
+          },
+          { key: "decided_at", label: "Decided" },
+          { key: "effective_on", label: "Effective" },
+          { key: "expires_on", label: "Expires" },
+        ]}
+      />
+      <Described label="Rationale" text={record["rationale"]} />
+      <Described label="Conditions" text={record["conditions"]} />
+    </Stack>
+  );
+}
+
 /** The authorization dashboard: decisions on published package versions, and the packages ready
  * for a decision (the inventory's dashboard exception). */
 export function Briefing() {
@@ -586,31 +618,7 @@ export function Briefing() {
                     />
                   }
                 >
-                  <Stack space="space.250">
-                    <ModelFacts
-                      record={current}
-                      table="authorization_decisions"
-                      fields={[
-                        { key: "decision", label: "Decision" },
-                        {
-                          key: "decision_maker_party_id",
-                          label: "Decision maker",
-                          kind: "person",
-                          render: (row) => (
-                            <RelationName
-                              table="parties"
-                              id={row["decision_maker_party_id"] as string}
-                            />
-                          ),
-                        },
-                        { key: "decided_at", label: "Decided" },
-                        { key: "effective_on", label: "Effective" },
-                        { key: "expires_on", label: "Expires" },
-                      ]}
-                    />
-                    <Described label="Rationale" text={current["rationale"]} />
-                    <Described label="Conditions" text={current["conditions"]} />
-                  </Stack>
+                  <AuthorizationDecisionFacts record={current} />
                 </RecordPreviewPanel>
               )}
             </Stack>

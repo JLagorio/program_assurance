@@ -200,14 +200,12 @@ try {
   await page.locator("main").getByRole("row").nth(2).waitFor();
   await capture("programs-unfiltered");
 
-  await visit(`/programs/${program.id}`, program.name);
-  await page.getByRole("tab", { name: /^Requirements/ }).click();
+  await visit(`/programs/${program.id}?tab=Requirements`, "Requirements");
   await page.getByPlaceholder("Find a requirement", { exact: true }).fill(requirement.code);
   await page.getByRole("link", { name: requirement.code, exact: true }).first().waitFor();
   await capture("requirements");
 
-  await visit(`/programs/${controlProgram.id}`, controlProgram.name);
-  await page.getByRole("tab", { name: "Controls", exact: true }).click();
+  await visit(`/programs/${controlProgram.id}?tab=Controls`, "Controls");
   await find("Find implemented requirements", control.code);
   await capture("controls");
 

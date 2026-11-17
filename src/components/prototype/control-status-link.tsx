@@ -15,14 +15,17 @@ import { questionSearch } from "./collection-question";
  */
 export function controlStatusListSearch(question: {
   status?: ControlStatus | undefined;
+  /** Several statuses at once: the controls that reached a rung of the climb. */
+  statuses?: readonly ControlStatus[] | undefined;
   family?: string | undefined;
 }): Record<string, unknown> {
+  const statuses = question.statuses ?? (question.status ? [question.status] : []);
   return {
     show: "list",
     ...questionSearch(registerViews.controlStatus, {
       search: "",
       filters: [
-        ...(question.status ? [{ id: "status", value: [question.status] }] : []),
+        ...(statuses.length ? [{ id: "status", value: [...statuses] }] : []),
         ...(question.family ? [{ id: "family", value: [question.family] }] : []),
       ],
     }),

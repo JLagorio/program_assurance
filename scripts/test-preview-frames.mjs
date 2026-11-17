@@ -194,7 +194,7 @@ try {
   await page.getByLabel("Password", { exact: true }).fill(workspace.password);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await expect(
-    page.getByRole("heading", { level: 1, name: program.name, exact: true }),
+    page.getByRole("heading", { level: 1, name: "Schedule", exact: true }),
   ).toBeVisible();
   await page.goto(`${origin}/programs/${program.id}?tab=Schedule`);
 

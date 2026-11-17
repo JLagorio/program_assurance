@@ -52,7 +52,7 @@ const decisionStandings: Record<string, AuthorizationStanding> = {
   authorized: "ato",
   authorized_with_conditions: "ato_with_conditions",
   denied: "dato",
-  revoked: "atd",
+  revoked: "revoked",
 };
 
 /** Whole days from `from` to `to`, two `YYYY-MM-DD` calendar days. */
@@ -67,7 +67,7 @@ export function daysBetween(from: string, to: string): number {
 /**
  * Where the program's authorization stands, and its most urgent date. The newest decision decides
  * the standing: an authorization (ATO, ATO with conditions) whose expiry has passed reads ATO
- * expired, a denial DATO and a revocation ATD. With no decision recorded here, what the program
+ * expired, a denial DATO and a revocation Revoked. With no decision recorded here, what the program
  * has instead: the authorization its boundaries record where every one records a decided one
  * (authorized, denied or expired, the worst of them), else a package version submitted to the
  * authorizing official, a package still in draft, or none. The
@@ -169,18 +169,29 @@ export function programCategorization(
     : null;
 }
 
-const VERSION_COLUMNS = ["id", "state", "submitted_at"] as const;
+// What the standing reads, and what the Authorization view's path reads of the same rows, so the
+// header and the path share one request each.
+const VERSION_COLUMNS = [
+  "id",
+  "package_id",
+  "version_number",
+  "state",
+  "submitted_at",
+  "published_at",
+] as const;
 const DECISION_COLUMNS = [
   "id",
   "package_revision_id",
   "decision",
   "decided_at",
   "expires_on",
+  "decision_maker_party_id",
 ] as const;
 
 /**
  * The program's package versions and the decisions recorded on them, each one request scoped on the
- * server through the package the version belongs to: the reads behind the header's standing.
+ * server through the package the version belongs to: the reads behind the header's standing and
+ * the Authorization view's path.
  */
 export function useProgramAuthorization(programId: string) {
   const versions = useRows(

@@ -309,9 +309,10 @@ export const recordedImplementationStatuses: StatusVocabulary<
 /**
  * An authorization decision in RMF's short words (NIST SP 800-37 Rev. 2), defined once: every
  * screen that shows a decision reads them here, through the vocabularies below (a decision on a
- * package, the authorization a system records, a program's standing). IATT (interim authorization
- * to test) and ATU (authorization to use) have no stored value yet: no record can hold them until
- * the data change lands, so no screen shows them today.
+ * package, the authorization a system records, a program's standing). ATD is the authorization
+ * termination date, the day an authorization ends, never a decision: a revoked one reads Revoked.
+ * IATT (interim authorization to test) and ATU (authorization to use) have no stored value yet:
+ * no record can hold them until the data change lands, so no screen shows them today.
  */
 export const authorizationTypes = vocabulary([
   ["ato", "ATO", "success"],
@@ -319,7 +320,7 @@ export const authorizationTypes = vocabulary([
   ["iatt", "IATT", "information"],
   ["atu", "ATU", "success"],
   ["dato", "DATO", "danger"],
-  ["atd", "ATD", "danger"],
+  ["atd", "ATD", "neutral"],
 ]);
 type AuthorizationType = keyof typeof authorizationTypes;
 /** A stored value that records a decision of a type, in that type's words and tone. */
@@ -342,18 +343,18 @@ export const authorizationDecisions = vocabulary([
   decided("authorized", "ato"),
   decided("authorized_with_conditions", "ato_with_conditions"),
   decided("denied", "dato"),
-  decided("revoked", "atd"),
+  ["revoked", "Revoked", "danger"],
 ]);
 /**
  * A program's authorization standing in RMF's short words, as its header says it beside its
  * categorization: the newest decision on its packages (an expired authorization reads ATO expired,
- * a denial DATO, a revocation ATD), or, with none, what the program has instead. Derived by
+ * a denial DATO, a revocation Revoked), or, with none, what the program has instead. Derived by
  * `programStanding` in program-standing; no column stores it.
  */
 export const authorizationStandings = vocabulary([
   lapsed("ato_expired"),
   decided("dato", "dato"),
-  decided("atd", "atd"),
+  ["revoked", "Revoked", "danger"],
   ["no_package", "No authorization package", "neutral"],
   ["package_draft", "Package in draft", "neutral"],
   ["package_submitted", "Package submitted", "information"],

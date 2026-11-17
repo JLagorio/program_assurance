@@ -42,8 +42,9 @@
     "title": "Assessment campaign",
     "family": "record",
     "nav": {
-      "scope": "organization",
-      "current": "Assessment campaigns"
+      "scope": "program-record",
+      "current": "Assessments",
+      "organization": "Assessment campaigns"
     },
     "archetype": "Record",
     "purpose": "How far an assessment campaign got, and what it found.",
@@ -207,7 +208,7 @@
   {
     "file": "catalog.tsx",
     "path": "/catalog",
-    "title": "Catalog",
+    "title": "Frameworks",
     "family": "register",
     "nav": {
       "scope": "organization",
@@ -217,7 +218,7 @@
     "purpose": "Read the control catalog, its CCIs and their sources.",
     "primary": "none",
     "model": "controls",
-    "tabList": "Catalog views",
+    "tabList": "Framework views",
     "collectionTabs": ["Controls", "CCIs", "Sources"],
     "tabExceptions": {},
     "previewOnly": ["CCIs", "Sources"],
@@ -369,8 +370,9 @@
     "title": "Evidence artifact",
     "family": "record",
     "nav": {
-      "scope": "organization",
-      "current": "Evidence"
+      "scope": "program-record",
+      "current": "Evidence",
+      "organization": "Evidence"
     },
     "archetype": "Record",
     "purpose": "What an evidence artifact holds, version by version.",
@@ -406,8 +408,9 @@
     "title": "Assessment finding",
     "family": "record",
     "nav": {
-      "scope": "organization",
-      "current": "Findings & assets"
+      "scope": "program-record",
+      "current": "Findings",
+      "organization": "Findings & assets"
     },
     "archetype": "Record",
     "purpose": "What an assessor found, and where it leads.",
@@ -448,8 +451,9 @@
     "title": "Asset",
     "family": "record",
     "nav": {
-      "scope": "organization",
-      "current": "Findings & assets"
+      "scope": "program-record",
+      "current": "System",
+      "organization": "Findings & assets"
     },
     "archetype": "Record",
     "purpose": "What an asset is, and what was observed on it.",
@@ -591,6 +595,44 @@
     }
   },
   {
+    "file": "guidance.tsx",
+    "path": "/guidance",
+    "title": "Guidance",
+    "family": "register",
+    "nav": {
+      "scope": "organization",
+      "current": "Guidance"
+    },
+    "archetype": "Library",
+    "purpose": "Read the supplemental guidance beside the catalog: NIST SP 800-160.",
+    "primary": "none",
+    "model": "frameworks",
+    "previewOnly": true,
+    "budgets": {
+      "words": 8,
+      "primaries": 0,
+      "zeros": 0,
+      "constantColumns": 0,
+      "repeatedPairs": 0,
+      "emptyFacts": 0,
+      "railRows": 0,
+      "sections": 0,
+      "adjacentEmptySections": 0,
+      "longDescriptions": 0,
+      "longStrings": 0,
+      "longEmptyLines": 0,
+      "buttons": 7,
+      "tabs": 0,
+      "tabExceptions": 0,
+      "cellMarks": 0,
+      "charts": 0,
+      "constantStatuses": 0,
+      "cutNames": 0,
+      "foldedTables": 0,
+      "statusHues": 0
+    }
+  },
+  {
     "file": "index.tsx",
     "path": "/",
     "title": "Portfolio",
@@ -633,8 +675,9 @@
     "title": "Operational issue",
     "family": "record",
     "nav": {
-      "scope": "organization",
-      "current": "Findings & assets"
+      "scope": "program-record",
+      "current": "Findings",
+      "organization": "Findings & assets"
     },
     "archetype": "Record",
     "purpose": "What an operational issue is, and what it reaches.",
@@ -1332,8 +1375,9 @@
     "title": "Authorization package",
     "family": "record",
     "nav": {
-      "scope": "organization",
-      "current": "Packages"
+      "scope": "program-record",
+      "current": "Authorization",
+      "organization": "Packages"
     },
     "archetype": "Record",
     "purpose": "What an authorization package holds, and its decision.",
@@ -1406,8 +1450,9 @@
     "title": "POA&M plan",
     "family": "record",
     "nav": {
-      "scope": "organization",
-      "current": "POA&M & risk register"
+      "scope": "program-record",
+      "current": "POA&M",
+      "organization": "POA&M & risk register"
     },
     "archetype": "Record",
     "purpose": "Which remediation items a POA&M plan groups.",
@@ -1596,32 +1641,35 @@
     "purpose": "Where a program stands on its way to a decision.",
     "primary": "Edit program",
     "model": "programs",
-    "tabList": "Program work",
-    "collectionTabs": ["System", "Library", "Requirements", "Evidence"],
+    "tabAddress": {
+      "search": "tab",
+      "opens": "Overview"
+    },
+    "collectionTabs": ["System", "Library", "Requirements", "Evidence", "Risks"],
     "tabExceptions": {
       "Overview": "Metrics, properties, multiple sections and the program's activity Timeline.",
       "Controls": "Controls are grouped by system.",
-      "Assessment campaigns": "Campaigns, events, scopes and objectives are distinct collections.",
+      "Assessments": "Campaigns, events, scopes and objectives are distinct collections.",
       "Schedule": "Tasks, gates and responsibilities are distinct collections.",
       "Findings": "Operational issues and observations are distinct collections.",
-      "POA&M & risk": "POA&M plans, remediation items and risks are distinct collections."
+      "POA&M": "POA&M plans and remediation items are distinct collections."
     },
     "previewOnly": ["Library"],
     "budgets": {
-      "words": 131,
+      "words": 117,
       "primaries": 1,
       "zeros": 0,
       "constantColumns": 0,
       "repeatedPairs": 2,
-      "emptyFacts": 3,
-      "railRows": 6,
+      "emptyFacts": 0,
+      "railRows": 3,
       "sections": 4,
       "adjacentEmptySections": 2,
       "longDescriptions": 0,
       "longStrings": 0,
       "longEmptyLines": 0,
       "buttons": 4,
-      "tabs": 10,
+      "tabs": 0,
       "tabExceptions": 6,
       "cellMarks": 0,
       "charts": 0,
@@ -1632,7 +1680,7 @@
     },
     "tabBudgets": {
       "System": {
-        "words": 44,
+        "words": 19,
         "primaries": 2,
         "zeros": 0,
         "constantColumns": 0,
@@ -1653,8 +1701,8 @@
         "statusHues": 0
       },
       "Library": {
-        "words": 46,
-        "primaries": 1,
+        "words": 19,
+        "primaries": 0,
         "zeros": 0,
         "constantColumns": 0,
         "repeatedPairs": 0,
@@ -1674,7 +1722,7 @@
         "statusHues": 0
       },
       "Requirements": {
-        "words": 47,
+        "words": 21,
         "primaries": 1,
         "zeros": 0,
         "constantColumns": 0,
@@ -1695,7 +1743,7 @@
         "statusHues": 0
       },
       "Evidence": {
-        "words": 50,
+        "words": 24,
         "primaries": 1,
         "zeros": 0,
         "constantColumns": 0,
@@ -1716,8 +1764,8 @@
         "statusHues": 0
       },
       "Controls": {
-        "words": 64,
-        "primaries": 1,
+        "words": 37,
+        "primaries": 0,
         "zeros": 0,
         "constantColumns": 0,
         "repeatedPairs": 0,
@@ -1736,9 +1784,9 @@
         "foldedTables": 1,
         "statusHues": 0
       },
-      "Assessment campaigns": {
-        "words": 91,
-        "primaries": 1,
+      "Assessments": {
+        "words": 65,
+        "primaries": 0,
         "zeros": 0,
         "constantColumns": 0,
         "repeatedPairs": 0,
@@ -1758,8 +1806,8 @@
         "statusHues": 0
       },
       "Schedule": {
-        "words": 79,
-        "primaries": 1,
+        "words": 52,
+        "primaries": 0,
         "zeros": 0,
         "constantColumns": 0,
         "repeatedPairs": 0,
@@ -1779,8 +1827,8 @@
         "statusHues": 0
       },
       "Findings": {
-        "words": 55,
-        "primaries": 1,
+        "words": 28,
+        "primaries": 0,
         "zeros": 0,
         "constantColumns": 0,
         "repeatedPairs": 0,
@@ -1799,20 +1847,41 @@
         "foldedTables": 0,
         "statusHues": 0
       },
-      "POA&M & risk": {
-        "words": 62,
+      "POA&M": {
+        "words": 20,
+        "primaries": 0,
+        "zeros": 0,
+        "constantColumns": 0,
+        "repeatedPairs": 0,
+        "emptyFacts": 0,
+        "railRows": 0,
+        "sections": 2,
+        "adjacentEmptySections": 0,
+        "longDescriptions": 0,
+        "longStrings": 0,
+        "longEmptyLines": 0,
+        "buttons": 11,
+        "cellMarks": 1,
+        "charts": 0,
+        "constantStatuses": 0,
+        "cutNames": 0,
+        "foldedTables": 0,
+        "statusHues": 0
+      },
+      "Risks": {
+        "words": 20,
         "primaries": 1,
         "zeros": 0,
         "constantColumns": 0,
         "repeatedPairs": 0,
         "emptyFacts": 0,
         "railRows": 0,
-        "sections": 3,
+        "sections": 0,
         "adjacentEmptySections": 0,
         "longDescriptions": 0,
         "longStrings": 0,
         "longEmptyLines": 0,
-        "buttons": 20,
+        "buttons": 14,
         "cellMarks": 1,
         "charts": 0,
         "constantStatuses": 0,
@@ -1832,11 +1901,17 @@
       "current": "Authorization"
     },
     "archetype": "Overview",
-    "purpose": "Where the program's authorization stands, and its conditions.",
+    "purpose": "Where the program's authorization stands, and what is dated on its path.",
     "primary": "Edit program",
     "model": "programs",
+    "tabList": "Authorization sections",
+    "collectionTabs": ["Decisions", "Package"],
+    "tabExceptions": {
+      "Schedule": "Two lanes of dated authorization events and lifecycle gates over one time axis, then the control baseline's climb; a dated path, not a record collection."
+    },
+    "previewOnly": ["Decisions"],
     "budgets": {
-      "words": 19,
+      "words": 30,
       "primaries": 1,
       "zeros": 0,
       "constantColumns": 0,
@@ -1848,15 +1923,59 @@
       "longDescriptions": 0,
       "longStrings": 0,
       "longEmptyLines": 0,
-      "buttons": 8,
-      "tabs": 0,
-      "tabExceptions": 0,
+      "buttons": 1,
+      "tabs": 3,
+      "tabExceptions": 1,
       "cellMarks": 0,
       "charts": 0,
       "constantStatuses": 0,
       "cutNames": 0,
       "foldedTables": 0,
       "statusHues": 0
+    },
+    "tabBudgets": {
+      "Decisions": {
+        "words": 31,
+        "primaries": 1,
+        "zeros": 0,
+        "constantColumns": 0,
+        "repeatedPairs": 0,
+        "emptyFacts": 0,
+        "railRows": 0,
+        "sections": 0,
+        "adjacentEmptySections": 0,
+        "longDescriptions": 0,
+        "longStrings": 0,
+        "longEmptyLines": 0,
+        "buttons": 1,
+        "cellMarks": 0,
+        "charts": 0,
+        "constantStatuses": 0,
+        "cutNames": 0,
+        "foldedTables": 0,
+        "statusHues": 0
+      },
+      "Package": {
+        "words": 27,
+        "primaries": 1,
+        "zeros": 0,
+        "constantColumns": 0,
+        "repeatedPairs": 0,
+        "emptyFacts": 0,
+        "railRows": 0,
+        "sections": 0,
+        "adjacentEmptySections": 0,
+        "longDescriptions": 0,
+        "longStrings": 0,
+        "longEmptyLines": 0,
+        "buttons": 8,
+        "cellMarks": 0,
+        "charts": 0,
+        "constantStatuses": 0,
+        "cutNames": 0,
+        "foldedTables": 0,
+        "statusHues": 0
+      }
     }
   },
   {
@@ -2170,7 +2289,8 @@
     "primary": "none",
     "model": "programs",
     "reason": "Legacy composition address redirects to the program System tab.",
-    "redirectTo": "/programs/$programId?tab=System"
+    "redirectTo": "/programs/$programId?tab=System",
+    "heading": "System"
   },
   {
     "file": "programs.$programId_.conmon.tsx",
@@ -2186,7 +2306,7 @@
     "primary": "Edit program",
     "model": "programs",
     "budgets": {
-      "words": 22,
+      "words": 21,
       "primaries": 1,
       "zeros": 0,
       "constantColumns": 0,
@@ -2314,7 +2434,7 @@
     "primary": "Edit program",
     "model": "programs",
     "budgets": {
-      "words": 28,
+      "words": 27,
       "primaries": 1,
       "zeros": 0,
       "constantColumns": 0,
@@ -2430,7 +2550,7 @@
     "primary": "Edit program",
     "model": "programs",
     "budgets": {
-      "words": 27,
+      "words": 26,
       "primaries": 1,
       "zeros": 0,
       "constantColumns": 0,
@@ -2671,6 +2791,7 @@
     "primary": "none",
     "reason": "Legacy Cyber T&E phases address redirects to the program Assessment campaigns tab.",
     "redirectTo": "/programs/$programId?tab=Assessment campaigns",
+    "heading": "Assessments",
     "model": "programs"
   },
   {
@@ -2964,8 +3085,9 @@
     "title": "Remediation item",
     "family": "record",
     "nav": {
-      "scope": "organization",
-      "current": "POA&M & risk register"
+      "scope": "program-record",
+      "current": "POA&M",
+      "organization": "POA&M & risk register"
     },
     "archetype": "Record",
     "purpose": "What a remediation item commits to, and by when.",
@@ -3001,8 +3123,9 @@
     "title": "Risk",
     "family": "record",
     "nav": {
-      "scope": "organization",
-      "current": "POA&M & risk register"
+      "scope": "program-record",
+      "current": "Risks",
+      "organization": "POA&M & risk register"
     },
     "archetype": "Record",
     "purpose": "What a risk is, how severe, and how it is answered.",
@@ -3271,8 +3394,9 @@
     "title": "Task",
     "family": "record",
     "nav": {
-      "scope": "organization",
-      "current": "Home"
+      "scope": "program-record",
+      "current": null,
+      "organization": "Home"
     },
     "archetype": "Record",
     "purpose": "What a task asks, who does it, and by when.",
@@ -3383,8 +3507,9 @@
     "title": "Workstream",
     "family": "record",
     "nav": {
-      "scope": "organization",
-      "current": "Programs"
+      "scope": "program-record",
+      "current": null,
+      "organization": "Programs"
     },
     "archetype": "Record",
     "purpose": "What a workstream holds, and how far it got.",

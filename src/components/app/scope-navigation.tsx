@@ -5,18 +5,28 @@
 // quiet group that opens in place and holds every other destination (the cross-program registers,
 // the Review queue, Authorization decisions, Profiles, Business lines, Products, the requirement
 // library and Suppliers), then the reader's favorites; the account at the foot. Home is My work
-// until a desk exists, Frameworks the catalog, Guidance the catalog's reference sources.
+// until a desk exists, Frameworks the control catalog, Guidance the supplemental guidance
+// (NIST SP 800-160).
 //
 // The work scope, on a program's pages (its record and tabs, its focused views, its records under
-// `/programs/:id/…`) and on a product's (its record and its product assessments): Home, then the
-// switcher naming the program or product (its code and name and what it is part of, over a square
-// mark; a link back to the organization's Portfolio), then the chain of its work in order and a
-// quieter group under it: for a program Overview, System, Baseline, Controls, Requirements,
-// Evidence, Findings, POA&M, Risks, then Assess and authorize (Assessments, Authorization); for a
-// product Overview, Structure, Controls, Where used, then Assess (Assessments), leaving out what a
-// product has nothing behind yet. Each entry leads to the tab or focused view that holds that
-// work; the Library and the account sit at the foot. A program or product that cannot be found
-// falls back to the organization scope.
+// `/programs/:id/…`), on a program's records at an address of their own (a risk, an issue,
+// evidence, a campaign: `programRecordPages`) once the record names its program, and on a product's
+// (its record and its product assessments): Home, then the switcher naming the program or product
+// (its code and name and what it is part of, over a square mark; a link back to the organization's
+// Portfolio), then the chain of its work in order and a quieter group under it: for a program
+// Overview, System, Baseline, Controls, Requirements, Evidence, Findings, POA&M, Risks, then Assess
+// and authorize (Assessments, Authorization); for a product Overview, Structure, Controls, Where
+// used, then Assess (Assessments), leaving out what a product has nothing behind yet. Each entry
+// leads to the tab or focused view that holds that work; the Library and the account sit at the
+// foot. A program or product that cannot be found falls back to the organization scope.
+//
+// A program's record at an address of its own opens in the organization scope while it loads, and
+// switches once, whole, when the record and its program are read: the record by the page's own
+// read of it (the same query), the program and its business line as every work scope reads them.
+// A record of no program (a workspace's evidence) stays in the organization. Arriving from the
+// program's own work (its Risks to a risk), the nav keeps that program's work while the record
+// loads, so it never passes through the organization. The switch moves no focus: the shell moves
+// it to Main once, on arrival.
 //
 // The current entry is marked from the address (route, tab, the POA&M & risk tab's Section), as
 // `src/lib/navigation-scope.ts` derives it; the screen inventory declares each route's
@@ -57,8 +67,9 @@ import {
   Users,
   type LucideIcon,
 } from "lucide-react";
-import { useState, type ReactNode } from "react";
-import { useRow } from "@/lib/models";
+import { useEffect, useState, type ReactNode } from "react";
+import { useRow, type TableName } from "@/lib/models";
+import { useAssuranceTrace } from "@/lib/assurance-trace";
 import {
   navigationScope,
   organizationDestinations,
@@ -67,11 +78,14 @@ import {
   productEntry,
   programDestinations,
   programEntry,
+  programRecordPages,
   programSections,
   scopeMark,
+  type NavigationScope,
   type OrganizationKey,
   type ProductEntry,
   type ProgramEntry,
+  type ProgramRecord,
 } from "@/lib/navigation-scope";
 import type { ProgramTab } from "@/components/prototype/program-workspace";
 import { PersonalNavigationSection } from "./personal-navigation";
@@ -145,9 +159,30 @@ function useAddress() {
 export function ScopeNavigation({ account }: { account: ReactNode }) {
   const address = useAddress();
   const scope = navigationScope(address.pathname);
+  // The program whose work the nav shows, which a program's record keeps while it loads.
+  const [held, setHeld] = useState<string | null>(null);
+  const shows = scope.kind === "program" ? scope.programId : null;
+  if (scope.kind !== "program-record" && shows !== held) setHeld(shows);
   switch (scope.kind) {
     case "program":
-      return <ProgramNav programId={scope.programId} account={account} {...address} />;
+      return (
+        <ProgramNav
+          programId={scope.programId}
+          current={programEntry(address.pathname, address.search["tab"], address.hash)}
+          account={account}
+          {...address}
+        />
+      );
+    case "program-record":
+      return (
+        <ProgramRecordNav
+          scope={scope}
+          held={held}
+          onShown={setHeld}
+          account={account}
+          {...address}
+        />
+      );
     case "product":
       return (
         <ProductNav
@@ -195,13 +230,7 @@ function OrganizationItem({
     <Shell.SideNav.Item
       icon={organizationIcons[destination.key]}
       isActive={current === destination.key}
-      render={
-        "tab" in destination ? (
-          <Link activeOptions={exact} to="/catalog" search={{ tab: destination.tab }} />
-        ) : (
-          <Link activeOptions={exact} to={destination.to} />
-        )
-      }
+      render={<Link activeOptions={exact} to={destination.to} />}
     >
       {destination.label}
     </Shell.SideNav.Item>
@@ -212,8 +241,8 @@ function OrganizationItem({
  * The organization scope: Home, Portfolio and Programs, the Library, then Registers, the quiet
  * group of every other destination, which opens in place and opens itself when it holds the page.
  */
-function OrganizationNav({ pathname, search, account }: AddressProps) {
-  const current = organizationEntry(pathname, search["tab"]);
+function OrganizationNav({ pathname, account }: AddressProps) {
+  const current = organizationEntry(pathname);
   const register = organizationDestinations.registers.find((item) => item.key === current)?.key;
   const [open, setOpen] = useState(Boolean(register));
   // The current destination stays in view: arriving on a register opens the group.
@@ -348,19 +377,22 @@ function programLink(entry: ProgramEntry, programId: string) {
   }
 }
 
-/** A program's work scope. A program that cannot be found leaves the reader in the organization. */
+/**
+ * A program's work scope, `current` the entry the address marks. A program that cannot be found
+ * leaves the reader in the organization.
+ */
 function ProgramNav({
   programId,
+  current,
   pathname,
   search,
   hash,
   account,
-}: AddressProps & { programId: string }) {
+}: AddressProps & { programId: string; current: ProgramEntry | undefined }) {
   const program = useRow("programs", programId);
   const line = useRow("business_lines", program.data?.business_line_id);
   if (program.data === null)
     return <OrganizationNav pathname={pathname} search={search} hash={hash} account={account} />;
-  const current = programEntry(pathname, search["tab"], hash);
   const item = (
     entry: (typeof programDestinations.chain)[number] | (typeof programDestinations.quiet)[number],
   ) => (
@@ -394,6 +426,108 @@ function ProgramNav({
       </Shell.SideNav.Body>
       <WorkFooter account={account} />
     </>
+  );
+}
+
+/** The table of each program record at an address of its own, which the record's page reads. */
+const programRecordTables = {
+  risk: "risks",
+  remediation: "poam_items",
+  "poam-plan": "poam_documents",
+  issue: "operational_issues",
+  finding: "assessment_findings",
+  asset: "inventory_items",
+  evidence: "evidence_artifacts",
+  campaign: "assessment_campaigns",
+  package: "authorization_packages",
+  task: "tasks",
+  workstream: "workstreams",
+} as const satisfies Record<ProgramRecord, TableName>;
+
+/** What the nav reads of a program's record: its program, else what leads to it. */
+type ProgramRecordFields = {
+  program_id?: string | null;
+  poam_document_id?: string | null;
+  system_id?: string | null;
+};
+
+/**
+ * The program a record names, through the reads its page makes already (the same queries, so the
+ * nav asks nothing more): its own `program_id`; a remediation item's POA&M plan's, as its Details
+ * name the plan; an asset's system's, as its Details name the system; an assessment finding's from
+ * its trace, the program of its results' campaign. `undefined` while that is read, `null` for a
+ * record of no program, one that cannot be found, or a read that failed.
+ */
+function useRecordProgram(
+  scope: Extract<NavigationScope, { kind: "program-record" }>,
+): string | null | undefined {
+  const query = useRow(programRecordTables[scope.record] as TableName, scope.recordId);
+  const record = query.data as ProgramRecordFields | null | undefined;
+  const plan = useRow(
+    "poam_documents",
+    scope.record === "remediation" ? record?.poam_document_id : undefined,
+  );
+  const system = useRow("systems", scope.record === "asset" ? record?.system_id : undefined);
+  const trace = useAssuranceTrace(
+    scope.record === "finding" ? { kind: "finding", id: scope.recordId } : null,
+  );
+  if (query.isError || record === null) return null;
+  if (record === undefined) return undefined;
+  const through = (hop: { data?: { program_id: string } | null | undefined; isError: boolean }) =>
+    hop.isError ? null : hop.data === undefined ? undefined : (hop.data?.program_id ?? null);
+  switch (scope.record) {
+    case "remediation":
+      return through(plan);
+    case "asset":
+      return through(system);
+    case "finding": {
+      if (trace.isError) return null;
+      // A trace kept from the finding before answers nothing of this one.
+      if (!trace.data || trace.isPlaceholderData) return undefined;
+      return (
+        trace.data.findings.find((finding) => finding.id === scope.recordId)?.program_id ?? null
+      );
+    }
+    default:
+      return record.program_id ?? null;
+  }
+}
+
+/**
+ * A program's record at an address of its own: the organization's scope while the record, its
+ * program and the program's business line are read (or the program's work the nav was showing),
+ * then that program's work with the entry that lists the record current, all at once. `onShown`
+ * hears the program the nav shows, which the next record keeps while it loads.
+ */
+function ProgramRecordNav({
+  scope,
+  held,
+  onShown,
+  ...address
+}: AddressProps & {
+  scope: Extract<NavigationScope, { kind: "program-record" }>;
+  held: string | null;
+  onShown: (programId: string | null) => void;
+}) {
+  const named = useRecordProgram(scope);
+  const program = useRow("programs", named);
+  const line = useRow("business_lines", program.data?.business_line_id);
+  const read = program.data !== undefined && !line.isLoading;
+  const shown =
+    named === null || program.data === null || program.isError
+      ? null
+      : named !== undefined && read
+        ? named
+        : held;
+  useEffect(() => onShown(shown), [shown, onShown]);
+  return shown ? (
+    <ProgramNav
+      programId={shown}
+      current={programRecordPages[scope.record].entry ?? undefined}
+      {...address}
+    />
+  ) : (
+    <OrganizationNav {...address} />
   );
 }
 
