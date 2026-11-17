@@ -439,6 +439,7 @@ function ReviewPreview({
             title: record.name,
             findings: record.determination_count ?? 0,
           }}
+          programId={record.program_id}
           onPublish={publish.ask}
         />
         <ResultsMoreActions key={`more-${record.id}`} resultsId={record.id} />

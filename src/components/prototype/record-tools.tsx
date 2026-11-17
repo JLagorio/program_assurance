@@ -873,6 +873,7 @@ export function EntitySection({
   links,
   readOnly = false,
   appendOnly = false,
+  addDisabledReason,
   fill,
   showHeading = false,
   compact = showHeading,
@@ -926,6 +927,11 @@ export function EntitySection({
    */
   readOnly?: boolean;
   appendOnly?: boolean;
+  /**
+   * Why the reader may not add just now, though they may write (the act is held to a role they do
+   * not hold): the add action keeps its place and says so.
+   */
+  addDisabledReason?: string | undefined;
   /** The register is the page's one block: it takes the rest of the window. */
   fill?: boolean | undefined;
   /** The lookups the columns read (the people a `person` column names), so the collection loads,
@@ -962,7 +968,15 @@ export function EntitySection({
   };
   const add = (size: "small" | "medium") =>
     canAdd ? (
-      <Button size={size} variant={actionVariant} iconBefore={<Plus />} onClick={() => open("new")}>
+      <Button
+        size={size}
+        variant={actionVariant}
+        iconBefore={<Plus />}
+        onClick={() => {
+          if (!addDisabledReason) open("new");
+        }}
+        {...(addDisabledReason ? { disabledReason: addDisabledReason } : {})}
+      >
         {addLabel}
       </Button>
     ) : undefined;

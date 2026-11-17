@@ -4,14 +4,20 @@
 //
 // Its h1 is Authorization, with no trail, since the side nav names it (Assess and authorize ›
 // Authorization), and its header says the program's categorization and its standing as one fact (`ProgramStandingFacts`).
-// Edit program is the header's one primary. Its three parts are line tabs the address keeps
+// The header ends with the program's action slot (`ProgramHeaderSlot` in program-slot), as the
+// Overview's does. Its three parts are line tabs the address keeps
 // (`tab`, Schedule when it names none): Schedule, Decisions and Package.
 //
 // Schedule is two lanes over one time axis (`AuthorizationLanes`, over `authorizationSchedule` in
 // authorization-schedule): the authorization events the program's packages record in one lane
 // (each version submitted or published, a draft with no date, each package review, each decision
-// in RMF's words and the day the standing authorization ends) and its lifecycle gates in the
-// other, as diamonds with their status and a due flag. Every stop is on one row in date order, a
+// in RMF's words and the day the standing authorization ends), with the draft assessment results
+// that hold findings on their campaign's last day, and its lifecycle gates in the other, as
+// diamonds with their status and a due flag. A stop that waits on a role ends its line with who
+// holds it today, from the program's roles (program-roles): the latest submitted version with no
+// decision Waiting on the authorizing official, draft results Waiting on the lead assessor; a
+// decision and a review name who made them, as before; where the program records nobody in the
+// role, nobody is named. Every stop is on one row in date order, a
 // rule says today, and a stop with no date comes last; a lane's rail is solid up to today and
 // dotted after it. Every authorization stop names its package and opens its page; a gate
 // opens its preview. Under the lanes, Control status is the baseline's climb from the program's
@@ -25,8 +31,8 @@
 //
 // What the boards draw that the schema does not hold is left out: a decision's conditions as dated
 // items with owners and progress (`authorization_decisions.conditions` is one text, shown in the
-// decision's preview), the annual authorization review and its checks, who signs and the roles
-// that hold the top-right slot, and the criteria a gate has met. The kit's Stepper draws one lane;
+// decision's preview), the annual authorization review and its checks, a gate's decider (the gate
+// chair), and the criteria a gate has met. The kit's Stepper draws one lane;
 // the two lanes are composed here from Grid and Box until it draws more than one.
 
 import { useMemo, useState, type ReactElement, type ReactNode } from "react";
@@ -62,8 +68,11 @@ import {
   EXPIRY_NOTICE_DAYS,
   useAuthorizationRecords,
   type ScheduleLane,
+  type ScheduleResults,
   type ScheduleStop,
 } from "@/lib/authorization-schedule";
+import { roleActs, useProgramRoles, type RoleAct } from "@/lib/program-roles";
+import { useProgramWaits } from "@/lib/program-slot";
 import {
   CONTROL_STATUS_ORDER,
   useProgramsControlStatusCounts,
@@ -82,6 +91,7 @@ import { ControlStatusTally } from "./control-status";
 import { controlStatusListSearch } from "./control-status-link";
 import { AuthorizationDecisionFacts } from "./package-views";
 import { ProgramStandingFacts } from "./program-standing";
+import { ProgramHeaderSlot } from "./program-slot";
 import {
   ProgramCollection,
   ProgramEditor,
@@ -99,6 +109,8 @@ import {
 } from "./work-common";
 
 export const AUTHORIZATION_TABS = ["schedule", "decisions", "package"] as const;
+/** Who holds the role each act waits on today, by name; null where the program records none. */
+type WaitingOn = Record<RoleAct, string | null>;
 export type AuthorizationTab = (typeof AUTHORIZATION_TABS)[number];
 
 /** What the view reads of the program's systems: its boundaries' categorization and codes. */
@@ -151,13 +163,8 @@ export function ProgramAuthorization({
               <PageHeader.Title>Authorization</PageHeader.Title>
               <ProgramStandingFacts programId={programId} boundaries={boundaries} gates={gates} />
             </PageHeader.Heading>
-            <PageHeader.Actions>
-              <RecordActions
-                table="programs"
-                editLabel="Edit program"
-                onEdit={() => setEditing(true)}
-              />
-            </PageHeader.Actions>
+            {/* This reader's next step, or who the program waits on, Edit program behind it. */}
+            <ProgramHeaderSlot programId={programId} onEdit={() => setEditing(true)} />
           </PageHeader>
           <Tabs value={tab} onValueChange={(value) => onTabChange(value as AuthorizationTab)}>
             <TabsList variant="line" aria-label="Authorization sections">
@@ -223,6 +230,58 @@ function AuthorizationSchedulePanel({
   const authorization = useProgramAuthorization(programId);
   const { packages, reviews } = useAuthorizationRecords(programId);
   const queries = [authorization.versions, authorization.decisions, packages, reviews, gates];
+  // What waits on a role: draft results holding findings, each on its campaign's last day, and
+  // who holds the roles they and a submitted version wait on. A failure of these leaves the path
+  // drawn without them, said by the panel's alert.
+  const roles = useProgramRoles(programId);
+  const waits = useProgramWaits(programId);
+  const campaignIds = useMemo(
+    () =>
+      [
+        ...new Set(
+          (waits.waits ?? []).flatMap((wait) =>
+            wait.kind === "assessment_results" && wait.campaignId ? [wait.campaignId] : [],
+          ),
+        ),
+      ].sort(),
+    [waits.waits],
+  );
+  const campaigns = useRows(
+    "assessment_campaigns",
+    { id: campaignIds },
+    { columns: ["id", "ends_at"], enabled: campaignIds.length > 0 },
+  );
+  const drafts = useMemo((): ScheduleResults[] | undefined => {
+    if (waits.query.isError) return [];
+    if (!waits.waits) return undefined;
+    if (campaignIds.length && !campaigns.data && !campaigns.isError) return undefined;
+    const endsAt = new Map((campaigns.data ?? []).map((row) => [row.id, row.ends_at]));
+    return waits.waits.flatMap((wait) =>
+      wait.kind === "assessment_results"
+        ? [
+            {
+              id: wait.resultsId,
+              title: wait.resultsTitle,
+              campaignId: wait.campaignId,
+              campaignTitle: wait.campaignTitle,
+              findings: wait.findings,
+              endsAt: (wait.campaignId && endsAt.get(wait.campaignId)) || null,
+            },
+          ]
+        : [],
+    );
+  }, [waits.query.isError, waits.waits, campaignIds.length, campaigns.data, campaigns.isError]);
+  /** Who holds the role an act waits on today, by name, where the program records one. */
+  const waitingOn = useMemo(() => {
+    const holderOf = (act: RoleAct) => {
+      const line = roles.data?.find((item) => item.role === roleActs[act]);
+      return line?.recorded ? (line.holders[0]?.name ?? null) : null;
+    };
+    return {
+      authorization_decision: holderOf("authorization_decision"),
+      publish_assessment_results: holderOf("publish_assessment_results"),
+    };
+  }, [roles.data]);
   const [gateId, setGateId] = useState<string | null>(null);
   const today = isoDay(zonedParts(Date.now()));
   const ready =
@@ -230,7 +289,8 @@ function AuthorizationSchedulePanel({
     authorization.decisions.data &&
     packages.data &&
     reviews.data &&
-    gates.data;
+    gates.data &&
+    drafts;
   const schedule = useMemo(
     () =>
       ready
@@ -240,6 +300,7 @@ function AuthorizationSchedulePanel({
             decisions: authorization.decisions.data!,
             reviews: reviews.data!,
             gates: gates.data!,
+            results: drafts,
             today,
             dayOf: (moment) => isoDay(zonedParts(Date.parse(moment))),
           })
@@ -251,6 +312,7 @@ function AuthorizationSchedulePanel({
       authorization.decisions.data,
       reviews.data,
       gates.data,
+      drafts,
       today,
       zonedParts,
     ],
@@ -283,8 +345,9 @@ function AuthorizationSchedulePanel({
   const selected = gates.data?.find((gate) => gate.id === gateId);
   return (
     <>
-      {/* A name that could not be read leaves its stop's line, said by the panel's alert. */}
-      <ReportFailures queries={[parties]} />
+      {/* A name that could not be read leaves its stop's line, said by the panel's alert, and so
+          does what waits on a role. */}
+      <ReportFailures queries={[parties, roles, waits.query, campaigns]} />
       <QueryState queries={queries}>
         {schedule &&
           (schedule.stops.length ? (
@@ -293,6 +356,7 @@ function AuthorizationSchedulePanel({
               today={today}
               names={names}
               codes={codes}
+              waitingOn={waitingOn}
               onGate={setGateId}
             />
           ) : (
@@ -436,7 +500,10 @@ function When({ stop, today }: { stop: ScheduleStop; today: string }) {
   // two days, an authorization ending within ninety); any other reads plainly.
   const days = daysBetween(today, stop.day);
   const said =
-    (stop.kind === "gate" && stop.state !== "done" && !stop.at && days <= 2) ||
+    ((stop.kind === "gate" || stop.kind === "results") &&
+      stop.state !== "done" &&
+      !stop.at &&
+      days <= 2) ||
     (stop.kind === "expiry" && !stop.passed && days <= EXPIRY_NOTICE_DAYS);
   if (said)
     return (
@@ -454,12 +521,16 @@ function stopWords({
   stop,
   names,
   codes,
+  waitingOn,
   onGate,
+  formatPlural,
 }: {
   stop: ScheduleStop;
   names: ReadonlyMap<string, string>;
   codes: ReadonlyMap<string, string>;
+  waitingOn: WaitingOn;
   onGate: (id: string) => void;
+  formatPlural: ReturnType<typeof useLedgerLocale>["formatPlural"];
 }): { line: ReactNode; end: ReactNode } {
   const toPackage = (packageId: string) => (
     <Link to="/packages/$pkgId" params={{ pkgId: packageId }} />
@@ -472,6 +543,16 @@ function stopWords({
   const person = (partyId: string) => {
     const name = names.get(partyId);
     return name ? <Person name={name} /> : null;
+  };
+  /** Who a stop waits on, from the program's roles: nobody named where it records none. */
+  const waiting = (act: RoleAct) => {
+    const name = waitingOn[act];
+    return name ? (
+      <Inline space="space.075" alignBlock="center">
+        <span>Waiting on</span>
+        <Person name={name} />
+      </Inline>
+    ) : null;
   };
   let label: ReactNode;
   let meta: ReactNode = null;
@@ -491,6 +572,25 @@ function stopWords({
     case "published":
       label = named(stop.packageId, `Version ${stop.version} ${stop.kind}`);
       meta = codes.get(stop.systemId) ?? null;
+      // The latest submitted version with no decision waits on the authorizing official.
+      if (stop.awaits) end = waiting("authorization_decision");
+      break;
+    case "results":
+      label = stop.campaignId ? (
+        <TextLink
+          weight="medium"
+          render={<Link to="/campaigns/$campaignId" params={{ campaignId: stop.campaignId }} />}
+        >
+          {stop.name}
+        </TextLink>
+      ) : (
+        stop.name
+      );
+      meta = formatPlural(stop.findings, {
+        one: "Draft results · {count} finding",
+        other: "Draft results · {count} findings",
+      });
+      end = waiting("publish_assessment_results");
       break;
     case "draft":
       label = named(stop.packageId, `Version ${stop.version}`);
@@ -548,14 +648,17 @@ function AuthorizationLanes({
   today,
   names,
   codes,
+  waitingOn,
   onGate,
 }: {
   schedule: ReturnType<typeof authorizationSchedule>;
   today: string;
   names: ReadonlyMap<string, string>;
   codes: ReadonlyMap<string, string>;
+  waitingOn: WaitingOn;
   onGate: (id: string) => void;
 }) {
+  const { formatPlural } = useLedgerLocale();
   const rows: (ScheduleStop | "today")[] = [
     ...schedule.stops.slice(0, schedule.today),
     "today",
@@ -642,7 +745,7 @@ function AuthorizationLanes({
               </Grid>
             ) : (
               <StopRow key={row.key} stop={row} today={today} rails={rails(i, row)}>
-                {stopWords({ stop: row, names, codes, onGate })}
+                {stopWords({ stop: row, names, codes, waitingOn, onGate, formatPlural })}
               </StopRow>
             ),
           )}

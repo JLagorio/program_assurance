@@ -240,6 +240,7 @@ function ResultsPreview({
               <PublishResultsAction
                 key={record.id}
                 results={{ id: record.id, title: record.title, findings: record.findings }}
+                programId={programId}
                 onPublish={publish.ask}
               />
               <ResultsMoreActions key={`more-${record.id}`} resultsId={record.id} />

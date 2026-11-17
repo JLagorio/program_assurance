@@ -32,6 +32,7 @@ import { useWorkspace } from "@/components/app/workspace";
 import { Page } from "@/components/app/shell";
 import { type DataRecord } from "@/lib/records";
 import { revisionStates } from "@/lib/status";
+import { useActStanding } from "@/lib/program-roles";
 import { ProgramTrail } from "./record-trail";
 import { useProgramNames } from "./program-filter";
 import {
@@ -287,6 +288,7 @@ export function PackageRecord({ id }: { id: string }) {
                   // so focus stays on the control the reader pressed.
                   <PackageVersion
                     id={selected.id}
+                    programId={row.program_id}
                     renderFrame={({ content, actions }) => (
                       <RecordPreviewPanel
                         title={`Version ${String(selected["version_number"])}`}
@@ -321,13 +323,19 @@ export function PackageRecord({ id }: { id: string }) {
 }
 function PackageVersion({
   id,
+  programId,
   renderFrame,
 }: {
   id: string;
+  /** The package's program, whose authorizing official records its decisions. */
+  programId: string;
   renderFrame: (frame: { content: ReactNode; actions: ReactNode }) => ReactNode;
 }) {
   const workspace = useWorkspace();
   const query = useRow("package_revisions", id);
+  // Where the program records an authorizing official, only they record a decision: anyone else
+  // reads why on the action, and theirs names them as its decision maker.
+  const signer = useActStanding(programId, "authorization_decision");
   const [edited, setEditing] = useState<DataRecord | null>(null);
   // The editor belongs to the version it opened on; stepping to another version leaves it.
   const editing = edited?.id === id ? edited : null;
@@ -451,8 +459,13 @@ function PackageVersion({
             <EntitySection
               showHeading
               table="authorization_decisions"
+              operation="Record authorization decision"
               appendOnly
               readOnly={version.state !== "published"}
+              addDisabledReason={signer.refusal ?? undefined}
+              {...(signer.readerPartyId
+                ? { initialValues: { decision_maker_party_id: signer.readerPartyId } }
+                : {})}
               description={
                 version.state !== "published"
                   ? "Publish this package version before recording an authorization decision."

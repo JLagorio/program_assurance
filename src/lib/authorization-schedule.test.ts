@@ -196,3 +196,60 @@ describe("authorization schedule", () => {
     ]);
   });
 });
+
+describe("what waits on a role", () => {
+  it("marks a package's latest submitted version with no decision as awaiting one", () => {
+    const result = schedule({
+      versions: [
+        version({ id: "v1", submitted_at: "2026-08-29T15:00:00Z" }),
+        version({ id: "v2", version_number: 2, submitted_at: "2026-11-03T15:00:00Z" }),
+        version({ id: "v3", version_number: 3, state: "draft" }),
+      ],
+      decisions: [decision({ package_revision_id: "v1" })],
+    });
+    expect(
+      result.stops.flatMap((stop) =>
+        stop.kind === "submitted" || stop.kind === "draft" ? [[stop.key, stop.awaits]] : [],
+      ),
+    ).toEqual([
+      ["version-v1", false],
+      ["version-v2", true],
+      ["version-v3", false],
+    ]);
+    // Decided, it waits on nobody.
+    const decided = schedule({
+      versions: [version({ id: "v2", version_number: 2, submitted_at: "2026-11-03T15:00:00Z" })],
+      decisions: [decision({ package_revision_id: "v2", decided_at: "2026-11-10T00:00:00Z" })],
+    });
+    expect(decided.stops.find((stop) => stop.kind === "submitted")).toMatchObject({
+      awaits: false,
+    });
+  });
+
+  it("stands draft results on their campaign's last day, late once it has passed", () => {
+    const draft = {
+      id: "r",
+      title: "Interim results — expanded control set, increment 2",
+      campaignId: "c",
+      campaignTitle: "WS-X90 Expanded Control Set Assessment",
+      findings: 20,
+    };
+    const result = schedule({
+      results: [
+        { ...draft, endsAt: "2026-11-20T18:00:00Z" },
+        { ...draft, id: "late", endsAt: "2026-11-01T18:00:00Z" },
+        { ...draft, id: "undated", campaignTitle: null, endsAt: null },
+      ],
+    });
+    expect(result.stops.map((stop) => [stop.key, stop.day, stop.state, stop.tone ?? null])).toEqual(
+      [
+        ["results-late", "2026-11-01", "upcoming", "danger"],
+        ["results-r", "2026-11-20", "upcoming", null],
+        ["results-undated", null, "upcoming", null],
+      ],
+    );
+    expect(result.stops.at(-1)).toMatchObject({ name: draft.title, findings: 20 });
+    // The late results stand behind today.
+    expect(result.today).toBe(1);
+  });
+});

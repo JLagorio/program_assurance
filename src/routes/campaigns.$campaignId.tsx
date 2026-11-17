@@ -34,6 +34,7 @@ import { Page, RecordPending } from "@/components/app/shell";
 import { StatusBadge } from "@/components/app/status";
 import { useWorkspace } from "@/components/app/workspace";
 import { useCampaignResultsToPublish } from "@/lib/assessment-results";
+import { useActStanding } from "@/lib/program-roles";
 import { campaignStatuses } from "@/lib/status";
 import { useRow } from "@/lib/models";
 
@@ -60,6 +61,9 @@ function CampaignDetail() {
   // the Overview's Assessment results lists among the rest.
   const toPublish = useCampaignResultsToPublish(campaignId);
   const publishResults = usePublishResults();
+  // Where the program records a lead assessor, only they publish: anyone else reads why.
+  const publisher = useActStanding(campaign?.program_id, "publish_assessment_results");
+  const publishWaits = toPublish.waits ?? publisher.refusal;
   return (
     <Page>
       {/* The page is one failure region, and each of its tabs another: an outage reads as one
@@ -82,7 +86,7 @@ function CampaignDetail() {
               <PageHeader.Actions>
                 {/* As on the other records: the edit as the primary, then the Actions menu with
                     Publish assessment results, which stays in place and says why while there is
-                    nothing to publish. */}
+                    nothing to publish, or the reader is not the program's lead assessor. */}
                 <RecordActions
                   table="assessment_campaigns"
                   editLabel="Edit assessment campaign"
@@ -91,9 +95,10 @@ function CampaignDetail() {
                   {workspace.role !== "viewer" && (
                     <DropdownMenuItem
                       onClick={() => {
-                        if (toPublish.results) void publishResults.ask(toPublish.results);
+                        if (toPublish.results && !publishWaits)
+                          void publishResults.ask(toPublish.results);
                       }}
-                      {...(toPublish.waits ? { disabledReason: toPublish.waits } : {})}
+                      {...(publishWaits ? { disabledReason: publishWaits } : {})}
                     >
                       Publish assessment results
                     </DropdownMenuItem>

@@ -2,8 +2,16 @@ import { readdirSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
-const { PROGRAM_ROLE_ORDER, RMF_ROLES, actStanding, readProgramRoles, readReaderRoles, roleActs } =
-  await import("./program-roles");
+const {
+  PROGRAM_ROLE_ORDER,
+  RMF_ROLES,
+  actRefusal,
+  actStanding,
+  readProgramRoles,
+  readReaderRoles,
+  roleActs,
+  roleWords,
+} = await import("./program-roles");
 const { programRoles } = await import("./status");
 type ProgramRoleLine = import("./program-roles").ProgramRoleLine;
 type ReaderRole = import("./program-roles").ReaderRole;
@@ -288,5 +296,63 @@ describe("where an act stands for the reader", () => {
       readerMay: false,
       holders: [],
     });
+  });
+});
+
+describe("why the reader may not do an act", () => {
+  const holder = (name: string) => ({
+    assignmentId: name,
+    partyId: name,
+    name,
+    partyType: "person" as const,
+    startsOn: null,
+    endsOn: null,
+    revision: 1,
+  });
+
+  it("words a role inside a sentence, an initialism as it is", () => {
+    expect(roleWords("authorizing_official")).toBe("authorizing official");
+    expect(roleWords("lead_assessor")).toBe("lead assessor");
+    expect(roleWords("security_manager")).toBe("ISSM");
+  });
+
+  it("names the holder and their role, or says nobody holds it today", () => {
+    expect(
+      actRefusal(
+        {
+          role: "authorizing_official",
+          heldToRole: true,
+          readerMay: false,
+          holders: [holder("R. Calloway")],
+        },
+        "authorization_decision",
+      ),
+    ).toBe("Only R. Calloway, the authorizing official, can record this decision.");
+    expect(
+      actRefusal(
+        {
+          role: "lead_assessor",
+          heldToRole: true,
+          readerMay: false,
+          holders: [holder("D. Okafor")],
+        },
+        "publish_assessment_results",
+      ),
+    ).toBe("Only D. Okafor, the lead assessor, can publish these results.");
+    expect(
+      actRefusal(
+        { role: "lead_assessor", heldToRole: true, readerMay: false, holders: [] },
+        "publish_assessment_results",
+      ),
+    ).toBe("Nobody is the lead assessor today, so nobody can publish these results.");
+  });
+
+  it("says nothing where the reader may", () => {
+    expect(
+      actRefusal(
+        { role: "authorizing_official", heldToRole: false, readerMay: true, holders: [] },
+        "authorization_decision",
+      ),
+    ).toBeNull();
   });
 });

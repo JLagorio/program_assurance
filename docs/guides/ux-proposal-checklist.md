@@ -50,7 +50,7 @@ Twelve parts, each built on one that ships, through `/ledger-add-part`; the shee
 - [x] Decision keys and the foot bar, `DecisionKeys` and `FootBar` (sheet: Review workspace)
 - [x] `PageHeader.Standing` is one fact on `PageHeader.Facts`, the line under the name (the program: categorization, then ATO with conditions · CDR 46d late)
 - [x] `ViewSwitcher`: the views row as a kit part, used by the program's tabs
-- [ ] `PageHeader.Slot` role-true: offered by the roles a program records (needs each program's roles recorded)
+- [x] `PageHeader.Slot` role-true, on a program's Overview and Authorization view: the reader's act (Sign, Publish assessment results), else who the program waits on, else Assign owner (`programSlot` in `src/lib/program-slot.ts`); a program with no roles keeps Edit program. Remind is not built (nothing sends one)
 
 ## 2. Contract and words
 
@@ -71,6 +71,7 @@ Twelve parts, each built on one that ships, through `/ledger-add-part`; the shee
 
 - [x] Shared components: the schema (migrations `20261115070043` to `20261115172957`) and its seven schema tests are committed
 - [ ] Fix, before a screen reads it: the plan-cache slowdown in `program_objective_placement_answer`; the seed's Mission Computer 2 published, with AC-17(2) and SC-23 to review; Open CVEs counted per version in use
+- [x] Program roles (D: signing held to roles): `program_role_assignments` gains lead assessor and ISSM, one authorizing official and one lead assessor at a time, `program_roles` and `program_reader_roles`, decisions and publishing held to the holder where one is recorded; `seed:demo-roles`. Committed on design-system (73e3675), where data changes land (Josef, 2026-11-17)
 - [ ] Per flow, what the schema still lacks (checked as each flow starts)
 
 ## 4. Screens, a flow at a time
@@ -86,7 +87,7 @@ Built over real records, then `/verify-screen`. Each link opens the flow's first
 - [ ] 7 · [Implement and map](https://claude.ai/artifact/Fm8T8rkFfeiARpGBB7U7jM#impl): 4
 - [ ] 8 · [Prove with evidence](https://claude.ai/artifact/Fm8T8rkFfeiARpGBB7U7jM#evidence): 3
 - [ ] 9 · [Find and fix](https://claude.ai/artifact/Fm8T8rkFfeiARpGBB7U7jM#findings): 5
-- [ ] 10 · [Assess, remediate, authorize](https://claude.ai/artifact/Fm8T8rkFfeiARpGBB7U7jM#assess): 18. Built: the Authorization view (Schedule in two lanes with the climb, Decisions, Package). Not in the data: an ATO's conditions as dated items (`authorization_conditions`), the annual review and its checks, who signs and package routing (program roles), whether a gate's criteria are met
+- [ ] 10 · [Assess, remediate, authorize](https://claude.ai/artifact/Fm8T8rkFfeiARpGBB7U7jM#assess): 18. Built: the Authorization view (Schedule in two lanes with the climb, Decisions, Package). Not in the data: an ATO's conditions as dated items (`authorization_conditions`), the annual review and its checks, package routing, whether a gate's criteria are met
 
 Not built as drawn: flows A to P, the earlier explorations on the old navigation. The authorizing official's desk and the phone frames are set aside.
 

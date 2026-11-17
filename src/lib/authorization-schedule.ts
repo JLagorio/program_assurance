@@ -4,9 +4,11 @@ import { daysBetween } from "./program-standing";
 /**
  * A program's dated path to its authorization, as two lanes over one time axis: the authorization
  * events its packages record (each version submitted or published, each package review, each
- * authorization decision and the standing authorization's expiry) in one lane, and its lifecycle
- * gates in the other. Read only from what the schema holds; a condition of a decision, an annual
- * review and who signs are not records, so the path does not draw them.
+ * authorization decision and the standing authorization's expiry) and its draft assessment results
+ * waiting to be published in one lane, and its lifecycle gates in the other. Read only from what
+ * the schema holds; a condition of a decision and an annual review are not records, so the path
+ * does not draw them. A stop that waits on a role says so (`awaits`), and the view names who holds
+ * it from the program's roles.
  */
 
 export type ScheduleLane = "authorization" | "acquisition";
@@ -55,6 +57,20 @@ export type VersionStop = Stop & {
   packageId: string;
   systemId: string;
   version: number;
+  /**
+   * The package's latest submitted version, with no decision recorded on it: it waits on the
+   * authorizing official, as the Review queue's Package to decide does.
+   */
+  awaits: boolean;
+};
+/** Draft assessment results that hold findings, which wait on the lead assessor to publish them. */
+export type ResultsStop = Stop & {
+  kind: "results";
+  resultsId: string;
+  campaignId: string | null;
+  /** The campaign's title, which names the stop; the results' own where the reader holds none. */
+  name: string;
+  findings: number;
 };
 export type DecisionStop = Stop & {
   kind: "decision";
@@ -82,7 +98,19 @@ export type ExpiryStop = Stop & {
   passed: boolean;
 };
 export type GateStop = Stop & { kind: "gate"; gate: ScheduleGate };
-export type ScheduleStop = VersionStop | DecisionStop | ReviewStop | ExpiryStop | GateStop;
+export type ScheduleStop =
+  VersionStop | DecisionStop | ReviewStop | ExpiryStop | GateStop | ResultsStop;
+
+/** Draft results waiting to be published, as the path reads them, on their campaign's last day. */
+export type ScheduleResults = {
+  id: string;
+  title: string;
+  campaignId: string | null;
+  campaignTitle: string | null;
+  findings: number;
+  /** The campaign's last day, `YYYY-MM-DD` or a moment; null where it records none. */
+  endsAt: string | null;
+};
 
 export type AuthorizationSchedule = {
   /** Every stop of both lanes in date order, those with no date last. */
@@ -112,11 +140,12 @@ export const EXPIRY_NOTICE_DAYS = 90;
 const KIND_ORDER: Record<ScheduleStop["kind"], number> = {
   submitted: 0,
   published: 1,
-  review: 2,
-  decision: 3,
-  expiry: 4,
-  gate: 5,
-  draft: 6,
+  results: 2,
+  review: 3,
+  decision: 4,
+  expiry: 5,
+  gate: 6,
+  draft: 7,
 };
 
 /** A gate's place on the path: decided, under way, failed or blocked, or ahead. */
@@ -140,6 +169,7 @@ export function authorizationSchedule({
   decisions,
   reviews,
   gates,
+  results = [],
   today,
   dayOf,
 }: {
@@ -148,6 +178,8 @@ export function authorizationSchedule({
   decisions: readonly ScheduleDecision[];
   reviews: readonly ScheduleReview[];
   gates: readonly ScheduleGate[];
+  /** Draft assessment results that hold findings. */
+  results?: readonly ScheduleResults[] | undefined;
   today: string;
   dayOf: (moment: string) => string;
 }): AuthorizationSchedule {
@@ -160,6 +192,15 @@ export function authorizationSchedule({
     return version && pkg ? { version, pkg } : undefined;
   };
   const stops: ScheduleStop[] = [];
+  const decidedVersions = new Set(decisions.map((decision) => decision.package_revision_id));
+  /** Each package's latest submitted version, which a decision is waited on for. */
+  const latestSubmitted = new Map<string, ScheduleVersion>();
+  for (const version of versions) {
+    if (version.state !== "published" || !version.submitted_at) continue;
+    const before = latestSubmitted.get(version.package_id);
+    if (!before || version.version_number > before.version_number)
+      latestSubmitted.set(version.package_id, version);
+  }
   for (const version of versions) {
     const pkg = packageOf.get(version.package_id);
     if (!pkg) continue;
@@ -168,6 +209,7 @@ export function authorizationSchedule({
       packageId: pkg.id,
       systemId: pkg.system_id,
       version: version.version_number,
+      awaits: latestSubmitted.get(pkg.id)?.id === version.id && !decidedVersions.has(version.id),
     };
     const at = version.submitted_at ?? version.published_at;
     if (at)
@@ -247,6 +289,27 @@ export function authorizationSchedule({
       packageId,
       systemId: pkg.system_id,
       passed: days < 0,
+    });
+  }
+  for (const draft of results) {
+    const day = draft.endsAt ? dayOf(draft.endsAt) : null;
+    const days = day ? daysBetween(today, day) : null;
+    stops.push({
+      key: `results-${draft.id}`,
+      kind: "results",
+      lane: "authorization",
+      day,
+      at: null,
+      state: "upcoming",
+      ...(days !== null && days < 0
+        ? { tone: "danger" as const }
+        : days !== null && days <= GATE_SOON_DAYS
+          ? { tone: "warning" as const }
+          : {}),
+      resultsId: draft.id,
+      campaignId: draft.campaignId,
+      name: draft.campaignTitle ?? draft.title,
+      findings: draft.findings,
     });
   }
   for (const gate of gates) {

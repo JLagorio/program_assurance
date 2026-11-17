@@ -219,6 +219,32 @@ export function actStanding(
   };
 }
 
+/** A role inside a sentence: "authorizing official", "lead assessor"; an initialism as it is. */
+export function roleWords(role: ProgramRole): string {
+  const label = programRoles[role].label;
+  return label === label.toUpperCase() ? label : label.charAt(0).toLowerCase() + label.slice(1);
+}
+
+/** Each act in a sentence after "can", and the record it is done to: "record this decision". */
+const ACT_WORDS: Record<RoleAct, string> = {
+  authorization_decision: "record this decision",
+  publish_assessment_results: "publish these results",
+};
+
+/**
+ * Why the reader may not do an act, in the words a primary that keeps its place says: "Only R.
+ * Calloway, the authorizing official, can record this decision." Null where the reader may, as far
+ * as roles go: the act is not held to a role, or the reader holds it today.
+ */
+export function actRefusal(standing: ActStanding, act: RoleAct): string | null {
+  if (standing.readerMay) return null;
+  const role = roleWords(standing.role);
+  if (!standing.holders.length)
+    return `Nobody is the ${role} today, so nobody can ${ACT_WORDS[act]}.`;
+  const names = standing.holders.map((holder) => holder.name).join(" and ");
+  return `Only ${names}, the ${role}, can ${ACT_WORDS[act]}.`;
+}
+
 /**
  * Every model the roles are read from: an assignment, and the party it names (a name, or the
  * organization a person belongs to).
@@ -257,4 +283,52 @@ export function useReaderRoles(
     queryFn: async ({ signal }) =>
       readReaderRoles(database(), { token: await requireIdentity(workspace) }, programId!, signal),
   });
+}
+
+/** Where an act stands for the reader on a program, as its primary reads it. */
+export type ActStandingRead = {
+  /** Undefined while either read loads, or after one failed. */
+  standing: ActStanding | undefined;
+  /** Why the reader may not do it ("Only R. Calloway, …"), or why it cannot be told yet. */
+  refusal: string | null;
+  /** The reader's own party, where they hold the act's role today: who signs it. */
+  readerPartyId: string | null;
+  /** The two reads, for the region that says their failure. */
+  queries: [UseQueryResult<ProgramRoleLine[], Error>, UseQueryResult<ReaderRole[], Error>];
+};
+
+/** While the roles are read, a primary held to one keeps its place and says so. */
+export const ROLES_LOADING = "Reading who holds the program's roles…";
+/** When they cannot be read, it says that instead; the page's alert offers Retry. */
+export const ROLES_UNREADABLE = "The program's roles could not be read.";
+
+/**
+ * Where an act stands for the reader on a program, from its two role reads: the standing, the words
+ * a primary says while the reader may not do it (or while the roles load, or once they failed), and
+ * the reader's own party where they hold the role. Nothing is read until the program is named; with
+ * none, the act is not held to a role.
+ */
+export function useActStanding(
+  programId: string | null | undefined,
+  act: RoleAct,
+): ActStandingRead {
+  const roles = useProgramRoles(programId);
+  const reader = useReaderRoles(programId);
+  const queries: ActStandingRead["queries"] = [roles, reader];
+  if (!programId) return { standing: undefined, refusal: null, readerPartyId: null, queries };
+  if (!roles.data || !reader.data)
+    return {
+      standing: undefined,
+      refusal: roles.isError || reader.isError ? ROLES_UNREADABLE : ROLES_LOADING,
+      readerPartyId: null,
+      queries,
+    };
+  const standing = actStanding(roles.data, reader.data, act);
+  const mine = reader.data.find((item) => item.role === standing.role);
+  return {
+    standing,
+    refusal: actRefusal(standing, act),
+    readerPartyId: standing.heldToRole && mine ? mine.partyId : null,
+    queries,
+  };
 }

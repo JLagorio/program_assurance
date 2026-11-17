@@ -9,9 +9,12 @@
 // name, beside the count the strip used to show (System, Requirements, Assessments, Evidence), and
 // its browser title is `<part> — <program name> — Program Assurance`; it has no trail, and the
 // program's header stays on the Overview alone, whose h1 is the program's name over its
-// categorization and its one standing fact, with Edit program as its primary. A part keeps Edit
-// program in its Actions menu. Each part is drawn the first time it is shown and kept while another
-// is, so a register keeps its question, rows and selection (`RetainedParts` in program-shared).
+// categorization and its one standing fact, its header ending with the program's action slot
+// (`ProgramHeaderSlot` in program-slot: this reader's next step or who the program waits on, Edit
+// program behind it; a program that records no roles keeps Edit program as its primary). A part
+// keeps Edit program in its Actions menu. Each part is drawn the first time it is shown and kept
+// while another is, so a register keeps its question, rows and selection (`RetainedParts` in
+// program-shared).
 // Library and Schedule are parts the side nav does not name: Library is in System's row of views;
 // Schedule opens from the Overview's open tasks, its Lifecycle timeline and a gate in the Review
 // queue.
@@ -39,6 +42,7 @@ import {
   type QueryStatus,
 } from "./work-common";
 import { ProgramStandingFacts } from "./program-standing";
+import { ProgramHeaderSlot } from "./program-slot";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
@@ -71,14 +75,16 @@ import {
 } from "@ledger/design-system";
 import { useRows, useRow, type Row } from "@/lib/models";
 import { useProductLookup } from "@/lib/product-items";
-import { labelFor, type DataRecord } from "@/lib/records";
+import { type DataRecord } from "@/lib/records";
 import {
   authorizationStatuses,
+  programRoles,
   programStatuses,
   riskLevels,
   riskStatuses,
   severityLevels,
   statusEntry,
+  statusLabel,
 } from "@/lib/status";
 import { LevelIndicator, StatusBadge } from "@/components/app/status";
 import { useWorkspace } from "@/components/app/workspace";
@@ -393,8 +399,9 @@ export function ProgramWorkspace({
                 {
                   key: "role",
                   title: "Role",
-                  // Search, sort and the Role filter read the words the cell shows.
-                  value: (row) => labelFor(String(row["role"])),
+                  // RMF's words for the role (ISSM, ISSO), which search, sort and the Role filter
+                  // read as the cell shows them.
+                  value: (row) => statusLabel(programRoles, row["role"]),
                 },
                 {
                   key: "party_id",
@@ -484,25 +491,31 @@ export function ProgramWorkspace({
                 )}
               </PageHeader.Heading>
             )}
-            <PageHeader.Actions>
-              {view || part === "Overview" ? (
-                <RecordActions
-                  table="programs"
-                  editLabel="Edit program"
-                  onEdit={() => setEditing(true)}
-                />
-              ) : (
-                // A part keeps the program's edit in its Actions menu: the part's own primary is
-                // its collection's.
-                <RecordActions table="programs">
-                  {canEditProgram && (
-                    <DropdownMenuItem onClick={() => setEditing(true)}>
-                      Edit program
-                    </DropdownMenuItem>
-                  )}
-                </RecordActions>
-              )}
-            </PageHeader.Actions>
+            {!view && part === "Overview" ? (
+              // The Overview's header ends with the program's action slot: this reader's next step
+              // or who the program waits on, Edit program behind it (program-slot).
+              <ProgramHeaderSlot programId={programId} onEdit={() => setEditing(true)} />
+            ) : (
+              <PageHeader.Actions>
+                {view ? (
+                  <RecordActions
+                    table="programs"
+                    editLabel="Edit program"
+                    onEdit={() => setEditing(true)}
+                  />
+                ) : (
+                  // A part keeps the program's edit in its Actions menu: the part's own primary is
+                  // its collection's.
+                  <RecordActions table="programs">
+                    {canEditProgram && (
+                      <DropdownMenuItem onClick={() => setEditing(true)}>
+                        Edit program
+                      </DropdownMenuItem>
+                    )}
+                  </RecordActions>
+                )}
+              </PageHeader.Actions>
+            )}
           </PageHeader>
           {view ? (
             // Focused views use the full work area; program Details belong to Overview.
