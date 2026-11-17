@@ -16,10 +16,11 @@
  * of its own, tied to the SBOM component that carries it, the controls it bears on and the issue
  * that is WS-X90's row for it (`sharedVulnerabilities`), and one Cyber T&E campaign planned for
  * WS-X90 (`sharedCyberTests`). Its fourth is the component's next version: version 2 of the X800
- * Missile component set, a draft that copies version 1 and says what it changes in the Mission
- * Computer, with the SBOM of the rebuilt image (`sharedVersions`), and the remediation item that
- * answers the finding in WS-X90's POA&M (`sharedRemediation`). scripts/seed-demo-shared.mjs writes
- * it under its own provenance dataset.
+ * Missile component set, which copies version 1, says what it changes in the Mission Computer and
+ * the controls that affects, holds the SBOM of the rebuilt image and is published, though nobody
+ * has taken it yet (`sharedVersions`), and the remediation item that answers the finding in
+ * WS-X90's POA&M (`sharedRemediation`). scripts/seed-demo-shared.mjs writes it under its own
+ * provenance dataset.
  */
 export const datasetId = "shared-components-v1";
 
@@ -383,23 +384,30 @@ export const sharedCyberTests = [
  * The next version of a shared component's set, and what it changes. One entry a version of a set,
  * by the set's code: the version copies every component of the version before with what each
  * claims, as a new version of a set is written (a draft revision, then its components and their
- * claims), and is left a draft, so nobody is behind yet. `changes` says, for a component of the
- * set by name, what this version changes against the version before: which kinds (software,
- * firmware, hardware, data), a summary, and the controls the change affects by code, whose
- * determinations are not carried forward. `sboms` gives the version's own bill of materials for a
- * component: the components of the SBOM named in `from`, with those in `replaces` in place of the
- * ones of the same name, and the state the new document records for a CVE on one of them.
+ * claims). `changes` says, for a component of the set by name, what this version changes against
+ * the version before: which kinds (software, firmware, hardware, data), a summary, and the controls
+ * the set's owner lists as affected by the change, by code, whose determinations are not carried
+ * forward. `sboms` gives the version's own bill of materials for a component: the components of
+ * the SBOM named in `from`, with those in `replaces` in place of the ones of the same name, and the
+ * state the new document records for a CVE on one of them. A version whose `state` is `published`
+ * is published at `publishedAt` once all of that is written, since a published version's content
+ * no longer changes; nobody takes it, so every consumer stays on the version it took and reads as
+ * behind. `standing` is what the version then reads, by component (component_control_status: its
+ * totals, and the controls its change leaves to review), which the seed checks before it commits.
  *
  * The version is authored and illustrative. That OpenSSH 9.8p1 fixes CVE-2024-6387 is a fact; that
- * the Mission Computer's next image carries it, and that the change bears on RA-5 and SI-2, is demo
- * content.
+ * the Mission Computer's next image carries it, and that its owner lists AC-17(2), SC-23, SI-2 and
+ * RA-5 as the controls the change affects, is demo content. The Mission Computer claims neither SI-2
+ * nor RA-5, so those two change nothing on it; version 1 was judged satisfied on AC-17(2) and SC-23,
+ * which the change leaves to review.
  */
 export const sharedVersions = [
   {
     key: "x800-components-v2",
     definition: "x800-components",
     version: 2,
-    state: "draft",
+    state: "published",
+    publishedAt: "2026-11-12T17:00:00Z",
     remarks:
       "Rebuilds the Mission Computer's maintenance image with OpenSSH server 9.8p1, which fixes CVE-2024-6387. Every other component is as version 1 delivers it. This version is authored, illustrative demo content.",
     changes: [
@@ -408,7 +416,22 @@ export const sharedVersions = [
         kinds: ["software"],
         summary:
           "The maintenance image carries OpenSSH server 9.8p1 in place of 9.6p1, which fixes CVE-2024-6387 (regreSSHion). Nothing else in the image changes.",
-        controls: ["RA-5", "SI-2"],
+        controls: ["AC-17(2)", "SC-23", "SI-2", "RA-5"],
+      },
+    ],
+    standing: [
+      {
+        component: "Mission Computer",
+        totals: {
+          controls: 61,
+          satisfied: 42,
+          partially_satisfied: 6,
+          other_than_satisfied: 4,
+          not_assessed: 9,
+          carried: 52,
+          to_review: 2,
+        },
+        toReview: ["AC-17(2)", "SC-23"],
       },
     ],
     sboms: [
@@ -418,7 +441,7 @@ export const sharedVersions = [
         from: "mission-computer-image",
         title: "Mission Computer maintenance image SBOM, version 2",
         serial: "urn:uuid:8f2b1c7e-5a4d-4e39-9c61-2d7f0b3a6e15",
-        generatedOn: "2026-11-15",
+        generatedOn: "2026-11-12",
         replaces: [
           {
             name: "openssh-server",
@@ -458,7 +481,7 @@ export const sharedRemediation = [
     status: "open",
     description:
       "LRU-001 runs the Mission Computer's maintenance image as version 1 of the component set delivers it, with OpenSSH server 9.6p1, which CVE-2024-6387 affects. This remediation item is authored, illustrative demo content.",
-    plan: "Close the race on the maintenance interface now, take the Mission Computer version that carries OpenSSH server 9.8p1 once its owner publishes it, and rescan LRU-001 to confirm the fix.",
+    plan: "Close the race on the maintenance interface now, take version 2 of the Mission Computer, which carries OpenSSH server 9.8p1, and rescan LRU-001 to confirm the fix.",
     plannedCompletion: "2026-12-08",
     milestones: [
       { title: "Set LoginGraceTime 0 on the maintenance interface", plannedOn: "2026-11-17" },
@@ -714,8 +737,41 @@ export function scenarioIssues() {
     if (!set) issues.push(`${entry.key} is a version of ${entry.definition}, which is not shared.`);
     if (!Number.isInteger(entry.version) || entry.version < 2)
       issues.push(`${entry.key} is not a version after the first.`);
-    if (entry.state !== "draft") issues.push(`${entry.key} is not left a draft.`);
+    if (!["draft", "published"].includes(entry.state))
+      issues.push(`${entry.key} is neither a draft nor published.`);
+    if (entry.state === "published" && Number.isNaN(Date.parse(entry.publishedAt ?? "")))
+      issues.push(`${entry.key} is published at a moment that is not one.`);
+    if (entry.state === "draft" && entry.publishedAt !== undefined)
+      issues.push(`${entry.key} is a draft with a publication moment.`);
     if (!entry.remarks?.trim()) issues.push(`${entry.key} has no remarks.`);
+    // What the version reads once written: its totals add up, and a control left to review is one
+    // its change lists.
+    for (const standing of entry.standing ?? []) {
+      const change = entry.changes.find((item) => item.component === standing.component);
+      const { totals } = standing;
+      if (!change)
+        issues.push(
+          `${entry.key} says how ${standing.component} stands, which it does not change.`,
+        );
+      if (
+        totals.controls !==
+        totals.satisfied +
+          totals.partially_satisfied +
+          totals.other_than_satisfied +
+          totals.not_assessed
+      )
+        issues.push(`${entry.key}'s standing of ${standing.component} does not add up.`);
+      if (
+        totals.carried >
+        totals.satisfied + totals.partially_satisfied + totals.other_than_satisfied
+      )
+        issues.push(`${entry.key} carries more determinations than ${standing.component} holds.`);
+      if (totals.to_review !== standing.toReview.length || totals.to_review > totals.not_assessed)
+        issues.push(`${entry.key} does not count what ${standing.component} leaves to review.`);
+      for (const code of standing.toReview)
+        if (!change?.controls.includes(code))
+          issues.push(`${entry.key} leaves ${code} to review, which its change does not list.`);
+    }
     const changed = new Set();
     for (const change of entry.changes) {
       if (changed.has(change.component))
@@ -744,6 +800,8 @@ export function scenarioIssues() {
         issues.push(`${sbom.key} is not generated after the SBOM it starts from.`);
       if (source && sbom.serial === source.serial)
         issues.push(`${sbom.key} has the serial of the SBOM it starts from.`);
+      if (entry.state === "published" && entry.publishedAt?.slice(0, 10) < sbom.generatedOn)
+        issues.push(`${sbom.key} is generated after its version is published.`);
       for (const replaced of sbom.replaces)
         if (!source?.components.some((component) => component.name === replaced.name))
           issues.push(`${sbom.key} replaces ${replaced.name}, which ${sbom.from} does not list.`);

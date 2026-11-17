@@ -2,12 +2,14 @@ import { describe, expect, it, vi } from "vitest";
 
 vi.mock("./database", () => ({ database: vi.fn(), requireIdentity: vi.fn() }));
 
+import { CHANGED_ELSEWHERE } from "./models";
 import {
   ASSESSMENT_NEEDS_BASELINE,
   ASSESSMENT_NEEDS_TITLE,
   PUBLISH_NEEDS_DETERMINATIONS,
   RECORD_NEEDS_CONTROLS,
   WHOLE_PRODUCT,
+  createProductAssessment,
   newAssessmentIssues,
   openingElement,
   publishProductAssessment,
@@ -16,6 +18,8 @@ import {
   sheetRows,
   type SheetElement,
 } from "./product-assessment";
+import { SaveOnceConflict } from "./save-once";
+import { args, fakeClient, filter, uuid, type FakeResult } from "./testing/fake-client";
 
 const context = { tenantId: "tenant-1", token: "token" };
 
@@ -255,5 +259,104 @@ describe("a new assessment and its publication", () => {
         determined: 0,
       }),
     ).rejects.toThrow(PUBLISH_NEEDS_DETERMINATIONS);
+  });
+});
+
+describe("creating a product assessment, safe to retry", () => {
+  const id = uuid(41);
+  const draft = {
+    id,
+    productRevisionId: uuid(2),
+    profileResolutionId: uuid(3),
+    title: "  X800 version 2 product assessment ",
+    assessorPartyId: uuid(4),
+    startedOn: "2026-11-17",
+  };
+  const stored = {
+    id,
+    tenant_id: "tenant-1",
+    revision: 1,
+    state: "draft",
+    product_revision_id: uuid(2),
+    profile_resolution_id: uuid(3),
+    title: "X800 version 2 product assessment",
+    assessor_party_id: uuid(4),
+    started_on: "2026-11-17",
+  };
+  /** Answers each request in turn: the lookup first, then the write. */
+  const answering = (...answers: FakeResult[]) => {
+    let next = 0;
+    return fakeClient(() => answers[next++] ?? { data: null, error: null });
+  };
+
+  it("creates the draft under the id its form chose", async () => {
+    const { client, calls } = answering({ data: null, error: null }, { data: stored, error: null });
+    const result = await createProductAssessment(client, context, draft);
+    expect(result).toEqual({ outcome: "created", record: stored });
+    expect(calls.map((call) => call.table)).toEqual(["product_assessments", "product_assessments"]);
+    expect(filter(calls[0], "eq", "tenant_id")).toBe("tenant-1");
+    expect(filter(calls[0], "eq", "id")).toBe(id);
+    expect(args(calls[1], "insert")[0]?.[0]).toEqual({
+      id,
+      tenant_id: "tenant-1",
+      product_revision_id: uuid(2),
+      profile_resolution_id: uuid(3),
+      title: "X800 version 2 product assessment",
+      assessor_party_id: uuid(4),
+      started_on: "2026-11-17",
+    });
+  });
+
+  it("finds the first try after a lost answer and makes no second assessment", async () => {
+    const { client, calls } = answering({ data: stored, error: null });
+    const result = await createProductAssessment(client, context, draft);
+    expect(result).toEqual({ outcome: "unchanged", record: stored });
+    expect(calls).toHaveLength(1);
+    expect(args(calls[0], "insert")).toEqual([]);
+  });
+
+  it("finds a first try that landed after the lookup, refused on its own id", async () => {
+    const { client, calls } = answering(
+      { data: null, error: null },
+      { data: null, error: { code: "23505", message: "duplicate key value" } },
+      { data: stored, error: null },
+    );
+    const result = await createProductAssessment(client, context, draft);
+    expect(result.outcome).toBe("unchanged");
+    expect(calls).toHaveLength(3);
+  });
+
+  it("refuses, in words, the same id saved with other details, and writes nothing", async () => {
+    const { client, calls } = answering({
+      data: { ...stored, title: "An earlier title" },
+      error: null,
+    });
+    const saving = createProductAssessment(client, context, draft);
+    await expect(saving).rejects.toBeInstanceOf(SaveOnceConflict);
+    await expect(saving).rejects.toMatchObject({
+      reason: "different",
+      message: "This record was already saved with different values. Your draft is kept.",
+    });
+    expect(calls).toHaveLength(1);
+  });
+
+  it("sends nothing while the draft has no title or baseline", async () => {
+    const { client, calls } = answering();
+    await expect(
+      createProductAssessment(client, context, { ...draft, profileResolutionId: "" }),
+    ).rejects.toThrow(ASSESSMENT_NEEDS_BASELINE);
+    expect(calls).toEqual([]);
+  });
+
+  it("refuses a publication at a stale revision as another session's change", async () => {
+    const { client, calls } = answering({
+      data: null,
+      error: { code: "PT409", message: "Record revision conflict; reload before saving" },
+    });
+    await expect(
+      publishProductAssessment(client, context, { id, revision: 2, determined: 4 }),
+    ).rejects.toThrow(CHANGED_ELSEWHERE);
+    expect(args(calls[0], "update")[0]?.[0]).toMatchObject({ state: "published", revision: 3 });
+    expect(filter(calls[0], "eq", "revision")).toBe(2);
   });
 });

@@ -7,8 +7,10 @@
 -- was generated; a CVE's record, its state on an SBOM component, the controls it bears on and the
 -- operational issue that is a program's row for it; each view's counts; component_vulnerabilities
 -- with a consumer that holds an issue and one that does not; what component_consumers,
--- system_upstream and component_rows gain; an accepted offer carrying the CVE to the consumers'
--- issues; and the tenant boundary.
+-- system_upstream and component_rows gain, and a component's CVEs staying open while a consumer
+-- still runs an affected version (a newer version that holds the fix, every consumer moved to it,
+-- and the newest version affected with nobody on it); an accepted offer carrying the CVE to the
+-- consumers' issues; and the tenant boundary.
 begin;
 create function pg_temp.expect_error(statement text, expected_state text, expected_words text default null) returns void language plpgsql as $$
 begin
@@ -22,6 +24,16 @@ begin
 end;
 $$;
 grant execute on function pg_temp.expect_error(text, text, text) to authenticated, anon;
+-- Moves a system component to another version of its library component, as Take version would.
+-- No client writes the pin; the helper is its owner's, so the guard that keeps clients from it lets
+-- it through.
+create function pg_temp.build_from(p_system_component uuid, p_defined_component uuid) returns void
+language sql security definer set search_path = '' as $$
+  update public.system_components
+    set defined_component_id = p_defined_component, revision = revision + 1
+    where id = p_system_component;
+$$;
+grant execute on function pg_temp.build_from(uuid, uuid) to authenticated;
 
 -- ---------------------------------------------------------------------------------------------
 -- Who may ask and who may write.
@@ -566,7 +578,8 @@ begin
   end if;
 
   -- ---------------------------------------------------------------------------------------------
-  -- What the three reads gained: how many CVEs affect each component version.
+  -- What the three reads gained: how many CVEs affect each component version, and how many are
+  -- open on the component.
   -- ---------------------------------------------------------------------------------------------
   v_answer := public.component_consumers(v_shared1);
   if (v_answer->>'vulnerabilities_open')::integer <> 2
@@ -575,7 +588,9 @@ begin
     -- P3 took version 2, which no CVE affects.
     or (pg_temp.consumer(v_answer, 'SB-P3')->>'vulnerabilities_open')::integer <> 0
     or (v_answer->'products'->0->>'vulnerabilities_open')::integer <> 2
-    or (public.component_consumers(v_shared2)->>'vulnerabilities_open')::integer <> 0
+    -- The component's own count is the same whichever version names it: version 1's two CVEs, which
+    -- P1, P2 and the product still run.
+    or (public.component_consumers(v_shared2)->>'vulnerabilities_open')::integer <> 2
     or (public.component_consumers(v_other1)->>'vulnerabilities_open')::integer <> 0 then
     raise exception 'The consumers of a component with CVEs answered %', v_answer;
   end if;
@@ -586,21 +601,61 @@ begin
     or (public.system_upstream(v_p3)->>'vulnerabilities_open')::integer <> 0 then
     raise exception 'What a system takes from above, with CVEs on it, answered %', v_answer;
   end if;
-  -- The register lists the set's latest version, which holds the fix; once its state says
-  -- affected again, it counts.
+  -- A CVE stays open, and counted, while any consumer still runs an affected version, after the fix
+  -- is published. The register lists the set's latest version, version 2, whose SBOM marks the
+  -- first CVE fixed; P1, P2 and the product still run version 1, so both of its CVEs count.
   select * into v_register from public.component_rows r where r.id = v_shared2;
-  if v_register.vulnerabilities_open <> 0 then
-    raise exception 'A component whose version holds the fix read %', to_jsonb(v_register);
+  if v_register.vulnerabilities_open <> 2 or v_register.programs <> 3 or v_register.products <> 1 then
+    raise exception 'A component whose newest version holds the fix, with consumers on version 1, read %', to_jsonb(v_register);
   end if;
+  -- A CVE on both versions counts once: version 2 affected again by the first CVE still reads two.
   update public.sbom_component_vulnerabilities set state = 'affected', revision = revision + 1
     where sbom_component_id = v_sshd_v2 and vulnerability_id = v_cve1;
   select * into v_register from public.component_rows r where r.id = v_shared2;
-  if v_register.vulnerabilities_open <> 1 or v_register.offers_open <> 0
+  if v_register.vulnerabilities_open <> 2 or v_register.offers_open <> 0
+    or (public.component_consumers(v_shared2)->>'vulnerabilities_open')::integer <> 2
     or (public.system_upstream(v_p3)->>'vulnerabilities_open')::integer <> 1 then
-    raise exception 'A component a CVE affects read %', to_jsonb(v_register);
+    raise exception 'A component a CVE affects in two versions read %', to_jsonb(v_register);
   end if;
   update public.sbom_component_vulnerabilities set state = 'fixed', revision = revision + 1
     where sbom_component_id = v_sshd_v2 and vulnerability_id = v_cve1;
+  -- Every consumer on version 2, then every consumer back on version 1 with version 2 affected
+  -- alone; the block undoes both as it ends.
+  begin
+    perform pg_temp.build_from(c.id, v_shared2) from public.system_components c
+      where c.tenant_id = v_tenant and c.defined_component_id = v_shared1;
+    update public.product_elements set defined_component_id = v_shared2, revision = revision + 1 where id = v_e_shr;
+    -- Version 1 still carries both CVEs, but nobody runs it: none is open.
+    select * into v_register from public.component_rows r where r.id = v_shared2;
+    if v_register.vulnerabilities_open <> 0 or v_register.programs <> 3 or v_register.consumers_behind <> 0
+      or (public.component_consumers(v_shared1)->>'vulnerabilities_open')::integer <> 0
+      or (public.component_consumers(v_shared2)->>'vulnerabilities_open')::integer <> 0
+      or (pg_temp.consumer(public.component_consumers(v_shared2), 'SB-P1')->>'vulnerabilities_open')::integer <> 0
+      or (public.system_upstream(v_p1)->>'vulnerabilities_open')::integer <> 0 then
+      raise exception 'A component every consumer moved off the affected version read %', to_jsonb(v_register);
+    end if;
+    -- Every consumer back on version 1, P3 too, and the zlib CVE, which version 1 only
+    -- investigates, affecting version 2: the newest version counts with nobody on it, beside
+    -- version 1's two.
+    perform pg_temp.build_from(c.id, v_shared1) from public.system_components c
+      where c.tenant_id = v_tenant and c.defined_component_id = v_shared2;
+    update public.product_elements set defined_component_id = v_shared1, revision = revision + 1 where id = v_e_shr;
+    insert into public.sbom_component_vulnerabilities(tenant_id, sbom_component_id, vulnerability_id, state)
+      values (v_tenant, v_sshd_v2, v_cve3, 'affected');
+    select * into v_register from public.component_rows r where r.id = v_shared2;
+    if v_register.vulnerabilities_open <> 3 or v_register.programs <> 3 or v_register.consumers_behind <> 4
+      or (public.component_consumers(v_shared1)->>'vulnerabilities_open')::integer <> 3
+      or (public.system_upstream(v_p3)->>'vulnerabilities_open')::integer <> 2 then
+      raise exception 'A component whose newest version nobody runs, affected, read %', to_jsonb(v_register);
+    end if;
+    raise exception using errcode = 'PT999', message = 'Undo the moves';
+  exception when sqlstate 'PT999' then
+    null;
+  end;
+  select * into v_register from public.component_rows r where r.id = v_shared2;
+  if v_register.vulnerabilities_open <> 2 or (pg_temp.consumer(public.component_consumers(v_shared1), 'SB-P3')->>'version')::integer <> 2 then
+    raise exception 'The moves were not undone: %', to_jsonb(v_register);
+  end if;
 
   -- ---------------------------------------------------------------------------------------------
   -- An accepted offer carries the CVE to the consumers' issues: P1 offers its issue on the shared

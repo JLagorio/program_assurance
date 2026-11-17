@@ -1,6 +1,7 @@
 import { useConfirmation } from "@/components/app/confirmation";
 import { ElementIdentityFields } from "@/components/app/element-fields";
 import { useFormFeedback, type FormIssue } from "@/components/app/form-feedback";
+import { causeText } from "@/components/app/sentence";
 import { LibraryComponentPicker } from "@/components/app/library-component-picker";
 import { useDraftGuard } from "@/components/app/use-draft-guard";
 import {
@@ -17,9 +18,15 @@ import {
   type ProductElementSpec,
   type ProductTreeRow,
 } from "@/lib/product-items";
-import { useRemoveProductElement, useSaveProductElement } from "@/lib/product-revisions";
+import {
+  CodeTaken,
+  elementCodeTaken,
+  useRemoveProductElement,
+  useSaveProductElement,
+} from "@/lib/product-revisions";
 import type { ElementType } from "@/lib/program-wizard";
 import { labelFor } from "@/lib/records";
+import { SaveOnceConflict } from "@/lib/save-once";
 import {
   Absent,
   Alert,
@@ -79,9 +86,6 @@ type ElementDialogTarget = {
   seed?: Partial<Pick<ProductElementSpec, "code" | "name" | "elementType" | "definedComponentId">>;
   seedLibrary?: LibraryComponentItem;
 };
-
-const messageOf = (cause: unknown, fallback = "The request failed.") =>
-  cause instanceof Error ? cause.message : fallback;
 
 /**
  * The element tree of one product version with the configurations each element is in. In a draft
@@ -410,8 +414,14 @@ function ProductElementDialog({
   const { formatPlural } = useLedgerLocale();
   const submitRef = useRef<HTMLButtonElement>(null);
   const failureRef = useRef<HTMLDivElement>(null);
-  const [failure, setFailure] = useState<string | null>(null);
+  const [failure, setFailure] = useState<{ title: string; message: string } | null>(null);
   const existing = target.existing;
+  // The element's id, chosen once for a create's draft, so a retry after a lost answer finds the
+  // first try; and the place among its siblings the first try took.
+  const [elementId] = useState(() => existing?.id ?? crypto.randomUUID());
+  const placed = useRef<number | null>(null);
+  // A code another element of the version holds, as the server refused it.
+  const [takenCode, setTakenCode] = useState<string | null>(null);
   const parent = specs.find((row) => row.id === target.parentId) ?? null;
   const active = configurations.filter((row) => row.state === "active");
   const parentIn = new Set(
@@ -463,7 +473,11 @@ function ProductElementDialog({
   });
   const issues: FormIssue<IdentityField>[] = [
     ...(identity.name.trim() ? [] : [{ field: "name" as const, message: "Enter a name." }]),
-    ...(identity.code.trim() ? [] : [{ field: "code" as const, message: "Enter a code." }]),
+    ...(!identity.code.trim()
+      ? [{ field: "code" as const, message: "Enter a code." }]
+      : identity.code.trim() === takenCode
+        ? [{ field: "code" as const, message: elementCodeTaken(takenCode) }]
+        : []),
     ...(identity.type ? [] : [{ field: "type" as const, message: "Choose a type." }]),
   ];
   const errors = new Map(
@@ -490,9 +504,14 @@ function ProductElementDialog({
       ),
     ).length;
   const elementRevisions = useElementRevisions(revision.id);
+  // The revision the reader opened an edit at, held through every try: an edit applies only there.
+  const [openedRevision, setOpenedRevision] = useState<number | undefined>(undefined);
+  const liveRevision = existing ? elementRevisions.get(existing.id) : undefined;
+  if (openedRevision === undefined && liveRevision !== undefined) setOpenedRevision(liveRevision);
   useEffect(() => {
     if (failure) failureRef.current?.scrollIntoView({ block: "nearest" });
   }, [failure]);
+  const noun = existing?.library || target.seedLibrary ? "component" : "element";
   async function submit(event: FormEvent) {
     event.preventDefault();
     if (readOnly || guard.busy) return;
@@ -500,31 +519,37 @@ function ProductElementDialog({
     if (!feedback.report(issues)) return;
     const type = identity.type;
     if (!type) return;
+    if (existing && openedRevision === undefined) {
+      setFailure({
+        title: `The ${noun} was not saved`,
+        message: `Reload the ${noun} before saving; its revision is missing. Your changes are kept.`,
+      });
+      return;
+    }
     submitRef.current?.focus();
     if (!guard.start()) return;
     try {
-      const siblings = specs.filter(
-        (row) => row.parentId === target.parentId && row.id !== existing?.id,
-      );
+      placed.current ??=
+        Math.max(
+          -1,
+          ...specs
+            .filter((row) => row.parentId === target.parentId && row.id !== elementId)
+            .map((row) => row.position),
+        ) + 1;
       await save.mutateAsync({
         revisionId: revision.id,
         element: {
-          id: existing?.id,
-          revision: existing ? elementRevisions.get(existing.id) : undefined,
+          id: elementId,
+          revision: existing ? openedRevision : undefined,
           parentId: target.parentId,
           code: identity.code.trim(),
           name: identity.name.trim(),
           description: identity.description,
           elementType: type,
           definedComponentId,
-          position: existing?.position ?? Math.max(-1, ...siblings.map((row) => row.position)) + 1,
+          position: existing?.position ?? placed.current,
         },
         configurationIds: [...chosen],
-        existing: memberships.map((row) => ({
-          id: row.id,
-          product_configuration_id: row.product_configuration_id,
-          product_element_id: row.product_element_id,
-        })),
         descendantIds,
       });
       guard.finish();
@@ -534,11 +559,16 @@ function ProductElementDialog({
       });
       guard.complete();
     } catch (cause) {
-      setFailure(`${messageOf(cause)} Your changes are kept.`);
       guard.finish();
+      // A code another element holds is the Code field's own issue: nothing was written.
+      if (cause instanceof CodeTaken) {
+        setTakenCode(cause.code);
+        feedback.report([{ field: "code", message: cause.message }]);
+        return;
+      }
+      setFailure(saveFailure(cause, noun, !!existing));
     }
   }
-  const noun = existing?.library || target.seedLibrary ? "component" : "element";
   const title = readOnly
     ? (existing?.name ?? "Element")
     : `${existing ? "Edit" : "Create"} ${noun}`;
@@ -572,8 +602,8 @@ function ProductElementDialog({
               {failure ? (
                 <Alert ref={failureRef} variant="destructive" role="alert">
                   <AlertCircle aria-hidden />
-                  <AlertTitle>The {noun} was not saved</AlertTitle>
-                  <AlertDescription>{failure}</AlertDescription>
+                  <AlertTitle>{failure.title}</AlertTitle>
+                  <AlertDescription>{failure.message}</AlertDescription>
                 </Alert>
               ) : null}
               <ErrorSummary issues={feedback.summary} focusKey={feedback.attempts} />
@@ -721,6 +751,36 @@ function ProductElementDialog({
       {guard.confirmation}
     </Dialog>
   );
+}
+
+/**
+ * Why an element's save stopped, in the form's words. The draft stays every time; a retry finds
+ * what a first try saved, so it never makes a second element, and a conflict says which it met.
+ */
+function saveFailure(
+  cause: unknown,
+  noun: string,
+  editing: boolean,
+): { title: string; message: string } {
+  if (cause instanceof SaveOnceConflict && cause.reason === "different")
+    return {
+      title: `The ${noun} was already created`,
+      message: `An earlier try created this ${noun} before you changed its details. Your changes are kept; close the form and edit the ${noun} to apply them.`,
+    };
+  if (cause instanceof SaveOnceConflict)
+    return {
+      title: `The ${noun} was not saved`,
+      message:
+        cause.reason === "missing"
+          ? `This ${noun} is no longer available. Your changes are kept.`
+          : `This ${noun} changed in another session. Your changes are kept; close the form and edit the ${noun} again to load its current details.`,
+    };
+  return {
+    title: `The ${noun} was not saved`,
+    message: editing
+      ? `${causeText(cause)} Your changes are kept, so you can try again.`
+      : `${causeText(cause)} Your details are kept, and trying again will not make a second ${noun}.`,
+  };
 }
 
 /** The CAS revision of every element in a version, for the dialog's update. */

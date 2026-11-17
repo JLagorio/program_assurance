@@ -7,8 +7,9 @@
 -- component's owner with its item, and the activity event an offer records; an SBOM and its
 -- components, a CVE record with the SBOM component it affects, the controls it bears on and the
 -- issue that is a program's row for it, and a planned cyber test campaign; the next version of a
--- component set, a draft with every component and claim of the version before, what it changes
--- and the controls that affects, and its SBOM with the CVE's state on it; and a remediation item
+-- component set, with every component and claim of the version before, what it changes and the
+-- controls that affects, and its SBOM with the CVE's state on it, published once all of that is
+-- written and taken by nobody; and a remediation item
 -- with its commitment, its milestones and the issue and observation it answers) is listed in
 -- demo_import_records under the dataset `shared-components-v1`. What it changes in a
 -- record another step wrote (a component set's owner and business line, the library component a
@@ -171,9 +172,20 @@ begin
   return v_out;
 end $$;
 
+-- Where a version of a component stands, as the account reads it (component_control_status).
+create function pg_temp.shared_standing(p jsonb, p_defined_component_id uuid) returns jsonb language plpgsql as $$
+declare v_answer jsonb;
+begin
+  perform set_config('request.jwt.claims', jsonb_build_object('sub', p->>'accountUserId', 'role', 'authenticated')::text, true);
+  v_answer := public.component_control_status(p_defined_component_id);
+  perform set_config('request.jwt.claims', '', true);
+  return v_answer;
+end $$;
+
 -- What the reads of this slice answer for each shared component once the seed has written, as the
--- account: where the component version stands, who uses it, its row of the register, and what each
--- system it is used in takes from above.
+-- account: where the version the scenario assessed stands, who uses it, the component's row of the
+-- register (at its set's latest published version), and what each system it is used in takes from
+-- above.
 create function pg_temp.shared_new_reads(p jsonb) returns jsonb language plpgsql as $$
 declare
   t uuid := (p->>'tenantId')::uuid;
@@ -182,7 +194,13 @@ begin
   perform set_config('request.jwt.claims', jsonb_build_object('sub', p->>'accountUserId', 'role', 'authenticated')::text, true);
   for v_set in select value from jsonb_array_elements(p->'sharedComponents') loop
     for v_item in select value from jsonb_array_elements(v_set->'components') loop
-      select * into v_c from pg_temp.shared_component(t, v_set->>'definition', v_item->>'name');
+      -- The version the scenario's component assessment judged, which a later version of the set
+      -- does not change.
+      select c.id as defined_component_id into v_c from public.defined_components c
+        join public.component_assessments a
+          on a.tenant_id = c.tenant_id and a.component_definition_revision_id = c.component_definition_revision_id
+        where a.tenant_id = t and a.id = pg_temp.shared_id(t, 'component_assessments/' || (v_set->>'definition'))
+          and c.name = v_item->>'name';
       v_answer := public.component_control_status(v_c.defined_component_id);
       v_entry := jsonb_build_object('component_control_status', jsonb_build_object(
         'component', v_answer->'component', 'totals', v_answer->'totals', 'assessments', v_answer->'assessments'));
@@ -200,7 +218,8 @@ begin
           from jsonb_array_elements(v_answer->'systems') x)));
       v_entry := v_entry || jsonb_build_object('component_rows', (
         select to_jsonb(r) - 'id' - 'tenant_id' - 'created_at' - 'updated_at' - 'created_by' - 'updated_by'
-        from public.component_rows r where r.id = v_c.defined_component_id));
+        from public.component_rows r
+        where r.tenant_id = t and r.definition_code = v_set->>'definition' and r.name = v_item->>'name'));
       for v_use in select value from jsonb_array_elements(v_item->'uses') loop
         select s.id into v_system from public.systems s join public.programs g on g.id = s.program_id
           where s.tenant_id = t and g.code = v_use->>'program' and s.code = v_use->>'system' and s.is_authorization_boundary;
@@ -210,7 +229,9 @@ begin
           'components', (select coalesce(jsonb_agg(jsonb_build_object(
               'component', x->>'code', 'element', x->>'element_code', 'from', x->>'definition_code',
               'name', x->>'component_name', 'took', x->'version', 'latest', x->'latest_version',
-              'behind', x->'behind', 'change', x->'change', 'pin', x->'pin'->'version', 'standing', x->'standing')), '[]'::jsonb)
+              'behind', x->'behind', 'change', x->'change', 'pin', x->'pin'->'version', 'standing', x->'standing',
+              'judged', x->'controls_judged', 'inherited', x->'controls_inherited',
+              'vulnerabilities_open', x->'vulnerabilities_open')), '[]'::jsonb)
             from jsonb_array_elements(v_answer->'components') x)));
       end loop;
       v_entry := v_entry || jsonb_build_object('offers', jsonb_build_object(
@@ -250,7 +271,8 @@ begin
                 from jsonb_array_elements(x->'consumers') c))), '[]'::jsonb)
             from jsonb_array_elements(v_answer->'vulnerabilities') x)),
         'vulnerabilities_open', jsonb_build_object(
-          'component_rows', (select r.vulnerabilities_open from public.component_rows r where r.id = v_c.defined_component_id),
+          'component_rows', (select r.vulnerabilities_open from public.component_rows r
+            where r.tenant_id = t and r.definition_code = v_set->>'definition' and r.name = v_item->>'name'),
           'component_consumers', (select jsonb_build_object('component', x->'vulnerabilities_open',
               'products', (select coalesce(jsonb_object_agg(format('%s v%s %s', y->>'product_code', y->>'product_version', y->>'element_code'), y->'vulnerabilities_open'), '{}'::jsonb)
                 from jsonb_array_elements(x->'products') y),
@@ -291,6 +313,9 @@ begin
               select jsonb_build_object('taken', w->'taken'->'version', 'latest', w->'latest'->'version',
                 'behind', w->'behind', 'newer_drafts', w->'newer_drafts', 'blocked', w->'blocked'->>'code',
                 'affected_controls', jsonb_array_length(w->'affected_controls'),
+                -- The affected controls the element inherits today, which taking the version stops.
+                'inherited_today', (select coalesce(jsonb_agg(a->>'code'), '[]'::jsonb)
+                  from jsonb_array_elements(w->'affected_controls') a where (a->>'inherited')::boolean),
                 'determinations', w->'determinations',
                 'vulnerabilities_fixed', (select coalesce(jsonb_agg(f->>'cve_id'), '[]'::jsonb) from jsonb_array_elements(w->'vulnerabilities_fixed') f))
               from public.component_version_review((y->>'system_component_id')::uuid) w)), '{}'::jsonb)
@@ -633,12 +658,15 @@ begin
   -- The component's next version: a draft revision of its set with every component of the version
   -- before and what each claims, written as a new version of a set is written (the revision, then
   -- its components and their claims, each under its own id), what it changes and the controls that
-  -- affects, and its own SBOM. It is left a draft: nobody is behind, and no status read moves.
+  -- affects, and its own SBOM; then, where the scenario publishes it, published at the moment given,
+  -- since a published version's content no longer changes. Nobody takes it: every consumer stays on
+  -- the version it took and reads as behind, and no consumer's status read moves. A published
+  -- version must read what the scenario says (`standing`), else the run stops.
   for v_version in select value from jsonb_array_elements(coalesce(p->'sharedVersions', '[]'::jsonb)) loop
     v_number := (v_version->>'version')::integer;
     v_base := format('%s/%s', v_version->>'definition', v_number);
-    if v_version->>'state' is distinct from 'draft' then
-      raise exception 'The scenario leaves version % of % a draft.', v_number, v_version->>'definition';
+    if v_version->>'state' is null or v_version->>'state' not in ('draft', 'published') then
+      raise exception 'The scenario neither drafts nor publishes version % of %.', v_number, v_version->>'definition';
     end if;
     select * into v_definition from public.component_definitions d where d.tenant_id = t and d.code = v_version->>'definition';
     if v_definition.id is null then
@@ -759,8 +787,31 @@ begin
           format('sbom_component_vulnerabilities/%s/%s/%s', v_link->>'cveId', v_sbom->>'key', v_link->>'component'), 'sharedVersions');
       end loop;
     end loop;
+    -- Published once its content is written: its components, claims, change and the controls that
+    -- change affects are frozen with it.
+    if v_version->>'state' = 'published' then
+      update public.component_definition_revisions set state = 'published', published_at = (v_version->>'publishedAt')::timestamptz
+        where id = v_revision;
+    end if;
+    -- What the version reads once written, component by component, as the scenario says it does.
+    for v_item in select value from jsonb_array_elements(coalesce(v_version->'standing', '[]'::jsonb)) loop
+      select c.id into v_target from public.defined_components c
+        where c.tenant_id = t and c.component_definition_revision_id = v_revision and c.name = v_item->>'component';
+      v_counts := pg_temp.shared_standing(p, v_target);
+      if v_counts->'totals' is distinct from v_item->'totals'
+        or (select coalesce(jsonb_agg(c->>'code' order by c->>'code'), '[]'::jsonb)
+            from jsonb_array_elements(v_counts->'controls') c where (c->>'to_review')::boolean)
+          is distinct from (select coalesce(jsonb_agg(x order by x), '[]'::jsonb) from jsonb_array_elements_text(v_item->'toReview') x) then
+        raise exception 'Version % of % reads % on %, leaving % to review, not the % and % the scenario says.',
+          v_number, v_version->>'definition', v_counts->'totals', v_item->>'component',
+          (select coalesce(jsonb_agg(c->>'code' order by c->>'code'), '[]'::jsonb)
+            from jsonb_array_elements(v_counts->'controls') c where (c->>'to_review')::boolean),
+          v_item->'totals', v_item->'toReview';
+      end if;
+    end loop;
     v_recorded := v_recorded || jsonb_build_object('version ' || (v_version->>'key'), jsonb_build_object(
       'of', format('%s version %s', v_version->>'definition', v_number), 'state', v_version->>'state',
+      'published_at', v_version->>'publishedAt',
       'components', (select count(*) from public.defined_components c where c.tenant_id = t and c.component_definition_revision_id = v_revision),
       'claims', (select count(*) from public.defined_component_implementations i where i.tenant_id = t and i.component_definition_revision_id = v_revision),
       'changes', (select jsonb_agg(format('%s: %s; affects %s', c->>'component',
@@ -840,7 +891,7 @@ begin
   v_job := pg_temp.shared_id(t, 'ingestion_jobs');
   insert into public.ingestion_jobs (id, tenant_id, title, source_uri, status, started_at, completed_at, summary)
     values (v_job, t, 'Shared components demo seed', 'urn:program-assurance:demo:' || (p->>'datasetId'), 'completed', now(), now(),
-      'Authored shared components scenario: a component set owned by name, a system component built from one of its components, the component assessed once, a finding a consumer offered to its owner, the component''s SBOM with the CVE record the finding names, a planned cyber test, the set''s next version as a draft with what it changes, and the remediation item that answers the finding (scripts/demo/shared-scenario.mjs).');
+      'Authored shared components scenario: a component set owned by name, a system component built from one of its components, the component assessed once, a finding a consumer offered to its owner, the component''s SBOM with the CVE record the finding names, a planned cyber test, the set''s next version with what it changes, and the remediation item that answers the finding (scripts/demo/shared-scenario.mjs).');
   select jsonb_object_agg(destination_table, n) into v_tables
     from (select destination_table, count(*) as n from pg_temp.shared_tracked group by destination_table) c;
   v_batch := pg_temp.shared_id(t, 'demo_import_batches');

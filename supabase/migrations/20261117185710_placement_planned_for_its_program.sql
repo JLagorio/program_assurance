@@ -1,0 +1,35 @@
+-- The placement read is planned for the program it is asked about, on every call (approved by Josef,
+-- 2026-11-17).
+--
+-- program_objective_placement_answer (20261115140023_component_inheritance) says where a program's
+-- mappings stand and what they cover; the four posture reads, their cells, the inheritance read
+-- and through it every control status read place objectives through it. Its query is a PL/pgSQL
+-- statement, which Postgres plans for the values of each call five times and, from the sixth call
+-- of a session on, may plan once for any program: a generic plan, estimated for an average program
+-- of the workspace. WS-X90 holds 640 of the developer workspace's 685 requirements, so an average
+-- program is nothing like it. On 2026-11-15 the generic plan estimated 11 requirements and one
+-- mapping, and joined each of WS-X90's 1,376 mappings to every selection of its baselines again:
+-- the whole placement took about 960 ms from the sixth call on instead of about 45 ms, the AC
+-- family's 117 ms instead of 23, and program_posture and program_resiliency_posture 1 to 2 s
+-- instead of about 150 ms once a pooled connection had served five placement reads.
+--
+-- Which generic plan Postgres makes follows the tables' statistics. By 2026-11-17 the tables behind
+-- the read had been analyzed again, and the generic plan it switches to from the sixth call
+-- (auto_explain shows the program as a parameter from then on) happens to be as fast as the
+-- custom ones: no call of program_posture, program_resiliency_posture or a Posture cell slowed
+-- down after the fifth. The next statistics may bring the slow plan back, so the read is held to
+-- plans made for its own program: plan_cache_mode force_custom_plan, in effect while the read runs.
+-- Measured on WS-X90 as a member, ten calls each in one session on a loaded machine, the median of
+-- the ten before and after (three sessions after): program_posture 144 ms and 147 to 163,
+-- program_resiliency_posture 125 and 121 to 131, a Posture cell 63 and 65 to 70, the placement
+-- itself 60 and 61 to 63; planning each call costs nothing that shows above the machine's noise.
+-- The answers of every program of the developer workspace are the same.
+--
+-- The reads beside it do not slow down after the fifth call. program_element_inheritance,
+-- program_objective_inheritance and program_control_objective_judgments speed up instead (their
+-- generic plans skip planning a guard of eight joined tables each call), and component_standing_lines
+-- is a SQL function, which Postgres plans afresh for every query that calls it. They are not
+-- changed.
+--
+-- Every statement here can run again.
+alter function public.program_objective_placement_answer(uuid, uuid[]) set plan_cache_mode = force_custom_plan;

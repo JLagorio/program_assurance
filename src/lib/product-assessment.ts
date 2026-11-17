@@ -12,6 +12,7 @@ import {
   type Row,
   type TableName,
 } from "./models";
+import { saveOnce, type SaveOnceOutcome } from "./save-once";
 import { useStaleOnWrite } from "./server-table";
 
 /*
@@ -333,6 +334,8 @@ export function useRecordProductDeterminations() {
 
 /** A new draft assessment of a published product version against a control baseline. */
 export type NewProductAssessment = {
+  /** The assessment's id, chosen once when the form opened, so a retried create finds its first try. */
+  id: string;
   productRevisionId: string;
   profileResolutionId: string;
   title: string;
@@ -356,15 +359,21 @@ export function newAssessmentIssues(values: {
   ];
 }
 
-/** Create a draft product assessment. The database refuses a draft version or a draft baseline. */
+/**
+ * Create a draft product assessment under the id its form chose, safe to retry (`saveOnce`): a
+ * retry after a lost answer finds the first try and writes nothing more, and one whose details
+ * changed since is a `SaveOnceConflict`. The database refuses a draft version or a draft baseline.
+ */
 export async function createProductAssessment(
   client: TableClient,
   context: ReadContext,
   values: NewProductAssessment,
-): Promise<Row<"product_assessments">> {
+): Promise<{ outcome: SaveOnceOutcome; record: Row<"product_assessments"> }> {
   const [issue] = newAssessmentIssues(values);
   if (issue) throw new Error(issue.message);
-  return writeRow(client, context, "product_assessments", {
+  return saveOnce(client, context, {
+    table: "product_assessments",
+    id: values.id,
     values: {
       product_revision_id: values.productRevisionId,
       profile_resolution_id: values.profileResolutionId,
@@ -378,7 +387,11 @@ export async function createProductAssessment(
 export function useCreateProductAssessment() {
   const workspace = useWorkspace();
   const cache = useQueryClient();
-  return useMutation<Row<"product_assessments">, Error, NewProductAssessment>({
+  return useMutation<
+    { outcome: SaveOnceOutcome; record: Row<"product_assessments"> },
+    Error,
+    NewProductAssessment
+  >({
     mutationFn: async (values) =>
       createProductAssessment(
         database(),

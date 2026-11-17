@@ -625,7 +625,10 @@ export type ComponentConsumers = {
   findingsOpen: number;
   /** How many offers wait on the component's owner, for any of its versions. */
   offersOpen: number;
-  /** How many CVEs affect the version asked for. */
+  /**
+   * How many CVEs are open on the component, whichever version names it: each CVE once that
+   * affects its newest version or a version a consumer still runs, as the register counts them.
+   */
   vulnerabilitiesOpen: number;
 };
 
@@ -1155,9 +1158,10 @@ export const atLeastOne = (column: (typeof REGISTER_COUNTS)[number]) => [
  * The components register's read, `component_rows`: one row a component of each definition's
  * latest published version (else its latest), by name, with its standing as the version carries
  * it (a determination carried forward from an earlier version counts, and a control a change left
- * to review is counted apart), how many offers wait on its owner and how many CVEs affect it. A
- * write to a definition, a version or its change, an assessment, an owner, an offer, an SBOM or a
- * consumer reads the pages again, since the view derives its columns from them.
+ * to review is counted apart), how many offers wait on its owner and how many CVEs are open on it
+ * (each CVE once that affects the listed version or a version a consumer still runs). A write to a
+ * definition, a version or its change, an assessment, an owner, an offer, an SBOM or a consumer
+ * reads the pages again, since the view derives its columns from them.
  */
 export const componentRegisterRead = serverRead({
   source: "component_rows",

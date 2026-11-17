@@ -2,19 +2,22 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useWorkspace } from "./workspace-context";
 import { database, requireIdentity } from "./database";
-import { invalidateModel, useRows, writeRow, type ReadContext, type Row } from "./models";
+import { invalidateModel, useRows, type ReadContext, type Row } from "./models";
 import {
   COMPLIANCE_STATUS_ORDER,
   VERIFICATION_METHODS,
   type ComplianceStatus,
   type VerificationMethod,
 } from "./product-assurance";
+import { saveOnce, SaveOnceConflict, type SaveOnceOutcome } from "./save-once";
 
 /*
  * A program's answer to a requirement of a customer's document: whether it complies, how that is
  * verified, and what the program says of it. One answer a requirement (`requirement_compliance`),
  * written at the revision the reader saw, so two people answering at once do not overwrite each
- * other. The matrix that reads the answers is `requirement_source_compliance` in product-assurance.
+ * other, and safe to retry (`saveOnce`): a first answer is created under the id its form chose, so
+ * a retry after a lost answer finds it. The matrix that reads the answers is
+ * `requirement_source_compliance` in product-assurance.
  */
 
 type Client = Pick<SupabaseClient, "from">;
@@ -22,8 +25,10 @@ type Client = Pick<SupabaseClient, "from">;
 /** The answer as a reader gives it. */
 export type RequirementAnswer = {
   requirementId: string;
-  /** The answer already recorded, at the revision the reader saw; none for a first answer. */
-  existing?: { id: string; revision: number } | null | undefined;
+  /** The recorded answer's id, or for a first answer one chosen once when the form opened. */
+  id: string;
+  /** The revision of the recorded answer the reader saw; absent for a first answer. */
+  revision?: number | undefined;
   status: ComplianceStatus;
   verificationMethod: VerificationMethod | null;
   statement: string | null;
@@ -49,37 +54,56 @@ export function requirementAnswerIssues(answer: {
   return [];
 }
 
-/** Record a program's answer to a requirement, or change it at the revision the reader saw. */
+/** Why an answer was not saved, in the words of the compliance statement's form. */
+export const ANSWER_CONFLICTS = {
+  different:
+    "An earlier try recorded this answer before you changed it. Your answer is kept; close the dialog and edit the compliance statement to apply it.",
+  changed:
+    "This answer changed in another session. Your answer is kept; close the dialog and open it again to load the current answer.",
+  missing: "This answer is no longer recorded. Your answer is kept.",
+  /** A first answer whose requirement another session answered meanwhile: one answer a requirement. */
+  answered:
+    "Another session answered this requirement first. Your answer is kept; close the dialog and open it again to load theirs.",
+} as const;
+
+/**
+ * Record a program's answer to a requirement, or change it at the revision the reader saw. A
+ * retry finds a first try that landed and writes nothing more; a conflict is a `SaveOnceConflict`
+ * in `ANSWER_CONFLICTS`' words.
+ */
 export async function answerRequirement(
   client: Client,
   context: ReadContext,
   answer: RequirementAnswer,
-): Promise<Row<"requirement_compliance">> {
+): Promise<{ outcome: SaveOnceOutcome; record: Row<"requirement_compliance"> }> {
   const [issue] = requirementAnswerIssues(answer);
   if (issue) throw new Error(issue.message);
   if (answer.verificationMethod && !VERIFICATION_METHODS.includes(answer.verificationMethod))
     throw new Error("Choose a verification method from the list.");
-  const values = {
-    status: answer.status,
-    verification_method: answer.verificationMethod,
-    statement: answer.statement?.trim() || null,
-  };
-  return answer.existing
-    ? writeRow(client, context, "requirement_compliance", {
-        id: answer.existing.id,
-        revision: answer.existing.revision,
-        values,
-      })
-    : writeRow(client, context, "requirement_compliance", {
-        values: { ...values, engineering_requirement_id: answer.requirementId },
-      });
+  return saveOnce(client, context, {
+    table: "requirement_compliance",
+    id: answer.id,
+    values: {
+      status: answer.status,
+      verification_method: answer.verificationMethod,
+      statement: answer.statement?.trim() || null,
+    },
+    create: { engineering_requirement_id: answer.requirementId },
+    revision: answer.revision,
+    conflicts: ANSWER_CONFLICTS,
+    taken: () => new SaveOnceConflict("changed", ANSWER_CONFLICTS.answered),
+  });
 }
 
 /** Answer a requirement as a mutation; the matrix is read again once it settles. */
 export function useAnswerRequirement() {
   const workspace = useWorkspace();
   const cache = useQueryClient();
-  return useMutation<Row<"requirement_compliance">, Error, RequirementAnswer>({
+  return useMutation<
+    { outcome: SaveOnceOutcome; record: Row<"requirement_compliance"> },
+    Error,
+    RequirementAnswer
+  >({
     mutationFn: async (answer) =>
       answerRequirement(
         database(),
