@@ -476,7 +476,7 @@ test("each customer program has an issue at every severity and a risk in every s
     const folded = new Set(issues.flatMap((issue) => issue.observations));
     for (const [key] of observations) assert.ok(folded.has(key), `${code} ${key} is in no issue`);
     assert.ok(risks.filter((risk) => risk.techniques.length).length >= 3);
-    // The Portfolio's matrix places a risk by both.
+    // The risk register places a risk by both.
     assert.ok(new Set(risks.map((risk) => `${risk.likelihood}|${risk.impact}`)).size >= 4);
   }
 });

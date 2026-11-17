@@ -611,6 +611,8 @@ const columnLabels: Record<string, Record<string, string>> = {
     product_changed_at: "Marked as modified",
     product_changed_by: "Marked by",
   },
+  // A component of an SBOM, as the SBOM's own words name its identifiers.
+  sbom_components: { sbom_id: "SBOM", purl: "Package URL", cpe: "CPE" },
 };
 
 /**

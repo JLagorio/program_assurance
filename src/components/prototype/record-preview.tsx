@@ -626,7 +626,10 @@ export function recordDestination(table: TableName, record: PreviewRecord) {
     case "authorization_packages":
       return linkOptions({ to: "/packages/$pkgId", params: { pkgId: id } });
     case "component_definitions":
-      return linkOptions({ to: "/library/components/$componentKey", params: { componentKey: id } });
+      return linkOptions({ to: "/library/component-sets/$setId", params: { setId: id } });
+    // A component is followed across its set's versions by its name; its id names the version.
+    case "defined_components":
+      return linkOptions({ to: "/library/components/$componentId", params: { componentId: id } });
     case "business_lines":
       return linkOptions({ to: "/library/business-lines/$lineId", params: { lineId: id } });
     case "products":

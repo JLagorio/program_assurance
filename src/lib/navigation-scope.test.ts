@@ -176,6 +176,13 @@ describe("the side nav's scopes", () => {
     expect(marked("/guidance").current).toBe("Guidance");
   });
 
+  it("marks a component, and the sets its versions are part of, as Components", () => {
+    expect(marked("/library/components").current).toBe("Components");
+    expect(marked(`/library/components/${id}`, { tab: "Where used" }).current).toBe("Components");
+    expect(marked("/library/component-sets").current).toBe("Components");
+    expect(marked(`/library/component-sets/${id}`).current).toBe("Components");
+  });
+
   it("keeps a record whose page sits elsewhere under its register in the organization", () => {
     expect(marked(`/tasks/${id}`).organization).toBe("Home");
     expect(marked(`/workstreams/${id}`).organization).toBe("Programs");

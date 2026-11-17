@@ -2,6 +2,11 @@
 
 Josef's decisions, one line each: the day, the screen or area, the decision. A rule in [the contract](guides/product-patterns-core.md) may follow from one; this log records what was decided and when, never how a screen is built. Newest first. A "Contract budget" line sets the contract's word caps, which `npm run check:contract-budget` reads from the latest one.
 
+## 2026-11-17
+
+- 2026-11-17 · Components · One component a record, followed across its set's versions by its name, at the address of the version shown (`/library/components/<version id>`); the component sets move to `/library/component-sets`, and a set's old address opens the set (wave 9).
+- 2026-11-17 · Budgets · The Components register is a new screen at the Component sets' old address: 24 words, from 21, and one folded table, from none (its count, the Component sets fact and the board's columns); a set's Structure tab holds 11 buttons, from 3, since the screen fixtures now give its version a component, which the register and the record open.
+
 ## 2026-11-16
 
 - 2026-11-16 · Budgets · Frameworks › Controls draws its Selected by column whichever read answers first (the table folded it as constant when the profiles' names came after the rows): 35 words, from 33.
@@ -57,3 +62,7 @@ Josef's decisions, one line each: the day, the screen or area, the decision. A r
 - 2026-11-14 · Records · CVEs and SBOM components are records, each tied to its asset, controls and POA&M item.
 - 2026-11-14 · Owner · Each shared component has a named owner, first the owner of the business line that publishes it.
 - 2026-11-14 · Integration · Component first, then a marked integration set the product's assessor judges.
+- 2026-11-17 · Portfolio · The Portfolio is the hierarchy's register (board portfolio.html), business line › product › configuration › program; its risk matrix, Highest open risks, Recently updated programs and Recent activity are dropped, since no board keeps them.
+- 2026-11-17 · Budgets · The Portfolio's register costs its toolbar's Create product (1 primary), the Needs a look strip with the toolbar's controls (9 buttons) and a column that says one thing folded (1 table).
+- 2026-11-17 · Budgets · A product's Structure draws the Elements by reuse strip and a Configuration filter (board prod-structure.html): 49 words above the fold and 8 buttons.
+- 2026-11-17 · Budgets · The component record's Findings, SBOM and Versions were measured on empty stubs; drawn as boards review-up.html, component--sbom.html and component--versions.html draw them, Findings holds 39 words above the fold, SBOM 59 words, 2 Sections and 3 buttons (the SBOM's facts, its programs and Import SBOM), and Versions 53 words, 1 Section and 1 mark in a cell (What version 2 changes and its state).

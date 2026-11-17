@@ -533,6 +533,8 @@ export const ActionSlot: Story = {
     await expect(act).toHaveAccessibleDescription(/REQ-064 cites none.*the only requirement/);
     const more = advance.getByRole("button", { name: "More control actions" });
     await expect(more.getBoundingClientRect().height).toBe(36);
+    // The record's other commands keep the act's line, at any width: never alone on the next.
+    await expect(more.getBoundingClientRect().top).toBe(act.getBoundingClientRect().top);
     await expect(advance.getAllByRole("button")).toHaveLength(2);
     await userEvent.click(act);
     await expect(advanced).toHaveBeenCalledTimes(1);

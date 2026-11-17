@@ -70,7 +70,7 @@ Twelve parts, each built on one that ships, through `/ledger-add-part`; the shee
 ## 3. Data (`supabase/`, `src/lib`)
 
 - [x] Shared components: the schema (migrations `20261115070043` to `20261115172957`) and its seven schema tests are committed
-- [ ] Fix, before a screen reads it: the plan-cache slowdown in `program_objective_placement_answer`; the seed's Mission Computer 2 published, with AC-17(2) and SC-23 to review; Open CVEs counted per version in use
+- [x] Fix, before a screen reads it: the plan-cache slowdown in `program_objective_placement_answer`; the seed's Mission Computer 2 published, with AC-17(2) and SC-23 to review; Open CVEs counted per version in use. Fixed on design-system (37ab1a8, 2026-11-17)
 - [x] Program roles (D: signing held to roles): `program_role_assignments` gains lead assessor and ISSM, one authorizing official and one lead assessor at a time, `program_roles` and `program_reader_roles`, decisions and publishing held to the holder where one is recorded; `seed:demo-roles`. Committed on design-system (73e3675), where data changes land (Josef, 2026-11-17)
 - [ ] Per flow, what the schema still lacks (checked as each flow starts)
 
@@ -78,9 +78,9 @@ Twelve parts, each built on one that ships, through `/ledger-add-part`; the shee
 
 Built over real records, then `/verify-screen`. Each link opens the flow's first screen in the prototype.
 
-- [ ] 1 · [The organization](https://claude.ai/artifact/Fm8T8rkFfeiARpGBB7U7jM#portfolio): 8 screens. Portfolio, product Structure, Components register, the component record's five tabs
+- [ ] 1 · [The organization](https://claude.ai/artifact/Fm8T8rkFfeiARpGBB7U7jM#portfolio): 8 screens. Portfolio, product Structure, Components register, the component record's five tabs. Built (wave 9): the Portfolio as one tree (business line › product › configuration › program; its four dashboard widgets dropped, no board keeps them), product Structure by reuse, the Components register (one row a component; sets at `/library/component-sets`), the component record (Overview, Assessment, Where used, Findings, SBOM, Versions). Left: Create component, the product Overview, Publish version (no command), a per-element Controls satisfied, the Portfolio's Review offer slot
 - [ ] 2 · [Assess once, use everywhere](https://claude.ai/artifact/Fm8T8rkFfeiARpGBB7U7jM#component-assess): 7. Component assessment, Assessments, the System page's Library tab, Take version, a control decided by inheritance
-- [ ] 3 · [Found below, reviewed above](https://claude.ai/artifact/Fm8T8rkFfeiARpGBB7U7jM#finding-cve--offer): 4. Offer to owner, Home, the offer on the component's Findings tab, after Accept
+- [ ] 3 · [Found below, reviewed above](https://claude.ai/artifact/Fm8T8rkFfeiARpGBB7U7jM#finding-cve--offer): 4. Offer to owner, Home, the offer on the component's Findings tab, after Accept. Built: the offer on the component's Findings tab with Accept and Return, opened from the Review queue
 - [ ] 4 · [The libraries](https://claude.ai/artifact/Fm8T8rkFfeiARpGBB7U7jM#lib-frameworks): 3. Built: Guidance (band, frameworks by publication, Named by, Controls tied by family) and Frameworks › Baselines (Controls by family, Programs by baseline); Overlays and Components as they were
 - [ ] 5 · [Know the system](https://claude.ai/artifact/Fm8T8rkFfeiARpGBB7U7jM#sys-overview): 3
 - [ ] 6 · [Select the baseline](https://claude.ai/artifact/Fm8T8rkFfeiARpGBB7U7jM#baseline): 2
@@ -93,9 +93,9 @@ Not built as drawn: flows A to P, the earlier explorations on the old navigation
 
 ## 5. Gaps in the spec
 
-- [ ] Return's note dialog is not drawn
-- [ ] The Audit Log Collector has no record of its own
-- [ ] Three buttons lead nowhere: Assess component (Structure), Plan assessment, Create overlay
+- [x] Return's note dialog is not drawn: built in the app (a required reason)
+- [x] The Audit Log Collector has no record of its own: every component has one (wave 9)
+- [ ] Two buttons lead nowhere: Plan assessment, Create overlay (Assess component on Structure opens the component's Assessment)
 - [ ] "POA&M items · after" has no way on but the guide bar
 - [ ] Some figures on the boards are illustrative and not in the seed: Behind counts, Home's waits, Customer A's and B's finding counts
 

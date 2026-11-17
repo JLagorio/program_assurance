@@ -261,6 +261,7 @@ try {
     "/catalog",
     "/profiles",
     "/library/components",
+    "/library/component-sets",
     "/vendors",
     "/schema",
   ]) {

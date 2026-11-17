@@ -283,6 +283,7 @@ export function RecordEditor({
   onStateChange,
   formLayout = "page",
   operationLabel,
+  signer,
 }: {
   collection: Collection;
   existing?: DataRecord | undefined;
@@ -294,6 +295,8 @@ export function RecordEditor({
   formLayout?: "page" | "dialog";
   /** A connect-existing-record operation shares one explicit label across trigger, title and submit. */
   operationLabel?: string | undefined;
+  /** The form records the reader's signature: its primary is a sign Button with their name. */
+  signer?: string | undefined;
   onStateChange?: ((state: RecordEditorState) => void) | undefined;
 }) {
   const workspace = useWorkspace();
@@ -751,7 +754,14 @@ export function RecordEditor({
     </form>
   );
   const submitButton = (
-    <Button ref={submitRef} type="submit" form={formId} variant="primary" isLoading={busy}>
+    <Button
+      ref={submitRef}
+      type="submit"
+      form={formId}
+      variant="primary"
+      isLoading={busy}
+      {...(signer ? { intent: "sign" as const, signer } : {})}
+    >
       {primaryLabel}
     </Button>
   );

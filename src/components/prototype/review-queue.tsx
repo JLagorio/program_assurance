@@ -46,7 +46,7 @@ import { usePublishResults } from "./publish-results";
 import { PublishResultsAction } from "./publish-results-action";
 import { ResultsFindings } from "./results-findings";
 import { useMemo, useState, type ReactNode } from "react";
-import { Link, defaultParseSearch, useNavigate } from "@tanstack/react-router";
+import { Link, defaultParseSearch, linkOptions, useNavigate } from "@tanstack/react-router";
 import {
   Absent,
   Button,
@@ -228,6 +228,13 @@ function discussionLink(row: ReviewRow): { to: string; search: Record<string, un
 
 /** Where a row's name leads: the page its review is done on, or nothing for a record with none. */
 function reviewDestination(row: ReviewRow): RecordDestination | null {
+  // An offer is reviewed on its component's Findings, at the version it was offered on.
+  if (row.kind === "component_offer" && row.parent_id)
+    return linkOptions({
+      to: "/library/components/$componentId",
+      params: { componentId: row.parent_id },
+      search: { tab: "Findings", offer: row.id },
+    });
   const { table, record } = reviewRecord(row);
   return recordDestination(table, record);
 }

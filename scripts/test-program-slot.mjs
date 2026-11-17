@@ -6,7 +6,8 @@
  * its primary and draws no slot. Once the account is its authorizing official, the Overview and
  * the Authorization view end their header with the sign Button in the account's name ("Signing as
  * authorizing official"), which opens Record authorization decision with the account as its
- * decision maker, and Edit program sits behind More program actions; the Schedule names who the
+ * decision maker and a sign Button as its confirm, and Edit program sits behind More program
+ * actions; the Schedule names who the
  * submitted version and the draft results wait on. Once somebody else is, the slot says Waiting on
  * them (their role and what for), the package version's Record authorization decision keeps its
  * place and says only they can record it, and the campaign's Publish assessment results says only
@@ -215,6 +216,10 @@ try {
   await expect(dialog).toContainText(`${packageTitle} · version 1`);
   // The decision is the account's: its decision maker is fixed to them, said as text.
   await expect(dialog).toContainText(signer);
+  // Its confirm is a signature too: the sign Button, with the signer's name.
+  await expect(
+    dialog.getByRole("button", { name: `Record authorization decision as ${signer}`, exact: true }),
+  ).toHaveAttribute("data-button-variant", "sign");
   await dialog.getByRole("button", { name: "Cancel", exact: true }).click();
   await expect(dialog).toHaveCount(0);
   console.log("PASS the authorizing official's slot signs, opening the decision in their name");

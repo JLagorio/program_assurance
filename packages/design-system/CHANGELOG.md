@@ -79,6 +79,7 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
 
 ### Changed
 
+- **PageHeader.Slot keeps `more` beside its act.** The act (the advance's primary, the sign Button, or the wait and Remind) and the record's other commands are one group that never wraps apart: where the row runs out, the why wraps above them, and on a phone the more button shares the act's line rather than sitting alone on the next. See Layout/PageHeader: Action slot.
 - **A responsive table's unsized name takes the spare width.** Where the identity column is unsized, it takes what the drawn columns leave and the other unsized columns keep their minimums; they shared it in proportion to their minimums, so a person or a date column took width a cut name needed. A sized identity (a code) keeps its width and the unsized columns share as before. See Patterns/DataTable: Folded columns and Responsive containers.
 - **A Stat's figure is `font.figure`, 20/26 semibold**, a step under the page title (it was Heading `page`, 24/30, level with the h1), in a Stat and a Stat.Tile alike. See Components/Stat: Matrix.
 - **A card's title is `font.body` at semibold**, a step under a Section's title (it was `font.heading.overlay`, 17/24, above the Section heading it sits under). See Components/Card.

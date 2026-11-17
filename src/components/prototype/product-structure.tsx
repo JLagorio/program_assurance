@@ -1,3 +1,13 @@
+// The product's Structure, after board prod-structure.html of the UX proposal (wave 9,
+// 2026-11-17): the version's element tree with a column a configuration (a mark where the
+// configuration includes the element), the library component each element pins (its name and
+// version, Assessed once where a component assessment is published, and Also in the programs and
+// products outside this one that use it), and the "Elements by reuse" strip above the toolbar, the
+// table's saved questions with their counts: Assessed once, Shared, New in version N (a code the
+// version before does not hold) and No library component (a part with nothing inside it that pins
+// none). The reads are `useProductReuse` in src/lib/product-reuse; a hidden list column keeps the
+// strip's question, another the Configuration filter's.
+
 import { useConfirmation } from "@/components/app/confirmation";
 import { ElementIdentityFields } from "@/components/app/element-fields";
 import { useFormFeedback, type FormIssue } from "@/components/app/form-feedback";
@@ -24,6 +34,7 @@ import {
   useRemoveProductElement,
   useSaveProductElement,
 } from "@/lib/product-revisions";
+import { useProductReuse, type ElementReuse } from "@/lib/product-reuse";
 import type { ElementType } from "@/lib/program-wizard";
 import { labelFor } from "@/lib/records";
 import { SaveOnceConflict } from "@/lib/save-once";
@@ -37,6 +48,8 @@ import {
   Button,
   Checkbox,
   CheckboxGroup,
+  DataTable,
+  DateTime,
   CheckboxGroupSelectAll,
   Dialog,
   DialogBody,
@@ -55,17 +68,30 @@ import {
   FieldSet,
   Icon,
   Id,
+  Inline,
   Inspector,
   KeyValue,
+  PageHeader,
   Stack,
   Text,
+  Truncate,
   defineColumns,
   toast,
   useDataTable,
   useLedgerLocale,
 } from "@ledger/design-system";
-import { AlertCircle, Plus } from "lucide-react";
-import { useCallback, useEffect, useId, useMemo, useRef, useState, type FormEvent } from "react";
+import { AlertCircle, Check, Plus } from "lucide-react";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  type FormEvent,
+  type ReactNode,
+} from "react";
+import { Link } from "@tanstack/react-router";
 import { ProductCollection } from "./product-collection";
 import { systemIcon } from "./program-systems-tree";
 import { RecordLink, useDisplayedRecords, useOpenRecord } from "./record-preview";
@@ -77,8 +103,31 @@ type StructureRow = ProductElementSpec & {
   typeLabel: string;
   libraryLabel: string;
   configurations: ListItem[];
+  /** The configurations that include it, by id: its configuration columns. */
+  configurationIds: ReadonlySet<string>;
+  reuse: ElementReuse | undefined;
+  /** What the strip's questions ask of it. */
+  reuseItems: ListItem[];
   children: StructureRow[];
 };
+
+/** The strip's questions, by the words its hidden column holds. */
+const REUSE = {
+  assessed: "Assessed once",
+  shared: "Shared",
+  noLibrary: "No library component",
+} as const;
+const newIn = (version: number) => `New in version ${version}`;
+/** The words a row's reuse holds for the strip. */
+const reuseItems = (reuse: ElementReuse | undefined, version: number): ListItem[] =>
+  !reuse
+    ? []
+    : [
+        ...(reuse.assessedOnce ? [REUSE.assessed] : []),
+        ...(reuse.alsoIn.length ? [REUSE.shared] : []),
+        ...(reuse.isNew ? [newIn(version)] : []),
+        ...(reuse.noLibrary ? [REUSE.noLibrary] : []),
+      ].map((label) => ({ key: label, label }));
 type Membership = Row<"product_configuration_elements">;
 type ElementDialogTarget = {
   existing?: ProductElementSpec;
@@ -94,11 +143,14 @@ type ElementDialogTarget = {
 export function ProductStructure({
   product,
   revision,
+  versions,
   configurations,
   editable,
 }: {
   product: Row<"products">;
   revision: Row<"product_revisions">;
+  /** Every version of the product: the one before tells what is new, their variants who else uses a component. */
+  versions: Row<"product_revisions">[];
   configurations: Row<"product_configurations">[];
   editable: boolean;
 }) {
@@ -140,6 +192,16 @@ export function ProductStructure({
     }
     return map;
   }, [memberships.data]);
+  const versionIds = useMemo(() => versions.map((row) => row.id), [versions]);
+  const previousRevisionId =
+    versions.find((row) => row.version_number === revision.version_number - 1)?.id ?? null;
+  const reuseRead = useProductReuse({
+    productId: product.id,
+    previousRevisionId,
+    versionIds,
+    specs,
+  });
+  const reuse = reuseRead.reuse;
   const rows = useMemo(() => {
     const decorate = (row: ProductTreeRow): StructureRow => {
       const inSet = membershipsOf.get(row.id) ?? new Set<string>();
@@ -165,13 +227,16 @@ export function ProductStructure({
       return {
         ...row,
         typeLabel: labelFor(row.elementType),
-        libraryLabel: row.library ? `${row.library.definitionName} · v${row.library.version}` : "",
+        libraryLabel: row.library ? `${row.library.componentName} ${row.library.version}` : "",
         configurations: items,
+        configurationIds: inSet,
+        reuse: reuse.get(row.id),
+        reuseItems: reuseItems(reuse.get(row.id), revision.version_number),
         children: row.children.map(decorate),
       };
     };
     return productTree(specs).map(decorate);
-  }, [specs, membershipsOf, active, configurations, formatPlural]);
+  }, [specs, membershipsOf, active, configurations, formatPlural, reuse, revision.version_number]);
   const removeMutate = remove.mutateAsync;
   const confirmRemove = useCallback(
     async (removing: ProductElementSpec) => {
@@ -211,12 +276,6 @@ export function ProductStructure({
               </Icon>
             );
           },
-          badge: (row) =>
-            row.library ? (
-              <Badge size="xsmall" variant="secondary" tone="information">
-                Library
-              </Badge>
-            ) : null,
           cell: (row) => (
             <RecordLink table="product_elements" record={row} onPreview={() => setSelected(row)}>
               {row.name}
@@ -229,13 +288,44 @@ export function ProductStructure({
           priority: 1,
           cell: (row) => <Id>{row.code}</Id>,
         }),
-        c.text("typeLabel", { header: "Type", width: 130 }),
-        c.text("libraryLabel", { header: "Library", width: 220 }),
-        c.list("configurations", {
-          header: "Configurations",
-          minWidth: 200,
-          items: (row) => row.configurations,
-          empty: () => <Absent label="In no configuration" />,
+        // A column a configuration: a mark where it includes the element, nothing where not.
+        ...configurations
+          .filter((configuration) => configuration.state === "active")
+          .sort((a, b) => a.code.localeCompare(b.code, undefined, { numeric: true }))
+          .map((configuration) =>
+            c.custom(`configuration:${configuration.id}`, {
+              header: configuration.name,
+              width: 160,
+              priority: 3,
+              sort: (row) => (row.configurationIds.has(configuration.id) ? 1 : 0),
+              text: (row) => (row.configurationIds.has(configuration.id) ? "Included" : ""),
+              cell: (row) =>
+                row.configurationIds.has(configuration.id) ? (
+                  <Icon label={`In ${configuration.name}`} size="small">
+                    <Check />
+                  </Icon>
+                ) : null,
+            }),
+          ),
+        c.text("libraryLabel", {
+          header: "Library component",
+          minWidth: 340,
+          priority: 2,
+          cell: (row) => <LibraryComponent row={row} />,
+        }),
+        // The Configuration filter's values, and the strip's questions: never drawn.
+        c.list("configurationNames", {
+          header: "Configuration",
+          hideable: false,
+          items: (row) =>
+            configurations
+              .filter((item) => row.configurationIds.has(item.id))
+              .map((item) => ({ key: item.id, label: item.name })),
+        }),
+        c.list("reuseItems", {
+          header: "Reuse",
+          hideable: false,
+          items: (row) => row.reuseItems,
         }),
         ...(canEdit
           ? [
@@ -263,7 +353,7 @@ export function ProductStructure({
             ]
           : []),
       ]),
-    [canEdit, confirmRemove],
+    [canEdit, confirmRemove, configurations],
   );
   const table = useDataTable({
     preview: useMemo(
@@ -284,8 +374,19 @@ export function ProductStructure({
       initialExpanded: true,
       guides: true,
     },
+    initialState: { columnVisibility: { configurationNames: false, reuseItems: false } },
   });
   const displayed = useDisplayedRecords(table);
+  // The strip's questions and their counts: every element, then what it takes from the library.
+  const presets = useMemo(
+    () => [
+      { id: "all", label: "All elements" },
+      ...[REUSE.assessed, REUSE.shared, newIn(revision.version_number), REUSE.noLibrary].map(
+        (label) => ({ id: label, label, filters: [{ id: "reuseItems", value: [label] }] }),
+      ),
+    ],
+    [revision.version_number],
+  );
   const createButton = (size: "small" | "medium") =>
     canEdit ? (
       <Button
@@ -299,6 +400,7 @@ export function ProductStructure({
     ) : null;
   return (
     <>
+      <DataTable.Presets table={table} presets={presets} aria-label="Elements by reuse" />
       <ProductCollection
         commands={
           canEdit
@@ -306,7 +408,15 @@ export function ProductStructure({
             : []
         }
         table={table}
-        queries={[elements, memberships, definedComponents, componentRevisions, definitions]}
+        queries={[
+          elements,
+          memberships,
+          definedComponents,
+          componentRevisions,
+          definitions,
+          ...reuseRead.queries,
+        ]}
+        filters={<DataTable.Filter table={table} column="configurationNames" />}
         onRowClick={(row) => openRecord("product_elements", row, () => setSelected(row))}
         empty={{
           illustration: "tree",
@@ -382,6 +492,113 @@ export function ProductStructure({
         />
       )}
     </>
+  );
+}
+
+/**
+ * The library component an element pins: its name and the version taken, then Assessed once where
+ * a component assessment is published and Also in the programs and products outside this product
+ * that use it. A component the register lists opens its set's record.
+ */
+function LibraryComponent({ row }: { row: StructureRow }) {
+  if (!row.library) return null;
+  const alsoIn = row.reuse?.alsoIn ?? [];
+  return (
+    <Inline space="space.100" alignBlock="center" className="min-w-0 flex-nowrap">
+      <Text>{row.library.componentName}</Text>
+      <Text numeric color="color.text.subtle">
+        {row.library.version}
+      </Text>
+      {row.reuse?.assessedOnce && (
+        <Badge size="xsmall" variant="secondary" tone="success">
+          Assessed once
+        </Badge>
+      )}
+      {alsoIn.length > 0 && (
+        <Truncate render={<Text color="color.text.subtle" />}>
+          {`Also in ${alsoIn[0]}${alsoIn.length > 1 ? ` and ${alsoIn.length - 1} more` : ""}`}
+        </Truncate>
+      )}
+    </Inline>
+  );
+}
+
+/**
+ * The Structure's header slot: where a component the version pins has a newer published version
+ * that leaves controls to review, Assess component for a reader who authors the library, why
+ * (the component and its version published) and how much (its day and the controls to review),
+ * opening the component's set at that version; the record's commands are in its `more`. Else the
+ * header's own actions.
+ */
+export function StructureSlot({
+  product,
+  revision,
+  versions,
+  editable,
+  more,
+  fallback,
+}: {
+  product: Row<"products">;
+  revision: Row<"product_revisions">;
+  versions: Row<"product_revisions">[];
+  editable: boolean;
+  more: Parameters<typeof PageHeader.Slot>[0]["more"];
+  fallback: ReactNode;
+}) {
+  const { formatPlural } = useLedgerLocale();
+  const elements = useRows("product_elements", { product_revision_id: revision.id });
+  const { definedComponents, componentRevisions, definitions } = useElementLibrary(elements.data);
+  const specs = useMemo(
+    () =>
+      productElementSpecs(
+        {
+          elements: elements.data ?? [],
+          definedComponents: definedComponents.data ?? [],
+          componentRevisions: componentRevisions.data ?? [],
+          definitions: definitions.data ?? [],
+        },
+        revision.id,
+      ),
+    [elements.data, definedComponents.data, componentRevisions.data, definitions.data, revision.id],
+  );
+  const versionIds = useMemo(() => versions.map((row) => row.id), [versions]);
+  const { toReview } = useProductReuse({
+    productId: product.id,
+    previousRevisionId: null,
+    versionIds,
+    specs,
+  });
+  const next = toReview[0];
+  if (!editable || !next) return <PageHeader.Actions>{fallback}</PageHeader.Actions>;
+  return (
+    <PageHeader.Slot
+      advance={{
+        label: "Assess component",
+        reason: `${next.name} ${next.version} published`,
+        detail: (
+          <>
+            {next.publishedAt && (
+              <>
+                <DateTime value={next.publishedAt} format="date" />
+                {" · "}
+              </>
+            )}
+            {formatPlural(next.controlsToReview, {
+              one: "{count} control to review",
+              other: "{count} controls to review",
+            })}
+          </>
+        ),
+        link: (
+          <Link
+            to="/library/components/$componentId"
+            params={{ componentId: next.componentId }}
+            search={{ tab: "Assessment" }}
+          />
+        ),
+      }}
+      more={more}
+    />
   );
 }
 

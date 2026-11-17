@@ -199,6 +199,78 @@ export function PageHeaderSlot({
   const whyId = useId();
   const form = advance ? "advance" : sign ? "sign" : waitingOn ? "waiting" : "none";
   if (form === "none" && !more) return null;
+  // Why the act is the next step comes first; where the row runs out, it wraps above the act, and
+  // the act keeps `more` beside it on its own line, never alone on the next.
+  const why = advance ? (
+    <span id={whyId} className="flex min-w-0 flex-col items-end text-end">
+      <span className="font-body font-medium text-default">{advance.reason}</span>
+      {advance.detail ? (
+        <span className="font-body-small text-subtle">{advance.detail}</span>
+      ) : null}
+    </span>
+  ) : sign ? (
+    <span id={whyId} className="min-w-0 font-body text-default">
+      {t("pageHeaderSigningAs", { role: sign.role })}
+    </span>
+  ) : null;
+  const act = advance ? (
+    advance.link ? (
+      <LinkButton variant="primary" size="large" render={advance.link} aria-describedby={whyId}>
+        {advance.label}
+      </LinkButton>
+    ) : (
+      <Button
+        variant="primary"
+        size="large"
+        onClick={advance.onAction}
+        isLoading={advance.isLoading}
+        aria-describedby={whyId}
+      >
+        {advance.label}
+      </Button>
+    )
+  ) : sign ? (
+    <Button
+      intent="sign"
+      signer={sign.signer}
+      onClick={sign.onSign}
+      isLoading={sign.isLoading}
+      aria-describedby={whyId}
+    >
+      {sign.label}
+    </Button>
+  ) : waitingOn ? (
+    <>
+      <span
+        id={whyId}
+        data-slot="page-header-slot-wait"
+        className="inline-flex min-h-control-large min-w-0 max-w-full items-center gap-100 rounded-full bg-neutral py-050 ps-075 pe-150"
+      >
+        <Avatar aria-hidden="true" size="xsmall" hue={avatarHue(waitingOn.name)}>
+          <AvatarFallback>{avatarInitials(waitingOn.name)}</AvatarFallback>
+        </Avatar>
+        <span className="flex min-w-0 flex-wrap items-baseline gap-x-100">
+          <span className="font-body font-medium text-default">
+            {t("pageHeaderWaitingOn", { name: waitingOn.name })}
+          </span>
+          <span className="font-body-small text-subtle">
+            {waitingOn.role ? `${waitingOn.role} · ` : null}
+            <RelativeTime value={waitingOn.since} unitStyle="narrow" />
+          </span>
+        </span>
+      </span>
+      {waitingOn.onRemind ? (
+        <Button
+          size="large"
+          onClick={waitingOn.onRemind}
+          isLoading={waitingOn.isReminding}
+          aria-describedby={whyId}
+        >
+          {t("pageHeaderRemind")}
+        </Button>
+      ) : null}
+    </>
+  ) : null;
   return (
     <div
       {...props}
@@ -206,99 +278,25 @@ export function PageHeaderSlot({
       data-form={form}
       className={cn("flex shrink-0 flex-wrap items-center justify-end gap-150", className)}
     >
-      {advance ? (
-        <>
-          <span id={whyId} className="flex min-w-0 flex-col items-end text-end">
-            <span className="font-body font-medium text-default">{advance.reason}</span>
-            {advance.detail ? (
-              <span className="font-body-small text-subtle">{advance.detail}</span>
-            ) : null}
-          </span>
-          {advance.link ? (
-            <LinkButton
-              variant="primary"
-              size="large"
-              render={advance.link}
-              aria-describedby={whyId}
-            >
-              {advance.label}
-            </LinkButton>
-          ) : (
-            <Button
-              variant="primary"
-              size="large"
-              onClick={advance.onAction}
-              isLoading={advance.isLoading}
-              aria-describedby={whyId}
-            >
-              {advance.label}
-            </Button>
-          )}
-        </>
-      ) : null}
-      {sign ? (
-        <>
-          <span id={whyId} className="min-w-0 font-body text-default">
-            {t("pageHeaderSigningAs", { role: sign.role })}
-          </span>
-          <Button
-            intent="sign"
-            signer={sign.signer}
-            onClick={sign.onSign}
-            isLoading={sign.isLoading}
-            aria-describedby={whyId}
-          >
-            {sign.label}
-          </Button>
-        </>
-      ) : null}
-      {waitingOn ? (
-        <>
-          <span
-            id={whyId}
-            data-slot="page-header-slot-wait"
-            className="inline-flex min-h-control-large min-w-0 max-w-full items-center gap-100 rounded-full bg-neutral py-050 ps-075 pe-150"
-          >
-            <Avatar aria-hidden="true" size="xsmall" hue={avatarHue(waitingOn.name)}>
-              <AvatarFallback>{avatarInitials(waitingOn.name)}</AvatarFallback>
-            </Avatar>
-            <span className="flex min-w-0 flex-wrap items-baseline gap-x-100">
-              <span className="font-body font-medium text-default">
-                {t("pageHeaderWaitingOn", { name: waitingOn.name })}
-              </span>
-              <span className="font-body-small text-subtle">
-                {waitingOn.role ? `${waitingOn.role} · ` : null}
-                <RelativeTime value={waitingOn.since} unitStyle="narrow" />
-              </span>
-            </span>
-          </span>
-          {waitingOn.onRemind ? (
-            <Button
-              size="large"
-              onClick={waitingOn.onRemind}
-              isLoading={waitingOn.isReminding}
-              aria-describedby={whyId}
-            >
-              {t("pageHeaderRemind")}
-            </Button>
-          ) : null}
-        </>
-      ) : null}
-      {more ? (
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            render={
-              <IconButton
-                label={more.label}
-                icon={<MoreHorizontal />}
-                size="large"
-                variant="subtle"
-              />
-            }
-          />
-          <DropdownMenuContent align="end">{more.items}</DropdownMenuContent>
-        </DropdownMenu>
-      ) : null}
+      {why}
+      <span className="flex min-w-0 max-w-full items-center justify-end gap-150">
+        {act}
+        {more ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={
+                <IconButton
+                  label={more.label}
+                  icon={<MoreHorizontal />}
+                  size="large"
+                  variant="subtle"
+                />
+              }
+            />
+            <DropdownMenuContent align="end">{more.items}</DropdownMenuContent>
+          </DropdownMenu>
+        ) : null}
+      </span>
     </div>
   );
 }

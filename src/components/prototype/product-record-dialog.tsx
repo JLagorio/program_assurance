@@ -31,6 +31,11 @@ export type ProductRecordFormProps = {
   table: string;
   /** Preserve the operation label for linking existing records. */
   operationLabel?: string | undefined;
+  /**
+   * The form records the reader's signature (an authorization decision): its primary is a sign
+   * Button with the signer's name.
+   */
+  signer?: string | undefined;
   existing?: DataRecord | undefined;
   initialValues?: Record<string, unknown> | undefined;
   onSaved?: ((record: DataRecord) => void | Promise<void>) | undefined;
@@ -84,6 +89,7 @@ export function ProductRecordForm(props: ProductRecordFormProps) {
 function FormContent({
   table,
   operationLabel,
+  signer,
   existing,
   initialValues,
   onSaved,
@@ -108,7 +114,11 @@ function FormContent({
         <DialogFooter>
           <DialogClose render={<Button variant="subtle" />}>Cancel</DialogClose>
           {/* The operation keeps its place while the form loads. */}
-          <Button variant="primary" isLoading>
+          <Button
+            variant="primary"
+            isLoading
+            {...(signer ? { intent: "sign" as const, signer } : {})}
+          >
             {operationLabel ??
               `${existing ? "Edit" : "Create"} ${productRecordNoun(table, existing ?? initialValues)}`}
           </Button>
@@ -180,6 +190,7 @@ function FormContent({
       presentation="product"
       formLayout="dialog"
       operationLabel={operationLabel}
+      signer={signer}
       existing={existing}
       initialValues={initialValues}
       {...(onStateChange ? { onStateChange } : {})}

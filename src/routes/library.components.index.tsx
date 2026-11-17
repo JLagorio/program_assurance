@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ComponentLibraryIndex } from "@/components/prototype/library-components";
+import { ComponentsRegister } from "@/components/prototype/components-register";
 export const Route = createFileRoute("/library/components/")({
-  head: () => ({ meta: [{ title: "Component sets — Program Assurance" }] }),
-  component: ComponentLibraryIndex,
+  head: () => ({ meta: [{ title: "Components — Program Assurance" }] }),
+  component: ComponentsRegister,
 });

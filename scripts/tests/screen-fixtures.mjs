@@ -134,9 +134,15 @@ export async function seedScreenFixtures(workspace) {
       code: `COMP-${label}`,
       name: `${label} component`,
     });
-    await insert("component_definition_revisions", {
+    const componentVersion = await insert("component_definition_revisions", {
       component_definition_id: component.id,
       version_number: 1,
+    });
+    // A component of the set's version, which the Components register lists and its record shows.
+    await insert("defined_components", {
+      component_definition_revision_id: componentVersion.id,
+      name: `${label} flight computer`,
+      component_type: "hardware",
     });
     const line = await insert("business_lines", { code: `BL-${label}`, name: `${label} line` });
     const product = await insert("products", {

@@ -300,6 +300,18 @@ export const determinations = vocabulary([
   ["other_than_satisfied", "Other than satisfied", "danger"],
   ["not_assessed", "Not assessed", "neutral"],
 ]);
+/**
+ * Where a library component version stands on a control, as its record says it, the worst first:
+ * a determination (its own, or carried forward from an earlier version), To review where a change
+ * of the version stopped an earlier one from carrying, else Not assessed.
+ */
+export const componentStandings = vocabulary([
+  ["other_than_satisfied", "Other than satisfied", "danger"],
+  ["partially_satisfied", "Partially satisfied", "warning"],
+  ["to_review", "To review", "warning"],
+  ["not_assessed", "Not assessed", "neutral"],
+  ["satisfied", "Satisfied", "success"],
+]);
 /** A test step's result. */
 export const stepDeterminations = vocabulary([
   ["met", "Met", "success"],

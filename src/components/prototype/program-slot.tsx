@@ -7,7 +7,7 @@
 // `PageHeader.Slot` in PageHeader.Actions' place, one of its forms derived by `programSlot` in
 // src/lib/program-slot (the rules are there): Sign for the authorizing official while a package
 // version waits on a decision (`Button intent="sign"` with their name, which opens the
-// authorization decision's form with them as its decision maker), Publish assessment results for
+// authorization decision's form with them as its decision maker and a sign Button as its confirm), Publish assessment results for
 // the lead assessor while draft results hold findings (the same confirmation as the Review
 // queue's), Waiting on the holder of the role for everyone else (their role and what for, since
 // when), Assign owner for a writer while open risks or operational issues have no owner (a link to
@@ -133,6 +133,7 @@ function SignSlot({
         <ProductRecordDialog
           table="authorization_decisions"
           operationLabel="Record authorization decision"
+          signer={name}
           description={
             wait.version === null
               ? wait.packageTitle

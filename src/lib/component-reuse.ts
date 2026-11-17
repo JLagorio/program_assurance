@@ -379,7 +379,7 @@ export const controlsDetermined = (standing: {
  * Every model the standing is read from: the version's claims, the assessments of it and of the
  * earlier versions it carries from, what each version's change affects, and who answers for it.
  */
-const STATUS_MODELS = [
+export const STATUS_MODELS = [
   "component_assessments",
   "component_determinations",
   "defined_component_implementations",

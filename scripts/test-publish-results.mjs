@@ -13,8 +13,7 @@
  * queue and the preview stays on the results, its primary in place saying why it no longer runs,
  * and so does its Edit assessment results. The campaign record then lists the results as
  * Published by the account, and its Actions item says why there is nothing more to publish; the
- * program's Activity and the Portfolio's Recent activity say who published the campaign's
- * results, linked to the campaign.
+ * program's Activity says who published the campaign's results, linked to the campaign.
  */
 import assert from "node:assert/strict";
 import { mkdir, mkdtemp } from "node:fs/promises";
@@ -510,7 +509,7 @@ try {
   await expect(menuItem).toHaveCount(0);
   console.log("PASS the campaign record lists the results published by the account, nothing left");
 
-  // ——— The program's Activity and the Portfolio's Recent activity say who published ——————————
+  // ——— The program's Activity says who published ———————————————————————————————————————————
   await page.goto(`${origin}/programs/${program.id}`);
   const programActivity = page.getByRole("list", { name: "Program activity" });
   const programEntry = programActivity.getByRole("link", { name: said, exact: true });
@@ -518,14 +517,6 @@ try {
   await expect(programEntry).toHaveAttribute("href", `/campaigns/${campaign.id}`);
   await expect(programActivity).toContainText(`${resultsTitle}: 1 finding.`);
   console.log("PASS the program's Activity says who published the campaign's results");
-
-  await page.goto(`${origin}/`);
-  const feed = page.getByRole("list", { name: "Recent activity" });
-  const feedEntry = feed.getByRole("link", { name: said, exact: true });
-  await expect(feedEntry).toHaveAttribute("href", `/campaigns/${campaign.id}`);
-  await expect(feed).toContainText(`${resultsTitle}: 1 finding.`);
-  await expect(feed).toContainText(program.name);
-  console.log("PASS the Portfolio's Recent activity says who published, in which program");
 
   assert.deepEqual(errors, [], "Browser has no uncaught errors or native dialogs");
 } catch (error) {

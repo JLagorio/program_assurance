@@ -44,8 +44,10 @@ import { Route as CatalogControlsControlIdRouteImport } from './routes/catalog_.
 import { Route as FindingsAssetsAssetIdRouteImport } from './routes/findings.assets.$assetId'
 import { Route as LibraryBusinessLinesIndexRouteImport } from './routes/library.business-lines.index'
 import { Route as LibraryBusinessLinesLineIdRouteImport } from './routes/library.business-lines.$lineId'
+import { Route as LibraryComponentSetsIndexRouteImport } from './routes/library.component-sets.index'
+import { Route as LibraryComponentSetsSetIdRouteImport } from './routes/library.component-sets.$setId'
 import { Route as LibraryComponentsIndexRouteImport } from './routes/library.components.index'
-import { Route as LibraryComponentsComponentKeyRouteImport } from './routes/library.components.$componentKey'
+import { Route as LibraryComponentsComponentIdRouteImport } from './routes/library.components.$componentId'
 import { Route as LibraryProductAssessmentsAssessmentIdRouteImport } from './routes/library.product-assessments.$assessmentId'
 import { Route as LibraryProductsIndexRouteImport } from './routes/library.products.index'
 import { Route as LibraryProductsProductKeyRouteImport } from './routes/library.products.$productKey'
@@ -255,15 +257,27 @@ const LibraryBusinessLinesLineIdRoute =
     path: '/library/business-lines/$lineId',
     getParentRoute: () => rootRouteImport,
   } as any)
+const LibraryComponentSetsIndexRoute =
+  LibraryComponentSetsIndexRouteImport.update({
+    id: '/library/component-sets/',
+    path: '/library/component-sets/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const LibraryComponentSetsSetIdRoute =
+  LibraryComponentSetsSetIdRouteImport.update({
+    id: '/library/component-sets/$setId',
+    path: '/library/component-sets/$setId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const LibraryComponentsIndexRoute = LibraryComponentsIndexRouteImport.update({
   id: '/library/components/',
   path: '/library/components/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const LibraryComponentsComponentKeyRoute =
-  LibraryComponentsComponentKeyRouteImport.update({
-    id: '/library/components/$componentKey',
-    path: '/library/components/$componentKey',
+const LibraryComponentsComponentIdRoute =
+  LibraryComponentsComponentIdRouteImport.update({
+    id: '/library/components/$componentId',
+    path: '/library/components/$componentId',
     getParentRoute: () => rootRouteImport,
   } as any)
 const LibraryProductAssessmentsAssessmentIdRoute =
@@ -475,7 +489,8 @@ export interface FileRoutesByFullPath {
   '/catalog/controls/$controlId': typeof CatalogControlsControlIdRoute
   '/findings/assets/$assetId': typeof FindingsAssetsAssetIdRoute
   '/library/business-lines/$lineId': typeof LibraryBusinessLinesLineIdRoute
-  '/library/components/$componentKey': typeof LibraryComponentsComponentKeyRoute
+  '/library/component-sets/$setId': typeof LibraryComponentSetsSetIdRoute
+  '/library/components/$componentId': typeof LibraryComponentsComponentIdRoute
   '/library/product-assessments/$assessmentId': typeof LibraryProductAssessmentsAssessmentIdRoute
   '/library/products/$productKey': typeof LibraryProductsProductKeyRoute
   '/library/requirements/$definitionKey': typeof LibraryRequirementsDefinitionKeyRoute
@@ -501,6 +516,7 @@ export interface FileRoutesByFullPath {
   '/register/poam/$poamId': typeof RegisterPoamPoamIdRoute
   '/register/risks/$riskId': typeof RegisterRisksRiskIdRoute
   '/library/business-lines/': typeof LibraryBusinessLinesIndexRoute
+  '/library/component-sets/': typeof LibraryComponentSetsIndexRoute
   '/library/components/': typeof LibraryComponentsIndexRoute
   '/library/products/': typeof LibraryProductsIndexRoute
   '/library/requirements/': typeof LibraryRequirementsIndexRoute
@@ -544,7 +560,8 @@ export interface FileRoutesByTo {
   '/catalog/controls/$controlId': typeof CatalogControlsControlIdRoute
   '/findings/assets/$assetId': typeof FindingsAssetsAssetIdRoute
   '/library/business-lines/$lineId': typeof LibraryBusinessLinesLineIdRoute
-  '/library/components/$componentKey': typeof LibraryComponentsComponentKeyRoute
+  '/library/component-sets/$setId': typeof LibraryComponentSetsSetIdRoute
+  '/library/components/$componentId': typeof LibraryComponentsComponentIdRoute
   '/library/product-assessments/$assessmentId': typeof LibraryProductAssessmentsAssessmentIdRoute
   '/library/products/$productKey': typeof LibraryProductsProductKeyRoute
   '/library/requirements/$definitionKey': typeof LibraryRequirementsDefinitionKeyRoute
@@ -570,6 +587,7 @@ export interface FileRoutesByTo {
   '/register/poam/$poamId': typeof RegisterPoamPoamIdRoute
   '/register/risks/$riskId': typeof RegisterRisksRiskIdRoute
   '/library/business-lines': typeof LibraryBusinessLinesIndexRoute
+  '/library/component-sets': typeof LibraryComponentSetsIndexRoute
   '/library/components': typeof LibraryComponentsIndexRoute
   '/library/products': typeof LibraryProductsIndexRoute
   '/library/requirements': typeof LibraryRequirementsIndexRoute
@@ -614,7 +632,8 @@ export interface FileRoutesById {
   '/catalog_/controls/$controlId': typeof CatalogControlsControlIdRoute
   '/findings/assets/$assetId': typeof FindingsAssetsAssetIdRoute
   '/library/business-lines/$lineId': typeof LibraryBusinessLinesLineIdRoute
-  '/library/components/$componentKey': typeof LibraryComponentsComponentKeyRoute
+  '/library/component-sets/$setId': typeof LibraryComponentSetsSetIdRoute
+  '/library/components/$componentId': typeof LibraryComponentsComponentIdRoute
   '/library/product-assessments/$assessmentId': typeof LibraryProductAssessmentsAssessmentIdRoute
   '/library/products/$productKey': typeof LibraryProductsProductKeyRoute
   '/library/requirements/$definitionKey': typeof LibraryRequirementsDefinitionKeyRoute
@@ -640,6 +659,7 @@ export interface FileRoutesById {
   '/register/poam/$poamId': typeof RegisterPoamPoamIdRoute
   '/register/risks/$riskId': typeof RegisterRisksRiskIdRoute
   '/library/business-lines/': typeof LibraryBusinessLinesIndexRoute
+  '/library/component-sets/': typeof LibraryComponentSetsIndexRoute
   '/library/components/': typeof LibraryComponentsIndexRoute
   '/library/products/': typeof LibraryProductsIndexRoute
   '/library/requirements/': typeof LibraryRequirementsIndexRoute
@@ -685,7 +705,8 @@ export interface FileRouteTypes {
     | '/catalog/controls/$controlId'
     | '/findings/assets/$assetId'
     | '/library/business-lines/$lineId'
-    | '/library/components/$componentKey'
+    | '/library/component-sets/$setId'
+    | '/library/components/$componentId'
     | '/library/product-assessments/$assessmentId'
     | '/library/products/$productKey'
     | '/library/requirements/$definitionKey'
@@ -711,6 +732,7 @@ export interface FileRouteTypes {
     | '/register/poam/$poamId'
     | '/register/risks/$riskId'
     | '/library/business-lines/'
+    | '/library/component-sets/'
     | '/library/components/'
     | '/library/products/'
     | '/library/requirements/'
@@ -754,7 +776,8 @@ export interface FileRouteTypes {
     | '/catalog/controls/$controlId'
     | '/findings/assets/$assetId'
     | '/library/business-lines/$lineId'
-    | '/library/components/$componentKey'
+    | '/library/component-sets/$setId'
+    | '/library/components/$componentId'
     | '/library/product-assessments/$assessmentId'
     | '/library/products/$productKey'
     | '/library/requirements/$definitionKey'
@@ -780,6 +803,7 @@ export interface FileRouteTypes {
     | '/register/poam/$poamId'
     | '/register/risks/$riskId'
     | '/library/business-lines'
+    | '/library/component-sets'
     | '/library/components'
     | '/library/products'
     | '/library/requirements'
@@ -823,7 +847,8 @@ export interface FileRouteTypes {
     | '/catalog_/controls/$controlId'
     | '/findings/assets/$assetId'
     | '/library/business-lines/$lineId'
-    | '/library/components/$componentKey'
+    | '/library/component-sets/$setId'
+    | '/library/components/$componentId'
     | '/library/product-assessments/$assessmentId'
     | '/library/products/$productKey'
     | '/library/requirements/$definitionKey'
@@ -849,6 +874,7 @@ export interface FileRouteTypes {
     | '/register/poam/$poamId'
     | '/register/risks/$riskId'
     | '/library/business-lines/'
+    | '/library/component-sets/'
     | '/library/components/'
     | '/library/products/'
     | '/library/requirements/'
@@ -889,13 +915,15 @@ export interface RootRouteChildren {
   CatalogControlsControlIdRoute: typeof CatalogControlsControlIdRoute
   FindingsAssetsAssetIdRoute: typeof FindingsAssetsAssetIdRoute
   LibraryBusinessLinesLineIdRoute: typeof LibraryBusinessLinesLineIdRoute
-  LibraryComponentsComponentKeyRoute: typeof LibraryComponentsComponentKeyRoute
+  LibraryComponentSetsSetIdRoute: typeof LibraryComponentSetsSetIdRoute
+  LibraryComponentsComponentIdRoute: typeof LibraryComponentsComponentIdRoute
   LibraryProductAssessmentsAssessmentIdRoute: typeof LibraryProductAssessmentsAssessmentIdRoute
   LibraryProductsProductKeyRoute: typeof LibraryProductsProductKeyRoute
   LibraryRequirementsDefinitionKeyRoute: typeof LibraryRequirementsDefinitionKeyRoute
   RegisterPoamPoamIdRoute: typeof RegisterPoamPoamIdRoute
   RegisterRisksRiskIdRoute: typeof RegisterRisksRiskIdRoute
   LibraryBusinessLinesIndexRoute: typeof LibraryBusinessLinesIndexRoute
+  LibraryComponentSetsIndexRoute: typeof LibraryComponentSetsIndexRoute
   LibraryComponentsIndexRoute: typeof LibraryComponentsIndexRoute
   LibraryProductsIndexRoute: typeof LibraryProductsIndexRoute
   LibraryRequirementsIndexRoute: typeof LibraryRequirementsIndexRoute
@@ -1148,6 +1176,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LibraryBusinessLinesLineIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/library/component-sets/': {
+      id: '/library/component-sets/'
+      path: '/library/component-sets'
+      fullPath: '/library/component-sets/'
+      preLoaderRoute: typeof LibraryComponentSetsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/library/component-sets/$setId': {
+      id: '/library/component-sets/$setId'
+      path: '/library/component-sets/$setId'
+      fullPath: '/library/component-sets/$setId'
+      preLoaderRoute: typeof LibraryComponentSetsSetIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/library/components/': {
       id: '/library/components/'
       path: '/library/components'
@@ -1155,11 +1197,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LibraryComponentsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/library/components/$componentKey': {
-      id: '/library/components/$componentKey'
-      path: '/library/components/$componentKey'
-      fullPath: '/library/components/$componentKey'
-      preLoaderRoute: typeof LibraryComponentsComponentKeyRouteImport
+    '/library/components/$componentId': {
+      id: '/library/components/$componentId'
+      path: '/library/components/$componentId'
+      fullPath: '/library/components/$componentId'
+      preLoaderRoute: typeof LibraryComponentsComponentIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/library/product-assessments/$assessmentId': {
@@ -1500,7 +1542,8 @@ const rootRouteChildren: RootRouteChildren = {
   CatalogControlsControlIdRoute: CatalogControlsControlIdRoute,
   FindingsAssetsAssetIdRoute: FindingsAssetsAssetIdRoute,
   LibraryBusinessLinesLineIdRoute: LibraryBusinessLinesLineIdRoute,
-  LibraryComponentsComponentKeyRoute: LibraryComponentsComponentKeyRoute,
+  LibraryComponentSetsSetIdRoute: LibraryComponentSetsSetIdRoute,
+  LibraryComponentsComponentIdRoute: LibraryComponentsComponentIdRoute,
   LibraryProductAssessmentsAssessmentIdRoute:
     LibraryProductAssessmentsAssessmentIdRoute,
   LibraryProductsProductKeyRoute: LibraryProductsProductKeyRoute,
@@ -1508,6 +1551,7 @@ const rootRouteChildren: RootRouteChildren = {
   RegisterPoamPoamIdRoute: RegisterPoamPoamIdRoute,
   RegisterRisksRiskIdRoute: RegisterRisksRiskIdRoute,
   LibraryBusinessLinesIndexRoute: LibraryBusinessLinesIndexRoute,
+  LibraryComponentSetsIndexRoute: LibraryComponentSetsIndexRoute,
   LibraryComponentsIndexRoute: LibraryComponentsIndexRoute,
   LibraryProductsIndexRoute: LibraryProductsIndexRoute,
   LibraryRequirementsIndexRoute: LibraryRequirementsIndexRoute,

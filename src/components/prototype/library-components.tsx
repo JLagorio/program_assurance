@@ -215,8 +215,8 @@ export function ComponentLibraryIndex() {
           onClose={() => setCreating(false)}
           onSaved={(record) => {
             void navigate({
-              to: "/library/components/$componentKey",
-              params: { componentKey: record.id },
+              to: "/library/component-sets/$setId",
+              params: { setId: record.id },
             });
           }}
         />
@@ -245,8 +245,8 @@ export function ComponentLibraryIndex() {
         fill
         onRowClick={(row) => {
           void navigate({
-            to: "/library/components/$componentKey",
-            params: { componentKey: row.id },
+            to: "/library/component-sets/$setId",
+            params: { setId: row.id },
           });
         }}
         empty={{
@@ -332,16 +332,16 @@ export function ComponentLibraryRecord({
   id: string;
   initialVersion?: string;
   /** The open tab, when the route keeps it in the address; otherwise the record keeps its own. */
-  tab?: ComponentTab | undefined;
-  onTabChange?: ((tab: ComponentTab) => void) | undefined;
+  tab?: ComponentSetTab | undefined;
+  onTabChange?: ((tab: ComponentSetTab) => void) | undefined;
 }) {
   const navigate = useNavigate();
   // Above the version, so choosing another version keeps the reader on the tab they are reading.
   // Where the route keeps the tab, the address owns it, so Back to an address with no tab shows
   // Overview; otherwise the record keeps its own.
-  const [ownTab, setOwnTab] = useState<ComponentTab>("Overview");
+  const [ownTab, setOwnTab] = useState<ComponentSetTab>("Overview");
   const tab = onTabChange ? (routeTab ?? "Overview") : ownTab;
-  function changeTab(next: ComponentTab) {
+  function changeTab(next: ComponentSetTab) {
     if (onTabChange) onTabChange(next);
     else setOwnTab(next);
   }
@@ -376,8 +376,8 @@ export function ComponentLibraryRecord({
     setSelectedVersion(versionId);
     // The version is part of the address, so a reload, Back or a shared link keeps it.
     void navigate({
-      to: "/library/components/$componentKey",
-      params: { componentKey: id },
+      to: "/library/component-sets/$setId",
+      params: { setId: id },
       search: (previous) => ({ ...previous, version: versionId }),
       replace: true,
     });
@@ -408,7 +408,7 @@ export function ComponentLibraryRecord({
   if (!definition.data)
     return (
       <QueryState queries={[definition]}>
-        <MissingRecord backTo="/library/components" kind="Component set" />
+        <MissingRecord backTo="/library/component-sets" kind="Component set" />
       </QueryState>
     );
   const record = definition.data;
@@ -416,7 +416,7 @@ export function ComponentLibraryRecord({
     <Page>
       <PageHeader>
         <RecordTrail current={record.name}>
-          <TrailLink to="/library/components">Component sets</TrailLink>
+          <TrailLink to="/library/component-sets">Component sets</TrailLink>
         </RecordTrail>
         {/* The state of the version the page reads, as its Details say it. */}
         <RecordHeading
@@ -526,7 +526,7 @@ export function ComponentLibraryRecord({
   );
 }
 
-const componentTabs = [
+const componentSetTabs = [
   "Overview",
   "Controls",
   "Structure",
@@ -535,7 +535,10 @@ const componentTabs = [
   "Versions",
   "Programs",
 ] as const;
-export type ComponentTab = (typeof componentTabs)[number];
+export type ComponentSetTab = (typeof componentSetTabs)[number];
+/** Whether a value names one of the set record's tabs: an address's `tab` is checked with it. */
+export const isComponentSetTab = (value: unknown): value is ComponentSetTab =>
+  typeof value === "string" && (componentSetTabs as readonly string[]).includes(value);
 
 type ClaimRow = Row<"defined_component_implementations"> & {
   code: string | null;
@@ -561,8 +564,8 @@ function ComponentRevision({
   /** Where the last version choice came from, which this page's focus reads once it is drawn. */
   versionChoice: RefObject<VersionChoice | null>;
   editable: boolean;
-  tab: ComponentTab;
-  onTab: (tab: ComponentTab) => void;
+  tab: ComponentSetTab;
+  onTab: (tab: ComponentSetTab) => void;
 }) {
   const openRecord = useOpenRecord();
   const locale = useLedgerLocale();
@@ -895,9 +898,9 @@ function ComponentRevision({
           onClose={() => setEdit(null)}
         />
       )}
-      <Tabs value={tab} onValueChange={(value) => onTab(value as ComponentTab)}>
+      <Tabs value={tab} onValueChange={(value) => onTab(value as ComponentSetTab)}>
         <TabsList variant="line" aria-label="Component set sections">
-          {componentTabs.map((name) => (
+          {componentSetTabs.map((name) => (
             <TabsTrigger key={name} value={name}>
               {name}
               {name === "Controls" && implementations.data && (
@@ -910,7 +913,7 @@ function ComponentRevision({
           ))}
         </TabsList>
         {/* Each tab keeps its panel once drawn, so a register keeps its rows, question and place. */}
-        <RetainedTabPanels tabs={componentTabs} value={tab} space="space.200">
+        <RetainedTabPanels tabs={componentSetTabs} value={tab} space="space.200">
           {(name) => {
             switch (name) {
               case "Overview":

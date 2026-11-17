@@ -340,7 +340,9 @@ try {
     component_definition_id: definition.id,
     version_number: 1,
   });
-  await page.goto(`${origin}/library/components/${definition.id}`);
+  // An address from before components had pages named a set: it opens the set, on its tab.
+  await page.goto(`${origin}/library/components/${definition.id}?tab=Structure`);
+  await expect(page).toHaveURL(`${origin}/library/component-sets/${definition.id}?tab=Structure`);
   await page.getByRole("tab", { name: "Structure", exact: true }).click();
   await page.getByRole("button", { name: "Create component", exact: true }).first().click();
   const component = page.getByRole("dialog", { name: "Create component", exact: true });

@@ -129,20 +129,35 @@ const coveredNowhere = (answer: ProductControlStatusAnswer) =>
     ),
   ).length;
 
-/** A scope's controls as one bar, each status its share, in the key's order and the map's marks. */
-function ScopeTally({ scope, total }: { scope: Scope; total: number }) {
+/**
+ * A scope's controls as one bar, each status its share, in the key's order and the map's marks:
+ * on a card here, and beside the number in a row of the Portfolio's hierarchy.
+ */
+export function ProductStatusTally({
+  counts,
+  total,
+  label,
+}: {
+  counts: ProductControlCounts;
+  total: number;
+  /** The bar's name: whose controls they are. */
+  label: string;
+}) {
   const { formatNumber } = useLedgerLocale();
   const segments = KEY_ORDER.map((key): TallySegment => ({
     key,
-    value: scope.counts[key],
-    label: `${formatNumber(scope.counts[key])} ${productControlStatuses[key].label.toLowerCase()}`,
+    value: counts[key],
+    label: `${formatNumber(counts[key])} ${productControlStatuses[key].label.toLowerCase()}`,
     ...marks[key],
   }));
+  return <Tally segments={segments} total={total} size="large" label={label} />;
+}
+
+function ScopeTally({ scope, total }: { scope: Scope; total: number }) {
   return (
-    <Tally
-      segments={segments}
+    <ProductStatusTally
+      counts={scope.counts}
       total={total}
-      size="large"
       label={`Controls of ${scope.name} by status`}
     />
   );

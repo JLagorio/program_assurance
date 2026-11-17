@@ -110,7 +110,8 @@ export const organizationDestinations = {
       key: "components",
       label: "Components",
       to: "/library/components",
-      holds: ["/library/components"],
+      // The components, and the sets they are versioned in.
+      holds: ["/library/components", "/library/component-sets"],
     },
   ],
   registers: [

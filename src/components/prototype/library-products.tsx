@@ -71,7 +71,7 @@ import { ProductCollection } from "./product-collection";
 import { ProductAssessmentsSection } from "./product-assessment";
 import { ProductAssessmentTab, ProductStandingTray } from "./product-standing";
 import { ProductRecordDialog } from "./product-record-dialog";
-import { ProductStructure } from "./product-structure";
+import { ProductStructure, StructureSlot } from "./product-structure";
 import { RetainedTabPanels } from "./program-shared";
 import { RecordLink, useDisplayedRecords, useEndOnHide, useOpenRecord } from "./record-preview";
 import { RelationName } from "./record-tools";
@@ -484,6 +484,48 @@ export function ProductLibraryRecord({
         : !configurations.data.some((configuration) => configuration.state === "active")
           ? "Create an active configuration before publishing this version."
           : undefined;
+  // The record's other commands: the Actions menu's, or the slot's `more` on Structure.
+  const commands = editable && (
+    <>
+      <DropdownMenuItem
+        disabledReason={
+          !revisions.data
+            ? "Loading the versions."
+            : busy
+              ? "A version is being created."
+              : openDraft
+                ? `Version ${openDraft.version_number} is a draft. Publish it before creating another.`
+                : undefined
+        }
+        onClick={() => void newVersion()}
+      >
+        Create product version
+      </DropdownMenuItem>
+      {current?.state === "draft" && (
+        <DropdownMenuItem disabledReason={publishReason} onClick={() => void publishVersion()}>
+          Publish version
+        </DropdownMenuItem>
+      )}
+      {current?.state === "published" && (
+        <DropdownMenuItem
+          disabledReason={exportDocument.isPending ? "The export is being prepared." : undefined}
+          onClick={() => void exportOscal()}
+        >
+          Export OSCAL
+        </DropdownMenuItem>
+      )}
+    </>
+  );
+  // The edit is the primary; a reader who authors nothing here sees no menu.
+  const actions = (
+    <RecordActions
+      table="products"
+      editLabel="Edit product"
+      {...(editable ? { onEdit: () => setEditProduct(true) } : {})}
+    >
+      {commands}
+    </RecordActions>
+  );
   if (!product.data)
     return (
       <QueryState queries={[product]}>
@@ -503,51 +545,28 @@ export function ProductLibraryRecord({
         >
           {product.data.name}
         </RecordHeading>
-        <PageHeader.Actions>
-          {/* The edit is the primary; a reader who authors nothing here sees no menu. */}
-          <RecordActions
-            table="products"
-            editLabel="Edit product"
-            {...(editable ? { onEdit: () => setEditProduct(true) } : {})}
-          >
-            {editable && (
-              <>
-                <DropdownMenuItem
-                  disabledReason={
-                    !revisions.data
-                      ? "Loading the versions."
-                      : busy
-                        ? "A version is being created."
-                        : openDraft
-                          ? `Version ${openDraft.version_number} is a draft. Publish it before creating another.`
-                          : undefined
-                  }
-                  onClick={() => void newVersion()}
-                >
-                  Create product version
-                </DropdownMenuItem>
-                {current?.state === "draft" && (
-                  <DropdownMenuItem
-                    disabledReason={publishReason}
-                    onClick={() => void publishVersion()}
-                  >
-                    Publish version
+        {current && tab === "Structure" ? (
+          <StructureSlot
+            product={product.data}
+            revision={current}
+            versions={versions}
+            editable={editable}
+            more={{
+              label: "More product actions",
+              items: (
+                <>
+                  <DropdownMenuItem onClick={() => setEditProduct(true)}>
+                    Edit product
                   </DropdownMenuItem>
-                )}
-                {current?.state === "published" && (
-                  <DropdownMenuItem
-                    disabledReason={
-                      exportDocument.isPending ? "The export is being prepared." : undefined
-                    }
-                    onClick={() => void exportOscal()}
-                  >
-                    Export OSCAL
-                  </DropdownMenuItem>
-                )}
-              </>
-            )}
-          </RecordActions>
-        </PageHeader.Actions>
+                  {commands}
+                </>
+              ),
+            }}
+            fallback={actions}
+          />
+        ) : (
+          <PageHeader.Actions>{actions}</PageHeader.Actions>
+        )}
       </PageHeader>
       {editProduct && (
         <ProductRecordDialog
@@ -978,6 +997,7 @@ function ProductRevision({
                   <ProductStructure
                     product={product}
                     revision={revision}
+                    versions={versions}
                     configurations={configurations}
                     editable={editable}
                   />

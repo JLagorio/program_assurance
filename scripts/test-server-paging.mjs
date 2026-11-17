@@ -4,8 +4,8 @@
  * register, operational issues, observations, assessment findings, system assets, unrolled
  * findings, evidence, My work, the Assessment campaigns page's Objectives and a campaign record's
  * Objectives read one page at a time from the server, which pages, sorts (a derived column too),
- * filters, searches and counts the whole result; the question lives in the address, where the
- * Portfolio's tiles ask it; saved views count the whole register; and a preview counts the whole
+ * filters, searches and counts the whole result; the question lives in the address, where a link
+ * asks it; saved views count the whole register; and a preview counts the whole
  * result and steps across a page edge. Every register's records are seeded in the run's own
  * disposable workspace.
  */
@@ -20,12 +20,9 @@
 // Assessment campaigns page's Objectives: one page read with the exact count and no read of the
 // tables behind the view, a sort and a filter on a derived column (an owner's name, a latest
 // severity, an allocation state, nobody assigned), asset ids sorted as they read, a page that
-// carries on inside a tree, the Portfolio's tiles counted on the server with no read of the records
-// they count and opening their register on its question, Recently updated programs read from
-// `program_activity` and its Controls satisfied from `program_control_status_counts`, never a
-// program's whole `program_control_status`, the risk matrix and Highest open risks read from
-// `risk_rows` scoped to the open risks, never a risk or a risk assessment, Highest open risks in
-// their order, saved views that count the whole register, an Export of the whole result, and Assign
+// carries on inside a tree, the Portfolio's facts counted on the server with no read of a risk,
+// an issue, a finding or a program's whole control status, a register opened on a question in its
+// address, saved views that count the whole register, an Export of the whole result, and Assign
 // owner on the risk register and on the Requirements (the page, then every requirement of the
 // result chosen, the requirements nobody owns given one owner in one request, each change recorded
 // in the requirement's history). It checks that a failed page keeps the one before it under one
@@ -1189,94 +1186,52 @@ try {
     assert.equal(reads.filter((url) => pattern.test(url.pathname)).length, 0, message);
   }
 
-  // ——— Operational issues: the Portfolio's tile asks the register's question of the server ————
-  const issueLabel = "Operational issues";
-  const issueTable = page.getByRole("table", { name: issueLabel, exact: true });
+  // ——— The Portfolio: its hierarchy counts on the server and reads no risk, issue or finding ————
   reads.length = 0;
   counts.length = 0;
   await fresh("/");
-  // The tiles count on the server, a HEAD request each, and read no issue, finding or risk.
-  const issueTile = page.getByRole("link", { name: /^Open operational issues/ });
-  await expect(issueTile).toContainText(number(openIssues));
-  await expect(page.getByRole("link", { name: /^Unsatisfied assessment findings/ })).toContainText(
-    number(unsatisfied),
-  );
-  expectNoBaseReads(
-    [
-      "operational_issues",
-      "operational_issue_rows",
-      "assessment_findings",
-      "assessment_finding_rows",
-    ],
-    "The Portfolio's tiles read no issue or finding",
-  );
-  for (const view of ["operational_issue_rows", "assessment_finding_rows", "risk_rows"])
-    assert.ok(
-      counts.some((url) => url.pathname.endsWith(`/rest/v1/${view}`)),
-      `The Portfolio counts ${view} on the server`,
-    );
-  // Recently updated programs ranks by the latest activity in each program, read in one request.
-  const recentPrograms = page.getByRole("table", { name: "Recently updated programs" });
-  await expect(recentPrograms).toContainText(program.name);
-  assert.ok(
-    reads.some((url) => url.pathname.endsWith("/rest/v1/program_activity")),
-    "Recently updated programs reads the programs' last activity",
-  );
-  // Its Controls satisfied column reads the rows' control status counts in one request, never a
-  // program's whole control status (every control of its baseline) once a row.
+  // This workspace holds no product: the hierarchy is its empty state, and the facts are counted.
+  await expect(page.getByText("No products yet")).toBeVisible();
+  // The workspace's programs and its assessed components are counted, never read.
   await expect
     .poll(
       () =>
-        reads.filter((url) => url.pathname.endsWith("/rest/v1/rpc/program_control_status_counts"))
-          .length,
+        counts.filter((url) => /\/rest\/v1\/(programs|component_rows)$/.test(url.pathname)).length,
     )
-    .toBeGreaterThan(0);
+    .toBe(2);
+  expectNoBaseReads(
+    [
+      "risks",
+      "risk_rows",
+      "risk_revisions",
+      "operational_issues",
+      "assessment_findings",
+      "assessment_finding_rows",
+      "program_activity",
+      "activity_events",
+    ],
+    "The Portfolio reads no risk, issue, finding or activity",
+  );
+  // No program takes a product here, so no issue is read for the Open issues column either.
+  expectNoBaseReads(
+    ["operational_issue_rows"],
+    "The Portfolio reads no issue of a program on no product",
+  );
   assert.equal(
     reads.filter((url) => url.pathname.endsWith("/rest/v1/rpc/program_control_status")).length,
     0,
-    "Recently updated programs reads no program's whole control status",
+    "The Portfolio reads no program's whole control status",
   );
-  console.log("PASS the Portfolio's tiles count on the server, and its programs rank by activity");
-  console.log("PASS Recently updated programs reads its rows' control status counts alone");
-  // The risk matrix and Highest open risks read the risk register's view, scoped to the open
-  // risks, never every risk and risk assessment of the workspace. The matrix places the 26
-  // assessed risks at their latest likelihood and impact; Highest open risks lists five of the
-  // seven critical ones, latest changed first and then by id (Assign owner changed them together).
-  const highest = page.getByRole("table", { name: "Highest open risks" });
-  const criticalRisks = await data(
-    client
-      .from("risks")
-      .select("id,title,updated_at")
-      .in(
-        "id",
-        [0, 3, 7, 11, 15, 19, 23].map((index) => risks[index].id),
-      ),
+  console.log("PASS the Portfolio counts on the server and reads no risk, issue or finding");
+
+  // ——— Operational issues: the open issues, asked of the register's view on the server ———————
+  const issueLabel = "Operational issues";
+  const issueTable = page.getByRole("table", { name: issueLabel, exact: true });
+  await fresh(
+    `/findings?operational-issues.filters=${encodeURIComponent(
+      JSON.stringify({ status: ["open", "triaged", "in_progress"] }),
+    )}`,
   );
-  const expectedHighest = criticalRisks
-    .sort((a, b) => Date.parse(b.updated_at) - Date.parse(a.updated_at) || (a.id < b.id ? -1 : 1))
-    .slice(0, 5)
-    .map((risk) => risk.title);
-  await expect(highest.locator("tbody tr")).toHaveCount(5);
-  assert.deepEqual(
-    (await highest.locator("tbody tr a").allInnerTexts()).map((text) => text.trim()),
-    expectedHighest,
-    "Highest open risks lists the critical risks, latest changed first",
-  );
-  await expect(page.getByText("4 open risks are not yet assessed").first()).toBeVisible();
-  await expect(
-    page.getByText("26 assessed open risks, placed by their likelihood and impact.").first(),
-  ).toBeAttached();
-  expectNoBaseReads(["risks", "risk_revisions"], "The Portfolio reads no risk or risk assessment");
-  assert.ok(
-    reads.filter(
-      (url) =>
-        url.pathname.endsWith("/rest/v1/risk_rows") &&
-        url.searchParams.get("status") === "in.(accepted,investigating,open,responding)",
-    ).length >= 2,
-    "The risk matrix and Highest open risks read the open risks from the register's view",
-  );
-  console.log("PASS the risk matrix and Highest open risks read the open risks from risk_rows");
-  await issueTile.click();
   await expect(range(issueLabel)).toContainText(`1–${PAGE} of ${number(openIssues)}`);
   await expect(rows(issueTable)).toHaveCount(PAGE);
   await expect.poll(() => question().get("operational-issues.filters")).toContain("triaged");
@@ -1374,8 +1329,11 @@ try {
       .order("id"),
   );
   assert.equal(byDetermination.length, unsatisfied);
-  await fresh("/");
-  await page.getByRole("link", { name: /^Unsatisfied assessment findings/ }).click();
+  await fresh(
+    `/findings?tab=findings&assessment-findings.filters=${encodeURIComponent(
+      JSON.stringify({ determination: ["partially_satisfied", "other_than_satisfied"] }),
+    )}`,
+  );
   await expect(page.getByRole("tab", { name: findingLabel, exact: true })).toHaveAttribute(
     "aria-selected",
     "true",
