@@ -1,0 +1,1944 @@
+# Vanta help center: every article
+
+753 articles in 56 collections, fetched 2026-11-17. Each article's text is under articles/. Its images are under ../images/, grouped by what they show (see ../images/README.md).
+
+
+## Audit Readiness
+
+- [AWS Foundational Technical Review (FTR)](articles/aws-foundational-technical-review-ftr.md) · 0 images
+- [Adding and Managing Auditors](articles/adding-and-managing-auditors.md) · 11 images
+- [Alternative Compliance Paths](articles/alternative-compliance-paths.md) · 0 images
+- [Audit 101: How Audits Work](articles/audit-101-how-audits-work.md) · 0 images
+- [Audit 102: Working With Your Auditor](articles/audit-102-working-with-your-auditor.md) · 0 images
+- [Audit 103: The Audit Readiness Checklist](articles/audit-103-the-audit-readiness-checklist.md) · 0 images
+- [Audit Evidence](articles/audit-evidence.md) · 2 images
+- [Background Checks in Vanta](articles/background-checks-in-vanta.md) · 2 images
+- [Conducting Annual Performance Reviews](articles/conducting-annual-performance-reviews.md) · 0 images
+- [Configure Screen Lock on Windows Devices](articles/configure-screen-lock-on-windows-devices.md) · 1 images
+- [Configuring Screen Lock on MacOS Devices](articles/configuring-screen-lock-on-macos-devices.md) · 1 images
+- [Creating an Audit](articles/creating-an-audit.md) · 5 images
+- [Criminal Justice Information Services (CJIS)](articles/criminal-justice-information-services-cjis.md) · 0 images
+- [Cyber Insurance](articles/cyber-insurance.md) · 0 images
+- [Cyber Risk Institute (CRI) Profile](articles/cyber-risk-institute-cri-profile.md) · 0 images
+- [Device Monitoring in Vanta](articles/device-monitoring-in-vanta.md) · 4 images
+- [Duplicating an Audit](articles/duplicating-an-audit.md) · 1 images
+- [Encrypting Your Computer Hard Drives](articles/encrypting-your-computer-hard-drives.md) · 0 images
+- [FedRAMP](articles/fedramp.md) · 0 images
+- [FedRAMP r5 Control Sets](articles/fedramp-r5-control-sets.md) · 0 images
+- [Framework Control Sets (CIS: Center of Internet Security)](articles/framework-control-sets-cis-center-of-internet-security.md) · 3 images
+- [Framework Control Sets (SOC 2 Trust Services Criteria)](articles/framework-control-sets-soc-2-trust-services-criteria.md) · 5 images
+- [Frequently Asked Questions: Audits](articles/frequently-asked-questions-audits.md) · 0 images
+- [Frequently Asked Questions: SOC 2 Bridge Letter](articles/frequently-asked-questions-soc-2-bridge-letter.md) · 0 images
+- [Gap Assessments](articles/gap-assessments.md) · 0 images
+- [Getting Started with ISMS 11: Statement of Applicability](articles/getting-started-with-isms-11-statement-of-applicability.md) · 2 images
+- [HITRUST CSF](articles/hitrust-csf.md) · 0 images
+- [How to Appoint an Article 27 Representative for GDPR](articles/how-to-appoint-an-article-27-representative-for-gdpr.md) · 0 images
+- [How to Approach Your Incident Response Plan in Vanta](articles/how-to-approach-your-incident-response-plan-in-vanta.md) · 0 images
+- [How will your Auditor use Vanta?](articles/how-will-your-auditor-use-vanta.md) · 7 images
+- [ISO 22301 – Business Continuity Management System (BCMS)](articles/iso-22301-business-continuity-management-system-bcms.md) · 0 images
+- [ISO 27001](articles/iso-27001.md) · 0 images
+- [ISO 27001 Audit Readiness Checklist](articles/iso-27001-audit-readiness-checklist.md) · 0 images
+- [ISO 27001:2022 Frequently Asked Questions](articles/iso-27001-2022-frequently-asked-questions.md) · 0 images
+- [ISO 27017](articles/iso-27017.md) · 0 images
+- [ISO 27018](articles/iso-27018.md) · 0 images
+- [ISO 27701](articles/iso-27701.md) · 1 images
+- [ISO 42001 AI Management System (AIMS)](articles/iso-42001-ai-management-system-aims.md) · 0 images
+- [ISO/IEC 27001:2022 ISMS Management Review Checklist](articles/iso-iec-27001-2022-isms-management-review-checklist.md) · 0 images
+- [Integrating Climate Change Considerations into your ISMS following the ISO 27001 2024 Amendment](articles/integrating-climate-change-considerations-into-your-isms-following-the-iso-27001-2024-amendment.md) · 0 images
+- [Interdepartmental Involvement for SOC 2 Readiness](articles/interdepartmental-involvement-for-soc-2-readiness.md) · 0 images
+- [Managing Auditor Views](articles/managing-auditor-views.md) · 3 images
+- [Managing an Information Request List (IRL)](articles/managing-an-information-request-list-irl.md) · 8 images
+- [Microsoft Supplier Security and Privacy Assurance Program (SSPA)](articles/microsoft-supplier-security-and-privacy-assurance-program-sspa.md) · 0 images
+- [Migrate from ISO 27001:2013 to ISO 27001:2022](articles/migrate-from-iso-27001-2013-to-iso-27001-2022.md) · 3 images
+- [Migrating from FedRAMP v4 to v5](articles/migrating-from-fedramp-v4-to-v5.md) · 0 images
+- [Minimum Viable Security Product (MVSP)](articles/minimum-viable-security-product-mvsp.md) · 0 images
+- [Missing information on Access Page for HubSpot](articles/missing-information-on-access-page-for-hubspot.md) · 0 images
+- [NIST 800-171](articles/nist-800-171.md) · 0 images
+- [NIST 800-53](articles/nist-800-53.md) · 0 images
+- [NIST CSF (Cybersecurity Framework)](articles/nist-csf-cybersecurity-framework.md) · 0 images
+- [Open Finance Data Security Standard (OFDSS)](articles/open-finance-data-security-standard-ofdss.md) · 0 images
+- [PCI 4.0 Frequently Asked Questions](articles/pci-4-0-frequently-asked-questions.md) · 0 images
+- [PCI Requirement Changes](articles/pci-requirement-changes.md) · 0 images
+- [Penetration Testing](articles/penetration-testing.md) · 0 images
+- [Previewing Vanta as an Auditor](articles/previewing-vanta-as-an-auditor.md) · 0 images
+- [RTO (Recovery Time Objective) and RPO (Recovery Point Objective)](articles/rto-recovery-time-objective-and-rpo-recovery-point-objective.md) · 0 images
+- [SOC 2: Year Two Security Tasks](articles/soc-2-year-two-security-tasks.md) · 0 images
+- [SOX IT General Controls (ITGC)](articles/sox-it-general-controls-itgc.md) · 1 images
+- [Turning on Microsoft Defender Antivirus](articles/turning-on-microsoft-defender-antivirus.md) · 4 images
+- [UK Cyber Essentials and Australian Essential 8](articles/uk-cyber-essentials-and-australian-essential-8.md) · 0 images
+- [US Data Privacy](articles/us-data-privacy.md) · 0 images
+- [Understanding DPIAs and ROPAs for GDPR Compliance](articles/understanding-dpias-and-ropas-for-gdpr-compliance.md) · 0 images
+- [Understanding Policies](articles/understanding-policies.md) · 0 images
+- [Understanding an ISO Internal Audit](articles/understanding-an-iso-internal-audit.md) · 0 images
+- [Understanding the Differences Between NIST CSF 1.1 and 2.0](articles/understanding-the-differences-between-nist-csf-1-1-and-2-0.md) · 0 images
+- [Using Groups](articles/using-groups.md) · 0 images
+- [Vanta Guide to SOC 2: Type I and Type II](articles/vanta-guide-to-soc-2-type-i-and-type-ii.md) · 0 images
+- [Vanta Onboarding Checklists](articles/vanta-onboarding-checklists.md) · 0 images
+- [Vanta and HITRUST MyCSF API Integration](articles/vanta-and-hitrust-mycsf-api-integration.md) · 3 images
+- [What Should be in Scope for Vendor Reviews?](articles/what-should-be-in-scope-for-vendor-reviews.md) · 0 images
+- [Whistleblower Anonymous Fraud Reporting in Information Security](articles/whistleblower-anonymous-fraud-reporting-in-information-security.md) · 0 images
+
+## Audit Readiness › Audits
+
+- [Adding and Managing Auditors](articles/adding-and-managing-auditors.md) · 11 images
+- [Alternative Compliance Paths](articles/alternative-compliance-paths.md) · 0 images
+- [Audit 101: How Audits Work](articles/audit-101-how-audits-work.md) · 0 images
+- [Audit 102: Working With Your Auditor](articles/audit-102-working-with-your-auditor.md) · 0 images
+- [Audit Evidence](articles/audit-evidence.md) · 2 images
+- [Creating an Audit](articles/creating-an-audit.md) · 5 images
+- [Duplicating an Audit](articles/duplicating-an-audit.md) · 1 images
+- [Managing Auditor Views](articles/managing-auditor-views.md) · 3 images
+- [Managing an Information Request List (IRL)](articles/managing-an-information-request-list-irl.md) · 8 images
+- [Previewing Vanta as an Auditor](articles/previewing-vanta-as-an-auditor.md) · 0 images
+
+## Audit Readiness › Checklists
+
+- [Audit 103: The Audit Readiness Checklist](articles/audit-103-the-audit-readiness-checklist.md) · 0 images
+- [How will your Auditor use Vanta?](articles/how-will-your-auditor-use-vanta.md) · 7 images
+- [Vanta Onboarding Checklists](articles/vanta-onboarding-checklists.md) · 0 images
+
+## Audit Readiness › Compliance Standards Library
+
+- [AWS Foundational Technical Review (FTR)](articles/aws-foundational-technical-review-ftr.md) · 0 images
+- [Criminal Justice Information Services (CJIS)](articles/criminal-justice-information-services-cjis.md) · 0 images
+- [Cyber Risk Institute (CRI) Profile](articles/cyber-risk-institute-cri-profile.md) · 0 images
+- [FedRAMP](articles/fedramp.md) · 0 images
+- [FedRAMP r5 Control Sets](articles/fedramp-r5-control-sets.md) · 0 images
+- [Framework Control Sets (CIS: Center of Internet Security)](articles/framework-control-sets-cis-center-of-internet-security.md) · 3 images
+- [Framework Control Sets (SOC 2 Trust Services Criteria)](articles/framework-control-sets-soc-2-trust-services-criteria.md) · 5 images
+- [HITRUST CSF](articles/hitrust-csf.md) · 0 images
+- [How to Appoint an Article 27 Representative for GDPR](articles/how-to-appoint-an-article-27-representative-for-gdpr.md) · 0 images
+- [ISO 22301 – Business Continuity Management System (BCMS)](articles/iso-22301-business-continuity-management-system-bcms.md) · 0 images
+- [ISO 27001](articles/iso-27001.md) · 0 images
+- [ISO 27001 Audit Readiness Checklist](articles/iso-27001-audit-readiness-checklist.md) · 0 images
+- [ISO 27001:2022 Frequently Asked Questions](articles/iso-27001-2022-frequently-asked-questions.md) · 0 images
+- [ISO 27017](articles/iso-27017.md) · 0 images
+- [ISO 27018](articles/iso-27018.md) · 0 images
+- [ISO 27701](articles/iso-27701.md) · 1 images
+- [ISO 42001 AI Management System (AIMS)](articles/iso-42001-ai-management-system-aims.md) · 0 images
+- [Integrating Climate Change Considerations into your ISMS following the ISO 27001 2024 Amendment](articles/integrating-climate-change-considerations-into-your-isms-following-the-iso-27001-2024-amendment.md) · 0 images
+- [Microsoft Supplier Security and Privacy Assurance Program (SSPA)](articles/microsoft-supplier-security-and-privacy-assurance-program-sspa.md) · 0 images
+- [Migrating from FedRAMP v4 to v5](articles/migrating-from-fedramp-v4-to-v5.md) · 0 images
+- [Minimum Viable Security Product (MVSP)](articles/minimum-viable-security-product-mvsp.md) · 0 images
+- [NIST 800-171](articles/nist-800-171.md) · 0 images
+- [NIST 800-53](articles/nist-800-53.md) · 0 images
+- [NIST CSF (Cybersecurity Framework)](articles/nist-csf-cybersecurity-framework.md) · 0 images
+- [Open Finance Data Security Standard (OFDSS)](articles/open-finance-data-security-standard-ofdss.md) · 0 images
+- [PCI 4.0 Frequently Asked Questions](articles/pci-4-0-frequently-asked-questions.md) · 0 images
+- [PCI Requirement Changes](articles/pci-requirement-changes.md) · 0 images
+- [SOX IT General Controls (ITGC)](articles/sox-it-general-controls-itgc.md) · 1 images
+- [UK Cyber Essentials and Australian Essential 8](articles/uk-cyber-essentials-and-australian-essential-8.md) · 0 images
+- [US Data Privacy](articles/us-data-privacy.md) · 0 images
+- [Understanding an ISO Internal Audit](articles/understanding-an-iso-internal-audit.md) · 0 images
+- [Understanding the Differences Between NIST CSF 1.1 and 2.0](articles/understanding-the-differences-between-nist-csf-1-1-and-2-0.md) · 0 images
+- [Vanta and HITRUST MyCSF API Integration](articles/vanta-and-hitrust-mycsf-api-integration.md) · 3 images
+
+## Audit Readiness › Security Posture Best Practices
+
+- [Background Checks in Vanta](articles/background-checks-in-vanta.md) · 2 images
+- [Configure Screen Lock on Windows Devices](articles/configure-screen-lock-on-windows-devices.md) · 1 images
+- [Configuring Screen Lock on MacOS Devices](articles/configuring-screen-lock-on-macos-devices.md) · 1 images
+- [Device Monitoring in Vanta](articles/device-monitoring-in-vanta.md) · 4 images
+- [Encrypting Your Computer Hard Drives](articles/encrypting-your-computer-hard-drives.md) · 0 images
+- [Frequently Asked Questions: Audits](articles/frequently-asked-questions-audits.md) · 0 images
+- [Getting Started with ISMS 11: Statement of Applicability](articles/getting-started-with-isms-11-statement-of-applicability.md) · 2 images
+- [Migrate from ISO 27001:2013 to ISO 27001:2022](articles/migrate-from-iso-27001-2013-to-iso-27001-2022.md) · 3 images
+- [Missing information on Access Page for HubSpot](articles/missing-information-on-access-page-for-hubspot.md) · 0 images
+- [Penetration Testing](articles/penetration-testing.md) · 0 images
+- [SOC 2: Year Two Security Tasks](articles/soc-2-year-two-security-tasks.md) · 0 images
+- [Turning on Microsoft Defender Antivirus](articles/turning-on-microsoft-defender-antivirus.md) · 4 images
+- [Understanding Policies](articles/understanding-policies.md) · 0 images
+- [Using Groups](articles/using-groups.md) · 0 images
+- [Vanta Guide to SOC 2: Type I and Type II](articles/vanta-guide-to-soc-2-type-i-and-type-ii.md) · 0 images
+- [Whistleblower Anonymous Fraud Reporting in Information Security](articles/whistleblower-anonymous-fraud-reporting-in-information-security.md) · 0 images
+
+## Audit Readiness › Security and Compliance: Industry Topics
+
+- [Conducting Annual Performance Reviews](articles/conducting-annual-performance-reviews.md) · 0 images
+- [Cyber Insurance](articles/cyber-insurance.md) · 0 images
+- [Frequently Asked Questions: SOC 2 Bridge Letter](articles/frequently-asked-questions-soc-2-bridge-letter.md) · 0 images
+- [Gap Assessments](articles/gap-assessments.md) · 0 images
+- [How to Approach Your Incident Response Plan in Vanta](articles/how-to-approach-your-incident-response-plan-in-vanta.md) · 0 images
+- [ISO/IEC 27001:2022 ISMS Management Review Checklist](articles/iso-iec-27001-2022-isms-management-review-checklist.md) · 0 images
+- [RTO (Recovery Time Objective) and RPO (Recovery Point Objective)](articles/rto-recovery-time-objective-and-rpo-recovery-point-objective.md) · 0 images
+- [Understanding DPIAs and ROPAs for GDPR Compliance](articles/understanding-dpias-and-ropas-for-gdpr-compliance.md) · 0 images
+- [What Should be in Scope for Vendor Reviews?](articles/what-should-be-in-scope-for-vendor-reviews.md) · 0 images
+
+## Continuous Monitoring
+
+- [Assigning Group Ownership to Inventory Items](articles/assigning-group-ownership-to-inventory-items.md) · 2 images
+- [Automatically Reopen Vulnerabilities when a Fix is Available](articles/automatically-reopen-vulnerabilities-when-a-fix-is-available.md) · 2 images
+- [Bulk Upload Custom Inventory Items](articles/bulk-upload-custom-inventory-items.md) · 3 images
+- [Code Changes in Vanta](articles/code-changes-in-vanta.md) · 2 images
+- [Custom Inventory Tags](articles/custom-inventory-tags.md) · 2 images
+- [Deactivate Monitoring for a Vulnerability](articles/deactivate-monitoring-for-a-vulnerability.md) · 5 images
+- [Deactivate Vulnerabilities until a Specified Date](articles/deactivate-vulnerabilities-until-a-specified-date.md) · 2 images
+- [Deploying the Vanta Device Monitor with Mosyle MDM](articles/deploying-the-vanta-device-monitor-with-mosyle-mdm.md) · 5 images
+- [Frequently Asked Questions: Out-of-Date Vanta Device Monitor](articles/frequently-asked-questions-out-of-date-vanta-device-monitor.md) · 1 images
+- [Getting Started with the Vanta Device Monitor](articles/getting-started-with-the-vanta-device-monitor.md) · 3 images
+- [How Vanta Calculates Vulnerability SLAs](articles/how-vanta-calculates-vulnerability-slas.md) · 0 images
+- [Installing the Vanta Device Monitor - Windows PowerShell](articles/installing-the-vanta-device-monitor-windows-powershell.md) · 0 images
+- [Installing the Vanta Device Monitor: Windows](articles/installing-the-vanta-device-monitor-windows.md) · 1 images
+- [Installing the Vanta Device Monitor: macOS](articles/installing-the-vanta-device-monitor-macos.md) · 4 images
+- [Monitoring devices with a Mobile Device Management tool (MDM)](articles/monitoring-devices-with-a-mobile-device-management-tool-mdm.md) · 3 images
+- [Supported Operating Systems for the Vanta Device Monitor](articles/supported-operating-systems-for-the-vanta-device-monitor.md) · 0 images
+- [Tracking Inventory in Vanta](articles/tracking-inventory-in-vanta.md) · 3 images
+- [Uninstalling the Vanta Device Monitor](articles/uninstalling-the-vanta-device-monitor.md) · 4 images
+- [Uninstalling the Vanta Device Monitor: Windows PowerShell](articles/uninstalling-the-vanta-device-monitor-windows-powershell.md) · 0 images
+- [Updating the Vanta Device Monitor](articles/updating-the-vanta-device-monitor.md) · 0 images
+- [Vanta Device Monitor and Unsupported Operating Systems](articles/vanta-device-monitor-and-unsupported-operating-systems.md) · 1 images
+- [Vulnerability Status: Managing Scenarios and Errors](articles/vulnerability-status-managing-scenarios-and-errors.md) · 7 images
+- [What Information does the Vanta Device Monitor query?](articles/what-information-does-the-vanta-device-monitor-query.md) · 0 images
+
+## Continuous Monitoring › Inventory
+
+- [Assigning Group Ownership to Inventory Items](articles/assigning-group-ownership-to-inventory-items.md) · 2 images
+- [Bulk Upload Custom Inventory Items](articles/bulk-upload-custom-inventory-items.md) · 3 images
+- [Custom Inventory Tags](articles/custom-inventory-tags.md) · 2 images
+- [Tracking Inventory in Vanta](articles/tracking-inventory-in-vanta.md) · 3 images
+
+## Continuous Monitoring › Vanta Device Monitor
+
+- [Deploying the Vanta Device Monitor with Mosyle MDM](articles/deploying-the-vanta-device-monitor-with-mosyle-mdm.md) · 5 images
+- [Frequently Asked Questions: Out-of-Date Vanta Device Monitor](articles/frequently-asked-questions-out-of-date-vanta-device-monitor.md) · 1 images
+- [Getting Started with the Vanta Device Monitor](articles/getting-started-with-the-vanta-device-monitor.md) · 3 images
+- [Installing the Vanta Device Monitor - Windows PowerShell](articles/installing-the-vanta-device-monitor-windows-powershell.md) · 0 images
+- [Installing the Vanta Device Monitor: Windows](articles/installing-the-vanta-device-monitor-windows.md) · 1 images
+- [Installing the Vanta Device Monitor: macOS](articles/installing-the-vanta-device-monitor-macos.md) · 4 images
+- [Monitoring devices with a Mobile Device Management tool (MDM)](articles/monitoring-devices-with-a-mobile-device-management-tool-mdm.md) · 3 images
+- [Supported Operating Systems for the Vanta Device Monitor](articles/supported-operating-systems-for-the-vanta-device-monitor.md) · 0 images
+- [Uninstalling the Vanta Device Monitor](articles/uninstalling-the-vanta-device-monitor.md) · 4 images
+- [Uninstalling the Vanta Device Monitor: Windows PowerShell](articles/uninstalling-the-vanta-device-monitor-windows-powershell.md) · 0 images
+- [Updating the Vanta Device Monitor](articles/updating-the-vanta-device-monitor.md) · 0 images
+- [Vanta Device Monitor and Unsupported Operating Systems](articles/vanta-device-monitor-and-unsupported-operating-systems.md) · 1 images
+- [What Information does the Vanta Device Monitor query?](articles/what-information-does-the-vanta-device-monitor-query.md) · 0 images
+
+## Continuous Monitoring › Vulnerabilities
+
+- [Automatically Reopen Vulnerabilities when a Fix is Available](articles/automatically-reopen-vulnerabilities-when-a-fix-is-available.md) · 2 images
+- [Code Changes in Vanta](articles/code-changes-in-vanta.md) · 2 images
+- [Deactivate Monitoring for a Vulnerability](articles/deactivate-monitoring-for-a-vulnerability.md) · 5 images
+- [Deactivate Vulnerabilities until a Specified Date](articles/deactivate-vulnerabilities-until-a-specified-date.md) · 2 images
+- [How Vanta Calculates Vulnerability SLAs](articles/how-vanta-calculates-vulnerability-slas.md) · 0 images
+- [Vulnerability Status: Managing Scenarios and Errors](articles/vulnerability-status-managing-scenarios-and-errors.md) · 7 images
+
+## Evidence Collection
+
+- ["Pass by Default" Tests in Vanta](articles/pass-by-default-tests-in-vanta.md) · 1 images
+- [Adding Comments to Tests](articles/adding-comments-to-tests.md) · 1 images
+- [Adding Custom Evidence](articles/adding-custom-evidence.md) · 7 images
+- [Application Changes Reviewed Test (GitHub)](articles/application-changes-reviewed-test-github.md) · 6 images
+- [Assignment and Ownership for Tests, Policies, and Documents](articles/assignment-and-ownership-for-tests-policies-and-documents.md) · 0 images
+- [Auditor Visibility into Test Data](articles/auditor-visibility-into-test-data.md) · 0 images
+- [Automated Test Evidence](articles/automated-test-evidence.md) · 7 images
+- [Automated Test History](articles/automated-test-history.md) · 5 images
+- [Automated Ticket Creation for Documents](articles/automated-ticket-creation-for-documents.md) · 1 images
+- [CIS Benchmark Tests for Kubernetes](articles/cis-benchmark-tests-for-kubernetes.md) · 1 images
+- [CIS Foundation Benchmarks Available in Vanta](articles/cis-foundation-benchmarks-available-in-vanta.md) · 0 images
+- [Collecting Screenshot Evidence with the Vanta Agent](articles/collecting-screenshot-evidence-with-the-vanta-agent.md) · 1 images
+- [Creating Custom Tests](articles/creating-custom-tests.md) · 10 images
+- [Customizing Automated Tests](articles/customizing-automated-tests.md) · 1 images
+- [Deactivated Tests](articles/deactivated-tests.md) · 5 images
+- [Document Renewal Settings](articles/document-renewal-settings.md) · 0 images
+- [Error: “The Azure credentials are invalid. Check the correct values are being used”](articles/error-the-azure-credentials-are-invalid-check-the-correct-values-are-being-used.md) · 3 images
+- [Getting Started with Tests](articles/getting-started-with-tests.md) · 1 images
+- [Managing Documents](articles/managing-documents.md) · 15 images
+- [Marking Custom Documents as Sensitive](articles/marking-custom-documents-as-sensitive.md) · 4 images
+- [Preferred Documents](articles/preferred-documents.md) · 3 images
+- [Remediating Cloud Tests with Terraform](articles/remediating-cloud-tests-with-terraform.md) · 4 images
+- [Resolve 'Azure integration has active Activity Log Alerts' test](articles/resolve-azure-integration-has-active-activity-log-alerts-test.md) · 4 images
+- [Resolve 'Azure integration has active Log Alerts' test](articles/resolve-azure-integration-has-active-log-alerts-test.md) · 7 images
+- [Resolve 'Company has a version control system'](articles/resolve-company-has-a-version-control-system.md) · 3 images
+- [Resolve 'Inventory items have active owners' Test](articles/resolve-inventory-items-have-active-owners-test.md) · 3 images
+- [Resolve 'Inventory list tracks resources that contain user data' test](articles/resolve-inventory-list-tracks-resources-that-contain-user-data-test.md) · 0 images
+- [Resolve 'Load balancer used (Azure)' test](articles/resolve-load-balancer-used-azure-test.md) · 1 images
+- [Resolve 'Logs retained for 365 days (GCP)' test](articles/resolve-logs-retained-for-365-days-gcp-test.md) · 5 images
+- [Resolve 'MFA on Google Workspace' Test](articles/resolve-mfa-on-google-workspace-test.md) · 2 images
+- [Resolve 'MFA on Office 365' test](articles/resolve-mfa-on-office-365-test.md) · 4 images
+- [Resolve 'Security impact considered in merge requests (AzureDevops)' test](articles/resolve-security-impact-considered-in-merge-requests-azuredevops-test.md) · 0 images
+- [Resolve 'Storage Accounts health monitored (Azure)' test](articles/resolve-storage-accounts-health-monitored-azure-test.md) · 4 images
+- [Resolve 'Subscription Activity Logs are being archived to a storage account (Azure)' test](articles/resolve-subscription-activity-logs-are-being-archived-to-a-storage-account-azure-test.md) · 4 images
+- [Resolve 'Vendors list maintained' test](articles/resolve-vendors-list-maintained-test.md) · 2 images
+- [Resolve AWS Config is enabled correctly in all regions. (Internal)](articles/resolve-aws-config-is-enabled-correctly-in-all-regions-internal.md) · 14 images
+- [Sunsetting Server Vulnerability Scanning](articles/sunsetting-server-vulnerability-scanning.md) · 0 images
+- [System Description Generator](articles/system-description-generator.md) · 3 images
+- [Test Priorities and SLAs](articles/test-priorities-and-slas.md) · 2 images
+- [Uploading Document Evidence from a Task Tracker](articles/uploading-document-evidence-from-a-task-tracker.md) · 5 images
+- [What is an "Upcoming" Test?](articles/what-is-an-upcoming-test.md) · 0 images
+
+## Evidence Collection › Documents
+
+- [Adding Custom Evidence](articles/adding-custom-evidence.md) · 7 images
+- [Assignment and Ownership for Tests, Policies, and Documents](articles/assignment-and-ownership-for-tests-policies-and-documents.md) · 0 images
+- [Automated Ticket Creation for Documents](articles/automated-ticket-creation-for-documents.md) · 1 images
+- [Collecting Screenshot Evidence with the Vanta Agent](articles/collecting-screenshot-evidence-with-the-vanta-agent.md) · 1 images
+- [Document Renewal Settings](articles/document-renewal-settings.md) · 0 images
+- [Managing Documents](articles/managing-documents.md) · 15 images
+- [Marking Custom Documents as Sensitive](articles/marking-custom-documents-as-sensitive.md) · 4 images
+- [Preferred Documents](articles/preferred-documents.md) · 3 images
+- [System Description Generator](articles/system-description-generator.md) · 3 images
+- [Uploading Document Evidence from a Task Tracker](articles/uploading-document-evidence-from-a-task-tracker.md) · 5 images
+
+## Evidence Collection › Tests
+
+- ["Pass by Default" Tests in Vanta](articles/pass-by-default-tests-in-vanta.md) · 1 images
+- [Adding Comments to Tests](articles/adding-comments-to-tests.md) · 1 images
+- [Application Changes Reviewed Test (GitHub)](articles/application-changes-reviewed-test-github.md) · 6 images
+- [Auditor Visibility into Test Data](articles/auditor-visibility-into-test-data.md) · 0 images
+- [Automated Test Evidence](articles/automated-test-evidence.md) · 7 images
+- [Automated Test History](articles/automated-test-history.md) · 5 images
+- [CIS Benchmark Tests for Kubernetes](articles/cis-benchmark-tests-for-kubernetes.md) · 1 images
+- [CIS Foundation Benchmarks Available in Vanta](articles/cis-foundation-benchmarks-available-in-vanta.md) · 0 images
+- [Creating Custom Tests](articles/creating-custom-tests.md) · 10 images
+- [Customizing Automated Tests](articles/customizing-automated-tests.md) · 1 images
+- [Deactivated Tests](articles/deactivated-tests.md) · 5 images
+- [Error: “The Azure credentials are invalid. Check the correct values are being used”](articles/error-the-azure-credentials-are-invalid-check-the-correct-values-are-being-used.md) · 3 images
+- [Getting Started with Tests](articles/getting-started-with-tests.md) · 1 images
+- [Remediating Cloud Tests with Terraform](articles/remediating-cloud-tests-with-terraform.md) · 4 images
+- [Resolve 'Azure integration has active Activity Log Alerts' test](articles/resolve-azure-integration-has-active-activity-log-alerts-test.md) · 4 images
+- [Resolve 'Azure integration has active Log Alerts' test](articles/resolve-azure-integration-has-active-log-alerts-test.md) · 7 images
+- [Resolve 'Company has a version control system'](articles/resolve-company-has-a-version-control-system.md) · 3 images
+- [Resolve 'Inventory items have active owners' Test](articles/resolve-inventory-items-have-active-owners-test.md) · 3 images
+- [Resolve 'Inventory list tracks resources that contain user data' test](articles/resolve-inventory-list-tracks-resources-that-contain-user-data-test.md) · 0 images
+- [Resolve 'Load balancer used (Azure)' test](articles/resolve-load-balancer-used-azure-test.md) · 1 images
+- [Resolve 'Logs retained for 365 days (GCP)' test](articles/resolve-logs-retained-for-365-days-gcp-test.md) · 5 images
+- [Resolve 'MFA on Google Workspace' Test](articles/resolve-mfa-on-google-workspace-test.md) · 2 images
+- [Resolve 'MFA on Office 365' test](articles/resolve-mfa-on-office-365-test.md) · 4 images
+- [Resolve 'Security impact considered in merge requests (AzureDevops)' test](articles/resolve-security-impact-considered-in-merge-requests-azuredevops-test.md) · 0 images
+- [Resolve 'Storage Accounts health monitored (Azure)' test](articles/resolve-storage-accounts-health-monitored-azure-test.md) · 4 images
+- [Resolve 'Subscription Activity Logs are being archived to a storage account (Azure)' test](articles/resolve-subscription-activity-logs-are-being-archived-to-a-storage-account-azure-test.md) · 4 images
+- [Resolve 'Vendors list maintained' test](articles/resolve-vendors-list-maintained-test.md) · 2 images
+- [Resolve AWS Config is enabled correctly in all regions. (Internal)](articles/resolve-aws-config-is-enabled-correctly-in-all-regions-internal.md) · 14 images
+- [Sunsetting Server Vulnerability Scanning](articles/sunsetting-server-vulnerability-scanning.md) · 0 images
+- [Test Priorities and SLAs](articles/test-priorities-and-slas.md) · 2 images
+- [What is an "Upcoming" Test?](articles/what-is-an-upcoming-test.md) · 0 images
+
+## Evidence Collection › Tests › Resolving Tests in Vanta
+
+- [Application Changes Reviewed Test (GitHub)](articles/application-changes-reviewed-test-github.md) · 6 images
+- [CIS Benchmark Tests for Kubernetes](articles/cis-benchmark-tests-for-kubernetes.md) · 1 images
+- [Error: “The Azure credentials are invalid. Check the correct values are being used”](articles/error-the-azure-credentials-are-invalid-check-the-correct-values-are-being-used.md) · 3 images
+- [Remediating Cloud Tests with Terraform](articles/remediating-cloud-tests-with-terraform.md) · 4 images
+- [Resolve 'Azure integration has active Activity Log Alerts' test](articles/resolve-azure-integration-has-active-activity-log-alerts-test.md) · 4 images
+- [Resolve 'Azure integration has active Log Alerts' test](articles/resolve-azure-integration-has-active-log-alerts-test.md) · 7 images
+- [Resolve 'Company has a version control system'](articles/resolve-company-has-a-version-control-system.md) · 3 images
+- [Resolve 'Inventory items have active owners' Test](articles/resolve-inventory-items-have-active-owners-test.md) · 3 images
+- [Resolve 'Inventory list tracks resources that contain user data' test](articles/resolve-inventory-list-tracks-resources-that-contain-user-data-test.md) · 0 images
+- [Resolve 'Load balancer used (Azure)' test](articles/resolve-load-balancer-used-azure-test.md) · 1 images
+- [Resolve 'Logs retained for 365 days (GCP)' test](articles/resolve-logs-retained-for-365-days-gcp-test.md) · 5 images
+- [Resolve 'MFA on Google Workspace' Test](articles/resolve-mfa-on-google-workspace-test.md) · 2 images
+- [Resolve 'MFA on Office 365' test](articles/resolve-mfa-on-office-365-test.md) · 4 images
+- [Resolve 'Security impact considered in merge requests (AzureDevops)' test](articles/resolve-security-impact-considered-in-merge-requests-azuredevops-test.md) · 0 images
+- [Resolve 'Storage Accounts health monitored (Azure)' test](articles/resolve-storage-accounts-health-monitored-azure-test.md) · 4 images
+- [Resolve 'Subscription Activity Logs are being archived to a storage account (Azure)' test](articles/resolve-subscription-activity-logs-are-being-archived-to-a-storage-account-azure-test.md) · 4 images
+- [Resolve 'Vendors list maintained' test](articles/resolve-vendors-list-maintained-test.md) · 2 images
+- [Resolve AWS Config is enabled correctly in all regions. (Internal)](articles/resolve-aws-config-is-enabled-correctly-in-all-regions-internal.md) · 14 images
+- [Sunsetting Server Vulnerability Scanning](articles/sunsetting-server-vulnerability-scanning.md) · 0 images
+
+## Getting Started Hub
+
+- [Adaptive Framework Scoping](articles/adaptive-framework-scoping.md) · 11 images
+- [Adaptive Scoping: Creating and Configuring Business Units and Segments](articles/adaptive-scoping-creating-and-configuring-business-units-and-segments.md) · 6 images
+- [Adding an Incident Contact](articles/adding-an-incident-contact.md) · 1 images
+- [Best Practices: Migrating Your Security Program to Vanta](articles/best-practices-migrating-your-security-program-to-vanta.md) · 0 images
+- [Changing your Company Logo](articles/changing-your-company-logo.md) · 2 images
+- [Comments in Vanta](articles/comments-in-vanta.md) · 4 images
+- [Computers Page](articles/computers-page.md) · 6 images
+- [Conducting Privacy Assessments](articles/conducting-privacy-assessments.md) · 1 images
+- [Configure Idle Session Timeout](articles/configure-idle-session-timeout.md) · 1 images
+- [Create, Schedule, and Manage Custom Agents](articles/create-schedule-and-manage-custom-agents.md) · 7 images
+- [Disabling the Magic Link](articles/disabling-the-magic-link.md) · 3 images
+- [Documents Page](articles/documents-page.md) · 1 images
+- [Enabling or Disabling Vanta AI](articles/enabling-or-disabling-vanta-ai.md) · 1 images
+- [Event Log](articles/event-log.md) · 2 images
+- [Framework Details Page](articles/framework-details-page.md) · 3 images
+- [Frameworks Page](articles/frameworks-page.md) · 4 images
+- [Getting Started Resources in Vanta](articles/getting-started-resources-in-vanta.md) · 2 images
+- [Getting Started with Policies](articles/getting-started-with-policies.md) · 1 images
+- [Getting Started with Workspaces](articles/getting-started-with-workspaces.md) · 10 images
+- [Getting Started: Personnel Hub](articles/getting-started-personnel-hub.md) · 1 images
+- [Home Page](articles/home-page.md) · 1 images
+- [Interface Settings](articles/interface-settings.md) · 1 images
+- [Joining the Vanta Community](articles/joining-the-vanta-community.md) · 0 images
+- [Managing Your Billing](articles/managing-your-billing.md) · 1 images
+- [Managing Your Data Inventory and ROPAs](articles/managing-your-data-inventory-and-ropas.md) · 4 images
+- [My Work Page](articles/my-work-page.md) · 3 images
+- [Notifications and Notification Settings](articles/notifications-and-notification-settings.md) · 7 images
+- [Privacy Management Product Overview](articles/privacy-management-product-overview.md) · 0 images
+- [Product Updates](articles/product-updates.md) · 0 images
+- [Sending Emails from a Custom Domain](articles/sending-emails-from-a-custom-domain.md) · 1 images
+- [Setting up Your Personnel Security Program](articles/setting-up-your-personnel-security-program.md) · 0 images
+- [Sharing Product Feedback](articles/sharing-product-feedback.md) · 4 images
+- [The Policies Page](articles/the-policies-page.md) · 5 images
+- [The Tests Page](articles/the-tests-page.md) · 3 images
+- [The Vulnerabilities Page](articles/the-vulnerabilities-page.md) · 1 images
+- [Using AI Change Summaries in Vanta](articles/using-ai-change-summaries-in-vanta.md) · 4 images
+- [Using Vanta with Assistive Technology](articles/using-vanta-with-assistive-technology.md) · 0 images
+- [Using Vanta: Secure Implementation Guidelines](articles/using-vanta-secure-implementation-guidelines.md) · 0 images
+- [Vanta AI Principles](articles/vanta-ai-principles.md) · 0 images
+- [Vanta API](articles/vanta-api.md) · 0 images
+- [Vanta Agent Guided Flows](articles/bringing-your-current-compliance-program-into-vanta.md) · 0 images
+- [Vanta Agent Guided Flows](articles/vanta-agent-guided-flows.md) · 0 images
+- [Vanta Change Management Guide](articles/vanta-change-management-guide.md) · 0 images
+- [Vanta Customer Referral Program](articles/vanta-customer-referral-program.md) · 0 images
+- [Vanta GRC Implementation Guide](articles/vanta-grc-implementation-guide.md) · 0 images
+- [Vanta Live Training Hub](articles/vanta-live-training-hub.md) · 0 images
+- [Vanta Questionnaire Automation Implementation Guide](articles/vanta-questionnaire-automation-implementation-guide.md) · 0 images
+- [Vanta Sandbox Mode](articles/vanta-sandbox-mode.md) · 3 images
+- [Vanta Trust Center Implementation Guide](articles/vanta-trust-center-implementation-guide.md) · 0 images
+- [Vanta Workspaces](articles/vanta-workspaces.md) · 1 images
+
+## Getting Started Hub › Account Settings
+
+- [Adaptive Scoping: Creating and Configuring Business Units and Segments](articles/adaptive-scoping-creating-and-configuring-business-units-and-segments.md) · 6 images
+- [Adding an Incident Contact](articles/adding-an-incident-contact.md) · 1 images
+- [Changing your Company Logo](articles/changing-your-company-logo.md) · 2 images
+- [Configure Idle Session Timeout](articles/configure-idle-session-timeout.md) · 1 images
+- [Disabling the Magic Link](articles/disabling-the-magic-link.md) · 3 images
+- [Event Log](articles/event-log.md) · 2 images
+- [Interface Settings](articles/interface-settings.md) · 1 images
+- [Managing Your Billing](articles/managing-your-billing.md) · 1 images
+- [Notifications and Notification Settings](articles/notifications-and-notification-settings.md) · 7 images
+- [Sending Emails from a Custom Domain](articles/sending-emails-from-a-custom-domain.md) · 1 images
+- [Sharing Product Feedback](articles/sharing-product-feedback.md) · 4 images
+- [Using Vanta with Assistive Technology](articles/using-vanta-with-assistive-technology.md) · 0 images
+- [Vanta API](articles/vanta-api.md) · 0 images
+- [Vanta Customer Referral Program](articles/vanta-customer-referral-program.md) · 0 images
+- [Vanta Workspaces](articles/vanta-workspaces.md) · 1 images
+
+## Getting Started Hub › Account Settings › Workspaces
+
+- [Vanta Workspaces](articles/vanta-workspaces.md) · 1 images
+
+## Getting Started Hub › Getting Started Guides
+
+- [Adaptive Framework Scoping](articles/adaptive-framework-scoping.md) · 11 images
+- [Best Practices: Migrating Your Security Program to Vanta](articles/best-practices-migrating-your-security-program-to-vanta.md) · 0 images
+- [Conducting Privacy Assessments](articles/conducting-privacy-assessments.md) · 1 images
+- [Getting Started Resources in Vanta](articles/getting-started-resources-in-vanta.md) · 2 images
+- [Getting Started with Policies](articles/getting-started-with-policies.md) · 1 images
+- [Getting Started with Workspaces](articles/getting-started-with-workspaces.md) · 10 images
+- [Getting Started: Personnel Hub](articles/getting-started-personnel-hub.md) · 1 images
+- [Joining the Vanta Community](articles/joining-the-vanta-community.md) · 0 images
+- [Managing Your Data Inventory and ROPAs](articles/managing-your-data-inventory-and-ropas.md) · 4 images
+- [Privacy Management Product Overview](articles/privacy-management-product-overview.md) · 0 images
+- [Setting up Your Personnel Security Program](articles/setting-up-your-personnel-security-program.md) · 0 images
+- [Using Vanta: Secure Implementation Guidelines](articles/using-vanta-secure-implementation-guidelines.md) · 0 images
+- [Vanta Agent Guided Flows](articles/bringing-your-current-compliance-program-into-vanta.md) · 0 images
+- [Vanta Change Management Guide](articles/vanta-change-management-guide.md) · 0 images
+- [Vanta GRC Implementation Guide](articles/vanta-grc-implementation-guide.md) · 0 images
+- [Vanta Live Training Hub](articles/vanta-live-training-hub.md) · 0 images
+- [Vanta Questionnaire Automation Implementation Guide](articles/vanta-questionnaire-automation-implementation-guide.md) · 0 images
+- [Vanta Sandbox Mode](articles/vanta-sandbox-mode.md) · 3 images
+- [Vanta Trust Center Implementation Guide](articles/vanta-trust-center-implementation-guide.md) · 0 images
+
+## Getting Started Hub › Navigation
+
+- [Comments in Vanta](articles/comments-in-vanta.md) · 4 images
+- [Computers Page](articles/computers-page.md) · 6 images
+- [Documents Page](articles/documents-page.md) · 1 images
+- [Framework Details Page](articles/framework-details-page.md) · 3 images
+- [Frameworks Page](articles/frameworks-page.md) · 4 images
+- [Home Page](articles/home-page.md) · 1 images
+- [My Work Page](articles/my-work-page.md) · 3 images
+- [The Policies Page](articles/the-policies-page.md) · 5 images
+- [The Tests Page](articles/the-tests-page.md) · 3 images
+- [The Vulnerabilities Page](articles/the-vulnerabilities-page.md) · 1 images
+
+## Getting Started Hub › New Features
+
+- [Product Updates](articles/product-updates.md) · 0 images
+
+## Getting Started Hub › Vanta AI
+
+- [Create, Schedule, and Manage Custom Agents](articles/create-schedule-and-manage-custom-agents.md) · 7 images
+- [Enabling or Disabling Vanta AI](articles/enabling-or-disabling-vanta-ai.md) · 1 images
+- [Using AI Change Summaries in Vanta](articles/using-ai-change-summaries-in-vanta.md) · 4 images
+- [Vanta AI Principles](articles/vanta-ai-principles.md) · 0 images
+- [Vanta Agent Guided Flows](articles/vanta-agent-guided-flows.md) · 0 images
+
+## Integrations
+
+- [Access Integrations](articles/access-integrations.md) · 2 images
+- [Ask Vanta Questions in Slack](articles/ask-vanta-questions-in-slack.md) · 3 images
+- [Azure Alerts](articles/azure-alerts.md) · 1 images
+- [Azure Kubernetes Guide](articles/azure-kubernetes-guide.md) · 4 images
+- [Azure SCIM Attribute Instructions](articles/azure-scim-attribute-instructions.md) · 10 images
+- [Azure VM showing "No actionable vulnerabilities" message on Vulnerabilities Page](articles/azure-vm-showing-no-actionable-vulnerabilities-message-on-vulnerabilities-page.md) · 9 images
+- [Azure: Integration Guide](articles/azure-integration-guide.md) · 20 images
+- [Azure: Quickstart](articles/azure-quickstart.md) · 10 images
+- [Before You Connect: Integration Prerequisites Checklist](articles/before-you-connect-integration-prerequisites-checklist.md) · 0 images
+- [Bulk Tagging for AWS Resources in Vanta](articles/bulk-tagging-for-aws-resources-in-vanta.md) · 1 images
+- [Bulk Tags](articles/bulk-tags.md) · 4 images
+- [CIS GCP Foundations Benchmark](articles/cis-gcp-foundations-benchmark.md) · 0 images
+- [Configure JumpCloud - Antivirus](articles/configure-jumpcloud-antivirus.md) · 2 images
+- [Configure and Use Webhooks in Vanta](articles/configure-and-use-webhooks-in-vanta.md) · 3 images
+- [Configuring CSPM Alerts](articles/configuring-cspm-alerts.md) · 3 images
+- [Connect Vanta & Keeper](articles/connect-vanta-keeper.md) · 5 images
+- [Connecting AWS Identity Store](articles/connecting-aws-identity-store.md) · 2 images
+- [Connecting AWS with CloudFormation](articles/connecting-aws-with-cloudformation.md) · 9 images
+- [Connecting GCP Container Registry to Vanta](articles/connecting-gcp-container-registry-to-vanta.md) · 0 images
+- [Connecting Vanta  to an AWS Organization](articles/connecting-vanta-to-an-aws-organization.md) · 19 images
+- [Connecting Vanta &  Azure DevOps](articles/connecting-vanta-azure-devops.md) · 4 images
+- [Connecting Vanta & 1Password](articles/connecting-vanta-1password.md) · 3 images
+- [Connecting Vanta & 1Password Device Trust (Kolide)](articles/connecting-vanta-1password-device-trust-kolide.md) · 9 images
+- [Connecting Vanta & 7Shifts Merge](articles/connecting-vanta-7shifts-merge.md) · 8 images
+- [Connecting Vanta & ADP Workforce Now](articles/connecting-vanta-adp-workforce-now.md) · 8 images
+- [Connecting Vanta & AWS Accounts](articles/connecting-vanta-aws-accounts.md) · 31 images
+- [Connecting Vanta & AbsorbLMS](articles/connecting-vanta-absorblms.md) · 11 images
+- [Connecting Vanta & Addigy](articles/connecting-vanta-addigy.md) · 9 images
+- [Connecting Vanta & Aikido](articles/connecting-vanta-aikido.md) · 3 images
+- [Connecting Vanta & Akamai](articles/connecting-vanta-akamai.md) · 8 images
+- [Connecting Vanta & Anthropic's Claude Console](articles/connecting-vanta-anthropic-s-claude-console.md) · 2 images
+- [Connecting Vanta & Apollo](articles/connecting-vanta-apollo.md) · 7 images
+- [Connecting Vanta & Asana](articles/connecting-vanta-asana.md) · 4 images
+- [Connecting Vanta & Auth0](articles/connecting-vanta-auth0.md) · 14 images
+- [Connecting Vanta & Bamboo HR](articles/connecting-vanta-bamboo-hr.md) · 4 images
+- [Connecting Vanta & Box](articles/connecting-vanta-box.md) · 4 images
+- [Connecting Vanta & Breezy HR](articles/connecting-vanta-breezy-hr.md) · 1 images
+- [Connecting Vanta & CATS](articles/connecting-vanta-cats.md) · 5 images
+- [Connecting Vanta & Calendly](articles/connecting-vanta-calendly.md) · 4 images
+- [Connecting Vanta & Capsule](articles/connecting-vanta-capsule.md) · 8 images
+- [Connecting Vanta & Checkr](articles/connecting-vanta-checkr.md) · 5 images
+- [Connecting Vanta & ClickUp](articles/connecting-vanta-clickup.md) · 5 images
+- [Connecting Vanta & Clockwork](articles/connecting-vanta-clockwork.md) · 7 images
+- [Connecting Vanta & Close](articles/connecting-vanta-close.md) · 6 images
+- [Connecting Vanta & Cloudflare](articles/connecting-vanta-cloudflare.md) · 7 images
+- [Connecting Vanta & Cloudflare for Government](articles/connecting-vanta-cloudflare-for-government.md) · 7 images
+- [Connecting Vanta & Comeet](articles/connecting-vanta-comeet.md) · 3 images
+- [Connecting Vanta & Confluence](articles/connecting-vanta-confluence.md) · 3 images
+- [Connecting Vanta & Confluence Access Control](articles/connecting-vanta-confluence-access-control.md) · 3 images
+- [Connecting Vanta & Copper](articles/connecting-vanta-copper.md) · 8 images
+- [Connecting Vanta & Cybeready](articles/connecting-vanta-cybeready.md) · 0 images
+- [Connecting Vanta & Dashlane](articles/connecting-vanta-dashlane.md) · 2 images
+- [Connecting Vanta & Digital Ocean](articles/connecting-vanta-digital-ocean.md) · 4 images
+- [Connecting Vanta & Docebo](articles/connecting-vanta-docebo.md) · 22 images
+- [Connecting Vanta & Duo](articles/connecting-vanta-duo.md) · 9 images
+- [Connecting Vanta & Employment Hero](articles/connecting-vanta-employment-hero.md) · 5 images
+- [Connecting Vanta & Envoy](articles/connecting-vanta-envoy.md) · 4 images
+- [Connecting Vanta & Fieldguide](articles/connecting-vanta-fieldguide.md) · 0 images
+- [Connecting Vanta & GitLab Cloud](articles/connecting-vanta-gitlab-cloud.md) · 6 images
+- [Connecting Vanta & GitLab Self-Managed instance](articles/connecting-vanta-gitlab-self-managed-instance.md) · 10 images
+- [Connecting Vanta & Gong](articles/connecting-vanta-gong.md) · 3 images
+- [Connecting Vanta & Google Drive](articles/connecting-vanta-google-drive.md) · 3 images
+- [Connecting Vanta & Google Workspace (SCIM)](articles/connecting-vanta-google-workspace-scim.md) · 21 images
+- [Connecting Vanta & Grafana](articles/connecting-vanta-grafana.md) · 1 images
+- [Connecting Vanta & Gusto](articles/connecting-vanta-gusto.md) · 4 images
+- [Connecting Vanta & Heroku](articles/connecting-vanta-heroku.md) · 4 images
+- [Connecting Vanta & HiBob](articles/connecting-vanta-hibob.md) · 16 images
+- [Connecting Vanta & HubSpot](articles/connecting-vanta-hubspot.md) · 3 images
+- [Connecting Vanta & Humaans](articles/connecting-vanta-humaans.md) · 9 images
+- [Connecting Vanta & Insightly](articles/connecting-vanta-insightly.md) · 7 images
+- [Connecting Vanta & Intercom](articles/connecting-vanta-intercom.md) · 4 images
+- [Connecting Vanta & Iru](articles/connecting-vanta-iru.md) · 2 images
+- [Connecting Vanta & Jamf Pro](articles/connecting-vanta-jamf-pro.md) · 6 images
+- [Connecting Vanta & Jira Data Center](articles/connecting-vanta-jira-data-center.md) · 4 images
+- [Connecting Vanta & JobAdder](articles/connecting-vanta-jobadder.md) · 4 images
+- [Connecting Vanta & Jobvite](articles/connecting-vanta-jobvite.md) · 5 images
+- [Connecting Vanta & JumpCloud (SCIM)](articles/connecting-vanta-jumpcloud-scim.md) · 26 images
+- [Connecting Vanta & Justworks](articles/connecting-vanta-justworks.md) · 5 images
+- [Connecting Vanta & Kenjo](articles/connecting-vanta-kenjo.md) · 5 images
+- [Connecting Vanta & KnowBe4](articles/connecting-vanta-knowbe4.md) · 6 images
+- [Connecting Vanta & LaunchDarkly](articles/connecting-vanta-launchdarkly.md) · 8 images
+- [Connecting Vanta & Leapsome](articles/connecting-vanta-leapsome.md) · 3 images
+- [Connecting Vanta & ManageEngine](articles/connecting-vanta-manageengine.md) · 2 images
+- [Connecting Vanta & Microsoft Defender for Endpoint](articles/connecting-vanta-microsoft-defender-for-endpoint.md) · 5 images
+- [Connecting Vanta & Microsoft Defender for Endpoint for US Government (GCC High)](articles/connecting-vanta-microsoft-defender-for-endpoint-for-us-government-gcc-high.md) · 4 images
+- [Connecting Vanta & Microsoft Endpoint Manager / Intune MDM](articles/connecting-vanta-microsoft-endpoint-manager-intune-mdm.md) · 4 images
+- [Connecting Vanta & Microsoft Entra](articles/connecting-vanta-microsoft-entra.md) · 5 images
+- [Connecting Vanta & Microsoft Entra (GCC High)](articles/connecting-vanta-microsoft-entra-gcc-high.md) · 4 images
+- [Connecting Vanta & Microsoft Intune (GCC High)](articles/connecting-vanta-microsoft-intune-gcc-high.md) · 4 images
+- [Connecting Vanta & Microsoft SharePoint](articles/connecting-vanta-microsoft-sharepoint.md) · 2 images
+- [Connecting Vanta & Mimecast](articles/connecting-vanta-mimecast.md) · 14 images
+- [Connecting Vanta & Miradore](articles/connecting-vanta-miradore.md) · 9 images
+- [Connecting Vanta & MongoDB Atlas for Government](articles/connecting-vanta-mongodb-atlas-for-government.md) · 6 images
+- [Connecting Vanta & NetSuite](articles/connecting-vanta-netsuite.md) · 11 images
+- [Connecting Vanta & Netlify](articles/connecting-vanta-netlify.md) · 5 images
+- [Connecting Vanta & New Relic](articles/connecting-vanta-new-relic.md) · 1 images
+- [Connecting Vanta & NinjaOne](articles/connecting-vanta-ninjaone.md) · 2 images
+- [Connecting Vanta & Notion](articles/connecting-vanta-notion.md) · 5 images
+- [Connecting Vanta & OVHcloud](articles/connecting-vanta-ovhcloud.md) · 7 images
+- [Connecting Vanta & Okta (SCIM)](articles/connecting-vanta-okta-scim.md) · 38 images
+- [Connecting Vanta & Omnissa Workspace One](articles/connecting-vanta-omnissa-workspace-one.md) · 3 images
+- [Connecting Vanta & OpenAI](articles/connecting-vanta-openai.md) · 6 images
+- [Connecting Vanta & Oracle Cloud](articles/connecting-vanta-oracle-cloud.md) · 3 images
+- [Connecting Vanta & Oracle Cloud HCM](articles/connecting-vanta-oracle-cloud-hcm.md) · 15 images
+- [Connecting Vanta & Orca Security](articles/connecting-vanta-orca-security.md) · 3 images
+- [Connecting Vanta & PagerDuty](articles/connecting-vanta-pagerduty.md) · 4 images
+- [Connecting Vanta & PayFit](articles/connecting-vanta-payfit.md) · 5 images
+- [Connecting Vanta & Pipedrive](articles/connecting-vanta-pipedrive.md) · 3 images
+- [Connecting Vanta & Render](articles/connecting-vanta-render.md) · 6 images
+- [Connecting Vanta & Rippling](articles/connecting-vanta-rippling.md) · 7 images
+- [Connecting Vanta & Rockset](articles/connecting-vanta-rockset.md) · 3 images
+- [Connecting Vanta & Rollbar](articles/connecting-vanta-rollbar.md) · 8 images
+- [Connecting Vanta & Salesforce (Access)](articles/connecting-vanta-salesforce-access.md) · 5 images
+- [Connecting Vanta & Scaleway](articles/connecting-vanta-scaleway.md) · 9 images
+- [Connecting Vanta & Semgrep](articles/connecting-vanta-semgrep.md) · 2 images
+- [Connecting Vanta & SentinelOne](articles/connecting-vanta-sentinelone.md) · 2 images
+- [Connecting Vanta & Slack (Access)](articles/connecting-vanta-slack-access.md) · 5 images
+- [Connecting Vanta & Smart Recruiters](articles/connecting-vanta-smart-recruiters.md) · 7 images
+- [Connecting Vanta & Smartsheet](articles/connecting-vanta-smartsheet.md) · 4 images
+- [Connecting Vanta & Snyk](articles/connecting-vanta-snyk.md) · 4 images
+- [Connecting Vanta & Splunk](articles/connecting-vanta-splunk.md) · 24 images
+- [Connecting Vanta & Splunk Enterprise](articles/connecting-vanta-splunk-enterprise.md) · 6 images
+- [Connecting Vanta & Square Payroll](articles/connecting-vanta-square-payroll.md) · 4 images
+- [Connecting Vanta & Sumo Logic](articles/connecting-vanta-sumo-logic.md) · 7 images
+- [Connecting Vanta & Supabase](articles/connecting-vanta-supabase.md) · 3 images
+- [Connecting Vanta & Tailscale](articles/connecting-vanta-tailscale.md) · 3 images
+- [Connecting Vanta & Teamtailor](articles/connecting-vanta-teamtailor.md) · 9 images
+- [Connecting Vanta & Teamwork](articles/connecting-vanta-teamwork.md) · 6 images
+- [Connecting Vanta & Tenable](articles/connecting-vanta-tenable.md) · 18 images
+- [Connecting Vanta & Tenable Vulnerability Management FedRAMP](articles/connecting-vanta-tenable-vulnerability-management-fedramp.md) · 9 images
+- [Connecting Vanta & Torii](articles/connecting-vanta-torii.md) · 3 images
+- [Connecting Vanta & TriNet](articles/connecting-vanta-trinet.md) · 4 images
+- [Connecting Vanta & Twilio](articles/connecting-vanta-twilio.md) · 3 images
+- [Connecting Vanta & Udemy Business](articles/connecting-vanta-udemy-business.md) · 18 images
+- [Connecting Vanta & Vercel](articles/connecting-vanta-vercel.md) · 2 images
+- [Connecting Vanta & Webex](articles/connecting-vanta-webex.md) · 4 images
+- [Connecting Vanta & Wizer](articles/connecting-vanta-wizer.md) · 16 images
+- [Connecting Vanta & Xero](articles/connecting-vanta-xero.md) · 2 images
+- [Connecting Vanta & Zoom](articles/connecting-vanta-zoom.md) · 7 images
+- [Connecting Vanta & ZoomInfo](articles/connecting-vanta-zoominfo.md) · 1 images
+- [Connecting Vanta & iSolved](articles/connecting-vanta-isolved.md) · 2 images
+- [Connecting Vanta & monday.com](articles/connecting-vanta-monday-com.md) · 1 images
+- [Connecting Vanta and Certn](articles/connecting-vanta-and-certn.md) · 4 images
+- [Connecting Vanta and DocuSign](articles/connecting-vanta-and-docusign.md) · 5 images
+- [Connecting Vanta and Ramp](articles/connecting-vanta-and-ramp.md) · 1 images
+- [Connecting Wiz with Vanta](articles/connecting-wiz-with-vanta.md) · 4 images
+- [Connecting to Vanta MCP](articles/connecting-to-vanta-mcp.md) · 8 images
+- [Control Scope with Jamf for Workspace](articles/control-scope-with-jamf-for-workspace.md) · 2 images
+- [Controlling Assets Scope Through Tenable](articles/controlling-assets-scope-through-tenable.md) · 0 images
+- [Controlling Scope Through Microsoft Entra](articles/controlling-scope-through-microsoft-entra.md) · 7 images
+- [Controlling Scope Through Okta](articles/controlling-scope-through-okta.md) · 3 images
+- [Controlling Scope through JumpCloud](articles/controlling-scope-through-jumpcloud.md) · 1 images
+- [Controlling Scope through PingOne](articles/controlling-scope-through-pingone.md) · 3 images
+- [Controlling scope through OneLogin](articles/controlling-scope-through-onelogin.md) · 2 images
+- [Creating a Custom SAML Connection](articles/creating-a-custom-saml-connection.md) · 4 images
+- [Creating a Security Label within GitHub Issues](articles/creating-a-security-label-within-github-issues.md) · 0 images
+- [Creating a Service Account for the Google Workspace Integration](articles/creating-a-service-account-for-the-google-workspace-integration.md) · 7 images
+- [Determining Resource Access for Your Integrations](articles/determining-resource-access-for-your-integrations.md) · 0 images
+- [Dynamic IdP Groups: Google](articles/dynamic-idp-groups-google.md) · 6 images
+- [Dynamic IdP Groups: Okta](articles/dynamic-idp-groups-okta.md) · 5 images
+- [Enabling SCIM in Vanta](articles/enabling-scim-in-vanta.md) · 0 images
+- [Error Connecting KnowBe4](articles/error-connecting-knowbe4.md) · 3 images
+- [GitHub: Integration Guide](articles/github-integration-guide.md) · 6 images
+- [GitHub: Quickstart](articles/github-quickstart.md) · 10 images
+- [Google Cloud Platform: Integration Guide](articles/google-cloud-platform-integration-guide.md) · 7 images
+- [Google Cloud Platform: Quickstart](articles/google-cloud-platform-quickstart.md) · 5 images
+- [Google Compliance Reports Manager: Downloading Reports for Vendors Page in Vanta](articles/google-compliance-reports-manager-downloading-reports-for-vendors-page-in-vanta.md) · 1 images
+- [Google Workspace: Integration Guide](articles/google-workspace-integration-guide.md) · 16 images
+- [Google Workspace: Quickstart](articles/google-workspace-quickstart.md) · 0 images
+- [How Does Vanta Use Merge?](articles/how-does-vanta-use-merge.md) · 0 images
+- [How to Connect Multiple Azure Subscriptions to Vanta](articles/how-to-connect-multiple-azure-subscriptions-to-vanta.md) · 16 images
+- [How to Troubleshoot Azure Resources Not Appearing in Inventory](articles/how-to-troubleshoot-azure-resources-not-appearing-in-inventory.md) · 0 images
+- [How to Work with System Owners to Connect Integrations](articles/how-to-work-with-system-owners-to-connect-integrations.md) · 2 images
+- [How to change Azure Devops Read/Write Permissions](articles/how-to-change-azure-devops-read-write-permissions.md) · 7 images
+- [How to set up SSO for Entra (Office 365)](articles/how-to-set-up-sso-for-entra-office-365.md) · 8 images
+- [How to troubleshoot AWS resources not Appearing in Inventory](articles/how-to-troubleshoot-aws-resources-not-appearing-in-inventory.md) · 5 images
+- [Ignoring Github Vulnerabilities](articles/ignoring-github-vulnerabilities.md) · 3 images
+- [Include Staged Users in Identity Provider Import](articles/include-staged-users-in-identity-provider-import.md) · 2 images
+- [Integrating JumpCloud Identity Provider within Vanta](articles/integrating-jumpcloud-identity-provider-within-vanta.md) · 4 images
+- [Integrating Multiple Identity Providers](articles/integrating-multiple-identity-providers.md) · 3 images
+- [Integrating Vanta & CrowdStrike](articles/integrating-vanta-crowdstrike.md) · 6 images
+- [Integrating Vanta & Datadog](articles/integrating-vanta-datadog.md) · 4 images
+- [Integrating Vanta & Deel](articles/integrating-vanta-deel.md) · 7 images
+- [Integrating Vanta & JumpCloud MDM](articles/integrating-vanta-jumpcloud-mdm.md) · 4 images
+- [Integrating Vanta & PingOne Identity Provider](articles/integrating-vanta-pingone-identity-provider.md) · 12 images
+- [Integrating Vanta & Snowflake](articles/integrating-vanta-snowflake.md) · 7 images
+- [Integrating Vanta & Workday](articles/integrating-vanta-workday.md) · 1 images
+- [Integration Journey: What to Connect First in Vanta](articles/integration-journey-what-to-connect-first-in-vanta.md) · 0 images
+- [Integrations Page](articles/integrations-page.md) · 5 images
+- [Jira Custom Fields in Vanta](articles/jira-custom-fields-in-vanta.md) · 3 images
+- [Jira: Integration Guide](articles/jira-integration-guide.md) · 30 images
+- [Jira: Quickstart](articles/jira-quickstart.md) · 10 images
+- [JumpCloud SCIM Attribute Instructions](articles/jumpcloud-scim-attribute-instructions.md) · 6 images
+- [Manually Sync Policies: Google Drive / Microsoft SharePoint / Confluence](articles/manually-sync-policies-google-drive-microsoft-sharepoint-confluence.md) · 3 images
+- [Microsoft Endpoint Manager (Intune) - Configuration for Vanta](articles/microsoft-endpoint-manager-intune-configuration-for-vanta.md) · 6 images
+- [Migrating HRIS Connection Type in Vanta](articles/migrating-hris-connection-type-in-vanta.md) · 1 images
+- [Migrating your HRIS System](articles/migrating-your-hris-system.md) · 0 images
+- [Missing Px security issues resolved test](articles/missing-px-security-issues-resolved-test.md) · 2 images
+- [Modifying the VantaAdditionalPermission Policy for Individual AWS Accounts](articles/modifying-the-vantaadditionalpermission-policy-for-individual-aws-accounts.md) · 9 images
+- [Okta SCIM Attribute Instructions](articles/okta-scim-attribute-instructions.md) · 7 images
+- [Okta: Integration Guide](articles/okta-integration-guide.md) · 19 images
+- [Okta: Quickstart](articles/okta-quickstart.md) · 10 images
+- [Personal Slack Notifications in Vanta](articles/personal-slack-notifications-in-vanta.md) · 0 images
+- [Porting AWS Integrations Across Regions](articles/porting-aws-integrations-across-regions.md) · 0 images
+- [Reconnecting Linear Permissions in Vanta (June 2022)](articles/reconnecting-linear-permissions-in-vanta-june-2022.md) · 1 images
+- [Remediation Task Tracking for Access Reviews](articles/remediation-task-tracking-for-access-reviews.md) · 8 images
+- [Resolving the Vanta couldn't query a few accounts from Google Workspace due to insufficient permissions. To improve the accuracy of this list, ask an admin to reconnect Google Workspace.](articles/resolving-the-vanta-couldn-t-query-a-few-accounts-from-google-workspace-due-to-insufficient-permissions-to-improve-the-accuracy-of-this-list-ask-an-admin-to-reconnect-google-workspace.md) · 5 images
+- [Scoping MDM Managed Computers via Iru Blueprints](articles/scoping-mdm-managed-computers-via-iru-blueprints.md) · 3 images
+- [ServiceNow Integration - Instance Setup Guide](articles/servicenow-integration-instance-setup-guide.md) · 29 images
+- [Setting Up Microsoft Teams Notifications](articles/setting-up-microsoft-teams-notifications.md) · 7 images
+- [Setting Up and Using the Vanta Slack App](articles/setting-up-and-using-the-vanta-slack-app.md) · 3 images
+- [Setting up Single Sign-On (SSO) with OneLogin](articles/setting-up-single-sign-on-sso-with-onelogin.md) · 4 images
+- [Setting up Vulnerability Scanning](articles/setting-up-vulnerability-scanning.md) · 2 images
+- [Sunsetting Google Drive Shared Background Checks](articles/sunsetting-google-drive-shared-background-checks.md) · 0 images
+- [Syncing Policies from Confluence](articles/syncing-policies-from-confluence.md) · 2 images
+- [Syncing Policies from Google Drive](articles/syncing-policies-from-google-drive.md) · 6 images
+- [Syncing Policies from Microsoft SharePoint](articles/syncing-policies-from-microsoft-sharepoint.md) · 5 images
+- [Tracking External Security Tasks in Vanta](articles/tracking-external-security-tasks-in-vanta.md) · 4 images
+- [Tracking Incident Management and Resolution Tickets in Vanta: Jira](articles/tracking-incident-management-and-resolution-tickets-in-vanta-jira.md) · 2 images
+- [Tracking Password Settings for Okta in Vanta](articles/tracking-password-settings-for-okta-in-vanta.md) · 2 images
+- [Troubleshooting Google Drive File Download Issues](articles/troubleshooting-google-drive-file-download-issues.md) · 0 images
+- [Updating your AWS integration to utilize Identity Store](articles/updating-your-aws-integration-to-utilize-identity-store.md) · 5 images
+- [Vanta & A-SCEND Integration](articles/vanta-a-scend-integration.md) · 0 images
+- [Vanta & AlexisHR Integration](articles/vanta-alexishr-integration.md) · 10 images
+- [Vanta & Basecamp Integration](articles/vanta-basecamp-integration.md) · 9 images
+- [Vanta & Brex Integration](articles/vanta-brex-integration.md) · 2 images
+- [Vanta & Identity Providers (IdPs)](articles/vanta-identity-providers-idps.md) · 2 images
+- [Vanta & Lever Integration](articles/vanta-lever-integration.md) · 5 images
+- [Vanta & Personio Integration](articles/vanta-personio-integration.md) · 8 images
+- [Vanta & Proliant Integration](articles/vanta-proliant-integration.md) · 11 images
+- [Vanta & Sentry Integration](articles/vanta-sentry-integration.md) · 4 images
+- [Vanta & Task Management](articles/vanta-task-management.md) · 3 images
+- [Vanta & Vouch Cyber Insurance](articles/vanta-vouch-cyber-insurance.md) · 5 images
+- [Vanta & Zendesk Integration](articles/vanta-zendesk-integration.md) · 3 images
+- [Vanta Background Checks Powered by Certn](articles/vanta-background-checks-powered-by-certn.md) · 5 images
+- [Vanta CLI Overview](articles/vanta-cli-overview.md) · 1 images
+- [Vanta EU and AUS regions: Sign-In, Integrations, and Data Residency](articles/vanta-eu-and-aus-regions-sign-in-integrations-and-data-residency.md) · 0 images
+- [Vanta MCP Capabilities](articles/vanta-mcp-capabilities.md) · 0 images
+- [Vanta MCP Overview](articles/vanta-mcp-overview.md) · 0 images
+- [Vanta MCP Prompt Library](articles/vanta-mcp-prompt-library.md) · 0 images
+- [Vanta MCP: Troubleshooting and FAQ](articles/vanta-mcp-troubleshooting-and-faq.md) · 0 images
+- [Vanta and Charthop Integration](articles/vanta-and-charthop-integration.md) · 10 images
+- [Vanta and Factorial](articles/vanta-and-factorial.md) · 9 images
+- [Vanta and Gorgias](articles/vanta-and-gorgias.md) · 8 images
+- [What You Can Do with Vanta + Slack (for CTM Customers)](articles/what-you-can-do-with-vanta-slack-for-ctm-customers.md) · 0 images
+- [Where does Vanta Pull Vulnerabilities from in Gitlab?](articles/where-does-vanta-pull-vulnerabilities-from-in-gitlab.md) · 0 images
+- [Which resources does Vanta fetch from AWS?](articles/which-resources-does-vanta-fetch-from-aws.md) · 0 images
+
+## Integrations › Getting Started with Integrations
+
+- [Before You Connect: Integration Prerequisites Checklist](articles/before-you-connect-integration-prerequisites-checklist.md) · 0 images
+- [Determining Resource Access for Your Integrations](articles/determining-resource-access-for-your-integrations.md) · 0 images
+- [How to Work with System Owners to Connect Integrations](articles/how-to-work-with-system-owners-to-connect-integrations.md) · 2 images
+- [Integration Journey: What to Connect First in Vanta](articles/integration-journey-what-to-connect-first-in-vanta.md) · 0 images
+- [Integrations Page](articles/integrations-page.md) · 5 images
+- [Vanta EU and AUS regions: Sign-In, Integrations, and Data Residency](articles/vanta-eu-and-aus-regions-sign-in-integrations-and-data-residency.md) · 0 images
+
+## Integrations › Integrations by Type
+
+- [Access Integrations](articles/access-integrations.md) · 2 images
+- [Ask Vanta Questions in Slack](articles/ask-vanta-questions-in-slack.md) · 3 images
+- [Azure Alerts](articles/azure-alerts.md) · 1 images
+- [Azure Kubernetes Guide](articles/azure-kubernetes-guide.md) · 4 images
+- [Azure SCIM Attribute Instructions](articles/azure-scim-attribute-instructions.md) · 10 images
+- [Azure VM showing "No actionable vulnerabilities" message on Vulnerabilities Page](articles/azure-vm-showing-no-actionable-vulnerabilities-message-on-vulnerabilities-page.md) · 9 images
+- [Azure: Integration Guide](articles/azure-integration-guide.md) · 20 images
+- [Azure: Quickstart](articles/azure-quickstart.md) · 10 images
+- [Bulk Tagging for AWS Resources in Vanta](articles/bulk-tagging-for-aws-resources-in-vanta.md) · 1 images
+- [Bulk Tags](articles/bulk-tags.md) · 4 images
+- [CIS GCP Foundations Benchmark](articles/cis-gcp-foundations-benchmark.md) · 0 images
+- [Configure JumpCloud - Antivirus](articles/configure-jumpcloud-antivirus.md) · 2 images
+- [Configuring CSPM Alerts](articles/configuring-cspm-alerts.md) · 3 images
+- [Connect Vanta & Keeper](articles/connect-vanta-keeper.md) · 5 images
+- [Connecting AWS Identity Store](articles/connecting-aws-identity-store.md) · 2 images
+- [Connecting AWS with CloudFormation](articles/connecting-aws-with-cloudformation.md) · 9 images
+- [Connecting GCP Container Registry to Vanta](articles/connecting-gcp-container-registry-to-vanta.md) · 0 images
+- [Connecting Vanta  to an AWS Organization](articles/connecting-vanta-to-an-aws-organization.md) · 19 images
+- [Connecting Vanta &  Azure DevOps](articles/connecting-vanta-azure-devops.md) · 4 images
+- [Connecting Vanta & 1Password](articles/connecting-vanta-1password.md) · 3 images
+- [Connecting Vanta & 1Password Device Trust (Kolide)](articles/connecting-vanta-1password-device-trust-kolide.md) · 9 images
+- [Connecting Vanta & 7Shifts Merge](articles/connecting-vanta-7shifts-merge.md) · 8 images
+- [Connecting Vanta & ADP Workforce Now](articles/connecting-vanta-adp-workforce-now.md) · 8 images
+- [Connecting Vanta & AWS Accounts](articles/connecting-vanta-aws-accounts.md) · 31 images
+- [Connecting Vanta & AbsorbLMS](articles/connecting-vanta-absorblms.md) · 11 images
+- [Connecting Vanta & Addigy](articles/connecting-vanta-addigy.md) · 9 images
+- [Connecting Vanta & Aikido](articles/connecting-vanta-aikido.md) · 3 images
+- [Connecting Vanta & Akamai](articles/connecting-vanta-akamai.md) · 8 images
+- [Connecting Vanta & Anthropic's Claude Console](articles/connecting-vanta-anthropic-s-claude-console.md) · 2 images
+- [Connecting Vanta & Apollo](articles/connecting-vanta-apollo.md) · 7 images
+- [Connecting Vanta & Asana](articles/connecting-vanta-asana.md) · 4 images
+- [Connecting Vanta & Auth0](articles/connecting-vanta-auth0.md) · 14 images
+- [Connecting Vanta & Bamboo HR](articles/connecting-vanta-bamboo-hr.md) · 4 images
+- [Connecting Vanta & Box](articles/connecting-vanta-box.md) · 4 images
+- [Connecting Vanta & Breezy HR](articles/connecting-vanta-breezy-hr.md) · 1 images
+- [Connecting Vanta & CATS](articles/connecting-vanta-cats.md) · 5 images
+- [Connecting Vanta & Calendly](articles/connecting-vanta-calendly.md) · 4 images
+- [Connecting Vanta & Capsule](articles/connecting-vanta-capsule.md) · 8 images
+- [Connecting Vanta & Checkr](articles/connecting-vanta-checkr.md) · 5 images
+- [Connecting Vanta & ClickUp](articles/connecting-vanta-clickup.md) · 5 images
+- [Connecting Vanta & Clockwork](articles/connecting-vanta-clockwork.md) · 7 images
+- [Connecting Vanta & Close](articles/connecting-vanta-close.md) · 6 images
+- [Connecting Vanta & Cloudflare](articles/connecting-vanta-cloudflare.md) · 7 images
+- [Connecting Vanta & Cloudflare for Government](articles/connecting-vanta-cloudflare-for-government.md) · 7 images
+- [Connecting Vanta & Comeet](articles/connecting-vanta-comeet.md) · 3 images
+- [Connecting Vanta & Confluence](articles/connecting-vanta-confluence.md) · 3 images
+- [Connecting Vanta & Confluence Access Control](articles/connecting-vanta-confluence-access-control.md) · 3 images
+- [Connecting Vanta & Copper](articles/connecting-vanta-copper.md) · 8 images
+- [Connecting Vanta & Cybeready](articles/connecting-vanta-cybeready.md) · 0 images
+- [Connecting Vanta & Dashlane](articles/connecting-vanta-dashlane.md) · 2 images
+- [Connecting Vanta & Digital Ocean](articles/connecting-vanta-digital-ocean.md) · 4 images
+- [Connecting Vanta & Docebo](articles/connecting-vanta-docebo.md) · 22 images
+- [Connecting Vanta & Duo](articles/connecting-vanta-duo.md) · 9 images
+- [Connecting Vanta & Employment Hero](articles/connecting-vanta-employment-hero.md) · 5 images
+- [Connecting Vanta & Envoy](articles/connecting-vanta-envoy.md) · 4 images
+- [Connecting Vanta & Fieldguide](articles/connecting-vanta-fieldguide.md) · 0 images
+- [Connecting Vanta & GitLab Cloud](articles/connecting-vanta-gitlab-cloud.md) · 6 images
+- [Connecting Vanta & GitLab Self-Managed instance](articles/connecting-vanta-gitlab-self-managed-instance.md) · 10 images
+- [Connecting Vanta & Gong](articles/connecting-vanta-gong.md) · 3 images
+- [Connecting Vanta & Google Drive](articles/connecting-vanta-google-drive.md) · 3 images
+- [Connecting Vanta & Google Workspace (SCIM)](articles/connecting-vanta-google-workspace-scim.md) · 21 images
+- [Connecting Vanta & Grafana](articles/connecting-vanta-grafana.md) · 1 images
+- [Connecting Vanta & Gusto](articles/connecting-vanta-gusto.md) · 4 images
+- [Connecting Vanta & Heroku](articles/connecting-vanta-heroku.md) · 4 images
+- [Connecting Vanta & HiBob](articles/connecting-vanta-hibob.md) · 16 images
+- [Connecting Vanta & HubSpot](articles/connecting-vanta-hubspot.md) · 3 images
+- [Connecting Vanta & Humaans](articles/connecting-vanta-humaans.md) · 9 images
+- [Connecting Vanta & Insightly](articles/connecting-vanta-insightly.md) · 7 images
+- [Connecting Vanta & Intercom](articles/connecting-vanta-intercom.md) · 4 images
+- [Connecting Vanta & Iru](articles/connecting-vanta-iru.md) · 2 images
+- [Connecting Vanta & Jamf Pro](articles/connecting-vanta-jamf-pro.md) · 6 images
+- [Connecting Vanta & Jira Data Center](articles/connecting-vanta-jira-data-center.md) · 4 images
+- [Connecting Vanta & JobAdder](articles/connecting-vanta-jobadder.md) · 4 images
+- [Connecting Vanta & Jobvite](articles/connecting-vanta-jobvite.md) · 5 images
+- [Connecting Vanta & JumpCloud (SCIM)](articles/connecting-vanta-jumpcloud-scim.md) · 26 images
+- [Connecting Vanta & Justworks](articles/connecting-vanta-justworks.md) · 5 images
+- [Connecting Vanta & Kenjo](articles/connecting-vanta-kenjo.md) · 5 images
+- [Connecting Vanta & KnowBe4](articles/connecting-vanta-knowbe4.md) · 6 images
+- [Connecting Vanta & LaunchDarkly](articles/connecting-vanta-launchdarkly.md) · 8 images
+- [Connecting Vanta & Leapsome](articles/connecting-vanta-leapsome.md) · 3 images
+- [Connecting Vanta & ManageEngine](articles/connecting-vanta-manageengine.md) · 2 images
+- [Connecting Vanta & Microsoft Defender for Endpoint](articles/connecting-vanta-microsoft-defender-for-endpoint.md) · 5 images
+- [Connecting Vanta & Microsoft Defender for Endpoint for US Government (GCC High)](articles/connecting-vanta-microsoft-defender-for-endpoint-for-us-government-gcc-high.md) · 4 images
+- [Connecting Vanta & Microsoft Endpoint Manager / Intune MDM](articles/connecting-vanta-microsoft-endpoint-manager-intune-mdm.md) · 4 images
+- [Connecting Vanta & Microsoft Entra](articles/connecting-vanta-microsoft-entra.md) · 5 images
+- [Connecting Vanta & Microsoft Entra (GCC High)](articles/connecting-vanta-microsoft-entra-gcc-high.md) · 4 images
+- [Connecting Vanta & Microsoft Intune (GCC High)](articles/connecting-vanta-microsoft-intune-gcc-high.md) · 4 images
+- [Connecting Vanta & Microsoft SharePoint](articles/connecting-vanta-microsoft-sharepoint.md) · 2 images
+- [Connecting Vanta & Mimecast](articles/connecting-vanta-mimecast.md) · 14 images
+- [Connecting Vanta & Miradore](articles/connecting-vanta-miradore.md) · 9 images
+- [Connecting Vanta & MongoDB Atlas for Government](articles/connecting-vanta-mongodb-atlas-for-government.md) · 6 images
+- [Connecting Vanta & NetSuite](articles/connecting-vanta-netsuite.md) · 11 images
+- [Connecting Vanta & Netlify](articles/connecting-vanta-netlify.md) · 5 images
+- [Connecting Vanta & New Relic](articles/connecting-vanta-new-relic.md) · 1 images
+- [Connecting Vanta & NinjaOne](articles/connecting-vanta-ninjaone.md) · 2 images
+- [Connecting Vanta & Notion](articles/connecting-vanta-notion.md) · 5 images
+- [Connecting Vanta & OVHcloud](articles/connecting-vanta-ovhcloud.md) · 7 images
+- [Connecting Vanta & Okta (SCIM)](articles/connecting-vanta-okta-scim.md) · 38 images
+- [Connecting Vanta & Omnissa Workspace One](articles/connecting-vanta-omnissa-workspace-one.md) · 3 images
+- [Connecting Vanta & OpenAI](articles/connecting-vanta-openai.md) · 6 images
+- [Connecting Vanta & Oracle Cloud](articles/connecting-vanta-oracle-cloud.md) · 3 images
+- [Connecting Vanta & Oracle Cloud HCM](articles/connecting-vanta-oracle-cloud-hcm.md) · 15 images
+- [Connecting Vanta & Orca Security](articles/connecting-vanta-orca-security.md) · 3 images
+- [Connecting Vanta & PagerDuty](articles/connecting-vanta-pagerduty.md) · 4 images
+- [Connecting Vanta & PayFit](articles/connecting-vanta-payfit.md) · 5 images
+- [Connecting Vanta & Pipedrive](articles/connecting-vanta-pipedrive.md) · 3 images
+- [Connecting Vanta & Render](articles/connecting-vanta-render.md) · 6 images
+- [Connecting Vanta & Rippling](articles/connecting-vanta-rippling.md) · 7 images
+- [Connecting Vanta & Rockset](articles/connecting-vanta-rockset.md) · 3 images
+- [Connecting Vanta & Rollbar](articles/connecting-vanta-rollbar.md) · 8 images
+- [Connecting Vanta & Salesforce (Access)](articles/connecting-vanta-salesforce-access.md) · 5 images
+- [Connecting Vanta & Scaleway](articles/connecting-vanta-scaleway.md) · 9 images
+- [Connecting Vanta & Semgrep](articles/connecting-vanta-semgrep.md) · 2 images
+- [Connecting Vanta & SentinelOne](articles/connecting-vanta-sentinelone.md) · 2 images
+- [Connecting Vanta & Slack (Access)](articles/connecting-vanta-slack-access.md) · 5 images
+- [Connecting Vanta & Smart Recruiters](articles/connecting-vanta-smart-recruiters.md) · 7 images
+- [Connecting Vanta & Smartsheet](articles/connecting-vanta-smartsheet.md) · 4 images
+- [Connecting Vanta & Snyk](articles/connecting-vanta-snyk.md) · 4 images
+- [Connecting Vanta & Splunk](articles/connecting-vanta-splunk.md) · 24 images
+- [Connecting Vanta & Splunk Enterprise](articles/connecting-vanta-splunk-enterprise.md) · 6 images
+- [Connecting Vanta & Square Payroll](articles/connecting-vanta-square-payroll.md) · 4 images
+- [Connecting Vanta & Sumo Logic](articles/connecting-vanta-sumo-logic.md) · 7 images
+- [Connecting Vanta & Supabase](articles/connecting-vanta-supabase.md) · 3 images
+- [Connecting Vanta & Tailscale](articles/connecting-vanta-tailscale.md) · 3 images
+- [Connecting Vanta & Teamtailor](articles/connecting-vanta-teamtailor.md) · 9 images
+- [Connecting Vanta & Teamwork](articles/connecting-vanta-teamwork.md) · 6 images
+- [Connecting Vanta & Tenable](articles/connecting-vanta-tenable.md) · 18 images
+- [Connecting Vanta & Tenable Vulnerability Management FedRAMP](articles/connecting-vanta-tenable-vulnerability-management-fedramp.md) · 9 images
+- [Connecting Vanta & Torii](articles/connecting-vanta-torii.md) · 3 images
+- [Connecting Vanta & TriNet](articles/connecting-vanta-trinet.md) · 4 images
+- [Connecting Vanta & Twilio](articles/connecting-vanta-twilio.md) · 3 images
+- [Connecting Vanta & Udemy Business](articles/connecting-vanta-udemy-business.md) · 18 images
+- [Connecting Vanta & Vercel](articles/connecting-vanta-vercel.md) · 2 images
+- [Connecting Vanta & Webex](articles/connecting-vanta-webex.md) · 4 images
+- [Connecting Vanta & Wizer](articles/connecting-vanta-wizer.md) · 16 images
+- [Connecting Vanta & Xero](articles/connecting-vanta-xero.md) · 2 images
+- [Connecting Vanta & Zoom](articles/connecting-vanta-zoom.md) · 7 images
+- [Connecting Vanta & ZoomInfo](articles/connecting-vanta-zoominfo.md) · 1 images
+- [Connecting Vanta & iSolved](articles/connecting-vanta-isolved.md) · 2 images
+- [Connecting Vanta & monday.com](articles/connecting-vanta-monday-com.md) · 1 images
+- [Connecting Vanta and Certn](articles/connecting-vanta-and-certn.md) · 4 images
+- [Connecting Vanta and DocuSign](articles/connecting-vanta-and-docusign.md) · 5 images
+- [Connecting Vanta and Ramp](articles/connecting-vanta-and-ramp.md) · 1 images
+- [Connecting Wiz with Vanta](articles/connecting-wiz-with-vanta.md) · 4 images
+- [Control Scope with Jamf for Workspace](articles/control-scope-with-jamf-for-workspace.md) · 2 images
+- [Controlling Assets Scope Through Tenable](articles/controlling-assets-scope-through-tenable.md) · 0 images
+- [Controlling Scope Through Microsoft Entra](articles/controlling-scope-through-microsoft-entra.md) · 7 images
+- [Controlling Scope Through Okta](articles/controlling-scope-through-okta.md) · 3 images
+- [Controlling Scope through JumpCloud](articles/controlling-scope-through-jumpcloud.md) · 1 images
+- [Controlling Scope through PingOne](articles/controlling-scope-through-pingone.md) · 3 images
+- [Controlling scope through OneLogin](articles/controlling-scope-through-onelogin.md) · 2 images
+- [Creating a Custom SAML Connection](articles/creating-a-custom-saml-connection.md) · 4 images
+- [Creating a Security Label within GitHub Issues](articles/creating-a-security-label-within-github-issues.md) · 0 images
+- [Creating a Service Account for the Google Workspace Integration](articles/creating-a-service-account-for-the-google-workspace-integration.md) · 7 images
+- [Dynamic IdP Groups: Google](articles/dynamic-idp-groups-google.md) · 6 images
+- [Dynamic IdP Groups: Okta](articles/dynamic-idp-groups-okta.md) · 5 images
+- [Enabling SCIM in Vanta](articles/enabling-scim-in-vanta.md) · 0 images
+- [Error Connecting KnowBe4](articles/error-connecting-knowbe4.md) · 3 images
+- [GitHub: Integration Guide](articles/github-integration-guide.md) · 6 images
+- [GitHub: Quickstart](articles/github-quickstart.md) · 10 images
+- [Google Cloud Platform: Integration Guide](articles/google-cloud-platform-integration-guide.md) · 7 images
+- [Google Cloud Platform: Quickstart](articles/google-cloud-platform-quickstart.md) · 5 images
+- [Google Compliance Reports Manager: Downloading Reports for Vendors Page in Vanta](articles/google-compliance-reports-manager-downloading-reports-for-vendors-page-in-vanta.md) · 1 images
+- [Google Workspace: Integration Guide](articles/google-workspace-integration-guide.md) · 16 images
+- [Google Workspace: Quickstart](articles/google-workspace-quickstart.md) · 0 images
+- [How Does Vanta Use Merge?](articles/how-does-vanta-use-merge.md) · 0 images
+- [How to Connect Multiple Azure Subscriptions to Vanta](articles/how-to-connect-multiple-azure-subscriptions-to-vanta.md) · 16 images
+- [How to Troubleshoot Azure Resources Not Appearing in Inventory](articles/how-to-troubleshoot-azure-resources-not-appearing-in-inventory.md) · 0 images
+- [How to change Azure Devops Read/Write Permissions](articles/how-to-change-azure-devops-read-write-permissions.md) · 7 images
+- [How to set up SSO for Entra (Office 365)](articles/how-to-set-up-sso-for-entra-office-365.md) · 8 images
+- [How to troubleshoot AWS resources not Appearing in Inventory](articles/how-to-troubleshoot-aws-resources-not-appearing-in-inventory.md) · 5 images
+- [Ignoring Github Vulnerabilities](articles/ignoring-github-vulnerabilities.md) · 3 images
+- [Include Staged Users in Identity Provider Import](articles/include-staged-users-in-identity-provider-import.md) · 2 images
+- [Integrating JumpCloud Identity Provider within Vanta](articles/integrating-jumpcloud-identity-provider-within-vanta.md) · 4 images
+- [Integrating Multiple Identity Providers](articles/integrating-multiple-identity-providers.md) · 3 images
+- [Integrating Vanta & CrowdStrike](articles/integrating-vanta-crowdstrike.md) · 6 images
+- [Integrating Vanta & Datadog](articles/integrating-vanta-datadog.md) · 4 images
+- [Integrating Vanta & Deel](articles/integrating-vanta-deel.md) · 7 images
+- [Integrating Vanta & JumpCloud MDM](articles/integrating-vanta-jumpcloud-mdm.md) · 4 images
+- [Integrating Vanta & PingOne Identity Provider](articles/integrating-vanta-pingone-identity-provider.md) · 12 images
+- [Integrating Vanta & Snowflake](articles/integrating-vanta-snowflake.md) · 7 images
+- [Integrating Vanta & Workday](articles/integrating-vanta-workday.md) · 1 images
+- [Jira Custom Fields in Vanta](articles/jira-custom-fields-in-vanta.md) · 3 images
+- [Jira: Integration Guide](articles/jira-integration-guide.md) · 30 images
+- [Jira: Quickstart](articles/jira-quickstart.md) · 10 images
+- [JumpCloud SCIM Attribute Instructions](articles/jumpcloud-scim-attribute-instructions.md) · 6 images
+- [Manually Sync Policies: Google Drive / Microsoft SharePoint / Confluence](articles/manually-sync-policies-google-drive-microsoft-sharepoint-confluence.md) · 3 images
+- [Microsoft Endpoint Manager (Intune) - Configuration for Vanta](articles/microsoft-endpoint-manager-intune-configuration-for-vanta.md) · 6 images
+- [Migrating HRIS Connection Type in Vanta](articles/migrating-hris-connection-type-in-vanta.md) · 1 images
+- [Migrating your HRIS System](articles/migrating-your-hris-system.md) · 0 images
+- [Missing Px security issues resolved test](articles/missing-px-security-issues-resolved-test.md) · 2 images
+- [Modifying the VantaAdditionalPermission Policy for Individual AWS Accounts](articles/modifying-the-vantaadditionalpermission-policy-for-individual-aws-accounts.md) · 9 images
+- [Okta SCIM Attribute Instructions](articles/okta-scim-attribute-instructions.md) · 7 images
+- [Okta: Integration Guide](articles/okta-integration-guide.md) · 19 images
+- [Okta: Quickstart](articles/okta-quickstart.md) · 10 images
+- [Personal Slack Notifications in Vanta](articles/personal-slack-notifications-in-vanta.md) · 0 images
+- [Porting AWS Integrations Across Regions](articles/porting-aws-integrations-across-regions.md) · 0 images
+- [Reconnecting Linear Permissions in Vanta (June 2022)](articles/reconnecting-linear-permissions-in-vanta-june-2022.md) · 1 images
+- [Remediation Task Tracking for Access Reviews](articles/remediation-task-tracking-for-access-reviews.md) · 8 images
+- [Resolving the Vanta couldn't query a few accounts from Google Workspace due to insufficient permissions. To improve the accuracy of this list, ask an admin to reconnect Google Workspace.](articles/resolving-the-vanta-couldn-t-query-a-few-accounts-from-google-workspace-due-to-insufficient-permissions-to-improve-the-accuracy-of-this-list-ask-an-admin-to-reconnect-google-workspace.md) · 5 images
+- [Scoping MDM Managed Computers via Iru Blueprints](articles/scoping-mdm-managed-computers-via-iru-blueprints.md) · 3 images
+- [ServiceNow Integration - Instance Setup Guide](articles/servicenow-integration-instance-setup-guide.md) · 29 images
+- [Setting Up Microsoft Teams Notifications](articles/setting-up-microsoft-teams-notifications.md) · 7 images
+- [Setting Up and Using the Vanta Slack App](articles/setting-up-and-using-the-vanta-slack-app.md) · 3 images
+- [Setting up Single Sign-On (SSO) with OneLogin](articles/setting-up-single-sign-on-sso-with-onelogin.md) · 4 images
+- [Setting up Vulnerability Scanning](articles/setting-up-vulnerability-scanning.md) · 2 images
+- [Sunsetting Google Drive Shared Background Checks](articles/sunsetting-google-drive-shared-background-checks.md) · 0 images
+- [Syncing Policies from Confluence](articles/syncing-policies-from-confluence.md) · 2 images
+- [Syncing Policies from Google Drive](articles/syncing-policies-from-google-drive.md) · 6 images
+- [Syncing Policies from Microsoft SharePoint](articles/syncing-policies-from-microsoft-sharepoint.md) · 5 images
+- [Tracking External Security Tasks in Vanta](articles/tracking-external-security-tasks-in-vanta.md) · 4 images
+- [Tracking Incident Management and Resolution Tickets in Vanta: Jira](articles/tracking-incident-management-and-resolution-tickets-in-vanta-jira.md) · 2 images
+- [Tracking Password Settings for Okta in Vanta](articles/tracking-password-settings-for-okta-in-vanta.md) · 2 images
+- [Troubleshooting Google Drive File Download Issues](articles/troubleshooting-google-drive-file-download-issues.md) · 0 images
+- [Updating your AWS integration to utilize Identity Store](articles/updating-your-aws-integration-to-utilize-identity-store.md) · 5 images
+- [Vanta & A-SCEND Integration](articles/vanta-a-scend-integration.md) · 0 images
+- [Vanta & AlexisHR Integration](articles/vanta-alexishr-integration.md) · 10 images
+- [Vanta & Basecamp Integration](articles/vanta-basecamp-integration.md) · 9 images
+- [Vanta & Brex Integration](articles/vanta-brex-integration.md) · 2 images
+- [Vanta & Identity Providers (IdPs)](articles/vanta-identity-providers-idps.md) · 2 images
+- [Vanta & Lever Integration](articles/vanta-lever-integration.md) · 5 images
+- [Vanta & Personio Integration](articles/vanta-personio-integration.md) · 8 images
+- [Vanta & Proliant Integration](articles/vanta-proliant-integration.md) · 11 images
+- [Vanta & Sentry Integration](articles/vanta-sentry-integration.md) · 4 images
+- [Vanta & Task Management](articles/vanta-task-management.md) · 3 images
+- [Vanta & Vouch Cyber Insurance](articles/vanta-vouch-cyber-insurance.md) · 5 images
+- [Vanta & Zendesk Integration](articles/vanta-zendesk-integration.md) · 3 images
+- [Vanta Background Checks Powered by Certn](articles/vanta-background-checks-powered-by-certn.md) · 5 images
+- [Vanta and Charthop Integration](articles/vanta-and-charthop-integration.md) · 10 images
+- [Vanta and Factorial](articles/vanta-and-factorial.md) · 9 images
+- [Vanta and Gorgias](articles/vanta-and-gorgias.md) · 8 images
+- [What You Can Do with Vanta + Slack (for CTM Customers)](articles/what-you-can-do-with-vanta-slack-for-ctm-customers.md) · 0 images
+- [Where does Vanta Pull Vulnerabilities from in Gitlab?](articles/where-does-vanta-pull-vulnerabilities-from-in-gitlab.md) · 0 images
+- [Which resources does Vanta fetch from AWS?](articles/which-resources-does-vanta-fetch-from-aws.md) · 0 images
+
+## Integrations › Integrations by Type › Access and Additional Integrations
+
+- [Access Integrations](articles/access-integrations.md) · 2 images
+- [Ask Vanta Questions in Slack](articles/ask-vanta-questions-in-slack.md) · 3 images
+- [Configure JumpCloud - Antivirus](articles/configure-jumpcloud-antivirus.md) · 2 images
+- [Connecting AWS Identity Store](articles/connecting-aws-identity-store.md) · 2 images
+- [Connecting Vanta & 1Password](articles/connecting-vanta-1password.md) · 3 images
+- [Connecting Vanta & 1Password Device Trust (Kolide)](articles/connecting-vanta-1password-device-trust-kolide.md) · 9 images
+- [Connecting Vanta & Aikido](articles/connecting-vanta-aikido.md) · 3 images
+- [Connecting Vanta & Anthropic's Claude Console](articles/connecting-vanta-anthropic-s-claude-console.md) · 2 images
+- [Connecting Vanta & Apollo](articles/connecting-vanta-apollo.md) · 7 images
+- [Connecting Vanta & Auth0](articles/connecting-vanta-auth0.md) · 14 images
+- [Connecting Vanta & Box](articles/connecting-vanta-box.md) · 4 images
+- [Connecting Vanta & Breezy HR](articles/connecting-vanta-breezy-hr.md) · 1 images
+- [Connecting Vanta & CATS](articles/connecting-vanta-cats.md) · 5 images
+- [Connecting Vanta & Calendly](articles/connecting-vanta-calendly.md) · 4 images
+- [Connecting Vanta & Capsule](articles/connecting-vanta-capsule.md) · 8 images
+- [Connecting Vanta & Checkr](articles/connecting-vanta-checkr.md) · 5 images
+- [Connecting Vanta & Clockwork](articles/connecting-vanta-clockwork.md) · 7 images
+- [Connecting Vanta & Close](articles/connecting-vanta-close.md) · 6 images
+- [Connecting Vanta & Cloudflare](articles/connecting-vanta-cloudflare.md) · 7 images
+- [Connecting Vanta & Cloudflare for Government](articles/connecting-vanta-cloudflare-for-government.md) · 7 images
+- [Connecting Vanta & Comeet](articles/connecting-vanta-comeet.md) · 3 images
+- [Connecting Vanta & Confluence](articles/connecting-vanta-confluence.md) · 3 images
+- [Connecting Vanta & Confluence Access Control](articles/connecting-vanta-confluence-access-control.md) · 3 images
+- [Connecting Vanta & Copper](articles/connecting-vanta-copper.md) · 8 images
+- [Connecting Vanta & Cybeready](articles/connecting-vanta-cybeready.md) · 0 images
+- [Connecting Vanta & Dashlane](articles/connecting-vanta-dashlane.md) · 2 images
+- [Connecting Vanta & Duo](articles/connecting-vanta-duo.md) · 9 images
+- [Connecting Vanta & Envoy](articles/connecting-vanta-envoy.md) · 4 images
+- [Connecting Vanta & Fieldguide](articles/connecting-vanta-fieldguide.md) · 0 images
+- [Connecting Vanta & GitLab Self-Managed instance](articles/connecting-vanta-gitlab-self-managed-instance.md) · 10 images
+- [Connecting Vanta & Gong](articles/connecting-vanta-gong.md) · 3 images
+- [Connecting Vanta & Google Drive](articles/connecting-vanta-google-drive.md) · 3 images
+- [Connecting Vanta & Grafana](articles/connecting-vanta-grafana.md) · 1 images
+- [Connecting Vanta & Heroku](articles/connecting-vanta-heroku.md) · 4 images
+- [Connecting Vanta & HubSpot](articles/connecting-vanta-hubspot.md) · 3 images
+- [Connecting Vanta & Insightly](articles/connecting-vanta-insightly.md) · 7 images
+- [Connecting Vanta & Intercom](articles/connecting-vanta-intercom.md) · 4 images
+- [Connecting Vanta & Iru](articles/connecting-vanta-iru.md) · 2 images
+- [Connecting Vanta & JobAdder](articles/connecting-vanta-jobadder.md) · 4 images
+- [Connecting Vanta & Jobvite](articles/connecting-vanta-jobvite.md) · 5 images
+- [Connecting Vanta & LaunchDarkly](articles/connecting-vanta-launchdarkly.md) · 8 images
+- [Connecting Vanta & Microsoft Endpoint Manager / Intune MDM](articles/connecting-vanta-microsoft-endpoint-manager-intune-mdm.md) · 4 images
+- [Connecting Vanta & Microsoft SharePoint](articles/connecting-vanta-microsoft-sharepoint.md) · 2 images
+- [Connecting Vanta & MongoDB Atlas for Government](articles/connecting-vanta-mongodb-atlas-for-government.md) · 6 images
+- [Connecting Vanta & New Relic](articles/connecting-vanta-new-relic.md) · 1 images
+- [Connecting Vanta & Notion](articles/connecting-vanta-notion.md) · 5 images
+- [Connecting Vanta & Omnissa Workspace One](articles/connecting-vanta-omnissa-workspace-one.md) · 3 images
+- [Connecting Vanta & OpenAI](articles/connecting-vanta-openai.md) · 6 images
+- [Connecting Vanta & PagerDuty](articles/connecting-vanta-pagerduty.md) · 4 images
+- [Connecting Vanta & Pipedrive](articles/connecting-vanta-pipedrive.md) · 3 images
+- [Connecting Vanta & Render](articles/connecting-vanta-render.md) · 6 images
+- [Connecting Vanta & Rockset](articles/connecting-vanta-rockset.md) · 3 images
+- [Connecting Vanta & Rollbar](articles/connecting-vanta-rollbar.md) · 8 images
+- [Connecting Vanta & Salesforce (Access)](articles/connecting-vanta-salesforce-access.md) · 5 images
+- [Connecting Vanta & Slack (Access)](articles/connecting-vanta-slack-access.md) · 5 images
+- [Connecting Vanta & Smart Recruiters](articles/connecting-vanta-smart-recruiters.md) · 7 images
+- [Connecting Vanta & Smartsheet](articles/connecting-vanta-smartsheet.md) · 4 images
+- [Connecting Vanta & Snyk](articles/connecting-vanta-snyk.md) · 4 images
+- [Connecting Vanta & Splunk](articles/connecting-vanta-splunk.md) · 24 images
+- [Connecting Vanta & Splunk Enterprise](articles/connecting-vanta-splunk-enterprise.md) · 6 images
+- [Connecting Vanta & Sumo Logic](articles/connecting-vanta-sumo-logic.md) · 7 images
+- [Connecting Vanta & Tailscale](articles/connecting-vanta-tailscale.md) · 3 images
+- [Connecting Vanta & Teamtailor](articles/connecting-vanta-teamtailor.md) · 9 images
+- [Connecting Vanta & Torii](articles/connecting-vanta-torii.md) · 3 images
+- [Connecting Vanta & Twilio](articles/connecting-vanta-twilio.md) · 3 images
+- [Connecting Vanta & Webex](articles/connecting-vanta-webex.md) · 4 images
+- [Connecting Vanta & Xero](articles/connecting-vanta-xero.md) · 2 images
+- [Connecting Vanta & Zoom](articles/connecting-vanta-zoom.md) · 7 images
+- [Connecting Vanta & ZoomInfo](articles/connecting-vanta-zoominfo.md) · 1 images
+- [Connecting Vanta & monday.com](articles/connecting-vanta-monday-com.md) · 1 images
+- [Connecting Vanta and Certn](articles/connecting-vanta-and-certn.md) · 4 images
+- [Connecting Vanta and DocuSign](articles/connecting-vanta-and-docusign.md) · 5 images
+- [Connecting Vanta and Ramp](articles/connecting-vanta-and-ramp.md) · 1 images
+- [Error Connecting KnowBe4](articles/error-connecting-knowbe4.md) · 3 images
+- [Google Compliance Reports Manager: Downloading Reports for Vendors Page in Vanta](articles/google-compliance-reports-manager-downloading-reports-for-vendors-page-in-vanta.md) · 1 images
+- [How Does Vanta Use Merge?](articles/how-does-vanta-use-merge.md) · 0 images
+- [Integrating Vanta & CrowdStrike](articles/integrating-vanta-crowdstrike.md) · 6 images
+- [Integrating Vanta & Datadog](articles/integrating-vanta-datadog.md) · 4 images
+- [Integrating Vanta & JumpCloud MDM](articles/integrating-vanta-jumpcloud-mdm.md) · 4 images
+- [Manually Sync Policies: Google Drive / Microsoft SharePoint / Confluence](articles/manually-sync-policies-google-drive-microsoft-sharepoint-confluence.md) · 3 images
+- [Microsoft Endpoint Manager (Intune) - Configuration for Vanta](articles/microsoft-endpoint-manager-intune-configuration-for-vanta.md) · 6 images
+- [Missing Px security issues resolved test](articles/missing-px-security-issues-resolved-test.md) · 2 images
+- [Personal Slack Notifications in Vanta](articles/personal-slack-notifications-in-vanta.md) · 0 images
+- [Setting Up Microsoft Teams Notifications](articles/setting-up-microsoft-teams-notifications.md) · 7 images
+- [Setting Up and Using the Vanta Slack App](articles/setting-up-and-using-the-vanta-slack-app.md) · 3 images
+- [Sunsetting Google Drive Shared Background Checks](articles/sunsetting-google-drive-shared-background-checks.md) · 0 images
+- [Syncing Policies from Confluence](articles/syncing-policies-from-confluence.md) · 2 images
+- [Syncing Policies from Google Drive](articles/syncing-policies-from-google-drive.md) · 6 images
+- [Syncing Policies from Microsoft SharePoint](articles/syncing-policies-from-microsoft-sharepoint.md) · 5 images
+- [Tracking External Security Tasks in Vanta](articles/tracking-external-security-tasks-in-vanta.md) · 4 images
+- [Troubleshooting Google Drive File Download Issues](articles/troubleshooting-google-drive-file-download-issues.md) · 0 images
+- [Vanta & A-SCEND Integration](articles/vanta-a-scend-integration.md) · 0 images
+- [Vanta & Basecamp Integration](articles/vanta-basecamp-integration.md) · 9 images
+- [Vanta & Brex Integration](articles/vanta-brex-integration.md) · 2 images
+- [Vanta & Lever Integration](articles/vanta-lever-integration.md) · 5 images
+- [Vanta & Sentry Integration](articles/vanta-sentry-integration.md) · 4 images
+- [Vanta & Vouch Cyber Insurance](articles/vanta-vouch-cyber-insurance.md) · 5 images
+- [Vanta Background Checks Powered by Certn](articles/vanta-background-checks-powered-by-certn.md) · 5 images
+- [Vanta and Gorgias](articles/vanta-and-gorgias.md) · 8 images
+- [What You Can Do with Vanta + Slack (for CTM Customers)](articles/what-you-can-do-with-vanta-slack-for-ctm-customers.md) · 0 images
+
+## Integrations › Integrations by Type › Cloud Providers
+
+- [Azure Alerts](articles/azure-alerts.md) · 1 images
+- [Azure Kubernetes Guide](articles/azure-kubernetes-guide.md) · 4 images
+- [Azure VM showing "No actionable vulnerabilities" message on Vulnerabilities Page](articles/azure-vm-showing-no-actionable-vulnerabilities-message-on-vulnerabilities-page.md) · 9 images
+- [Azure: Integration Guide](articles/azure-integration-guide.md) · 20 images
+- [Azure: Quickstart](articles/azure-quickstart.md) · 10 images
+- [Bulk Tagging for AWS Resources in Vanta](articles/bulk-tagging-for-aws-resources-in-vanta.md) · 1 images
+- [Bulk Tags](articles/bulk-tags.md) · 4 images
+- [CIS GCP Foundations Benchmark](articles/cis-gcp-foundations-benchmark.md) · 0 images
+- [Configuring CSPM Alerts](articles/configuring-cspm-alerts.md) · 3 images
+- [Connecting AWS with CloudFormation](articles/connecting-aws-with-cloudformation.md) · 9 images
+- [Connecting GCP Container Registry to Vanta](articles/connecting-gcp-container-registry-to-vanta.md) · 0 images
+- [Connecting Vanta  to an AWS Organization](articles/connecting-vanta-to-an-aws-organization.md) · 19 images
+- [Connecting Vanta &  Azure DevOps](articles/connecting-vanta-azure-devops.md) · 4 images
+- [Connecting Vanta & AWS Accounts](articles/connecting-vanta-aws-accounts.md) · 31 images
+- [Connecting Vanta & Akamai](articles/connecting-vanta-akamai.md) · 8 images
+- [Connecting Vanta & Digital Ocean](articles/connecting-vanta-digital-ocean.md) · 4 images
+- [Connecting Vanta & Netlify](articles/connecting-vanta-netlify.md) · 5 images
+- [Connecting Vanta & OVHcloud](articles/connecting-vanta-ovhcloud.md) · 7 images
+- [Connecting Vanta & Oracle Cloud](articles/connecting-vanta-oracle-cloud.md) · 3 images
+- [Connecting Vanta & Oracle Cloud HCM](articles/connecting-vanta-oracle-cloud-hcm.md) · 15 images
+- [Connecting Vanta & Scaleway](articles/connecting-vanta-scaleway.md) · 9 images
+- [Connecting Vanta & Supabase](articles/connecting-vanta-supabase.md) · 3 images
+- [Connecting Vanta & Vercel](articles/connecting-vanta-vercel.md) · 2 images
+- [Connecting Wiz with Vanta](articles/connecting-wiz-with-vanta.md) · 4 images
+- [Google Cloud Platform: Integration Guide](articles/google-cloud-platform-integration-guide.md) · 7 images
+- [Google Cloud Platform: Quickstart](articles/google-cloud-platform-quickstart.md) · 5 images
+- [How to Connect Multiple Azure Subscriptions to Vanta](articles/how-to-connect-multiple-azure-subscriptions-to-vanta.md) · 16 images
+- [How to Troubleshoot Azure Resources Not Appearing in Inventory](articles/how-to-troubleshoot-azure-resources-not-appearing-in-inventory.md) · 0 images
+- [How to troubleshoot AWS resources not Appearing in Inventory](articles/how-to-troubleshoot-aws-resources-not-appearing-in-inventory.md) · 5 images
+- [Integrating Vanta & Snowflake](articles/integrating-vanta-snowflake.md) · 7 images
+- [Modifying the VantaAdditionalPermission Policy for Individual AWS Accounts](articles/modifying-the-vantaadditionalpermission-policy-for-individual-aws-accounts.md) · 9 images
+- [Porting AWS Integrations Across Regions](articles/porting-aws-integrations-across-regions.md) · 0 images
+- [ServiceNow Integration - Instance Setup Guide](articles/servicenow-integration-instance-setup-guide.md) · 29 images
+- [Updating your AWS integration to utilize Identity Store](articles/updating-your-aws-integration-to-utilize-identity-store.md) · 5 images
+- [Which resources does Vanta fetch from AWS?](articles/which-resources-does-vanta-fetch-from-aws.md) · 0 images
+
+## Integrations › Integrations by Type › Endpoint and Device Management (MDM)
+
+- [Connecting Vanta & Addigy](articles/connecting-vanta-addigy.md) · 9 images
+- [Connecting Vanta & Jamf Pro](articles/connecting-vanta-jamf-pro.md) · 6 images
+- [Connecting Vanta & ManageEngine](articles/connecting-vanta-manageengine.md) · 2 images
+- [Connecting Vanta & Microsoft Intune (GCC High)](articles/connecting-vanta-microsoft-intune-gcc-high.md) · 4 images
+- [Connecting Vanta & Miradore](articles/connecting-vanta-miradore.md) · 9 images
+- [Connecting Vanta & NinjaOne](articles/connecting-vanta-ninjaone.md) · 2 images
+- [Control Scope with Jamf for Workspace](articles/control-scope-with-jamf-for-workspace.md) · 2 images
+- [Scoping MDM Managed Computers via Iru Blueprints](articles/scoping-mdm-managed-computers-via-iru-blueprints.md) · 3 images
+
+## Integrations › Integrations by Type › HR Systems (HRIS)
+
+- [Connecting Vanta & 7Shifts Merge](articles/connecting-vanta-7shifts-merge.md) · 8 images
+- [Connecting Vanta & ADP Workforce Now](articles/connecting-vanta-adp-workforce-now.md) · 8 images
+- [Connecting Vanta & Bamboo HR](articles/connecting-vanta-bamboo-hr.md) · 4 images
+- [Connecting Vanta & Employment Hero](articles/connecting-vanta-employment-hero.md) · 5 images
+- [Connecting Vanta & Gusto](articles/connecting-vanta-gusto.md) · 4 images
+- [Connecting Vanta & HiBob](articles/connecting-vanta-hibob.md) · 16 images
+- [Connecting Vanta & Humaans](articles/connecting-vanta-humaans.md) · 9 images
+- [Connecting Vanta & Justworks](articles/connecting-vanta-justworks.md) · 5 images
+- [Connecting Vanta & Kenjo](articles/connecting-vanta-kenjo.md) · 5 images
+- [Connecting Vanta & KnowBe4](articles/connecting-vanta-knowbe4.md) · 6 images
+- [Connecting Vanta & Leapsome](articles/connecting-vanta-leapsome.md) · 3 images
+- [Connecting Vanta & NetSuite](articles/connecting-vanta-netsuite.md) · 11 images
+- [Connecting Vanta & PayFit](articles/connecting-vanta-payfit.md) · 5 images
+- [Connecting Vanta & Rippling](articles/connecting-vanta-rippling.md) · 7 images
+- [Connecting Vanta & Square Payroll](articles/connecting-vanta-square-payroll.md) · 4 images
+- [Connecting Vanta & TriNet](articles/connecting-vanta-trinet.md) · 4 images
+- [Connecting Vanta & iSolved](articles/connecting-vanta-isolved.md) · 2 images
+- [Integrating Vanta & Deel](articles/integrating-vanta-deel.md) · 7 images
+- [Integrating Vanta & Workday](articles/integrating-vanta-workday.md) · 1 images
+- [Migrating HRIS Connection Type in Vanta](articles/migrating-hris-connection-type-in-vanta.md) · 1 images
+- [Migrating your HRIS System](articles/migrating-your-hris-system.md) · 0 images
+- [Vanta & AlexisHR Integration](articles/vanta-alexishr-integration.md) · 10 images
+- [Vanta & Personio Integration](articles/vanta-personio-integration.md) · 8 images
+- [Vanta & Proliant Integration](articles/vanta-proliant-integration.md) · 11 images
+- [Vanta and Charthop Integration](articles/vanta-and-charthop-integration.md) · 10 images
+- [Vanta and Factorial](articles/vanta-and-factorial.md) · 9 images
+
+## Integrations › Integrations by Type › Identity Providers
+
+- [Azure SCIM Attribute Instructions](articles/azure-scim-attribute-instructions.md) · 10 images
+- [Connect Vanta & Keeper](articles/connect-vanta-keeper.md) · 5 images
+- [Connecting Vanta & Google Workspace (SCIM)](articles/connecting-vanta-google-workspace-scim.md) · 21 images
+- [Connecting Vanta & JumpCloud (SCIM)](articles/connecting-vanta-jumpcloud-scim.md) · 26 images
+- [Connecting Vanta & Microsoft Entra](articles/connecting-vanta-microsoft-entra.md) · 5 images
+- [Connecting Vanta & Microsoft Entra (GCC High)](articles/connecting-vanta-microsoft-entra-gcc-high.md) · 4 images
+- [Connecting Vanta & Okta (SCIM)](articles/connecting-vanta-okta-scim.md) · 38 images
+- [Controlling Scope Through Microsoft Entra](articles/controlling-scope-through-microsoft-entra.md) · 7 images
+- [Controlling Scope Through Okta](articles/controlling-scope-through-okta.md) · 3 images
+- [Controlling Scope through JumpCloud](articles/controlling-scope-through-jumpcloud.md) · 1 images
+- [Controlling Scope through PingOne](articles/controlling-scope-through-pingone.md) · 3 images
+- [Controlling scope through OneLogin](articles/controlling-scope-through-onelogin.md) · 2 images
+- [Creating a Custom SAML Connection](articles/creating-a-custom-saml-connection.md) · 4 images
+- [Creating a Service Account for the Google Workspace Integration](articles/creating-a-service-account-for-the-google-workspace-integration.md) · 7 images
+- [Dynamic IdP Groups: Google](articles/dynamic-idp-groups-google.md) · 6 images
+- [Dynamic IdP Groups: Okta](articles/dynamic-idp-groups-okta.md) · 5 images
+- [Enabling SCIM in Vanta](articles/enabling-scim-in-vanta.md) · 0 images
+- [Google Workspace: Integration Guide](articles/google-workspace-integration-guide.md) · 16 images
+- [Google Workspace: Quickstart](articles/google-workspace-quickstart.md) · 0 images
+- [How to set up SSO for Entra (Office 365)](articles/how-to-set-up-sso-for-entra-office-365.md) · 8 images
+- [Include Staged Users in Identity Provider Import](articles/include-staged-users-in-identity-provider-import.md) · 2 images
+- [Integrating JumpCloud Identity Provider within Vanta](articles/integrating-jumpcloud-identity-provider-within-vanta.md) · 4 images
+- [Integrating Multiple Identity Providers](articles/integrating-multiple-identity-providers.md) · 3 images
+- [Integrating Vanta & PingOne Identity Provider](articles/integrating-vanta-pingone-identity-provider.md) · 12 images
+- [JumpCloud SCIM Attribute Instructions](articles/jumpcloud-scim-attribute-instructions.md) · 6 images
+- [Okta SCIM Attribute Instructions](articles/okta-scim-attribute-instructions.md) · 7 images
+- [Okta: Integration Guide](articles/okta-integration-guide.md) · 19 images
+- [Okta: Quickstart](articles/okta-quickstart.md) · 10 images
+- [Resolving the Vanta couldn't query a few accounts from Google Workspace due to insufficient permissions. To improve the accuracy of this list, ask an admin to reconnect Google Workspace.](articles/resolving-the-vanta-couldn-t-query-a-few-accounts-from-google-workspace-due-to-insufficient-permissions-to-improve-the-accuracy-of-this-list-ask-an-admin-to-reconnect-google-workspace.md) · 5 images
+- [Setting up Single Sign-On (SSO) with OneLogin](articles/setting-up-single-sign-on-sso-with-onelogin.md) · 4 images
+- [Tracking Password Settings for Okta in Vanta](articles/tracking-password-settings-for-okta-in-vanta.md) · 2 images
+- [Vanta & Identity Providers (IdPs)](articles/vanta-identity-providers-idps.md) · 2 images
+
+## Integrations › Integrations by Type › Security Awareness Training
+
+- [Connecting Vanta & AbsorbLMS](articles/connecting-vanta-absorblms.md) · 11 images
+- [Connecting Vanta & Docebo](articles/connecting-vanta-docebo.md) · 22 images
+- [Connecting Vanta & Mimecast](articles/connecting-vanta-mimecast.md) · 14 images
+- [Connecting Vanta & Udemy Business](articles/connecting-vanta-udemy-business.md) · 18 images
+- [Connecting Vanta & Wizer](articles/connecting-vanta-wizer.md) · 16 images
+
+## Integrations › Integrations by Type › Version Control Systems
+
+- [Connecting Vanta & GitLab Cloud](articles/connecting-vanta-gitlab-cloud.md) · 6 images
+- [Creating a Security Label within GitHub Issues](articles/creating-a-security-label-within-github-issues.md) · 0 images
+- [GitHub: Integration Guide](articles/github-integration-guide.md) · 6 images
+- [GitHub: Quickstart](articles/github-quickstart.md) · 10 images
+- [How to change Azure Devops Read/Write Permissions](articles/how-to-change-azure-devops-read-write-permissions.md) · 7 images
+- [Ignoring Github Vulnerabilities](articles/ignoring-github-vulnerabilities.md) · 3 images
+
+## Integrations › Integrations by Type › Vulnerability Scanners
+
+- [Connecting Vanta & Microsoft Defender for Endpoint](articles/connecting-vanta-microsoft-defender-for-endpoint.md) · 5 images
+- [Connecting Vanta & Microsoft Defender for Endpoint for US Government (GCC High)](articles/connecting-vanta-microsoft-defender-for-endpoint-for-us-government-gcc-high.md) · 4 images
+- [Connecting Vanta & Orca Security](articles/connecting-vanta-orca-security.md) · 3 images
+- [Connecting Vanta & Semgrep](articles/connecting-vanta-semgrep.md) · 2 images
+- [Connecting Vanta & SentinelOne](articles/connecting-vanta-sentinelone.md) · 2 images
+- [Connecting Vanta & Tenable](articles/connecting-vanta-tenable.md) · 18 images
+- [Connecting Vanta & Tenable Vulnerability Management FedRAMP](articles/connecting-vanta-tenable-vulnerability-management-fedramp.md) · 9 images
+- [Setting up Vulnerability Scanning](articles/setting-up-vulnerability-scanning.md) · 2 images
+- [Where does Vanta Pull Vulnerabilities from in Gitlab?](articles/where-does-vanta-pull-vulnerabilities-from-in-gitlab.md) · 0 images
+
+## Integrations › Integrations by Type › Workflow and Ticketing Tools
+
+- [Connecting Vanta & Asana](articles/connecting-vanta-asana.md) · 4 images
+- [Connecting Vanta & ClickUp](articles/connecting-vanta-clickup.md) · 5 images
+- [Connecting Vanta & Jira Data Center](articles/connecting-vanta-jira-data-center.md) · 4 images
+- [Connecting Vanta & Teamwork](articles/connecting-vanta-teamwork.md) · 6 images
+- [Controlling Assets Scope Through Tenable](articles/controlling-assets-scope-through-tenable.md) · 0 images
+- [Jira Custom Fields in Vanta](articles/jira-custom-fields-in-vanta.md) · 3 images
+- [Jira: Integration Guide](articles/jira-integration-guide.md) · 30 images
+- [Jira: Quickstart](articles/jira-quickstart.md) · 10 images
+- [Reconnecting Linear Permissions in Vanta (June 2022)](articles/reconnecting-linear-permissions-in-vanta-june-2022.md) · 1 images
+- [Remediation Task Tracking for Access Reviews](articles/remediation-task-tracking-for-access-reviews.md) · 8 images
+- [Tracking Incident Management and Resolution Tickets in Vanta: Jira](articles/tracking-incident-management-and-resolution-tickets-in-vanta-jira.md) · 2 images
+- [Vanta & Task Management](articles/vanta-task-management.md) · 3 images
+- [Vanta & Zendesk Integration](articles/vanta-zendesk-integration.md) · 3 images
+
+## Integrations › Other Integrations & Connections
+
+- [Configure and Use Webhooks in Vanta](articles/configure-and-use-webhooks-in-vanta.md) · 3 images
+- [Connecting to Vanta MCP](articles/connecting-to-vanta-mcp.md) · 8 images
+- [Vanta CLI Overview](articles/vanta-cli-overview.md) · 1 images
+- [Vanta MCP Capabilities](articles/vanta-mcp-capabilities.md) · 0 images
+- [Vanta MCP Overview](articles/vanta-mcp-overview.md) · 0 images
+- [Vanta MCP Prompt Library](articles/vanta-mcp-prompt-library.md) · 0 images
+- [Vanta MCP: Troubleshooting and FAQ](articles/vanta-mcp-troubleshooting-and-faq.md) · 0 images
+
+## Optimizing your Workflow
+
+- ["Waiting for data" Clock on the Computers Page](articles/waiting-for-data-clock-on-the-computers-page.md) · 1 images
+- [API Guide](articles/api-guide.md) · 0 images
+- [Add Personnel Offboarding Tasks](articles/add-personnel-offboarding-tasks.md) · 2 images
+- [Adding Controls to a Test](articles/adding-controls-to-a-test.md) · 4 images
+- [Adding Subprocessors to Vanta Trust Centers](articles/adding-subprocessors-to-vanta-trust-centers.md) · 3 images
+- [Adding a Link to the Documents Page](articles/adding-a-link-to-the-documents-page.md) · 2 images
+- [Adjusting Personnel Start Dates when using an Identity Provider](articles/adjusting-personnel-start-dates-when-using-an-identity-provider.md) · 1 images
+- [Antivirus Solutions Detected by Vanta](articles/antivirus-solutions-detected-by-vanta.md) · 0 images
+- [Approving a Policy](articles/approving-a-policy.md) · 8 images
+- [Assigning Jamf monitored computers to users in Vanta](articles/assigning-jamf-monitored-computers-to-users-in-vanta.md) · 2 images
+- [Browser Support](articles/browser-support.md) · 0 images
+- [Bulk Assign Ownership to Tests, Controls, or Documents](articles/bulk-assign-ownership-to-tests-controls-or-documents.md) · 1 images
+- [Bulk Edit Scope in Vanta](articles/bulk-edit-scope-in-vanta.md) · 1 images
+- [Bulk Removal of the Vanta Device Monitor](articles/bulk-removal-of-the-vanta-device-monitor.md) · 1 images
+- [Change the Onboarding Contact Person](articles/change-the-onboarding-contact-person.md) · 1 images
+- [Change your GitHub Integration from Showing Vanta 'all repositories'](articles/change-your-github-integration-from-showing-vanta-all-repositories.md) · 0 images
+- [Changing AWS Roles in Vanta](articles/changing-aws-roles-in-vanta.md) · 4 images
+- [Changing which Repositories Vanta can See in Github](articles/changing-which-repositories-vanta-can-see-in-github.md) · 0 images
+- [CodeCommit Credentials](articles/codecommit-credentials.md) · 4 images
+- [Configure Iru - Antivirus and Password manager](articles/configure-iru-antivirus-and-password-manager.md) · 1 images
+- [Configure Iru - Screen Lock](articles/configure-iru-screen-lock.md) · 3 images
+- [Configure JumpCloud - Password Manager](articles/configure-jumpcloud-password-manager.md) · 2 images
+- [Configure Screen Lock with Jamf Pro](articles/configure-screen-lock-with-jamf-pro.md) · 3 images
+- [Configuring Azure DevOps Priority Tags](articles/configuring-azure-devops-priority-tags.md) · 1 images
+- [Configuring Jamf - Password Manager](articles/configuring-jamf-password-manager.md) · 0 images
+- [Confirming the Source of Personnel Information on the People Page](articles/confirming-the-source-of-personnel-information-on-the-people-page.md) · 1 images
+- [Connect Qualys to Vanta](articles/connect-qualys-to-vanta.md) · 4 images
+- [Connecting Jira Team-managed Software and Company-managed Business Projects to Vanta](articles/connecting-jira-team-managed-software-and-company-managed-business-projects-to-vanta.md) · 17 images
+- [Connecting Vanta & Bitbucket](articles/connecting-vanta-bitbucket.md) · 0 images
+- [Connecting Vanta & Dropbox](articles/connecting-vanta-dropbox.md) · 5 images
+- [Connecting Vanta & MongoDB Atlas](articles/connecting-vanta-mongodb-atlas.md) · 1 images
+- [Connecting Vanta and Figma](articles/connecting-vanta-and-figma.md) · 6 images
+- [Contacting Vanta Support](articles/contacting-vanta-support.md) · 1 images
+- [Converting a Contractor to an Employee](articles/converting-a-contractor-to-an-employee.md) · 1 images
+- [Converting an Employee to a Contractor](articles/converting-an-employee-to-a-contractor.md) · 1 images
+- [Create AWS Cloud Watch Alarms to pass Vanta Tests](articles/create-aws-cloud-watch-alarms-to-pass-vanta-tests.md) · 2 images
+- [Create a Custom Document](articles/create-a-custom-document.md) · 9 images
+- [Current Policy and Policy Editor are not showing the Same Content](articles/current-policy-and-policy-editor-are-not-showing-the-same-content.md) · 0 images
+- [Custom Controls and Frameworks: Frequently Asked Questions](articles/custom-controls-and-frameworks-frequently-asked-questions.md) · 0 images
+- [Deactivate a Document](articles/deactivate-a-document.md) · 4 images
+- [Deactivate monitoring for a Resource on a Test](articles/deactivate-monitoring-for-a-resource-on-a-test.md) · 6 images
+- [Deploy the Vanta Device Monitor when using an MDM Vanta does not Integrate with](articles/deploy-the-vanta-device-monitor-when-using-an-mdm-vanta-does-not-integrate-with.md) · 1 images
+- [Determine who connected a Vanta integration](articles/determine-who-connected-a-vanta-integration.md) · 2 images
+- [Device not Checking In](articles/device-not-checking-in.md) · 0 images
+- [Disable Vulnerability Scanning for Cloud Integrations](articles/disable-vulnerability-scanning-for-cloud-integrations.md) · 4 images
+- [DocuSign permission-set](articles/docusign-permission-set.md) · 0 images
+- [Document Effective Date](articles/document-effective-date.md) · 2 images
+- [Document Third-Party Encryption](articles/document-third-party-encryption.md) · 3 images
+- [Download the Policy Template Stack](articles/download-the-policy-template-stack.md) · 1 images
+- [Downloading a Draft Version of a Policy](articles/downloading-a-draft-version-of-a-policy.md) · 3 images
+- [Dynamic IdP Groups: Entra (Office 365)](articles/dynamic-idp-groups-entra-office-365.md) · 6 images
+- [Edit Unmonitored Accounts Offboarding List](articles/edit-unmonitored-accounts-offboarding-list.md) · 1 images
+- [Encryption on Windows Home Edition](articles/encryption-on-windows-home-edition.md) · 0 images
+- [Error Message: "Vanta Device Monitor is not enrolled"](articles/error-message-vanta-device-monitor-is-not-enrolled.md) · 0 images
+- [Error: "Fetching_Disabled" on AWS organizations inventory page](articles/error-fetching.md) · 4 images
+- [Error: "Unable to load user from identity provider"](articles/error-unable-to-load-user-from-identity-provider.md) · 2 images
+- [Error: ''Another application has exclusive access to the file''](articles/error-another-application-has-exclusive-access-to-the-file.md) · 0 images
+- [Error: (gcloud.iam.roles.update) PERMISSION_DENIED: You don't have permission to get the role at organizations](articles/error-gcloud-iam-roles-update-permission.md) · 0 images
+- [Error: AWS SSO user status "Unknown" on Access page](articles/error-aws-sso-user-status-unknown-on-access-page.md) · 1 images
+- [Error: Auditors Unable to Have Default Access to Documents](articles/error-auditors-unable-to-have-default-access-to-documents.md) · 4 images
+- [Error: Azure Devops "Credentials are invalid"](articles/error-azure-devops-credentials-are-invalid.md) · 1 images
+- [Error: Azure accounts display 'No Owner' on access page](articles/error-azure-accounts-display-no-owner-on-access-page.md) · 0 images
+- [Error: Cannot Sync Policies or Documents from Google Drive](articles/error-cannot-sync-policies-or-documents-from-google-drive.md) · 2 images
+- [Error: Custom Trust Center Domain SSL Stuck in Pending](articles/error-custom-trust-center-domain-ssl-stuck-in-pending.md) · 1 images
+- [Error: Getting “accounts deprovisioned when employees leave” for Re-Onboarded Active Personnel](articles/error-getting-accounts-deprovisioned-when-employees-leave-for-re-onboarded-active-personnel.md) · 2 images
+- [Error: Inventory is auto assigning to a former person](articles/error-inventory-is-auto-assigning-to-a-former-person.md) · 1 images
+- [Error: “Cannot Register” or "Is your device already registered?" when Downloading the Vanta Device Monitor](articles/error-cannot-register-or-is-your-device-already-registered-when-downloading-the-vanta-device-monitor.md) · 0 images
+- [Error: “ERR_TLS_CERT_ALTNAME_INVALID” while connecting JAMF Premium Cloud](articles/error-err.md) · 0 images
+- [Error: “Github Repository does not show in list after selection screen”](articles/error-github-repository-does-not-show-in-list-after-selection-screen.md) · 4 images
+- [Error: “Merge account has status RELINK_NEEDED” (Justworks)](articles/error-merge-account-has-status-relink.md) · 2 images
+- [Error: “Nice to meet you! We can't find you among our customers” on Sign In](articles/error-nice-to-meet-you-we-can-t-find-you-among-our-customers-on-sign-in.md) · 2 images
+- [Error: “The security token included in the request is invalid" for AWS inventory](articles/error-the-security-token-included-in-the-request-is-invalid-for-aws-inventory.md) · 4 images
+- [Error: “Unable to Reconnect Zenefits to Vanta”](articles/error-unable-to-reconnect-zenefits-to-vanta.md) · 1 images
+- [Error: “Unable to connect to osquery”](articles/error-unable-to-connect-to-osquery.md) · 1 images
+- [Error: “Vanta Device Monitor Setup Wizard Ended Prematurely”](articles/error-vanta-device-monitor-setup-wizard-ended-prematurely.md) · 0 images
+- [Error: “Vanta failed to access Rippling. Received 400 Bad Request when trying to access...”](articles/error-vanta-failed-to-access-rippling-received-400-bad-request-when-trying-to-access.md) · 2 images
+- [Error: “Vanta failed to access some information in Cloudflare due to insufficient permissions. Please reconnect the Cloudflare integration to fix this”](articles/error-vanta-failed-to-access-some-information-in-cloudflare-due-to-insufficient-permissions-please-reconnect-the-cloudflare-integration-to-fix-this.md) · 0 images
+- [Error: “You cannot authorize Vanta” when integrating Zoom](articles/error-you-cannot-authorize-vanta-when-integrating-zoom.md) · 3 images
+- [Error: “no organization ancestor for (project name)”](articles/error-no-organization-ancestor-for-project-name.md) · 2 images
+- [Error: “package architecture (amd64) does not match system (arm64)”](articles/error-package-architecture-amd64-does-not-match-system-arm64.md) · 0 images
+- [Exclude Computers from being Imported to Vanta in Jamf Pro](articles/exclude-computers-from-being-imported-to-vanta-in-jamf-pro.md) · 0 images
+- [Explain a Specific Action](articles/explain-a-specific-action.md) · 1 images
+- [Export Reports on Historical Vulnerabilities?](articles/export-reports-on-historical-vulnerabilities.md) · 2 images
+- [Exporting Gap Assessments](articles/exporting-gap-assessments.md) · 1 images
+- [Find the Vanta key](articles/find-the-vanta-key.md) · 2 images
+- [Frequently Asked Question: Are Penetration tests and Bug Bounty Programs Required for my Audit?](articles/frequently-asked-question-are-penetration-tests-and-bug-bounty-programs-required-for-my-audit.md) · 0 images
+- [Frequently Asked Question: Is there a way to disable monitoring of a resource for a specific test?](articles/frequently-asked-question-is-there-a-way-to-disable-monitoring-of-a-resource-for-a-specific-test.md) · 0 images
+- [Frequently Asked Question: What Should I Use for Vulnerability Scanning?](articles/frequently-asked-question-what-should-i-use-for-vulnerability-scanning.md) · 0 images
+- [Frequently Asked Questions: AWS Troubleshooting](articles/frequently-asked-questions-aws-troubleshooting.md) · 1 images
+- [Frequently Asked Questions: Background Checks](articles/frequently-asked-questions-background-checks.md) · 0 images
+- [Frequently Asked Questions: EU Vanta Users](articles/frequently-asked-questions-eu-vanta-users.md) · 0 images
+- [Frequently Asked Questions: HR Integration Needs to be Reconnected](articles/frequently-asked-questions-hr-integration-needs-to-be-reconnected.md) · 0 images
+- [Frequently Asked Questions: How do I Mark Resources out of Scope?](articles/frequently-asked-questions-how-do-i-mark-resources-out-of-scope.md) · 7 images
+- [Frequently Asked Questions: Intune](articles/frequently-asked-questions-intune.md) · 3 images
+- [Frequently Asked Questions: Onboarding a Rehired Employee](articles/frequently-asked-questions-onboarding-a-rehired-employee.md) · 0 images
+- [Frequently Asked Questions: Policies](articles/frequently-asked-questions-policies.md) · 0 images
+- [Frequently Asked Questions: Scoping](articles/frequently-asked-questions-scoping.md) · 2 images
+- [Frequently Asked Questions: Vanta & Datadog Integration](articles/frequently-asked-questions-vanta-datadog-integration.md) · 0 images
+- [Frequently Asked Questions: Vanta & DigitalOcean Integration](articles/frequently-asked-questions-vanta-digitalocean-integration.md) · 1 images
+- [Frequently Asked Questions: What Password Managers Does Vanta detect?](articles/frequently-asked-questions-what-password-managers-does-vanta-detect.md) · 0 images
+- [Frequently Asked Questions: What does the 'Install Password Manager' option on Task Sets do?](articles/frequently-asked-questions-what-does-the-install-password-manager-option-on-task-sets-do.md) · 0 images
+- [Frequently Asked Questions: Why aren't my Background Checks Linking?](articles/frequently-asked-questions-why-aren-t-my-background-checks-linking.md) · 1 images
+- [Frequently asked Questions: Trust Centers](articles/frequently-asked-questions-trust-centers.md) · 0 images
+- [Gitlab users from the project level are not being shown on the access page](articles/gitlab-users-from-the-project-level-are-not-being-shown-on-the-access-page.md) · 0 images
+- [How Inviting a user to Slack affects Vanta](articles/how-inviting-a-user-to-slack-affects-vanta.md) · 2 images
+- [How do I view ignored Vulnerabilities?](articles/how-do-i-view-ignored-vulnerabilities.md) · 1 images
+- [How often do I need to renew my SOC 2 Audit?](articles/how-often-do-i-need-to-renew-my-soc-2-audit.md) · 0 images
+- [How to Configure JumpCloud - Screen Lock](articles/how-to-configure-jumpcloud-screen-lock.md) · 6 images
+- [How to Manually Install the Vanta Device Monitor on Linux via Terminal](articles/how-to-manually-install-the-vanta-device-monitor-on-linux-via-terminal.md) · 1 images
+- [How to Manually Install the Vanta Device Monitor on MacOS via Terminal](articles/how-to-manually-install-the-vanta-device-monitor-on-macos-via-terminal.md) · 1 images
+- [How to Pass the Load balancers redirect HTTP to HTTPS (AWS) Test](articles/how-to-pass-the-load-balancers-redirect-http-to-https-aws-test.md) · 7 images
+- [How to Remove Devices from Vanta for Microsoft Endpoint Manager (Intune)](articles/how-to-remove-devices-from-vanta-for-microsoft-endpoint-manager-intune.md) · 1 images
+- [How to Update Expired Azure Client Secret](articles/how-to-update-expired-azure-client-secret.md) · 3 images
+- [How to Validate the Vanta Device Monitor is Installed on Your Device](articles/how-to-validate-the-vanta-device-monitor-is-installed-on-your-device.md) · 1 images
+- [How to add a start date for background check requirements](articles/how-to-add-a-start-date-for-background-check-requirements.md) · 9 images
+- [How to assign owners to GCP Kubernetes Nodes](articles/how-to-assign-owners-to-gcp-kubernetes-nodes.md) · 5 images
+- [How to configure the GCP integration to only scan projects in a specific folder](articles/how-to-configure-the-gcp-integration-to-only-scan-projects-in-a-specific-folder.md) · 1 images
+- [How to create AWS Cloudwatch Alarms if the required Metric is hidden](articles/how-to-create-aws-cloudwatch-alarms-if-the-required-metric-is-hidden.md) · 5 images
+- [How to edit Region Selection for AWS accounts/organizations](articles/how-to-edit-region-selection-for-aws-accounts-organizations.md) · 3 images
+- [How to enable AWS GuardDuty notifications for Vanta](articles/how-to-enable-aws-guardduty-notifications-for-vanta.md) · 0 images
+- [How to fix "ASSUME_ROLE" warning from AWS Organization](articles/how-to-fix-assume.md) · 2 images
+- [How to fix the "You do not have permission to perform that action." error when connecting Jumpcloud](articles/how-to-fix-the-you-do-not-have-permission-to-perform-that-action-error-when-connecting-jumpcloud.md) · 0 images
+- [How to pass the IMDSv1 is disabled on EC2 Instances Test with Autoscaling Group](articles/how-to-pass-the-imdsv1-is-disabled-on-ec2-instances-test-with-autoscaling-group.md) · 0 images
+- [How to pass the Load balancer unhealthy host count monitored (AWS) Test](articles/how-to-pass-the-load-balancer-unhealthy-host-count-monitored-aws-test.md) · 8 images
+- [How to re-connect AWS GovCloud after rotating Vanta IAM user's AWS secrets](articles/how-to-re-connect-aws-govcloud-after-rotating-vanta-iam-user-s-aws-secrets.md) · 7 images
+- [How to re-connect Microsoft Endpoint Manager to enable assigning users by the  primary user field](articles/how-to-re-connect-microsoft-endpoint-manager-to-enable-assigning-users-by-the-primary-user-field.md) · 7 images
+- [How to uninstall the Vanta Application from Github](articles/how-to-uninstall-the-vanta-application-from-github.md) · 6 images
+- [Important Notice: Enabling Vulnerability Scanner Services](articles/important-notice-enabling-vulnerability-scanner-services.md) · 0 images
+- [Integrate Wrike & Vanta](articles/integrate-wrike-vanta.md) · 3 images
+- [Invalid Magic Link](articles/invalid-magic-link.md) · 1 images
+- [Language Support Across Vanta](articles/language-support-across-vanta.md) · 11 images
+- [Linux and Microsoft Endpoint Manager (Intune)](articles/linux-and-microsoft-endpoint-manager-intune.md) · 3 images
+- [Login from new device message after re-linking Justworks](articles/login-from-new-device-message-after-re-linking-justworks.md) · 1 images
+- [Managing SLAs](articles/managing-slas.md) · 0 images
+- [Manually Install the Vanta Device Monitor on Windows](articles/manually-install-the-vanta-device-monitor-on-windows.md) · 1 images
+- [Manually Linking Background Checks](articles/manually-linking-background-checks.md) · 2 images
+- [Marking user on leave with Bamboo HR](articles/marking-user-on-leave-with-bamboo-hr.md) · 0 images
+- [Missing AWS EC2 Instances](articles/missing-aws-ec2-instances.md) · 4 images
+- [Missing Metrics for Load balancer server errors monitored (AWS) Test](articles/missing-metrics-for-load-balancer-server-errors-monitored-aws-test.md) · 30 images
+- [No vulnerability data received (AWS)](articles/no-vulnerability-data-received-aws.md) · 12 images
+- [No vulnerability data received (Azure)](articles/no-vulnerability-data-received-azure.md) · 12 images
+- [Off-boarding from HRIS not Reflecting in Vanta](articles/off-boarding-from-hris-not-reflecting-in-vanta.md) · 0 images
+- [Offboard an Asana Account](articles/offboard-an-asana-account.md) · 0 images
+- [Offboarding Users with the 'Inactive' Status](articles/offboarding-users-with-the-inactive-status.md) · 2 images
+- [Personnel Onboarding Template: ISO 27001](articles/personnel-onboarding-template-iso-27001.md) · 0 images
+- [Personnel Onboarding Template: SOC 2](articles/personnel-onboarding-template-soc-2.md) · 0 images
+- [Personnel Onboarding: HIPAA](articles/personnel-onboarding-hipaa.md) · 0 images
+- [Reactivate Monitoring for a Test or Document](articles/reactivate-monitoring-for-a-test-or-document.md) · 3 images
+- [Rebranding Your Company in Vanta](articles/rebranding-your-company-in-vanta.md) · 0 images
+- [Reconnect individual GCP Projects](articles/reconnect-individual-gcp-projects.md) · 18 images
+- [Reconnecting your GCP integration](articles/reconnecting-your-gcp-integration.md) · 2 images
+- [Refresh Vulnerability Data](articles/refresh-vulnerability-data.md) · 5 images
+- [Register the Vanta Device Monitor to a Person](articles/register-the-vanta-device-monitor-to-a-person.md) · 7 images
+- [Remediating Unmonitored Computers with an MDM Connection](articles/remediating-unmonitored-computers-with-an-mdm-connection.md) · 2 images
+- [Remediation Options for  Intrusion detection system notifications configured (AWS)](articles/remediation-options-for-intrusion-detection-system-notifications-configured-aws.md) · 0 images
+- [Remove a Computer from Monitoring when using the Vanta Device Monitor](articles/remove-a-computer-from-monitoring-when-using-the-vanta-device-monitor.md) · 1 images
+- [Request Vanta's Security Reports](articles/request-vanta-s-security-reports.md) · 1 images
+- [Resolving the "Nice to Meet you Message" Message when Installing Vanta Device Monitor](articles/resolving-the-nice-to-meet-you-message-message-when-installing-vanta-device-monitor.md) · 0 images
+- [SOC2: Disaster Recovery Plan - Understanding Annex A](articles/soc2-disaster-recovery-plan-understanding-annex-a.md) · 0 images
+- [Serverless Function Error Rate Monitored (AWS)](articles/serverless-function-error-rate-monitored-aws.md) · 5 images
+- [Setting a HIPAA Security Officer in Vanta](articles/setting-a-hipaa-security-officer-in-vanta.md) · 0 images
+- [Sign in Issues with Vanta - Questionnaire Automation Browser Extension](articles/sign-in-issues-with-vanta-questionnaire-automation-browser-extension.md) · 3 images
+- [Sign in When a User Account Exists on Two Identity Providers](articles/sign-in-when-a-user-account-exists-on-two-identity-providers.md) · 3 images
+- [Switching Identity Providers - What should I know?](articles/switching-identity-providers-what-should-i-know.md) · 1 images
+- [There was an error connecting. We found no organizations in your account. At least one organization is required to link your Azure Devops account.](articles/there-was-an-error-connecting-we-found-no-organizations-in-your-account-at-least-one-organization-is-required-to-link-your-azure-devops-account.md) · 3 images
+- [Trigger off-boarding for Hubspot Accounts](articles/trigger-off-boarding-for-hubspot-accounts.md) · 1 images
+- [Troubleshooting Jumpcloud Multi-Tenant](articles/troubleshooting-jumpcloud-multi-tenant.md) · 0 images
+- [Troubleshooting Missing EC2 Instance Inspector Scans](articles/troubleshooting-missing-ec2-instance-inspector-scans.md) · 16 images
+- [Troubleshooting Office365 MFA Issues](articles/troubleshooting-office365-mfa-issues.md) · 3 images
+- [Troubleshooting Windows Disk Encryption](articles/troubleshooting-windows-disk-encryption.md) · 3 images
+- [Troubleshooting missing Jamf computers](articles/troubleshooting-missing-jamf-computers.md) · 4 images
+- [Troubleshooting the Vanta Device Monitor on Linux Machines](articles/troubleshooting-the-vanta-device-monitor-on-linux-machines.md) · 0 images
+- [Troubleshooting the Vanta Device Monitor on Windows Machines](articles/troubleshooting-the-vanta-device-monitor-on-windows-machines.md) · 1 images
+- [Troubleshooting the Vanta Device Monitor on macOS](articles/troubleshooting-the-vanta-device-monitor-on-macos.md) · 1 images
+- [Troubleshooting: Timestamp Differences between AWS Inspector and Vanta Vulnerability Lists](articles/troubleshooting-timestamp-differences-between-aws-inspector-and-vanta-vulnerability-lists.md) · 0 images
+- [Turn off AWS Inspector](articles/turn-off-aws-inspector.md) · 10 images
+- [Turn off Vanta Trust Center Request Notifications](articles/turn-off-vanta-trust-center-request-notifications.md) · 1 images
+- [Understanding KMS Key Policy Permissions and Access Issues in Vanta](articles/understanding-kms-key-policy-permissions-and-access-issues-in-vanta.md) · 0 images
+- [Understanding the "Last Checked" Column on the Computers Page](articles/understanding-the-last-checked-column-on-the-computers-page.md) · 0 images
+- [Unsupported International Background Checks](articles/unsupported-international-background-checks.md) · 4 images
+- [Update Trust Center Logo](articles/update-trust-center-logo.md) · 4 images
+- [Update a Trust Center Display Name](articles/update-a-trust-center-display-name.md) · 1 images
+- [User added to Office365 and Entra ID not visible on People page](articles/user-added-to-office365-and-entra-id-not-visible-on-people-page.md) · 4 images
+- [Using one Vanta Login for Multiple Domains](articles/using-one-vanta-login-for-multiple-domains.md) · 3 images
+- [Vanta & Nmbrs Integration](articles/vanta-nmbrs-integration.md) · 9 images
+- [Vanta Device Monitor: Doctor Command](articles/vanta-device-monitor-doctor-command.md) · 0 images
+- [Vanta Security and Privacy Brief](articles/vanta-security-and-privacy-brief.md) · 0 images
+- [Vanta's IP Address](articles/vanta-s-ip-address.md) · 1 images
+- [Verifying Communications from Vanta](articles/verifying-communications-from-vanta.md) · 0 images
+- [View your pending security tasks on the Onboarding page](articles/view-your-pending-security-tasks-on-the-onboarding-page.md) · 2 images
+- [Website TLS Tests](articles/website-tls-tests.md) · 2 images
+- [What Are VPC Flow Logs?](articles/what-are-vpc-flow-logs.md) · 0 images
+- [What Happens in Vanta When Your Users' Email Addresses Change?](articles/what-happens-in-vanta-when-your-users-email-addresses-change.md) · 0 images
+- [What happens when Inspector is disabled in AWS?](articles/what-happens-when-inspector-is-disabled-in-aws.md) · 0 images
+- [What's the difference between a policy's effective date and the version history date?](articles/what-s-the-difference-between-a-policy-s-effective-date-and-the-version-history-date.md) · 1 images
+- [Where does Vanta look for the "Vanta Policies" folder in SharePoint?](articles/where-does-vanta-look-for-the-vanta-policies-folder-in-sharepoint.md) · 2 images
+- [Why Can't I Tag The Policy Owner In The Policy Editor?](articles/why-can-t-i-tag-the-policy-owner-in-the-policy-editor.md) · 1 images
+- [Why do HRIS providers appear under the 'unmonitored accounts' on the offboarding list?](articles/why-do-hris-providers-appear-under-the-unmonitored-accounts-on-the-offboarding-list.md) · 2 images
+- [Why does my Test count change?](articles/why-does-my-test-count-change.md) · 1 images
+
+## Optimizing your Workflow › Frequently Asked Questions
+
+- [API Guide](articles/api-guide.md) · 0 images
+- [Adding Controls to a Test](articles/adding-controls-to-a-test.md) · 4 images
+- [Antivirus Solutions Detected by Vanta](articles/antivirus-solutions-detected-by-vanta.md) · 0 images
+- [Contacting Vanta Support](articles/contacting-vanta-support.md) · 1 images
+- [Current Policy and Policy Editor are not showing the Same Content](articles/current-policy-and-policy-editor-are-not-showing-the-same-content.md) · 0 images
+- [Custom Controls and Frameworks: Frequently Asked Questions](articles/custom-controls-and-frameworks-frequently-asked-questions.md) · 0 images
+- [Download the Policy Template Stack](articles/download-the-policy-template-stack.md) · 1 images
+- [Exporting Gap Assessments](articles/exporting-gap-assessments.md) · 1 images
+- [Frequently Asked Question: Are Penetration tests and Bug Bounty Programs Required for my Audit?](articles/frequently-asked-question-are-penetration-tests-and-bug-bounty-programs-required-for-my-audit.md) · 0 images
+- [Frequently Asked Question: What Should I Use for Vulnerability Scanning?](articles/frequently-asked-question-what-should-i-use-for-vulnerability-scanning.md) · 0 images
+- [Frequently Asked Questions: Background Checks](articles/frequently-asked-questions-background-checks.md) · 0 images
+- [Frequently Asked Questions: EU Vanta Users](articles/frequently-asked-questions-eu-vanta-users.md) · 0 images
+- [Frequently Asked Questions: HR Integration Needs to be Reconnected](articles/frequently-asked-questions-hr-integration-needs-to-be-reconnected.md) · 0 images
+- [Frequently Asked Questions: How do I Mark Resources out of Scope?](articles/frequently-asked-questions-how-do-i-mark-resources-out-of-scope.md) · 7 images
+- [Frequently Asked Questions: Intune](articles/frequently-asked-questions-intune.md) · 3 images
+- [Frequently Asked Questions: Policies](articles/frequently-asked-questions-policies.md) · 0 images
+- [Frequently Asked Questions: Scoping](articles/frequently-asked-questions-scoping.md) · 2 images
+- [Frequently Asked Questions: Vanta & Datadog Integration](articles/frequently-asked-questions-vanta-datadog-integration.md) · 0 images
+- [Frequently Asked Questions: Vanta & DigitalOcean Integration](articles/frequently-asked-questions-vanta-digitalocean-integration.md) · 1 images
+- [Frequently Asked Questions: What Password Managers Does Vanta detect?](articles/frequently-asked-questions-what-password-managers-does-vanta-detect.md) · 0 images
+- [Frequently Asked Questions: What does the 'Install Password Manager' option on Task Sets do?](articles/frequently-asked-questions-what-does-the-install-password-manager-option-on-task-sets-do.md) · 0 images
+- [Frequently Asked Questions: Why aren't my Background Checks Linking?](articles/frequently-asked-questions-why-aren-t-my-background-checks-linking.md) · 1 images
+- [Frequently asked Questions: Trust Centers](articles/frequently-asked-questions-trust-centers.md) · 0 images
+- [How do I view ignored Vulnerabilities?](articles/how-do-i-view-ignored-vulnerabilities.md) · 1 images
+- [How often do I need to renew my SOC 2 Audit?](articles/how-often-do-i-need-to-renew-my-soc-2-audit.md) · 0 images
+- [Important Notice: Enabling Vulnerability Scanner Services](articles/important-notice-enabling-vulnerability-scanner-services.md) · 0 images
+- [Personnel Onboarding Template: ISO 27001](articles/personnel-onboarding-template-iso-27001.md) · 0 images
+- [Personnel Onboarding: HIPAA](articles/personnel-onboarding-hipaa.md) · 0 images
+- [Rebranding Your Company in Vanta](articles/rebranding-your-company-in-vanta.md) · 0 images
+- [Reconnecting your GCP integration](articles/reconnecting-your-gcp-integration.md) · 2 images
+- [Remediation Options for  Intrusion detection system notifications configured (AWS)](articles/remediation-options-for-intrusion-detection-system-notifications-configured-aws.md) · 0 images
+- [SOC2: Disaster Recovery Plan - Understanding Annex A](articles/soc2-disaster-recovery-plan-understanding-annex-a.md) · 0 images
+- [Switching Identity Providers - What should I know?](articles/switching-identity-providers-what-should-i-know.md) · 1 images
+- [Vanta Security and Privacy Brief](articles/vanta-security-and-privacy-brief.md) · 0 images
+- [Verifying Communications from Vanta](articles/verifying-communications-from-vanta.md) · 0 images
+- [What Are VPC Flow Logs?](articles/what-are-vpc-flow-logs.md) · 0 images
+- [What Happens in Vanta When Your Users' Email Addresses Change?](articles/what-happens-in-vanta-when-your-users-email-addresses-change.md) · 0 images
+- [Why Can't I Tag The Policy Owner In The Policy Editor?](articles/why-can-t-i-tag-the-policy-owner-in-the-policy-editor.md) · 1 images
+- [Why does my Test count change?](articles/why-does-my-test-count-change.md) · 1 images
+
+## Optimizing your Workflow › Troubleshooting
+
+- ["Waiting for data" Clock on the Computers Page](articles/waiting-for-data-clock-on-the-computers-page.md) · 1 images
+- [Add Personnel Offboarding Tasks](articles/add-personnel-offboarding-tasks.md) · 2 images
+- [Adding Subprocessors to Vanta Trust Centers](articles/adding-subprocessors-to-vanta-trust-centers.md) · 3 images
+- [Adding a Link to the Documents Page](articles/adding-a-link-to-the-documents-page.md) · 2 images
+- [Adjusting Personnel Start Dates when using an Identity Provider](articles/adjusting-personnel-start-dates-when-using-an-identity-provider.md) · 1 images
+- [Approving a Policy](articles/approving-a-policy.md) · 8 images
+- [Assigning Jamf monitored computers to users in Vanta](articles/assigning-jamf-monitored-computers-to-users-in-vanta.md) · 2 images
+- [Browser Support](articles/browser-support.md) · 0 images
+- [Bulk Assign Ownership to Tests, Controls, or Documents](articles/bulk-assign-ownership-to-tests-controls-or-documents.md) · 1 images
+- [Bulk Edit Scope in Vanta](articles/bulk-edit-scope-in-vanta.md) · 1 images
+- [Bulk Removal of the Vanta Device Monitor](articles/bulk-removal-of-the-vanta-device-monitor.md) · 1 images
+- [Change the Onboarding Contact Person](articles/change-the-onboarding-contact-person.md) · 1 images
+- [Change your GitHub Integration from Showing Vanta 'all repositories'](articles/change-your-github-integration-from-showing-vanta-all-repositories.md) · 0 images
+- [Changing AWS Roles in Vanta](articles/changing-aws-roles-in-vanta.md) · 4 images
+- [Changing which Repositories Vanta can See in Github](articles/changing-which-repositories-vanta-can-see-in-github.md) · 0 images
+- [CodeCommit Credentials](articles/codecommit-credentials.md) · 4 images
+- [Configure Iru - Antivirus and Password manager](articles/configure-iru-antivirus-and-password-manager.md) · 1 images
+- [Configure Iru - Screen Lock](articles/configure-iru-screen-lock.md) · 3 images
+- [Configure JumpCloud - Password Manager](articles/configure-jumpcloud-password-manager.md) · 2 images
+- [Configure Screen Lock with Jamf Pro](articles/configure-screen-lock-with-jamf-pro.md) · 3 images
+- [Configuring Azure DevOps Priority Tags](articles/configuring-azure-devops-priority-tags.md) · 1 images
+- [Configuring Jamf - Password Manager](articles/configuring-jamf-password-manager.md) · 0 images
+- [Confirming the Source of Personnel Information on the People Page](articles/confirming-the-source-of-personnel-information-on-the-people-page.md) · 1 images
+- [Connect Qualys to Vanta](articles/connect-qualys-to-vanta.md) · 4 images
+- [Connecting Jira Team-managed Software and Company-managed Business Projects to Vanta](articles/connecting-jira-team-managed-software-and-company-managed-business-projects-to-vanta.md) · 17 images
+- [Connecting Vanta & Bitbucket](articles/connecting-vanta-bitbucket.md) · 0 images
+- [Connecting Vanta & Dropbox](articles/connecting-vanta-dropbox.md) · 5 images
+- [Connecting Vanta & MongoDB Atlas](articles/connecting-vanta-mongodb-atlas.md) · 1 images
+- [Connecting Vanta and Figma](articles/connecting-vanta-and-figma.md) · 6 images
+- [Converting a Contractor to an Employee](articles/converting-a-contractor-to-an-employee.md) · 1 images
+- [Converting an Employee to a Contractor](articles/converting-an-employee-to-a-contractor.md) · 1 images
+- [Create AWS Cloud Watch Alarms to pass Vanta Tests](articles/create-aws-cloud-watch-alarms-to-pass-vanta-tests.md) · 2 images
+- [Create a Custom Document](articles/create-a-custom-document.md) · 9 images
+- [Deactivate a Document](articles/deactivate-a-document.md) · 4 images
+- [Deactivate monitoring for a Resource on a Test](articles/deactivate-monitoring-for-a-resource-on-a-test.md) · 6 images
+- [Deploy the Vanta Device Monitor when using an MDM Vanta does not Integrate with](articles/deploy-the-vanta-device-monitor-when-using-an-mdm-vanta-does-not-integrate-with.md) · 1 images
+- [Determine who connected a Vanta integration](articles/determine-who-connected-a-vanta-integration.md) · 2 images
+- [Device not Checking In](articles/device-not-checking-in.md) · 0 images
+- [Disable Vulnerability Scanning for Cloud Integrations](articles/disable-vulnerability-scanning-for-cloud-integrations.md) · 4 images
+- [DocuSign permission-set](articles/docusign-permission-set.md) · 0 images
+- [Document Effective Date](articles/document-effective-date.md) · 2 images
+- [Document Third-Party Encryption](articles/document-third-party-encryption.md) · 3 images
+- [Downloading a Draft Version of a Policy](articles/downloading-a-draft-version-of-a-policy.md) · 3 images
+- [Dynamic IdP Groups: Entra (Office 365)](articles/dynamic-idp-groups-entra-office-365.md) · 6 images
+- [Edit Unmonitored Accounts Offboarding List](articles/edit-unmonitored-accounts-offboarding-list.md) · 1 images
+- [Encryption on Windows Home Edition](articles/encryption-on-windows-home-edition.md) · 0 images
+- [Error Message: "Vanta Device Monitor is not enrolled"](articles/error-message-vanta-device-monitor-is-not-enrolled.md) · 0 images
+- [Error: "Fetching_Disabled" on AWS organizations inventory page](articles/error-fetching.md) · 4 images
+- [Error: "Unable to load user from identity provider"](articles/error-unable-to-load-user-from-identity-provider.md) · 2 images
+- [Error: ''Another application has exclusive access to the file''](articles/error-another-application-has-exclusive-access-to-the-file.md) · 0 images
+- [Error: (gcloud.iam.roles.update) PERMISSION_DENIED: You don't have permission to get the role at organizations](articles/error-gcloud-iam-roles-update-permission.md) · 0 images
+- [Error: AWS SSO user status "Unknown" on Access page](articles/error-aws-sso-user-status-unknown-on-access-page.md) · 1 images
+- [Error: Auditors Unable to Have Default Access to Documents](articles/error-auditors-unable-to-have-default-access-to-documents.md) · 4 images
+- [Error: Azure Devops "Credentials are invalid"](articles/error-azure-devops-credentials-are-invalid.md) · 1 images
+- [Error: Azure accounts display 'No Owner' on access page](articles/error-azure-accounts-display-no-owner-on-access-page.md) · 0 images
+- [Error: Cannot Sync Policies or Documents from Google Drive](articles/error-cannot-sync-policies-or-documents-from-google-drive.md) · 2 images
+- [Error: Custom Trust Center Domain SSL Stuck in Pending](articles/error-custom-trust-center-domain-ssl-stuck-in-pending.md) · 1 images
+- [Error: Getting “accounts deprovisioned when employees leave” for Re-Onboarded Active Personnel](articles/error-getting-accounts-deprovisioned-when-employees-leave-for-re-onboarded-active-personnel.md) · 2 images
+- [Error: Inventory is auto assigning to a former person](articles/error-inventory-is-auto-assigning-to-a-former-person.md) · 1 images
+- [Error: “Cannot Register” or "Is your device already registered?" when Downloading the Vanta Device Monitor](articles/error-cannot-register-or-is-your-device-already-registered-when-downloading-the-vanta-device-monitor.md) · 0 images
+- [Error: “ERR_TLS_CERT_ALTNAME_INVALID” while connecting JAMF Premium Cloud](articles/error-err.md) · 0 images
+- [Error: “Github Repository does not show in list after selection screen”](articles/error-github-repository-does-not-show-in-list-after-selection-screen.md) · 4 images
+- [Error: “Merge account has status RELINK_NEEDED” (Justworks)](articles/error-merge-account-has-status-relink.md) · 2 images
+- [Error: “Nice to meet you! We can't find you among our customers” on Sign In](articles/error-nice-to-meet-you-we-can-t-find-you-among-our-customers-on-sign-in.md) · 2 images
+- [Error: “The security token included in the request is invalid" for AWS inventory](articles/error-the-security-token-included-in-the-request-is-invalid-for-aws-inventory.md) · 4 images
+- [Error: “Unable to Reconnect Zenefits to Vanta”](articles/error-unable-to-reconnect-zenefits-to-vanta.md) · 1 images
+- [Error: “Unable to connect to osquery”](articles/error-unable-to-connect-to-osquery.md) · 1 images
+- [Error: “Vanta Device Monitor Setup Wizard Ended Prematurely”](articles/error-vanta-device-monitor-setup-wizard-ended-prematurely.md) · 0 images
+- [Error: “Vanta failed to access Rippling. Received 400 Bad Request when trying to access...”](articles/error-vanta-failed-to-access-rippling-received-400-bad-request-when-trying-to-access.md) · 2 images
+- [Error: “Vanta failed to access some information in Cloudflare due to insufficient permissions. Please reconnect the Cloudflare integration to fix this”](articles/error-vanta-failed-to-access-some-information-in-cloudflare-due-to-insufficient-permissions-please-reconnect-the-cloudflare-integration-to-fix-this.md) · 0 images
+- [Error: “You cannot authorize Vanta” when integrating Zoom](articles/error-you-cannot-authorize-vanta-when-integrating-zoom.md) · 3 images
+- [Error: “no organization ancestor for (project name)”](articles/error-no-organization-ancestor-for-project-name.md) · 2 images
+- [Error: “package architecture (amd64) does not match system (arm64)”](articles/error-package-architecture-amd64-does-not-match-system-arm64.md) · 0 images
+- [Exclude Computers from being Imported to Vanta in Jamf Pro](articles/exclude-computers-from-being-imported-to-vanta-in-jamf-pro.md) · 0 images
+- [Explain a Specific Action](articles/explain-a-specific-action.md) · 1 images
+- [Export Reports on Historical Vulnerabilities?](articles/export-reports-on-historical-vulnerabilities.md) · 2 images
+- [Find the Vanta key](articles/find-the-vanta-key.md) · 2 images
+- [Frequently Asked Question: Is there a way to disable monitoring of a resource for a specific test?](articles/frequently-asked-question-is-there-a-way-to-disable-monitoring-of-a-resource-for-a-specific-test.md) · 0 images
+- [Frequently Asked Questions: AWS Troubleshooting](articles/frequently-asked-questions-aws-troubleshooting.md) · 1 images
+- [Frequently Asked Questions: Onboarding a Rehired Employee](articles/frequently-asked-questions-onboarding-a-rehired-employee.md) · 0 images
+- [Gitlab users from the project level are not being shown on the access page](articles/gitlab-users-from-the-project-level-are-not-being-shown-on-the-access-page.md) · 0 images
+- [How Inviting a user to Slack affects Vanta](articles/how-inviting-a-user-to-slack-affects-vanta.md) · 2 images
+- [How to Configure JumpCloud - Screen Lock](articles/how-to-configure-jumpcloud-screen-lock.md) · 6 images
+- [How to Manually Install the Vanta Device Monitor on Linux via Terminal](articles/how-to-manually-install-the-vanta-device-monitor-on-linux-via-terminal.md) · 1 images
+- [How to Manually Install the Vanta Device Monitor on MacOS via Terminal](articles/how-to-manually-install-the-vanta-device-monitor-on-macos-via-terminal.md) · 1 images
+- [How to Pass the Load balancers redirect HTTP to HTTPS (AWS) Test](articles/how-to-pass-the-load-balancers-redirect-http-to-https-aws-test.md) · 7 images
+- [How to Remove Devices from Vanta for Microsoft Endpoint Manager (Intune)](articles/how-to-remove-devices-from-vanta-for-microsoft-endpoint-manager-intune.md) · 1 images
+- [How to Update Expired Azure Client Secret](articles/how-to-update-expired-azure-client-secret.md) · 3 images
+- [How to Validate the Vanta Device Monitor is Installed on Your Device](articles/how-to-validate-the-vanta-device-monitor-is-installed-on-your-device.md) · 1 images
+- [How to add a start date for background check requirements](articles/how-to-add-a-start-date-for-background-check-requirements.md) · 9 images
+- [How to assign owners to GCP Kubernetes Nodes](articles/how-to-assign-owners-to-gcp-kubernetes-nodes.md) · 5 images
+- [How to configure the GCP integration to only scan projects in a specific folder](articles/how-to-configure-the-gcp-integration-to-only-scan-projects-in-a-specific-folder.md) · 1 images
+- [How to create AWS Cloudwatch Alarms if the required Metric is hidden](articles/how-to-create-aws-cloudwatch-alarms-if-the-required-metric-is-hidden.md) · 5 images
+- [How to edit Region Selection for AWS accounts/organizations](articles/how-to-edit-region-selection-for-aws-accounts-organizations.md) · 3 images
+- [How to enable AWS GuardDuty notifications for Vanta](articles/how-to-enable-aws-guardduty-notifications-for-vanta.md) · 0 images
+- [How to fix "ASSUME_ROLE" warning from AWS Organization](articles/how-to-fix-assume.md) · 2 images
+- [How to fix the "You do not have permission to perform that action." error when connecting Jumpcloud](articles/how-to-fix-the-you-do-not-have-permission-to-perform-that-action-error-when-connecting-jumpcloud.md) · 0 images
+- [How to pass the IMDSv1 is disabled on EC2 Instances Test with Autoscaling Group](articles/how-to-pass-the-imdsv1-is-disabled-on-ec2-instances-test-with-autoscaling-group.md) · 0 images
+- [How to pass the Load balancer unhealthy host count monitored (AWS) Test](articles/how-to-pass-the-load-balancer-unhealthy-host-count-monitored-aws-test.md) · 8 images
+- [How to re-connect AWS GovCloud after rotating Vanta IAM user's AWS secrets](articles/how-to-re-connect-aws-govcloud-after-rotating-vanta-iam-user-s-aws-secrets.md) · 7 images
+- [How to re-connect Microsoft Endpoint Manager to enable assigning users by the  primary user field](articles/how-to-re-connect-microsoft-endpoint-manager-to-enable-assigning-users-by-the-primary-user-field.md) · 7 images
+- [How to uninstall the Vanta Application from Github](articles/how-to-uninstall-the-vanta-application-from-github.md) · 6 images
+- [Integrate Wrike & Vanta](articles/integrate-wrike-vanta.md) · 3 images
+- [Invalid Magic Link](articles/invalid-magic-link.md) · 1 images
+- [Language Support Across Vanta](articles/language-support-across-vanta.md) · 11 images
+- [Linux and Microsoft Endpoint Manager (Intune)](articles/linux-and-microsoft-endpoint-manager-intune.md) · 3 images
+- [Login from new device message after re-linking Justworks](articles/login-from-new-device-message-after-re-linking-justworks.md) · 1 images
+- [Managing SLAs](articles/managing-slas.md) · 0 images
+- [Manually Install the Vanta Device Monitor on Windows](articles/manually-install-the-vanta-device-monitor-on-windows.md) · 1 images
+- [Manually Linking Background Checks](articles/manually-linking-background-checks.md) · 2 images
+- [Marking user on leave with Bamboo HR](articles/marking-user-on-leave-with-bamboo-hr.md) · 0 images
+- [Missing AWS EC2 Instances](articles/missing-aws-ec2-instances.md) · 4 images
+- [Missing Metrics for Load balancer server errors monitored (AWS) Test](articles/missing-metrics-for-load-balancer-server-errors-monitored-aws-test.md) · 30 images
+- [No vulnerability data received (AWS)](articles/no-vulnerability-data-received-aws.md) · 12 images
+- [No vulnerability data received (Azure)](articles/no-vulnerability-data-received-azure.md) · 12 images
+- [Off-boarding from HRIS not Reflecting in Vanta](articles/off-boarding-from-hris-not-reflecting-in-vanta.md) · 0 images
+- [Offboard an Asana Account](articles/offboard-an-asana-account.md) · 0 images
+- [Offboarding Users with the 'Inactive' Status](articles/offboarding-users-with-the-inactive-status.md) · 2 images
+- [Personnel Onboarding Template: SOC 2](articles/personnel-onboarding-template-soc-2.md) · 0 images
+- [Reactivate Monitoring for a Test or Document](articles/reactivate-monitoring-for-a-test-or-document.md) · 3 images
+- [Reconnect individual GCP Projects](articles/reconnect-individual-gcp-projects.md) · 18 images
+- [Refresh Vulnerability Data](articles/refresh-vulnerability-data.md) · 5 images
+- [Register the Vanta Device Monitor to a Person](articles/register-the-vanta-device-monitor-to-a-person.md) · 7 images
+- [Remediating Unmonitored Computers with an MDM Connection](articles/remediating-unmonitored-computers-with-an-mdm-connection.md) · 2 images
+- [Remove a Computer from Monitoring when using the Vanta Device Monitor](articles/remove-a-computer-from-monitoring-when-using-the-vanta-device-monitor.md) · 1 images
+- [Request Vanta's Security Reports](articles/request-vanta-s-security-reports.md) · 1 images
+- [Resolving the "Nice to Meet you Message" Message when Installing Vanta Device Monitor](articles/resolving-the-nice-to-meet-you-message-message-when-installing-vanta-device-monitor.md) · 0 images
+- [Serverless Function Error Rate Monitored (AWS)](articles/serverless-function-error-rate-monitored-aws.md) · 5 images
+- [Setting a HIPAA Security Officer in Vanta](articles/setting-a-hipaa-security-officer-in-vanta.md) · 0 images
+- [Sign in Issues with Vanta - Questionnaire Automation Browser Extension](articles/sign-in-issues-with-vanta-questionnaire-automation-browser-extension.md) · 3 images
+- [Sign in When a User Account Exists on Two Identity Providers](articles/sign-in-when-a-user-account-exists-on-two-identity-providers.md) · 3 images
+- [There was an error connecting. We found no organizations in your account. At least one organization is required to link your Azure Devops account.](articles/there-was-an-error-connecting-we-found-no-organizations-in-your-account-at-least-one-organization-is-required-to-link-your-azure-devops-account.md) · 3 images
+- [Trigger off-boarding for Hubspot Accounts](articles/trigger-off-boarding-for-hubspot-accounts.md) · 1 images
+- [Troubleshooting Jumpcloud Multi-Tenant](articles/troubleshooting-jumpcloud-multi-tenant.md) · 0 images
+- [Troubleshooting Missing EC2 Instance Inspector Scans](articles/troubleshooting-missing-ec2-instance-inspector-scans.md) · 16 images
+- [Troubleshooting Office365 MFA Issues](articles/troubleshooting-office365-mfa-issues.md) · 3 images
+- [Troubleshooting Windows Disk Encryption](articles/troubleshooting-windows-disk-encryption.md) · 3 images
+- [Troubleshooting missing Jamf computers](articles/troubleshooting-missing-jamf-computers.md) · 4 images
+- [Troubleshooting the Vanta Device Monitor on Linux Machines](articles/troubleshooting-the-vanta-device-monitor-on-linux-machines.md) · 0 images
+- [Troubleshooting the Vanta Device Monitor on Windows Machines](articles/troubleshooting-the-vanta-device-monitor-on-windows-machines.md) · 1 images
+- [Troubleshooting the Vanta Device Monitor on macOS](articles/troubleshooting-the-vanta-device-monitor-on-macos.md) · 1 images
+- [Troubleshooting: Timestamp Differences between AWS Inspector and Vanta Vulnerability Lists](articles/troubleshooting-timestamp-differences-between-aws-inspector-and-vanta-vulnerability-lists.md) · 0 images
+- [Turn off AWS Inspector](articles/turn-off-aws-inspector.md) · 10 images
+- [Turn off Vanta Trust Center Request Notifications](articles/turn-off-vanta-trust-center-request-notifications.md) · 1 images
+- [Understanding KMS Key Policy Permissions and Access Issues in Vanta](articles/understanding-kms-key-policy-permissions-and-access-issues-in-vanta.md) · 0 images
+- [Understanding the "Last Checked" Column on the Computers Page](articles/understanding-the-last-checked-column-on-the-computers-page.md) · 0 images
+- [Unsupported International Background Checks](articles/unsupported-international-background-checks.md) · 4 images
+- [Update Trust Center Logo](articles/update-trust-center-logo.md) · 4 images
+- [Update a Trust Center Display Name](articles/update-a-trust-center-display-name.md) · 1 images
+- [User added to Office365 and Entra ID not visible on People page](articles/user-added-to-office365-and-entra-id-not-visible-on-people-page.md) · 4 images
+- [Using one Vanta Login for Multiple Domains](articles/using-one-vanta-login-for-multiple-domains.md) · 3 images
+- [Vanta & Nmbrs Integration](articles/vanta-nmbrs-integration.md) · 9 images
+- [Vanta Device Monitor: Doctor Command](articles/vanta-device-monitor-doctor-command.md) · 0 images
+- [Vanta's IP Address](articles/vanta-s-ip-address.md) · 1 images
+- [View your pending security tasks on the Onboarding page](articles/view-your-pending-security-tasks-on-the-onboarding-page.md) · 2 images
+- [Website TLS Tests](articles/website-tls-tests.md) · 2 images
+- [What happens when Inspector is disabled in AWS?](articles/what-happens-when-inspector-is-disabled-in-aws.md) · 0 images
+- [What's the difference between a policy's effective date and the version history date?](articles/what-s-the-difference-between-a-policy-s-effective-date-and-the-version-history-date.md) · 1 images
+- [Where does Vanta look for the "Vanta Policies" folder in SharePoint?](articles/where-does-vanta-look-for-the-vanta-policies-folder-in-sharepoint.md) · 2 images
+- [Why do HRIS providers appear under the 'unmonitored accounts' on the offboarding list?](articles/why-do-hris-providers-appear-under-the-unmonitored-accounts-on-the-offboarding-list.md) · 2 images
+
+## Policies
+
+- [Add a Company Logo to your Policies: Policy Editor](articles/add-a-company-logo-to-your-policies-policy-editor.md) · 3 images
+- [Adding Custom Notes to Policies](articles/adding-custom-notes-to-policies.md) · 2 images
+- [Bulk Update Policies](articles/bulk-update-policies.md) · 3 images
+- [Commenting in the Policy Editor](articles/commenting-in-the-policy-editor.md) · 4 images
+- [Creating Policies with Policy Builder](articles/creating-policies-with-policy-builder.md) · 4 images
+- [Creating, Uploading, and Renewing a Policy](articles/creating-uploading-and-renewing-a-policy.md) · 11 images
+- [Importing Custom Policies](articles/importing-custom-policies.md) · 0 images
+- [Policies in Multiple Languages](articles/policies-in-multiple-languages.md) · 9 images
+- [Policy Writing Resources](articles/policy-writing-resources.md) · 0 images
+- [Renewing Policies](articles/renewing-policies.md) · 6 images
+- [V2 Policy Migration](articles/v2-policy-migration.md) · 3 images
+- [Vanta Agent: Policy Search & AI Insights](articles/vanta-agent-policy-search-ai-insights.md) · 6 images
+
+## Risk, TPRM & AI Gov
+
+- [AI Governance Product Overview](articles/ai-governance-product-overview.md) · 0 images
+- [Adding and Managing Vendors](articles/adding-and-managing-vendors.md) · 4 images
+- [Completing Risk Assessments](articles/completing-risk-assessments.md) · 2 images
+- [Conducting AI Assessments](articles/conducting-ai-assessments.md) · 6 images
+- [Conducting Vendor Security Assessments](articles/conducting-vendor-security-assessments.md) · 20 images
+- [Continuous Monitoring of Vendor Risk](articles/continuous-monitoring-of-vendor-risk.md) · 7 images
+- [Managing AI Use Cases](articles/managing-ai-use-cases.md) · 3 images
+- [Managing Risks and Risk Registers](articles/managing-risks-and-risk-registers.md) · 8 images
+- [Managing Vendor Assessments](articles/managing-vendor-assessments.md) · 16 images
+- [Managing Vendor Procurement](articles/managing-vendor-procurement.md) · 3 images
+- [Managing Vendor Reviews in Vanta Without TPRM](articles/managing-vendor-reviews-in-vanta-without-tprm.md) · 0 images
+- [Recurring Risk Assessments](articles/recurring-risk-assessments.md) · 5 images
+- [Risk Management Product Overview](articles/risk-management-product-overview.md) · 0 images
+- [Risk Scoring](articles/risk-scoring.md) · 11 images
+- [Risk Snapshots and Reports](articles/risk-snapshots-and-reports.md) · 5 images
+- [Task Tracker: Third Party Risk Management](articles/task-tracker-third-party-risk-management.md) · 5 images
+- [Third Party Risk Management Implementation Guide](articles/third-party-risk-management-implementation-guide.md) · 0 images
+- [Third Party Risk Management Product Overview](articles/third-party-risk-management-product-overview.md) · 0 images
+- [Tracking Risk Treatment](articles/tracking-risk-treatment.md) · 1 images
+- [Vanta & ZIP Integration: Third Party Risk Management](articles/vanta-zip-integration-third-party-risk-management.md) · 2 images
+- [Vendor Risk Scoring](articles/vendor-risk-scoring.md) · 7 images
+
+## Risk, TPRM & AI Gov › AI Governance
+
+- [AI Governance Product Overview](articles/ai-governance-product-overview.md) · 0 images
+- [Conducting AI Assessments](articles/conducting-ai-assessments.md) · 6 images
+- [Managing AI Use Cases](articles/managing-ai-use-cases.md) · 3 images
+
+## Risk, TPRM & AI Gov › Risk Management
+
+- [Completing Risk Assessments](articles/completing-risk-assessments.md) · 2 images
+- [Managing Risks and Risk Registers](articles/managing-risks-and-risk-registers.md) · 8 images
+- [Recurring Risk Assessments](articles/recurring-risk-assessments.md) · 5 images
+- [Risk Management Product Overview](articles/risk-management-product-overview.md) · 0 images
+- [Risk Scoring](articles/risk-scoring.md) · 11 images
+- [Risk Snapshots and Reports](articles/risk-snapshots-and-reports.md) · 5 images
+- [Tracking Risk Treatment](articles/tracking-risk-treatment.md) · 1 images
+
+## Risk, TPRM & AI Gov › Third-Party Risk Management
+
+- [Adding and Managing Vendors](articles/adding-and-managing-vendors.md) · 4 images
+- [Conducting Vendor Security Assessments](articles/conducting-vendor-security-assessments.md) · 20 images
+- [Continuous Monitoring of Vendor Risk](articles/continuous-monitoring-of-vendor-risk.md) · 7 images
+- [Managing Vendor Assessments](articles/managing-vendor-assessments.md) · 16 images
+- [Managing Vendor Procurement](articles/managing-vendor-procurement.md) · 3 images
+- [Managing Vendor Reviews in Vanta Without TPRM](articles/managing-vendor-reviews-in-vanta-without-tprm.md) · 0 images
+- [Task Tracker: Third Party Risk Management](articles/task-tracker-third-party-risk-management.md) · 5 images
+- [Third Party Risk Management Implementation Guide](articles/third-party-risk-management-implementation-guide.md) · 0 images
+- [Third Party Risk Management Product Overview](articles/third-party-risk-management-product-overview.md) · 0 images
+- [Vanta & ZIP Integration: Third Party Risk Management](articles/vanta-zip-integration-third-party-risk-management.md) · 2 images
+- [Vendor Risk Scoring](articles/vendor-risk-scoring.md) · 7 images
+
+## Security Frameworks
+
+- [Control Implementation Details](articles/control-implementation-details.md) · 3 images
+- [Controls Page](articles/controls-page.md) · 6 images
+- [Creating Custom Frameworks](articles/creating-custom-frameworks.md) · 0 images
+- [Custom Notes for Controls](articles/custom-notes-for-controls.md) · 2 images
+- [Delete all Custom Controls](articles/delete-all-custom-controls.md) · 1 images
+- [Getting Started with FedRAMP 20x](articles/getting-started-with-fedramp-20x.md) · 0 images
+- [ISO/IEC 27701:2025 - What’s Changing and How to Prepare](articles/iso-iec-27701-2025-what-s-changing-and-how-to-prepare.md) · 0 images
+- [Importing Custom Controls](articles/importing-custom-controls.md) · 1 images
+- [Issue Management in Vanta](articles/issue-management-in-vanta.md) · 5 images
+- [Managing Common Controls](articles/managing-common-controls.md) · 3 images
+- [Migrating to ISO 27001:2022](articles/migrating-to-iso-27001-2022.md) · 1 images
+- [Security Frameworks](articles/security-frameworks.md) · 0 images
+- [Setting Up Agentic Trust Controls (ATC) in Vanta](articles/setting-up-agentic-trust-controls-atc-in-vanta.md) · 0 images
+- [Temporarily Snooze a Framework](articles/temporarily-snooze-a-framework.md) · 2 images
+- [Updates to SOC 2 Framework](articles/updates-to-soc-2-framework.md) · 0 images
+- [Using Framework Version Manager to Upgrade Frameworks](articles/using-framework-version-manager-to-upgrade-frameworks.md) · 0 images
+
+## Security Frameworks › Controls
+
+- [Control Implementation Details](articles/control-implementation-details.md) · 3 images
+- [Controls Page](articles/controls-page.md) · 6 images
+- [Custom Notes for Controls](articles/custom-notes-for-controls.md) · 2 images
+- [Delete all Custom Controls](articles/delete-all-custom-controls.md) · 1 images
+- [Importing Custom Controls](articles/importing-custom-controls.md) · 1 images
+- [Managing Common Controls](articles/managing-common-controls.md) · 3 images
+
+## Security Frameworks › Frameworks
+
+- [Creating Custom Frameworks](articles/creating-custom-frameworks.md) · 0 images
+- [Getting Started with FedRAMP 20x](articles/getting-started-with-fedramp-20x.md) · 0 images
+- [ISO/IEC 27701:2025 - What’s Changing and How to Prepare](articles/iso-iec-27701-2025-what-s-changing-and-how-to-prepare.md) · 0 images
+- [Issue Management in Vanta](articles/issue-management-in-vanta.md) · 5 images
+- [Migrating to ISO 27001:2022](articles/migrating-to-iso-27001-2022.md) · 1 images
+- [Security Frameworks](articles/security-frameworks.md) · 0 images
+- [Temporarily Snooze a Framework](articles/temporarily-snooze-a-framework.md) · 2 images
+- [Updates to SOC 2 Framework](articles/updates-to-soc-2-framework.md) · 0 images
+- [Using Framework Version Manager to Upgrade Frameworks](articles/using-framework-version-manager-to-upgrade-frameworks.md) · 0 images
+
+## Team Compliance
+
+- [Access Management](articles/access-management.md) · 2 images
+- [Access Reviews](articles/access-reviews.md) · 6 images
+- [Adding and Managing Personnel](articles/adding-and-managing-personnel.md) · 1 images
+- [Adding and Removing People from Groups](articles/adding-and-removing-people-from-groups.md) · 4 images
+- [Connecting Vanta & CyberArk](articles/connecting-vanta-cyberark.md) · 9 images
+- [Creating Custom Tasks in Task Sets](articles/creating-custom-tasks-in-task-sets.md) · 2 images
+- [Creating Groups and Tasklists](articles/creating-groups-and-tasklists.md) · 5 images
+- [Creating Teams in Vanta](articles/creating-teams-in-vanta.md) · 10 images
+- [Creating a Task Set](articles/creating-a-task-set.md) · 8 images
+- [Custom User Roles](articles/custom-user-roles.md) · 1 images
+- [Duplicate Personnel Records](articles/duplicate-personnel-records.md) · 1 images
+- [Evidence Collection for Unmonitored Laptops](articles/evidence-collection-for-unmonitored-laptops.md) · 3 images
+- [Global Task Sets Settings](articles/global-task-sets-settings.md) · 4 images
+- [How Does a Person's Employment Status get Determined?](articles/how-does-a-person-s-employment-status-get-determined.md) · 2 images
+- [How to configure multiple KnowBe4 campaigns](articles/how-to-configure-multiple-knowbe4-campaigns.md) · 1 images
+- [How to configure training assignments with Curricula](articles/how-to-configure-training-assignments-with-curricula.md) · 2 images
+- [How to manually deactivate unmonitored accounts in the Offboarding Task Sets?](articles/how-to-manually-deactivate-unmonitored-accounts-in-the-offboarding-task-sets.md) · 1 images
+- [Individual Personnel Onboarding Page](articles/individual-personnel-onboarding-page.md) · 4 images
+- [Managing Access Requests in Vanta](articles/managing-access-requests-in-vanta.md) · 5 images
+- [Managing Personnel Training Tasks](articles/managing-personnel-training-tasks.md) · 6 images
+- [Managing Subscriptions: Tests and Documents](articles/managing-subscriptions-tests-and-documents.md) · 4 images
+- [Managing User Roles](articles/managing-user-roles.md) · 6 images
+- [Marking Personnel as a Service Account](articles/marking-personnel-as-a-service-account.md) · 2 images
+- [Marking a Person on Leave](articles/marking-a-person-on-leave.md) · 0 images
+- [Notion Task Tracker Configuration Modal](articles/notion-task-tracker-configuration-modal.md) · 15 images
+- [Offboarding Personnel](articles/offboarding-personnel.md) · 6 images
+- [Offboarding a User in Vanta while Keeping an Inbox Active](articles/offboarding-a-user-in-vanta-while-keeping-an-inbox-active.md) · 0 images
+- [Personnel Onboarding Templates](articles/personnel-onboarding-templates.md) · 0 images
+- [Personnel Reminders](articles/personnel-reminders.md) · 5 images
+- [Personnel Scoping: Best Practices](articles/personnel-scoping-best-practices.md) · 0 images
+- [Personnel Tasks](articles/personnel-tasks.md) · 2 images
+- [Previewing a Task Set](articles/previewing-a-task-set.md) · 2 images
+- [Reassign a Computer Owner on the People Page](articles/reassign-a-computer-owner-on-the-people-page.md) · 2 images
+- [Removing the Vanta Device Monitor Installation Requirements from Onboarding Task Sets](articles/removing-the-vanta-device-monitor-installation-requirements-from-onboarding-task-sets.md) · 0 images
+- [Sending Bulk Reminders to Personnel](articles/sending-bulk-reminders-to-personnel.md) · 3 images
+- [Tracking Security Trainings Provided by a Third-party](articles/tracking-security-trainings-provided-by-a-third-party.md) · 4 images
+- [Training Video Access by Framework](articles/training-video-access-by-framework.md) · 1 images
+- [User Permissions by Product Area](articles/user-permissions-by-product-area.md) · 0 images
+- [Vendor Scoping by Group](articles/vendor-scoping-by-group.md) · 2 images
+- [Why isn't someone passing for KnowBe4 security awareness training?](articles/why-isn-t-someone-passing-for-knowbe4-security-awareness-training.md) · 4 images
+
+## Team Compliance › Access
+
+- [Access Management](articles/access-management.md) · 2 images
+- [Access Reviews](articles/access-reviews.md) · 6 images
+- [Managing Access Requests in Vanta](articles/managing-access-requests-in-vanta.md) · 5 images
+
+## Team Compliance › Employee Onboarding & Offboarding
+
+- [Adding and Managing Personnel](articles/adding-and-managing-personnel.md) · 1 images
+- [Connecting Vanta & CyberArk](articles/connecting-vanta-cyberark.md) · 9 images
+- [Creating Custom Tasks in Task Sets](articles/creating-custom-tasks-in-task-sets.md) · 2 images
+- [Creating a Task Set](articles/creating-a-task-set.md) · 8 images
+- [Evidence Collection for Unmonitored Laptops](articles/evidence-collection-for-unmonitored-laptops.md) · 3 images
+- [Global Task Sets Settings](articles/global-task-sets-settings.md) · 4 images
+- [How to manually deactivate unmonitored accounts in the Offboarding Task Sets?](articles/how-to-manually-deactivate-unmonitored-accounts-in-the-offboarding-task-sets.md) · 1 images
+- [Individual Personnel Onboarding Page](articles/individual-personnel-onboarding-page.md) · 4 images
+- [Notion Task Tracker Configuration Modal](articles/notion-task-tracker-configuration-modal.md) · 15 images
+- [Offboarding Personnel](articles/offboarding-personnel.md) · 6 images
+- [Offboarding a User in Vanta while Keeping an Inbox Active](articles/offboarding-a-user-in-vanta-while-keeping-an-inbox-active.md) · 0 images
+- [Personnel Onboarding Templates](articles/personnel-onboarding-templates.md) · 0 images
+- [Personnel Tasks](articles/personnel-tasks.md) · 2 images
+- [Previewing a Task Set](articles/previewing-a-task-set.md) · 2 images
+- [Sending Bulk Reminders to Personnel](articles/sending-bulk-reminders-to-personnel.md) · 3 images
+- [Vendor Scoping by Group](articles/vendor-scoping-by-group.md) · 2 images
+
+## Team Compliance › Managing Users
+
+- [Adding and Removing People from Groups](articles/adding-and-removing-people-from-groups.md) · 4 images
+- [Creating Groups and Tasklists](articles/creating-groups-and-tasklists.md) · 5 images
+- [Creating Teams in Vanta](articles/creating-teams-in-vanta.md) · 10 images
+- [Custom User Roles](articles/custom-user-roles.md) · 1 images
+- [Duplicate Personnel Records](articles/duplicate-personnel-records.md) · 1 images
+- [How Does a Person's Employment Status get Determined?](articles/how-does-a-person-s-employment-status-get-determined.md) · 2 images
+- [Managing Subscriptions: Tests and Documents](articles/managing-subscriptions-tests-and-documents.md) · 4 images
+- [Managing User Roles](articles/managing-user-roles.md) · 6 images
+- [Marking Personnel as a Service Account](articles/marking-personnel-as-a-service-account.md) · 2 images
+- [Marking a Person on Leave](articles/marking-a-person-on-leave.md) · 0 images
+- [Personnel Reminders](articles/personnel-reminders.md) · 5 images
+- [Personnel Scoping: Best Practices](articles/personnel-scoping-best-practices.md) · 0 images
+- [Reassign a Computer Owner on the People Page](articles/reassign-a-computer-owner-on-the-people-page.md) · 2 images
+- [Removing the Vanta Device Monitor Installation Requirements from Onboarding Task Sets](articles/removing-the-vanta-device-monitor-installation-requirements-from-onboarding-task-sets.md) · 0 images
+- [User Permissions by Product Area](articles/user-permissions-by-product-area.md) · 0 images
+
+## Team Compliance › Vanta Security & Privacy Training
+
+- [How to configure multiple KnowBe4 campaigns](articles/how-to-configure-multiple-knowbe4-campaigns.md) · 1 images
+- [How to configure training assignments with Curricula](articles/how-to-configure-training-assignments-with-curricula.md) · 2 images
+- [Managing Personnel Training Tasks](articles/managing-personnel-training-tasks.md) · 6 images
+- [Tracking Security Trainings Provided by a Third-party](articles/tracking-security-trainings-provided-by-a-third-party.md) · 4 images
+- [Training Video Access by Framework](articles/training-video-access-by-framework.md) · 1 images
+- [Why isn't someone passing for KnowBe4 security awareness training?](articles/why-isn-t-someone-passing-for-knowbe4-security-awareness-training.md) · 4 images
+
+## Trust Management
+
+- [Adding Vanta Trust Center to your G2 Profile](articles/adding-vanta-trust-center-to-your-g2-profile.md) · 1 images
+- [Approving Trust Center Access Requests in Slack](articles/approving-trust-center-access-requests-in-slack.md) · 6 images
+- [Blocking Trust Center Access Requests by Domain or Country](articles/blocking-trust-center-access-requests-by-domain-or-country.md) · 1 images
+- [Building Custom Tags: Trust Center and Questionnaire Automation](articles/building-custom-tags-trust-center-and-questionnaire-automation.md) · 7 images
+- [Collaborating on Questionnaires](articles/collaborating-on-questionnaires.md) · 7 images
+- [Completing Spreadsheet and Document Questionnaires](articles/completing-spreadsheet-and-document-questionnaires.md) · 2 images
+- [Completing Website Questionnaires with the Browser Extension](articles/completing-website-questionnaires-with-the-browser-extension.md) · 4 images
+- [Connecting Trust Center & HubSpot](articles/connecting-trust-center-hubspot.md) · 2 images
+- [Connecting Trust Centers & Salesforce](articles/connecting-trust-centers-salesforce.md) · 14 images
+- [Connecting Vanta & Ironclad](articles/connecting-vanta-ironclad.md) · 11 images
+- [Creating and Managing Trust Center Updates](articles/creating-and-managing-trust-center-updates.md) · 5 images
+- [Creating your Custom Domain: Trust Center](articles/creating-your-custom-domain-trust-center.md) · 4 images
+- [Customer Trust Accounts](articles/customer-trust-accounts.md) · 4 images
+- [Enabling the Trust Center AI Chatbot](articles/enabling-the-trust-center-ai-chatbot.md) · 5 images
+- [Excel Questionnaire Column Mapping Options](articles/excel-questionnaire-column-mapping-options.md) · 5 images
+- [Exporting Your Data from Vanta](articles/exporting-your-data-from-vanta.md) · 20 images
+- [Getting Started with Questionnaire Automation](articles/getting-started-with-questionnaire-automation.md) · 0 images
+- [Integrate your DocuSign NDA with your Vanta Trust Center](articles/integrate-your-docusign-nda-with-your-vanta-trust-center.md) · 3 images
+- [Linking Multiple Trust Centers](articles/linking-multiple-trust-centers.md) · 3 images
+- [Managing Customer Commitments](articles/managing-customer-commitments.md) · 17 images
+- [Managing Your Knowledge Base](articles/managing-your-knowledge-base.md) · 12 images
+- [Managing Your Trust Center](articles/managing-your-trust-center.md) · 5 images
+- [Reporting Schedules](articles/reporting-schedules.md) · 4 images
+- [Salesforce Integration Permissions:](articles/salesforce-integration-permissions.md) · 0 images
+- [Sharing Reports](articles/sharing-reports.md) · 3 images
+- [Trust Center NDA: DocuSign](articles/trust-center-nda-docusign.md) · 6 images
+- [Trust Center NDAs: Clickwrap](articles/trust-center-ndas-clickwrap.md) · 8 images
+- [Trust Center Revenue Influenced Reporting](articles/trust-center-revenue-influenced-reporting.md) · 3 images
+- [Using Tags for Answering Security Questionnaires](articles/using-tags-for-answering-security-questionnaires.md) · 2 images
+- [Using Tags: Trust Center](articles/using-tags-trust-center.md) · 7 images
+- [Vanta Engagement Letter](articles/vanta-engagement-letter.md) · 0 images
+- [Vanta Reports](articles/vanta-reports.md) · 3 images
+
+## Trust Management › Customer Trust
+
+- [Adding Vanta Trust Center to your G2 Profile](articles/adding-vanta-trust-center-to-your-g2-profile.md) · 1 images
+- [Approving Trust Center Access Requests in Slack](articles/approving-trust-center-access-requests-in-slack.md) · 6 images
+- [Blocking Trust Center Access Requests by Domain or Country](articles/blocking-trust-center-access-requests-by-domain-or-country.md) · 1 images
+- [Building Custom Tags: Trust Center and Questionnaire Automation](articles/building-custom-tags-trust-center-and-questionnaire-automation.md) · 7 images
+- [Collaborating on Questionnaires](articles/collaborating-on-questionnaires.md) · 7 images
+- [Completing Spreadsheet and Document Questionnaires](articles/completing-spreadsheet-and-document-questionnaires.md) · 2 images
+- [Completing Website Questionnaires with the Browser Extension](articles/completing-website-questionnaires-with-the-browser-extension.md) · 4 images
+- [Connecting Trust Center & HubSpot](articles/connecting-trust-center-hubspot.md) · 2 images
+- [Connecting Trust Centers & Salesforce](articles/connecting-trust-centers-salesforce.md) · 14 images
+- [Connecting Vanta & Ironclad](articles/connecting-vanta-ironclad.md) · 11 images
+- [Creating and Managing Trust Center Updates](articles/creating-and-managing-trust-center-updates.md) · 5 images
+- [Creating your Custom Domain: Trust Center](articles/creating-your-custom-domain-trust-center.md) · 4 images
+- [Customer Trust Accounts](articles/customer-trust-accounts.md) · 4 images
+- [Enabling the Trust Center AI Chatbot](articles/enabling-the-trust-center-ai-chatbot.md) · 5 images
+- [Excel Questionnaire Column Mapping Options](articles/excel-questionnaire-column-mapping-options.md) · 5 images
+- [Getting Started with Questionnaire Automation](articles/getting-started-with-questionnaire-automation.md) · 0 images
+- [Integrate your DocuSign NDA with your Vanta Trust Center](articles/integrate-your-docusign-nda-with-your-vanta-trust-center.md) · 3 images
+- [Linking Multiple Trust Centers](articles/linking-multiple-trust-centers.md) · 3 images
+- [Managing Customer Commitments](articles/managing-customer-commitments.md) · 17 images
+- [Managing Your Knowledge Base](articles/managing-your-knowledge-base.md) · 12 images
+- [Managing Your Trust Center](articles/managing-your-trust-center.md) · 5 images
+- [Salesforce Integration Permissions:](articles/salesforce-integration-permissions.md) · 0 images
+- [Trust Center NDA: DocuSign](articles/trust-center-nda-docusign.md) · 6 images
+- [Trust Center NDAs: Clickwrap](articles/trust-center-ndas-clickwrap.md) · 8 images
+- [Trust Center Revenue Influenced Reporting](articles/trust-center-revenue-influenced-reporting.md) · 3 images
+- [Using Tags for Answering Security Questionnaires](articles/using-tags-for-answering-security-questionnaires.md) · 2 images
+- [Using Tags: Trust Center](articles/using-tags-trust-center.md) · 7 images
+- [Vanta Engagement Letter](articles/vanta-engagement-letter.md) · 0 images
+
+## Trust Management › Customer Trust › Questionnaire Automation
+
+- [Collaborating on Questionnaires](articles/collaborating-on-questionnaires.md) · 7 images
+- [Completing Spreadsheet and Document Questionnaires](articles/completing-spreadsheet-and-document-questionnaires.md) · 2 images
+- [Completing Website Questionnaires with the Browser Extension](articles/completing-website-questionnaires-with-the-browser-extension.md) · 4 images
+- [Excel Questionnaire Column Mapping Options](articles/excel-questionnaire-column-mapping-options.md) · 5 images
+- [Getting Started with Questionnaire Automation](articles/getting-started-with-questionnaire-automation.md) · 0 images
+- [Managing Your Knowledge Base](articles/managing-your-knowledge-base.md) · 12 images
+- [Using Tags for Answering Security Questionnaires](articles/using-tags-for-answering-security-questionnaires.md) · 2 images
+
+## Trust Management › Customer Trust › Trust Center
+
+- [Adding Vanta Trust Center to your G2 Profile](articles/adding-vanta-trust-center-to-your-g2-profile.md) · 1 images
+- [Blocking Trust Center Access Requests by Domain or Country](articles/blocking-trust-center-access-requests-by-domain-or-country.md) · 1 images
+- [Building Custom Tags: Trust Center and Questionnaire Automation](articles/building-custom-tags-trust-center-and-questionnaire-automation.md) · 7 images
+- [Creating and Managing Trust Center Updates](articles/creating-and-managing-trust-center-updates.md) · 5 images
+- [Creating your Custom Domain: Trust Center](articles/creating-your-custom-domain-trust-center.md) · 4 images
+- [Enabling the Trust Center AI Chatbot](articles/enabling-the-trust-center-ai-chatbot.md) · 5 images
+- [Linking Multiple Trust Centers](articles/linking-multiple-trust-centers.md) · 3 images
+- [Managing Your Trust Center](articles/managing-your-trust-center.md) · 5 images
+- [Using Tags: Trust Center](articles/using-tags-trust-center.md) · 7 images
+- [Vanta Engagement Letter](articles/vanta-engagement-letter.md) · 0 images
+
+## Trust Management › Customer Trust › Trust Center Integrations
+
+- [Approving Trust Center Access Requests in Slack](articles/approving-trust-center-access-requests-in-slack.md) · 6 images
+- [Connecting Trust Center & HubSpot](articles/connecting-trust-center-hubspot.md) · 2 images
+- [Connecting Trust Centers & Salesforce](articles/connecting-trust-centers-salesforce.md) · 14 images
+- [Connecting Vanta & Ironclad](articles/connecting-vanta-ironclad.md) · 11 images
+- [Integrate your DocuSign NDA with your Vanta Trust Center](articles/integrate-your-docusign-nda-with-your-vanta-trust-center.md) · 3 images
+- [Salesforce Integration Permissions:](articles/salesforce-integration-permissions.md) · 0 images
+- [Trust Center NDA: DocuSign](articles/trust-center-nda-docusign.md) · 6 images
+- [Trust Center NDAs: Clickwrap](articles/trust-center-ndas-clickwrap.md) · 8 images
+- [Trust Center Revenue Influenced Reporting](articles/trust-center-revenue-influenced-reporting.md) · 3 images
+
+## Trust Management › Reports
+
+- [Exporting Your Data from Vanta](articles/exporting-your-data-from-vanta.md) · 20 images
+- [Reporting Schedules](articles/reporting-schedules.md) · 4 images
+- [Sharing Reports](articles/sharing-reports.md) · 3 images
+- [Vanta Reports](articles/vanta-reports.md) · 3 images
