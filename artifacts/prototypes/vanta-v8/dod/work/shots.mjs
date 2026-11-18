@@ -1,0 +1,17 @@
+import { createRequire } from "node:module";
+const require = createRequire("/Users/joseflagorio/Development/program_assurance-ux-proposal/package.json");
+const { chromium } = require("playwright");
+const [html, out] = process.argv.slice(2);
+const b = await chromium.launch(); const p = await b.newPage({ viewport: { width: 1440, height: 900 } });
+const go = async (r) => { await p.goto("file://" + html + "#" + r); await p.waitForTimeout(300); };
+const shot = async (n) => { await p.screenshot({ path: `${out}/v8g-${n}.png` }); console.log("saved", n); };
+await go("stigs-mission-computer-rhel9"); await p.click('#main tbody tr[data-id$="|258230"]'); await p.waitForTimeout(250); await shot("rule-panel");
+await go("stigs"); await p.click('#main [data-modal="v8g-import"]'); await p.waitForTimeout(200); await p.click('#modal [data-v8g-imp="next"]'); await p.waitForTimeout(250); await shot("import-preview");
+await go("sse"); await shot("sse");
+await go("sse-csa"); await p.click('#main tbody tr[data-id="9"]'); await p.waitForTimeout(250); await shot("csa-panel");
+await go("stigs-open"); await shot("open");
+await go("control-si2"); await p.evaluate(() => { const d = document.querySelector(".v8g-si2"); if (d) d.scrollIntoView(); }); await p.waitForTimeout(200); await shot("si2");
+await p.setViewportSize({ width: 390, height: 844 });
+await go("stigs-mission-computer-rhel9"); await shot("phone-checklist");
+await go("sse"); await shot("phone-sse");
+await b.close();

@@ -1,0 +1,614 @@
+{
+ "runs": [
+  {
+   "id": "SCN-1001",
+   "format": "STIG CKL",
+   "tool": "STIG Viewer 2.18",
+   "benchmark": "BM-RHEL9 V2R1",
+   "program": "PRG-1041",
+   "targets": [
+    "CN-0110"
+   ],
+   "operator": "Marta Vinsley",
+   "started": "Jul 30, 2026 02:10",
+   "completed": "Jul 30, 2026 03:41",
+   "file": "gcs-app-01_RHEL_9_STIG_V2R1.ckl",
+   "sha256": "f725207831fb84d7eeb0f2ed331ce2ebe2e2f10add1179eaea15c7c5f012e104",
+   "rawItems": 5,
+   "state": "Reconciled",
+   "supersedes": null,
+   "note": "Quarterly manual checklist against the V2R1 benchmark. Only the rules that moved off Not Reviewed in this cycle are carried into the register; the rest of the 386-rule benchmark kept its prior answer."
+  },
+  {
+   "id": "SCN-1002",
+   "format": "STIG CKL",
+   "tool": "STIG Viewer 2.18",
+   "benchmark": "BM-RHEL9 V2R3",
+   "program": "PRG-1041",
+   "targets": [
+    "CN-0110"
+   ],
+   "operator": "Marta Vinsley",
+   "started": "Aug 13, 2026 02:05",
+   "completed": "Aug 13, 2026 03:22",
+   "file": "gcs-app-01_RHEL_9_STIG_V2R3.ckl",
+   "sha256": "ffc96eb02f4505e4aefac269c450a076becfb1d96478255a142233f81f579a43",
+   "rawItems": 5,
+   "state": "Reconciled",
+   "supersedes": "SCN-1001",
+   "note": "First run on V2R3 after the July benchmark drop. The audit offload and account lockout rules answered Not a Finding for the first time in this cycle."
+  },
+  {
+   "id": "SCN-1003",
+   "format": "STIG CKL",
+   "tool": "STIG Viewer 2.18",
+   "benchmark": "BM-RHEL9 V2R3",
+   "program": "PRG-1041",
+   "targets": [
+    "CN-0110"
+   ],
+   "operator": "Marta Vinsley",
+   "started": "Aug 27, 2026 04:10",
+   "completed": "Aug 27, 2026 05:36",
+   "file": "gcs-app-01_RHEL_9_STIG_V2R3_20260827.ckl",
+   "sha256": "426ab1eede74d2f82c59e3a4af7d15c64281289867fbd23d13829ae90699b03f",
+   "rawItems": 6,
+   "state": "Reconciled",
+   "supersedes": "SCN-1002",
+   "note": "Current checklist of record for gcs-app-01. The audit offload rule answered Open again after the aggregator capacity change was rolled back on Aug 21."
+  },
+  {
+   "id": "SCN-1004",
+   "format": "STIG CKLB",
+   "tool": "Evaluate-STIG 1.2508.1",
+   "benchmark": "BM-RHEL9 V2R3",
+   "program": "PRG-1041",
+   "targets": [
+    "CN-0122"
+   ],
+   "operator": "Automation — evaluate-stig-runner",
+   "started": "Aug 27, 2026 04:10",
+   "completed": "Aug 27, 2026 04:29",
+   "file": "gcs-app-02_RHEL_9_STIG_V2R3.cklb",
+   "sha256": "9efabf85a642f630da6effdb39653cd428061e6db5741e6a7e30d3e00968f41b",
+   "rawItems": 4,
+   "state": "Reconciled",
+   "supersedes": null,
+   "note": "Automated CKLB scoped to the RHEL 9.4 build rather than the chassis, which is how Evaluate-STIG reports. gcs-app-02 answers Not a Finding on GSSAPI where gcs-app-01 does not — the two application hosts have drifted apart."
+  },
+  {
+   "id": "SCN-1005",
+   "format": "SCAP XCCDF",
+   "tool": "SCC 5.10.1",
+   "benchmark": "BM-RHEL9 V2R3",
+   "program": "PRG-1041",
+   "targets": [
+    "CN-0131"
+   ],
+   "operator": "Automation — scc-nightly",
+   "started": "Aug 25, 2026 03:44",
+   "completed": "Aug 25, 2026 03:58",
+   "file": "gcs-db-01_RHEL_9_STIG_SCAP_1-3_Benchmark-xccdf.results.xml",
+   "sha256": "714559444709299688dee8827889f25ac809d9c0bde29465428852bdb14a533d",
+   "rawItems": 4,
+   "state": "Reconciled",
+   "supersedes": null,
+   "note": "Nightly SCAP run on the database host. One rule result carries a V-id in its idents but no CCI, so it is held for analyst mapping rather than guessed at."
+  },
+  {
+   "id": "SCN-1006",
+   "format": "SCAP XCCDF",
+   "tool": "OpenSCAP 1.3.10",
+   "benchmark": "BM-RHEL9 V2R3",
+   "program": "PRG-1041",
+   "targets": [
+    "CN-0113"
+   ],
+   "operator": "Automation — oscap-nightly",
+   "started": "Aug 27, 2026 03:30",
+   "completed": "Aug 27, 2026 03:47",
+   "file": "gcs-app-01_rhel9_oscap-xccdf.results.xml",
+   "sha256": "49d56b9c0f9792397a45356ec4995d0d6d4c9e3c50f9dddff47e9832c5f22198",
+   "rawItems": 4,
+   "state": "Reconciled",
+   "supersedes": null,
+   "note": "Filesystem and sshd hardening subset run by the OS build pipeline. Scoped to the RHEL 9.4 kernel node, so its results land on the same part key as the gcs-app-02 and gcs-db-01 runs."
+  },
+  {
+   "id": "SCN-1007",
+   "format": "ACAS Nessus",
+   "tool": "Tenable.sc 6.4.1 / Nessus 10.8.3",
+   "benchmark": "RHEL 9 DISA STIG audit file v2r3",
+   "program": "PRG-1041",
+   "targets": [
+    "CN-0110",
+    "CN-0120",
+    "CN-0130"
+   ],
+   "operator": "Dmitri Kolar",
+   "started": "Aug 12, 2026 01:00",
+   "completed": "Aug 12, 2026 02:14",
+   "file": "ACAS_GCS_credentialed_20260812.nessus",
+   "sha256": "c8265124e126b096b70e07aa3cddb078496c37bfd474415e621a18356a866429",
+   "rawItems": 4,
+   "state": "Reconciled",
+   "supersedes": null,
+   "note": "Credentialed sweep of the ground control segment with the DISA compliance audit file attached. The audit-file check RHEL-09-653080 reported the audit offload failing on gcs-db-01; the Aug 25 ACAS run no longer reports it, but the Aug 25 SCAP run still does against the same host, so FND-2240 is held open rather than queued for closure."
+  },
+  {
+   "id": "SCN-1008",
+   "format": "ACAS Nessus",
+   "tool": "Tenable.sc 6.4.1 / Nessus 10.8.3",
+   "benchmark": "RHEL 9 DISA STIG audit file v2r3",
+   "program": "PRG-1041",
+   "targets": [
+    "CN-0110",
+    "CN-0120",
+    "CN-0130"
+   ],
+   "operator": "Dmitri Kolar",
+   "started": "Aug 25, 2026 01:00",
+   "completed": "Aug 25, 2026 02:21",
+   "file": "ACAS_GCS_credentialed_20260825.nessus",
+   "sha256": "4dae6d3229c656f000d27bb4af11a98a3aa2b033670e5c7ba829079f426768be",
+   "rawItems": 4,
+   "state": "Reconciled",
+   "supersedes": "SCN-1007",
+   "note": "Current ACAS run of record. Plugin 71049 fires on gcs-app-01 for the same sshd_config setting the manual checklist already reports, which is what the duplicate reconciliation exists to catch."
+  },
+  {
+   "id": "SCN-1009",
+   "format": "SAST SonarQube",
+   "tool": "SonarQube 10.6 (Enterprise)",
+   "benchmark": "—",
+   "program": "PRG-1041",
+   "targets": [
+    "CN-0210",
+    "CN-0215"
+   ],
+   "operator": "Automation — mission-api CI",
+   "started": "Aug 26, 2026 22:31",
+   "completed": "Aug 26, 2026 22:48",
+   "file": "sonar-report-atlas-mission-api-2.14.0.json",
+   "sha256": "00682f18c58cf9cec0310ac72a6c6080f02de65bcb8d67594604f6f2d073383e",
+   "rawItems": 5,
+   "state": "Normalized",
+   "supersedes": null,
+   "note": "Static analysis of the 2.14.0 tag. SonarQube asserts CWEs, not CCIs, so every issue here is held for analyst mapping — the pipeline reports what it could not resolve instead of guessing a control."
+  },
+  {
+   "id": "SCN-1010",
+   "format": "SCA CycloneDX-VEX",
+   "tool": "Dependency-Track 4.11.4 (CycloneDX 1.6)",
+   "benchmark": "—",
+   "program": "PRG-1041",
+   "targets": [
+    "CN-0210"
+   ],
+   "operator": "Automation — mission-api CI",
+   "started": "Aug 26, 2026 22:49",
+   "completed": "Aug 26, 2026 22:53",
+   "file": "mission-api-2.14.0-vex.cdx.json",
+   "sha256": "0a50354a450a4a3e1ffc1a673349faefc7155b4b6a618c0431dccec891191f79",
+   "rawItems": 6,
+   "state": "Normalized",
+   "supersedes": null,
+   "note": "VEX statements against the BOM-0001 component list. One statement is not_affected with a real justification, one carries a KEV listing that overrides its CVSS, and one names a component that is in the image but not in the composition graph."
+  },
+  {
+   "id": "SCN-1011",
+   "format": "Fuzzing",
+   "tool": "libFuzzer / OSS-Fuzz harness 2.14.0-fuzz",
+   "benchmark": "—",
+   "program": "PRG-1041",
+   "targets": [
+    "CN-0215"
+   ],
+   "operator": "Wes Duarte",
+   "started": "Aug 18, 2026 09:00",
+   "completed": "Aug 20, 2026 09:00",
+   "file": "mission-api-fuzz-20260820-summary.json",
+   "sha256": "f4be63a390d37d393a66fde645b87b8dc708a80044ff1bd32c00fbfbec6bfec6",
+   "rawItems": 4,
+   "state": "Received",
+   "supersedes": null,
+   "note": "48-hour continuous fuzz across three harnesses ahead of TE-0044. Crash e5510b8d did not reproduce on replay and is floored at low rather than dropped."
+  },
+  {
+   "id": "SCN-1012",
+   "format": "Firmware analysis",
+   "tool": "binwalk 2.3.4 + FACT 4.2",
+   "benchmark": "—",
+   "program": "PRG-1041",
+   "targets": [
+    "CN-0310"
+   ],
+   "operator": "Priya Raghunathan",
+   "started": "Aug 24, 2026 08:15",
+   "completed": "Aug 24, 2026 09:02",
+   "file": "edge-sw-a1_iosxe_17.9.4a_fwreport.json",
+   "sha256": "f93d579a12c7f0ef822a20f0b78fae151fae9bc67cc230ce3c909cb4f4911665",
+   "rawItems": 5,
+   "state": "Received",
+   "supersedes": null,
+   "note": "Offline analysis of the extracted IOS-XE and ROMMON images. Every check reports against an image digest, so results land on the firmware node rather than the chassis."
+  }
+ ],
+ "native": [
+  {
+   "format": "STIG CKL",
+   "scan": "SCN-1001",
+   "vulnNum": "V-257984",
+   "ruleId": "SV-257984r991589_rule",
+   "ruleTitle": "RHEL 9 SSH daemon must not allow GSSAPI authentication.",
+   "severity": "high",
+   "status": "Open",
+   "findingDetails": "grep -i gssapi /etc/ssh/sshd_config returns 'GSSAPIAuthentication yes'. The setting is present in the running configuration and survives an sshd reload.",
+   "comments": "Kerberos single sign-on was enabled for the operator group in 2024 and never retired after the PIV rollout.",
+   "cciRefs": [
+    "CCI-000765"
+   ]
+  },
+  {
+   "format": "STIG CKL",
+   "scan": "SCN-1001",
+   "vulnNum": "V-258145",
+   "ruleId": "SV-258145r958424_rule",
+   "ruleTitle": "RHEL 9 must offload audit records onto a different system in real time.",
+   "severity": "medium",
+   "status": "Open",
+   "findingDetails": "rsyslog omfwd is configured to the aggregator but the disk-assisted queue drains on a 36-hour cycle, so records reach the aggregator well outside the defined window.",
+   "comments": "Aggregator ingest capacity is the constraint, not the forwarder configuration.",
+   "cciRefs": [
+    "CCI-001851"
+   ]
+  },
+  {
+   "format": "STIG CKL",
+   "scan": "SCN-1001",
+   "vulnNum": "V-257824",
+   "ruleId": "SV-257824r991554_rule",
+   "ruleTitle": "RHEL 9 must implement a FIPS 140-3 approved cryptographic module.",
+   "severity": "high",
+   "status": "Open",
+   "findingDetails": "fips-mode-setup --check reports 'FIPS mode is disabled.' and /proc/sys/crypto/fips_enabled reads 0.",
+   "comments": "Host was rebuilt on Jul 18 from an image that predates the FIPS kickstart change.",
+   "cciRefs": [
+    "CCI-000803"
+   ]
+  },
+  {
+   "format": "STIG CKL",
+   "scan": "SCN-1001",
+   "vulnNum": "V-258201",
+   "ruleId": "SV-258201r958388_rule",
+   "ruleTitle": "RHEL 9 must automatically lock an account when three unsuccessful logon attempts occur.",
+   "severity": "medium",
+   "status": "Open",
+   "findingDetails": "faillock deny is set to 5 in /etc/security/faillock.conf, above the organization-defined limit of 3.",
+   "comments": "Value inherited from the pre-migration Ansible role.",
+   "cciRefs": [
+    "CCI-000044"
+   ]
+  },
+  {
+   "format": "STIG CKL",
+   "scan": "SCN-1001",
+   "vulnNum": "V-257777",
+   "ruleId": "SV-257777r958524_rule",
+   "ruleTitle": "RHEL 9 must be a vendor-supported release.",
+   "severity": "high",
+   "status": "Not a Finding",
+   "findingDetails": "cat /etc/redhat-release reports 'Red Hat Enterprise Linux release 9.4 (Plow)', inside the vendor support window until May 2032.",
+   "comments": "—",
+   "cciRefs": [
+    "CCI-000366"
+   ]
+  },
+  {
+   "format": "STIG CKL",
+   "scan": "SCN-1002",
+   "vulnNum": "V-257984",
+   "ruleId": "SV-257984r991589_rule",
+   "ruleTitle": "RHEL 9 SSH daemon must not allow GSSAPI authentication.",
+   "severity": "high",
+   "status": "Open",
+   "findingDetails": "GSSAPIAuthentication yes is still present in /etc/ssh/sshd_config. The Ansible drift job does not manage this key.",
+   "comments": "Tracked under POAM-0071; the golden sshd baseline change is scheduled for Sep.",
+   "cciRefs": [
+    "CCI-000765"
+   ]
+  },
+  {
+   "format": "STIG CKL",
+   "scan": "SCN-1002",
+   "vulnNum": "V-257824",
+   "ruleId": "SV-257824r991554_rule",
+   "ruleTitle": "RHEL 9 must implement a FIPS 140-3 approved cryptographic module.",
+   "severity": "high",
+   "status": "Open",
+   "findingDetails": "fips-mode-setup --check still reports FIPS mode disabled. Enabling it requires a reboot that has not been scheduled inside a maintenance window.",
+   "comments": "Change request CHG-4471 raised on Aug 05.",
+   "cciRefs": [
+    "CCI-000803"
+   ]
+  },
+  {
+   "format": "STIG CKL",
+   "scan": "SCN-1002",
+   "vulnNum": "V-258011",
+   "ruleId": "SV-258011r958424_rule",
+   "ruleTitle": "RHEL 9 must have the auditd service enabled and active.",
+   "severity": "medium",
+   "status": "Open",
+   "findingDetails": "systemctl is-active auditd returns 'inactive'. The service failed to start after the Aug 09 kernel update and no alert fired.",
+   "comments": "New rule in V2R3; this host was not evaluated against it before Aug 13.",
+   "cciRefs": [
+    "CCI-000169"
+   ]
+  },
+  {
+   "format": "STIG CKL",
+   "scan": "SCN-1002",
+   "vulnNum": "V-258145",
+   "ruleId": "SV-258145r958424_rule",
+   "ruleTitle": "RHEL 9 must offload audit records onto a different system in real time.",
+   "severity": "medium",
+   "status": "Not a Finding",
+   "findingDetails": "Measured spool drain across three cycles after the Aug 07 aggregator capacity increase averaged 9 hours, inside the 24-hour statement.",
+   "comments": "Re-tested against the same procedure used on Jul 30.",
+   "cciRefs": [
+    "CCI-001851"
+   ]
+  },
+  {
+   "format": "STIG CKL",
+   "scan": "SCN-1002",
+   "vulnNum": "V-258201",
+   "ruleId": "SV-258201r958388_rule",
+   "ruleTitle": "RHEL 9 must automatically lock an account when three unsuccessful logon attempts occur.",
+   "severity": "medium",
+   "status": "Not a Finding",
+   "findingDetails": "faillock deny now reads 3 and unlock_time 0; a fourth failed attempt locked the test account as expected.",
+   "comments": "Ansible role updated on Aug 11.",
+   "cciRefs": [
+    "CCI-000044"
+   ]
+  },
+  {
+   "format": "STIG CKL",
+   "scan": "SCN-1003",
+   "vulnNum": "V-257984",
+   "ruleId": "SV-257984r991589_rule",
+   "ruleTitle": "RHEL 9 SSH daemon must not allow GSSAPI authentication.",
+   "severity": "high",
+   "status": "Open",
+   "findingDetails": "sshd_config sets GSSAPIAuthentication yes, allowing a non-PIV authentication path to a privileged interface. Confirmed against the running daemon with sshd -T.",
+   "comments": "Bastion-only reachability limits who can reach the interface but does not change what the interface accepts.",
+   "cciRefs": [
+    "CCI-000765"
+   ]
+  },
+  {
+   "format": "STIG CKL",
+   "scan": "SCN-1003",
+   "vulnNum": "V-258011",
+   "ruleId": "SV-258011r958424_rule",
+   "ruleTitle": "RHEL 9 must have the auditd service enabled and active.",
+   "severity": "medium",
+   "status": "Open",
+   "findingDetails": "systemctl is-active auditd still returns 'inactive'. The unit is enabled but exits 1 on start because /var/log/audit is out of inodes.",
+   "comments": "Blocked on the separate audit partition change tracked by V-258066.",
+   "cciRefs": [
+    "CCI-000169"
+   ]
+  },
+  {
+   "format": "STIG CKL",
+   "scan": "SCN-1003",
+   "vulnNum": "V-258145",
+   "ruleId": "SV-258145r958424_rule",
+   "ruleTitle": "RHEL 9 must offload audit records onto a different system in real time.",
+   "severity": "medium",
+   "status": "Open",
+   "findingDetails": "Spool drain measured at 31 hours on Aug 26. The Aug 07 aggregator capacity increase was rolled back on Aug 21 during the storage incident and was never re-applied.",
+   "comments": "Answered Not a Finding on Aug 13; the condition has returned.",
+   "cciRefs": [
+    "CCI-001851"
+   ]
+  },
+  {
+   "format": "STIG CKL",
+   "scan": "SCN-1003",
+   "vulnNum": "V-258066",
+   "ruleId": "SV-258066r958524_rule",
+   "ruleTitle": "RHEL 9 must allocate audit record storage capacity on a separate file system.",
+   "severity": "low",
+   "status": "Open",
+   "findingDetails": "findmnt /var/log/audit returns no separate mount; audit records share the root file system with application logs.",
+   "comments": "First evaluation of this rule on gcs-app-01.",
+   "cciRefs": [
+    "CCI-001849"
+   ]
+  },
+  {
+   "format": "STIG CKL",
+   "scan": "SCN-1003",
+   "vulnNum": "V-257824",
+   "ruleId": "SV-257824r991554_rule",
+   "ruleTitle": "RHEL 9 must implement a FIPS 140-3 approved cryptographic module.",
+   "severity": "high",
+   "status": "Not a Finding",
+   "findingDetails": "fips-mode-setup --check reports 'FIPS mode is enabled.' after the Aug 22 maintenance reboot; /proc/sys/crypto/fips_enabled reads 1.",
+   "comments": "Closed under CHG-4471.",
+   "cciRefs": [
+    "CCI-000803"
+   ]
+  },
+  {
+   "format": "STIG CKL",
+   "scan": "SCN-1003",
+   "vulnNum": "V-257777",
+   "ruleId": "SV-257777r958524_rule",
+   "ruleTitle": "RHEL 9 must be a vendor-supported release.",
+   "severity": "high",
+   "status": "Not a Finding",
+   "findingDetails": "Release 9.4 (Plow) is inside the vendor support window until May 2032.",
+   "comments": "—",
+   "cciRefs": [
+    "CCI-000366"
+   ]
+  },
+  {
+   "format": "STIG CKLB",
+   "scan": "SCN-1004",
+   "vulnNum": "V-257258",
+   "ruleId": "SV-257258r958402_rule",
+   "ruleTitle": "RHEL 9 must initiate a session lock after 15 minutes of inactivity.",
+   "severity": "medium",
+   "status": "Open",
+   "findingDetails": "tmux lock-after-time is unset for the operator group; a 30-minute idle test on an interactive shell did not lock the session.",
+   "comments": "Physical access to the console is limited to a controlled facility.",
+   "cciRefs": [
+    "CCI-000057"
+   ]
+  },
+  {
+   "format": "STIG CKLB",
+   "scan": "SCN-1004",
+   "vulnNum": "V-257984",
+   "ruleId": "SV-257984r991589_rule",
+   "ruleTitle": "RHEL 9 SSH daemon must not allow GSSAPI authentication.",
+   "severity": "high",
+   "status": "Not a Finding",
+   "findingDetails": "sshd -T reports gssapiauthentication no. gcs-app-02 was rebuilt on Aug 04 from the hardened image that sets the key explicitly.",
+   "comments": "The same rule is Open on gcs-app-01 — the two application hosts have drifted apart.",
+   "cciRefs": [
+    "CCI-000765"
+   ]
+  },
+  {
+   "format": "STIG CKLB",
+   "scan": "SCN-1004",
+   "vulnNum": "V-258011",
+   "ruleId": "SV-258011r958424_rule",
+   "ruleTitle": "RHEL 9 must have the auditd service enabled and active.",
+   "severity": "medium",
+   "status": "Open",
+   "findingDetails": "systemctl is-active auditd returns 'inactive'. Same failure mode as gcs-app-01 after the Aug 09 kernel update.",
+   "comments": "Fleet-wide condition on the RHEL 9.4 build, not a per-host misconfiguration.",
+   "cciRefs": [
+    "CCI-000169"
+   ]
+  },
+  {
+   "format": "STIG CKLB",
+   "scan": "SCN-1004",
+   "vulnNum": "V-257936",
+   "ruleId": "SV-257936r991589_rule",
+   "ruleTitle": "RHEL 9 must not have the telnet-server package installed.",
+   "severity": "high",
+   "status": "Not Applicable",
+   "findingDetails": "The minimal build excludes the telnet-server package entirely; rpm -q telnet-server returns 'package telnet-server is not installed'.",
+   "comments": "Marked Not Applicable per the benchmark's own applicability statement.",
+   "cciRefs": [
+    "CCI-000381"
+   ]
+  },
+  {
+   "format": "SCAP XCCDF",
+   "scan": "SCN-1005",
+   "ruleId": "xccdf_mil.disa.stig_rule_SV-258145r958424_rule",
+   "title": "RHEL 9 must offload audit records onto a different system in real time.",
+   "result": "fail",
+   "severity": "medium",
+   "idents": [
+    "CCI-001851",
+    "V-258145"
+   ]
+  },
+  {
+   "format": "SCAP XCCDF",
+   "scan": "SCN-1005",
+   "ruleId": "xccdf_mil.disa.stig_rule_SV-258094r991589_rule",
+   "title": "RHEL 9 must encrypt all persistent volumes at rest.",
+   "result": "fail",
+   "severity": "medium",
+   "idents": [
+    "CCI-001199",
+    "V-258094"
+   ]
+  },
+  {
+   "format": "SCAP XCCDF",
+   "scan": "SCN-1005",
+   "ruleId": "xccdf_mil.disa.stig_rule_SV-257777r958524_rule",
+   "title": "RHEL 9 must be a vendor-supported release.",
+   "result": "pass",
+   "severity": "high",
+   "idents": [
+    "CCI-000366",
+    "V-257777"
+   ]
+  },
+  {
+   "format": "SCAP XCCDF",
+   "scan": "SCN-1005",
+   "ruleId": "xccdf_mil.disa.stig_rule_SV-258212r958788_rule",
+   "title": "RHEL 9 must restrict access to the kernel message buffer.",
+   "result": "fail",
+   "severity": "low",
+   "idents": [
+    "V-258212"
+   ]
+  },
+  {
+   "format": "SCAP XCCDF",
+   "scan": "SCN-1006",
+   "ruleId": "xccdf_mil.disa.stig_rule_SV-258093r991589_rule",
+   "title": "RHEL 9 must mount /tmp with the nodev option.",
+   "result": "fail",
+   "severity": "medium",
+   "idents": [
+    "CCI-001764",
+    "V-258093"
+   ]
+  },
+  {
+   "format": "SCAP XCCDF",
+   "scan": "SCN-1006",
+   "ruleId": "xccdf_mil.disa.stig_rule_SV-257991r991589_rule",
+   "title": "RHEL 9 SSH daemon must not allow known hosts authentication.",
+   "result": "fail",
+   "severity": "medium",
+   "idents": [
+    "CCI-000366",
+    "V-257991"
+   ]
+  },
+  {
+   "format": "SCAP XCCDF",
+   "scan": "SCN-1006",
+   "ruleId": "xccdf_mil.disa.stig_rule_SV-257903r958524_rule",
+   "title": "RHEL 9 must enable the hardware random number generator entropy gatherer service.",
+   "result": "pass",
+   "severity": "low",
+   "idents": [
+    "CCI-000366",
+    "V-257903"
+   ]
+  },
+  {
+   "format": "SCAP XCCDF",
+   "scan": "SCN-1006",
+   "ruleId": "xccdf_mil.disa.stig_rule_SV-258104r958524_rule",
+   "title": "RHEL 9 must disable the Ctrl-Alt-Delete key sequence.",
+   "result": "notapplicable",
+   "severity": "low",
+   "idents": [
+    "CCI-000366",
+    "V-258104"
+   ]
+  }
+ ]
+}

@@ -1,0 +1,14 @@
+import { createRequire } from "node:module";
+const require = createRequire("/Users/joseflagorio/Development/program_assurance-ux-proposal/package.json");
+const { chromium } = require("playwright");
+const b = await chromium.launch(); const p = await b.newPage({ viewport: { width: 1440, height: 900 } });
+const errors = []; p.on("pageerror", (e) => errors.push(String(e)));
+await p.goto("file://" + process.argv[2] + "#inventory"); await p.waitForTimeout(300);
+await p.click('#main tr[data-panel="sys-asset"][data-id="AST-109001"]'); await p.waitForTimeout(200);
+console.log("asset panel:", await p.evaluate(() => { const b = document.querySelector("#panel .pbody"); const s = [...b.querySelectorAll(".sect")].pop(); return s ? s.textContent.replace(/\s+/g, " ").slice(0, 200) : "none"; }));
+await p.click('#panel .v8g-li[data-go]'); await p.waitForTimeout(250); console.log("go ->", await p.evaluate(() => location.hash));
+await p.goto("file://" + process.argv[2] + "#inventory"); await p.waitForTimeout(300);
+await p.click('#main tr[data-panel="sys-asset"][data-id="AST-109004"]'); await p.waitForTimeout(200);
+console.log("asset without checklist:", await p.evaluate(() => { const s = [...document.querySelectorAll("#panel .sect")].pop(); return s ? s.textContent.replace(/\s+/g, " ").slice(0, 120) : "none"; }));
+console.log("errors:", errors.length ? errors.join(" | ") : "none");
+await b.close();

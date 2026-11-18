@@ -1,0 +1,15 @@
+import { createRequire } from "node:module"; import path from "node:path";
+const require = createRequire("/Users/joseflagorio/Development/program_assurance-ux-proposal/package.json");
+const { chromium } = require("playwright");
+const file = "file://" + path.resolve(process.argv[2]);
+const b = await chromium.launch(); const p = await b.newPage({ viewport: { width: 1440, height: 900 } });
+await p.goto(file + "#ssp"); await p.waitForTimeout(1500);
+await p.evaluate(() => document.getElementById("se-c-AC-2").scrollIntoView({ block: "center" })); await p.waitForTimeout(400);
+await p.locator('#se-c-AC-2 [data-act="accept"][data-id="g1"]').first().click(); await p.waitForTimeout(700);
+console.log("session", await p.evaluate(() => JSON.stringify(window.PA.SSP.session).slice(0, 300)));
+console.log("history buttons in editor:", await p.evaluate(() => [...document.querySelectorAll('#main [data-go*="history"], #main a[href*="history"], #main button')].filter((e) => /history/i.test(e.textContent + (e.dataset.go || "") + (e.getAttribute("href") || ""))).map((e) => e.outerHTML.slice(0, 160))));
+await p.evaluate(() => { location.hash = "ssp-history"; }); await p.waitForTimeout(900);
+console.log("hash", await p.evaluate(() => location.hash), "session after", await p.evaluate(() => window.PA.SSP.session.length));
+console.log(await p.evaluate(() => { const side = document.querySelector(".sh-side, [class*=sh-v]"); return { sideClass: side && side.className, sideText: side && side.innerText.slice(0, 700), bodyHasAC2: /AC-2/.test(document.body.innerText), sessionBits: (document.body.innerText.match(/(This session|Today|Just now|just now)[\s\S]{0,200}/) || [""])[0] }; }));
+console.log("list", await p.evaluate(() => (document.body.innerText.match(/[^\n]*(10:43|AI draft accepted|Current version)[^\n]*/g) || []).slice(0, 6)));
+await b.close();

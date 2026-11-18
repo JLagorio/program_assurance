@@ -1,0 +1,12 @@
+import { createRequire } from "node:module"; import path from "node:path";
+const require = createRequire("/Users/joseflagorio/Development/program_assurance-ux-proposal/package.json");
+const { chromium } = require("playwright");
+const file = "file://" + path.resolve(process.argv[2]);
+const b = await chromium.launch(); const p = await b.newPage({ viewport: { width: 1440, height: 900 } });
+await p.goto(file + "#home"); await p.waitForTimeout(500);
+const before = await p.evaluate(() => { const m = document.getElementById("swMenu"), bt = document.getElementById("swBtn"); return { btn: bt && bt.outerHTML.slice(0, 300), menuHidden: m && m.hidden, menuDisplay: m && getComputedStyle(m).display, items: m && [...m.querySelectorAll("a")].map((a) => a.getAttribute("href") + "|" + a.textContent.trim().slice(0, 30)) }; });
+console.log("before", JSON.stringify(before, null, 1));
+await p.click("#swBtn"); await p.waitForTimeout(300);
+const after = await p.evaluate(() => { const m = document.getElementById("swMenu"); const a = m && m.querySelector('a[href="#program-new"]'); const r = a && a.getBoundingClientRect(); return { menuHidden: m.hidden, menuDisplay: getComputedStyle(m).display, cls: m.className, aRect: r && [r.x, r.y, r.width, r.height], aDisplay: a && getComputedStyle(a).display, aVis: a && getComputedStyle(a).visibility, parentDisplay: a && getComputedStyle(a.parentElement).display, outer: a && a.outerHTML, parent: a && a.parentElement.outerHTML.slice(0, 200) }; });
+console.log("after", JSON.stringify(after, null, 1));
+await b.close();

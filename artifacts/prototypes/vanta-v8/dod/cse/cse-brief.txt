@@ -1,0 +1,1010 @@
+                                                        UNCLASSIFIED
+
+
+
+
+                            DoD’s Cyber Survivability Endorsement
+
+
+
+
+                                                                       Mr. Steve Pitcher, GS-15, CISSP, CEH
+JCIDS System Survivability KPP, Cybersurvivability Endorsement (CSE)
+                                                                       JS Senior Cyber Survivability Analyst
+Implementation Guide v3 (Publicly Releasable), 30 July 2022
+                                                                       Requirements Division, Joint Staff/J6
+                                                    UNCLASSIFIED
+                                                                                    13 Apr 2023
+                                    UNCLASSIFIED
+
+                                      Things You Will Get From This Brief
+
+                        Why Cyber Survivability Endorsement (CSE)
+                        Hidden Costs/Risks of No System Specific Cyber Requirements
+                        Challenges: Integration and Long Lifecycle Risks
+                        Reducing Resource/Mission Risks – Throughout Lifecycle
+                        Cybersecurity Compliance Necessary, but Not Sufficient
+                        How to Apply CSE
+                        Voluntary CSE Adoption
+                        Way Ahead
+
+
+How the CSE Framework can provide a holistic approach for describing system specific and
+threat informed cyber survivability threshold performance requirements (incl. ZT, AI/ML)
+                                 UNCLASSIFIED                                              2
+                                               UNCLASSIFIED
+
+                        Why Cyber Survivability Endorsement (CSE) Created
+  Joint Staff added CSE to System Survivability Key Performance Parameter (SS KPP) in 2017
+    o Trigger: DepSecDef tasking based on annual operational test (OT) reports highlighting:
+        Same “dirty dozen” vulnerabilities found every year … in too many weapon systems
+        These high risk vulnerabilities were well known … should have been fixed before OT
+        Fixes would now be harder and more costly … since not identified and mitigated early
+       Probable Root Causes: Legacy systems’ only contractual cyber threshold requirement was to get
+       “enough cybersecurity compliance” to obtain an ATO. Despite signed ATOs and 40+ DoDIs for cyber,
+       (1) no cyber resilience requirements, (2) no adapt resourcing to achieve and sustain a meaningful cyber
+       risk posture, and (3) no actionable cyber threat to justify cyber protections for resource sponsor action…
+    o Question: Is a system with 90% RMF cybersecurity compliance more survivable than 70% compliance?
+        Depends on the risks accepted in each system’s move, shoot and communicate functions…
+
+CSE addresses these root causes and places cyber within the same operational risk trade-space
+              with other system functionality (cost, schedule and performance)
+                                            UNCLASSIFIED                                                            3
+                                                 UNCLASSIFIED
+
+                                                 Why CSE Needed - GAO Report 21-179
+
+GAO 21-179 Findings:
+  • DoD has increased use of cyber assessments
+      o MAY help programs identify vulnerabilities earlier.
+      o BUT vulnerabilities found in multiple rounds of
+        testing … went unaddressed after first discovered.
+  • Guidance would help DoD programs better
+    communicate requirements to contractors
+
+
+
+
+  CSE defines contractually binding cybersecurity and cyber resilience threshold performance
+       requirements … BUT only mandatory for Joint Systems … Not Service, MTA, JUON
+4/13/2023                                     UNCLASSIFIED      4                          4
+                                                UNCLASSIFIED
+
+         Why CSE Focused on Acquisition Performance Requirements
+                                                                                            JCIDS Manual
+                           Cyber Survivability Endorsement (CSE)                              and DoDI
+                                                                                               5000.90
+            System’s tailored threshold performance requirements for both cybersecurity and Acquisition
+              cyber resilience to Prevent, Mitigate, Recover from and Adapt to Cyber Events Requirements
+
+                    Cybersecurity Standards                           Cyber Resilience
+             System deemed sufficiently compliant with                  Engineering
+                        established standards,                       • Trustworthy information resources
+                     by a Risk Acceptance Official        People
+             (Not system specific … not threat informed) Processes   • Ready for degradation/loss
+                                                                     • Operations have means to prevail
+                 Authorized to Operate (ATO)             Tech        • Mission focused – not system focused
+
+
+  DoDI 8510.01                                                          System Resilience                     DoDI 8500.01
+    Specified          System Survivable                                                                         Implied
+  Requirements
+                                                     Mission                                                  Requirements
+                                                    Assurance
+Need to define Success (specific requirement & threat informed performance) … To achieve it
+                                             UNCLASSIFIED                                                                    5
+                                                              UNCLASSIFIED
+
+                Hidden Costs/Risks – No System Specific Cyber Requirements
+  % Funds                 Of Funds Committed                             Of Funds Committed prior to              Data from: Defense Systems
+ Committed       70%         prior to Design            85%      95%     most defects being found …                  Management College
+
+ Acquisition
+ Phases
+                                                                                                  90% of Defects Introduced
+                                                                                                  Early - Result of Poor Cybersecurity
+                                                                                                  and Cyber Resilience Requirements
+
+                                                                                                  80% of Defects Found
+                                                                                                  Too late and too costly to correct
+                                                                                                  … risks potentially unacceptable
+
+                                                                                                  97% of Rework Costs
+                                                                                                  Identified after 95% of funds
+  Data from: “ROI Analysis of the System Architecture                                             committed…
+         Virtual Integration Initiative”, SEI, 2018
+
+Cyber Survivability Threshold Performance Requirements ... must be considered at each Acq
+milestone, flow down to engineering specifications & validated during developmental testing!
+                                                          UNCLASSIFIED                                                                         6
+                                                                     UNCLASSIFIED
+
+
+
+
+ Russia: cyber + kinetic                                                            Jeep hack: remote control                     Solar Winds: supply chain hack
+ • Disable government,                                                              • Hackers demonstrate control of a            • Trojanized IT management software
+   private websites during         Stuxnet: digital weapon                            running Jeep from miles away                  compromised multiple gov’t agencies
+   Russo-Georgian War                            • Compromised
+                                                    PLCs of Iranian
+                                                    nuclear centrifuges
+                                                 • Destroyed > 1000
+                                                    centrifuges
+                                                   (20% of inventory)
+
+         2008                        2010                         2012                          2015                       2017                          2020
+
+
+
+
+  China: stealing data                  China: critical infrastructure                 Russia: cyber + kinetic              Maersk: collateral damage
+  • Exfil technical program data        • Target oil, natural gas pipelines in US      • Cyber attack during Ukraine war    • Russian Cyber attack against Ukraine
+    from defense contractors                                                           • Power outage for 230K people         affects Maersk
+                                                                                                                            • Global operations halted for weeks
+ There are few instances of truly “disconnected” systems                                                                   • ~$10B in damages to multiple firms
+
+ Many DoD systems use well-known commercial hardware and open source software                                             This slide stolen (with thanks) from the
+  modules https://www.youtube.com/watch?v=MK0SrxBC1xs for the 2015 Jeep hack                                                    Navy N2/N6 brief - RO Course
+ See SIPRNet - Navy’s “Project B++” destroyer hack                                                                             Highlights a few Cyber Exploits
+  https://Intellipedia.intelink.sgov.gov/wiki/B++                                                                            taken from Open-Source Information
+
+
+                Anything with a processor is, and HAS BEEN, a potential target
+                                                                                                                                                                          7
+                                                                UNCLASSIFIED
+                                   UNCLASSIFIED
+
+
+
+
+                           China
+
+        Russia                                                      US
+
+                            US
+
+
+
+
+         US                                                        China
+
+
+
+
+                                                            This slide stolen (with thanks) from the
+                                                                 Navy N2/N6 brief - RO Course
+                           US                     China         Highlights a few Cyber Exploits
+                                                             taken from Open-Source Information
+
+
+Adversaries are eroding our warfighting advantage through DIB cyber compromises
+                                                                                                       8
+                                UNCLASSIFIED
+                                    UNCLASSIFIED
+
+                   Challenges: External Integration/Connectivity Risks
+        Today’s more interconnected and cyber-contested environment
+                                           Non-Kinetic Threats
+            Kinetic Threats                     Space
+
+Cyber threat                                                   Electromagnetic
+is NOW time                                                       Spectrum
+
+  sensitive,                                            CBRN
+with serious
+ operational                                                               …
+     risk
+implications
+                                                         Cyber
+
+             BEFORE: 1++ kinetic bullets needed to achieve 1 kinetic kill
+NOW: 1 cyber “bullet” can achieve 1+++ mission kills, IF similarly connected/configured…
+    * Buying more systems no longer guarantees resiliency or mission assurance *
+                                 UNCLASSIFIED                                              9
+                                                    UNCLASSIFIED
+
+                                  Challenges: Internal Integration/Connectivity Risks
+                      (Pervasiveness represented via fictitious weapon system for classification reasons)
+
+                                                            Flight Control Systems (rudder, thrust, etc.)
+                Logistics Systems
+                                                                Identify Friend or Foe Systems              Cyber Attack
+               Maintenance Systems                               Targeting Systems                          Surface is too
+ (including requirements for
+ uploads of mission tasking,
+                                                                    Controller Area Network (CAN) Bus       expansive to
+ inflight status reports and updates                                                                        be supported
+ over various communication nets
+ after the mission)
+                                                                                                               by a few
+                                                                      Collision Avoidance System
+        Industrial Control Systems                                                                          Cyber Critical
+                                                                 Communications Systems
+                                                                                                             Intelligence
+      Microelectronics throughout                           Databases                                        Parameters
+Source: GAO-19-128 Report: “Weapon
+                                                    Life Support Systems                                        (CIPs)
+Systems Cybersecurity, DoD Just Beginning
+to Grapple with Scale of Vulnerabilities”
+
+
+    Functionality designed for good can also be used for evil – must protect critical functions
+       (move, shoot and communicate) … which must be segregated to complete mission
+                                                                                                                        10
+                                                                                                                       10
+                                                 UNCLASSIFIED
+                                                      UNCLASSIFIED
+
+                                                                     Challenges: Long Lifecycle Risks
+                                   F-35 Lightning II - Joint Strike Fighter
+
+
+
+
+     1993              1996            2001             2006              2009            2015            2022          2050+
+
+                  2 Contractors       Contract                                           Entered     Halted Delivery
+Studies for JSF      Develop        awarded to        First Flight    Alleged Chinese    Service      [Chinese alloy   Replace
+Program begin      prototypes     Lockheed Martin        of JSF         espionage                    in component]     Fleet
+
+
+      Strategy and          Development                          Acquisition                          In-Service and
+        Concepts                                                                                         Disposal
+   Define/Engineer Cyber Threshold         Validate Achieving Cyber Threshold Performance            Sustain Cyber Threshold
+    Performance Requirements …           Requirements (DT) and Operational Effectiveness (OT)      Performance Requirements …
+       With Adapt Component                                                                          With Adapt Component
+                                                                                                                                 11
+                                                    UNCLASSIFIED
+                                                     UNCLASSIFIED
+
+                          DoD Needs Cyber Survivability for Mission Assurance
+
+
+
+
+                                    Fall 2022 – Aircraft Survivability Journal
+https://www.jasp-online.org/asjournal/fall-2022/dod-systems-need-cybersecurity-and-cyber-resiliency-to-achieve-cyber-survivability/
+
+        Is there any operational requirement more crucial than surviving long enough
+                 to accomplish a mission, or safely return to base for restoral?
+                                                  UNCLASSIFIED                                                                        12
+                                                          UNCLASSIFIED
+
+                                                 Reducing Resource/Mission Risk … Lifecycle
+                    Resource Sponsor: Does the ICD Cyber Survivability Risk Category (CSRC) summary statement incorporates
+      CGA                      an unclassified projected cyber threat and generic countermeasures before formal threat assessment?
+                                   MDD: Does the AoA/CAA/CBA Study Plan include a CSRC & Cyber Survivability Attributes (CSA) with
+                                            RFIs to consider resource/mission risk implications for a Rough Order of Magnitude (ROM)?
+                  (MDD)
+                                           MS-A: Does Draft CDD provide guidance to requirements writers on tailoring a subset of CSAs
+                                                                to support RFP and TEMP development consistent with the updated CSRC
+        ICD                                                                            and initial intelligence cyber threat assessment?
+                       AoA
+                     (AoA)
+                                                         MS-B: Does the updated CDD and RFP include a tailored subset of CSAs determined
+                                                                  to be most critical to the systems move, shoot and communicate functions.
+                           A                            Are the CSAs sufficiently articulated to be decomposed into measurable and testable
+                                                              threshold performance requirements that could support mission completion in
+                                                         intended cyber-contested environment; forming basis for source selection criteria?
+               Draft CDD                         B
+                                  CDD                                                           AoA: Analysis of Alternatives
+
+                                                                      C                         CAA: Course of Action Analysis
+
+                                           RFP        Updated CDD                        MA     CBA: Capability Based Assessment
+                                                     (replaced CPD)                             CGA: Capability Gap Assessment
+
+
+
+
+If cyber survivability considered at each knowledge point, the risk of pursuing flawed capabilities can be reduced,
+   along with the cost to mitigate vulnerabilities to achieve and sustain an operationally-acceptable risk posture
+                                                       UNCLASSIFIED                                                                        13
+                                                      UNCLASSIFIED
+
+             Reducing Resource/Mission Risk … All Acquisition Pathways
+     All acquisition paths define requirements and assess alternatives to reduce resource and mission risk
+
+
+
+
+                                                                                  Operations & Sustainment,
+
+
+
+                        Cyber Survivability
+            Cyber Resilience          Cybersecurity
+
+                                                                                   and Mission Assurance
+  Path
+Selection
+
+
+
+
+   Cybersecurity and Cyber Resilience Functional Requirements should drive Requests for
+Information (RFIs) to be considered during any analysis of alternatives and source
+                                                                                14 selection!
+                                                      UNCLASSIFIED                                            14
+                                                   UNCLASSIFIED
+
+                                                                                    Determining CSRC
+   STEP ONE                                                                                    STEP FIVE
+   Select             STEP TWO
+   system’s           Select system’s     STEP THREE                                      Determine system’s
+   Mission            expected                                                            Cyber Survivability
+   Type (MT)                              Select system’s         STEP FOUR               Risk Category
+                      Adversary
+                                          Cyber                   Select system’s         (CSRC)
+                      Threat Tier
+                                          Dependence              Impact Level (IL)
+                      (ATT)                                                               Drives tailoring of a subset of
+                                          Level (CDL)             of compromise or       the 10 CSAs determined to be
+                                                                  loss                    critical to system survivability
+                                           AoA should provide                                and its move, shoot and
+                                           sufficient technical    An overall mission     communicate functions, and
+        MT and ATT are the                                        impact level is best   identifies countermeasures for
+                                             detail to identify
+       minimum known at ICD.               CDL and refine the      defined by CCMD            the expected ATT level.
+
+      CDL not known until after AoA,          CSRC for the        mission and OPLAN      Although CSE leverages RMF
+      unless an AI/ML or unmanned          selected capability    assessments during     categorization, it is not RMF…
+    systems will be required in the ICD   in the CDD and RFP      Exercises, DCRAs,       but it does support the RMF
+                                                                    and Wargames          aspects applicable to WSs.
+The resulting Risk Category frames the risk tolerance for consistent levels of cyber survivability
+  threshold performance requirements for acquisition, development, testing and operations
+                                               UNCLASSIFIED                                                                  1515
+                                                                      UNCLASSIFIED
+
+                                                                                          Step 1: Mission Type (MT)
+                         MT 5 – Strategic / National – Deterrence [2+ CCMDs]
+                         Degradation results in the highest risks to achieving national objectives.
+
+
+
+
+ Contested Environment
+                         (e.g. nuclear weapon platform systems, nuclear munitions and subsystems,
+                         ballistic missile radars, nuclear command and control systems/networks,
+                         space systems, and capabilities required to maintain nuclear deterrence)
+                         MT 4 – Operational – Before/during 1st 72 hrs [1 CCMD]
+                         Degradation results in high risk to mission completion. (e.g. primary mission
+                         systems used in contested environments, munitions, command and control
+                         capabilities, mission planning systems, and their supporting comm networks
+                         required to ensure mission assurance)
+                         MT 3 – Tactical – Before/during 1st 72 hrs
+                         Degradation results in moderate to high risk to mission completion. (e.g.
+                         tactical weapon systems/munitions for contested environments, and their
+                         supporting communications networks to ensure mission assurance)
+                         MT 2 – Mission Support – After 1st 72 hrs
+
+ Permissive
+                         Degradation results in moderate risk to mission completion. (e.g. mission
+                         systems used in permissive environments, logistics systems, and their
+
+Environment
+                         supporting communication networks to sustain operations)
+                         MT 1 – Organizational Programs & Services
+                         Degradation results in low risk to mission completion (e.g. MWR, finance
+                         and accounting systems, and defense health systems)
+       Determining the system’s Mission Type helps understand the system’s risk tolerance and
+            define the required level of cyber survivability protections for the capability
+                                                                                                                      16
+                                                                  UNCLASSIFIED
+                                                              UNCLASSIFIED
+
+
+
+
+        NSA.GOV links to “unclassified” NSA/CISA/DOJ Cyber Security Advisories.
+        https://media.defense.gov/2021/Jul/19/2002805003/-1/-1/0/CSA_CHINESE_STATE-SPONSORED_CYBER_TTPS.PDF
+        https://media.defense.gov/2021/Jul/01/2002753896/-1/-1/0/CSA_GRU_GLOBAL_BRUTE_FORCE_CAMPAIGN_UOO158036-21.PDF
+        https://media.defense.gov/2021/May/07/2002637232/-1/-1/0/ADVISORY%20FURTHER%20TTPS%20ASSOCIATED%20WITH%20SVR%20CYBER%20ACTORS.PDF
+        https://media.defense.gov/2021/Apr/15/2002621240/-1/-1/0/CSA_SVR_TARGETS_US_ALLIES_UOO13234021.PDF
+
+
+      Adversary cyber threat has not been sufficient, timely or actionable ... Until now
+ But need annual unclassified updates … along with classified intel “overlay” of zero-days, supply chain, intent,
+attribution, changes in adversary threat to link with publicly available information on vulnerabilities, threat, and
+                                             countermeasure options.
+                                                         UNCLASSIFIED
+                                                         UNCLASSIFIED                                                                       17
+                                                        UNCLASSIFIED
+
+                                                 Step 2: CSE Adversary Threat Tiers (ATT)
+                     Adversary Threat Tier  Most Likely & Greatest Risk
+        ATT 5 – Extreme: (e.g., Russia SVR, APT-29). Uses a range of initial exploitation techniques that vary in sophistication,
+        coupled with ‘stealthy’ intrusion tradecraft to cause denial, degradation, deception, disruption, and destruction of mission
+        capabilities. Uses custom tools, compromised accounts, and system misconfiguration to blend in with normal/unmonitored traffic
+        to move undetected in victim networks. Demonstrated capability to target cloud resources and supply chain (e.g., SolarWinds).
+        ATT 4 – Advanced: (e.g., Russia GRU, APT-28; China APT-41). Conducts complex, long-term cyber attack operations
+        combining multiple intelligence sources to obtain access to high-value networks. After gaining access, combines well known TTPs
+        to move laterally, evade defenses and collect additional info. Uses tools to conduct widespread, distributed and anonymized
+        ‘brute force’ access to cloud services. Develops detailed target technical knowledge for more damaging attacks.
+        ATT 3 – Moderate: Sophisticated, persistent, and well-resourced adversaries at nation-state level. Capable of advanced
+        cyber tradecraft to use publicly available tools, develop/use customized malware, and acquire access to some ATT-4/ATT-5 tools
+        to stealthily implant malware/vulnerabilities, conduct wide-ranging intelligence collection operations, gain access to more isolated
+        networks, and in some cases, create limited effects against defense critical infrastructure networks.
+        ATT 2 – Limited: Capable of limited advanced cyber tradecraft using publicly available and customized tools to exploit known
+        and unknown vulnerabilities. Able to identify -- and target-for espionage or attack -- easily accessible unencrypted networks
+        running common operating systems using publicly available tools. Possesses some limited strategic planning.
+        ATT 1 – Nascent: Little-to-no organized cyber capabilities, with no knowledge of a network's underlying systems beyond
+        publicly connected open-source information. Willing to exploit known vulnerabilities.
+       Unclassified & Actionable for ICD and 1st Draft of CDD (prior to VOLT availability)
+Sources: GAO analysis of DoD information, GAO-19-128; NSA/Cybersecurity and Infrastructure Security Agency (CISA)/U.S. Department of
+Justice (DOJ) Cybersecurity Advisories - April and July 2021 for SVR/GRU and APT-41.
+                                                        UNCLASSIFIED                                                                       18
+                                           UNCLASSIFIED
+                                             UNCLASSIFIED
+
+                                            Step 3: Cyber Dependence Level (CDL)
+  Criticality analysis provides basis for intrinsic cyber survivability assessment
+  of critical functions, components and information exchanges -- beyond C-I-A
+    • Cyber is digital – 0 or 1 … it does not degrade on a continuous analog scale.
+    • Unrealistic to expect to maintain/restore 100% of a system functions … What can we afford to lose?
+    • What system functionality must not be lost (segregated to complete mission or safely return to
+      base for restoral to a known good condition), and what are its cyber dependencies and the
+      adversary cyber threats driving cyber threshold ‘performance’ requirements?
+
+                     Determine the Mission Critical functions of the system
+                        Move: Sustain Flight and/or Maneuverability
+
+                        Shoot: Perform Mission, including Offensive and Defensive Actions
+
+                        Communicate: Maintain Internal and External Communications
+
+Technical Exposure (origin, export, sys architecture), combined with Degree of Connectivity
+ (internal/external operational requirements)  this intrinsic cyber risk defines the CDL
+                                        UNCLASSIFIED                                                       19
+                                                            UNCLASSIFIED
+
+                                                                                           Step 4: Impact Level (IL)
+            Critical Functions: What are the resource, system and mission risk implications of
+                       compromised flight or maneuverability due to a cyber event?
+                                                                  Mission Critical Functions
+                                                                  I Move: Sustained Flight / Maneuverability
+                                                                  II Shoot: Offensive / Defensive Capabilities
+
+
+
+
+ Example
+                                                                  III Communicate: Internal / External
+
+
+                                                 CNSSI No. 1253             *NOTIONAL SCORING
+                             Confidentiality                   Integrity                           Availability
+                                       Severe                              Disruptive                             Minutes
+                                H                                  H                                      H
+                                M      Serious                     M       Degraded                       M       Hours
+
+                                 L     Limited
+                                                                   L       Nuisance
+                                                                                                          L       Days
+
+           • Confidentiality – Preserving            • Integrity – Guarding against improper • Availability – Ensuring timely and
+            authorized restrictions on information     information modification or                       reliable access to and use of
+            access and disclosure, including means     destruction, and includes ensuring                information
+            for protecting personal privacy and        information nonrepudiation and
+            proprietary information                    authenticity
+
+ CSE’s 5 Impact Level exemplars aligned with NIST 800-30: Focused on CCMD Mission Risk
+The weighting of C-I-A for each criticalUNCLASSIFIED
+                                          function will vary depending on the weapon system                                              20
+                                                              UNCLASSIFIED
+
+                                                                                                        Determining CSRC
+                  Most JCIDS SS KPP requirements will fall within the top 3 tiers/levels
+ STEP ONE: Select Mission Type         STEP TWO: Select Adversary Threat   STEP THREE: Select Cyber        STEP FOUR: Select Impact
+ (MT)                                  Tier (ATT)                          Dependency Level (CDL)          Level/System Compromise (IL)
+
+ MT 5: Strategic/National-Deterrence   ATT 5: Extreme                      CDL 5: Extreme                  IL 5: Catastrophic Impact
+ MT 4: Operational – 1st 72 hrs        ATT4: Advanced                      CDL 4: High                     IL 4: Severe Impact
+
+ MT 3: Tactical – 1st 72hrs            ATT 3: Moderate                     CDL 3: Moderate                 IL 3: Moderate Impact
+ MT 2: Mission Support – After 72hrs   ATT 2: Limited                      CDL 2: Low                      IL 2: Limited Impact
+
+ MT 1: Organizational Progs/Srvces     ATT 1: Nascent                      CDL 1: Very Low                 IL 1: Negligible Impact
+
+                                                                           CDL 0: No Cyber Dependence
+
+
+                        STEP FIVE: Determine Cyber Survivability Risk Category (CSRC) of 0 to 5
+                  CSRC can be determined using scoring methods such as High Water Mark (HWM),
+ and SME criticality analyses for critical Move, Shoot, and Communicate functionality. Scrutinize, but don’t agonize!
+                                       Example      High Water Mark (HWM) scoring  CSRC-4
+                                       Above:       Subject matter experts scoring  CSRC-3 or CSRC-4
+The process is more important than exactness: Understanding the risk, assessing the
+   resource/system risk implications, and defining cyber threshold performance
+       requirements for operational risk trade-space decisions … are critical.
+                                                          UNCLASSIFIED                                                                    21
+                                                          UNCLASSIFIED
+
+                                                                                       CSRC  Requirements
+                       Vulnerability + Threat Capability = Survivability Risk Requirements
+CSRC-5: Extreme. Same as CSRC-4, except periodically request specific ATT-5 threat and mitigation recommendations.
+CSRC-4: Very High. System must implement best available mitigations to prevent/mitigate effects of cyberevents to maintain a minimum
+functionality to complete the mission or recover/adapt to fight another day. Implement NSA’s Top 10 Cybersecurity Mitigations to ensure C-I-A
+for trusted internal and external information flows; defense in-depth architecture, with no single points of failure; DoD-developed
+cyberprotections (including protections inherited from the operational environment); and as-required specific custom protections to actively
+manage the systems’ configuration to achieve and maintain an operationally relevant CSRP. Periodically (e.g., annually/quarterly) request
+classified adversary cyberthreat updates for the system and its HW/FW/SW (including open-source module), in each capability release, to
+develop plans of action and milestones (POA&Ms) for mitigating the greatest system risks and achieving/maintaining an operationally relevant
+risk posture. See NSA.GOV for cybersecurity advisories with latest ATT-4 threat and recommended mitigations.
+CSRC-3: High. System must implement mitigations to prevent/mitigate effects of cyberevents to maintain a minimum functionality to
+complete the mission or recover/adapt to fight another day. Implement NSA’s Top 10 Cybersecurity Mitigations to ensure C-I-A for trusted
+internal and external information flows; defense in-depth architecture, with no single points of failure; DoD-developed cyberprotections
+(including protections inherited from the operational environment); and as-required specific custom protections to actively manage the
+system’s configuration to achieve and maintain an operationally relevant CSRP. Periodically (e.g., annually/quarterly) request classified
+adversary cyberthreat updates for the system and its HW/FW/SW(including open-source module), in each capability release, to develop
+POA&Ms for mitigating the greatest system risks and achieving/maintaining an operationally relevant risk posture. See NSA.GOV for
+cybersecurity advisories with latest ATT-3 threat and recommended mitigations .
+CSRC-2: Moderate. Mitigations include both commercial off-the-shelf (COTS) and government off-the-shelf (GOTS) best practices, including
+DoD-specific threat signatures, layered defenses, TTPs, and selective DoD technologies. Implement NSA’s Top 10 Cybersecurity Mitigations.
+CSRC-1: Low. Mitigations include COTS with best practices (if commercially hosted) or strong DoD-layered defenses and possible use of DoD
+technology (if DoD hosted). As appropriate, implement NSA’s Top 10 Cybersecurity Mitigations.
+CSRC-0: None. No information exchange, no HW/SW/FW processing/sensors, and no wired/wireless network connections.
+      CSRC provides consistent level of requirements during design, testing, and operations
+                                                      UNCLASSIFIED                                                                        22
+           CSRC Exemplars in the CSEIG                   UNCLASSIFIED
+
+                                                          CSRC 5 – Exemplar Statement for ICD
+           – for ICDs, CDDs … includes
+           text for RFIs, PPP and CSS.
+
+
+           The capability’s mission criticality and impact of system compromise requires the capability must survive and
+           operate in an extreme cyber-contested environment (e.g., threatened by Russian SVR, APT-29). This level of
+
+ THREAT
+           adversaries uses a range of initial exploitation techniques that vary in sophistication, coupled with ‘stealthy’
+           intrusion tradecraft of custom tools, compromised accounts, and system misconfigurations to blend in with
+           normal/unmonitored traffic and move undetected in victim networks for denial, degradation, deception,
+           disruption, and destruction of mission capabilities. They have demonstrated capabilities to target cloud resources
+           and supply chain (e.g., SolarWinds). Recognizing these cyber threats will increase, the system must implement best
+           available defensive capabilities and mitigations to prevent/mitigate effects of cyber-related events to maintain a
+COUNTER
+           minimum functionality to complete the mission and recover/adapt to fight another day, including: implement
+           NSA’s Top 10 Cybersecurity Mitigations to ensure Confidentiality, Integrity, & Availability for trusted internal and
+
+MEASURES
+           external information flows; defense in depth architecture, with no single points of failure; a defined hierarchy of
+           assigned human defenders, equipped with specialized tools as needed; DoD developed cyber protections,
+           including protections inherited from the operational environment; and as required specific custom protections; to
+           actively manage the system’s configuration to achieve and maintain an operationally-relevant cyber risk posture.
+           The following 10 CSAs must be assessed for each AoA/CBA alternative to understand the resource and mission risk
+ CSAs      implications, if the capability itself, hosting system or enterprise services are unable to provide each CSA’s intent:”
+           [list all 10 CSAs by pillar]
+
+Puts Cyber Survivability requirement in context, incorporating top-level projected cyber threat
+  before AoA/CBA results can drive initial cyber threat assessment and risk determination,
+       setting the AoA/CBA up for success (i.e. avoiding unfixable cyber vulnerabilities)
+                                                     UNCLASSIFIED                                                                    23
+           CSRC Exemplars in the CSEIG                 UNCLASSIFIED
+
+                                                       CSRC 5 – Exemplar Statement for CDD
+           – for ICDs, CDDs … includes
+           text for RFIs, PPP and CSS.
+
+
+           The capability’s mission criticality and impact of system compromise requires the capability must survive and
+           operate in an extreme cyber-contested environment (e.g., threatened by Russian SVR, APT-29). This level of
+
+ THREAT
+           adversaries uses a range of initial exploitation techniques that vary in sophistication, coupled with ‘stealthy’
+           intrusion tradecraft of custom tools, compromised accounts, and system misconfigurations to blend in with
+           normal/unmonitored traffic and move undetected in victim networks for denial, degradation, deception,
+           disruption, and destruction of mission capabilities. They have demonstrated capabilities to target cloud resources
+           and supply chain (e.g., SolarWinds). Recognizing these cyber threats will increase, the system must implement best
+           available defensive capabilities and mitigations to prevent/mitigate effects of cyber-related events to maintain a
+COUNTER
+           minimum functionality to complete the mission and recover/adapt to fight another day, including: implement
+           NSA’s Top 10 Cybersecurity Mitigations to ensure Confidentiality, Integrity, & Availability for trusted internal and
+
+MEASURES
+           external information flows; defense in depth architecture, with no single points of failure; a defined hierarchy of
+           assigned human defenders, equipped with specialized tools as needed; DoD developed cyber protections,
+           including protections inherited from the operational environment; and as required specific custom protections; to
+           actively manage the system’s configuration to achieve and maintain an operationally-relevant cyber risk posture.
+           The following subset of the 10 CSAs in the table below have been determined to be most critical for (capability’s
+ CSAs      name) cyber survivability, and should drive development of the RFP and source selection criteria. These CSAs have
+           been tailored to define the capability’s threshold requirements, with CSA-10 enabling adaptive, incremental
+           improvements for countering advances in adversary capabilities, and newly identified vulnerabilities, to maintain
+           an operationally- relevant cyber risk posture:” [CSA Threshold/ Objective table follows]
+                       Contractually-binding cyber threshold requirements will
+             keep the government/industry team working together to win the cyber battle
+                                                    UNCLASSIFIED                                                                  24
+                                                       UNCLASSIFIED
+
+                                        Cybersecurity Compliance Necessary, but Not Sufficient
+  RMF: focuses on providing cybersecurity controls/standards for a generic system (not threat
+informed), and then documenting compliance of a system that has already been designed/built.
+Cyber Survivability Endorsement: focuses on providing contractually binding cybersecurity and
+  cyber resilience threshold performance requirements for a specific system in the expected
+operating environment … to justify, resource and design-in prioritized cyber controls/standards.
+                                                                    Transformational:
+                                                                    • Win-Win – RMF and CSE are complementary
+                                                                    • Bridges gap between requirement sponsors and
+                                                                      the system security engineers designing in cyber
+                                               RMF                  • Enables PMs and AOs to prioritize and take less risk
+                                                                      in the cyber performance areas most critical to the
+     • Prepare the POA&M
+     • Submit Security Authorization Package
+                                                                      system’s move, shoot and communicate functions
+       (Security Plan, SAR, and POA&M) to AO
+     • AO conducts final risk determination
+     • AO makes authorization decision                              • Places cyber in the same operational risk trade
+                                                                      space with other system functional requirements
+
+                                                     UNCLASSIFIED                                                            25
+                                             UNCLASSIFIED
+
+                CSE Alignment with DoD Cybersecurity Program Requirements
+
+• CSE leverages the ~800 NIST SP 800-53 Rev 5 cybersecurity technical controls                      A similar
+   o Originally identified 239 of ~800 NIST 800-53 rev4 controls applicable to Weapon Systems     approach is
+       98 highly applicable, 86 somewhat applicable, and 55 require interpretation                needed to
+   o CSE framework aligned with DoDI 8500.01 and DoDI 8510.01 18 RMF control families            meet “intent”
+                                                                                                 of Zero Trust
+   o CSE’s 10 holistic CSA threshold performance requirements intended to flow down to system    (ZT) reqts for
+     specs that are measurable and testable, supported by NIST 800-53 and CNSS 1253 controls        weapon
+• Air Force Research Lab’s (AFRL) CSA Tool – automating DoD guidance                                systems.
+                                                                                                        …
+   o AFRL, CIO, NSA and JS automated mapping of 10 CSAs to NIST 800-53 rev 5 and CNSS 1253
+                                                                                                  All ZT reqts
+   o AFRL, JS and NIST aligned CSE framework with NIST 800-160 vol 2                              will NOT be
+   o AFRL Mapping MITRE ATT&CK TTPs and National Vulnerability DB                                applicable to
+                                                                                                    weapon
+• CSE Implementation Guide Ver. 3.0, approved for public release, Jul 2022.                         systems.
+   o JS leveraged Army’s use of NIST 800-30 to update CSE’s Impact Level.                       Most will need
+                                                                                                interpretation.
+
+           Leveraging and linking CSAs to NIST 800-53 rev 5 cybersecurity controls
+  enables an easier understanding and implementation by system security engineers, with
+mission-focused performance requirements to support operational risk trade-space decisions
+                                          UNCLASSIFIED                                                   26
+                                                      UNCLASSIFIED
+
+                            SS KPP Pillars and Cyber Survivability Attributes
+• Prevent – Design requirements identify, protect and harden weapon system’s functions from adversary
+  cybersecurity threats (to anticipate most likely and greatest risk)
+• Mitigate – Design requirements detect and respond to cyber-events making it through defenses; enabling
+  cyber safety and operational resilience (to complete the mission)
+• Recover – Design requirements to recover to a known good condition after a cyber event; at a minimum,
+  restore partial-to-full mission capability (to fight another day)
+• Adapt – Enables DevOps to adapt to changes in adversary threat and vulnerabilities (to win this war and next war)
+       SS KPP Pillars                                       Cyber Survivability Attributes (CSAs)
+          (Mandatory)                                 (All are to be considered; select those that are applicable)
+                            CSA 01 - Control Access (not RMF Access Control)
+                            CSA 02 - Reduce Cyber Detectability
+                            CSA 03 - Secure Transmissions and Communications
+          Prevent           CSA 04 - Protect Information from Exploitation
+                            CSA 05 - Partition and Ensure Critical Functions at Mission Completion Performance Levels
+                            CSA 06 - Minimize and Harden Cyber Attack Surfaces
+                            CSA 07 - Baseline & Monitor Systems, and Detect Anomalies
+          Mitigate          CSA 08 - Manage System Performance and Enable Cyberspace Defense
+
+          Recover           CSA 09 - Recover System Capabilities
+
+                            CSA 10 - Actively Manage System’s Configurations to Achieve and Maintain an Operationally Relevant Cyber Risk Posture
+           Adapt            … also applicable to legacy systems that did not consider CSAs during development …
+                                                  UNCLASSIFIED                                                                                      27
+                 UNCLASSIFIED
+
+                                         Zero Trust Pillars
+
+
+
+                       6.
+
+            5.                  2.
+
+                       4.
+            1.                  3.
+
+                        7.
+
+
+All Resources Bound into Zero Trust Framework
+             UNCLASSIFIED                                     28
+                 UNCLASSIFIED
+
+                          DoD Zero Trust Pillar Capabilities
+
+
+1.   2.   3.         4.         5.     6.        7.
+
+
+
+
+               UNCLASSIFIED                                29
+                                                                                                                                         UNCLASSIFIED
+
+                                                                                                                                             Mapping ZT Pillar Capabilities to CSAs
+                                                                                    Zero Trust Capability Alignment with the Cyber Survivability (Cybersecurity and Cyber Resilience) Framework
+                                                                                                                     (Draft, and not yet coordinated with CIO)
+                                                                                  Highlighted Cells -- Indicate Direct System-level CSA Alignment with the DoD ZT Objectives from DoD ZT Strategy (Nov 22) (Requires tailoring)
+                                                                                                                                     ZT 3 - APPLICATION and                                                                                                  ZT 6 - AUTOMATION and
+                                                           ZT 1 - USER                             ZT 2 - DEVICE                                                                     ZT 4 - DATA                      ZT 5 - NETWORK and INFRASTRUCTURE                                      ZT 7 - VISIBILITY and ANALYTICS
+                                                                                                                                            WORKLOAD                                                                                                             ORCHESTRATION
+                                                                                                                                                                                                                                                        Automated security response based      Analyze events, activities and
+      Zero Trust Pillars (Right)                Continually authenticate, access,
+                                                                                      Understanding the health and status Secure everything from applications Data transparency and visibility enabled and                                                on defined process and security behaviors to derive context and apply
+                                               and monitor user activity patterns to                                                                                                                          Segment, isolate, and control (physically
+      ===================                                                            of devices informs risk decisions. Real-    to hypervisors, to include the      secured by enterprise infrastructure,                                                  policies enabled by AI, e.g., AI/ML to achieve a highly personalized
+                                               govern users' access and privileges                                                                                                                            and logically) the network environments
+        Cyber Survivability                     while protecting and securing all
+                                                                                        time inspection, assessment and       protection of containers and virtual applications, standards, robust end-to-end
+                                                                                                                                                                                                              with granular policy and access controls.
+                                                                                                                                                                                                                                                             blocking actions or forcing    model that improves detection and
+                                                                                     patching informs every access request                 machines.                      encryption, and data tagging.                                                  remediation based on intelligent    reaction time in making real-time
+         Attributes (Below)                               interactions.
+                                                                                                                                                                                                                                                                     decisions.                      access decisions.
+  CSA-01: Control Access (for WS, the             1.3 Multi-Factor Authentication
+                                                                                       2.3 Device Authorization with Real Time      3.4 Resource Authorization &
+                                                                                                                                                                                4.7 Data Access Control
+                                                                                                     Inspection                              Integration
+intent of 2FA can be met with controls like
+      guards, access logs, IDs, visual            1.5 Identity Federation & User
+                                                                                                 2.4 Remote Access
+               recognition)                            Credentialing (ABAC)
+
+   CSA-02: Reduce System’s Cyber
+Detectability (most costly and least likely)
+
+
+  CSA-03: Secure Transmissions and                                                                                                                                             4.6 Data Loss Prevention
+    Communications (Data in transit)
+                                                                                                                                                                               4.6 Data Loss Prevention
+  CSA-04: Protect System Information                                                                                                                                 4.3 Data Labelling & Tagging (Fully- automated
+     from Exploitation (Data at rest)                                                                                                                                                   via AI/ML)
+                                                                                                                                                                       4.5 Data Encryption & Rights Management
+
+ CSA-05: Partition and Ensure Critical             1.9 Integrated ICAM Platform                                                                                                                                               5.3 Macro Segmentation
+     Functions at Mission Completion                                                                                                                                                                                   5.2 Software Defined Networking (SDN)
+           Performance Levels                                                                                                                                                                                                 5.4 Micro Segmentation
+ CSA-06: Minimize and Harden Attack                                                                                                                                                                                                                                 6.6 API Standardization
+                 Surfaces
+                                                                                                                                                                           4.1 Data Catalog Risk Assessment                                                                                           7.1 Log all Traffic (Network, Data,
+                                                        1.1 User Inventory                      2.1 Device Inventory                  3.1 Application Inventory                                                                5.1 Data Flow Mapping            6.2 Critical Process Automation
+                                                                                                                                                                                    (Classification)                                                                                                         Applications, Users)
+CSA-07: Baseline and Monitor Systems              1.6 Behavioral, Contextual ID &
+                                                                                        2.2 Device Detection and Compliance
+                                                                                                                                      3.5 Cont Monitoring and
+                                                                                                                                                                            4.4 Data Monitoring and Sensing                                                                                         7.4 User and Entity Behavior Analytics
+          and Detect Anomalies                    Biometrics (Transparent Auth)                                                       Ongoing Authorizations
+                                                                                        2.7 Endpoint & Extended Detection &
+                                                  1.8 Continuous Authentication
+                                                                                               Response (EDR & XDR)
+                                                                                        2.7 Endpoint & Extended Detection &                                                                                                                                    6.5 Security Orchestration, Auto &    7.2 Security Information and Event
+CSA-08: Manage System Performance                   1.4 Privilege Access Mgmt.
+                                                                                               Response (EDR & XDR)                                                                                                                                                     Response (SOAR)                     Management (SIEM)
+   and Enable Cyberspace Defense (to                                                                                                                                                                                                                             6.7 Security Ops Center (SOC)             7.5 Threat Intelligence
+           complete mission)                                                                                                                                                                                                                                         Incident Response (IR)             Advanced Threat Protection
+ CSA-09: Recover System Capabilities
+ (Continuity of ops, to fight another day)
+                                                                                        2.5 Partially & Fully Automated Asset,   3.2 Secure Software Development &                                                                                             6.1 Policy Decision Point (PDP) &            7.3 Common Security
+  CSA-10: Actively Manage System’s                  1.2 Conditional User Access
+                                                                                             Vulnerability & Patch Mgmt                Integration (DevSecOps)
+                                                                                                                                                                          4.2 DoD Enterprise Data Governance
+                                                                                                                                                                                                                                                                    Policy Orchestestration                   and Risk Analytics
+  Configuration to Sustain Operationally                                                  2.6 Unified Endpoint Mgmt (UEM)                                                                                                                                                                                       7.6 Automated
+   Relevant Cyber Risk Posture (Could               1.7 Least Privileged Access                                                    3.3 Software Risk Management                                                                                                      6.3 Machine Learning
+                                                                                             Mobile Device Mgmt (MDM)                                                                                                                                                                                         Dynamic Policies
+    support continuous ATO/DevOps)                                                                                                                                                                                                                                 6.4 Artificial Intelligence
+
+                                                                                                                                 UNCLASSIFIED                                                                                                                                                                                                30
+                                              ZT – most equities                                        UNCLASSIFIED
+                                              ZT – some equities
+                                                                                 CSA Exemplars to be Tailored in a CDD (1 of 2)
+                                          Prevent - CSAs                               Exemplar Language – Threshold, Contractually-Binding Requirements
+                                                   CSA-01: Control     (U) “System shall only allow identified, authenticated, and authorized persons and non-person entities (including all assigned cyber
+                                                           Access      defenders and their tools) access or interconnection to system or sub-system elements. The capability shall enforce a validation
+                                        ZT
+
+
+
+
+Primarily … Cyber Security Attributes
+                                                                       mechanism to protect the C, I, A of system resources (e.g., memory, files, interfaces, logical networks). The system shall employ anti-
+                                                                       tamper measures that include features for protection of critical system components, information technologies, and maintenance of
+                                                                       technology/program protection. Physical access to the system shall also be controlled.” Incl. Cyber Resilience Attributes, cred mgmt
+                                                   CSA-02: Reduce      (U) “System survivability requires signaling and communications (both wired and wireless) implemented by the system (or state
+                                                          System’s     “supported by system/capability”) shall minimize the ability of an adversary to monitor and/or target system and/or supported DoD
+                                                 Cyber Detectability   weapon systems through its emanations, which may include deception.”                      Incl. Cyber Resilience Attributes
+                                                   CSA-03: Secure      (U) “System shall ensure all transmissions and communications of data ‘in transit’ are protected commensurate with its confidentiality
+                                        ZT           Transmissions     and integrity requirements. System shall only use NSA-certified cryptographic capabilities.” [NOTE: if a National Security System,
+                                               and Communications      add: “System shall develop, coordinate and maintain a System TRANSEC Plan (STP) throughout the system’s lifecycle.”]
+                                           CSA-04: Protect System      (U) “System shall ensure all data at rest is protected commensurate with its confidentiality and integrity requirements. System shall
+
+                                        ZT       Information from
+                                                      Exploitation
+                                                                       prevent unauthorized access, use, modification, and transfer/removal of data, including attempted exfiltration, from the system to
+                                                                       unauthorized person and non-person entities throughout the system’s lifecycle (including development).”
+                                             CSA-05: Partition and     (U) “System partitioning shall implement technical/logical mitigations including logical and physical segmentation. The system shall be
+                                        Ensure Critical Functions at   able to maintain mission critical functions at minimum performance thresholds identified within the system’s CONOPS. Compromise of
+
+                                        ZT     Mission Completion
+                                               Performance Levels
+                                                                       non-critical functions shall not significantly impact system mission capability.”
+                                                                                                                                               Incl. Cyber Resilience Attributes, micro-segmentation, zero trust
+                                              CSA-06: Minimize and     (U) “System shall automatically disable all unauthorized ports, protocols, and services (PPS), including access points, by default. Any
+                                             Harden Attack Surfaces    deviations from PPS baselines shall be approved and documented by a configuration management board. System shall support
+                                        ZT                             automated monitoring and logging of system attack surface and associated cyber events. Any removable media use must be
+                                                                       approved, documented and strictly monitored.” [UPDATE FOR NEXT CSEIG: CSRC 3, 4 and 5 systems should consider including
+                                                                       “Component operating systems must be currently supported, have a reasonable expectation of future supportability, and have an
+                                                                       appropriate trust level. New development must include programming languages that reduce cyber survivability risks, can easily
+                                                                       integrate with other languages, and has sufficiently low memory/processor requirements to run on embedded devices (e.g., RUST).”]
+
+                                             Tailored subset of CSAs drive RFP source selection criteria, RMF controls, and DT/OT assessments
+                                                                                                   UNCLASSIFIED                                                                                                    31
+                                               ZT – most equities                                       UNCLASSIFIED
+                                               ZT – some equities
+                                                                                  CSA Exemplars to be Tailored in a CDD (2 of 2)
+                                           Mitigate - CSAs                             Exemplar Language – Threshold, Contractually-Binding Requirements
+                                            CSA-07: Baseline and   (U) “System shall implement and maintain a cyber survivability configuration baseline for its GOTS/COTS HW, SW, FW and open source
+                                                         Monitor   modules, by version # to ensure an operationally acceptable cyber risk posture 24/7. System shall monitor, detect and report system
+
+
+
+
+Primarily … Cyber Resilience Attributes
+                                                    Systems, and   health status and anomalies indicative of cyber events, based on its current adversary threat intelligence, CONOPS and MRT-C.
+                                               Detect Anomalies
+                                          ZT
+                                                                   Applicable report detail shall be provided to users, system operators and assigned cyber defenders (e.g., config changes, cyber-event
+                                                                   indicators, slowed processing, or loss of functionality within T = (# of seconds/minutes) [specified by sponsor]).” (drives CDRLs)
+
+                                                 CSA-08: Manage    (U) “If anomalies are detected and/or cyber-events degrade system capability, the system shall be sufficiently resilient to mitigate cyber-
+                                                         System    related event effects through orderly, structured and prioritized system responses, in order to ensure minimum mission functionality
+                                          Performance and Enable   requirements [system functionality threshold specified by sponsor] to complete the current mission or return for recovery. The system shall
+                                              Cyberspace Defense   enable assigned cyber defenders to impose effects on adversaries to counter their operations and objectives. Alternatively, the mission
+
+                                          ZT                       commander shall be able to selectively disconnect/disable subsystems that are not critical as well as isolate the system from integrated
+                                                                   platform systems and/or Department of Defense Information Network (DoDIN).”
+
+                                           Recover - CSA                              Exemplar Language – Threshold, Contractually-Binding Requirements
+                                               CSA-09: Recover     (U) "After a cyber-event, the system shall be capable of being restored to a known good configuration from a trusted source; at a minimum,
+                                             System Capabilities   restored to partial mission capability, between mission cycles or within xx hours [specified by sponsor, to fight another day. System recovery
+                                                                   shall prioritize cyber operational resiliency functions.”
+                                             Adapt – CSA                              Exemplar Language – Threshold, Contractually-Binding Requirements
+                                                CSA-10: Actively   (U) “Throughout a system’s lifecycle and within one standard mission cycle of xx hours [specified by sponsor] of identification of a drop in
+                                               Manage System’s     cyber risk posture below its commensurate CSRC level, the system shall have a configuration management process, supported by
+                                               Configurations to   automated capabilities and technology refresh options, to achieve and continuously maintain an objectively assessed and operationally-
+                                          Achieve and Sustain an   relevant risk posture. The process shall include inputs from operators, defenders and intel analysts to continuously assess changes in
+                                          Operationally-Relevant   adversary threat, and include a machine readable Bill of Materials of the system’s GOTS/COTS HW, SW (including open source), and FW
+                                                          Cyber    for a supply chain risk assessment prior to each milestone decision and supported release. The process shall determine the sufficiency of
+                                          ZT        Risk Posture   the system’s cyber survivability and support a DevOps framework to prioritize vulnerability mitigation and remediation in the system and
+                                                                   connected infrastructure with greatest mission risks.” (drives CDRLs)
+
+       If capability relies on another system/service to meet CSA requirement, state which and how
+                                                                                                    UNCLASSIFIED                                                                                              32
+                                                                    UNCLASSIFIED
+
+                            How does CSE Support ZT in DevOps? Answer: CSA-10!
+                                         Security and Resilience
+
+
+
+                                                                                  *
+             Secure Coding               Requirements                                      Artifact Scanning
+            Standards/CWEs               •    Understand Threats/Risks                     •   STIG Conformance            Secure Deployment
+•   Secure Design Principles             •    Criticality Analysis                                                         •    Cryptographic Integrity Check
+                                         •    Security /Resilience Architecture            •   Assurance Case Update
+•   Design/Code Inspection                                                                                                 •    Configuration Checker
+•   Automated Code Scanning                                                                                                •    Host Based Vulnerability Scans
+•   Manual Code Review                                                                                                     •    Network Based Vulnerability Scan
+•   Secure Container Framework
+
+
+                                                                                                                                Secure Operation
+    Static Code Analysis                                                                                                        •   Two man rules
+    •   Origin Analysis/CVEs                                                                                                    •   Respond to Incidents/Defects
+    •   Binary Code Analysis                                                                                                    •   Threat Awareness
+    •   Architecture Conformance                                                                                                •   Contingency Plans
+        Checks                                                                                                                  •   Cyber Offensive Capability
+
+
+        Dynamic Analysis
+        •    Test Coverage Metrics                                                                                     Monitor Threats/Attacks
+        •    Fuzz Testing            Secure Development & Operational Environments                                     •       Operational Metrics
+        •    Penetration Testing     •       Controlled/Monitored Access                                               •       Logging & Auditing
+                                     •       Encryption at rest & in-flight                                            •       Threat Detection & Intelligence
+                                     •       Monitor/Maintain Integrity of all Tools, Libraries, Scripts
+
+               CSA 10 – Actively Manage System’s Configuration to Achieve and Sustain
+             an Operationally Relevant Cyber Risk Posture – “Minimum Viable Capability”
+        Defining ZT Threshold Performance Requirements … puts ZT in DevOps Risk Trade Space
+                                                               UNCLASSIFIED                                                                                        33
+                                                        UNCLASSIFIED
+
+                                                                  Voluntary CSE Adoption Progress
+   CSE Aligned Guidance:            ( Purple: OSD/JS/Allies, Blue: Air Force, Green: Army, Black: Navy/Marine Corps )
+  o Dec 2015: JCIDS Manual... added CSE to SS KPP                  o 2020: Army Memo for Cyber resiliency in all WS
+  o Jan 2017: CSEIG v1.0 … published                               o 2021: MITRE and AFRL aligned CSA Tool to NIST 800-53 rev 5
+  o Feb 2018: DAU RQM-310 ... J6 began briefing CSE                  controls, prior to being implemented in DoD
+  o Apr 2018: DoD Cybersecurity T&E Guidebook                      o 2021: NIST SP 800-160 v2 r1 [draft] cites CSE for cyber resilience
+  o May 2018: AF System Security Engineering (SSE) Cyber Guide     o 2021: DoD Cyber Table Top Guide v2
+  o Jul 2018: OUSD(R&E) Cyber Table Top Guidebook                  o 2021: AFSOC C-146A CSRA success story (SIPR email)
+  o Oct 2018: JCIDS updated ICD reviews, CSRC and CSA              o 2021: SERC DTE&A and Cyberattack Resilient Systems
+  o Oct 2019: DISA/JITC Test Criteria… using SSKPP CSRP            o 2022: CSEIG v3 … Declassified ATTs and publicly releasable
+  o Nov 2019: AFI 99-103 Capabilities-Based Test & Eval            o 2022: Navy Integrated PP, Cybersecurity & Engineering (IPPCE)
+  o 2019 – 2021: ~40 DoDIs with cyber equities not fully           o 2022: AF Measures of Performance Report (MOPR), includes
+    coordinated below GO/FO… many include reference to CSE           CSF-like tiers linked to CSE’s CSAs
+  o Feb 2020: DoD Cybersecurity T&E Guidebook v2                   o 2022: Army Cyber Acquisition Discipline (ACAD) updated
+  o Mar 2020: CSEIG v2.0… focusing on CSA-10 [DevOps]              o 2022: MDA CSE Implementation Instruction
+  o 2020: AFRL CSA Tool… support throughout lifecycle              o 2023: AF SSE Cyber Guide v.5 published (also adopted by NAVAIR)
+  o 2020: NAVAIR PPP and SSE Work Breakdown Structure              In process
+  o 2020: Army Cyber Acq Discipline Policy applies to ‘All Army    o FY23: OSD R&E Measuring Resilience Pilot
+    Acquisition Programs that Research/Develop/Acquire IT’         o CY23: CCEB Adoption of CSE to Influence National Development
+
+      CSE is only mandatory for requirements going through JCIDS, but Services seeing
+Resource/Mission Risk Benefits for considering Cyber Survivability for All Acquisition Pathways
+                                                    UNCLASSIFIED                                                                      34
+                                               UNCLASSIFIED
+
+
+                                                                                      How to Apply
+                                                                                    Cyber Survivability
+
+o Use latest JCIDS Manual (Oct 21) and CSE Implementation Guide (CSEIG) v 3.0 (Jul 22)
+  • NIPR CSE: https://intelshare.intelink.gov/sites/cybersurvivability/
+  • SIPR CSE: https://intelshare.intelink.sgov.gov/sites/cybersurvivability/
+  • SIPR Joint Staff KM/DS: “JROC Admin Tools” tab - https://jrockmdsbpm.osd.smil.mil/bizflow/bizindex.jsp
+   Above links include System Security Engineering references to instructions and exemplar statements for
+   drafting contract clauses, system specifications, and developmental test thresholds.
+
+o CSEIG provides detailed guidance for an ICD/CDD, IS-ICD/IS-CDD and CDD updates
+  • Includes exemplar text for Cyber Survivability Risk Categories (CSRCs), Cyber Survivability Attributes (CSAs).
+  • Includes recommendations on how the CSRC and CSAs can support AoA Requests for Information.
+  • Includes exemplar text for Program Protection Plans, Cybersecurity Strategies, and Requests for Proposals.
+
+CSE is a bridge between non-cyber professionals and the System Security Engineers who have
+     to sufficiently decompose CSA performance requirements into system specifications
+                                            UNCLASSIFIED                                                        35
+                                                  UNCLASSIFIED
+
+                 Way Ahead -- CSE Alignment with other DoD Processes
+   • CSA Updates – Coordinate within DoD and with FVEY/CCEB on CSEIG threshold performance requirement
+      exemplars for ZT, AI/ML, and trusted/supported OS, programming languages and open source SW.
+   • Cyber Adversary Threat – Coordinate a CSEIG annual cyber ATT update process, that includes risk to the HW,
+      FW and SW (incl. open source) integrated in DoD systems and meets CIP intent.
+   • Cyber Survivability Metrics – Coordinate on cyber survivability metrics for status reports at each acquisition
+      milestone, knowledge point, approval to operate, operations and version release risk decision.
+   • DB framework – Coordinate on efforts to rationalize a DB framework that leverages CSE’s holistic attribute
+      requirements for the HW, FW and SW (incl. open source) integrated in DoD systems.
+   • Orchestrate a CCMD focused/scalable DoD assessment process – Coordinate on efforts that leverage CSE
+      to determine legacy system, system-of-systems and CCMD OPLAN/Mission cyber risk postures, and minimize
+      gaps/overlaps between assessments to prioritize/mitigate vulnerabilities with greatest CCMD risks.
+   • CSE Alignment with DoD/JS Cyber Guidance for All Acquisition Pathways and Throughout Lifecycle –
+      o Coordinate on updating the 40+ DoDDs/DODIs with cyber equities, to orchestrate DoD best practices that
+        leverage CSE’s holistic cyber threshold performance requirements for all acquisition pathways.
+      o Recommend starting with high order DoDDs/DoDIs, and flow down to supporting guidance.
+      Realize the benefits of extending the CSE Framework to all acquisition pathways
+             and Legacy Systems with “critical risk to mission” will help sponsors
+identify and justify resourcing to prevent, mitigate, recover from, and adapt to cyber events
+                                              UNCLASSIFIED                                                            36
+                                            UNCLASSIFIED
+
+                              J6 Cybersurvivability Team (Pentagon Room 1E1045)
+
+
+                                  Mr. Steve E. Pitcher, GS-15, CISSP, CEH
+                                     JS Senior Cyber Survivability Analyst
+                                                703-614-7813
+                                     NIPR: Steve.E.Pitcher.civ@mail.mil
+                                  SIPR: Steve.E.Pitcher.civ@mail.smil.mil
+                                     JWICS: Steve.E.Pitcher@coe.ic.gov
+
+ Tom Andress, CISM, Security+                 James Brown, CISSP                   Steve Brady, CISSP
+    Cyber Survivability Analyst             Cyber Survivability Analyst         Cyber Survivability Analyst
+          703-692-0905                            703-697-8276                         703-614-7393
+  thomas.r.andress.ctr@mail.mil            james.l.brown2.ctr@mail.mil         steven.j.brady10.ctr@mail.mil
+thomas.r.andress.ctr@mail.smil.mil       james.l.brown2.ctr@mail.smil.mil    steven.j.brady10.ctr@mail.smil.mil
+  thomas.r.andress@coe.ic.gov              james.l.brown3@coe.ic.gov            steven.j.brady@coe.ic.gov
+
+
+
+                                                                                                                  37
+                                         UNCLASSIFIED
+

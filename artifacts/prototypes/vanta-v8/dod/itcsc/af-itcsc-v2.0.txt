@@ -1,0 +1,527 @@
+                                  Air Force (AF) Risk Management Framework (RMF)
+                       Information Technology (IT) Categorization and Selection Checklist (ITCSC)
+                                                  1. System Identification Information
+System Name: (duplicate in ITIPS)
+System Acronym: (duplicate in ITIPS)
+Version:
+ITIPS (if applicable)
+DITPR# (if applicable)
+eMASS# (if applicable)
+All information systems will need to complete a Privacy Impact Assessment (PIA) in conjunction with an organizational privacy subject matter
+expert. The PII Confidentiality Impact Level (9H) is a significant contributor to the system categorization and CONFIDENTIALITY level.
+(Section 10)
+                                                    2. Technical Description/Purpose
+
+
+
+
+                                     3. Authorizing Official (Check One) & Authorization Boundary
+☐ AETC RT&E                          ☐ Command & Control (C2)               ☐ Logistics (AF/A4)                       ☐ Security Forces (SF)
+☐ AF Enterprise                      ☐ Cyber Space Innovation (CSI)         ☐ Manpower (AF/A1)                        ☐ Space
+☐ AF Cyberspace Operations (AFCO)    ☐ Defense Cyber Crime Center (DC3)     ☐ Nuclear, non-NC3 (AFNWC)                ☐ USAFA
+☐ AFOTEC                             ☐ DT&E                                 ☐ Operational Test Infrastructure (OTI)   ☐ Weapons
+☐ Air Force Weather (AFWWS)          ☐ Finance (SAF/FM)                     ☐ Rapid Cyber Acquisition (RCA)           ☐ Other [see REF: (b)]
+☐ Aircraft                           ☐ Headquarters Air Force (HAF)         ☐ Science & Technology (AFRL)
+☐ Civil Engineering (CE)             ☐ Industrial Depot Maintenance (IDM)
+ A listing of AOs and AO boundary descriptions can be found on the Air Force Risk Management Framework (RMF) Knowledge Service (KS)
+                      at: https://rmfks.osd.mil/rmf/collaboration/Component%20Workspaces/AirForce/Pages/default.aspx
+                                                       4. System Operational Status
+☐ Operational – IT is in production (IOC/FOC)
+☐ Under Development – IT is in design phase
+☐ Major Modification – IT is undergoing significant change
+
+
+
+
+                                                                                                                                        Page 1 of 10
+                              5. Proposed Information Technology [Check One from table below]
+ Information Systems (IS)           Platform IT (PIT)             IT Services (Assess Only)       IT Products (Assess Only)
+      Major Application         PIT Systems                             Internal                     Software
+      Enclave                   PIT Subsystem(s) (Assess Only)          External                     Hardware
+                                PIT Component(s) (Assess Only)                                       Applications
+5. Describe the IT Authorization Boundary
+
+
+
+
+NOTE: This is a text field only; please upload any pictures or diagrams (DoDAF OV-1 and SV-6) to eMASS as artifacts documenting interface
+requirements
+                                                             6. Overlays
+6A. Intelligence Overlay: Does the IT process, store, or transmit Intelligence,               ☐ Yes (Intelligence Overlay is required)
+Surveillance, or Reconnaissance (ISR)?                                                        ☐ No
+Ref: (e)
+6B. Cross Domain Solution (CDS) Overlay: Will you implement, manage, or maintain              ☐ Yes (CDS Overlay is required)
+a CDS?                                                                                        ☐ No
+Ref: (d)
+6C. Nuclear Command, Control & Communications (NC3) Overlay: Does the IT                      ☐ Yes (NC3 Overlay is required)
+store, process or transmit NC3 data?                                                          ☐ No
+NOTE: use of the NC3 Overlay also requires the implementation of the Intel non-NC3
+Refs: (n) & (e)
+6D. Space Platform Overlay: Is the IT (or subsystem) a space platform (as defined in          ☐ Yes (Space Platform Overlay is
+CNSSI 1253F, Atch 2) and unmanned?                                                            required)
+Ref: (c)                                                                                      ☐ No
+6E. Classified Information Overlay: Does the IT store, process, or transmit classified        ☐ Yes (Classified Information Overlay
+information?                                                                                  is required)
+Ref: (f)                                                                                      ☐ No
+6F. Mission/Function Specific Overlay: Is your IT required to execute an                      ☐ Yes (Specify Overlay)
+organizational mission or function-special? (e.g. Financial, Acquisition etc.)                _____________________
+Ref: (h)                                                                                      ☐ No
+
+
+
+
+                                                                                                                           Page 2 of 10
+                                            7. National Security System (NSS) Designation
+Is this an NSS?                                                                                           ☐ Yes
+NOTE: If the answer to any of the six questions below is “Yes,” then the system is an NSS.                ☐ No
+Ref: (i)
+7A. Does the function, operation, or use of the system involve intelligence activities?                   ☐ Yes
+Refer to NIST SP 800-59, Appendix A, Paragraph A 1.1 for qualifying criteria.                             ☐ No
+7B. Does the function, operation, or use of the system involve cryptologic activities related to          ☐ Yes
+national security?                                                                                        ☐ No
+Refer to NIST SP 800-59, Appendix A, Paragraph A 1.2 for qualifying criteria.
+7C. Does the function, operation, or use of the system involve military command and control of            ☐ Yes
+military forces?                                                                                          ☐ No
+Refer to NIST SP 800-59, Appendix A, Paragraph A 1.3 for qualifying criteria.
+7D. Does the function, operation, or use of the system involve equipment that is an integral part         ☐ Yes
+of the weapon or weapons system?                                                                          ☐ No
+Refer to NIST SP 800-59, Appendix A, Paragraph A 1.4 for qualifying criteria.
+7E. If the use of the system is not a routine administrative or business application, is the system       ☐ Yes
+critical to the direct fulfillment of military or intelligence missions?                                  ☐ No
+Refer to NIST SP 800-59, Appendix A, Paragraph A 1.5 for qualifying criteria.
+7F. Does the system store, process, or communicate classified information?                                ☐ Yes
+Refer to NIST SP 800-59, Appendix A, Paragraph A 1.6 for qualifying criteria.                             ☐ No
+                                                                 8. Cloud
+8A. Is the IT going to be cloud-hosted?                              ☐ Yes
+                                                                     ☐ No Proceed to Section 9 (Privacy)
+8B. Will the IT process classified information (IAW Question ☐ Yes Proceed to Question 8C
+7F)? If YES (IL6) introduce question 8E and 8F (SORN).
+                                                             ☐ No Proceed to Question 8E
+8C. Does the IT contain Personally Identifiable
+                                                                     ☐ Yes (IL6 with Privacy Overlay)
+Information (PII) other than rolodex information?
+Ref: (g)                                                             ☐ No (IL6)
+8D. Does your system retrieve information by a                       ☐ Yes Provide SORN Number, then Proceed to Section 10
+unique identifier? (i.e. SSN, Name, DOB, etc.)
+Refs: (j) & (r)                                                      ☐ No Proceed to Section 10
+8E. Does the IT contain Controlled Unclassified                      ☐ Yes
+Information(CUI), defined in DoDM 5200.01 (Vol. 4) as
+anything that is not releasable under FOIA or is the CUI             ☐ No (IL2) – Proceed to Section 10
+limited to Rolodex Information (LOW Personally                           ☐ Public Facing Website
+Identifiable Information) only?
+                                                                         ☐ LOW PCIL Determination (see 8C instructions)
+Ref: (i) & (s)
+                                                                     ☐ Yes
+8F. Is the IT an NSS System (IAW Section 7) or does it
+contain information reflected in Ref (i)?                            ☐ No Proceed to Question 8I
+
+                                                                     ☐ Yes (IL5 with Privacy Overlay), then Proceed to Question 10
+8G. Does the IT contain PII other than rolodex information?
+                                                                     ☐ No (IL5)
+
+8H. Does your system retrieve information by a                       ☐ Yes Provide SORN Number, then Proceed to Section 10
+unique identifier? (i.e. SSN, Name, DOB, etc.)
+Refs: (j) & (r)                                                      ☐ No Proceed to Section 10
+
+                                                                                                                       Page 3 of 10
+                                                                       ☐ Yes (IL4 with Privacy Overlay), then Proceed to Question 10
+8I. Does the IT contain PII other than rolodex information?
+                                                                       ☐ No (IL4)
+
+8H. Does your system retrieve information by a                         ☐ Yes Provide SORN Number, then Proceed to Section 10
+unique identifier? (i.e. SSN, Name, DOB, etc.)
+Refs: (j) & (r)                                                        ☐ No Proceed to Section 10
+
+                                                       9. Privacy
+              NOTE: For assistance with completing this section, please contact your Base Privacy Manager.
+9A. Will this IT collect, maintain, use, and/or disseminate             ☐ Yes
+PII about members of the public, Federal personnel,                     ☐ No Proceed to Section 10 (See Note 4)
+contractors or foreign nations employed at U.S. military
+facilities internationally?
+Ref: (g), Note: (5)
+9B. Is the IT an NSS System (IAW Question 7) or does it                 ☐ Yes
+contain information reflected in Ref (i)?                               ☐ No Proceed to Question 9D
+9C. Does it contain PII other than rolodex information?                 ☐ Yes (Privacy Overlay Required), Proceed to Question 9I
+Ref: (g)                                                                ☐ No Proceed to Question 9I
+9D. What is the context of the CUI, if there is any? (examples: A list of deployed individuals (higher risk due to context),
+A list of safety meeting attendees (negligable risk due to context))
+Ref: (l)
+
+
+
+
+9E. What Type of PII will be contained within or pass through the
+system? [** Rolodex Information as defined in Ref: (g)]
+    Could be LOW                                 Could be MODERATE                                MUST BE HIGH
+☐ ** Name (full or partial)                  ☐ Birth Date                                     ☐ Law Enforcement Information
+☐ Employment Information                     ☐ Place of Birth                                 ☐ Security Information
+☐ ** Business Street Address                 ☐ Race/Ethnicity                                 ☐ Legal Records
+☐ ** Business Organization                   ☐ Financial Information                          ☐ Protected Health Information (PHI)
+☐ ** Business Phone Numbers (includes Fax)   ☐ Other ID Number                                ☐ Medical Information
+☐ Official Duty Address                      ☐ Photo with ephemeris data                      ☐ Social Security Number (SSN)
+☐ Mailing/Home Address                       ☐ Mother’s Middle/Maiden Name                    ☐ Passport Number
+☐ ** Business/Work E-mail Address            ☐ Legal Status
+☐ Home/Cell Phone                            ☐ Emergency Contact
+☐ Mailing/Home Address                       ☐ DoD ID Number (EDIPI)
+☐ Position/Title                             ☐ Child Information
+☐ Rank/Grade                                 ☐ Gender/Gender Identification Citizenship
+☐ ** Official Duty Telephone                 ☐ Drivers License
+☐ Personal E-mail Address
+☐ Photo
+
+9F. If there is a loss of confidentiality, what type of adverse          ☐ Limited/Minor degradation, damage, loss or harm.
+effect will it have on individuals?                                      ☐ Serious/Significant degradation, damage, loss or harm.
+Ref: (l)                                                                 ☐ Severe/Catastrophic degradation, damage, loss or harm.
+
+                                                                                                                                 Page 4 of 10
+9G. Provide detailed example(s) of the potential harm to an individual or organization if the PII were to
+be compromised. (Example: the system contains someone’s SSN, which could be used to commit identity
+fraud.)
+
+
+
+
+9H. Determine PII Confidentiality Impact Level                 ☐ Low
+Note: Assessment of Impact Level should consider               ☐ Moderate
+aggregation of all privacy factors (9F-9I)                     ☐ High
+Ref: (l)
+9I. Does your system retrieve information by a                ☐ Yes Provide SORN Number
+personal identifier? (i.e. SSN, Name, DOB, etc.)
+Refs: (k) & (r)                                               ☐ No Proceed to Question 10
+                                             10. Categorization Information
+               Categorize the CIA for APPLICABLE Information Types (i.e. Low, Moderate, or High) IAW Ref: (u).
+        Information Types              Confidentiality     Integrity           Availability            Amplifying Data
+
+
+
+
+FINAL SECURITY
+CATEGORIZATION
+
+
+
+
+                                                                                                                  Page 5 of 10
+                                11. Asset Owner/ Mission Owner/ Government Representatives
+ The AF RMF ITCSC was completed by the [IT Name] RMF Team named below. Impact analysis, Security Control Baseline selection, and
+                                 required overlays have been identified, reviewed and certified.
+         Title                                          Name                                  Phone (DSN)               Organization
+Authorizing Official:*
+AODR:
+Program Manager:*
+SCA:*
+ISSM:*
+Dir. Of Eng./ISSE:
+User Representative:
+Requirements Lead:
+Primary POC:*
+                                                                                               * Mandatory (Minimum Staffing Requirement)
+
+Notes:
+    1.   The program office/ISO will integrate cybersecurity risk management into their overall systems engineering, acquisition, test and
+         evaluation, and risk management processes.
+    2.   The program office/ISO will complete Risk Management Framework (RMF) steps to obtain the appropriate approval or
+         authorization documentation before IT testing or operation.
+    3.   For AF IT (IAW AFI 17-101, Figure 1.1) the program office/ISO will ensure the IT (as applicable) is registered in Information
+         Technology Investment Suite (ITIPS) and Enterprise Mission Assurance Support System (eMASS).
+    4.   All information systems will need to complete a Privacy Impact Assessment (PIA) in conjunction with an organizational privacy
+         subject matter expert. The PII Confidentiality Impact Level (9H) is a significant contributor to the system categorization and
+         CONFIDENTIALITY level. (Section 10)
+    5.   The use of 2 factor authentication (2FA) and Public Key Infrastructure (PKI) in support of Identity, Credential, and Access
+         Management (ICAM) introduces low level PII elements.
+
+
+
+
+                                                                                                                                 Page 6 of 10
+                                                             Summary
+Describe AF IT: (1)
+System Name:                                  System Acronym:                                 Version:
+
+ITIPS (if applicable)                         DITPR# (if applicable)                          eMASS# (if applicable)
+
+                                              Proposed Information Technology (5)
+    Information Systems                 Platform IT               IT Services (Assess Only)       IT Products (Assess Only)
+        Major Application        PIT Systems                            Internal                     Software
+        Enclave                  PIT Subsystem(s) (Assess Only)         External                     Hardware
+                                 PIT Component(s) (Assess Only)                                      Applications
+Overlays (6)                                  PIA Complete (9A)                 Operational Status (4)            Other
+☐ Security                                    ☐ Yes                             ☐ Operational                     ☐ NSS (7)
+☐ Space Platform                              ☐ No                              ☐ Under Development
+☐ Cross Domain Solution
+                                              Privacy (9J)                      ☐ Major Modification
+☐ Intelligence
+☐ Classified                                  ☐ Low
+☐ Privacy                                     ☐ Moderate
+☐ Nuclear (NC3)                               ☐ High
+☐ Mission Specific Overlay: _______________
+
+                               Cloud Impact Level (8) or Complete Final IT Categorization (10)
+Cloud Impact Level           Information Types                          Confidentiality           Integrity           Availability
+☐2
+☐4                          FINAL IT CATEGORIZATION
+☐5
+☐6
+                            JUSTIFICATION
+☐ N/A
+                                                             Approval
+AUTHORIZING OFFICIAL:
+Organization:
+Email:
+Phone (Commercial):                                                                Phone (DSN):
+Authorizing Official:
+(Digital Signature)
+PROGRAM MANAGER:
+Organization:
+Email:
+Phone (Commercial):                                                                Phone (DSN):
+Program Manager / Information System Owner:
+(Digital Signature)
+
+
+
+
+SAF/CNZ | KHL | 20191203                                                                                                  Page 7 of 10
+                                                       INSTRUCTIONS
+
+
+Aggregation of all data, plus the potential impact and         https://rmfks.osd.mil/rmf/collaboration/Component%20Wo
+likelihood of a security issue arising from mishandling        rkspaces/AirForce/Pages/default.aspx
+or misuse of that data, should factor in the assessment
+of all decisions within the ITCSC.                             4. System Operational Status
+
+1. System Identification Information                           Operational - The IT has satisfied program requirements
+                                                               and achieved Initial Operating Capability (IOC) or Full
+System Name: The name of the Information Technology            Operating Capability (FOC)
+(IT) entered here MUST match the Investment Name being
+entered during IT Investment Portfolio System (ITIPS)          Under Development - The IT is in the design/development
+registration                                                   phase and has not entered final production/operation.
+
+System Acronym: The same acronym entered in ITIPS as           Major Modification - The IT is undergoing a necessary
+the Investment Acronym                                         modification to improve performance and reduce
+                                                               ownership costs, consistent with the limitations prescribed
+Version: Version number of the system                          in 10 U.S.C 2244a
+
+ITIPS ID, DITPR, or eMASS ID numbers may be                    5. Describe the IT Authorization Boundary
+required if:
+                                                               Provide a narrative that clearly describes the IT system
+     •    Previous IT registration in ITIPS or eMASS           boundary, as well as any external interfaces or information
+                                                               exchanges (removable media, RF, Ethernet, Wi-Fi etc.) that
+          exists.
+                                                               would cross that boundary. If the IT is standalone (no
+     •    You are following the Assess Only Process            external interfaces), then clearly state that in this section.
+          and integrating a product into a host
+          environment (i.e. the product is a PIT               Required DoDAF Artifact: If external interfaces exist, the
+          subsystem).                                          follow-on requirement is to generate a detailed and
+          See Ref: (m) for more information.                   comprehensive boundary drawing (DoDAF OV-1 and
+                                                               SV-1) and post it to eMASS as an artifact during or
+2. Technical Description/Purpose                               subsequent to initial registration.
+
+Provide a general technical description of the function and    6A. Intelligence Overlay
+purpose of the proposed IT. This description should tell the
+story of who, what, where, when, why, and how the IT           Does the IT process, store, or transmit Intelligence,
+supports the warfighter and/or other IT. Consider the          Surveillance, or Reconnaissance (ISR)?
+following when filling out this section:                       See Ref: (e) for more information.
+
+•    What is the purpose of the IT?                            6B. Cross Domain Solution Overlay:
+•    Is the IT mission essential to the warfighter?            Will you implement, manage, or maintain a Cross Domain
+•    What are the major hardware/software components of        Solution?
+     the IT?                                                   See Ref: (d) for more information.
+•    What services are provided by the IT, and are any of
+     those services publicly accessible (can anyone access
+     information contained on the IT without needing
+     authorization)?
+•    How will each of the Information Types be stored,
+     processed, and/or transmitted by the IT?
+•    If the IT is undergoing a significant modification,
+     describe the modification and its purpose, otherwise
+     ignore this requirement.
+
+3. Authorizing Official & Authorization Boundary
+
+A listing of AOs and AO boundary descriptions can be
+found on the Air Force Risk Management Framework
+(RMF) Knowledge Service (KS) at:
+
+
+
+                                                                                                                          Page 8 of 10
+6C. Nuclear Command, Control & Communications                  8E/G. PII and Rolodex Information
+(NC3) Overlay:
+                                                               Does the IT contain Personally Identifiable Information
+Does the IT store, process or transmit NC3 data? Please        (PII) other than information which may meet the
+note that use of the NC3 Overlay also requires the             parameters of the Rolodex Exception including rosters that
+implementation of the Intel non-NC3 Overlay                    contain only business contact information?
+See Refs: (n) & (e) for more information.                      See Refs: (g, Paragraph 2.4) for more information.
+
+6D. Space Platform Overlay:                                    8F/H. PII information retrieved and SORN
+
+Is the IT (or subsystem) a space platform as defined in        Does the IS retrieve information by a personal identifier?
+CNSSI 1253F – Atch 2 and unmanned?                             If the IS uses a unique identifier to retrieve information
+See Ref: (c) for more information                              then a System of Records Notice (SORN) is required.
+                                                               See Ref: (r) for more information.
+6E. Classified Information Overlay:
+                                                               9: Privacy
+Does the IT store, process, or transmit classified
+information?                                                   For assistance with completing this section, please contact
+See Ref: (f) for more information.                             your Base Privacy Manager.
+
+6F. Mission/Function Specific Overlay:                         9A. Is IT an NSS system?
+
+Is your IT required to execute an organizational mission or    If you answered “Yes” to Question 7, then continue.
+function-special? (e.g. Financial (FIAR), Acquisition, etc.)   Otherwise, skip to 9E.
+See Ref: (h) for more information
+                                                               9B. PII and Rolodex Information
+7. National Security System (NSS) Designation
+                                                               See instructions under 8E/G, above.
+Carefully read and answer questions 7A-7F, checking the
+Yes or No box on each one. If the answer to any of those       9C: Retrieving Information by a personal identifier
+six questions is Yes, then the IS is an NSS, (pending review
+                                                               See instructions under 8F/H, above.
+from SAF/CN).
+See Ref: (i) for more information.                             9D. CUI / PII Context
+8A. Cloud Hosted                                               Provide context with respect to the CUI or PII stored or
+                                                               transmitted through the IS. For example: Is it a list of
+Is the IT going to be hosted in a cloud environment? If
+                                                               deployed individuals (impact would be higher) or a list of
+“no,” then continue to Question 9.
+                                                               individuals who attended a safety meeting (impact would
+8B. Classified info through cloud?                             be lower).
+                                                               See Ref: (l) for more information
+If the answers to both 7F and 8A are “Yes,” then this will
+also be checked “Yes” and the Cloud Impact Level will be       9E. PII Types
+IL6. If so, proceed to Question 10
+                                                               From the lists provided, identify which PII is applicable to
+8C. Controlled Unclassified Information (CUI)                  the information in this IS. Information identified as
+                                                               “Rolodex” information is marked with (**) and may be
+Does the IT contain CUI, which is defined in DoDM              evaluated as Low.
+5200.01 vol. 4 as anything that is not releasable under the    See Ref: (l) for more information
+Freedom of Information Act (FOIA)?
+In order to answer this question NO, the user must answer
+questions 9D-9G and arrive at a LOW determination for
+question 9H (Privacy Impact Confidentiality Level)
+See Ref: (i) & (s) for more information.
+
+8D. NSS
+
+Has the IS been determined to be an NSS (“Yes” to
+Question 8), or is it categorized as NSS because of
+additional factors listed in Ref: (i)?
+See Ref: (i) for more information.
+
+
+
+
+                                                                                                                              Page 9 of 10
+9F. PII Adverse Effect
+
+In 9G you evaluated and made a threat level assessment of
+the PII in the IS. Further evaluate the PII with respect to
+the threat to an individuals’ data if the information is lost or
+compromised. Brief explanation of impact levels if PII is
+exposed:
+
+     •    Low- Limited (Minor Harm)
+     •    Moderate- Significant degradation, damage, loss
+          or harm
+     •    High- Severe/Major degradation, damage, loss or
+          catastrophic harm.
+
+See Ref: (l) for more information
+
+9G. Specific Examples of Harm
+
+Describe specific examples of harm that could befall an
+individual or organization if PII was to be leaked, misused,
+or otherwise compromised.
+
+9H: PII Confidentiality Impact
+
+IAW 9G-I and Ref: (s), evaluate the Confidentiality Impact
+Level of the IT. If any factor in 9G-I is considered High,
+the overall assessment should be High. The aggregation of
+context, type, and Confidentiality Impact of PII should
+factor into your consideration.
+See Refs: (l) & (s) for more information
+
+10. Categorization Information
+
+In the table, be sure to add main Information Type category
+above the specific Information Types. For any reduction
+from the default recommended Security Categorization for
+each information type, per NIST SP 800-60 Vols 1 & 2, add
+a detailed justification for the change in the Amplifying
+Data column. Final System Categorization below should
+represent the overall categorization based on the highest
+ranking all categories.
+
+11. Asset Owner/ Mission Owner/ Government
+Representatives
+
+The program office/ISO will integrate cybersecurity risk
+management into their overall systems engineering,
+acquisition, test and evaluation, and risk management
+processes.
+
+The program office/ISO will complete Risk Management
+Framework (RMF) steps to obtain the appropriate approval
+or authorization documentation before IT testing or
+operation.
+
+For AF IT, the program office/ISO will ensure the IT (as
+applicable) is registered in Information Technology
+Investment Suite (ITIPS) and Enterprise Mission Assurance
+Support System (eMASS) as applicable.
+
+Ensure aggregation of all data, plus the potential impact
+and likelihood of a security issue arising from
+mishandling or misuse of that data, is factored in the
+assessment of all decisions within the ITCSC.
+
+                                                                   Page 10 of 10
+REFERENCES
+ a) Program managers for all information systems are required to complete a Privacy Impact Assessment (PIA)
+    DD Form 2930 in conjunction with an organizational privacy subject matter expert.
+         • In cases where no PII/PHI is present, the PIA will serve as a conclusive determination that privacy
+              requirements do not apply to the system.
+         • All documentation must be coordinated through the servicing Base and MAJCOM Privacy
+              Manager/Monitor before submission to AF Privacy.
+ b) AFI 17-101, Risk Management Framework (RMF) for Air Force Information Technology (IT)
+ c) CNSSI 1253F Atch 2, Space Platform Overlay
+ d) CNSSI 1253F Atch 3, Cross Domain Solution Overlay
+ e) CNSSI 1253F Atch 4, Intelligence Overlay
+ f) CNSSI 1253F Atch 5, Classified Information Overlay
+ g) CNSSI 1253F Atch 6, Privacy Overlay
+ h) NIST SP 800-39, Managing Information Security Risk: Organization, Mission, and Information System
+    View
+ i) Additional reference for NSS System Determination
+         • 40 U.S.C. § 11103, Applicability to NSS
+         • 10 U.S.C. § 130b, Deployment and troop movement
+         • 10 U.S.C. § 130e, Military Critical infrastructure
+         • Critical Infrastructure Information Act of 2002, Civilian Critical infrastructure
+         • 42 U.S.C. § 2162, Unclassified nuclear data
+         • 15 U.S.C. §§ 46(f), 57b-2 & 15 U.S.C. §3710a(c), Trade Secrets Act data
+         • DoDI 6495.02, Sexual Assault Prevention and Response (SAPR) Program Procedures
+         • 18 U.S.C. § 3771, Crime Victim’s Rights Act (DoD implemented by Article 6b, UCMJ—10
+              U.S.C. § 806b)
+         • NIST SP 800-59, Guideline for Identifying an Information System as a National Security System
+ j) DoD Cloud Computing Security Requirements Guide (Cloud SRG)
+ k) Privacy Act of 1974
+ l) NIST SP 800-122, Guide to Protecting the Confidentiality of Personally Identifiable Information (PII)
+ m) For more information on preparing or processing an “Assess Only” package refer to the Air Force RMF
+    Knowledge Service (KS)/AF Assess Only Guidance Folder
+ n) NC3 Overlay:
+    https://rmfks.osd.mil/rmf/SiteResources/References/Reference%20Library/NC3_Overlay.pdf
+ o) NIST SP 800-66: An Introductory Resource Guide for Implementing the Health Insurance Portability and
+    Accountability Act (HIPAA) Security Rule
+ p) NIST SP 800-171A: Assessing Security Requirements for Controlled Unclassified Information
+ q) United States Office of Personnel Management, System of Records Notice (SORN) Guide, dtd April 2010
+ r) NIST SP 800-60 Volumes 1 & 2: Guide for Mapping Types of Information and Information Systems to
+    Security Categories
+ s) Treatment of PII within IL2 Commercial Cloud Services for the DoD, 07 AUG 2019
+
+
+
+
+                                                                                                             Page 11 of 10
+

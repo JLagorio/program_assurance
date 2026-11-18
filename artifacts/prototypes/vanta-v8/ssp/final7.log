@@ -1,0 +1,31 @@
+bytes 448291
+built out/prototype.html with 20 modules: mod-a-ssp-data.js, mod-after-0kit.js, mod-after-docs.js, mod-after-people.js, mod-after-risk.js, mod-after-tests.js, mod-after-work.js, mod-compliance.js, mod
+routes by kind: {"after":279,"v7":58,"meta":7,"alias":292,"old":2,"v6":14}
+nav items: 46 | nav items drawn the old way: none
+old screens still reachable: none
+links to routes that don't exist: none
+screen problems: none
+errors: none
+routes: 652 | nav routes without a screen: none
+panel opens: true closes: true
+problems: posture-unevidenced: overflows at 390px
+errors: none
+PASS Switcher > Create program · program-new
+PASS Wizard reaches review · program-new > program-new-details > program-new-systems > program-new-baseline > program-new-team
+PASS Create lands on Getting started in the shell · program-start
+PASS Program created shows
+PASS Switcher has Create program
+PASS Nav SSP opens the register
+PASS Register row opens its panel
+PASS Open document opens the editor, full window
+PASS Accept writes AC-2's narrative · rv 2 · placeholder no · Saved to AC-2's implementation · record revision 2
+PASS Accept is logged to the session · 1 entries
+FAIL Version history lists the session edit
+PASS Submit shows the blocker or the submitted state
+PASS Portfolio offers Create program
+PASS Overview links to the SSP
+PASS Shell is back after leaving
+errors: none
+shot 46 nav screens into /private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/shots/v7
+3.3M	/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html
+exit 0

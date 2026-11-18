@@ -1,0 +1,10 @@
+import { createRequire } from "node:module"; import path from "node:path";
+const require = createRequire("/Users/joseflagorio/Development/program_assurance-ux-proposal/package.json");
+const { chromium } = require("playwright");
+const b = await chromium.launch(); const p = await b.newPage({ viewport: { width: 1440, height: 900 } });
+await p.goto("file://" + path.resolve(process.argv[2]) + "#home"); await p.waitForTimeout(500);
+console.log("home buttons:", await p.evaluate(() => [...document.querySelectorAll("#main .btn")].slice(0, 6).map((b) => b.textContent.trim() + (b.dataset.go ? "→" + b.dataset.go : "")).join(" | ")));
+await p.evaluate(() => { location.hash = "assessments"; }); await p.waitForTimeout(400);
+console.log("assessor view:", await p.evaluate(() => { const b = [...document.querySelectorAll("#main [data-go], #main [data-modal], #main [data-panel], #main .btn")].find((e) => /assessor/i.test(e.textContent)); return b ? b.outerHTML.slice(0, 200) : "none"; }));
+console.log("search clickable:", await p.evaluate(() => { const s = document.querySelector(".top .search"); return s.tagName + " role=" + s.getAttribute("role") + " tabindex=" + s.getAttribute("tabindex"); }));
+await b.close();

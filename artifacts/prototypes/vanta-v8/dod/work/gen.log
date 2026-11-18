@@ -1,0 +1,8 @@
+mission-computer-rhel9 {"O":[2,21,6],"N":371,"A":12,"R":33} len 445
+mission-computer-asd {"O":[0,9,2],"N":223,"A":25,"R":27} len 286
+ethernet-switch-ndm {"O":[0,3,0],"N":38,"A":1,"R":1} len 43
+ethernet-switch-l2s {"O":[0,2,1],"N":16,"A":3,"R":0} len 22
+network-gateway-ndm {"O":[0,2,0],"N":37,"A":1,"R":2} len 42
+network-gateway-rtr {"O":[0,3,3],"N":41,"A":45,"R":5} len 97
+maintenance-laptop-win11 {"O":[1,17,3],"N":212,"A":6,"R":18} len 257
+det 79 cci 269 ccid 78 fd 75 poam ["mission-computer-rhel9:V-257824","maintenance-laptop-win11:V-253416","ethernet-switch-ndm:V-220604","network-gateway-rtr:V-216658"]
