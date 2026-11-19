@@ -513,7 +513,7 @@
   // ═════════════ Authorization ═════════════
   const CONDITIONS = [
     ["Close the high-severity remediation items within 90 days", "2026-12-17", "12 high issues open"],
-    ["Complete the expanded control set assessment before Milestone C", "2026-11-20", "Campaign ends Nov 20"],
+    ["Complete the expanded control set assessment", "2026-11-20", "Campaign ends Nov 20"],
     ["Report the SA-24 design review at the annual authorization review", "2027-09-18", "Annual review"],
   ];
   const DECIDE = { ato: "ATO", atoc: "ATO with conditions", iatt: "IATT", atu: "ATU", dato: "DATO" };

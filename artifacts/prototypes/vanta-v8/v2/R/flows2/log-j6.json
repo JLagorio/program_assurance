@@ -1,0 +1,76 @@
+{
+ "log": [
+  {
+   "step": 1,
+   "action": "go #assessments",
+   "why": "",
+   "hash": "assessments",
+   "h1": "",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 2,
+   "action": "click \"Plan an assessment\"",
+   "why": "plan",
+   "effect": "dialog: Plan an assessment",
+   "hash": "assessments",
+   "h1": "",
+   "modal": "Plan an assessment",
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 2,
+   "shot": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/v2/R/flows2/shots/j6-01-plan-dialog.png"
+  },
+  {
+   "step": 3,
+   "action": "click \"Plan an assessment\"",
+   "why": "submit plan",
+   "effect": "(same screen)",
+   "hash": "assessments",
+   "h1": "",
+   "modal": "Plan an assessment",
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 4,
+   "action": "go #campaign",
+   "why": "run the active campaign",
+   "hash": "campaign",
+   "h1": "Expanded Control Set Assessment",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 5,
+   "action": "click \"Approved WS-X90 external network baseline\"",
+   "why": "open a request",
+   "effect": "→ #campaign-r1",
+   "hash": "campaign-r1",
+   "h1": "Approved WS-X90 external network baseline showing the single managed access cont",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 5,
+   "shot": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/v2/R/flows2/shots/j6-02-request.png"
+  }
+ ],
+ "errors": []
+}

@@ -1,0 +1,72 @@
+{
+ "log": [
+  {
+   "step": 1,
+   "action": "go #review-queue",
+   "why": "",
+   "hash": "review-queue",
+   "h1": "",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 2,
+   "action": "click \"Accept evidence\"",
+   "why": "",
+   "result": "NOT FOUND",
+   "hash": "review-queue",
+   "h1": "",
+   "modal": null,
+   "panel": "Review preview",
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 2,
+   "shot": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/v2/R/flows/shots/rq-after-accept.png"
+  },
+  {
+   "step": 3,
+   "action": "go #requirements",
+   "why": "",
+   "hash": "requirements",
+   "h1": "Requirements",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 4,
+   "action": "click \"REQ-001\"",
+   "why": "",
+   "effect": "panel: Requirement preview",
+   "hash": "requirements",
+   "h1": "Requirements",
+   "modal": null,
+   "panel": "Requirement preview",
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 5,
+   "action": "click \"Map control\"",
+   "why": "",
+   "effect": "dialog: Map control",
+   "hash": "requirements",
+   "h1": "Requirements",
+   "modal": "Map control",
+   "panel": "Requirement preview",
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  }
+ ],
+ "errors": []
+}

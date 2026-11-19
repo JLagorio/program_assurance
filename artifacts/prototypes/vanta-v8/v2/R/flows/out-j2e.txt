@@ -1,0 +1,4 @@
+CVE row real click → panel hidden? false #findings-vulns
+CVE title cell → panel hidden? false #findings-vulns
+{"step":1,"action":"go #findings-vulns","why":"","hash":"findings-vulns","h1":"","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+errors: []

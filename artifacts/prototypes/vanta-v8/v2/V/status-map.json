@@ -1,0 +1,1781 @@
+{
+ "about": "One tone per status word, everywhere (rule 1 of the v2 visual layer; findings N02, N06). Keys are the pill word lowercased with numbers as n. Tones: green done or satisfied, red failed, late, critical or high, amber partial, moderate or due soon, grey every neutral or waiting state. Blue is never a status. Glyph follows tone: green check, red diamond, amber clock (amber partial: half ring), grey dashed ring. A word not listed falls to the families in core.js (TONE_FAMILY), then to the caller's tone with blue made grey.",
+ "words": {
+  "accepted": {
+   "tone": "green",
+   "v1": {
+    "green": 86
+   },
+   "example": "Accepted"
+  },
+  "accredited cssp": {
+   "tone": "green",
+   "v1": {
+    "green": 2
+   },
+   "example": "Accredited CSSP"
+  },
+  "active": {
+   "tone": "grey",
+   "v1": {
+    "blue": 42,
+    "green": 13
+   },
+   "example": "Active"
+  },
+  "added": {
+   "tone": "grey",
+   "v1": {
+    "blue": 1
+   },
+   "example": "Added"
+  },
+  "adds": {
+   "tone": "grey",
+   "v1": {},
+   "example": "adds"
+  },
+  "affected": {
+   "tone": "red",
+   "v1": {
+    "red": 1
+   },
+   "example": "Affected"
+  },
+  "all held": {
+   "tone": "green",
+   "v1": {
+    "green": 8
+   },
+   "example": "All held"
+  },
+  "applied": {
+   "tone": "green",
+   "v1": {
+    "green": 18
+   },
+   "example": "Applied"
+  },
+  "approved": {
+   "tone": "green",
+   "v1": {
+    "green": 59
+   },
+   "example": "Approved"
+  },
+  "approved and signed": {
+   "tone": "green",
+   "v1": {
+    "green": 6
+   },
+   "example": "Approved and signed"
+  },
+  "approved jul n": {
+   "tone": "green",
+   "v1": {
+    "green": 3
+   },
+   "example": "Approved Jul 25"
+  },
+  "approved jun n": {
+   "tone": "green",
+   "v1": {
+    "green": 1
+   },
+   "example": "Approved Jun 9"
+  },
+  "at risk": {
+   "tone": "amber",
+   "v1": {
+    "amber": 1
+   },
+   "example": "At risk"
+  },
+  "ato with conditions": {
+   "tone": "amber",
+   "v1": {
+    "green": 8
+   },
+   "example": "ATO with conditions"
+  },
+  "authorized": {
+   "tone": "green",
+   "v1": {
+    "green": 2
+   },
+   "example": "Authorized"
+  },
+  "awaiting rescan": {
+   "tone": "grey",
+   "v1": {
+    "blue": 2
+   },
+   "example": "Awaiting rescan"
+  },
+  "block n": {
+   "tone": "grey",
+   "v1": {
+    "green": 20
+   },
+   "example": "Block 1"
+  },
+  "block n proposed": {
+   "tone": "grey",
+   "v1": {
+    "amber": 10
+   },
+   "example": "Block 1.1 proposed"
+  },
+  "blocked": {
+   "tone": "red",
+   "v1": {
+    "red": 10
+   },
+   "example": "Blocked"
+  },
+  "cal green": {
+   "tone": "green",
+   "v1": {
+    "green": 4
+   },
+   "example": "CAL Green"
+  },
+  "cal not listed": {
+   "tone": "grey",
+   "v1": {
+    "grey": 2
+   },
+   "example": "CAL Not listed"
+  },
+  "cal temporary": {
+   "tone": "grey",
+   "v1": {
+    "grey": 1
+   },
+   "example": "CAL Temporary"
+  },
+  "cal yellow": {
+   "tone": "amber",
+   "v1": {
+    "amber": 4
+   },
+   "example": "CAL Yellow"
+  },
+  "cal: not applicable": {
+   "tone": "grey",
+   "v1": {
+    "blue": 1
+   },
+   "example": "CAL: not applicable"
+  },
+  "cancelled": {
+   "tone": "grey",
+   "v1": {
+    "grey": 10
+   },
+   "example": "Cancelled"
+  },
+  "changed": {
+   "tone": "grey",
+   "v1": {
+    "amber": 10
+   },
+   "example": "Changed"
+  },
+  "changes requested": {
+   "tone": "red",
+   "v1": {
+    "red": 3
+   },
+   "example": "Changes requested"
+  },
+  "changes requested nov n": {
+   "tone": "red",
+   "v1": {
+    "red": 1
+   },
+   "example": "Changes requested Nov 13"
+  },
+  "claimed": {
+   "tone": "green",
+   "v1": {
+    "green": 25
+   },
+   "example": "Claimed"
+  },
+  "complete": {
+   "tone": "green",
+   "v1": {
+    "green": 120
+   },
+   "example": "Complete"
+  },
+  "completed": {
+   "tone": "green",
+   "v1": {
+    "green": 42
+   },
+   "example": "Completed"
+  },
+  "compliant": {
+   "tone": "green",
+   "v1": {
+    "green": 12
+   },
+   "example": "Compliant"
+  },
+  "component": {
+   "tone": "grey",
+   "v1": {
+    "green": 2
+   },
+   "example": "Component"
+  },
+  "component assessment": {
+   "tone": "grey",
+   "v1": {
+    "green": 2
+   },
+   "example": "Component assessment"
+  },
+  "conflict": {
+   "tone": "red",
+   "v1": {
+    "red": 10,
+    "amber": 5
+   },
+   "example": "Conflict"
+  },
+  "connected": {
+   "tone": "green",
+   "v1": {
+    "green": 12
+   },
+   "example": "Connected"
+  },
+  "control linked": {
+   "tone": "green",
+   "v1": {
+    "green": 96
+   },
+   "example": "Control linked"
+  },
+  "counterfeit alert": {
+   "tone": "red",
+   "v1": {
+    "red": 9
+   },
+   "example": "Counterfeit alert"
+  },
+  "critical": {
+   "tone": "red",
+   "v1": {
+    "red": 173
+   },
+   "example": "Critical"
+  },
+  "current": {
+   "tone": "green",
+   "v1": {
+    "green": 24,
+    "blue": 1
+   },
+   "example": "Current"
+  },
+  "current version": {
+   "tone": "green",
+   "v1": {
+    "green": 4
+   },
+   "example": "Current version"
+  },
+  "cve-n-n": {
+   "tone": "red",
+   "v1": {
+    "red": 1
+   },
+   "example": "CVE-2024-6387"
+  },
+  "cve-n-n fixed": {
+   "tone": "green",
+   "v1": {
+    "green": 1
+   },
+   "example": "CVE-2024-6387 fixed"
+  },
+  "cyclonedx n": {
+   "tone": "grey",
+   "v1": {
+    "green": 2
+   },
+   "example": "CycloneDX 1.5"
+  },
+  "daily digest": {
+   "tone": "grey",
+   "v1": {
+    "grey": 10
+   },
+   "example": "Daily digest"
+  },
+  "decided": {
+   "tone": "green",
+   "v1": {
+    "green": 3
+   },
+   "example": "Decided"
+  },
+  "dmsms notice": {
+   "tone": "amber",
+   "v1": {
+    "amber": 9
+   },
+   "example": "DMSMS notice"
+  },
+  "done": {
+   "tone": "green",
+   "v1": {
+    "green": 13
+   },
+   "example": "Done"
+  },
+  "draft": {
+   "tone": "grey",
+   "v1": {
+    "grey": 147,
+    "amber": 8
+   },
+   "example": "Draft"
+  },
+  "draft results": {
+   "tone": "grey",
+   "v1": {
+    "amber": 1
+   },
+   "example": "Draft results"
+  },
+  "drafted": {
+   "tone": "grey",
+   "v1": {
+    "amber": 3
+   },
+   "example": "Drafted"
+  },
+  "drafting": {
+   "tone": "grey",
+   "v1": {
+    "grey": 6
+   },
+   "example": "Drafting"
+  },
+  "due feb n, n": {
+   "tone": "grey",
+   "v1": {
+    "grey": 3
+   },
+   "example": "Due Feb 1, 2027"
+  },
+  "due jan n, n": {
+   "tone": "grey",
+   "v1": {
+    "grey": 6
+   },
+   "example": "Due Jan 15, 2027"
+  },
+  "due jun n, n": {
+   "tone": "grey",
+   "v1": {
+    "grey": 18
+   },
+   "example": "Due Jun 1, 2027"
+  },
+  "due mar n, n": {
+   "tone": "grey",
+   "v1": {
+    "grey": 6
+   },
+   "example": "Due Mar 1, 2027"
+  },
+  "due nov n · in nd": {
+   "tone": "amber",
+   "v1": {
+    "amber": 3
+   },
+   "example": "Due Nov 30 · in 13d"
+  },
+  "due soon": {
+   "tone": "amber",
+   "v1": {
+    "amber": 20
+   },
+   "example": "Due soon"
+  },
+  "evidence": {
+   "tone": "green",
+   "v1": {
+    "green": 22
+   },
+   "example": "Evidence"
+  },
+  "evidenced": {
+   "tone": "green",
+   "v1": {
+    "green": 20
+   },
+   "example": "Evidenced"
+  },
+  "failed": {
+   "tone": "red",
+   "v1": {
+    "red": 1
+   },
+   "example": "Failed"
+  },
+  "fix in version n": {
+   "tone": "grey",
+   "v1": {
+    "amber": 2
+   },
+   "example": "Fix in version 2"
+  },
+  "fixed": {
+   "tone": "green",
+   "v1": {
+    "green": 3
+   },
+   "example": "Fixed"
+  },
+  "flagged": {
+   "tone": "red",
+   "v1": {
+    "red": 48
+   },
+   "example": "Flagged"
+  },
+  "green": {
+   "tone": "green",
+   "v1": {
+    "green": 15
+   },
+   "example": "Green"
+  },
+  "high": {
+   "tone": "red",
+   "v1": {
+    "red": 629
+   },
+   "example": "High"
+  },
+  "hosted model": {
+   "tone": "grey",
+   "v1": {
+    "green": 4
+   },
+   "example": "Hosted model"
+  },
+  "hours due jan n, n": {
+   "tone": "grey",
+   "v1": {
+    "amber": 1
+   },
+   "example": "Hours due Jan 31, 2027"
+  },
+  "iatt": {
+   "tone": "grey",
+   "v1": {
+    "blue": 2
+   },
+   "example": "IATT"
+  },
+  "immediately": {
+   "tone": "grey",
+   "v1": {
+    "amber": 18
+   },
+   "example": "Immediately"
+  },
+  "implemented": {
+   "tone": "green",
+   "v1": {
+    "green": 68
+   },
+   "example": "Implemented"
+  },
+  "import failed": {
+   "tone": "red",
+   "v1": {
+    "red": 4
+   },
+   "example": "Import failed"
+  },
+  "imported": {
+   "tone": "green",
+   "v1": {
+    "green": 2
+   },
+   "example": "Imported"
+  },
+  "importing": {
+   "tone": "grey",
+   "v1": {
+    "blue": 1
+   },
+   "example": "Importing"
+  },
+  "in analysis": {
+   "tone": "grey",
+   "v1": {
+    "amber": 3
+   },
+   "example": "In analysis"
+  },
+  "in baseline": {
+   "tone": "green",
+   "v1": {
+    "green": 220
+   },
+   "example": "In baseline"
+  },
+  "in progress": {
+   "tone": "grey",
+   "v1": {
+    "amber": 163,
+    "blue": 75
+   },
+   "example": "In progress"
+  },
+  "in review": {
+   "tone": "grey",
+   "v1": {
+    "amber": 34,
+    "blue": 13
+   },
+   "example": "In review"
+  },
+  "in scope": {
+   "tone": "green",
+   "v1": {
+    "green": 20
+   },
+   "example": "In scope"
+  },
+  "in use": {
+   "tone": "green",
+   "v1": {
+    "green": 12
+   },
+   "example": "In use"
+  },
+  "in ws-xn's stack": {
+   "tone": "green",
+   "v1": {
+    "green": 2
+   },
+   "example": "In WS-X90's stack"
+  },
+  "in-enclave model": {
+   "tone": "grey",
+   "v1": {
+    "green": 3
+   },
+   "example": "In-enclave model"
+  },
+  "in-enclave, issm approves": {
+   "tone": "grey",
+   "v1": {
+    "amber": 1
+   },
+   "example": "In-enclave, ISSM approves"
+  },
+  "inherited": {
+   "tone": "green",
+   "v1": {
+    "green": 2
+   },
+   "example": "Inherited"
+  },
+  "internal review": {
+   "tone": "grey",
+   "v1": {
+    "amber": 140
+   },
+   "example": "Internal review"
+  },
+  "isa · draft": {
+   "tone": "grey",
+   "v1": {
+    "amber": 8
+   },
+   "example": "ISA · Draft"
+  },
+  "isa · signed": {
+   "tone": "green",
+   "v1": {
+    "green": 7
+   },
+   "example": "ISA · Signed"
+  },
+  "issue open": {
+   "tone": "grey",
+   "v1": {
+    "amber": 2
+   },
+   "example": "Issue open"
+  },
+  "learning hours due": {
+   "tone": "grey",
+   "v1": {
+    "amber": 1
+   },
+   "example": "Learning hours due"
+  },
+  "learning hours due jan n": {
+   "tone": "grey",
+   "v1": {
+    "amber": 2
+   },
+   "example": "Learning hours due Jan 31"
+  },
+  "library vn · n behind": {
+   "tone": "amber",
+   "v1": {
+    "amber": 1
+   },
+   "example": "Library v1 · 1 behind"
+  },
+  "linked": {
+   "tone": "green",
+   "v1": {
+    "green": 9
+   },
+   "example": "Linked"
+  },
+  "locked": {
+   "tone": "green",
+   "v1": {
+    "green": 4
+   },
+   "example": "Locked"
+  },
+  "low": {
+   "tone": "grey",
+   "v1": {
+    "grey": 240
+   },
+   "example": "Low"
+  },
+  "mapped": {
+   "tone": "green",
+   "v1": {
+    "green": 20
+   },
+   "example": "Mapped"
+  },
+  "matches a source": {
+   "tone": "green",
+   "v1": {
+    "blue": 30
+   },
+   "example": "Matches a source"
+  },
+  "matches version n": {
+   "tone": "green",
+   "v1": {
+    "green": 2
+   },
+   "example": "Matches version 3"
+  },
+  "medium": {
+   "tone": "amber",
+   "v1": {
+    "amber": 8
+   },
+   "example": "Medium"
+  },
+  "met": {
+   "tone": "green",
+   "v1": {
+    "green": 24
+   },
+   "example": "Met"
+  },
+  "missed by n days": {
+   "tone": "red",
+   "v1": {
+    "red": 2
+   },
+   "example": "Missed by 69 days"
+  },
+  "moa · signed": {
+   "tone": "green",
+   "v1": {
+    "green": 5
+   },
+   "example": "MOA · Signed"
+  },
+  "moderate": {
+   "tone": "amber",
+   "v1": {
+    "amber": 668
+   },
+   "example": "Moderate"
+  },
+  "modified": {
+   "tone": "grey",
+   "v1": {
+    "amber": 2
+   },
+   "example": "Modified"
+  },
+  "mou · expired": {
+   "tone": "red",
+   "v1": {
+    "red": 6
+   },
+   "example": "MOU · Expired"
+  },
+  "n behind": {
+   "tone": "amber",
+   "v1": {
+    "amber": 7
+   },
+   "example": "1 behind"
+  },
+  "n cat i": {
+   "tone": "red",
+   "v1": {
+    "red": 4
+   },
+   "example": "1 CAT I"
+  },
+  "n cat ii": {
+   "tone": "amber",
+   "v1": {
+    "amber": 8
+   },
+   "example": "3 CAT II"
+  },
+  "n cat iii": {
+   "tone": "grey",
+   "v1": {
+    "grey": 2
+   },
+   "example": "1 CAT III"
+  },
+  "n due soon": {
+   "tone": "amber",
+   "v1": {
+    "amber": 12
+   },
+   "example": "1 due soon"
+  },
+  "n high": {
+   "tone": "red",
+   "v1": {
+    "red": 1
+   },
+   "example": "1 high"
+  },
+  "n of n objectives": {
+   "tone": "amber",
+   "v1": {
+    "amber": 2
+   },
+   "example": "3 of 6 objectives"
+  },
+  "n on track": {
+   "tone": "green",
+   "v1": {
+    "green": 15
+   },
+   "example": "31 on track"
+  },
+  "n overdue": {
+   "tone": "red",
+   "v1": {
+    "red": 21
+   },
+   "example": "2 overdue"
+  },
+  "n past due": {
+   "tone": "red",
+   "v1": {
+    "red": 3
+   },
+   "example": "2 past due"
+  },
+  "n to review": {
+   "tone": "grey",
+   "v1": {
+    "amber": 1
+   },
+   "example": "2 to review"
+  },
+  "n version behind": {
+   "tone": "amber",
+   "v1": {
+    "amber": 2
+   },
+   "example": "1 version behind"
+  },
+  "n · openssh-server npn": {
+   "tone": "red",
+   "v1": {
+    "red": 1
+   },
+   "example": "1 · openssh-server 9.6p1"
+  },
+  "needed": {
+   "tone": "grey",
+   "v1": {
+    "amber": 2
+   },
+   "example": "Needed"
+  },
+  "needs a connection": {
+   "tone": "grey",
+   "v1": {
+    "grey": 6
+   },
+   "example": "Needs a connection"
+  },
+  "needs a date": {
+   "tone": "grey",
+   "v1": {
+    "amber": 10
+   },
+   "example": "Needs a date"
+  },
+  "needs answers": {
+   "tone": "red",
+   "v1": {
+    "red": 6
+   },
+   "example": "Needs answers"
+  },
+  "needs review": {
+   "tone": "grey",
+   "v1": {
+    "amber": 14
+   },
+   "example": "Needs review"
+  },
+  "needs revision": {
+   "tone": "red",
+   "v1": {
+    "red": 24
+   },
+   "example": "Needs revision"
+  },
+  "new": {
+   "tone": "grey",
+   "v1": {
+    "blue": 6
+   },
+   "example": "New"
+  },
+  "new draft interconnection": {
+   "tone": "grey",
+   "v1": {
+    "blue": 1
+   },
+   "example": "New draft interconnection"
+  },
+  "no": {
+   "tone": "grey",
+   "v1": {
+    "grey": 8
+   },
+   "example": "No"
+  },
+  "no document": {
+   "tone": "grey",
+   "v1": {
+    "grey": 54
+   },
+   "example": "No document"
+  },
+  "no evidence": {
+   "tone": "grey",
+   "v1": {
+    "grey": 349
+   },
+   "example": "No evidence"
+  },
+  "no issue yet": {
+   "tone": "red",
+   "v1": {
+    "red": 4
+   },
+   "example": "No issue yet"
+  },
+  "no known cve": {
+   "tone": "green",
+   "v1": {
+    "green": 24
+   },
+   "example": "No known CVE"
+  },
+  "no renewal set": {
+   "tone": "grey",
+   "v1": {
+    "grey": 18
+   },
+   "example": "No renewal set"
+  },
+  "no requirement": {
+   "tone": "grey",
+   "v1": {
+    "grey": 97
+   },
+   "example": "No requirement"
+  },
+  "non-compliant": {
+   "tone": "red",
+   "v1": {
+    "red": 4
+   },
+   "example": "Non-compliant"
+  },
+  "none": {
+   "tone": "grey",
+   "v1": {
+    "green": 3
+   },
+   "example": "None"
+  },
+  "none yet": {
+   "tone": "grey",
+   "v1": {
+    "grey": 1
+   },
+   "example": "None yet"
+  },
+  "not a finding": {
+   "tone": "green",
+   "v1": {
+    "green": 17
+   },
+   "example": "Not a finding"
+  },
+  "not applicable": {
+   "tone": "grey",
+   "v1": {
+    "grey": 2,
+    "blue": 2
+   },
+   "example": "Not applicable"
+  },
+  "not applied": {
+   "tone": "grey",
+   "v1": {
+    "grey": 6
+   },
+   "example": "Not applied"
+  },
+  "not assessed": {
+   "tone": "grey",
+   "v1": {
+    "blue": 216,
+    "amber": 94,
+    "grey": 64
+   },
+   "example": "Not assessed"
+  },
+  "not authorized": {
+   "tone": "grey",
+   "v1": {
+    "grey": 2
+   },
+   "example": "Not authorized"
+  },
+  "not claimed": {
+   "tone": "grey",
+   "v1": {
+    "grey": 12
+   },
+   "example": "Not claimed"
+  },
+  "not connected": {
+   "tone": "grey",
+   "v1": {
+    "grey": 12
+   },
+   "example": "Not connected"
+  },
+  "not implemented": {
+   "tone": "red",
+   "v1": {
+    "red": 3
+   },
+   "example": "Not implemented"
+  },
+  "not listed": {
+   "tone": "grey",
+   "v1": {
+    "grey": 2
+   },
+   "example": "Not listed"
+  },
+  "not met": {
+   "tone": "red",
+   "v1": {
+    "red": 10
+   },
+   "example": "Not met"
+  },
+  "not qualified": {
+   "tone": "red",
+   "v1": {
+    "red": 4
+   },
+   "example": "Not qualified"
+  },
+  "not read": {
+   "tone": "grey",
+   "v1": {
+    "grey": 8
+   },
+   "example": "Not read"
+  },
+  "not ready": {
+   "tone": "grey",
+   "v1": {
+    "grey": 140
+   },
+   "example": "Not ready"
+  },
+  "not registered": {
+   "tone": "red",
+   "v1": {
+    "red": 11
+   },
+   "example": "Not registered"
+  },
+  "not requested": {
+   "tone": "grey",
+   "v1": {
+    "grey": 200
+   },
+   "example": "Not requested"
+  },
+  "not required": {
+   "tone": "grey",
+   "v1": {
+    "blue": 25
+   },
+   "example": "Not required"
+  },
+  "not reviewed": {
+   "tone": "grey",
+   "v1": {
+    "grey": 30
+   },
+   "example": "Not reviewed"
+  },
+  "not scheduled": {
+   "tone": "grey",
+   "v1": {
+    "grey": 2
+   },
+   "example": "Not scheduled"
+  },
+  "not selected": {
+   "tone": "grey",
+   "v1": {
+    "grey": 506
+   },
+   "example": "Not selected"
+  },
+  "not started": {
+   "tone": "grey",
+   "v1": {
+    "grey": 32
+   },
+   "example": "Not started"
+  },
+  "not taken": {
+   "tone": "grey",
+   "v1": {
+    "grey": 2
+   },
+   "example": "Not taken"
+  },
+  "not written": {
+   "tone": "grey",
+   "v1": {
+    "grey": 3
+   },
+   "example": "Not written"
+  },
+  "not yet judged": {
+   "tone": "grey",
+   "v1": {
+    "grey": 20
+   },
+   "example": "Not yet judged"
+  },
+  "not yet tested": {
+   "tone": "grey",
+   "v1": {
+    "grey": 2
+   },
+   "example": "Not yet tested"
+  },
+  "nothing behind it": {
+   "tone": "red",
+   "v1": {
+    "red": 24
+   },
+   "example": "Nothing behind it"
+  },
+  "off": {
+   "tone": "grey",
+   "v1": {
+    "grey": 13
+   },
+   "example": "Off"
+  },
+  "off · cui": {
+   "tone": "grey",
+   "v1": {
+    "grey": 26
+   },
+   "example": "Off · CUI"
+  },
+  "offer waiting": {
+   "tone": "grey",
+   "v1": {
+    "blue": 1
+   },
+   "example": "Offer waiting"
+  },
+  "offered": {
+   "tone": "grey",
+   "v1": {
+    "blue": 3
+   },
+   "example": "Offered"
+  },
+  "ok": {
+   "tone": "green",
+   "v1": {
+    "green": 14
+   },
+   "example": "OK"
+  },
+  "on": {
+   "tone": "green",
+   "v1": {
+    "green": 57
+   },
+   "example": "On"
+  },
+  "on time": {
+   "tone": "green",
+   "v1": {
+    "green": 16
+   },
+   "example": "On time"
+  },
+  "on version n": {
+   "tone": "grey",
+   "v1": {
+    "amber": 1
+   },
+   "example": "On version 1"
+  },
+  "one": {
+   "tone": "grey",
+   "v1": {
+    "blue": 2
+   },
+   "example": "One"
+  },
+  "one at a time": {
+   "tone": "grey",
+   "v1": {
+    "blue": 2
+   },
+   "example": "One at a time"
+  },
+  "open": {
+   "tone": "red",
+   "v1": {
+    "red": 150,
+    "grey": 25,
+    "amber": 2
+   },
+   "example": "Open"
+  },
+  "open cve": {
+   "tone": "red",
+   "v1": {
+    "red": 11
+   },
+   "example": "Open CVE"
+  },
+  "operational issue opened": {
+   "tone": "grey",
+   "v1": {
+    "blue": 1
+   },
+   "example": "Operational issue opened"
+  },
+  "other than satisfied": {
+   "tone": "red",
+   "v1": {
+    "red": 138
+   },
+   "example": "Other than satisfied"
+  },
+  "overdue": {
+   "tone": "red",
+   "v1": {
+    "red": 38
+   },
+   "example": "Overdue"
+  },
+  "partial": {
+   "tone": "amber",
+   "v1": {
+    "amber": 18
+   },
+   "example": "Partial"
+  },
+  "partially compliant": {
+   "tone": "amber",
+   "v1": {
+    "amber": 6
+   },
+   "example": "Partially compliant"
+  },
+  "partially implemented": {
+   "tone": "amber",
+   "v1": {
+    "amber": 116
+   },
+   "example": "Partially implemented"
+  },
+  "partially satisfied": {
+   "tone": "amber",
+   "v1": {
+    "amber": 294
+   },
+   "example": "Partially satisfied"
+  },
+  "partly approved": {
+   "tone": "amber",
+   "v1": {
+    "amber": 9
+   },
+   "example": "Partly approved"
+  },
+  "partly held": {
+   "tone": "amber",
+   "v1": {
+    "amber": 51
+   },
+   "example": "Partly held"
+  },
+  "partly met": {
+   "tone": "amber",
+   "v1": {
+    "amber": 4
+   },
+   "example": "Partly met"
+  },
+  "partly verified": {
+   "tone": "amber",
+   "v1": {
+    "amber": 10
+   },
+   "example": "Partly verified"
+  },
+  "past cadence": {
+   "tone": "red",
+   "v1": {
+    "red": 8
+   },
+   "example": "Past cadence"
+  },
+  "patch staged": {
+   "tone": "grey",
+   "v1": {
+    "amber": 2
+   },
+   "example": "Patch staged"
+  },
+  "pending": {
+   "tone": "grey",
+   "v1": {
+    "amber": 11,
+    "grey": 1
+   },
+   "example": "Pending"
+  },
+  "pending review": {
+   "tone": "grey",
+   "v1": {
+    "amber": 98
+   },
+   "example": "Pending review"
+  },
+  "planned": {
+   "tone": "grey",
+   "v1": {
+    "grey": 84,
+    "blue": 11
+   },
+   "example": "Planned"
+  },
+  "poa&m item created": {
+   "tone": "green",
+   "v1": {
+    "green": 2
+   },
+   "example": "POA&M item created"
+  },
+  "proposed": {
+   "tone": "grey",
+   "v1": {
+    "grey": 53
+   },
+   "example": "Proposed"
+  },
+  "published": {
+   "tone": "green",
+   "v1": {
+    "green": 81
+   },
+   "example": "Published"
+  },
+  "published · frozen": {
+   "tone": "green",
+   "v1": {
+    "green": 1
+   },
+   "example": "Published · frozen"
+  },
+  "qualified": {
+   "tone": "green",
+   "v1": {
+    "green": 16
+   },
+   "example": "Qualified"
+  },
+  "qualifying": {
+   "tone": "grey",
+   "v1": {
+    "amber": 1
+   },
+   "example": "Qualifying"
+  },
+  "qualifying by mar n": {
+   "tone": "grey",
+   "v1": {
+    "amber": 2
+   },
+   "example": "Qualifying by Mar 1"
+  },
+  "qualifying by mar n, n": {
+   "tone": "grey",
+   "v1": {
+    "amber": 1
+   },
+   "example": "Qualifying by Mar 1, 2027"
+  },
+  "queued": {
+   "tone": "grey",
+   "v1": {
+    "grey": 5,
+    "amber": 2
+   },
+   "example": "Queued"
+  },
+  "ready": {
+   "tone": "grey",
+   "v1": {
+    "blue": 313,
+    "grey": 3
+   },
+   "example": "Ready"
+  },
+  "reason recorded": {
+   "tone": "green",
+   "v1": {
+    "green": 3
+   },
+   "example": "Reason recorded"
+  },
+  "reassess by dec n": {
+   "tone": "grey",
+   "v1": {
+    "grey": 75
+   },
+   "example": "Reassess by Dec 12"
+  },
+  "reassessing": {
+   "tone": "grey",
+   "v1": {
+    "amber": 25
+   },
+   "example": "Reassessing"
+  },
+  "recorded": {
+   "tone": "green",
+   "v1": {
+    "green": 12
+   },
+   "example": "Recorded"
+  },
+  "reference": {
+   "tone": "grey",
+   "v1": {
+    "grey": 6
+   },
+   "example": "Reference"
+  },
+  "registered": {
+   "tone": "green",
+   "v1": {
+    "green": 8
+   },
+   "example": "Registered"
+  },
+  "rejected": {
+   "tone": "red",
+   "v1": {
+    "red": 8
+   },
+   "example": "Rejected"
+  },
+  "removed": {
+   "tone": "grey",
+   "v1": {
+    "red": 1
+   },
+   "example": "Removed"
+  },
+  "removes": {
+   "tone": "grey",
+   "v1": {},
+   "example": "removes"
+  },
+  "review": {
+   "tone": "grey",
+   "v1": {
+    "amber": 2
+   },
+   "example": "Review"
+  },
+  "reviewed": {
+   "tone": "green",
+   "v1": {
+    "green": 1
+   },
+   "example": "Reviewed"
+  },
+  "revoke": {
+   "tone": "red",
+   "v1": {
+    "red": 2
+   },
+   "example": "Revoke"
+  },
+  "risk · moderate": {
+   "tone": "amber",
+   "v1": {
+    "amber": 1
+   },
+   "example": "Risk · moderate"
+  },
+  "same": {
+   "tone": "grey",
+   "v1": {
+    "green": 58
+   },
+   "example": "Same"
+  },
+  "satisfied": {
+   "tone": "green",
+   "v1": {
+    "green": 1016
+   },
+   "example": "Satisfied"
+  },
+  "sent": {
+   "tone": "green",
+   "v1": {
+    "green": 4
+   },
+   "example": "Sent"
+  },
+  "sent back": {
+   "tone": "red",
+   "v1": {
+    "red": 96
+   },
+   "example": "Sent back"
+  },
+  "signed": {
+   "tone": "green",
+   "v1": {
+    "green": 1
+   },
+   "example": "Signed"
+  },
+  "still active": {
+   "tone": "red",
+   "v1": {
+    "red": 6
+   },
+   "example": "Still active"
+  },
+  "superseded": {
+   "tone": "grey",
+   "v1": {
+    "grey": 10
+   },
+   "example": "Superseded"
+  },
+  "temporary": {
+   "tone": "grey",
+   "v1": {
+    "grey": 5
+   },
+   "example": "Temporary"
+  },
+  "this release": {
+   "tone": "green",
+   "v1": {
+    "green": 5
+   },
+   "example": "This release"
+  },
+  "to do": {
+   "tone": "grey",
+   "v1": {
+    "grey": 5
+   },
+   "example": "To do"
+  },
+  "to review": {
+   "tone": "grey",
+   "v1": {
+    "amber": 30
+   },
+   "example": "To review"
+  },
+  "unanswered": {
+   "tone": "grey",
+   "v1": {
+    "grey": 4,
+    "red": 4
+   },
+   "example": "Unanswered"
+  },
+  "unchanged": {
+   "tone": "grey",
+   "v1": {
+    "grey": 10
+   },
+   "example": "Unchanged"
+  },
+  "up to date": {
+   "tone": "green",
+   "v1": {
+    "green": 1
+   },
+   "example": "Up to date"
+  },
+  "validating": {
+   "tone": "grey",
+   "v1": {
+    "blue": 5
+   },
+   "example": "Validating"
+  },
+  "verified": {
+   "tone": "green",
+   "v1": {
+    "green": 2
+   },
+   "example": "Verified"
+  },
+  "version n · behind": {
+   "tone": "amber",
+   "v1": {
+    "amber": 4
+   },
+   "example": "Version 1 · behind"
+  },
+  "version n · current": {
+   "tone": "green",
+   "v1": {
+    "green": 4
+   },
+   "example": "Version 2 · current"
+  },
+  "version n · n behind": {
+   "tone": "amber",
+   "v1": {
+    "amber": 1
+   },
+   "example": "Version 1 · 1 behind"
+  },
+  "version n · nov n": {
+   "tone": "grey",
+   "v1": {
+    "amber": 1
+   },
+   "example": "Version 2 · Nov 12"
+  },
+  "version n · published": {
+   "tone": "green",
+   "v1": {
+    "green": 4
+   },
+   "example": "Version 2 · Published"
+  },
+  "waiting": {
+   "tone": "grey",
+   "v1": {
+    "amber": 57
+   },
+   "example": "Waiting"
+  },
+  "waiting on assessor": {
+   "tone": "grey",
+   "v1": {
+    "grey": 72
+   },
+   "example": "Waiting on assessor"
+  },
+  "waiting on you": {
+   "tone": "grey",
+   "v1": {
+    "amber": 23
+   },
+   "example": "Waiting on you"
+  },
+  "weekly digest": {
+   "tone": "grey",
+   "v1": {
+    "grey": 4
+   },
+   "example": "Weekly digest"
+  },
+  "with conditions": {
+   "tone": "amber",
+   "v1": {
+    "green": 2,
+    "amber": 2
+   },
+   "example": "With conditions"
+  },
+  "works from a file": {
+   "tone": "grey",
+   "v1": {
+    "green": 16
+   },
+   "example": "Works from a file"
+  },
+  "yellow": {
+   "tone": "amber",
+   "v1": {
+    "amber": 19
+   },
+   "example": "Yellow"
+  },
+  "yes": {
+   "tone": "grey",
+   "v1": {
+    "green": 8
+   },
+   "example": "Yes"
+  },
+  "you are here": {
+   "tone": "grey",
+   "v1": {
+    "blue": 1
+   },
+   "example": "You are here"
+  }
+ },
+ "changed_from_v1": [
+  "active",
+  "added",
+  "ato with conditions",
+  "awaiting rescan",
+  "block n",
+  "block n proposed",
+  "cal: not applicable",
+  "changed",
+  "component",
+  "component assessment",
+  "conflict",
+  "current",
+  "cyclonedx n",
+  "draft",
+  "draft results",
+  "drafted",
+  "fix in version n",
+  "hosted model",
+  "hours due jan n, n",
+  "iatt",
+  "immediately",
+  "importing",
+  "in analysis",
+  "in progress",
+  "in review",
+  "in-enclave model",
+  "in-enclave, issm approves",
+  "internal review",
+  "isa · draft",
+  "issue open",
+  "learning hours due",
+  "learning hours due jan n",
+  "matches a source",
+  "modified",
+  "n to review",
+  "needed",
+  "needs a date",
+  "needs review",
+  "new",
+  "new draft interconnection",
+  "none",
+  "not applicable",
+  "not assessed",
+  "not required",
+  "offer waiting",
+  "offered",
+  "on version n",
+  "one",
+  "one at a time",
+  "open",
+  "operational issue opened",
+  "patch staged",
+  "pending",
+  "pending review",
+  "planned",
+  "qualifying",
+  "qualifying by mar n",
+  "qualifying by mar n, n",
+  "queued",
+  "ready",
+  "reassessing",
+  "removed",
+  "review",
+  "same",
+  "to review",
+  "unanswered",
+  "validating",
+  "version n · nov n",
+  "waiting",
+  "waiting on you",
+  "with conditions",
+  "works from a file",
+  "yes",
+  "you are here"
+ ]
+}

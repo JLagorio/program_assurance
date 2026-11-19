@@ -1,0 +1,38 @@
+{
+ "groups": [
+  {"key": "program", "short": "Program and system", "label": "The program and its system", "intro": "The program's Overview, its system, baseline, requirements and plans, the SSP editor, the Create program wizard, and the DoD system pages (ITCSC, interconnections, ports and protocols, STIG checklists). None of these was in the version 6 comparison."},
+  {"key": "analysis", "short": "Analysis and authorization", "label": "Analysis, authorization and monitoring", "intro": "Threats, posture, cyber resiliency, security engineering, traceability, inheritance, cyber test and evaluation, authorization and continuous monitoring. None of these was in the version 6 comparison."},
+  {"key": "library", "short": "Programs, library and settings", "label": "Programs, the library and settings", "intro": "The Programs register, products and components, and the Settings pages. None of these was in the version 6 comparison."}
+ ],
+ "pairs": [
+  {"id": "overview", "group": "program", "title": "The program's Overview", "route": "overview", "vantaPage": "Home (a program's card and its list)"},
+  {"id": "composition", "group": "program", "title": "Composition (the system tree)", "route": "composition"},
+  {"id": "baseline", "group": "program", "title": "Baseline", "route": "baseline", "vantaPage": "Framework page"},
+  {"id": "requirements", "group": "program", "title": "Requirements", "route": "requirements"},
+  {"id": "ssps", "group": "program", "title": "Plans (the SSP and the other plans)", "route": "ssps", "vantaPage": "Policies"},
+  {"id": "ssp", "group": "program", "title": "The SSP editor", "route": "ssp", "vantaPage": "Policy editor"},
+  {"id": "program-new", "group": "program", "title": "Create program (the wizard)", "route": "program-new"},
+  {"id": "itcsc", "group": "program", "title": "ITCSC", "route": "itcsc"},
+  {"id": "interconnections", "group": "program", "title": "Interconnections", "route": "interconnections"},
+  {"id": "ppsm", "group": "program", "title": "Ports & protocols", "route": "ppsm"},
+  {"id": "stigs", "group": "program", "title": "STIG checklists", "route": "stigs"},
+  {"id": "stig-record", "group": "program", "title": "A STIG checklist (Mission Computer, RHEL 9)", "route": "stigs-mission-computer-rhel9"},
+  {"id": "threats", "group": "analysis", "title": "Threats", "route": "threats"},
+  {"id": "posture", "group": "analysis", "title": "Posture", "route": "posture"},
+  {"id": "resiliency", "group": "analysis", "title": "Cyber resiliency", "route": "resiliency"},
+  {"id": "sse", "group": "analysis", "title": "Security engineering", "route": "sse"},
+  {"id": "traceability", "group": "analysis", "title": "Traceability", "route": "traceability"},
+  {"id": "inheritance", "group": "analysis", "title": "Inheritance", "route": "inheritance"},
+  {"id": "cyber-te", "group": "analysis", "title": "Cyber T&E", "route": "cyber-te"},
+  {"id": "authorization", "group": "analysis", "title": "Authorization", "route": "authorization"},
+  {"id": "conmon", "group": "analysis", "title": "Continuous monitoring", "route": "conmon"},
+  {"id": "portfolio", "group": "library", "title": "Programs", "route": "portfolio"},
+  {"id": "products", "group": "library", "title": "Products", "route": "products"},
+  {"id": "components", "group": "library", "title": "Components", "route": "components"},
+  {"id": "settings", "group": "library", "title": "Settings (Deadlines)", "route": "deadlines", "vantaPage": "Settings"},
+  {"id": "event-log", "group": "library", "title": "Event log", "route": "event-log"},
+  {"id": "enclaves", "group": "library", "title": "Enclaves & markings", "route": "enclaves"},
+  {"id": "common-controls", "group": "library", "title": "Common control providers", "route": "common-controls"},
+  {"id": "permissions", "group": "library", "title": "Roles & permissions", "route": "permissions"}
+ ]
+}

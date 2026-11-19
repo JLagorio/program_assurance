@@ -64,6 +64,9 @@
 .v9n-swt b { font-size: 14px; font-weight: 600; color: var(--brand-text); }
 .v9n-swt small { font-size: 12px; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .v9n-pf { display: block; padding: 6px 10px 0; font-size: 12px; color: var(--ink-3); }
+/* v2 (N): an area's name where a program's switcher sits, in option 3 as built */
+.v9n-at { display: block; padding: 7px 10px; font-size: 14px; font-weight: 600; color: var(--ink); }
+.v9n-aside .v9n-it { cursor: default; }
 .v9n-menu { position: absolute; z-index: 6; inset-inline: 2px; top: 52px; display: flex; flex-direction: column; gap: 1px; padding: 6px; border: 1px solid var(--line); border-radius: 10px; background: var(--canvas); box-shadow: var(--shadow-panel); }
 .v9n-menu .v9n-it { height: auto; min-height: 32px; padding-block: 6px; }
 .v9n-menu .v9n-l { white-space: normal; }
@@ -150,3 +153,4 @@ button.v9n-row { cursor: pointer; }
 .v9n-cmp tr.on td { background: var(--brand-soft); }
 .v9n-tlink { padding: 0; border: 0; background: none; font: 500 13px var(--font); color: var(--ink); cursor: pointer; text-align: start; }
 .v9n-tlink:hover { text-decoration: underline; }
+.v9n-use { justify-self: start; padding: 3px 6px; border-radius: 4px; background: var(--ok-soft); color: var(--ok); font: 600 11px/1 var(--font); }

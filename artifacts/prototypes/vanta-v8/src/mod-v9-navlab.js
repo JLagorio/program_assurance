@@ -17,6 +17,8 @@
     library: ["Frameworks & overlays", "Integrations", "Data calls", "Reports & exports"], agents: ["Needs approval", "Runs", "Agents"],
     settings: ["Deadlines", "Notifications", "Event log", "Enclaves & markings", "Common control providers", "Roles & permissions"],
   };
+  // v2 (N, Josef 19 Nov): in option 3, as built, a destination with several pages lists them in a menu beside the rail, as a program does.
+  const AREAS = new Set(["products", "library", "agents", "settings"]);
   const PG = [
     [null, [["overview", "Overview"], ["getting-started", "Getting started", "25%"], ["itcsc", "ITCSC"]]],
     ["System", [["composition", "Composition"], ["inventory", "Inventory"], ["stigs", "STIG checklists"], ["interconnections", "Interconnections"], ["ppsm", "Ports & protocols"], ["sources", "Evidence sources"]]],
@@ -59,9 +61,9 @@
     },
     {
       id: "rail", name: "Icon rail and program menu",
-      line: "A narrow rail of workspace icons that never changes. Inside a program, the program's menu sits beside it.",
-      watch: () => "Two columns of navigation inside a program: 304 px, 64 more than today's sidebar.",
-      facts: () => [["Navigation width in a program", "304 px"], ["Elsewhere", "64 px"], ["From a program page to Settings", "1 click"], ["A program page's content starts", `${TOPS[0]} px down`]],
+      line: "A narrow rail of workspace icons that never changes. Inside a program, the program's menu sits beside it; inside Library, Products, AI agents or Settings, theirs.",
+      watch: () => "Two columns of navigation inside a program, or an area with several pages: 304 px, 64 more than today's sidebar.",
+      facts: () => [["Navigation width in a program", "304 px"], ["Elsewhere", "64 px; 304 px in an area with pages"], ["From a program page to Settings", "1 click"], ["A program page's content starts", `${TOPS[0]} px down`]],
       th: [[0, 10, 7, 90, "col"], [2, 15, 3, 4], [2, 23, 3, 4], [2, 31, 3, 4], [7, 10, 21, 90, "p"], [32, 17, 30, 5], [32, 27, 62, 4], [32, 35, 56, 4], [32, 43, 59, 4]],
     },
     {
@@ -82,7 +84,7 @@
   const CMP = [
     ["240 px", "240 px", "1", `${TOPS[0]} px`, "☰ opens the same list"],
     ["240 px", "240 px", "2", `${TOPS[0]} px`, "☰ opens the level you're on"],
-    ["304 px", "64 px", "1", `${TOPS[0]} px`, "A bottom bar, and ☰ for the program"],
+    ["304 px", "64 px, 304 px in an area", "1", `${TOPS[0]} px`, "A bottom bar, and ☰ for the program or the area"],
     ["240 px", "0 px", "1", `${TOPS[0]} px`, "☰ opens the workspace above the program"],
     ["240 px", "240 px", "1", `${TOPS[4]} px`, "The tabs scroll sideways"],
   ];
@@ -113,6 +115,9 @@
     return head + (open ? its.map(([k, l, c]) => it("p:" + k, l, c)).join("") : "");
   }).join("");
   const progBlock = () => progHead() + progMenu();
+  // An area's menu in option 3: its name where the switcher sits, then its pages (the first is the page shown).
+  const areaBlock = (k) => `<div class="v9n-ph"><b class="v9n-at">${esc(wItem(k)[1])}</b></div>${(WS_TABS[k] || []).map((t, i) => `<span class="v9n-it${i ? "" : " on"}"><span class="v9n-l">${esc(t)}</span></span>`).join("")}`;
+  const railArea = () => opt() === "rail" && !inProg() && AREAS.has(key());
 
   const nestedSide = () => {
     const order = ST.v1 === "last" ? ["home", "my-work", "review", "products", "library", "agents", "settings", "programs"] : WS.map(([k]) => k);
@@ -145,7 +150,7 @@
     if (k === "programs") body = `<div class="v9n-rows">${PROGS.map((p, i) => `<button type="button" class="v9n-row" data-v9n-prog="${i}" data-v9n-enter><span class="v9n-rn">${esc(p.name)}</span><span class="v9n-rc num">${esc(p.code)}</span></button>`).join("")}<div class="v9n-row v9n-more">${OTHERS} more programs</div></div>`;
     else if (k === "home") body = `<div class="v9n-cards">${PROGS.slice(0, ph ? 2 : 3).map((p, i) => `<button type="button" class="v9n-card" data-v9n-prog="${i}" data-v9n-enter><b>${esc(split(p.name)[0])}</b>${bars(2, i)}</button>`).join("")}</div>${rows(4)}`;
     else body = rows(ph ? 6 : 9, k.length);
-    return `<h3 class="v9n-h">${esc(l)}</h3>${WS_TABS[k] ? tabsStatic(WS_TABS[k]) : ""}${body}`;
+    return `<h3 class="v9n-h">${esc(railArea() ? WS_TABS[k][0] : l)}</h3>${WS_TABS[k] && !railArea() ? tabsStatic(WS_TABS[k]) : ""}${body}`;
   };
   const recordTop = (x) => {
     const sub = TABG[x.gi].its;
@@ -175,7 +180,7 @@
     let cols = "";
     if (o === "nested") cols = `<div class="v9n-side">${nestedSide()}</div>`;
     else if (o === "drill") cols = `<div class="v9n-side">${drillSide()}</div>`;
-    else if (o === "rail") cols = `<div class="v9n-rail">${WS.map(([k]) => railBtn(k, k === "settings" ? " v9n-last" : "")).join("")}</div>${ip ? `<div class="v9n-side v9n-pside">${progBlock()}</div>` : ""}`;
+    else if (o === "rail") cols = `<div class="v9n-rail">${WS.map(([k]) => railBtn(k, k === "settings" ? " v9n-last" : "")).join("")}</div>${ip ? `<div class="v9n-side v9n-pside">${progBlock()}</div>` : railArea() ? `<div class="v9n-side v9n-pside v9n-aside">${areaBlock(key())}</div>` : ""}`;
     else if (o === "top") cols = ip ? `<div class="v9n-side v9n-pside">${progBlock()}</div>` : "";
     else cols = `<div class="v9n-side">${wsItems(WS, true)}</div>`;
     return `<div class="v9n-scr v9n-d" style="zoom:${zoom(1440)}">${top}<div class="v9n-body">${cols}<div class="v9n-pg">${ip ? progPage(false) : wsPage(key(), false)}</div></div></div>`;
@@ -183,14 +188,14 @@
   const drawerBody = (o) => {
     if (o === "nested") return nestedSide();
     if (o === "drill") return drillSide();
-    if (o === "rail") return ST.drawer === "more" ? wsItems(WS.slice(4), false) : progBlock();
+    if (o === "rail") return ST.drawer === "more" ? wsItems(WS.slice(4), false) : railArea() ? areaBlock(key()) : progBlock();
     if (o === "top") return `<div class="v9n-chips">${wsItems(WS, true)}</div>${inProg() ? progBlock() : ""}`;
     return wsItems(WS, true);
   };
   const phone = () => {
     const o = opt(), ip = inProg();
     const title = ip ? split(cur().name)[0] : wItem(key())[1];
-    const burger = o === "rail" && !ip ? "" : `<button type="button" class="v9n-burger" data-v9n-drawer="${o === "rail" ? "prog" : "nav"}" aria-expanded="${!!ST.drawer && ST.drawer !== "more"}" aria-label="${o === "rail" ? "Open the program's menu" : "Open the navigation"}">☰</button>`;
+    const burger = o === "rail" && !ip && !railArea() ? "" : `<button type="button" class="v9n-burger" data-v9n-drawer="${o === "rail" ? "prog" : "nav"}" aria-expanded="${!!ST.drawer && ST.drawer !== "more"}" aria-label="${o === "rail" ? (ip ? "Open the program's menu" : `Open the ${wItem(key())[1]} menu`) : "Open the navigation"}">☰</button>`;
     const bot = o === "rail" ? `<div class="v9n-bot">${WS.slice(0, 4).map(([k]) => railBtn(k)).join("")}<button type="button" class="v9n-ri${ST.drawer === "more" ? " on" : ""}" data-v9n-drawer="more" aria-expanded="${ST.drawer === "more"}"><i aria-hidden="true"></i>More</button></div>` : "";
     const drawer = ST.drawer ? `<button type="button" class="v9n-scrim" data-v9n-drawer="" aria-label="Close the menu"></button><div class="v9n-drw${o === "rail" ? " v9n-drw-r" : ""}">${drawerBody(o)}</div>` : "";
     return `<div class="v9n-scr v9n-p" style="zoom:${zoom(390)}"><div class="v9n-top">${burger}<span class="v9n-ttl">${esc(title)}</span><span class="v9n-dot v9n-ms" aria-hidden="true"></span></div><div class="v9n-pg v9n-ppg">${ip ? progPage(true) : wsPage(key(), true)}</div>${bot}${drawer}</div>`;
@@ -200,7 +205,7 @@
   const th = (parts) => `<span class="v9n-th" aria-hidden="true"><i class="v9n-tt"></i>${parts.map(([x, y, w, hh, c]) => `<i class="${c ? "v9n-t" + c : ""}" style="left:${x}%;top:${y}%;width:${w}%;height:${hh}%"></i>`).join("")}</span>`;
   const draw = () => {
     const o = OPTS[ST.opt], scr = screen();
-    const thumbs = `<div class="v9n-opts" role="group" aria-label="Navigation options">${OPTS.map((x, i) => `<button type="button" class="v9n-opt" data-v9n-opt="${i}" aria-pressed="${i === ST.opt}">${th(x.th)}<b>${i + 1} · ${esc(x.name)}</b></button>`).join("")}</div>`;
+    const thumbs = `<div class="v9n-opts" role="group" aria-label="Navigation options">${OPTS.map((x, i) => `<button type="button" class="v9n-opt" data-v9n-opt="${i}" aria-pressed="${i === ST.opt}">${th(x.th)}<b>${i + 1} · ${esc(x.name)}</b>${x.id === "rail" ? '<span class="v9n-use">In use</span>' : ""}</button>`).join("")}</div>`;
     const seg = (label, attr, items, val) => `<span class="v9n-seg" role="group" aria-label="${esc(label)}">${items.map(([k, l]) => `<button type="button" data-v9n-${attr}="${k}" aria-pressed="${val === k}">${esc(l)}</button>`).join("")}</span>`;
     const tool = `<div class="v9n-tool">${seg("Screen", "scr", [["desktop", "Desktop · 1440"], ["phone", "Phone · 390"]], scr)}${o.id === "nested" ? seg("Where Programs sits", "v1", [["last", "Programs last"], ["inplace", "Programs in its usual place"]], ST.v1) : ""}<button type="button" class="btn" data-v9n-reset>Start over</button><span class="v9n-hint">Try it in the frame: open Programs, choose a program, switch with ▾, then go to My work.</span></div>`;
     const frame = `<div class="v9n-box" id="v9n-box" role="region" aria-label="Wireframe of option ${ST.opt + 1}: ${esc(o.name)}">${scr === "phone" ? phone() : desk()}</div>`;
@@ -266,4 +271,105 @@
       `<div class="v9n" id="v9n-root">${draw()}</div>`,
     );
   };
+})();
+
+// v2 [A9]: the shell's program menu folds every group but the one that holds the current page; a reader can still open any group.
+// The core draws the menu (drawNav) and keeps its own folded set; this keeps every group drawn there once, then folds by page here:
+// a group button and the items after it, up to the next button or separator, are one group.
+(() => {
+  const nav = document.getElementById("nav");
+  if (!nav || !window.MutationObserver) return;
+  const chosen = new Map(); // group → open or not, as the reader set it since the last page change
+  let page = null, priming = false;
+  const route = () => (location.hash || "#home").slice(1);
+  function groups() {
+    const out = []; let g = null;
+    for (const el of nav.children) {
+      if (el.matches("button[data-group]")) { g = { name: el.dataset.group, btn: el, items: [] }; out.push(g); }
+      else if (el.classList.contains("pn-sep") || el.classList.contains("pnh")) g = null;
+      else if (g && el.matches("a.item")) g.items.push(el);
+    }
+    return out;
+  }
+  function prime() {
+    // Core leaves a folded group's items out of the menu: open each one in its state once, quietly, so every item is drawn.
+    const had = document.activeElement, top = nav.scrollTop;
+    priming = true;
+    for (let i = 0; i < 12; i++) { const b = nav.querySelector("button[data-group][aria-expanded='false']"); if (!b) break; b.click(); }
+    priming = false;
+    nav.scrollTop = top; // the core focuses the group it toggled, which would scroll the menu
+    if (had && had !== document.body && document.contains(had)) had.focus({ preventScroll: true });
+    else if (document.activeElement && nav.contains(document.activeElement)) document.activeElement.blur();
+  }
+  function apply() {
+    if (route() !== page) { chosen.clear(); page = route(); }
+    if (nav.querySelector("button[data-group][aria-expanded='false']:not([data-v2-folded])")) prime();
+    for (const g of groups()) {
+      const holds = g.items.some((a) => a.classList.contains("on"));
+      const open = chosen.has(g.name) ? chosen.get(g.name) : holds;
+      g.btn.setAttribute("aria-expanded", String(open));
+      g.btn.setAttribute("data-v2-folded", "");
+      const arrow = g.btn.querySelector("span[aria-hidden]"); if (arrow) arrow.textContent = open ? "⌄" : "›";
+      g.items.forEach((a) => { a.hidden = !open; });
+    }
+  }
+  // A group button opens or folds its group here; the core's own handler stays out of it (its folded set no longer applies).
+  document.addEventListener("click", (e) => {
+    if (priming) return;
+    const b = e.target && e.target.closest && e.target.closest("#nav button[data-group]");
+    if (!b) return;
+    e.stopPropagation(); e.preventDefault();
+    const g = groups().find((x) => x.btn === b); if (!g) return;
+    chosen.set(g.name, b.getAttribute("aria-expanded") !== "true");
+    apply();
+    b.focus();
+  }, true);
+  new MutationObserver(apply).observe(nav, { childList: true });
+})();
+
+// v2 C2 [B6, A15]: the shell's program menu follows the current program and assessment mode, after the core draws it and the
+// folding above runs. A program created in this session shows its own code and name in the switcher, and the switcher lists every
+// program created in the session (choosing one makes it current); another program opens Programs with its preview. While a
+// campaign is open in the assessment band, the menu holds the campaign's pages (Requests, Findings, Controls) with a way back to
+// the program, instead of the whole program menu.
+(() => {
+  const PA = window.PA, nav = document.getElementById("nav"), proto = document.getElementById("proto");
+  if (!PA || !PA.h || !nav || !proto || !window.MutationObserver) return;
+  const { esc, fmt, icon } = PA.h;
+  const route = () => (location.hash || "#home").slice(1);
+  let busy = false;
+  function switcher() {
+    const H = PA.v2hubs; if (!H) return;
+    const made = H.made(), cur = H.cur(), d = made.find((x) => x.code === cur);
+    const sw = nav.querySelector("#swBtn .pn-swt"), facts = nav.querySelector(".pn-facts"), menu = nav.querySelector("#swMenu");
+    if (d && sw) sw.innerHTML = `<b>${esc(d.code)}</b><small>${esc(d.name)}</small>`;
+    if (d && facts) facts.innerHTML = `<span>${esc(d.code)}</span><span>Planned</span>`;
+    if (!menu || menu.querySelector("[data-v2c-sw]")) return;
+    menu.setAttribute("data-v2c-sw", "");
+    for (const a of menu.querySelectorAll("a[role=menuitem]")) {
+      const code = ((a.querySelector("small") || {}).textContent || "").trim();
+      if (a.getAttribute("href") === "#overview") a.setAttribute("data-v2prog", "PRG-1090");
+      else if (/^PRG-\d+$/.test(code)) { a.setAttribute("data-v2go", "portfolio"); a.setAttribute("data-v2q", JSON.stringify({ open: { kind: "v7o-prog", id: code } })); }
+      else if (/^All programs/.test(a.textContent.trim()) && /^\d+$/.test(code)) a.querySelector("small").textContent = String(+code + made.length);
+    }
+    menu.insertAdjacentHTML("afterbegin", made.map((m) => `<a role="menuitem" href="#program-start" data-v2prog="${esc(m.code)}">${esc(m.name)} <small>${esc(m.code)}</small></a>`).join(""));
+    for (const a of menu.querySelectorAll("a[data-v2prog]")) if (a.getAttribute("data-v2prog") === cur) a.setAttribute("aria-current", "true");
+  }
+  function campaignMenu() {
+    const r = route(), H = PA.v2hubs, n = (label) => (H ? H.count("campaign", label) : null);
+    const on = r === "campaign-findings" ? "findings" : r === "campaign-controls" ? "controls" : "requests";
+    const items = [["requests", "campaign", "Requests", n("Requests"), "assessments"], ["findings", "campaign-findings", "Findings", n("Findings"), "findings"], ["controls", "campaign-controls", "Controls", null, "controls"]];
+    return `<div class="pnh v2c-camp" data-v2c-menu><a class="v2c-back" href="#overview" data-v2prog="PRG-1090">‹ WS-X90</a><div class="v2c-campt"><b>Expanded Control Set Assessment</b><small>Assessment · ends Nov 20</small></div></div>`
+      + items.map(([k, href, label, c, ic]) => `<a class="item${k === on ? " on" : ""}" href="#${href}"${k === on ? ' aria-current="page"' : ""}>${icon(ic)}${esc(label)}${c != null ? `<span class="c num">${fmt(c)}</span>` : ""}</a>`).join("")
+      + `<div class="pn-sep" aria-hidden="true"></div><a class="item" href="#assessments">${icon("assessments")}All assessments</a>`;
+  }
+  function apply() {
+    if (busy) return;
+    busy = true;
+    try {
+      if (proto.classList.contains("moded") && proto.classList.contains("inprog")) { if (!nav.querySelector("[data-v2c-menu]")) nav.innerHTML = campaignMenu(); }
+      else switcher();
+    } finally { busy = false; }
+  }
+  new MutationObserver(apply).observe(nav, { childList: true });
 })();

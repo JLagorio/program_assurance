@@ -1,0 +1,182 @@
+{
+ "routes": 799,
+ "previews": 1673,
+ "dialogs": 940,
+ "hits": 59,
+ "errors": [],
+ "byText": {
+  "class=\"v7a-bar proposed ex\"": [
+   "cyber-te",
+   "cyber-te",
+   "cyber-te"
+  ],
+  "nd workflow. Anything WS-X90's data does not hold is marked Example. Vanta's screenshots are third-party images and stay on thi": [
+   "before-after"
+  ],
+  "WS-X90 records no request due dates, so the dates shown are Example, inside the window that closes Nov 20.": [
+   "before-after-tests"
+  ],
+  "umbers move onto counted tabs: All 368 · Owned by me (count Example) · Requires my approval 0 · Pending review 88 · Needs revis": [
+   "before-after-docs"
+  ],
+  "a due date that turns red once past ('Overdue 12d · Nov 5', Example). Today all six rows read 'No renewal set' and 'Not set'.": [
+   "before-after-docs"
+  ],
+  "est records, the full title, one line saying what is asked (Example text until the requirement is named), a facts row (owner In": [
+   "before-after-docs"
+  ],
+  "r the owner: on the renewal date · 14 days before' (options Example). Once set, a renewal card reads 'Renewal due in 30d · Rene": [
+   "before-after-docs"
+  ],
+  "Comment or add others with @…' and the thread newest first (Example): 'Nadia Fournier · Assessor · Nov 16 — The report shows th": [
+   "before-after-docs"
+  ],
+  "rd ('Sent back for revision · what to revise · who · when', Example) and Upload revision; ••• Mark not applicable asks a reason": [
+   "before-after-docs"
+  ],
+  "lect version 2 · Ingrid Solberg · due on the renewal date' (Example).": [
+   "before-after-docs"
+  ],
+  "An Acknowledged column after Renew by ('0 of 23', counts Example) with an Acknowledged filter, since each -1 control asks th": [
+   "before-after-docs"
+  ],
+  "s 'Start a policy': Use the policy editor (from a template, Example) · Upload a file (.pdf,.docx) · Sync a file (Example), then": [
+   "before-after-docs"
+  ],
+  "Header ••• : Download policy packet · Bulk replace text (Example) · Renewal SLA: every 6 months · Download acknowledgment hi": [
+   "before-after-docs"
+  ],
+  "ith Re-send and Cancel approval request (approver and dates Example).": [
+   "before-after-docs"
+  ],
+  "ew without changes asks the approver (Joel Barrantes, ISSM, Example), then whether personnel must re-acknowledge. The 'Renews e": [
+   "before-after-docs"
+  ],
+  "An Acknowledgment tab: the groups asked (Example), '0 of 23 acknowledged' (Example), 'Not reminded yet · Rem": [
+   "before-after-docs"
+  ],
+  "A Comments tab with composer and thread (Example): 'Nadia Fournier · Assessor · Oct 2 — Section 4 names role": [
+   "before-after-docs"
+  ],
+  "d text in the preview, with the thread and Reply beside it (Example: 'Nadia Fournier · Today 10:12 — AC-1c asks how often this": [
+   "before-after-docs"
+  ],
+  "Cards keep logo, name and the In the app / Example badge, show capability chips and one usage line, and end wi": [
+   "before-after-docs"
+  ],
+  "th View details and Import file (or Connect, Example); a twelfth card 'Missing a connector? · Request a connecto": [
+   "before-after-docs"
+  ],
+  "Connect (online, Example) becomes a stepped flow like Add source, Address · Authenti": [
+   "before-after-docs"
+  ],
+  "diately (marked as a proposal, with its events and channels Example).": [
+   "before-after-docs"
+  ],
+  "An Owner column (Joel Barrantes on the scans, Example: the data records only the requester); the panel adds 'Next": [
+   "before-after-docs"
+  ],
+  "when an import is due: the owner, due on the cadence date' (Example) and Subscribers.": [
+   "before-after-docs"
+  ],
+  "te recorded 7, No end date recorded 7, Not 8140 qualified 1 Example); people-8140 repeats a pair (stats.json pair 1).": [
+   "before-after-people"
+  ],
+  "recorded on every row; the only due dates are people-8140's Example statuses, which its Status column cuts at 1440px to 'Learni": [
+   "before-after-people"
+  ],
+  "el shows R. Calloway's role, acts, Since (Not recorded), an Example DoD 8140 line and 'Decisions signed 1'; nothing he tracks n": [
+   "before-after-people"
+  ],
+  "cations · Decisions 1 · Hand over. Qualifications keeps the Example DoD 8140 line; Decisions holds ATO with conditions · Sep 18": [
+   "before-after-people"
+  ],
+  "nd date and names what moves: package version 2's decision (Example).": [
+   "before-after-people"
+  ],
+  "Our People screen shows 'Accounts decided' 61% (11 of 18, Example) beside 'Needs attention 10' (Review due Dec 1 1, Revoked o": [
+   "before-after-people"
+  ],
+  "markup, 'Accounts decided &lt;span class=&quot;ex&quot;&gt;Example&lt;/span&gt;'.": [
+   "before-after-people"
+  ],
+  "review', a donut of 18 (Keep 9 · Revoke 2 · Not decided 7, Example), beside a 'To-do list': Complete review · Quarterly privil": [
+   "before-after-people"
+  ],
+  "emove access · svc-maint-07 and field-tech-03 · Due Nov 24 (Example); Start review · Maintenance Laptop local accounts · Due De": [
+   "before-after-people"
+  ],
+  "c 13 (Example).": [
+   "before-after-people"
+  ],
+  "le: 'Quarterly schedule · AC-2, AC-6' or 'One-time review' (Example).": [
+   "before-after-people"
+  ],
+  "The People panel lists 5 of 18 accounts (Example) with fixed words: Keep, Not decided, or a red 'Still activ": [
+   "before-after-people"
+  ],
+  "-adm Wes Duarte; svc-maint-07 and field-tech-03 Unassigned (Example).": [
+   "before-after-people"
+  ],
+  "ue Nov 24' and field-tech-03 'Add a note or create a task' (Example); an Access changes 2 tab lists both.": [
+   "before-after-people"
+  ],
+  "nt 11 of 18 · Note or task for each revoked account 1 of 2 (Example counts).": [
+   "before-after-people"
+  ],
+  "tted change reads 'Waiting on Joel Barrantes' (the ISSM, as Example approver).": [
+   "before-after-people"
+  ],
+  "Defense · Set X800 Missile component set · Reassess yearly (Example).": [
+   "before-after-people"
+  ],
+  "berg on the CVE-2024-6387 offer and Priya Raghavan's reply (Example), above 'Comment or add others with @…'.": [
+   "before-after-people"
+  ],
+  "ing (AT-3); offboarding, Remove privileged accounts (AC-2) (Example).": [
+   "before-after-people"
+  ],
+  "People-8140 gives each holder an Example status (cut at 1440px to 'Learning ho…' and 'Qualifying b…'": [
+   "before-after-people"
+  ],
+  "each holder: Nadia Fournier 2 of 3, Local developer 0 of 3 (Example).": [
+   "before-after-people"
+  ],
+  "Assessment reads 'Assessed Sep 12' or 'Reassess by Dec 12' (Example quarterly cadence from the Sep 12 assessment), with a hover": [
+   "before-after-risk"
+  ],
+  "12, 2026 · reassess Nov 12 – Dec 12, 2026, every 3 months' (Example cadence) and 'Start reassessment', which shows Likelihood M": [
+   "before-after-risk"
+  ],
+  "its state and date ('Request sent Nov 17 · waiting 0 days', Example), and the signed-in holder of the current step gets 'Record": [
+   "before-after-risk"
+  ],
+  "Our Findings screen opens with a big '4' (Example) and 'Needs attention 2', and 'Switch back on' works one fi": [
+   "before-after-risk"
+  ],
+  ", so the real screen is the empty state; the four rows stay Example.": [
+   "before-after-risk"
+  ],
+  "e · Missed deadline' over the 9 closed issues (the split is Example until closing days are read), each row with severity, remed": [
+   "before-after-risk"
+  ],
+  "mputer · received Oct 8 (v1), Nov 12 (v2)'; a sent request (Example) reads 'Attestation of provenance (SR-4) · asked Nov 17 · d": [
+   "before-after-risk"
+  ],
+  "· remediate by Nov 9 · 8d late'; a flag with no issue (the Example counterfeit alert on Aldergrove) gets 'Open operational iss": [
+   "before-after-risk"
+  ],
+  "wo count cards that open their tabs: 'Access requests 1 ›' (Example) and 'Version 2 ready to submit 1 of 3 ›' (POA&amp;M curren": [
+   "before-after-risk"
+  ],
+  "quire a CUI handling acknowledgment before the first open' (Example wording) and one line saying what will be shared ('SSP, SAR": [
+   "before-after-risk"
+  ],
+  "Expires per source and 'Mark as verified' (owners and dates Example).": [
+   "before-after-risk"
+  ],
+  "following command:\n\n$ dnf list --installed openssh-clients\n\nExample output:\n\nopenssh-clients.x86_64          8.7p1-8.el9\n\nIf th": [
+   "stigs-mission-computer-rhel9 · preview v8g-rule:mission-computer-rhel9|257980"
+  ]
+ }
+}

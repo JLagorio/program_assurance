@@ -1,0 +1,547 @@
+{
+ "dialogs": {
+  "review_original_script": {
+   "v1_as_reviewed": {
+    "closes, toast only": 27,
+    "closes silently, nothing changes": 25,
+    "dialog changes (next step or validation)": 5,
+    "dialog stays, nothing changes": 2,
+    "closes, toast, page changes": 7,
+    "no primary": 3,
+    "closes, page changes, no toast": 2,
+    "navigates to policy-editor": 1,
+    "dialog stays, nothing changes (primary disabled)": 1,
+    "navigates to home": 1
+   },
+   "v2_same_script_unchanged": {
+    "opener not found": 13,
+    "dialog changes (next step or validation)": 21,
+    "closes silently, nothing changes": 24,
+    "no primary": 3,
+    "closes, toast, page changes": 7,
+    "closes, page changes, no toast": 2,
+    "navigates to policy-editor": 1,
+    "dialog stays, nothing changes": 1,
+    "dialog stays, nothing changes (primary disabled)": 1,
+    "navigates to home": 1
+   },
+   "note": "the unchanged script reads only .ak-toast, so v2's 'Not saved' messages (in #v2-toast) count as 'closes silently', and 13 selection-bar openers are hidden because nothing is pre-ticked"
+  },
+  "adapted_same_74": {
+   "v1": {
+    "closes, toast only": 27,
+    "closes silently, nothing changes": 25,
+    "changes state, toast": 8,
+    "held by validation": 1,
+    "no primary": 3,
+    "dialog changes in place": 4,
+    "changes state, no toast": 2,
+    "navigates": 2,
+    "dialog stays, nothing changes": 1,
+    "dialog stays, nothing changes (primary disabled)": 1
+   },
+   "v2": {
+    "says not wired": 49,
+    "changes state, toast": 11,
+    "no primary": 3,
+    "dialog changes in place": 3,
+    "changes state, no toast": 2,
+    "opener not found": 1,
+    "navigates": 2,
+    "dialog stays, nothing changes": 1,
+    "dialog stays, nothing changes (primary disabled)": 1,
+    "closes, toast only": 1
+   }
+  },
+  "summary": {
+   "v1": {
+    "change_state": 10,
+    "say_not_wired": 0,
+    "toast_success_no_change": 27,
+    "close_silently": 25
+   },
+   "v2": {
+    "change_state": 13,
+    "say_not_wired": 49,
+    "toast_success_no_change": 1,
+    "close_silently": 0,
+    "held_by_validation_first_press": 26
+   }
+  },
+  "chain_verbs_from_register_headers_v2": {
+   "controls › Add to assessment campaign": "says not wired",
+   "requirements › Import requirements": "says not wired",
+   "assessments › Plan an assessment": "says not wired",
+   "requirements › Create requirement": "says not wired",
+   "assessments › Publish assessment results": "changes state, toast",
+   "poam › Create POA&M item": "says not wired",
+   "poam › Change planned date": "says not wired",
+   "risks › Create risk": "says not wired",
+   "risks › Request acceptance": "says not wired",
+   "traceability › Link evidence": "says not wired",
+   "schedule › Create task": "says not wired",
+   "people › Assign a role": "says not wired",
+   "control-si2 › Add evidence": "says not wired",
+   "campaign › Set Ready": "changes state, toast"
+  }
+ },
+ "previews": {
+  "review_v1": {
+   "previews": 54,
+   "arrow_dead": 46,
+   "arrow_works": 3
+  },
+  "adapted": {
+   "v1": {
+    "previews": 54,
+    "opened": 54,
+    "arrow_controls": 54,
+    "arrow_opens_page": 3,
+    "arrow_does_nothing": 51,
+    "controls_clicked": 381,
+    "controls_doing_nothing": 81,
+    "toast_only_controls": 13
+   },
+   "v2": {
+    "previews": 54,
+    "opened": 52,
+    "arrow_controls": 51,
+    "arrow_opens_page": 51,
+    "arrow_does_nothing": 0,
+    "controls_clicked": 370,
+    "controls_doing_nothing": 22,
+    "toast_only_controls": 13
+   }
+  },
+  "note": "'controls doing nothing' in v2 are mostly the current tab (Overview), closed-menu items and two still-dead actions (Edit asset, Ask Priya Raghavan)"
+ },
+ "jobs": {
+  "j1 Start a program": "works as in v1; the created program becomes current, its starter guide opens its own pages, Programs All 10, on Home",
+  "j2 A morning": "10 of 11 My work rows land filtered or with the record open; 'Treat 2 critical risks' still lands on All 40; the CVE row opens its issue",
+  "j3 Control to satisfied": "SA-24 walks to Other than satisfied through preview dialogs (map, link, add, Set Ready, determination, publish); SI-2's campaign link opens the campaign",
+  "j4 Evidence": "Upload › Add evidence with no file still says 'Added, pending review' and adds nothing; Accept in Review evidence is now blocked by a wrongly required field; Review queue Accept evidence still only toasts",
+  "j5 Finding → POA&M → risk accepted": "walks from the new issue's preview: Create POA&M item (Items 42), Create risk (41), Request acceptance (Awaiting 1), steps 1–2 recorded; the POA&M and Risks headers' own Create say Not saved",
+  "j6 Assessment campaign": "header Plan an assessment plans a campaign (Active 4); Publish results publishes increment 2; a request's Accept says Not saved; the card's Plan an assessment says Not saved",
+  "j7 SSP → AO": "fixes land in place; after submit My work, Review (149), Authorization agree; package Submit waits on SSP 3 approval, saying so",
+  "j8 A person": "Add person starts onboarding (9 tasks) and tasks complete; offboarding works; access review decisions move and Complete names what is owed"
+ },
+ "noise": {
+  "routes": 65,
+  "banners": {
+   "pages_with_banner": {
+    "v1": 24,
+    "v2": 11
+   },
+   "by_page_v2_incl_records": {
+    "home": {
+     "banner (neutral)": 1
+    },
+    "getting-started": {
+     "banner (neutral)": 1
+    },
+    "itcsc": {
+     "banner (neutral)": 1
+    },
+    "posture": {
+     "banner (neutral)": 1
+    },
+    "resiliency": {
+     "banner (neutral)": 1
+    },
+    "sse": {
+     "banner (neutral)": 1
+    },
+    "inheritance": {
+     "banner (neutral)": 1
+    },
+    "conmon": {
+     "banner (neutral)": 1
+    },
+    "control-si2": {
+     "banner (neutral)": 1
+    },
+    "evidence-page-e1": {
+     "banner (neutral)": 1
+    },
+    "component-mc": {
+     "banner (neutral)": 1
+    },
+    "ssp": {
+     "banner (toned)": 3
+    },
+    "policy-editor": {
+     "banner (toned)": 1
+    }
+   },
+   "tinted_banner_total_v1": 30,
+   "tinted_banner_total_v2": 4
+  },
+  "tones": {
+   "v1": {
+    "pill_words_per_tone": {
+     "warn": 23,
+     "ok": 24,
+     "info": 14,
+     "bad": 17,
+     "none": 27
+    },
+    "blue_pill_words": [
+     "Active",
+     "Current",
+     "IATT",
+     "In progress",
+     "In review",
+     "Not applicable",
+     "Not assessed",
+     "Not required",
+     "Offer waiting",
+     "One",
+     "Planned",
+     "Ready",
+     "Validating",
+     "You are here"
+    ],
+    "words_in_more_than_one_tone": [
+     "Current",
+     "Draft",
+     "In progress",
+     "In review",
+     "Not assessed",
+     "Planned"
+    ]
+   },
+   "v2": {
+    "pill_words_per_tone": {
+     "ok": 17,
+     "warn": 9,
+     "none": 36,
+     "bad": 16
+    },
+    "blue_pill_words": [],
+    "words_in_more_than_one_tone": []
+   }
+  },
+  "empty_values_above_fold": {
+   "v1": {
+    "dashed_rings": 258,
+    "empty_words": 190
+   },
+   "v2": {
+    "dashed_rings": 141,
+    "empty_words": 50
+   }
+  },
+  "toned_cells_a_row": {
+   "v1": {
+    "tables": 44,
+    "typical_row_3_or_more": 16,
+    "some_row_3_or_more": 29
+   },
+   "v2": {
+    "tables": 41,
+    "typical_row_3_or_more": 0,
+    "some_row_3_or_more": 2
+   }
+  },
+  "gadgets_all": {
+   "v1": {
+    "gadget:progress bar": 129,
+    "gadget:donut": 13,
+    "gadget:ring": 54,
+    "gadget:tally (stacked bar)": 40,
+    "gadget:phase/stage bar": 1,
+    "gadget:heatmap": 1,
+    "gadget:ring/donut (svg)": 2
+   },
+   "v2": {
+    "gadget:progress bar": 58,
+    "gadget:ring": 41,
+    "gadget:tally (stacked bar)": 7,
+    "gadget:phase/stage bar": 1,
+    "gadget:donut": 3,
+    "gadget:heatmap": 1,
+    "gadget:ring/donut (svg)": 2
+   }
+  },
+  "type": {
+   "v1": {
+    "font_sizes": 31,
+    "size_weight_pairs": 53
+   },
+   "v2": {
+    "font_sizes": 16,
+    "size_weight_pairs": 22
+   },
+   "median_pairs_above_fold": {
+    "v1": 12,
+    "v2": 7
+   }
+  },
+  "cues_above_fold": {
+   "median": {
+    "v1": 39,
+    "v2": 36
+   },
+   "total": {
+    "v1": 3061,
+    "v2": 2728
+   }
+  },
+  "marks_above_fold_median": {
+   "v1": 16,
+   "v2": 7
+  },
+  "colourful_pixels_median_pct": {
+   "v1": 0.46,
+   "v2": 0.26
+  },
+  "pills_above_fold_median": {
+   "v1": 14,
+   "v2": 13
+  },
+  "examples_total": {
+   "v1": 190,
+   "v2": 179
+  },
+  "ten_heaviest": {
+   "score": "the review's composite (cues, kinds, marks, colour %, font pairs as percentiles), pooled over v1 and v2 so the two builds share one scale",
+   "v1": [
+    {
+     "route": "campaign",
+     "score": 90.2,
+     "v2_score": 65.5,
+     "cues": 69,
+     "v2_cues": 62
+    },
+    {
+     "route": "policies",
+     "score": 86.3,
+     "v2_score": 60.7,
+     "cues": 111,
+     "v2_cues": 76
+    },
+    {
+     "route": "controls",
+     "score": 85.7,
+     "v2_score": 62.6,
+     "cues": 70,
+     "v2_cues": 88
+    },
+    {
+     "route": "overview",
+     "score": 84.0,
+     "v2_score": 41.2,
+     "cues": 40,
+     "v2_cues": 25
+    },
+    {
+     "route": "checks",
+     "score": 81.2,
+     "v2_score": 66.9,
+     "cues": 85,
+     "v2_cues": 82
+    },
+    {
+     "route": "portfolio",
+     "score": 80.1,
+     "v2_score": 27.6,
+     "cues": 49,
+     "v2_cues": 28
+    },
+    {
+     "route": "baseline",
+     "score": 78.7,
+     "v2_score": 49.4,
+     "cues": 53,
+     "v2_cues": 47
+    },
+    {
+     "route": "ppsm",
+     "score": 77.5,
+     "v2_score": 54.9,
+     "cues": 74,
+     "v2_cues": 58
+    },
+    {
+     "route": "risks",
+     "score": 76.5,
+     "v2_score": 61.4,
+     "cues": 112,
+     "v2_cues": 94
+    },
+    {
+     "route": "stigs-mission-computer-rhel9",
+     "score": 75.6,
+     "v2_score": 47.1,
+     "cues": 42,
+     "v2_cues": 29
+    }
+   ],
+   "v2": [
+    {
+     "route": "findings",
+     "score": 70.7,
+     "v1_score": 74.1,
+     "cues": 49,
+     "v1_cues": 44
+    },
+    {
+     "route": "checks",
+     "score": 66.9,
+     "v1_score": 81.2,
+     "cues": 82,
+     "v1_cues": 85
+    },
+    {
+     "route": "campaign",
+     "score": 65.5,
+     "v1_score": 90.2,
+     "cues": 62,
+     "v1_cues": 69
+    },
+    {
+     "route": "controls",
+     "score": 62.6,
+     "v1_score": 85.7,
+     "cues": 88,
+     "v1_cues": 70
+    },
+    {
+     "route": "plan-cp",
+     "score": 61.9,
+     "v1_score": 70.8,
+     "cues": 64,
+     "v1_cues": 64
+    },
+    {
+     "route": "risks",
+     "score": 61.4,
+     "v1_score": 76.5,
+     "cues": 94,
+     "v1_cues": 112
+    },
+    {
+     "route": "policies",
+     "score": 60.7,
+     "v1_score": 86.3,
+     "cues": 76,
+     "v1_cues": 111
+    },
+    {
+     "route": "getting-started",
+     "score": 59.8,
+     "v1_score": 63.5,
+     "cues": 25,
+     "v1_cues": 26
+    },
+    {
+     "route": "poam",
+     "score": 58.1,
+     "v1_score": 73.4,
+     "cues": 63,
+     "v1_cues": 63
+    },
+    {
+     "route": "frameworks-high",
+     "score": 56.5,
+     "v1_score": 67.8,
+     "cues": 38,
+     "v1_cues": 36
+    }
+   ],
+   "median_score": {
+    "v1": 63.8,
+    "v2": 41.6
+   },
+   "note": "Controls' cues rose 70 → 88: with the donut, mini tiles and pre-ticked bar gone, the filter row and more table rows sit above the fold (first row 69% → 47% of the screen)"
+  },
+  "phone_390": {
+   "first_row_pct_of_first_screen": {
+    "baseline": {
+     "v1": 52,
+     "v2": 38
+    },
+    "campaign": {
+     "v1": 118,
+     "v2": 104
+    },
+    "checks": {
+     "v1": 125,
+     "v2": 105
+    },
+    "conmon": {
+     "v1": null,
+     "v2": 78
+    },
+    "control-si2": {
+     "v1": null,
+     "v2": 182
+    },
+    "controls": {
+     "v1": 174,
+     "v2": 68
+    },
+    "data-calls": {
+     "v1": 83,
+     "v2": null
+    },
+    "deadlines": {
+     "v1": 153,
+     "v2": null
+    },
+    "findings": {
+     "v1": null,
+     "v2": 131
+    },
+    "frameworks-high": {
+     "v1": null,
+     "v2": 186
+    },
+    "plan-cp": {
+     "v1": 226,
+     "v2": 208
+    },
+    "policies": {
+     "v1": 78,
+     "v2": 44
+    },
+    "sources": {
+     "v1": 100,
+     "v2": null
+    },
+    "sse": {
+     "v1": 130,
+     "v2": null
+    }
+   }
+  }
+ },
+ "regressions": {
+  "page_errors": {
+   "v1": 0,
+   "v2": 0,
+   "routes_checked": 65,
+   "widths": [
+    390,
+    1440
+   ]
+  },
+  "sideways_page_scroll": {
+   "v1": 0,
+   "v2": 0
+  },
+  "controls_that_worked_in_v1_and_not_in_v2": {
+   "routes_compared": 13,
+   "controls_compared": 272,
+   "lost": 0,
+   "note": "the full 67-route control sweep could not finish: the machine slept and then ran at load ~160, so page loads timed out; 13 routes completed (Home, My work, Programs, Review, Frameworks, Suppliers, Data calls, Products, Integrations, Reports, Components, AI drafts, Notifications)"
+  },
+  "lost_information": [
+   "Evidence All 368: Status, Latest version, Renew by hidden while the rows shown agree",
+   "Requirements: State hidden"
+  ],
+  "blocked_flow": [
+   "Evidence › Review evidence: Accept cannot be saved"
+  ]
+ }
+}

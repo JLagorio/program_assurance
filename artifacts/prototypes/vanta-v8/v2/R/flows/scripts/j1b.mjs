@@ -1,0 +1,14 @@
+import { start } from "./walk.mjs";
+const W = await start("j1b");
+await W.go("program-new", "resume at the wizard");
+await W.click("From an ITCSC"); await W.click("Drop a completed AF ITCSC here");
+for (let i = 0; i < 5; i++) await W.click("Continue", { exact: true });
+const rv = await W.text("#main", 5000); console.log("REVIEW:", rv.slice(rv.indexOf("What creating writes"), rv.indexOf("What creating writes") + 1200));
+await W.click("Create program", { exact: true, why: "create" , wait: 4500});
+const t = await W.text("#main", 5000);
+console.log("LANDED:", t.slice(0, 2600));
+console.log("CONTROLS:", (await W.see()).slice(0, 60).join(" ‖ "));
+await W.shot("04-landed", true);
+const nav = await W.p.evaluate(() => [...document.querySelectorAll("#nav a")].slice(0, 8).map(a => a.innerText.trim().replace(/\s+/g, " ")));
+console.log("PROGRAM MENU:", nav);
+await W.done();

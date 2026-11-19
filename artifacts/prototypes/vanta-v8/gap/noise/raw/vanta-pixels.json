@@ -1,0 +1,549 @@
+[
+ {
+  "type": "home",
+  "file": "V/images/ux/home/home-page--01.png",
+  "w": 2776,
+  "h": 876,
+  "colourfulPct": 0.63,
+  "strongPct": 0.52,
+  "famPct": {
+   "red": 0.206,
+   "amber": 0.014,
+   "green": 0.172,
+   "teal": 0,
+   "blue": 0,
+   "violet": 0.234,
+   "pink": 0
+  },
+  "families": [
+   "red",
+   "green",
+   "violet"
+  ]
+ },
+ {
+  "type": "home",
+  "file": "V/images/ux/home/getting-started-with-workspaces--02.png",
+  "w": 1920,
+  "h": 1080,
+  "colourfulPct": 0.6,
+  "strongPct": 0.39,
+  "famPct": {
+   "red": 0,
+   "amber": 0.035,
+   "green": 0.389,
+   "teal": 0,
+   "blue": 0,
+   "violet": 0.173,
+   "pink": 0
+  },
+  "families": [
+   "green",
+   "violet"
+  ]
+ },
+ {
+  "type": "my work",
+  "file": "V/images/ux/my-work/my-work-page--01.png",
+  "w": 1600,
+  "h": 922,
+  "colourfulPct": 1.04,
+  "strongPct": 0.37,
+  "famPct": {
+   "red": 0.266,
+   "amber": 0.013,
+   "green": 0,
+   "teal": 0,
+   "blue": 0.023,
+   "violet": 0.736,
+   "pink": 0
+  },
+  "families": [
+   "red",
+   "violet"
+  ]
+ },
+ {
+  "type": "register",
+  "file": "V/images/ux/controls/controls-page--01.png",
+  "w": 3120,
+  "h": 1710,
+  "colourfulPct": 0.2,
+  "strongPct": 0.11,
+  "famPct": {
+   "red": 0,
+   "amber": 0.006,
+   "green": 0.155,
+   "teal": 0.006,
+   "blue": 0.033,
+   "violet": 0.001,
+   "pink": 0
+  },
+  "families": [
+   "green"
+  ]
+ },
+ {
+  "type": "record",
+  "file": "V/images/ux/controls/managing-common-controls--02.png",
+  "w": 3120,
+  "h": 1614,
+  "colourfulPct": 0,
+  "strongPct": 0,
+  "famPct": {
+   "red": 0,
+   "amber": 0,
+   "green": 0,
+   "teal": 0,
+   "blue": 0,
+   "violet": 0,
+   "pink": 0
+  },
+  "families": []
+ },
+ {
+  "type": "register",
+  "file": "V/images/ux/tests/deactivated-tests--01.png",
+  "w": 3120,
+  "h": 1550,
+  "colourfulPct": 1.65,
+  "strongPct": 0.94,
+  "famPct": {
+   "red": 0.101,
+   "amber": 0.738,
+   "green": 0.76,
+   "teal": 0.047,
+   "blue": 0,
+   "violet": 0,
+   "pink": 0
+  },
+  "families": [
+   "red",
+   "amber",
+   "green"
+  ]
+ },
+ {
+  "type": "record",
+  "file": "V/images/ux/tests/automated-test-history--01.png",
+  "w": 2990,
+  "h": 1690,
+  "colourfulPct": 0.56,
+  "strongPct": 0.46,
+  "famPct": {
+   "red": 0.279,
+   "amber": 0,
+   "green": 0.097,
+   "teal": 0,
+   "blue": 0,
+   "violet": 0.188,
+   "pink": 0
+  },
+  "families": [
+   "red",
+   "green",
+   "violet"
+  ]
+ },
+ {
+  "type": "register",
+  "file": "V/images/ux/documents/documents-page--01.png",
+  "w": 2986,
+  "h": 1656,
+  "colourfulPct": 1.35,
+  "strongPct": 1.05,
+  "famPct": {
+   "red": 0.659,
+   "amber": 0.025,
+   "green": 0,
+   "teal": 0,
+   "blue": 0,
+   "violet": 0.67,
+   "pink": 0
+  },
+  "families": [
+   "red",
+   "violet"
+  ]
+ },
+ {
+  "type": "record",
+  "file": "V/images/ux/documents/managing-documents--15.png",
+  "w": 2552,
+  "h": 1586,
+  "colourfulPct": 0.65,
+  "strongPct": 0.63,
+  "famPct": {
+   "red": 0.07,
+   "amber": 0,
+   "green": 0,
+   "teal": 0,
+   "blue": 0,
+   "violet": 0.578,
+   "pink": 0
+  },
+  "families": [
+   "red",
+   "violet"
+  ]
+ },
+ {
+  "type": "register",
+  "file": "V/images/ux/policies/the-policies-page--01.png",
+  "w": 2982,
+  "h": 1014,
+  "colourfulPct": 1.13,
+  "strongPct": 0.69,
+  "famPct": {
+   "red": 0.484,
+   "amber": 0,
+   "green": 0.093,
+   "teal": 0,
+   "blue": 0,
+   "violet": 0.558,
+   "pink": 0
+  },
+  "families": [
+   "red",
+   "green",
+   "violet"
+  ]
+ },
+ {
+  "type": "record",
+  "file": "V/images/ux/policies/bringing-your-current-compliance-program-into-vanta--42.png",
+  "w": 2678,
+  "h": 1484,
+  "colourfulPct": 1.02,
+  "strongPct": 1,
+  "famPct": {
+   "red": 0.397,
+   "amber": 0,
+   "green": 0,
+   "teal": 0,
+   "blue": 0,
+   "violet": 0.622,
+   "pink": 0
+  },
+  "families": [
+   "red",
+   "violet"
+  ]
+ },
+ {
+  "type": "register",
+  "file": "V/images/ux/risk/managing-risks-and-risk-registers--01.png",
+  "w": 3120,
+  "h": 1574,
+  "colourfulPct": 1.61,
+  "strongPct": 1.56,
+  "famPct": {
+   "red": 1.065,
+   "amber": 0.312,
+   "green": 0.219,
+   "teal": 0.014,
+   "blue": 0,
+   "violet": 0,
+   "pink": 0
+  },
+  "families": [
+   "red",
+   "amber",
+   "green"
+  ]
+ },
+ {
+  "type": "record",
+  "file": "V/images/ux/risk/completing-risk-assessments--02.png",
+  "w": 3120,
+  "h": 1940,
+  "colourfulPct": 0,
+  "strongPct": 0,
+  "famPct": {
+   "red": 0,
+   "amber": 0,
+   "green": 0,
+   "teal": 0,
+   "blue": 0,
+   "violet": 0,
+   "pink": 0
+  },
+  "families": []
+ },
+ {
+  "type": "overview",
+  "file": "V/images/ux/risk/managing-risks-and-risk-registers--02.png",
+  "w": 3120,
+  "h": 2120,
+  "colourfulPct": 0.04,
+  "strongPct": 0.03,
+  "famPct": {
+   "red": 0,
+   "amber": 0,
+   "green": 0,
+   "teal": 0,
+   "blue": 0.04,
+   "violet": 0,
+   "pink": 0
+  },
+  "families": []
+ },
+ {
+  "type": "register",
+  "file": "V/images/ux/vendors/adding-and-managing-vendors--01.png",
+  "w": 3120,
+  "h": 1494,
+  "colourfulPct": 1.15,
+  "strongPct": 0.84,
+  "famPct": {
+   "red": 0.096,
+   "amber": 0.119,
+   "green": 0.317,
+   "teal": 0.001,
+   "blue": 0.104,
+   "violet": 0.515,
+   "pink": 0.002
+  },
+  "families": [
+   "red",
+   "amber",
+   "green",
+   "blue",
+   "violet"
+  ]
+ },
+ {
+  "type": "record",
+  "file": "V/images/ux/vendors/adding-and-managing-vendors--04.png",
+  "w": 3120,
+  "h": 1636,
+  "colourfulPct": 0.55,
+  "strongPct": 0.51,
+  "famPct": {
+   "red": 0.012,
+   "amber": 0.012,
+   "green": 0,
+   "teal": 0,
+   "blue": 0.087,
+   "violet": 0.44,
+   "pink": 0
+  },
+  "families": [
+   "blue",
+   "violet"
+  ]
+ },
+ {
+  "type": "register",
+  "file": "V/images/ux/personnel/getting-started-personnel-hub--01.png",
+  "w": 2614,
+  "h": 1120,
+  "colourfulPct": 0.72,
+  "strongPct": 0.36,
+  "famPct": {
+   "red": 0.213,
+   "amber": 0,
+   "green": 0.09,
+   "teal": 0,
+   "blue": 0,
+   "violet": 0.418,
+   "pink": 0
+  },
+  "families": [
+   "red",
+   "green",
+   "violet"
+  ]
+ },
+ {
+  "type": "register",
+  "file": "V/images/ux/audits/creating-an-audit--05.png",
+  "w": 3120,
+  "h": 1766,
+  "colourfulPct": 0.51,
+  "strongPct": 0.46,
+  "famPct": {
+   "red": 0.376,
+   "amber": 0.01,
+   "green": 0.006,
+   "teal": 0.001,
+   "blue": 0.119,
+   "violet": 0,
+   "pink": 0.001
+  },
+  "families": [
+   "red",
+   "blue"
+  ]
+ },
+ {
+  "type": "register",
+  "file": "V/images/ux/audits/how-will-your-auditor-use-vanta--03.png",
+  "w": 1600,
+  "h": 643,
+  "colourfulPct": 7.08,
+  "strongPct": 6.35,
+  "famPct": {
+   "red": 0.02,
+   "amber": 0.005,
+   "green": 0.019,
+   "teal": 0,
+   "blue": 0.285,
+   "violet": 6.757,
+   "pink": 0
+  },
+  "families": [
+   "blue",
+   "violet"
+  ]
+ },
+ {
+  "type": "record",
+  "file": "V/images/ux/frameworks/iso-27701--01.png",
+  "w": 3000,
+  "h": 1602,
+  "colourfulPct": 0.22,
+  "strongPct": 0.15,
+  "famPct": {
+   "red": 0,
+   "amber": 0,
+   "green": 0.077,
+   "teal": 0,
+   "blue": 0,
+   "violet": 0.146,
+   "pink": 0
+  },
+  "families": [
+   "green",
+   "violet"
+  ]
+ },
+ {
+  "type": "register",
+  "file": "V/images/ux/frameworks/framework-control-sets-soc-2-trust-services-criteria--01.png",
+  "w": 2982,
+  "h": 1170,
+  "colourfulPct": 0.91,
+  "strongPct": 0.8,
+  "famPct": {
+   "red": 0.247,
+   "amber": 0,
+   "green": 0.17,
+   "teal": 0,
+   "blue": 0,
+   "violet": 0.495,
+   "pink": 0
+  },
+  "families": [
+   "red",
+   "green",
+   "violet"
+  ]
+ },
+ {
+  "type": "overview",
+  "file": "V/images/ux/access/access-reviews--01.png",
+  "w": 3120,
+  "h": 1882,
+  "colourfulPct": 0.78,
+  "strongPct": 0.27,
+  "famPct": {
+   "red": 0.185,
+   "amber": 0.462,
+   "green": 0.133,
+   "teal": 0.001,
+   "blue": 0,
+   "violet": 0,
+   "pink": 0
+  },
+  "families": [
+   "red",
+   "amber",
+   "green"
+  ]
+ },
+ {
+  "type": "register",
+  "file": "V/images/ux/vulnerabilities/the-vulnerabilities-page--01.png",
+  "w": 2544,
+  "h": 1598,
+  "colourfulPct": 0.83,
+  "strongPct": 0.72,
+  "famPct": {
+   "red": 0.097,
+   "amber": 0.061,
+   "green": 0.02,
+   "teal": 0,
+   "blue": 0.017,
+   "violet": 0.638,
+   "pink": 0
+  },
+  "families": [
+   "red",
+   "amber",
+   "violet"
+  ]
+ },
+ {
+  "type": "register",
+  "file": "V/images/ux/issues/issue-management-in-vanta--01.png",
+  "w": 3280,
+  "h": 2144,
+  "colourfulPct": 0.46,
+  "strongPct": 0.39,
+  "famPct": {
+   "red": 0.035,
+   "amber": 0.008,
+   "green": 0.033,
+   "teal": 0,
+   "blue": 0.08,
+   "violet": 0.309,
+   "pink": 0
+  },
+  "families": [
+   "blue",
+   "violet"
+  ]
+ },
+ {
+  "type": "editor",
+  "file": "V/images/ux/policies/using-ai-change-summaries-in-vanta--01.png",
+  "w": 1499,
+  "h": 787,
+  "colourfulPct": 0.48,
+  "strongPct": 0.41,
+  "famPct": {
+   "red": 0,
+   "amber": 0,
+   "green": 0.048,
+   "teal": 0,
+   "blue": 0,
+   "violet": 0.428,
+   "pink": 0
+  },
+  "families": [
+   "violet"
+  ]
+ },
+ {
+  "type": "editor",
+  "file": "V/images/ux/documents/system-description-generator--03.png",
+  "w": 3120,
+  "h": 1996,
+  "colourfulPct": 0.36,
+  "strongPct": 0.32,
+  "famPct": {
+   "red": 0,
+   "amber": 0.009,
+   "green": 0.075,
+   "teal": 0,
+   "blue": 0.026,
+   "violet": 0.253,
+   "pink": 0
+  },
+  "families": [
+   "green",
+   "violet"
+  ]
+ }
+]

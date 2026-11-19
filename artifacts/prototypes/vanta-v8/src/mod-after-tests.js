@@ -25,6 +25,9 @@
   const plain = (t) => `<p class="note-p">${t}</p>`;
   const dfull = (iso) => new Date(iso + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
   const nav = (...routes) => routes.forEach((r) => { ROUTE_NAV[r] = "before-after"; });
+  // v2 (C1): the assurance chain (mod-zzzz-v2-1chain.js) moves what a reader walks; every screen here reads it at draw time.
+  const CH = () => window.PA.v2 && window.PA.v2.chain;
+  const ctlPage = (code) => (CH() ? CH().ctlRoute(code) : code === "SI-2" ? "after-control-record" : "controls");
   const ST = {
     satisfied: ["ok", "Satisfied"], partially_satisfied: ["part", "Partially satisfied"], other_than_satisfied: ["bad", "Other than satisfied"],
     not_assessed: ["info", "Not assessed"], no_evidence: ["none", "No evidence"], no_requirement: ["none", "No requirement"], out: ["none", "Not in WS-X90's baseline"],
@@ -44,9 +47,15 @@
   const stackBar = (parts) => { const t = parts.reduce((a, p) => a + p[1], 0) || 1; return `<div class="stack">${parts.filter((p) => p[1]).map(([, n, c]) => `<i style="width:${(n / t) * 100}%;background:${c}"></i>`).join("")}</div><div class="legend">${parts.map(([l, n, c]) => `<span style="--c:${c}">${esc(l)} <b class="num">${fmt(n)}</b></span>`).join("")}</div>`; };
   const avs = (names) => `<span class="a-tests-avs">${names.map((n) => AK.avatar(n, 22)).join("")}</span>`;
   const ringPct = (p) => `<span class="ak-prog"><span class="ak-donut" style="--p:${p}"></span><span class="num">${p}%</span></span>`;
+  // v2: a Needs attention card with the total it means (core's attention() sums every row).
+  const attCard = (title, total, rows) => `<div class="card v2l-att"><div class="t">${esc(title)} <span class="num">${fmt(total)}</span></div><div class="rows">${rows.map(([g, l, n]) => `<div class="row">${gl(g)}<span>${esc(l)}</span><b class="num">${fmt(n)}</b></div>`).join("")}</div></div>`;
 
   // ——— State kept while the prototype is open ———
   const SEL = {}, CAT = {}, DEACT = {};
+  const READY = {}; // v2 (C1): requests the team set Ready again
+  let CQV = "all"; // v2 (C1): the campaign's chosen quick view (All, Ready, Flagged, Accepted)
+  let CTLQV = "all"; // v2 (F): the Controls register's chosen quick view; they were words that filtered nothing
+  const two = (n) => String(n).padStart(2, "0");
   let INC = "2";
   let lastPanel = null;
   const sel = (key, d = []) => SEL[key] || (SEL[key] = new Set(d));
@@ -74,6 +83,13 @@
     }
     const d = t.closest("[data-atdesel]");
     if (d) { stop(e); SEL[d.dataset.atdesel] = new Set(); redraw(`[data-atsel="${d.dataset.atdesel}"][data-atid="*"]`); return true; }
+    // v2 (C1): the campaign's quick views filter its requests (PA.v2.go("campaign", { filter: { qv: "Ready" } }) clicks one).
+    const cq = t.closest("[data-atqv]");
+    if (cq) { stop(e); CQV = cq.dataset.atqv; redraw(`[data-atqv="${CQV}"]`); return true; }
+    const ccq = t.closest("[data-atcqv]");
+    if (ccq) { stop(e); CTLQV = ccq.dataset.atcqv; redraw(`[data-atcqv="${CTLQV}"]`); return true; }
+    const rsp = t.closest("[data-atresp]");
+    if (rsp) { stop(e); RESPQ = rsp.dataset.atresp; redraw(".a-tests-respf summary"); return true; }
     const k = t.closest("[data-atcat]");
     if (k) { stop(e); const [key, v] = k.dataset.atcat.split("|"); CAT[key] = v; redraw(`[data-atcat="${CSS.escape(k.dataset.atcat)}"]`); return true; }
     const i = t.closest("[data-atinc]");
@@ -84,6 +100,27 @@
     if (x) { x.dataset.atdeact.split(",").forEach((k) => { DEACT[k] = true; }); if (SEL.idx) SEL.idx = new Set(); setTimeout(() => redraw(".ak-title"), 0); return false; }
     const y = t.closest("[data-atreact]");
     if (y) { stop(e); delete DEACT[y.dataset.atreact]; redraw(".ak-title"); return true; }
+    // v2 (C1) [B9]: Run all now runs the active checks again and says what they found.
+    const ra = t.closest("[data-atrunall]");
+    if (ra && window.PA.v2) {
+      stop(e);
+      const at = new Date(); window.PA.v2.set("checks.ran", `Just now · ${two(at.getHours())}:${two(at.getMinutes())}, run by you`);
+      const active = CHECKS.filter((x) => !DEACT[x.id]), need = active.filter((x) => x.state !== "ok").length;
+      redraw('[data-atrunall]');
+      window.PA.v2.toast(`${active.length} checks ran: ${need} still need attention`);
+      return true;
+    }
+    // v2 (C1) [B1]: Set Ready sends the chosen requests back to the assessor as Ready.
+    const rd = t.closest("[data-atready]");
+    if (rd) {
+      stop(e);
+      const ids = rd.dataset.atready.split(",").filter(Boolean);
+      ids.forEach((id) => { READY[id] = true; });
+      if (SEL.req) SEL.req = new Set();
+      const x = document.querySelector("#modal .dlg-h [data-close-modal]"); if (x) x.click();
+      setTimeout(() => { redraw(".ak-title"); if (window.PA.v2) window.PA.v2.toast(`${ids.length} request${ids.length === 1 ? "" : "s"} back with the assessor as Ready`); }, 0);
+      return true;
+    }
     const dd = t.closest(".a-tests-more");
     if (dd) { const own = t.closest("[data-modal],[data-go],[data-panel]"); if (!own || !dd.contains(own)) e.stopPropagation(); }
     return false;
@@ -93,7 +130,7 @@
     if (e.key !== "Enter" && e.key !== " ") return;
     const t = e.target;
     if (!t || !t.matches) return;
-    if (t.matches("[data-atsel], [data-atdesel], [data-atreact]")) { act(e); return; }
+    if (t.matches("[data-atsel], [data-atdesel], [data-atreact], [data-atqv], [data-atcqv], [data-atresp], [data-atrunall]")) { act(e); return; }
     if (t.matches("#panel [data-panel]:not(button), #panel [data-go]:not(button), #panel [data-modal]:not(button)")) { e.preventDefault(); t.click(); }
   }, true);
 
@@ -174,8 +211,10 @@
   const pageRoute = (id, tab) => `after-test-page-${id}${tab && tab !== "results" ? "-" + tab : ""}`;
   const HST = { completed: ["ok", "Completed"], in_progress: ["warn", "In progress"], blocked: ["bad", "Blocked"], ready: ["none", "Ready"], open: ["bad", "Open"] };
   const checkTabs = (x) => [["results", "Results"], ["history", "History", x.hist.length], ["tasks", "Tasks", 0], ["controls", "Controls", x.ctl.length], ["comments", "Comments", x.comments.length]];
-  const checkFacts = (x) => [["Owner", `${ownerPick(x.owner, x.name)}${x.ownerNote ? `<span class="a-tests-in">${esc(x.ownerNote)}</span>` : ""}`], ["Ran", "Today 06:00 · daily"], ["Due", dueCell(x.due, x.state)], ["Control", AK.codes(x.ctl)], ["Data", x.ex ? `Partly ${EX}` : "WS-X90's records"]];
-  const checkMenu = (x) => more("More check actions", [["Manage subscribers", `data-modal="a-tests-subs" data-id="${x.id}"`], ["Export check data", ""], [DEACT[x.id] ? "Reactivate monitoring" : "Deactivate check…", DEACT[x.id] ? `data-atreact="${x.id}"` : `data-modal="a-tests-deactivate" data-id="${x.id}"`]]);
+  // v2 (C1) [B9]: Run all now runs every active check again; each check's Ran says when.
+  const ranAt = () => (window.PA.v2 && window.PA.v2.get("checks.ran", null)) || "Today 06:00 · daily";
+  const checkFacts = (x) => [["Owner", `${ownerPick(x.owner, x.name)}${x.ownerNote ? `<span class="a-tests-in">${esc(x.ownerNote)}</span>` : ""}`], ["Ran", esc(ranAt())], ["Due", dueCell(x.due, x.state)], ["Control", AK.codes(x.ctl)], ["Data", x.ex ? `Partly ${EX}` : "WS-X90's records"]];
+  const checkMenu = (x) => more("More check actions", [["Manage subscribers", `data-modal="a-tests-subs" data-id="${x.id}"`], ["Export check data", `data-modal="v2k-export" data-id="check data"`], [DEACT[x.id] ? "Reactivate monitoring" : "Deactivate check…", DEACT[x.id] ? `data-atreact="${x.id}"` : `data-modal="a-tests-deactivate" data-id="${x.id}"`]]);
   const offChip = (x) => (DEACT[x.id] ? AK.chip("Deactivated until Dec 1", { tone: "warn" }) : "");
   const offCard = (x) => (DEACT[x.id] ? AK.reasonCard({ question: "Why was monitoring deactivated?", reason: "The November scan moves to the Block 1.1 software load; the check comes back on by itself on Dec 1.", who: ME, when: "Today", action: "Reactivate monitoring" })
     .replace('<span class="btn sm">Reactivate monitoring</span>', `<span class="btn sm" role="button" tabindex="0" data-atreact="${x.id}">Reactivate monitoring</span>`) : "");
@@ -183,7 +222,8 @@
   // The register, after: a category rail, the two cards counted by due state, owners and due dates, row selection.
   function checksRegister(key, withCo) {
     const c = (n) => (withCo ? co(n) : "");
-    const s = sel(key, withCo ? ["iava", "expiring"] : []);
+    // v2: nothing is ticked when the page opens.
+    const s = sel(key);
     const cat = CAT[key] || "all";
     const active = CHECKS.filter((x) => !DEACT[x.id]);
     const off = CHECKS.filter((x) => DEACT[x.id]);
@@ -193,25 +233,30 @@
     const n = (st) => need.filter((x) => x.state === st).length;
     const noDue = need.filter((x) => !x.due).length;
     const item = (k, label, count, bad = true) => `<button type="button" class="a-tests-rail-i${cat === k ? " on" : ""}" aria-pressed="${cat === k}" data-atcat="${key}|${k}"><span>${esc(label)}</span><b class="num${bad && count ? " bad" : ""}">${count}</b></button>`;
-    const rail = `<nav class="a-tests-rail" aria-label="Check categories"><div class="a-tests-rail-k">Category${c(5)}</div>${item("all", "All", need.length)}${["Vulnerability", "Evidence", "Monitoring"].map((g) => item(g, g, need.filter((x) => x.cat === g).length)).join("")}<div class="a-tests-rail-k">Deactivated</div>${item("off", "All deactivated", off.length, false)}</nav>`;
+    // v2 (C1) [B7]: each category counts the checks it lists (v1's "All 5" counted only those needing attention, beside "7 checks").
+    const rail = `<nav class="a-tests-rail" aria-label="Check categories"><div class="a-tests-rail-k">Category${c(5)}</div>${item("all", "All", active.length, false)}${["Vulnerability", "Evidence", "Monitoring"].map((g) => item(g, g, active.filter((x) => x.cat === g).length, false)).join("")}<div class="a-tests-rail-k">Deactivated</div>${item("off", "All deactivated", off.length, false)}</nav>`;
     const att = h.attention([["diamond", "Overdue", n("overdue")], ["clock", "Due soon", n("soon")], ["ring", "No due date", noDue, noDue === 0]], "Needs attention")
       .replace('<div class="t">Needs attention', `<div class="t"><span class="a-tests-tt">Needs attention${c(1)}</span>`);
     const cards = `<div class="pair a-tests-pair">${h.completion({ title: "Checks passing", total: active.length, done: ok, unit: "checks OK" })}${att}</div>`;
     const ids = list.map((x) => x.id);
     const bar = s.size ? bulkBar(key, "Search checks", s.size, ["Assign owner", "Deactivate"], { c: c(4), attrs: { "Assign owner": `data-modal="a-tests-owner" data-id="${s.size} checks"`, Deactivate: `data-modal="a-tests-deactivate" data-id="${[...s].join(",")}"` } })
       : filters("Search checks", ["Status", "Control", "Source", "Owner"]);
+    // v2: overdue is one mark, the Status pill: the due date is a plain day and the failing count is ink (v1 also drew a
+    // red date, a red flag and a red count). The row opens the check's page; its preview moved from an eye in every row
+    // into the row's ⋯ menu.
     const rows = list.map((x) => ({ id: x.id, go: pageRoute(x.id), sel: s.has(x.id), cells: [
       cb(key, x.id, s.has(x.id), `Select ${x.name}`),
-      `<span class="a-tests-name"><span class="a-tests-nmt" title="${esc(x.name)}">${esc(x.name)}</span>${x.ex ? EX : ""}<button type="button" class="a-tests-eye" data-panel="a-tests-check" data-id="${x.id}" aria-label="Preview ${esc(x.name)}" title="Preview">${AK.i("eye")}</button></span>`,
-      ownerPick(x.owner, x.name), ckPill(x), dueCell(x.due, x.state), AK.codes(x.ctl),
-      x.fail ? `<b class="num a-tests-bad">${fmt(x.fail)}</b>` : mu("0"),
-      more(`More actions for ${x.name}`, [["Assign owner", `data-modal="a-tests-owner" data-id="${esc(x.name)}"`], DEACT[x.id] ? ["Reactivate monitoring", `data-atreact="${x.id}"`] : ["Deactivate…", `data-modal="a-tests-deactivate" data-id="${x.id}"`]], { cls: "a-tests-rowmore" }),
+      `<span class="a-tests-name"><span class="a-tests-nmt" title="${esc(x.name)}">${esc(x.name)}</span>${x.ex ? EX : ""}</span>`,
+      ownerPick(x.owner, x.name), ckPill(x), x.due ? AK.due(x.due, { done: true, prefix: false }) : mu("—"), AK.codes(x.ctl),
+      x.fail ? num(x.fail) : mu("0"),
+      more(`More actions for ${x.name}`, [["Preview", `data-panel="a-tests-check" data-id="${x.id}"`], ["Assign owner", `data-modal="a-tests-owner" data-id="${esc(x.name)}"`], DEACT[x.id] ? ["Reactivate monitoring", `data-atreact="${x.id}"`] : ["Deactivate…", `data-modal="a-tests-deactivate" data-id="${x.id}"`]], { cls: "a-tests-rowmore" }),
     ] }));
     return h.page(
-      h.header("Checks", `<span>Derived from WS-X90's records, run daily</span><span>${CHECKS.length} checks · 5 read real data, 2 are partly Example</span>`, `<span class="btn">Run all now</span><span class="btn ink" role="button" tabindex="0">Create check</span>`),
+      h.header("Checks", `<span>Derived from WS-X90's records, run daily</span><span>${CHECKS.length} checks · 5 read real data, 2 are partly Example</span>`, `<span class="btn" role="button" tabindex="0" data-atrunall="1">Run all now</span><span class="btn ink" role="button" tabindex="0" data-modal="v2k-create-check">Create check</span>`),
       `<div class="a-tests-railed">${rail}<div class="a-tests-railmain">${cards}${bar}${tbl({
         cols: [cbAll(key, ids, "Select every check shown"), "Check", `Owner${c(2)}`, `Status${c(3)}`, "Due date", "Control", "Failing", sr("Row actions")],
-        rows, total: list.length, empty: cat === "off" ? "No check is deactivated." : "No check in this category.",
+        // v2-keepcols: the row menu reads the same in every row, and the visual layer would take it for a constant column.
+        rows, total: list.length, cls: "v2-keepcols", empty: cat === "off" ? "No check is deactivated." : "No check in this category.",
       })}${AK.note("IAVM notices, STIG checklist counts and their failing items, and the IAVA check's Nov 11 due date are invented: no ACAS or STIG data is loaded. Owners and the other due dates come from the plan's scheduled tasks and the CVE-2024-6387 issue.")}</div></div>`,
     );
   }
@@ -276,11 +321,15 @@
     ["AC-2(5)", "Inactivity Logout", "no_evidence", 0, 1, "ring", "Link evidence to REQ-442", "REQ-442"],
     ["AC-2(7)", "Privileged User Accounts", "not_assessed", 4, 4, "clock", "Add to assessment campaign", "REQ-443"],
     ["AC-11", "Device Lock", "other_than_satisfied", 2, 2, "diamond", "Open assessment findings", "REQ-008"],
+    // v2 (H): a facility's, a host's and a hybrid row, so the sample shows each responsibility (their own standing, if taken back).
+    ["AT-2", "Literacy Training and Awareness", "no_evidence", 0, 10, "ring", "Link evidence to its requirement", null],
     ["AU-7", "Audit Record Reduction and Report Generation", "satisfied", 4, 4, "check", "Inherited", "REQ-353"],
     ["AU-10", "Non-repudiation", "other_than_satisfied", 1, 1, "diamond", "Open assessment findings", "REQ-360"],
     ["IA-2(2)", "Multi-factor Authentication to Non-privileged Accounts", "not_assessed", 1, 1, "clock", "Add to assessment campaign", "REQ-599"],
     ["IA-5", "Authenticator Management", "other_than_satisfied", 10, 10, "diamond", "Open assessment findings", "REQ-039"],
+    ["PE-13", "Fire Protection", "no_evidence", 0, 6, "ring", "Link evidence to its requirement", null],
     ["RA-5", "Vulnerability Monitoring and Scanning", "satisfied", 10, 10, null, null, "REQ-054"],
+    ["SC-7", "Boundary Protection", "satisfied", 6, 6, null, null, null],
     ["SC-5(3)", "Detection and Monitoring", "other_than_satisfied", 2, 2, "diamond", "Open assessment findings", "REQ-200"],
     ["SI-2", "Flaw Remediation", "not_assessed", 10, 10, "clock", "Open assessment campaign", "REQ-064"],
     ["SI-4(13)", "Analyze Traffic and Event Patterns", "no_requirement", 0, 6, "ring", "Map 3 more objectives", "REQ-262"],
@@ -301,27 +350,72 @@
     "SI-2": [["Nadia Fournier", "accepted the account disable trigger test report", "Oct 24"], [null, "collected the account disable trigger test report, LRU-013", "Sep 25"]],
   };
   const ctlById = (code) => CTRL.find((r) => r[0] === code) || CTRL[0];
-  const stepCell = (r) => (r[6] ? `<span class="who">${gl(r[5])}<span class="a-tests-ink">${esc(r[6])}</span></span>` : mu("None"));
+  // v2 (C1): the requirement the register shows for a control, for its page and preview (the chain's links read it).
+  window.PA.ctlReq = (code) => { const r = CTRL.find((x) => x[0] === code); return r ? r[7] : null; };
+  // v2: Next step is the words alone; the Status pill beside it already carries the tone (v1 added a glyph).
+  const stepCell = (r) => (r[6] ? `<span class="a-tests-ink">${esc(r[6])}</span>` : mu("—"));
   const rung = (label, n, total) => `<div class="a-tests-rung">${gl(n === total && total ? "check" : n ? "part" : "ring")}<span>${esc(label)}</span><b class="num">${fmt(n)} of ${fmt(total)}</b>${bar(total ? pct(n, total) : 0)}</div>`;
   const assignCard = (c) => `<div class="card a-tests-assign"><div class="t"><span class="a-tests-tt">Assignment${c}</span><span>New owner field</span></div><div class="a-tests-assign-b"><div class="a-tests-donut" style="--p:0"><b class="num">0%</b><span>Assigned</span></div><div class="a-tests-legend">${[["Unassigned", 560, "var(--ink-4)"], ["Assigned", 0, "var(--brand)"], ["Needs reassignment", 0, "var(--warn)"]].map(([l, n, col]) => `<div class="a-tests-lg"><i style="--c:${col}"></i><span>${l}</span><b class="num">${fmt(n)}</b></div>`).join("")}</div></div></div>`;
 
+  // v2 (C1): a control the reader walked reads where it stands now: its status, objectives, next step and requirement.
+  const chainRow = (r) => {
+    const ch = CH(); if (!ch) return r;
+    const v = ch.view(r[0]); if (!v.touched && !(r[0] === "IA-2(2)" && ch.inc2())) return r;
+    if (!v.touched) return [r[0], r[1], "other_than_satisfied", r[3], r[4], "diamond", "Open assessment findings", r[7]];
+    return [r[0], r[1], v.status, v.oe, v.ob, null, v.step ? v.step.label : null, v.s.req || r[7]];
+  };
+  // v2 (H): Responsibility, from PA.v2host (mod-zzzz-v2-8host.js). An inherited control reads its provider's status and owes
+  // WS-X90 no requirement, evidence or next step; the filter lists every control of the baseline with that responsibility.
+  const HOSTR = () => window.PA.v2host || null;
+  const respOf = (code) => (HOSTR() ? HOSTR().responsibility(code) : { kind: "System-specific" });
+  const respRow = (r) => {
+    if (respOf(r[0]).kind !== "Inherited") return r;
+    const c = window.PA.SSP && window.PA.SSP.ctl(r[0]);
+    return [r[0], r[1], c ? c.cs : r[2], null, c ? c.ob : r[4], null, null, null, "inh"];
+  };
+  const respCell = (code) => { const x = respOf(code); return x.kind === "System-specific" ? "System-specific" : `${esc(x.kind)} ${mu(`· ${esc(x.provider)}`)}`; };
+  let RESPQ = "all";
+  const RESP_L = { all: "All responsibilities", inh: "Inherited", hyb: "Hybrid", own: "System-specific" };
+  const RESP_F = { all: () => true, inh: (code) => respOf(code).kind === "Inherited", hyb: (code) => respOf(code).kind === "Hybrid", own: (code) => respOf(code).kind === "System-specific" };
+  const respN = (k) => (window.PA.SSP ? window.PA.SSP.controls.filter((c) => RESP_F[k](c.c)).length : 0);
+  // The baseline's controls with one responsibility, in the register's row shape (the sample's own row where it has one).
+  const respRows = () => (window.PA.SSP ? window.PA.SSP.controls.filter((c) => RESP_F[RESPQ](c.c)).map((c) => {
+    const own = CTRL.find((r) => r[0] === c.c); if (own) return own;
+    const v = CH() ? CH().view(c.c) : null, rq = ((window.PA.SSP.requirements || {})[c.c] || [])[0];
+    return [c.c, c.t, v ? v.status : c.cs, v ? v.oe : c.oe, c.ob, null, v && v.step ? v.step.label : null, rq ? rq[0] : null];
+  }) : []);
+  const respMenu = () => `<details class="v2h-flt a-tests-respf"><summary class="flt">Responsibility${RESPQ !== "all" ? `: ${esc(RESP_L[RESPQ])}` : ""} ⌄</summary><div class="v2h-menu" role="menu">${Object.keys(RESP_L).map((k) => `<span role="menuitemradio" tabindex="0" aria-checked="${k === RESPQ}" class="v2h-mi${k === RESPQ ? " on" : ""}" data-atresp="${k}">${esc(RESP_L[k])}${k !== "all" && HOSTR() ? ` <span class="num">${fmt(respN(k))}</span>` : ""}</span>`).join("")}</div></details>`;
   S["after-controls-index"] = () => {
     const key = "ctl";
-    const s = sel(key, ["AC-2(5)", "AC-2(7)", "IA-2(2)"]);
+    // v2: nothing is ticked when the page opens.
+    const s = sel(key);
     const ids = CTRL.map((r) => r[0]);
+    // v2 (C1): one source per number: the card and the quick views count the baseline as the chain leaves it.
+    const cs = CH() ? CH().counts() : { satisfied: 176, no_evidence: 233, not_assessed: 90, partially_satisfied: 34, other_than_satisfied: 13, no_requirement: 14 };
+    // v2 (F): the quick views filter the rows (a hub or the launcher asks for one through PA.v2.go(…, { filter: { qv } })).
+    const QF = { all: () => true, ev: (r) => r[2] === "no_evidence", na: (r) => r[2] === "not_assessed", short: (r) => r[2] === "partially_satisfied" || r[2] === "other_than_satisfied", noown: () => true };
+    const QN = { all: 560, ev: cs.no_evidence, na: cs.not_assessed, short: cs.partially_satisfied + cs.other_than_satisfied, noown: 560 };
+    // v2 (H): the Responsibility filter lists the baseline's controls with that responsibility (25 a page); All keeps the sample.
+    const ROWS_ALL = (RESPQ === "all" ? CTRL : respRows()).map(chainRow).map(respRow).filter(QF[CTLQV] || QF.all);
+    const ROWS = RESPQ === "all" ? ROWS_ALL : ROWS_ALL.slice(0, 25);
+    const nInh = HOSTR() ? HOSTR().counts().inh : 0;
+    // v2: one summary card, the completion measure, without its mini tiles (Mapped, With evidence and Assessed repeated
+    // the statuses). v1's Assignment donut at 0% (one grey ring) is gone: No owner 560 is a quick view, beside the
+    // statuses a reader works through. No requirement and Inherited are values of the Status and Determined by filters,
+    // so the row keeps five quick views and each count is drawn once.
     return h.page(
-      h.header("Controls", "<span>SSP 3 draft · 560 controls in the baseline</span><span>1,791 assessment objectives</span>", `<span class="btn">Export ▾</span><span class="btn" data-go="ssp" role="link" tabindex="0">Open the SSP</span><span class="btn ink" role="button" tabindex="0">Map a requirement</span>`),
-      `<div class="grid2 a-tests-cards">${assignCard(co(1))}${h.completion({ title: "Controls satisfied", total: 560, done: 176, unit: "controls", minis: [["Mapped", 546, 560], ["With evidence", 313, 560], ["Assessed", 223, 560]] })}</div>`,
-      h.views([["All", 560], ["Needs evidence", 233], ["Not assessed", 90], ["Short of satisfied", 47], ["No requirement", 14], ["Inherited", 2]]),
+      h.header("Controls", `<span>SSP 3 draft · 560 controls in the baseline</span><span>1,791 assessment objectives</span>${nInh ? `<span>${fmt(nInh)} inherited from providers</span>` : ""}`, `${more("More control actions", [["Export controls", 'data-modal="v2k-export" data-id="controls"']])}<span class="btn" data-go="ssp" role="link" tabindex="0">Open the SSP</span><span class="btn ink" role="button" tabindex="0" data-modal="v2k-map" data-id="">Map a requirement</span>`),
+      `<div class="a-tests-cards v2l-cards v2l-one">${h.completion({ title: "Controls satisfied", total: 560, done: cs.satisfied, unit: "controls satisfied", note: nInh ? `${fmt(nInh)} inherited` : "updated now" })}</div>`,
+      `<div class="views" role="group" aria-label="Quick views">${[["all", "All"], ["ev", "Needs evidence"], ["na", "Not assessed"], ["short", "Short of satisfied"], ["noown", "No owner"]].map(([k2, l]) => `<span class="qv${k2 === CTLQV ? " on" : ""}" role="button" tabindex="0" aria-pressed="${k2 === CTLQV}" data-atcqv="${k2}">${esc(l)} <span class="num">${fmt(QN[k2])}</span></span>`).join("")}</div>`,
       s.size ? bulkBar(key, "Search controls", s.size, ["Assign owner", "Add to assessment campaign"], { c: co(3), attrs: { "Assign owner": `data-modal="a-tests-owner" data-id="${s.size} controls"`, "Add to assessment campaign": `data-modal="a-tests-addcamp" data-id="${s.size}"` } })
-        : filters("Search controls", ["Family", "Status", "Determined by", "Owner"]),
+        : filters("Search controls", ["Family", "Status", "Determined by"]).replace('<span class="flt sub">', `${respMenu()}<span class="flt sub">`),
       tbl({
-        cols: [cbAll(key, ids, "Select every control shown"), "Control", `Owner${co(2)}`, "Status", `<span class="a-tests-wrap">Objectives with evidence</span>`, "Next step", "Requirement", sr("Row actions")],
-        rows: CTRL.map((r, i) => ({ id: r[0], sel: s.has(r[0]), cells: [
-          cb(key, r[0], s.has(r[0]), `Select ${r[0]}`), `${tr(`${r[0]} ${r[1]}`, 250)}${i === 0 ? co(4) : ""}`, ownerPick(null, r[0]), stPill(r[2]), of(r[3], r[4]), stepCell(r), r[7] ? tag(r[7]) : ring("None"),
-          more(`More actions for ${r[0]}`, [["Assign owner", `data-modal="a-tests-owner" data-id="${r[0]}"`], ["Add a note", `data-panel="a-tests-control" data-id="${r[0]}"`], ...(r[0] === "SI-2" ? [["Open record", go("after-control-record")]] : [])], { cls: "a-tests-rowmore" }),
+        cols: [cbAll(key, ids, "Select every control shown"), "Control", `Owner${co(2)}`, "Status", "Responsibility", `<span class="a-tests-wrap">Objectives with evidence</span>`, "Next step", "Requirement", sr("Row actions")],
+        rows: ROWS.map((r, i) => ({ id: r[0], sel: s.has(r[0]), cells: [
+          cb(key, r[0], s.has(r[0]), `Select ${r[0]}`), `${tr(`${r[0]} ${r[1]}`, 250)}${i === 0 ? co(4) : ""}`, ownerPick(null, r[0]), stPill(r[2]), respCell(r[0]), r[8] === "inh" ? mu("—") : of(r[3], r[4]), stepCell(r), r[8] === "inh" ? mu("Inherited") : r[7] ? tag(r[7]) : mu("—"),
+          more(`More actions for ${r[0]}`, [["Open record", go(ctlPage(r[0]))], ["Assign owner", `data-modal="a-tests-owner" data-id="${r[0]}"`], ...(HOSTR() ? [["Change responsibility", `data-modal="v2h-resp" data-id="${r[0]}"`]] : [])], { cls: "a-tests-rowmore" }),
         ] })),
-        total: 560, panel: "a-tests-control",
+        total: RESPQ === "all" ? QN[CTLQV] || 560 : ROWS_ALL.length, panel: "a-tests-control",
       }),
       plain("Statuses, objectives and next steps are WS-X90's, from program_control_status. Owner is a new field: WS-X90 records no control owner, so every row reads Unassigned until someone is assigned."),
     );
@@ -348,29 +442,47 @@
   const SI2_OBJ = [["SI-02a.[01]", "system flaws are identified"], ["SI-02a.[02]", "system flaws are reported"], ["SI-02a.[03]", "system flaws are corrected"], ["SI-02b.[01]", "software updates related to flaw remediation are tested for effectiveness before installation"], ["SI-02b.[02]", "software updates related to flaw remediation are tested for potential side effects before installation"], ["SI-02b.[03]", "firmware updates related to flaw remediation are tested for effectiveness before installation"], ["SI-02b.[04]", "firmware updates related to flaw remediation are tested for potential side effects before installation"], ["SI-02c.[01]", "security-relevant software updates are installed within [time period] of the release of the updates"], ["SI-02c.[02]", "security-relevant firmware updates are installed within [time period] of the release of the updates"], ["SI-02d.", "flaw remediation is incorporated into the organizational configuration management process"]];
   const SI2R = "after-control-record";
   const si2Route = (tab) => (tab === "impl" ? SI2R : `${SI2R}-${tab}`);
-  const SI2_TABS = [["impl", "Implementation"], ["requirements", "Requirements", 1], ["evidence", "Evidence", 1], ["checks", "Checks", 2], ["assessment", "Assessment", 10], ["findings", "Findings", 1], ["history", "History", 3], ["comments", "Comments", 1]];
+  const SI2_TABS = [["impl", "Implementation"], ["requirements", "Requirements", 1], ["evidence", "Evidence", 1], ["checks", "Checks", 2], ["assessment", "Assessment", 10], ["findings", "Findings", 1], ["history", "Activity", 4]];
+  const SI2_ROUTES = [...SI2_TABS.map(([k]) => k), "comments"]; // every address the record answers
+  // v2 F (B1): Add evidence is wired: the version it adds is cited by REQ-064 (PA.v2reqs, one source with REQ-064's chain on the
+  // Requirements page), so it joins this Evidence tab, its count, the rail's Accepted and the Activity tab, pending review.
+  const SI2_EV0 = ["Account disable trigger test report - expiry, disassociation and policy violation, LRU-013", "Test record", "Accepted", "Sep 25", "Mar 25, 2027"];
+  const si2Added = () => (window.PA.v2reqs ? window.PA.v2reqs.evidence("REQ-064").filter((e) => e.at) : []);
+  const si2Ev = () => [SI2_EV0, ...si2Added().map((e) => [e.title, e.kind || "Document", "Pending review", AK.md(e.at), null])];
   const si2Cards = () => `<div class="grid2 a-tests-sum">
     <div class="card a-tests-sumc"><div class="t a-tests-span"><span class="a-tests-tt">Where it stands${co(2)}</span></div>
       <div class="a-tests-sum-l"><div class="big num">0%</div><span class="a-tests-mu">of its 10 assessment objectives assessed</span>${bar(0)}<div class="foot"><span class="num">10 of 10 with evidence</span><span class="num">10 of 10 mapped</span></div></div>
       <div class="a-tests-tiles"><div class="a-tests-tile"><div class="r"><span>Checks</span><b class="num">0/2 OK</b></div>${bar(0)}</div><div class="a-tests-tile"><div class="r"><span>Evidence</span><b class="num">1/1 accepted</b></div>${bar(100)}</div></div>
       <div class="a-tests-trace a-tests-span">${[["Requirements", "1"], ["Evidence", "1"], ["Findings", "None"], ["POA&M", "None"], ["Risks", "None"]].map(([l, v]) => `<span><small>${esc(l)}</small><b class="num${v === "None" ? " a-tests-mu" : ""}">${v}</b></span>`).join("")}</div></div>
     <div class="card a-tests-sumn"><div class="t">Next step</div>
-      <div class="a-tests-nx">${gl("clock")}<span class="a-tests-grow">WS-X90 continuous monitoring — FY2027: its draft plan holds all 10 objectives.</span>${btn("Open assessment campaign", go("after-audits-index"), true)}</div>
+      <div class="a-tests-nx">${gl("clock")}<span class="a-tests-grow">WS-X90 continuous monitoring — FY2027: its draft plan holds all 10 objectives.</span>${btn("Open assessment campaign", go("campaign-conmon"), true)}</div>
       <div class="a-tests-nx bad">${gl("diamond")}<span class="a-tests-grow"><b>CVE-2024-6387</b> (regreSSHion, high) names SI-2 and RA-5 · remediate by ${dueCell("2026-11-09", "overdue")}</span><span class="ak-link" ${go(pageRoute("sbom"))}>Open check</span></div></div></div>`;
+  // v2: Where it stands and Next step are the first tab's Details rail, under the tabs (v1 drew them as two cards between
+  // the facts and the tabs). Numbers only: the trace's counts were the tabs' counts again. Next step's button is a
+  // secondary, so Add evidence is the page's one primary, and the red CVE callout left the card (the operational issue is
+  // on the Findings tab, which still opens the check).
+  const si2Rail = () => `${AK.railCard("Where it stands", [["Assessed", `${of(0, 10)} objectives`], ["With evidence", `${of(10, 10)} objectives`], ["Mapped", `${of(10, 10)} objectives`], ["Checks OK", of(0, 2)], ["Accepted", `${of(1, si2Ev().length)} evidence`]])}
+    <div class="ak-rail-s v2l-next"><div class="ak-rail-t">Next step</div><p class="a-tests-p">WS-X90 continuous monitoring — FY2027: its draft plan holds all 10 objectives.</p><div>${btn("Open assessment campaign", go("campaign-conmon"))}</div></div>`;
   function si2Page(tab, body) {
+    // v2: the title, one status and four facts; Implementation and the parameter are said once, on the first tab.
     const head = factsCo(AK.recordHead({ crumbs: [["Controls", "after-controls-index"], ["SI-2"]], title: "SI-2 Flaw Remediation",
-      actions: `${more("More control actions", [["Assign owner", 'data-modal="a-tests-owner" data-id="SI-2"'], ["Add a note", ""], ["Open the parameter in Baseline", go("baseline-params")]])}${btn("Add evidence", 'data-modal="a-tests-addev" data-id="SI-2"', true)}`,
-      facts: [["Status", stPill("not_assessed")], ["Implementation", `${pill("part", "Partial")}<span class="a-tests-in">in SSP 3</span>`], ["Family", tag("SI")], ["Owner", ownerPick(null, "SI-2")], ["Determined by", mu("Nobody yet")], ["Parameter", `<span class="ak-code">SI-02_ODP</span><span class="a-tests-in">${ring("Not set")}</span>`]] }), co(1));
-    return h.page(head, si2Cards(), tabs(SI2_TABS.map(([k, l, n]) => [l, n, si2Route(k), k === tab]), { Checks: 5, History: 4, Comments: 3 }, "", "Control sections"), body);
+      actions: `${more("More control actions", [["Assign owner", 'data-modal="a-tests-owner" data-id="SI-2"'], ["Open the parameter in Baseline", go("baseline-params")], ...(HOSTR() ? [["Change responsibility", 'data-modal="v2h-resp" data-id="SI-2"']] : [])])}${btn("Add evidence", 'data-modal="a-tests-addev" data-id="SI-2"', true)}`,
+      // v2 (H): Responsibility, the fifth fact (SI-2 is WS-X90's own: no provider offers it).
+      facts: [["Status", stPill("not_assessed")], ["Family", tag("SI")], ["Owner", ownerPick(null, "SI-2")], ["Determined by", mu("—")], ["Responsibility", respCell("SI-2")]] }), co(1));
+    return h.page(head, tabs(SI2_TABS.map(([k, l, n]) => [l, k === "evidence" ? si2Ev().length : n, si2Route(k), k === tab || (k === "history" && tab === "comments")]), { Checks: 5, Activity: 4 }, "", "Control sections"), tab === "impl" ? si2WithRail(body) : body);
   }
-  S[SI2R] = () => si2Page("impl", `<div class="a-tests-row2"><div class="card"><div class="t">Implementation in SSP 3 <span>${pill("part", "Partial")}</span></div>
+  // The rail sits beside the implementation's cards; the tables after them (the STIG rules, the objectives) keep the
+  // page's full width, so they fit their frame at 1440.
+  const RAIL_END = "<!--v2l-rail-end-->";
+  const si2WithRail = (body) => { const [side, rest = ""] = body.split(RAIL_END); return `<div class="v2l-si2">${AK.withRail(side, si2Rail())}</div>${rest}`; };
+  S[SI2R] = () => si2Page("impl", `<div class="a-tests-row2 v2l-impl"><div class="card"><div class="t">Implementation in SSP 3 <span>${pill("part", "Partial")}</span></div>
       <p class="a-tests-p">The SYS-WSX90 satisfies the tailored intent of SI-2 through a combination of system-level procedures and mapped component implementations.</p>
       <div class="next">${gl("ring")}<span>Placeholder text: 74 of SSP 3's 560 narratives read like this one.</span><span class="sp ak-link" data-go="ssp" role="link" tabindex="0">Draft it in the SSP</span></div></div>
-      <div class="card"><div class="t">Parameter</div><dl class="ak-kv"><dt>SI-02_ODP</dt><dd>${ring("Not set")}</dd><dt>Asks</dt><dd>time period to install security-relevant updates</dd><dt>Read by</dt><dd><span class="ak-link" ${go(pageRoute("iava"))}>IAVA and IAVB patches check</span></dd></dl><div>${btn("Set in Baseline", go("baseline-params"))}</div></div></div>
+      <div class="card"><div class="t">Parameter</div><dl class="ak-kv"><dt>SI-02_ODP</dt><dd>${ring("Not set")}</dd><dt>Asks</dt><dd>time period to install security-relevant updates</dd><dt>Read by</dt><dd><span class="ak-link" ${go(pageRoute("iava"))}>IAVA and IAVB patches check</span></dd></dl><div>${btn("Set in Baseline", go("baseline-params"))}</div></div></div>${RAIL_END}
     <h4 class="subhead">Assessment objectives</h4>
     ${tbl({ cols: ["Objective", "Text", "Mapped", "With evidence", "Assessed"], rows: SI2_OBJ.map(([l, t]) => ({ cells: [num(l), tr(t, 470), pill("ok", "Mapped"), pill("ok", "Evidenced"), pill("info", "Not assessed")] })), total: 10, nm: 0 })}`);
-  S[si2Route("requirements")] = () => si2Page("requirements", `${tbl({ cols: ["Requirement", "Title", "Allocated to", "Maps", "Evidence"], rows: [{ cells: ["REQ-064", "SI Monitoring Requirement 064", tag("CN-109116 Update & Recovery Controller"), `${tag("SI-2")} ${tag("SI-10")} ${mu("whole controls")}`, num(1)] }], total: 1, nm: 0 })}${plain("REQ-064 maps SI-2 whole, so it covers all 10 objectives on SYS-WSX90, the only system that selects SI-2.")}`);
-  S[si2Route("evidence")] = () => si2Page("evidence", tbl({ cols: ["Evidence", "Kind", "Review", "Collected", "Renew by", "Cited by"], rows: [{ cells: [tr("Account disable trigger test report - expiry, disassociation and policy violation, LRU-013", 420), tag("Test record"), pill("ok", "Accepted"), num("Sep 25"), num("Mar 25, 2027"), tag("REQ-064")] }], total: 1, nm: 0 }));
+  S[si2Route("requirements")] = () => si2Page("requirements", `${tbl({ cols: ["Requirement", "Title", "Allocated to", "Maps", "Evidence"], rows: [{ cells: ["REQ-064", "SI Monitoring Requirement 064", tag("CN-109116 Update & Recovery Controller"), `${tag("SI-2")} ${tag("SI-10")} ${mu("whole controls")}`, num(si2Ev().length)] }], total: 1, nm: 0 })}${plain("REQ-064 maps SI-2 whole, so it covers all 10 objectives on SYS-WSX90, the only system that selects SI-2.")}`);
+  S[si2Route("evidence")] = () => si2Page("evidence", tbl({ cols: ["Evidence", "Kind", "Review", "Collected", "Renew by", "Cited by"], rows: si2Ev().map(([t, k, rv, c, rn]) => ({ cells: [tr(t, 420), tag(k), pill(rv === "Accepted" ? "ok" : "none", rv), num(c), rn ? num(rn) : mu("—"), tag("REQ-064")] })), total: si2Ev().length, nm: 0 }));
   S[si2Route("checks")] = () => si2Page("checks", `${sectH("Checks that read SI-2", null, "", co(5))}<div class="a-tests-okline">${AK.progress(0, 2, "OK")}</div>${tbl({
     cols: ["Check", "Owner", "Status", "Due date", "Control"],
     rows: ["iava", "sbom"].map((cid) => { const x = checkById(cid); return { go: pageRoute(cid), cells: [`${tr(x.name, 360)}${x.ex ? EX : ""}`, AK.owner(x.owner), ckPill(x), dueCell(x.due, x.state), AK.codes(x.ctl)] }; }),
@@ -381,12 +493,16 @@
     ${tbl({ cols: ["Objective", "Plan", "Determination"], rows: SI2_OBJ.map(([l]) => ({ cells: [num(l), "Continuous monitoring FY2027 · plan 1", pill("none", "Not yet judged")] })), total: 10, nm: 0 })}`);
   S[si2Route("findings")] = () => si2Page("findings", `<div class="card"><div class="t">Assessment findings <span class="num">0</span></div><p class="note-p">No published or draft result judges SI-2.</p></div>
     ${tbl({ cols: ["Operational issue", "Severity", "Opened", "Remediate by", "Owner"], rows: [{ go: pageRoute("sbom"), cells: [tr("CVE-2024-6387 in the OpenSSH server (regreSSHion)", 400), h.sevPill("high"), num("Oct 10"), dueCell("2026-11-09", "overdue"), AK.owner("Ingrid Solberg")] }], total: 1, nm: 0 })}`);
-  S[si2Route("history")] = () => si2Page("history", `${sectH("History", 3, "", co(4))}${AK.activity([
+  // v2: History and Comments are one Activity tab, so the record keeps seven tabs in its strip; both addresses open it.
+  const si2History = () => `${sectH("History", 3 + si2Added().length, "", co(4))}${AK.activity([
+    ...si2Added().slice().reverse().map((e) => ({ who: ME, what: `added <b>${esc(e.title)}</b>, cited by REQ-064; it waits on Nadia Fournier's review`, when: AK.md(e.at) })),
     { who: "Nadia Fournier", what: `accepted <b>Account disable trigger test report - expiry, disassociation and policy violation, LRU-013</b>, collected Sep 25; renew by Mar 25, 2027`, when: "Oct 24, 2026" },
     { who: null, what: "put all 10 objectives in the draft plan 1 of <b>WS-X90 continuous monitoring — FY2027</b>", when: "Date not recorded" },
     { who: null, what: "recorded <b>REQ-064</b> mapping SI-2 whole on CN-109116 Update & Recovery Controller", when: "Date not recorded" },
-  ])}${plain("Newest first. The plan and the mapping carry no date in WS-X90's records.")}`);
-  S[si2Route("comments")] = () => si2Page("comments", `${sectH("Comments", 1, "", co(3))}${AK.comments({ you: ME, items: [{ who: "D. Okafor", role: "Lead assessor", when: "Nov 16, 2:05 PM", text: `The one evidence version cited is an account-disable test. ${AK.mention("Joel Barrantes")}, attach the openssh-server 9.8p1 patch record so SI-2c can be judged. ${EX}` }] })}${AK.note("The comment is invented; it carries what the Evidence tab's footnote said before.")}`);
+  ])}${plain("Newest first. The plan and the mapping carry no date in WS-X90's records.")}`;
+  const si2Comments = () => `${sectH("Comments", 1, "", co(3))}${AK.comments({ you: ME, items: [{ who: "D. Okafor", role: "Lead assessor", when: "Nov 16, 2:05 PM", text: `The one evidence version cited is an account-disable test. ${AK.mention("Joel Barrantes")}, attach the openssh-server 9.8p1 patch record so SI-2c can be judged. ${EX}` }] })}${AK.note("The comment is invented; it carries what the Evidence tab's footnote said before.")}`;
+  S[si2Route("history")] = () => si2Page("history", `${si2Comments()}${si2History()}`);
+  S[si2Route("comments")] = () => si2Page("comments", `${si2Comments()}${si2History()}`);
 
   // ════════════════ Frameworks & overlays ════════════════
   // The four reference baselines against WS-X90's stack, from mod-compliance.js (GAPS) and program_control_status.
@@ -406,7 +522,8 @@
   const AC_HIGH = [["AC-1", "Policy and Procedures", "partially_satisfied"], ["AC-2", "Account Management", "satisfied"], ["AC-2(1)", "Automated System Account Management", "satisfied"], ["AC-2(2)", "Automated Temporary and Emergency Account Management", "satisfied"], ["AC-2(3)", "Disable Accounts", "satisfied"], ["AC-2(4)", "Automated Audit Actions", "satisfied"], ["AC-2(5)", "Inactivity Logout", "no_evidence"], ["AC-2(11)", "Usage Conditions", "no_evidence"], ["AC-2(12)", "Account Monitoring for Atypical Usage", "no_evidence"], ["AC-2(13)", "Disable Accounts for High-risk Individuals", "no_evidence"]];
   // Each layer's effect where it sits in WS-X90's stack (mod-compliance.js derive()), and the running count.
   const LAYERS = [["CNSSI 1253 National Security System Allocation", "Overlay", 201, 17, 554], ["Mission Assurance Overlay", "Overlay", 0, 5, 549], ["Deployed Platform Overlay", "Overlay", 1, 0, 550], ["Customer A Tailoring", "Overlay", 0, 4, 546], ["WS-X90 program tailoring", "Tailoring", 14, 0, 560]];
-  const fwHead = () => h.header("Frameworks & overlays", "<span>Catalog <b>NIST SP 800-53 Rev 5.1.1</b> · 1,014 active controls · 20 families</span>", `<span class="btn">Import OSCAL</span><span class="btn ink" role="button" tabindex="0">Create overlay</span>`);
+  // v2 (C1) [B9]: both header actions open their dialogs (neither is wired, and each says so when pressed).
+  const fwHead = () => h.header("Frameworks & overlays", "<span>Catalog <b>NIST SP 800-53 Rev 5.1.1</b> · 1,014 active controls · 20 families</span>", `<span class="btn" role="button" tabindex="0" data-modal="v2k-import-oscal">Import OSCAL</span><span class="btn ink" role="button" tabindex="0" data-modal="v2k-create-overlay">Create overlay</span>`);
   const baseRoute = (id, tab) => `after-frameworks-${id}${tab && tab !== "controls" ? "-" + tab : ""}`;
   S["after-frameworks"] = () => h.page(
     fwHead(),
@@ -468,34 +585,56 @@
 
   // ════════════════ Assessments ════════════════
   // assessment_campaigns, their plans, results and requests for WS-X90 (mod-compliance.js and the local database).
-  const TRK = (a, r, f, i = 0, n = 0) => [["Not ready", n, "var(--ink-4)"], ["Internal review", i, "var(--warn)"], ["Ready", r, "var(--info)"], ["Flagged", f, "var(--bad)"], ["Accepted", a, "var(--ok)"]];
+  // v2: Ready is a waiting state, grey like its pill (v1 drew it blue).
+  const TRK = (a, r, f, i = 0, n = 0) => [["Not ready", n, "var(--line-strong)"], ["Internal review", i, "var(--warn)"], ["Ready", r, "var(--ink-4)"], ["Flagged", f, "var(--bad)"], ["Accepted", a, "var(--ok)"]];
   const tracker = (parts, title = "Request tracker", c = "") => `<div class="a-tests-box a-tests-trk"><div class="a-tests-box-t">${esc(title)}${c}</div>${stackBar(parts)}</div>`;
   const tline = (steps) => `<ol class="a-tests-tl">${steps.map(([g, t, d]) => `<li class="${g}">${g === "done" ? gl("check") : g === "now" ? gl("clock") : gl("ring")}<span><b>${esc(t)}</b><span>${d}</span></span></li>`).join("")}</ol>`;
   const resRow = (icon, title, meta, action) => `<div class="a-tests-resr">${AK.i(icon)}<span class="a-tests-grow"><b>${esc(title)}</b><span class="a-tests-sub">${meta}</span></span>${action || ""}</div>`;
+  // v2 (C1): a published increment 2 and the requests the chain sent read the same on the card, the campaign and Authorization.
+  const inc2Row = () => { const i2 = CH() && CH().inc2(); return i2 ? resRow("task", i2.title, `Published ${AK.md(i2.at)} by ${esc(i2.by)} · 20 findings`, btn("Download", 'data-modal="v2k-export" data-id="increment 2 results"')) : resRow("pen", "Interim results — expanded control set, increment 2", "Draft · 20 findings, Nov 11–13 · decides nothing until published", btn("Publish results", 'data-modal="a-tests-publish"', true)); };
+  const chainCampBox = (cid, empty) => {
+    const ch = CH(), rq = ch ? ch.requests(cid) : [];
+    if (!rq.length) return `<div class="a-tests-box"><div class="a-tests-box-t">Request tracker</div><p class="a-tests-p">${empty}</p></div>`;
+    const ready = rq.filter((x) => x.s.ready && !x.s.det).length, judged = rq.filter((x) => x.s.det).length, nr = rq.length - ready - judged;
+    return tracker(TRK(judged, ready, 0, 0, nr), `Request tracker · ${rq.length}`);
+  };
+  const chainResRow = (cid) => { const ch = CH(); const r = ch && ch.results(cid), d = ch ? ch.draftDets(cid) : []; return r ? resRow("task", r.title, `Published ${AK.md(r.at)} by ${esc(r.by)} · ${r.n} determination${r.n === 1 ? "" : "s"}`) : d.length ? resRow("pen", "Results — draft", `Draft · ${d.length} determination${d.length === 1 ? "" : "s"} · decides nothing until published`, btn("Publish results", `data-modal="v2k-publish" data-id="${esc(cid)}"`, true)) : resRow("task", "No results yet", "Results join the card once the assessor records findings"); };
   function campCard(cid, c = () => "") {
     if (cid === "exp") return `<div class="card a-tests-camp"><div class="a-tests-camp-h"><div><span class="a-tests-camp-t">WS-X90 Expanded Control Set Assessment${c(1)}</span><div class="a-tests-chips">${pill("info", "Active")}${AK.chip("Control assessment")}${AK.chip("Security assessment plan — expanded control set · version 1")}</div></div>
-        <div class="a-tests-camp-r"><span class="a-tests-ppl">${avs(["D. Okafor", "Nadia Fournier"])}<span class="a-tests-mu">Lead assessor and assessor</span></span>${btn("Open campaign", go("after-audit-record"))}${more("More campaign actions", [["Export requests", ""], ["Publish results", 'data-modal="a-tests-publish"'], ["Leave assessment", ""]])}</div></div>
+        <div class="a-tests-camp-r"><span class="a-tests-ppl">${avs(["D. Okafor", "Nadia Fournier"])}<span class="a-tests-mu">Lead assessor and assessor</span></span>${btn("Open campaign", go("after-audit-record"))}${more("More campaign actions", [["Export requests", 'data-modal="v2k-export" data-id="requests"'], ...(CH() && CH().inc2() ? [] : [["Publish results", 'data-modal="a-tests-publish"']])])}</div></div>
       <div class="a-tests-camp-b"><div class="a-tests-box"><div class="a-tests-box-t">Timeline</div>${tline([["done", "Plan published", "Sep 8, 2026"], ["done", "Window opens", "Sep 14, 2026"], ["now", "Window closes", `Nov 20, 2026 · ${days("2026-11-20")} days left`]])}</div>${tracker(TRK(226, 88, 54), "Request tracker · 368")}</div>
-      <div class="a-tests-res"><div class="a-tests-res-t">Results${c(4)}</div>${resRow("task", "Security assessment report — expanded control set, increment 1", "Published Nov 12 by D. Okafor · 225 findings", btn("Download"))}${resRow("pen", "Interim results — expanded control set, increment 2", "Draft · 20 findings, Nov 11–13 · decides nothing until published", btn("Publish results", 'data-modal="a-tests-publish"', true))}</div></div>`;
+      <div class="a-tests-res"><div class="a-tests-res-t">Results${c(4)}</div>${resRow("task", "Security assessment report — expanded control set, increment 1", "Published Nov 12 by D. Okafor · 225 findings", btn("Download", 'data-modal="v2k-export" data-id="increment 1 report"'))}${inc2Row()}</div></div>`;
     if (cid === "conmon") return `<div class="card a-tests-camp"><div class="a-tests-camp-h"><div><span class="a-tests-camp-t">WS-X90 continuous monitoring — FY2027</span><div class="a-tests-chips">${pill("info", "Active")}${AK.chip("Control assessment")}${AK.chip("Continuous monitoring plan — FY2027 · version 1 · Draft")}</div></div>
-        <div class="a-tests-camp-r"><span class="a-tests-ppl">${avs(["D. Okafor", "Priya Raghavan"])}<span class="a-tests-mu">Lead assessor and owner</span></span>${btn("Open campaign")}${more("More campaign actions", [["Publish the plan", ""], ["Export the plan", ""]])}</div></div>
-      <div class="a-tests-camp-b"><div class="a-tests-box"><div class="a-tests-box-t">Timeline</div>${tline([["todo", "Plan", "Version 1, a draft"], ["done", "Window opens", "Oct 1, 2026"], ["todo", "Window closes", "Sep 30, 2027"]])}</div><div class="a-tests-box"><div class="a-tests-box-t">Request tracker</div><p class="a-tests-p">No requests yet. The draft plan holds 10 objectives (SI-2) and 14 scheduled tasks; the next is the mission network scan, ${dueCell("2026-11-15", "overdue")}.</p></div></div>
-      <div class="a-tests-res">${resRow("task", "No results yet", "Results join the card once the assessor records findings")}</div></div>`;
+        <div class="a-tests-camp-r"><span class="a-tests-ppl">${avs(["D. Okafor", "Priya Raghavan"])}<span class="a-tests-mu">Lead assessor and owner</span></span>${btn("Open campaign", go("campaign-conmon"))}</div></div>
+      <div class="a-tests-camp-b"><div class="a-tests-box"><div class="a-tests-box-t">Timeline</div>${tline([["todo", "Plan", "Version 1, a draft"], ["done", "Window opens", "Oct 1, 2026"], ["todo", "Window closes", "Sep 30, 2027"]])}</div>${chainCampBox("conmon", `No requests yet. The draft plan holds 10 objectives (SI-2) and 14 scheduled tasks; the next is the mission network scan, ${dueCell("2026-11-15", "overdue")}.`)}</div>
+      <div class="a-tests-res">${chainResRow("conmon")}</div></div>`;
+    if (/^new\d+$/.test(cid)) { const k = CH() && CH().camp(cid); if (!k) return ""; return `<div class="card a-tests-camp"><div class="a-tests-camp-h"><div><span class="a-tests-camp-t">${esc(k.title)}</span><div class="a-tests-chips">${pill("none", "Planned")}${AK.chip("Control assessment")}${AK.chip(k.plan)}</div></div>
+        <div class="a-tests-camp-r"><span class="a-tests-ppl">${avs(["D. Okafor", ME])}<span class="a-tests-mu">Lead assessor and owner</span></span>${btn("Open campaign", go(k.route))}</div></div>
+      <div class="a-tests-camp-b"><div class="a-tests-box"><div class="a-tests-box-t">Timeline</div>${tline([["todo", "Plan", "Version 1, a draft"], ["todo", "Window opens", AK.md(k.from)], ["todo", "Window closes", AK.md(k.to)]])}</div>${chainCampBox(cid, "No requests yet. A control added from its own page sends a request for its evidence here.")}</div>
+      <div class="a-tests-res">${chainResRow(cid)}</div></div>`; }
+    // v2 F (B1, the re-review's new medium): the card's Plan an assessment gives this planned campaign its first plan (a draft on
+    // SSP 2, kept in chain.camps as "cvi"), so the card then opens its campaign; the header's plans a new campaign.
+    if (cid === "cvi" && CH() && CH().camp("cvi")) { const k = CH().camp("cvi"); return `<div class="card a-tests-camp"><div class="a-tests-camp-h"><div><span class="a-tests-camp-t">${esc(k.title)}</span><div class="a-tests-chips">${pill("none", "Planned")}${AK.chip("Cyber test · CVI")}${AK.chip(k.plan)}</div></div>
+        <div class="a-tests-camp-r"><span class="a-tests-ppl">${avs(["Ingrid Solberg"])}<span class="a-tests-mu">Owner</span></span>${btn("Open campaign", go(k.route))}</div></div>
+      <div class="a-tests-camp-b"><div class="a-tests-box"><div class="a-tests-box-t">Timeline</div>${tline([["done", "Plan", "Version 1, a draft"], ["todo", "Window opens", AK.md(k.from)], ["todo", "Window closes", AK.md(k.to)]])}</div>${chainCampBox("cvi", "No requests yet. Controls join its draft plan from their own pages.")}</div>
+      <div class="a-tests-res">${chainResRow("cvi")}</div></div>`; }
     if (cid === "cvi") return `<div class="card a-tests-camp"><div class="a-tests-camp-h"><div><span class="a-tests-camp-t">WS-X90 cooperative vulnerability identification — FY2027</span><div class="a-tests-chips">${pill("none", "Planned")}${AK.chip("Cyber test · CVI")}<span class="a-tests-mu num">Jan 11 – Feb 5, 2027</span></div></div>
         <div class="a-tests-camp-r"><span class="a-tests-ppl">${avs(["Ingrid Solberg"])}<span class="a-tests-mu">Owner</span></span>${btn("Plan an assessment", 'data-modal="a-tests-plan"')}</div></div>
       <div class="a-tests-res">${resRow("task", "No plan yet", "Plan an assessment to give it objectives and requests")}</div></div>`;
     return `<div class="card a-tests-camp"><div class="a-tests-camp-h"><div><span class="a-tests-camp-t">WS-X90 Initial Authorization Security Assessment</span><div class="a-tests-chips">${pill("ok", "Completed")}${AK.chip("Control assessment")}${AK.chip("Security assessment plan — initial authorization · version 1")}</div></div>
-        <div class="a-tests-camp-r"><span class="a-tests-ppl">${avs(["D. Okafor"])}<span class="a-tests-mu">Lead assessor</span></span>${btn("Open campaign")}</div></div>
+        <div class="a-tests-camp-r"><span class="a-tests-ppl">${avs(["D. Okafor"])}<span class="a-tests-mu">Lead assessor</span></span></div></div>
       <div class="a-tests-camp-b"><div class="a-tests-box"><div class="a-tests-box-t">Timeline</div>${tline([["done", "Plan published", "Jul 28, 2026"], ["done", "Window opens", "Aug 3, 2026"], ["done", "Window closes", "Aug 21, 2026"]])}</div><div class="a-tests-box"><div class="a-tests-box-t">Determinations · 68</div>${stackBar([["Satisfied", 50, "var(--ok)"], ["Partially", 13, "var(--warn)"], ["Other than", 4, "var(--bad)"], ["Not assessed", 1, "var(--ink-4)"]])}</div></div>
-      <div class="a-tests-res">${resRow("task", "Security assessment report — initial authorization", "Published Aug 28 by D. Okafor · 68 findings", btn("Download"))}</div></div>`;
+      <div class="a-tests-res">${resRow("task", "Security assessment report — initial authorization", "Published Aug 28 by D. Okafor · 68 findings", btn("Download", 'data-modal="v2k-export" data-id="initial authorization report"'))}</div></div>`;
   }
-  const asHead = (c = "") => h.header("Assessments", "<span>4 campaigns · 2 active</span><span>Lead assessor <b>D. Okafor</b></span>", `<span class="btn" role="button" tabindex="0" ${go("after-audits-index-assessor")}>Open assessor's view</span>${c}<span class="btn ink" role="button" tabindex="0" data-modal="a-tests-plan">Plan an assessment</span>`);
+  // v2 (C1) [B7]: the head counts what the tabs list: the Active tab holds the running campaigns and the planned ones.
+  const planned = () => (CH() ? CH().camps().filter((k) => /^new/.test(k.id)) : []);
+  const asHead = (c = "") => h.header("Assessments", `<span>${4 + planned().length} campaigns · 2 running, ${1 + planned().length} planned, 1 completed</span><span>Lead assessor <b>D. Okafor</b></span>`, `<span class="btn" role="button" tabindex="0" ${go("after-audits-index-assessor")}>Open assessor's view</span>${c}<span class="btn ink" role="button" tabindex="0" data-modal="v2k-plan" data-id="">Plan an assessment</span>`);
   S["after-audits-index"] = () => h.page(
     asHead(co(5)),
-    tabs([["Active", 3, null, true], ["Completed", 1, "after-audits-index-completed"]], {}, `<span class="a-tests-tabco">${co(2)}</span>`, "Campaigns"),
+    tabs([["Active", 3 + planned().length, null, true], ["Completed", 1, "after-audits-index-completed"]], {}, `<span class="a-tests-tabco">${co(2)}</span>`, "Campaigns"),
     filters("Search campaigns", ["Kind", "Lead assessor", ["Assigned to me", co(3)]]),
-    `<div class="a-tests-camps">${campCard("exp", co)}${campCard("conmon")}${campCard("cvi")}</div>`,
-    plain("The Active tab keeps the planned campaign beside the two running, as an upcoming audit stays on Vanta's Active tab."),
+    `<div class="a-tests-camps">${campCard("exp", co)}${campCard("conmon")}${planned().map((k) => campCard(k.id)).join("")}${campCard("cvi")}</div>`,
+    plain("The Active tab keeps the planned campaigns beside the two running, as an upcoming audit stays on Vanta's Active tab."),
   );
   S["after-audits-index-completed"] = () => h.page(
     asHead(),
@@ -505,17 +644,19 @@
   );
   S["after-audits-index-assessor"] = () => h.page(
     h.header("D. Okafor's campaigns", "<span>Lead assessor · WS-X90 Sentinel Mission System</span>", `<span class="btn" role="button" tabindex="0" ${go("after-audits-index")}>Back to the program's view</span>`),
-    `<div class="a-tests-stats">${[["clock", "Active", 2], ["calendar", "Planned", 1], ["pen", "Results to publish", 1], ["check", "Completed", 1]].map(([i, l, n], k) => `<div class="a-tests-stat"><span class="a-tests-stat-i">${AK.i(i)}</span><span><span class="a-tests-mu">${l}</span><b class="num">${n}</b></span>${k === 0 ? co(5) : ""}</div>`).join("")}</div>`,
+    `<div class="a-tests-stats">${[["clock", "Active", 2], ["calendar", "Planned", 1 + planned().length], ["pen", "Results to publish", (CH() && CH().inc2() ? 0 : 1) + (CH() && CH().draftDets("conmon").length ? 1 : 0)], ["check", "Completed", 1]].map(([i, l, n], k) => `<div class="a-tests-stat"><span class="a-tests-stat-i">${AK.i(i)}</span><span><span class="a-tests-mu">${l}</span><b class="num">${n}</b></span>${k === 0 ? co(5) : ""}</div>`).join("")}</div>`,
     filters("Search campaigns", ["Program", "Status", "Kind"]),
     tbl({
       cols: ["Campaign", "Status", "Requests ready", "Window", "Assessors", sr("Open")],
+      // v2 (C1) [B11]: each Open opens the campaign it names; a campaign with no page of its own has no Open.
       rows: [
         { go: "after-audit-record", cells: [tr("WS-X90 Expanded Control Set Assessment", 320), pill("info", "Active"), `<span class="a-tests-prog">${bar(pct(88, 368), "var(--info)")}<span class="num">88 of 368</span></span>`, num("Sep 14 – Nov 20"), avs(["D. Okafor", "Nadia Fournier"]), btn("Open", go("after-audit-record"))] },
-        { cells: [tr("WS-X90 continuous monitoring — FY2027", 320), pill("info", "Active"), mu("No requests yet"), num("Oct 1 – Sep 30, 2027"), avs(["D. Okafor"]), btn("Open")] },
-        { cells: [tr("WS-X90 cooperative vulnerability identification — FY2027", 320), pill("none", "Planned"), mu("No plan yet"), num("Jan 11 – Feb 5, 2027"), avs(["D. Okafor"]), btn("Open")] },
-        { cells: [tr("WS-X90 Initial Authorization Security Assessment", 320), pill("ok", "Completed"), mu("Results published Aug 28"), num("Aug 3 – Aug 21"), avs(["D. Okafor"]), btn("Open")] },
+        { go: "campaign-conmon", cells: [tr("WS-X90 continuous monitoring — FY2027", 320), pill("info", "Active"), CH() && CH().requests("conmon").length ? num(`${CH().requests("conmon").filter((x) => x.s.ready).length} of ${CH().requests("conmon").length}`) : mu("No requests yet"), num("Oct 1 – Sep 30, 2027"), avs(["D. Okafor"]), btn("Open", go("campaign-conmon"))] },
+        ...planned().map((k) => ({ go: k.route, cells: [tr(k.title, 320), pill("none", "Planned"), CH().requests(k.id).length ? num(`${CH().requests(k.id).filter((x) => x.s.ready).length} of ${CH().requests(k.id).length}`) : mu("No requests yet"), num(`${AK.md(k.from)} – ${AK.md(k.to)}`), avs(["D. Okafor"]), btn("Open", go(k.route))] })),
+        { cells: [tr("WS-X90 cooperative vulnerability identification — FY2027", 320), pill("none", "Planned"), mu("No plan yet"), num("Jan 11 – Feb 5, 2027"), avs(["D. Okafor"]), mu("")] },
+        { cells: [tr("WS-X90 Initial Authorization Security Assessment", 320), pill("ok", "Completed"), mu("Results published Aug 28"), num("Aug 3 – Aug 21"), avs(["D. Okafor"]), mu("")] },
       ],
-      total: 4, nm: 0,
+      total: 4 + planned().length, nm: 0,
     }),
   );
 
@@ -540,9 +681,15 @@
     ["r14", "IA-12", "Identity Proofing", "Registration authority identity proofing walkthrough record, LRU-017", "Joel Barrantes", "pending", null, "Document", "2026-11-12", null, "2026-11-14", "Walkthrough record of the identity proofing procedure performed at the Provisioning Workstation (LRU-017), listing the assurance level applied per role and the collection, validation and verification steps."],
   ];
   const reqById = (id) => REQUESTS.find((r) => r[0] === id) || REQUESTS[1];
-  const teamPill = () => pill("info", "Ready");
-  const asPill = (r) => (r[5] === "accepted" ? pill("ok", "Accepted") : r[5] === "needs_revision" ? pill("bad", "Flagged") : pill("none", "Waiting on assessor"));
-  const reqDue = (r) => (r[5] === "needs_revision" ? dueCell(r[10], days(r[10]) < 0 ? "overdue" : "open") : AK.due(r[10], { done: true, prefix: false }));
+  // v2: one status a request, in the tracker's words (Not ready, Internal review, Ready, Flagged, Accepted). Ready means
+  // the team is done and the request waits on the assessor; the assessor flags or accepts it.
+  const teamPill = () => pill("none", "Ready");
+  const asPill = (r) => (r[5] === "accepted" ? pill("ok", "Accepted") : r[5] === "needs_revision" && !READY[r[0]] ? pill("bad", "Flagged") : pill("none", "Ready"));
+  // v2 (C1): a flagged request the team set Ready again leaves Flagged for Ready in the tracker and the quick views too.
+  const reReady = () => REQUESTS.filter((r) => r[5] === "needs_revision" && READY[r[0]]).length;
+  const detText = (r) => (r[6] ? `<span class="a-tests-ink">${esc(ST[r[6]][1])}</span>` : mu("—"));
+  // v2: a due date is toned only once it is overdue; a request the team has handed over shows its day plainly.
+  const reqDue = (r) => (r[5] === "needs_revision" && days(r[10]) < 0 ? AK.due(r[10], { prefix: false }) : AK.due(r[10], { done: true, prefix: false }));
   const reqRoute = (id, tab) => `after-audit-record-${id}${tab && tab !== "evidence" ? "-" + tab : ""}`;
   // The 20 findings of increment 2 (draft): the evidence each cites and how much of it the assessor accepted, and the
   // sentence of the finding that carries its justification.
@@ -570,27 +717,34 @@
   ];
   const FAM1 = [["SC", 33, 21, 2, 4, 6], ["SA", 31, 11, 2, 1, 17], ["AC", 23, 16, 3, 0, 4], ["SI", 23, 16, 1, 2, 4], ["AU", 17, 10, 3, 1, 3], ["CM", 17, 11, 3, 0, 3], ["IR", 15, 6, 2, 0, 7], ["PE", 11, 4, 0, 1, 6], ["CP", 11, 6, 2, 0, 3], ["PS", 8, 5, 1, 0, 2], ["RA", 8, 3, 1, 0, 4], ["SR", 8, 5, 0, 0, 3]];
   const campHead = (tab) => factsCo(AK.recordHead({ crumbs: [["Assessments", "after-audits-index"], ["Expanded Control Set Assessment"]], title: "Expanded Control Set Assessment",
-    actions: `${more("More campaign actions", [["Export requests", ""], ["Leave assessment", go("after-audits-index")]])}${btn("Publish results", 'data-modal="a-tests-publish"', true)}`,
+    actions: `${more("More campaign actions", [["Export requests", 'data-modal="v2k-export" data-id="requests"'], ["Leave assessment", go("after-audits-index")]])}${CH() && CH().inc2() ? `<span class="btn" aria-disabled="true" title="Increment 2 was published ${AK.md(CH().inc2().at)}">Results published</span>` : btn("Publish results", 'data-modal="a-tests-publish"', true)}`,
     facts: [["Kind", AK.chip("Control assessment")], ["Status", pill("info", "Active")], ["Window", `Sep 14 – Nov 20 ·&nbsp;<b>${days("2026-11-20")} days left</b>`], ["Plan", `<span title="Security assessment plan — expanded control set">Version 1, published Sep 8</span>`], ["Lead assessor", AK.owner("D. Okafor")], ["Assessor", AK.owner("Nadia Fournier")]] }), tab === "requests" ? co(1) : "")
     .replace(/<\/div>$/, `${tabs([["Requests", 368, "after-audit-record", tab === "requests"], ["Findings", 245, "after-audit-record-findings", tab === "findings"]], tab === "requests" ? { Findings: 7 } : {}, "", "Campaign sections")}</div>`);
   S["after-audit-record"] = () => {
     const key = "req";
-    const s = sel(key, ["r2", "r6", "r11"]);
-    const ids = REQUESTS.map((r) => r[0]);
+    // v2: nothing is ticked when the page opens; the selection bar replaces the filters only once a row is ticked.
+    const s = sel(key);
+    // v2 (C1): the quick views are filters: each keeps the sample rows in its status, and the table counts the view's total.
+    const stOf = (r) => (r[5] === "accepted" ? "accepted" : r[5] === "needs_revision" && !READY[r[0]] ? "flagged" : "ready");
+    const VIEWS = [["all", "All", 368], ["ready", "Ready", 88 + reReady()], ["flagged", "Flagged", 54 - reReady()], ["accepted", "Accepted", 226]];
+    const shownReq = REQUESTS.filter((r) => CQV === "all" || stOf(r) === CQV);
+    const ids = shownReq.map((r) => r[0]);
+    const viewsHtml = `<div class="views" role="group" aria-label="Quick views">${VIEWS.map(([k2, l, n]) => `<span class="qv${k2 === CQV ? " on" : ""}" role="button" tabindex="0" aria-pressed="${k2 === CQV}" data-atqv="${k2}">${esc(l)} <span class="num">${fmt(n)}</span></span>`).join("")}</div>`;
+    // v2: the tracker and the quick views count the same 368 requests, in the same words (v1: tracker 368, All 14).
     return h.page(
       campHead("requests"),
-      tracker(TRK(226, 88, 54), "Request tracker · 368", co(2)),
-      h.views([["All", 14], ["Waiting on me", 6], ["Flagged", 4], ["Accepted", 4]]),
-      s.size ? bulkBar(key, "Search requests", s.size, ["Set Ready", "Assign owner"], { c: co(6), attrs: { "Set Ready": `data-modal="a-tests-ready" data-id="${s.size}"`, "Assign owner": `data-modal="a-tests-owner" data-id="${s.size} requests"` } })
-        : filters("Search requests", ["Control", "Owner", "Team status", "Assessor status", "Due date status"], `<span class="btn sm">${AK.i("down")}Export</span>`),
+      tracker(TRK(226, 88 + reReady(), 54 - reReady()), "Request tracker · 368", co(2)),
+      viewsHtml,
+      s.size ? bulkBar(key, "Search requests", s.size, ["Set Ready", "Assign owner"], { c: co(6), attrs: { "Set Ready": `data-modal="a-tests-ready" data-id="${[...s].join(",")}"`, "Assign owner": `data-modal="a-tests-owner" data-id="${s.size} requests"` } })
+        : filters("Search requests", ["Control", "Owner", "Status", "Due date"]),
       tbl({
-        cols: [cbAll(key, ids, "Select every request shown"), "Request", "Control", "Owner", "Team", "Assessor", "Determination", `Due date ${EX}${co(3)}`],
-        rows: REQUESTS.map((r) => ({ id: r[0], go: reqRoute(r[0]), sel: s.has(r[0]), cells: [
+        cols: [cbAll(key, ids, "Select every request shown"), "Request", "Control", "Owner", "Status", "Determination", `Due date ${EX}${co(3)}`],
+        rows: shownReq.map((r) => ({ id: r[0], go: reqRoute(r[0]), sel: s.has(r[0]), cells: [
           cb(key, r[0], s.has(r[0]), `Select ${r[3]}`),
-          `<span class="a-tests-name">${tr(r[3], 200)}${r[5] !== "pending" ? `<span class="a-tests-cmt" title="1 assessor comment">${AK.i("chat")}1</span>` : ""}</span>`,
-          tag(r[1]), AK.owner(r[4]), teamPill(), `${asPill(r)}${r[0] === "r2" ? co(4) + co(5) : ""}`, r[6] ? stPill(r[6]) : mu("None yet"), reqDue(r),
+          `<span class="a-tests-name">${tr(r[3], 260)}${r[5] !== "pending" ? `<span class="a-tests-cmt" title="1 assessor comment">${AK.i("chat")}1</span>` : ""}</span>`,
+          tag(r[1]), AK.owner(r[4]), `${asPill(r)}${r[0] === "r2" ? co(4) + co(5) : ""}`, detText(r), reqDue(r),
         ] })),
-        total: 368,
+        total: (VIEWS.find((x) => x[0] === CQV) || VIEWS[0])[2],
       }),
       AK.note("Due dates are invented: WS-X90 records none for a request. Review states, reviewers and the determinations of the draft increment 2 are WS-X90's; the team's Ready is read from each evidence version being under review."),
     );
@@ -599,9 +753,10 @@
     const one = INC === "1";
     const det = one ? [124, 21, 9, 71] : [13, 4, 1, 2];
     const t = det.reduce((a, b) => a + b, 0);
+    const i2 = CH() && CH().inc2(); // v2 (C1): increment 2 once published
     return h.page(
       campHead("findings"),
-      `<div class="a-tests-box a-tests-trk"><div class="a-tests-box-t">Determination tracker · ${one ? "increment 1, published Nov 12" : "increment 2, draft"}${co(7)}<span class="a-tests-push"><span class="a-tests-seg" role="group" aria-label="Increment"><button type="button" aria-pressed="${one}" data-atinc="1">Increment 1 · 225</button><button type="button" aria-pressed="${!one}" data-atinc="2">Increment 2 · draft, 20</button></span></span></div>${stackBar([["Satisfied", det[0], "var(--ok)"], ["Partially", det[1], "var(--warn)"], ["Other than", det[2], "var(--bad)"], ["Not assessed", det[3], "var(--ink-4)"]])}<p class="note-p num">${one ? `${t} findings judged by Nadia Fournier on each control's statement, published by D. Okafor.` : `${t} findings by Nadia Fournier, Nov 11–13. A draft decides nothing until it is published.`}</p></div>`,
+      `<div class="a-tests-box a-tests-trk"><div class="a-tests-box-t">Determination tracker · ${one ? "increment 1, published Nov 12" : i2 ? `increment 2, published ${AK.md(i2.at)}` : "increment 2, draft"}${co(7)}<span class="a-tests-push"><span class="a-tests-seg" role="group" aria-label="Increment"><button type="button" aria-pressed="${one}" data-atinc="1">Increment 1 · 225</button><button type="button" aria-pressed="${!one}" data-atinc="2">Increment 2 · ${i2 ? "" : "draft, "}20</button></span></span></div>${stackBar([["Satisfied", det[0], "var(--ok)"], ["Partially", det[1], "var(--warn)"], ["Other than", det[2], "var(--bad)"], ["Not assessed", det[3], "var(--ink-4)"]])}<p class="note-p num">${one ? `${t} findings judged by Nadia Fournier on each control's statement, published by D. Okafor.` : i2 ? `${t} findings by Nadia Fournier, Nov 11–13, published ${AK.md(i2.at)} by ${esc(i2.by)}: WS-X90's control statuses read them now.` : `${t} findings by Nadia Fournier, Nov 11–13. A draft decides nothing until it is published.`}</p></div>`,
       filters("Search findings", ["Determination", "Family", "Requests accepted"]),
       one
         ? tbl({ cols: ["Family", "Findings", "Satisfied", "Partially", "Other than", "Not assessed"], rows: FAM1.map(([f, n, s2, p, o, x]) => ({ cells: [tag(f), num(n), num(s2), p ? `<span class="num a-tests-warn">${p}</span>` : mu("0"), o ? `<span class="num a-tests-bad">${o}</span>` : mu("0"), x ? num(x) : mu("0")] })), total: 16, nm: 0 })
@@ -616,7 +771,7 @@
     const setStatus = more("Set status", [[`${pill("none", "Not ready")}`, ""], [`${pill("warn", "Internal review")}`, ""], [`${pill("info", "Ready")}`, ""], ["Who sets what: the team moves a request from Not ready through Internal review to Ready; only the assessor flags or accepts it, with a determination and a justification.", "", "help"]], { text: "Set status", sm: true });
     const head = factsCo(AK.recordHead({ back: ["Requests", "after-audit-record"], title: r[3], desc: esc(r[11]),
       actions: `${setStatus}${btn("Flag", `data-modal="a-tests-assess" data-id="${r[0]}|flag"`)}${btn("Accept", `data-modal="a-tests-assess" data-id="${r[0]}|accept"`, true)}`,
-      facts: [["Team status", teamPill()], ["Assessor", asPill(r)], ["Determination", r[6] ? stPill(r[6]) : mu("None yet")], ["Control", `<span class="ak-code">${r[1]}</span><span class="a-tests-in">${esc(r[2])}</span>`], ["Owner", ownerPick(r[4], r[3])], ["Due date", `${reqDue(r)}<span class="a-tests-in">${EX}</span>`], ["Evidence", `Version 1 · ${esc(r[7].toLowerCase())}`]] }))
+      facts: [["Status", asPill(r)], ["Determination", detText(r)], ["Control", `<span class="ak-code">${r[1]}</span><span class="a-tests-in">${esc(r[2])}</span>`], ["Owner", ownerPick(r[4], r[3])], ["Due date", `${reqDue(r)}<span class="a-tests-in">${EX}</span>`], ["Evidence", `Version 1 · ${esc(r[7].toLowerCase())}`]] }))
       .replace(/<\/div>$/, `${tabs(reqTabs(r).map(([k, l, n]) => [l, n, reqRoute(r[0], k), k === tab]), { Activity: 5, "Assessor comments": 4 }, "", "Request sections")}</div>`);
     const thread = flagged || acc ? [{ who: "Nadia Fournier", role: "Assessor", when: r[9], flag: flagged ? `Flagged · ${ST[r[6]][1]}` : "", text: `${acc ? `<b>Accepted · ${ST[r[6]][1]}.</b> ` : ""}${flagged ? REV : ACC}` }] : [];
     let body;
@@ -673,7 +828,8 @@
   M["a-tests-addcamp"] = (id) => ({ title: "Add to assessment campaign", body: `<p class="ak-desc">The ${esc(id || "3")} controls join the campaign's draft plan as the assessment objectives nobody has judged yet.</p>${radio("WS-X90 continuous monitoring — FY2027 · plan 1, draft", true, "Holds 10 objectives today")}${radio("WS-X90 Expanded Control Set Assessment", false, "Its plan is published: no draft to add to")}`, footer: foot("Add to assessment campaign") });
   M["a-tests-addev"] = () => ({ title: "Add evidence", body: `<dl class="ak-kv"><dt>Control</dt><dd>${tag("SI-2")} Flaw Remediation</dd><dt>Cited by</dt><dd>${tag("REQ-064")}</dd></dl><div class="ak-drop">${AK.i("upload")}Drop a file, or choose one: PDF, image, .nessus, .ckl, CycloneDX or SPDX</div>${field("Title", `<div class="ak-select">openssh-server 9.8p1 update record, Mission Computer maintenance image version 2</div>`)}`, footer: foot("Add evidence") });
   M["a-tests-publish"] = () => ({ title: "Publish assessment results", body: `<p class="ak-desc"><b>Interim results — expanded control set, increment 2</b> holds 20 findings: 13 satisfied, 4 partially, 1 other than satisfied and 2 not assessed.</p><p class="ak-desc">Publishing freezes them. WS-X90's control statuses and traces read them from then on.</p>${stackBar([["Satisfied", 13, "var(--ok)"], ["Partially", 4, "var(--warn)"], ["Other than", 1, "var(--bad)"], ["Not assessed", 2, "var(--ink-4)"]])}`, footer: foot("Publish assessment results") });
-  M["a-tests-ready"] = (id) => ({ title: "Set Ready", body: `<p class="ak-desc">The ${esc(id || "3")} requests go back to the assessor as Ready. Each flag's justification stays in its assessor thread.</p>`, footer: foot("Set Ready") });
+  // v2 (C1) [B1]: Set Ready is wired: the chosen requests read Ready on the campaign, its tracker and its quick views.
+  M["a-tests-ready"] = (id) => { const ids = String(id || "").split(",").filter((x) => REQUESTS.some((r) => r[0] === x)); const n = ids.length || 0; return { title: "Set Ready", body: `<p class="ak-desc">The ${n} request${n === 1 ? "" : "s"} go${n === 1 ? "es" : ""} back to the assessor as Ready. Each flag's justification stays in its assessor thread.</p><div class="ak-field"><label for="at-ready-note">Note to the assessor</label><textarea class="v2k-in tall" id="at-ready-note" name="note" placeholder="What changed since the flag"></textarea></div>`, footer: `<button type="button" class="btn" data-close-modal>Cancel</button><button type="button" class="btn ink" data-v2-wired data-atready="${esc(ids.join(","))}">Set Ready</button>` }; };
   M["a-tests-plan"] = () => ({ title: "Plan an assessment", body: `${field("Title", `<div class="ak-select">WS-X90 cooperative vulnerability identification — FY2027</div>`)}${field("SSP", `<div class="ak-select">SYS-WSX90 · SSP 2, published Jul 25 · 560 controls</div>`)}${field("Window", `<div class="ak-select">${AK.i("calendar")}Jan 11 – Feb 5, 2027</div>`)}${field("Lead assessor", AK.owner("D. Okafor"))}`, footer: foot("Plan an assessment") });
   M["a-tests-assess"] = (id) => {
     const [rid, what] = String(id || "r2|flag").split("|");
@@ -689,7 +845,7 @@
   for (const x of CHECKS) for (const [k] of checkTabs(x)) { const r = pageRoute(x.id, k); S[r] = () => checkPage(x, k); nav(r); }
   for (const b of BASES) for (const k of ["controls", "overview", "gap"]) { const r = baseRoute(b.id, k); S[r] = () => basePage(b, k); nav(r); }
   for (const r of REQUESTS) for (const [k] of reqTabs(r)) { const route = reqRoute(r[0], k); S[route] = () => requestPage(r, k); nav(route); MODED.add(route); }
-  nav("after-tests-index", "after-test-page", "after-controls-index", SI2R, ...SI2_TABS.map(([k]) => si2Route(k)), "after-frameworks", "after-frameworks-overlays",
+  nav("after-tests-index", "after-test-page", "after-controls-index", SI2R, ...SI2_ROUTES.map((k) => si2Route(k)), "after-frameworks", "after-frameworks-overlays",
     "after-audits-index", "after-audits-index-completed", "after-audits-index-assessor", "after-audit-record", "after-audit-record-findings");
   MODED.add("after-audit-record"); MODED.add("after-audit-record-findings");
 })();

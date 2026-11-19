@@ -176,6 +176,7 @@
   let MADE = []; // programs created in this session, newest first
   const PROGRAMS = DB.programs;
   function nextCode() {
+    if (typeof syncMade === "function" && PA.v2) syncMade();
     const taken = new Set(PROGRAMS.map((p) => p[0]).concat(MADE.map((m) => m.code)));
     for (let b = 3; b < 10; b++) for (let k = 1; k < 100; k++) { const c = `PRG-2${b}${String(k).padStart(2, "0")}`; if (!taken.has(c)) return c; }
     return "PRG-2999";
@@ -187,6 +188,9 @@
       mission: MISSION0,
       bl: "AD", sponsor: "Tom Okafor", startOn: "2026-12-01", targetOn: "2027-09-30",
       systems: [makeSystem("product", "X800", "B")],
+      // v2 (H): the host system that carries it (PA.v2host). Until the reader picks one (hostPick), it follows the start: X800's
+      // rail and eject launch ride F-16 Block 70, its palletized launch a C-130J, a copy of WS-X90 its F-16; anything else none.
+      host: "f16", hostPick: null, hostTake: null,
       base: "", combine: "", choose: false, overlays: [], view: "grid",
       tailoring: [
         { code: "PE-17", act: "remove", why: "No alternate work site: the variant is integrated and maintained only at Customer D's depot." },
@@ -346,7 +350,7 @@
       ${line(cur > 1, esc(D.name.trim() || "Untitled program"), `${esc(D.code || "No code")} · ${BL[D.bl]}`)}
       ${line(cur > 0, esc(startLine), D.start === "product" ? `${p.name} is published, ${dShort(p.pub)}` : "")}
       ${line(cur > 2, `${plural(sys, "system")} · ${plural(elCount(D), "element")}`, `${plural(pinCount(D), "library pin")} · ${s0.cia.map((l) => l[0]).join(" / ")}`)}
-      ${seen ? line(cur > 3, `${n(r.total)} controls`, `${BASE_NAME[r.key]} baseline${D.combine ? " + Privacy" : ""}${D.overlays.length ? ` · ${plural(D.overlays.length, "overlay")}` : ""}${D.tailoring.length ? " · tailored" : ""}`) : line(false, "Control baseline", `Chosen in step 3 · ${BASE_NAME[suggest(s0).key]} suggested`)}
+      ${seen ? line(cur > 3, `${n(r.total)} controls`, `${BASE_NAME[r.key]} baseline${D.combine ? " + Privacy" : ""}${D.overlays.length ? ` · ${plural(D.overlays.length, "overlay")}` : ""}${D.tailoring.length ? " · tailored" : ""}`) : line(false, "Control baseline", `Chosen in step 4 · ${BASE_NAME[suggest(s0).key]} suggested`)}
       ${line(cur > 4, `${filled} of 6 roles filled`, holderOf(D, "ao") ? `AO ${esc(holderOf(D, "ao"))}` : "No AO yet")}
       ${line(false, seen ? `${sys === 1 ? "1 draft SSP" : sys + " draft SSPs"} with ${n(r.total * sys)} planned implementations` : `${sys === 1 ? "1 draft SSP" : sys + " draft SSPs"}`, "Written at creation, one a system")}
     </ul>`;
@@ -380,8 +384,6 @@
             <div class="pn-titles"><h2 class="pn-h" id="pn-h" tabindex="-1">${esc(title)}</h2><p class="pn-lead">${lead}</p></div>
             ${itcLine(i)}${body}
           </div>
-          <aside class="pn-side" aria-label="What you're creating"><div class="pn-card" data-slot="card">${cardInner()}</div></aside>
-          <details class="pn-mcard"><summary><span>What you're creating</span><span class="s" data-slot="msum">${msum()}</span></summary><div class="pn-card" data-slot="card">${cardInner()}</div></details>
         </div>
       </div>
       ${foot(i)}
@@ -410,7 +412,7 @@
           <ul class="pn-reads"><li>§1 ${esc(ITC.name)} · ${esc(ITC.acronym)}</li><li>§5 ${esc(ITC.it)} · ${plural(ITC.interfaces.length, "external interface")}, each a draft interconnection</li><li>§6 and §7: an NSS (${ITC.nss.join(", ")}) with the ${esc(ITC.mission6F.toLowerCase())} overlay</li><li>§10 ${ITC.cia.join(" / ")} from ${plural(ITC.info.length, "information type")}</li><li>§11 ${plural(Object.keys(ITC.team).length, "RMF role")}, each held by someone in the workspace</li></ul>
           <p class="pn-hint">Not read: ${esc(list(ITC.notRead))}. The program's ITCSC record keeps them to fill.</p></div>` : `<button type="button" class="pn-dropzone" id="pn-drop" data-pn="itcsc-pick" data-k="itcsc-pick"${E["pn-drop"] ? ' aria-invalid="true"' : ""} aria-describedby="pn-drop-err">${AK.i("upload")}<b>Drop a completed AF ITCSC here</b><span class="s">PDF or Word · the ITCSC reader reads its 11 sections and the summary</span></button>`, { ex: true, err: E["pn-drop"], group: true })}</div>`;
     } else if (D.start === "blank") {
-      more = `<p class="pn-say">${h.gl("info")}<span class="x">You will name the system, categorize it and add its elements in step 2, by hand or from the library.</span></p>`;
+      more = `<p class="pn-say">${h.gl("info")}<span class="x">You will name the system, categorize it and add its elements in step 3, Systems, by hand or from the library.</span></p>`;
     } else if (D.start === "import") {
       more = `<div class="pn-sub">${field("pn-drop", "File", D.file ? `<div class="pn-file" id="pn-drop" tabindex="-1">${AK.i("upload")}<span class="t"><b>${esc(D.file)}</b><span class="s">412 KB · OSCAL SSP 1.1.2 · read just now</span></span><button type="button" class="btn sm" data-pn="file-clear" data-k="file-clear">Remove</button></div>
           <ul class="pn-reads"><li>1 system, ${plural(wsEls("x").length, "element")}</li><li>Categorization High / High / Moderate</li><li>370 control implementations, matched to the catalog</li><li>6 roles, as people to invite</li></ul>` : `<button type="button" class="pn-dropzone" id="pn-drop" data-pn="file-pick" data-k="file-pick"${E["pn-drop"] ? ' aria-invalid="true"' : ""} aria-describedby="pn-drop-err">${AK.i("upload")}<b>Drop an OSCAL SSP JSON or an eMASS export here</b><span class="s">or choose a file · up to 50 MB</span></button>`, { ex: true, err: E["pn-drop"], group: true })}</div>`;
@@ -504,9 +506,24 @@
       ${rowsHtml.length ? `<div class="pn-tree" role="list" aria-label="Elements of ${esc(s.name || "the system")}">${rowsHtml.map(([e, l]) => row(s, k, e, l, set)).join("")}</div>` : AK.empty({ title: "No elements yet", line: "Add the system's elements, or pull published components in from the library." })}</div>`;
     return `<section class="pn-sys" aria-labelledby="${id("t")}">${head}${ident}${cat}${itcIf}${els}</section>`;
   }
+  // v2 (H): the host system, asked in the Systems step: None, or one of the workspace's host systems, with what it offers of the
+  // baseline the categorization suggests (inherited by default). The count is kept on the draft, so the created program has it.
+  const defHost = () => (D.start === "product" && D.product === "X800" ? (D.config === "C" ? "c130j" : "f16") : D.start === "copy" ? "f16" : "");
+  function hostTake(set) {
+    D.host = D.hostPick != null ? D.hostPick : defHost();
+    const H = PA.v2host; if (!H || !D.host || !H.PROV[D.host]) { D.hostTake = null; return null; }
+    const d = H.defaults(D.host, new Set(set)); D.hostTake = d; return d;
+  }
+  function hostSec(set) {
+    const H = PA.v2host; if (!H) return "";
+    const hosts = Object.values(H.PROV).filter((p) => p.kind === "Host system");
+    const d = hostTake(set), p = D.host ? H.PROV[D.host] : null;
+    const say = p ? `${esc(p.name)} offers ${n(d.offered)} controls of the baseline the categorization suggests: ${n(d.inherited)} inherited by default and ${n(d.hybrid)} hybrid, each changeable later. Its own authorization: ${esc(p.auth.word)}.` : "No host system: every control of the baseline is the program's own.";
+    return `<div class="pn-sub pn-host"><h3 class="pn-h3" id="pn-host-l">Host system</h3>${field("pn-host", "Carried by", seg("hostPick", [["", "None"], ...hosts.map((x) => [x.id, x.name])], D.host || "", { labelledby: "pn-host-l" }), { group: true, opt: true, hint: "The separately authorized system that carries this one and offers it controls." })}<p class="pn-say">${h.gl("info")}<span class="x">${say}</span></p></div>`;
+  }
   BODIES[2] = (E) => {
     const set = resolveStack(D).set;
-    return D.systems.map((s, k) => sysCard(s, k, E, set)).join("") + `<button type="button" class="pn-addsys" data-pn="sys-add" data-k="sys-add">${AK.i("plus")}Add another system <span class="opt">Optional</span></button>`
+    return hostSec(set) + D.systems.map((s, k) => sysCard(s, k, E, set)).join("") + `<button type="button" class="pn-addsys" data-pn="sys-add" data-k="sys-add">${AK.i("plus")}Add another system <span class="opt">Optional</span></button>`
       + AK.note("The information types, their levels and the Assist draft are examples; the elements, library pins and claimed controls are the product's, and \"will seed\" counts claims in the baseline the categorization suggests.");
   };
 
@@ -538,7 +555,7 @@
     const using = key === sug.key;
     const chooser = D.choose ? `<div class="pn-chooser"><div class="pn-bases" role="radiogroup" aria-label="Reference baseline">${["LOW", "MODERATE", "HIGH"].map((b) => radio("base-set", b, key === b, `<span class="pn-radio" aria-hidden="true"></span><span class="tt"><b>${BASE_NAME[b]}</b><span class="s">${n(BASES[b].length)} controls${b === sug.key ? " · suggested" : ""}</span></span>`, "pn-base")).join("")}</div>
       ${field("pn-combine", "Combine with", select("pn-combine", "combine", [["", "No second baseline"], ["PRIVACY", `Privacy baseline · ${n(BASES.PRIVACY.length)} controls`]], D.combine), { opt: true, hint: "The program starts from the union of the two." })}</div>` : "";
-    const sugCard = `<div class="pn-sug"><div class="pn-sug-t">${AK.i("sparkle")}<span><b>Suggested: ${BASE_NAME[sug.key]} baseline · ${n(BASES[sug.key].length)} controls</b><span class="s">Because ${sug.why} in step 2.${itcMark(!D.base && sug.key === "HIGH", "§10")}</span></span></div>
+    const sugCard = `<div class="pn-sug"><div class="pn-sug-t">${AK.i("sparkle")}<span><b>Suggested: ${BASE_NAME[sug.key]} baseline · ${n(BASES[sug.key].length)} controls</b><span class="s">Because ${sug.why} in step 3, Systems.${itcMark(!D.base && sug.key === "HIGH", "§10")}</span></span></div>
       <div class="btns">${using ? `<span class="pn-ok">${h.gl("check")}Using the suggestion</span>` : `<span class="pn-hint">Using ${BASE_NAME[key]} · ${n(BASES[key].length)} controls</span><button type="button" class="btn sm" data-pn="base-use" data-k="base-use">Use suggestion</button>`}<button type="button" class="btn sm" data-pn="base-choose" data-k="base-choose" aria-expanded="${D.choose}">${D.choose ? "Done choosing" : "Choose another"}</button></div>${chooser}</div>`;
     const full = D.overlays.length >= 6, left = OVL.filter((o) => D.overlays.indexOf(o.code) < 0);
     const ovRows = D.overlays.map((code, i) => { const o = ovl(code), L = r.layers.find((l) => l.code === code); return `<li class="pn-ovl"><span class="pn-ovl-n num">${i + 1}</span><span class="nm"><b>${esc(o.title)}</b>${itcMark(code === CNSSI || code === DEPLOYED, code === CNSSI ? "§7" : "§6F")}<span class="s">Version ${o.v} · ${L.add || L.rem ? `+${n(L.add)} −${n(L.rem)} here` : "changes nothing here"}</span></span><span class="btns">${iconBtn("down", `Move ${o.title} up`, "ovl-up", code, { icls: "pn-up", dis: i === 0 })}${iconBtn("down", `Move ${o.title} down`, "ovl-down", code, { dis: i === D.overlays.length - 1 })}${iconBtn("x", `Remove ${o.title}`, "ovl-remove", code)}</span></li>`; }).join("");
@@ -555,7 +572,7 @@
       <div class="pn-sub"><div class="pn-subh"><h3 class="pn-h3">Overlays <span class="ct num">${D.overlays.length}</span></h3>${addOv}</div><p class="pn-hint">Published overlays stack on the baseline in order, up to six. Each row says what it changes where it sits.</p>
         ${D.overlays.length ? `<ol class="pn-ovls">${ovRows}</ol>` : ""}${hint}</div>
       ${tail}
-      <div class="pn-sub"><h3 class="pn-h3">Stack</h3>${stackTable(r)}</div>
+      <div class="pn-sub"><h3 class="pn-h3">Stack</h3>${stackTable(r)}${(() => { const d = hostTake(r.set), p = d && PA.v2host.PROV[D.host]; return p ? `<p class="pn-say">${h.gl("info")}<span class="x"><b>${n(d.inherited)} of the ${n(r.total)} controls</b> are inherited from ${esc(p.name)} by default, and ${n(d.hybrid)} are hybrid: its offer, from step 3, Systems.</span></p>` : ""; })()}</div>
       <div class="pn-sub"><div class="pn-subh"><h3 class="pn-h3" id="pn-res-l">Resulting baseline · ${n(r.total)} controls</h3>${seg("view", [["grid", "Grid"], ["list", "List"]], D.view, { label: "Show as" })}</div>${mapKey(r)}${D.view === "grid" ? mapGrid(r) : mapList(r)}</div>`
       + AK.note("The program tailoring is an example; the catalog, the reference baselines, the overlays and their decisions are the workspace's, and every count is computed from them.");
   };
@@ -565,7 +582,7 @@
     const s0 = D.systems[0];
     const rows = ROLES.map(([k, label, line, req]) => {
       const id = `pn-role-${k}`;
-      const sub = k === "owner" ? (D.roles.owner === "=sys" ? `Owner of ${s0.code}, carried from step 2.` : `Answers for ${s0.code}.`) : line;
+      const sub = k === "owner" ? (D.roles.owner === "=sys" ? `Owner of ${s0.code}, carried from step 3, Systems.` : `Answers for ${s0.code}.`) : line;
       const ctl = k === "assessors"
         ? `<div class="pn-multi">${D.roles.assessors.map((nm) => `<span class="pn-pchip">${ownerName(nm)}${iconBtn("x", `Remove ${nm}`, "assessor-del", nm, { cls: "sm" })}</span>`).join("")}${D.roles.assessors.length ? "" : AK.owner(null)}${personPicker("assessors", null, "roles.assessors", { domId: id, add: "Add assessor", exclude: D.roles.assessors, title: "Add an assessor" })}</div>`
         : personPicker("role-" + k, holderOf(D, k), "roles." + k, { domId: id, labelledby: id + "-l", invalid: !!E[id], title: `Choose the ${label}` });
@@ -597,7 +614,7 @@
     const cards = [
       [0, "Start", [D.start === "product" ? `From a product: ${p.name} version ${p.v}` : D.start === "copy" ? "Copy of WS-X90 Sentinel Mission System's setup" : D.start === "import" ? `Import of ${D.file}` : D.start === "itcsc" ? `From an ITCSC: ${D.file}` : "Blank program", D.start === "product" ? `Configuration ${c[0]} ${c[1]} · ${plural(cfgEls(p, c[0]).length, "element")}` : itcOn() ? `${ITC.read} of ${ITC.of} fields read · ${plural(itcTotal(), "field")} in these steps came from it · signed by the PM and the AO` : ""]],
       [1, "Program", [`${D.name} · ${D.code}`, `${BL[D.bl]}${D.sponsor ? ` · sponsor ${D.sponsor}` : ""}`, D.startOn && D.targetOn ? `${dShort(D.startOn)} start · authorization by ${dShort(D.targetOn)}` : ""]],
-      [2, "Systems", D.systems.map((s) => `${s.code} · ${s.cia.join(" / ")} · ${plural(live(s).length, "element")}`).concat([`${plural(pinCount(D), "library pin")}${rm ? ` · ${n(rm)} removed` : ""}${md ? ` · ${n(md)} modified` : ""}${own ? ` · ${n(own)} the program's own` : ""}`])],
+      [2, "Systems", D.systems.map((s) => `${s.code} · ${s.cia.join(" / ")} · ${plural(live(s).length, "element")}`).concat([`${plural(pinCount(D), "library pin")}${rm ? ` · ${n(rm)} removed` : ""}${md ? ` · ${n(md)} modified` : ""}${own ? ` · ${n(own)} the program's own` : ""}`, PA.v2host ? (D.host && PA.v2host.PROV[D.host] ? `Carried by ${PA.v2host.PROV[D.host].name} · ${n((hostTake(r.set) || {}).inherited || 0)} controls inherited by default` : "No host system") : ""])],
       [3, "Baseline", [`${BASE_NAME[r.key]} baseline${D.combine ? " with Privacy" : ""} · ${DB.cat.title} ${DB.cat.v}`, D.overlays.length ? D.overlays.map((o) => ovl(o).title).join(", ") : "No overlays", `${tl ? `Tailoring +${tl.add} −${tl.rem} · ` : ""}${n(r.total)} controls`]],
       [4, "Team", [`AO ${holderOf(D, "ao") || "none"} · ISSM ${holderOf(D, "issm") || "none"} · ISSO ${holderOf(D, "isso") || "none"}`, `System owner ${holderOf(D, "owner") || "none"} · Lead assessor ${holderOf(D, "lead") || "none"}`, `${rolesFilled(D)} of 6 roles filled${D.roles.assessors.length ? "" : " · no assessors yet"}`]],
     ];
@@ -635,10 +652,23 @@
   ROUTE_NAV["program-start"] = "overview";
 
   // ——— Getting started: where the new program lands ———
+  // v2 C2 (B6): a created program is kept in the shared state (prog.made, newest first) and made the current program (prog.cur),
+  // so the switcher, the menu, Programs and Home show it for the rest of the session; its page is the current program's.
+  function syncMade() {
+    const V2 = PA.v2; if (!V2) return;
+    const kept = V2.get("prog.made", []) || [];
+    if (kept.length > MADE.length) MADE = clone(kept);
+    const G = V2.get("prog.guide", null); if (G && GUIDE_FROM !== JSON.stringify(G)) { GUIDE = new Set(G); GUIDE_FROM = JSON.stringify(G); }
+  }
+  let GUIDE_FROM = "";
+  const pubGuide = () => { if (PA.v2) { GUIDE_FROM = JSON.stringify([...GUIDE]); PA.v2.set("prog.guide", [...GUIDE]); } };
   function madeNow() {
-    if (MADE[0]) return MADE[0];
+    syncMade();
+    const c = PA.v2hubs ? PA.v2hubs.cur() : null, m = MADE.find((x) => x.code === c) || MADE[0];
+    if (m) return m;
     const d = freshDraft(); d.demo = true; return d;
   }
+  PA.pnGuide = () => { const d = madeNow(), all = guideTasks(d).reduce((a, g) => a.concat(g[3]), []); return { done: all.filter((t) => GUIDE.has(t.id)).length, total: all.length }; };
   function guideTasks(d) {
     const r = resolveStack(d), dl = delta(d, r.set), hold = (k) => holderOf(d, k);
     const missing = ROLES.filter(([k]) => !holders(d, k).length).map((x) => x[1]);
@@ -679,7 +709,7 @@
     const firstOpen = (all.find((t) => !GUIDE.has(t.id)) || {}).id;
     const chips = `<span class="pn-chiprow">${[AK.chip(d.code), AK.chip(BL[d.bl]), d.start === "product" ? AK.chip(`Variant of ${p.name} v${p.v} · ${c[1]}`, { icon: "link" }) : d.start === "copy" ? AK.chip("Copied from WS-X90's setup") : d.start === "import" ? AK.chip("Imported SSP") : d.start === "itcsc" ? AK.chip("From an ITCSC", { icon: "upload" }) : ""].join("")}</span>`;
     const head = AK.recordHead({
-      crumbs: [["Portfolio", "portfolio"], [d.name]], title: d.name, chip: '<span class="ex">Example</span>', desc: chips,
+      crumbs: [["Programs", "portfolio"], [d.name]], title: d.name, chip: '<span class="ex">Example</span>', desc: chips,
       facts: [["Systems", n(d.systems.length)], ["Elements", n(elCount(d))], ["Controls", n(r.total)], ["Roles", `${rolesFilled(d)} of 6`], ["Created", d.demo ? "Not created in this session" : `Just now · ${YOU}`]],
       actions: `<button type="button" class="btn sm" data-modal="pn-invite" data-id="start" data-k="invite-start">${AK.i("mail")}Invite people</button>`,
     });
@@ -858,7 +888,8 @@
     const failAt = 2;
     const finish = () => {
       const made = clone(D); made.total = r.total; made.at = PA.SSP && PA.SSP.now ? PA.SSP.now() : TODAY_ISO;
-      MADE.unshift(made); creating = null; fresh = true; arrived = true; GUIDE = new Set(["baseline", "roles"].concat(D.start === "itcsc" && D.file ? ["itcsc"] : []));
+      syncMade(); MADE.unshift(made); creating = null; fresh = true; arrived = true; GUIDE = new Set(["baseline", "roles"].concat(D.start === "itcsc" && D.file ? ["itcsc"] : []));
+      if (PA.v2) { PA.v2.set("prog.made", clone(MADE)); PA.v2.set("prog.cur", made.code); pubGuide(); }
       location.hash = "program-start";
     };
     const failNow = () => { creating.failed = true; creating.at = failAt; rerender(); focusId("pn-fail"); };
@@ -915,7 +946,7 @@
     say: (t) => toast(t.dataset.v),
     create: () => runCreate(false),
     "create-fail": () => runCreate(true),
-    tick: (t) => { const id = t.dataset.v; if (GUIDE.has(id)) GUIDE.delete(id); else GUIDE.add(id); rerender("tick-" + id); },
+    tick: (t) => { const id = t.dataset.v; if (GUIDE.has(id)) GUIDE.delete(id); else GUIDE.add(id); pubGuide(); rerender("tick-" + id); },
     // dialogs
     "leave-save": () => { D.saved = cur; toast(`Draft saved · ${D.name || "Untitled program"}`); location.hash = "home"; },
     "leave-discard": () => { D = freshDraft(); toast("Draft discarded"); location.hash = "home"; },
@@ -975,10 +1006,20 @@
         if (D.invited.indexOf(mail) < 0) D.invited.push(mail);
         pendingFocus = role === "assessors" ? "pop-assessors" : "pop-role-" + role; rerender();
       }
+      // v2 F [the re-review's new low]: from the created program's page the invitee takes the role on its Team card and its Roles
+      // count, kept for the session; on the example page (no program created in this session) it says nothing is kept.
+      if (VW.where === "start") {
+        const m = madeNow();
+        if (m.demo) { closeDlg(); if (PA.v2) PA.v2.toast("Not saved: invitations are kept for a program created in this session; this page is an example"); return; }
+        if (role === "assessors") { if (m.roles.assessors.indexOf(mail) < 0) m.roles.assessors.push(mail); } else m.roles[role] = mail;
+        m.invited = m.invited || []; if (m.invited.indexOf(mail) < 0) m.invited.push(mail);
+        if (PA.v2) PA.v2.set("prog.made", clone(MADE));
+        rerender();
+      }
       closeDlg(); toast(`Invitation sent to ${mail} · ${label}`);
     },
-    "up-reqs": () => { GUIDE.add("reqs"); pendingFocus = "tick-reqs"; rerender(); closeDlg(); toast("Requirements document imported"); },
-    "up-diagram": () => { GUIDE.add("diagram"); pendingFocus = "tick-diagram"; rerender(); closeDlg(); toast("Architecture diagram uploaded"); },
+    "up-reqs": () => { GUIDE.add("reqs"); pubGuide(); pendingFocus = "tick-reqs"; rerender(); closeDlg(); toast("Requirements document imported"); },
+    "up-diagram": () => { GUIDE.add("diagram"); pubGuide(); pendingFocus = "tick-diagram"; rerender(); closeDlg(); toast("Architecture diagram uploaded"); },
     "up-itcsc": () => { GUIDE.add("itcsc"); pendingFocus = "tick-itcsc"; rerender(); closeDlg(); toast(`ITCSC reader read ${ITC.read} of ${ITC.of} fields · ready for the PM and the AO to sign`); },
     "itcsc-pick": () => { applyItcsc(); rerender("itcsc-clear"); toast(`ITCSC reader read ${ITC.read} of ${ITC.of} fields from ${ITC.file}`); },
     "itcsc-clear": () => { leaveItcsc(); D.file = ""; D.systems = [makeSystem("blank")]; rerender("itcsc-pick"); },

@@ -1,0 +1,61 @@
+import { createRequire } from "node:module";
+const require = createRequire("/Users/joseflagorio/Development/program_assurance-ux-proposal/package.json");
+const { chromium } = require("playwright");
+const html = process.argv[2];
+const b = await chromium.launch(); const p = await b.newPage({ viewport: { width: 1440, height: 900 } });
+const errs = []; p.on("pageerror", (e) => errs.push(String(e).slice(0, 200)));
+const fresh = async (r) => { await p.goto("file://" + html + "#home"); await p.evaluate(() => sessionStorage.clear()); await p.goto("about:blank"); await p.goto("file://" + html + "#" + r); await p.waitForTimeout(600); };
+const toast = () => p.evaluate(() => [...document.querySelectorAll(".ak-toast, #v2-toast:not([hidden])")].map((t) => t.innerText.replace(/\s+/g, " ")).join(" || "));
+const modal = () => p.evaluate(() => { const m = document.getElementById("modal"); return m.hidden ? "(closed)" : m.innerText.replace(/\s+/g, " ").slice(0, 300); });
+const T = (s = "#main") => p.evaluate((s) => (document.querySelector(s) || {}).innerText?.replace(/\s+/g, " ") || "", s);
+const log = (k, v) => console.log("P", k, "::", String(v).slice(0, 400));
+// a2: the card's Plan an assessment
+await fresh("assessments");
+await p.click('#main [data-modal="a-tests-plan"]'); await p.waitForTimeout(400);
+log("a2.dialog", await modal());
+const prim = p.locator("#modal .dlg-f button, #modal .dlg-f .btn").last(); log("a2.primary", await prim.innerText());
+await prim.click(); await p.waitForTimeout(500); log("a2.after", (await modal()) + " | toast: " + (await toast()));
+// d: evidence review dialog
+await fresh("evidence");
+await p.locator("#main table tbody tr").filter({ hasText: "Time source comparison test report" }).first().click(); await p.waitForTimeout(500);
+await p.locator("#panel").getByText("Accept", { exact: true }).first().click(); await p.waitForTimeout(400);
+log("d.dialog", await modal());
+log("d.dialog.html", await p.evaluate(() => [...document.querySelectorAll("#modal .dlg-b button, #modal .dlg-b [role=radio], #modal .dlg-b input")].map((e) => e.tagName + "[" + [...e.attributes].map((a) => a.name + "=" + a.value.slice(0, 30)).join(" ") + "]").join(" ; ").slice(0, 600)));
+await p.locator("#modal .dlg-b").getByText("Accept", { exact: false }).first().click(); await p.waitForTimeout(300);
+log("d.afterChoose", await modal());
+await p.locator("#modal .dlg-f button, #modal .dlg-f .btn").last().click(); await p.waitForTimeout(600);
+log("d.afterSave", (await modal()) + " | toast: " + (await toast()));
+log("d.counts", ((await T()).match(/Pending review \d+|Needs revision \d+|Accepted \d+/g) || []).join(", "));
+log("d.panel", (await T("#panel")).slice(0, 300));
+// e: access review Keep on an undecided account
+await fresh("people-access");
+await p.locator("#main").getByText("Quarterly privileged account review (AC-2, AC-6)").first().click(); await p.waitForTimeout(500);
+const dec = async () => ((await T("#panel")).match(/Keep, revoke or change each account\s*(\d+ of \d+)/) || [])[1];
+log("e.before", await dec());
+const rows = await p.evaluate(() => [...document.querySelectorAll("#panel tr")].slice(0, 8).map((r) => r.innerText.replace(/\s+/g, " ").slice(0, 90)));
+log("e.rows", rows.join(" ¦ "));
+const r1 = p.locator("#panel tr").filter({ hasText: "svc-maint-07" }).first();
+await r1.getByText("Keep", { exact: true }).click().catch((e) => log("e.err", e)); await p.waitForTimeout(400);
+log("e.afterKeep", (await dec()) + " | row: " + (await r1.innerText().catch(() => "")).replace(/\s+/g, " ").slice(0, 120));
+await r1.getByText("Keep", { exact: true }).click().catch(() => {}); await p.waitForTimeout(400);
+log("e.afterKeepAgain", await dec());
+const r2 = p.locator("#panel tr").filter({ hasText: "field-tech-03" }).first();
+await r2.getByText("Revoke", { exact: true }).click().catch((e) => log("e.err2", e)); await p.waitForTimeout(400);
+log("e.afterRevoke", (await dec()) + " | row: " + (await r2.innerText().catch(() => "")).replace(/\s+/g, " ").slice(0, 120));
+// k: campaign request Accept
+await fresh("campaign-r2");
+log("k.before", ((await T()).match(/Status \w+ Determination [\w ]+? Control/) || [""])[0]);
+await p.locator("#main").getByText("Accept", { exact: true }).first().click(); await p.waitForTimeout(400);
+log("k.dialog", await modal());
+await p.evaluate(() => { const t = document.querySelector("#modal textarea"); if (t) { t.value = "Meets the statement."; t.dispatchEvent(new Event("input", { bubbles: true })); } const r = document.querySelector("#modal input[type=radio]"); if (r) r.click(); });
+await p.locator("#modal .dlg-f button, #modal .dlg-f .btn").last().click(); await p.waitForTimeout(600);
+log("k.after", (await modal()) + " | toast: " + (await toast()) + " | " + ((await T()).match(/Status \w+ Determination [\w ]+? Control/) || [""])[0]);
+// rail after an SSP submission
+await fresh("ssp-review");
+await p.fill("#main textarea", "R's comment").catch(() => {});
+await p.locator("#main").getByText("Submit for review", { exact: true }).first().click(); await p.waitForTimeout(600);
+await p.locator("#main").getByText("Submit anyway as a draft for ISSM review").first().click(); await p.waitForTimeout(700);
+await p.evaluate(() => { location.hash = "review-queue"; }); await p.waitForTimeout(600);
+log("rail.afterSubmit", (await p.evaluate(() => [...document.querySelectorAll("#rail a")].map((a) => a.innerText.trim().replace(/\s+/g, " ")).filter((t) => /\d/.test(t)).join(" | "))) + " | queue " + ((await T()).match(/All \d+/) || [""])[0]);
+console.log("errors", errs);
+await b.close();

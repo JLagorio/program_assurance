@@ -1,0 +1,15 @@
+[
+  {"route": "sctm", "finding": "new", "text": "New full-window SCTM workbook: one row per baseline control, columns walking implementation, requirements, allocations, evidence, status, results, issues, POA&M items and risks."},
+  {"route": "sctm", "finding": "new", "text": "Seven sheets as tabs (SCTM, Controls, Requirements, Evidence, Findings, Risks, Analysis); each sheet's footer says plainly what its rows read."},
+  {"route": "sctm", "finding": "new", "text": "Spreadsheet behaviour: name box, formula bar, cell, range, row and column selection, keys, resize, frozen header and first column, sort, filter, find."},
+  {"route": "sctm", "finding": "new", "text": "Right-click (or long-press) a cell, row or column header for its menu: open the row's control preview or page, sort, filter, fit, copy."},
+  {"route": "sctm", "finding": "new", "text": "Every record in a cell is a link that opens its existing preview beside the grid; on a phone the preview rises as a sheet."},
+  {"route": "sctm", "finding": "new", "text": "Paste tab-separated values into editable cells, freeze up to any of the first five columns, and find the keyboard shortcuts under More."},
+  {"route": "sctm", "finding": "B1", "text": "Implementation, narrative and requirement title or statement edit in place, stay staged and undoable, then Review changes applies them to WS-X90's records."},
+  {"route": "sctm-analysis", "finding": "new", "text": "Analysis sheet: coverage by family and chain gaps as live IronCalc formulas over the other sheets; they follow staged edits; type your own."},
+  {"route": "sctm", "finding": "N02", "text": "Colour only for status words, the staged-change marks and save state; links blue; evidence Accepted prints plain so colour marks what needs action."},
+  {"route": "sctm", "finding": "new", "where": "preview: v7p-req", "text": "A requirement outside the register's sample now opens its own preview, drawn from the snapshot, instead of the first row's."},
+  {"route": "ssp", "finding": "new", "text": "Narratives and statuses applied in the SCTM workbook show in the SSP editor and its session list."},
+  {"route": "requirements", "finding": "new", "text": "A More menu in the header opens the SCTM workbook; an applied title edit shows in the register's rows and the requirement preview."},
+  {"route": "controls", "finding": "new", "text": "The header's More menu gains Open the SCTM workbook."}
+]

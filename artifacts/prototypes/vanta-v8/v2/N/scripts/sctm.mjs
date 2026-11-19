@@ -1,0 +1,12 @@
+import { createRequire } from "node:module"; import path from "node:path";
+const require = createRequire("/Users/joseflagorio/Development/program_assurance-ux-proposal/package.json");
+const { chromium } = require("playwright");
+const [html] = process.argv.slice(2);
+const b = await chromium.launch(); const p = await b.newPage({ viewport: { width: 1440, height: 900 } });
+const errors = []; p.on("pageerror", (e) => errors.push(String(e).slice(0, 200)));
+await p.goto("file://" + path.resolve(html) + "#requirements"); await p.waitForTimeout(600);
+const item = await p.evaluate(() => { const a = document.querySelector('#nav a.item[href="#sctm"]'); const prev = a && a.previousElementSibling; return a ? { text: a.textContent.trim(), after: prev && prev.getAttribute("href"), visible: !a.hidden } : null; });
+await p.click('#nav a.item[href="#sctm"]'); await p.waitForTimeout(1200);
+const d = await p.evaluate(() => ({ hash: location.hash, full: document.getElementById("proto").classList.contains("fullwin"), drawn: !/Not drawn yet/.test(document.getElementById("main").innerText), title: (document.querySelector("#main h1, #main h2, #main h3") || {}).textContent }));
+console.log(JSON.stringify({ item, d, errors }));
+await b.close();

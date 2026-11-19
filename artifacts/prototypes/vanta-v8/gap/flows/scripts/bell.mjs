@@ -1,0 +1,10 @@
+import { start } from "./walk.mjs";
+const W = await start("bell");
+await W.go("overview");
+await W.p.click('[aria-label="Inbox, 1 unread"]'); await W.p.waitForTimeout(500);
+const r = await W.p.evaluate(() => ({ hash: location.hash, vis: [...document.querySelectorAll('[role="dialog"],[role="menu"],.menu,[aria-modal="true"],[class*=inbox],[class*=popover]')].filter(e => e.getBoundingClientRect().height > 0).map(e => (e.className || e.getAttribute("role")) + " :: " + e.innerText.replace(/\s+/g, " ").slice(0, 300)) }));
+console.log(JSON.stringify(r, null, 1));
+await W.shot("bell");
+const av = await W.p.evaluate(() => { const e = [...document.querySelectorAll("#proto .top *")].find(x => x.innerText && x.innerText.trim() === "IS" && x.children.length === 0); return e ? e.outerHTML.slice(0, 200) : null; });
+console.log("AVATAR:", av);
+await W.done();

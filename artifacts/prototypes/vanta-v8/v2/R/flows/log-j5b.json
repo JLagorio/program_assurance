@@ -1,0 +1,76 @@
+{
+ "log": [
+  {
+   "step": 1,
+   "action": "go #findings",
+   "why": "",
+   "hash": "findings",
+   "h1": "",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 2,
+   "action": "click \"Unmet requirement REQ-100\"",
+   "why": "issue without a POA&M item",
+   "effect": "panel: Operational issue preview",
+   "hash": "findings",
+   "h1": "",
+   "modal": null,
+   "panel": "Operational issue preview",
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 3,
+   "action": "click \"Create POA&M item\"",
+   "why": "panel action",
+   "result": "NOT FOUND",
+   "hash": "findings",
+   "h1": "",
+   "modal": null,
+   "panel": "Operational issue preview",
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 3,
+   "shot": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/v2/R/flows/shots/j5b-02-create-poam-dialog.png"
+  },
+  {
+   "step": 4,
+   "action": "click \"Create POA&M item\"",
+   "why": "submit",
+   "result": "NOT FOUND",
+   "hash": "findings",
+   "h1": "",
+   "modal": null,
+   "panel": "Operational issue preview",
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 5,
+   "action": "go #poam",
+   "why": "check the POA&M register",
+   "hash": "poam",
+   "h1": "",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 5,
+   "shot": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/v2/R/flows/shots/j5b-03-poam.png"
+  }
+ ],
+ "errors": []
+}

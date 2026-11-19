@@ -9,8 +9,8 @@
 // (Oct 13, 412 rules: 371 not a finding, 29 open, 12 not applicable), the Windows 11 SCAP scan (Oct 14, 286 results: 259 pass, 21 fail,
 // 6 not applicable, 90.6%) and the switch checklist queued Nov 13, with their files, hashes and importer (Joel Barrantes). The deadline
 // windows are deadlines-stig's (CAT I 30, CAT II 90, CAT III 180 days). NIST SP 800-160 Vol. 1 Rev. 1's 4 groups, 30 processes and 181
-// outcomes as printed (REPO supabase/reference). WS-X90's PDR (in review, due Oct 10) and CDR (not started, due Oct 1) are its
-// lifecycle_gates. The ten cyber survivability attributes, their pillars, the CSE IG's exemplar language and the CSRC levels come from
+// outcomes as printed (REPO supabase/reference). WS-X90's PDR and CDR are its lifecycle_gates (dated Oct 10 and Oct 1 in
+// the repo; v2 re-dates them for Increment 2 as Lifecycle does, and each review here follows its Lifecycle step at draw time). The ten cyber survivability attributes, their pillars, the CSE IG's exemplar language and the CSRC levels come from
 // the Joint Staff J6 CSE brief (CSIAC, Apr 13 2023, citing CSE IG v3.0, Jul 2022). Evidence titles, POA&M items, controls and their
 // status, cyber T&E events and SA-24's chosen techniques are WS-X90's (PA.SSP, mod-after-risk, mod-v7-analysis, evidence_artifacts).
 // Example, and marked: each rule's status beyond the real totals, finding details and comments, the ASD, switch and gateway checklists,
@@ -200,16 +200,23 @@
     return out;
   }
   const relSummary = (nw) => nw.added.length || nw.removed.length ? `${plural(nw.added.length, "rule")} added (${nw.added.filter((x) => x[2] === 1).length} CAT I), ${fmt(nw.removed.length)} retired, ${fmt(nw.retitled.length)} retitled` : `no rule added or retired; ${plural(nw.fix, "fix text")} revised`;
+  // v2: what the banners said is one plain line under the title, its action a link (v1: a tinted banner above the rules).
+  function ckLine(c) {
+    const nw = newerOf(c), out = [];
+    if (nw) out.push(`DISA published <b>${esc(bmOf(c).s)} ${esc(nw.ver)}</b> on ${esc(mdy(nw.date))}: ${relSummary(nw)}. <button type="button" class="ak-link v2l-lk" data-panel="v8g-bench" data-id="${c.bm}">See what changed</button>`);
+    if (queued(c)) out.push(`A newer checklist file is queued: <b>disa-stig-checklist-internal-ethernet-switch.ckl</b>, uploaded Nov 13 by Joel Barrantes. <button type="button" class="ak-link v2l-lk" data-modal="v8g-import" data-id="${c.slug}|q">Review import</button>`);
+    return out.length ? out.join("<br>") : "";
+  }
   function ckPage(c, tab, body) {
     const k = countsOf(c), i = impOf(c), b = bmOf(c), cm = CKC[c.slug] || [], act = actOf(c);
     const head = AK.recordHead({
-      crumbs: [["STIG checklists", "stigs"], [`${c.asset} · ${b.s}`]], title: ckName(c),
+      crumbs: [["STIG checklists", "stigs"], [`${c.asset} · ${b.s}`]], title: ckName(c), desc: ckLine(c),
       chip: k.O[0] ? AK.chip(`${k.O[0]} open CAT I`, { tone: "bad" }) : AK.chip(`${k.comp}% compliant`, { tone: "ok" }),
       actions: `${hbtn(`Download .${EXT[i.fmt]}`, `data-v8g-toast="${esc(i.file)} downloaded"`)}${hbtn("Import checklist", `data-modal="v8g-import" data-id="${c.slug}"`, true)}`,
       facts: [["Asset", `<span class="v8g-one">${lk(esc(c.asset), "inventory")} ${mu(esc(c.lru))}</span>`], ["STIG", `<span class="v8g-one">${esc(b.t)} ${code(verOf(c))}</span>`], ["Source", `<span class="v8g-one">${srcCell(c)}</span>`], ["Last import", `<span class="v8g-one">${num(mdy(i.date))} ${mu("· " + esc(i.by))}</span>`], ["Owner", AK.owner(c.owner)], ["Next import", AK.due(addDays(i.date, c.cadence))]],
       tabs: [["Rules", k.total, tab === "rules" ? null : c.route, tab === "rules"], ["Comments", cm.length, tab === "comments" ? null : c.route + "-comments", tab === "comments"], ["Activity", act.length, tab === "activity" ? null : c.route + "-activity", tab === "activity"]],
     });
-    return h.page(head, ckBanners(c), body);
+    return h.page(head, body);
   }
   function ckRail(c) {
     const k = countsOf(c), i = impOf(c), nw = newerOf(c);
@@ -231,13 +238,19 @@
     const shown = list.slice(p * PAGE, p * PAGE + PAGE);
     const nCat = (ct) => bySt.filter((r) => r.cat === ct).length;
     const pager = `<div class="pager"><span class="num">${list.length ? `${fmt(p * PAGE + 1)}–${fmt(p * PAGE + shown.length)} of ${fmt(list.length)}` : "0 shown"}</span><span class="v8g-pg">${pages > 1 ? `<button type="button" class="ib" data-v8g-page="${c.slug}" data-v8g-dir="-1" aria-label="Previous page"${p ? "" : " disabled"}>‹</button><span class="num">Page ${p + 1} of ${pages}</span><button type="button" class="ib" data-v8g-page="${c.slug}" data-v8g-dir="1" aria-label="Next page"${p < pages - 1 ? "" : " disabled"}>›</button>` : ""}</span></div>`;
+    // v2: a list filtered to one status drops the Status column (every row said Open); the status quick views are the
+    // one row of chips and CAT is a filter beside the search (v1 stacked a second row of CAT chips).
+    const oneSt = qs !== "all";
     const table = tbl({
-      cols: ["Vuln ID", "Rule title", "CAT", "Status", "Control", "Finding details"],
-      rows: shown.map((r) => { const fd = fdOf(c, r); return { id: `${c.slug}|${r.n}`, cells: [`<span class="v8g-one"><b class="num">${esc(r.v)}</b>${r.added ? ` <span class="v8g-new">New</span>` : ""}</span>`, tr(r.title, 230), cat(r.cat), stPill(r.s), ctlCell(r), fd ? tr(fd, 150) : mu("None")] }; }),
+      cols: ["Vuln ID", "Rule title", "CAT", ...(oneSt ? [] : ["Status"]), "Control", "Finding details"],
+      rows: shown.map((r) => { const fd = fdOf(c, r); return { id: `${c.slug}|${r.n}`, cells: [`<span class="v8g-one"><b class="num">${esc(r.v)}</b>${r.added ? ` <span class="v8g-new">New</span>` : ""}</span>`, tr(r.title, oneSt ? 250 : 190), cat(r.cat), ...(oneSt ? [] : [stPill(r.s)]), ctlCell(r), fd ? tr(fd, oneSt ? 150 : 110) : mu("—")] }; }),
       panel: "v8g-rule", label: "Rules", pagerHtml: pager, empty: "No rule matches these filters.", cls: "v8g-tight",
     });
+    const catOpts = [["all", "All CATs", bySt.length], ["1", "CAT I", nCat(1)], ["2", "CAT II", nCat(2)], ["3", "CAT III", nCat(3)]];
+    const catOn = catOpts.find(([v]) => v === qc) || catOpts[0];
+    const catFilter = `<details class="v2l-flt"><summary class="flt${qc !== "all" ? " v2l-on" : ""}">${qc === "all" ? "CAT" : esc(catOn[1])} ⌄</summary><div class="v2l-menu" role="menu" aria-label="CAT">${catOpts.map(([v, l, n]) => `<button type="button" role="menuitemradio" aria-checked="${v === qc}" class="v2l-mi" data-v8g-q="${esc(ckey)}" data-v8g-v="${v}" data-v8g-reset="${esc(pk)}">${esc(l)}<span class="num">${fmt(n)}</span></button>`).join("")}</div></details>`;
     const left = `${chips(sk, [["all", "All", all.length], ["O", "Open", k.open], ["N", "Not a finding", k.N], ["A", "Not applicable", k.A], ["R", "Not reviewed", k.R]], "Status", pk)}
-      <div class="v8g-row2">${chips(ckey, [["all", "All CATs", bySt.length], ["1", "CAT I", nCat(1)], ["2", "CAT II", nCat(2)], ["3", "CAT III", nCat(3)]], "Severity", pk)}<span class="in v8g-search">Search rules</span></div>${table}`;
+      <div class="tools v8g-tools v2l-tools"><span class="in v8g-search">Search rules</span>${catFilter}<span class="flt sub">+ Add filter</span></div>${table}`;
     return AK.withRail(left, ckRail(c));
   }
   const ckNote = (c) => AK.note(c.real ? `The rules, their CCIs and the import's totals are real (DISA ${bmOf(c).s} ${bmOf(c).ver}, ingestion_jobs); which rule holds which status, the finding details and the comments are invented.` : `The rules and their CCIs are DISA's (${bmOf(c).s} ${bmOf(c).ver}); this checklist, its import, statuses, finding details and comments are invented.`);
@@ -451,7 +464,7 @@
     if (!hits.length) return html;
     const open = hits.filter((x) => x.r.s === "O").length;
     const sec = `<div class="v8g-si2"><h4 class="subhead">STIG rules mapped to SI-2 <span class="ct num">${hits.length}</span></h4>
-      ${tbl({ cols: ["Rule", "Asset", "STIG", "CCI", "Status"], rows: hits.map(({ c, r, ix }) => ({ id: `${c.slug}|${r.n}`, cells: [`<span class="v8g-one"><b class="num">${esc(r.v)}</b> ${tr(r.title, 300)} ${cat(r.cat)}</span>`, esc(c.asset), `${esc(bmOf(c).s)} ${mu(esc(verOf(c)))}`, ix.map(([n, x]) => `${code(cciId(n))} ${mu("→ " + esc(x))}`).join(" "), stPill(r.s)] })), panel: "v8g-rule", label: "STIG rules mapped to SI-2", pager: false })}
+      ${tbl({ cols: ["Rule", "Asset", "STIG", "CCI", "Status"], rows: hits.map(({ c, r, ix }) => ({ id: `${c.slug}|${r.n}`, cells: [`<span class="v8g-one"><b class="num">${esc(r.v)}</b> ${tr(r.title, 230)} ${cat(r.cat)}</span>`, esc(c.asset), `${esc(bmOf(c).s)} ${mu(esc(verOf(c)))}`, ix.map(([n, x]) => `${code(cciId(n))} ${mu("→ " + esc(x))}`).join(" "), stPill(r.s)] })), panel: "v8g-rule", label: "STIG rules mapped to SI-2", pager: false })}
       ${line(`${plural(open, "open rule")} of ${hits.length}, mapped through DISA's CCI list. ${lk("Open STIG checklists", "stigs")}`)}</div>`;
     return html.replace(marker, sec + marker);
   });
@@ -473,26 +486,33 @@
   const OS = { met: ["ok", "Met"], part: ["part", "Partly met"], not: ["bad", "Not met"], na: ["none", "Not assessed"] };
   const osPill = (s) => pill(...OS[s]);
   const REV = [
-    { id: "srr", t: "SRR", long: "System requirements review", st: "decided", when: "2025-06-12", ex: 1, out: [["SN.7", "met", "Mission-essential designation query output and generated critical asset list, baseline 5.4.0"], ["SN.9", "met", "Control baseline selection record, PROFILE-WSX90-TAILORED"], ["SR.1", "met", "External interface inventory, LRU-007 running configuration and 20-LRU interface state export"], ["SR.2", "met", "Baseline tailoring event register, PROFILE-WSX90-TAILORED"], ["SR.6", "not", null]] },
-    { id: "pdr", t: "PDR", long: "Preliminary design review", st: "in_review", due: "2026-10-10", out: [["AR.4", "met", "Approved WS-X90 external network baseline showing the single managed access control point"], ["AR.5", "met", "Functional properties description, LRU-002 boot verification and LRU-003 key services, rev D"], ["AR.7", "part", "Maintenance VLAN and boundary policy export, LRU-009 and LRU-007"], ["SR.6", "na", null]] },
-    { id: "msb", t: "Milestone B", long: "Engineering and manufacturing development decision", st: "unscheduled", ex: 1, out: [["RM.1", "na", null], ["RM.3", "na", null], ["PL.1", "na", null], ["AQ.3", "na", null]] },
-    { id: "cdr", t: "CDR", long: "Critical design review", st: "not_started", due: "2026-10-01", out: [["DE.2", "na", null], ["DE.3", "na", null], ["DE.4", "na", null], ["DE.6", "na", null]] },
-    { id: "trr", t: "TRR", long: "Test readiness review", st: "planned", due: "2027-03-22", ex: 1, out: [["IN.5", "na", null], ["VE.1", "na", null], ["VE.5", "na", null]] },
-    { id: "msc", t: "Milestone C", long: "Production and deployment decision", st: "planned", due: "2027-08-16", ex: 1, out: [["VA.4", "na", null], ["VA.7", "na", null], ["TR.3", "na", null], ["TR.5", "na", null]] },
+    { id: "srr", t: "SRR", long: "System requirements review", st: "decided", when: "2026-09-22", ex: 1, out: [["SN.7", "met", "Mission-essential designation query output and generated critical asset list, baseline 5.4.0"], ["SN.9", "met", "Control baseline selection record, PROFILE-WSX90-TAILORED"], ["SR.1", "met", "External interface inventory, LRU-007 running configuration and 20-LRU interface state export"], ["SR.2", "met", "Baseline tailoring event register, PROFILE-WSX90-TAILORED"], ["SR.6", "not", null]] },
+    { id: "pdr", t: "PDR", long: "Preliminary design review", st: "in_review", due: "2026-11-24", out: [["AR.4", "met", "Approved WS-X90 external network baseline showing the single managed access control point"], ["AR.5", "met", "Functional properties description, LRU-002 boot verification and LRU-003 key services, rev D"], ["AR.7", "part", "Maintenance VLAN and boundary policy export, LRU-009 and LRU-007"], ["SR.6", "na", null]] },
+    { id: "msb", t: "Milestone B", long: "Engineering and manufacturing development decision", st: "planned", due: "2027-01-26", ex: 1, out: [["RM.1", "na", null], ["RM.3", "na", null], ["PL.1", "na", null], ["AQ.3", "na", null]] },
+    { id: "cdr", t: "CDR", long: "Critical design review", st: "not_started", due: "2027-03-23", out: [["DE.2", "na", null], ["DE.3", "na", null], ["DE.4", "na", null], ["DE.6", "na", null]] },
+    { id: "trr", t: "TRR", long: "Test readiness review", st: "planned", due: "2027-04-27", ex: 1, out: [["IN.5", "na", null], ["VE.1", "na", null], ["VE.5", "na", null]] },
+    { id: "svr", t: "SVR", long: "System verification review", st: "planned", due: "2027-08-17", ex: 1, out: [["VE.3", "na", null], ["VE.6", "na", null], ["VE.7", "na", null], ["VA.4", "na", null]] },
   ];
+  // Each review follows its Lifecycle step (Increment 2): a decision recorded there shows here, and the dates are the same.
+  const LIFE = { srr: "srr-2", pdr: "pdr-2", msb: "ms-b-2", cdr: "cdr-2", trr: "trr-2", svr: "svr-2" };
+  const syncLife = () => { for (const rv of REV) { if (!rv.st0) Object.assign(rv, { st0: rv.st, when0: rv.when, due0: rv.due }); let s = null; try { s = PA.v2life && PA.v2life.step(LIFE[rv.id]); } catch (e) { s = null; } if (!s) continue; const fin = /^(Passed|Completed|Waived)$/.test(s.status) ? "decided" : s.status === "Failed" ? "failed" : s.status === "In review" ? "in_review" : null; rv.st = fin || (rv.st0 === "decided" || rv.st0 === "in_review" ? "not_started" : rv.st0); rv.when = fin === "decided" || fin === "failed" ? s.due || rv.when0 : rv.when0; rv.due = fin ? rv.due0 : s.due || rv.due0; } };
+  const lifeRoute = (rv) => "lifecycle-" + (LIFE[rv.id] || "pdr-2");
+  // Lifecycle reads SRR's, Milestone B's, TRR's and SVR's criteria from here, so a gate and its review count the same outcomes.
+  PA.sseOutcomes = (key) => { const rv = REV.find((r) => LIFE[r.id] === key + "-2"); return rv ? outsOf(rv).map(([oc, s]) => [oc, outText(oc), (procOf(oc.split(".")[0]) || [""])[0], s === "met" ? "check" : s === "part" ? "clock" : s === "not" ? "diamond" : "ring"]) : null; };
   const revBy = (id) => REV.find((r) => r.id === id) || REV[1];
   const outsOf = (rv) => [...rv.out, ...(SES.held[rv.id] || []).map((oc) => [oc, "na", null, true])];
-  const RS = { decided: ["ok", "Decided"], in_review: ["info", "In review"], not_started: ["none", "Not started"], planned: ["none", "Planned"], unscheduled: ["none", "Not scheduled"] };
+  const RS = { decided: ["ok", "Decided"], failed: ["bad", "Not approved"], in_review: ["info", "In review"], not_started: ["none", "Not started"], planned: ["none", "Planned"], unscheduled: ["none", "Not scheduled"] };
   const rsPill = (rv) => pill(...RS[rv.st]);
-  const revWhen = (rv) => (rv.st === "decided" ? `<span class="ak-due">${AK.i("check")}Decided ${esc(mdy(rv.when))}</span>` : rv.due ? AK.due(rv.due) : `<span class="ak-due none">${AK.i("calendar")}No date</span>`);
+  const revWhen = (rv) => (rv.st === "decided" || rv.st === "failed" ? `<span class="ak-due">${AK.i("check")}${rv.st === "failed" ? "Not approved" : "Decided"} ${esc(mdy(rv.when))}</span>` : rv.due ? AK.due(rv.due) : `<span class="ak-due none">${AK.i("calendar")}No date</span>`);
   const revCount = (rv) => { const o = outsOf(rv), c = { met: 0, part: 0, not: 0, na: 0 }; o.forEach((x) => c[x[1]]++); return { ...c, total: o.length }; };
   const allOuts = () => REV.flatMap((rv) => outsOf(rv).map((o) => ({ rv, o })));
   const sseHead = () => AK.indexHead({ title: "Security engineering", desc: "Security outcomes at WS-X90's technical reviews, and its cyber survivability attributes", actions: `${hbtn("Vol. 2: cyber resiliency", 'data-go="resiliency"')}${hbtn("Add security outcomes", `data-modal="v8g-outcomes" data-id="${esc(Q.rev && Q.rev !== "all" ? Q.rev : "cdr")}"`, true)}` });
   const sseTabs = (cur) => AK.tabs([["Technical reviews", REV.length, cur === "rev" ? null : "sse", cur === "rev"], ["Processes", Object.keys(P1.proc).length, cur === "proc" ? null : "sse-processes", cur === "proc"], ["Cyber survivability", CSA.length, cur === "csa" ? null : "sse-csa", cur === "csa"]], "Security engineering");
 
   S["sse"] = () => {
+    syncLife();
     const qr = Q.rev || "all", qs = Q["out-st"] || "all";
-    const cdr = revBy("cdr"), cc = revCount(cdr), d = AK.days(cdr.due);
+    const cdr = revBy("cdr"), cc = revCount(cdr), pdr = revBy("pdr"), pk = revCount(pdr);
     const strip = `<div class="v8g-revs" role="group" aria-label="Technical reviews, in order">${REV.map((rv) => { const k = revCount(rv), on = qr === rv.id; return `<button type="button" class="v8g-rev${on ? " on" : ""}" aria-pressed="${on}" data-v8g-q="rev" data-v8g-v="${on ? "all" : rv.id}" title="${esc(rv.long)}"><span class="k">${esc(rv.t)}</span><span class="s">${rsPill(rv)}</span><span class="d">${revWhen(rv)}</span><span class="v8g-cbar"><i style="width:${k.total ? Math.round((k.met / k.total) * 100) : 0}%"></i></span><span class="m">${fmt(k.met)} of ${fmt(k.total)} met</span></button>`; }).join("")}</div>`;
     const rows = [];
     const pool = allOuts().filter((x) => (qr === "all" || x.rv.id === qr) && (qs === "all" || x.o[1] === qs));
@@ -504,23 +524,26 @@
     }
     const all = allOuts(), n = (s) => all.filter((x) => x.o[1] === s).length;
     return h.page(sseHead(), sseTabs("rev"),
-      AK.banner({ tone: "bad", text: `<b>CDR</b> was due ${esc(md(cdr.due))}, ${plural(-d, "day")} ago, and holds ${plural(cc.na, "security outcome")} no one has assessed. PDR waits on its decision since Oct 10.`, action: "Open CDR" }).replace('<span class="btn sm">Open CDR</span>', btn("Open CDR", 'data-panel="v8g-review" data-id="cdr"')),
+      pdr.st === "in_review" || pdr.st === "failed"
+        ? AK.banner({ tone: "info", text: pdr.st === "failed" ? `<b>PDR</b> was not approved on ${esc(mdy(pdr.when))}: ${fmt(pk.met)} of ${fmt(pk.total)} security outcomes met. CDR waits on it.` : `<b>PDR</b> is in review, its decision due ${esc(mdy(pdr.due))}: ${fmt(pk.met)} of ${fmt(pk.total)} security outcomes met, ${fmt(pk.part)} partly, ${fmt(pk.na)} not assessed. CDR follows on ${esc(mdy(cdr.due))}.`, action: "Open PDR" }).replace('<span class="btn sm">Open PDR</span>', btn("Open PDR", 'data-panel="v8g-review" data-id="pdr"'))
+        : AK.banner({ tone: "info", text: `<b>PDR</b> was decided ${esc(mdy(pdr.when))}. <b>CDR</b> is due ${esc(mdy(cdr.due))} and holds ${plural(cc.na, "security outcome")} no one has assessed.`, action: "Open CDR" }).replace('<span class="btn sm">Open CDR</span>', btn("Open CDR", 'data-panel="v8g-review" data-id="cdr"')),
       strip,
       `<div class="v8g-row2">${chips("out-st", [["all", "All outcomes", all.length], ["met", "Met", n("met")], ["part", "Partly met", n("part")], ["not", "Not met", n("not")], ["na", "Not assessed", n("na")]], "Outcome status")}${qr !== "all" ? `<span class="v8g-one">${mu(`Showing ${esc(revBy(qr).t)} only`)}<button type="button" class="btn sm" data-v8g-q="rev" data-v8g-v="all">Show every review</button></span>` : ""}</div>`,
       tbl({ cols: ["Security outcome", "Process", "Status", "Evidence"], rows, total: pool.length, panel: "v8g-outcome", label: "Security outcomes by review", empty: "No outcome matches.", cls: "v8g-tight" }),
-      line(`Outcomes are NIST SP 800-160 Vol. 1 Rev. 1's, as printed. ${lk("Schedule", "schedule")} holds the gates' tasks and decisions · ${lk("Traceability", "traceability")} · ${lk("Vol. 2: cyber resiliency", "resiliency")}`),
-      AK.note("WS-X90's PDR and CDR are its own gates and record no gate criteria yet: the outcomes placed under every review, their status and evidence links are invented, and so are SRR, Milestone B, TRR and Milestone C. The evidence titles are WS-X90's."));
+      line(`Outcomes are NIST SP 800-160 Vol. 1 Rev. 1's, as printed. ${lk("Lifecycle", "lifecycle")} holds each gate's deliverables and decision · ${lk("Traceability", "traceability")} · ${lk("Vol. 2: cyber resiliency", "resiliency")}`),
+      AK.note("WS-X90's PDR and CDR are its own gates and record no gate criteria yet: the outcomes placed under every review, their status and evidence links are invented, and so are SRR, Milestone B, TRR and SVR. The evidence titles are WS-X90's."));
   };
 
   P["v8g-review"] = (id) => {
+    syncLife();
     const rv = revBy(id), k = revCount(rv);
-    const head = AK.recordHead({ title: `${rv.t} · ${rv.long}`, chip: rsPill(rv), actions: `${btn("Add security outcomes", `data-modal="v8g-outcomes" data-id="${rv.id}"`)}${rv.st === "decided" ? "" : btn("Request decision", `data-modal="ak-approvers" data-id="${esc(rv.t)}"`, true)}` });
+    const head = AK.recordHead({ title: `${rv.t} · ${rv.long}`, chip: rsPill(rv), actions: `${btn("Add security outcomes", `data-modal="v8g-outcomes" data-id="${rv.id}"`)}${rv.st === "decided" || rv.st === "in_review" ? "" : btn("Request decision", `data-modal="${PA.v2life ? "v2g-request" : "ak-approvers"}" data-id="${esc(PA.v2life ? "PRG-1090|" + (LIFE[rv.id] || "") : rv.t)}"`, true)}` });
     const facts = AK.facts([["When", revWhen(rv)], ["Outcomes", num(k.total)], ["Met", `${num(k.met)} ${mu(`· ${k.part} partly · ${k.not} not met`)}`], ["Not assessed", num(k.na)]]);
-    const appr = rv.id === "pdr" ? AK.approval({ title: "Decision", sub: "Requested Oct 10 · decided when every step approves", steps: [{ label: "Step 1", approvers: [{ who: "Ray Colston", role: "System owner", state: "sent", when: "Oct 10" }] }] })
-      : rv.st === "decided" ? AK.approval({ title: "Decision", sub: `Decided ${mdy(rv.when)} with one action: trace SR.6 before PDR`, steps: [{ label: "Step 1", approvers: [{ who: "Ray Colston", role: "System owner", state: "approved", when: mdy(rv.when) }] }] })
+    const appr = rv.st === "in_review" ? AK.approval({ title: "Decision", sub: rv.id === "pdr" ? "Requested Nov 10 by Ray Colston · decided when every step approves" : "Requested · decided when every step approves", steps: [{ label: "Step 1", approvers: [{ who: "Marcus Ryde", role: "Chief engineer", state: "sent", when: rv.id === "pdr" ? "Nov 10" : "" }] }] })
+      : rv.st === "decided" || rv.st === "failed" ? AK.approval({ title: "Decision", sub: `${rv.st === "failed" ? "Not approved" : "Decided"} ${mdy(rv.when)}${rv.id === "srr" ? " with one action: trace SR.6 before PDR" : ""}`, steps: [{ label: "Step 1", approvers: [{ who: "Marcus Ryde", role: "Chief engineer", state: rv.st === "failed" ? "changes" : "approved", when: mdy(rv.when) }] }] })
       : AK.approval({ title: "Decision", sub: "No decision requested yet. Request decision names the approvers, in steps." });
     const outs = AK.section("Security outcomes", `<div class="v8g-list">${outsOf(rv).map(([oc, s, ev]) => `<div class="v8g-li" role="button" tabindex="0" data-panel="v8g-outcome" data-id="${esc(rv.id + "|" + oc)}">${gl(s === "met" ? "check" : s === "part" ? "part" : s === "not" ? "diamond" : "ring")}<span class="x"><b>${esc(oc)}</b> ${esc(outText(oc))}</span>${osPill(s)}</div>`).join("")}</div>`, { count: k.total, action: btn("Add", `data-modal="v8g-outcomes" data-id="${rv.id}"`) });
-    return { label: "Technical review preview", body: `<div class="v8g-pan">${head}${facts}${appr}${outs}${line(`${lk("Open in Schedule", "schedule")}${rv.ex ? " · " + EX : ""}`)}</div>` };
+    return { label: "Technical review preview", body: `<div class="v8g-pan">${head}${facts}${appr}${outs}${line(`${lk("Open in Lifecycle", lifeRoute(rv))}${rv.ex ? " · " + EX : ""}`)}</div>` };
   };
   P["v8g-outcome"] = (id) => {
     const [rid, oc] = String(id || "").split("|"), rv = revBy(rid), o = outsOf(rv).find((x) => x[0] === oc) || outsOf(rv)[0];

@@ -1,0 +1,333 @@
+[
+ {
+  "file": "new-control-sa24-v2.png",
+  "route": "rec--a-tests-control--SA-24",
+  "landed": "rec--a-tests-control--SA-24",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "new-control-ac1-v2.png",
+  "route": "rec--a-tests-control--AC-1",
+  "landed": "rec--a-tests-control--AC-1",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "new-campaign-conmon-v2.png",
+  "route": "campaign-conmon",
+  "landed": "campaign-conmon",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "new-rec-risk-v2.png",
+  "route": "rec--a-risk-risk--0a21dc94%7Coverview",
+  "landed": "rec--a-risk-risk--0a21dc94%7Coverview",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "new-rec-issue-v2.png",
+  "route": "rec--a-risk-issue--85973641",
+  "landed": "rec--a-risk-issue--85973641",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "new-rec-poam-v2.png",
+  "route": "rec--a-risk-poam--4be4ddde%7Coverview",
+  "landed": "rec--a-risk-poam--4be4ddde%7Coverview",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "new-rec-requirement-v2.png",
+  "route": "rec--v7p-req--REQ-001",
+  "landed": "rec--v7p-req--REQ-001",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "new-rec-decision-v2.png",
+  "route": "rec--v7p-decision--v2",
+  "landed": "rec--v7p-decision--v2",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "new-rec-supplier-v2.png",
+  "route": "rec--a-risk-sup--x800%7Coverview",
+  "landed": "rec--a-risk-sup--x800%7Coverview",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "new-rec-review-v2.png",
+  "route": "rec--a-work-rq--evidence%3Ae1",
+  "landed": "rec--a-work-rq--evidence%3Ae1",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "new-rec-task-v2.png",
+  "route": "rec--a-work-task--t1",
+  "landed": "rec--a-work-task--t1",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "new-rec-gate-v2.png",
+  "route": "rec--a-work-gate--pdr",
+  "landed": "rec--a-work-gate--pdr",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "new-rec-asset-v2.png",
+  "route": "rec--sys-asset--AST-109001",
+  "landed": "rec--sys-asset--AST-109001",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "new-rec-element-v2.png",
+  "route": "rec--v7p-el--CN-109000",
+  "landed": "rec--v7p-el--CN-109000",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "new-rec-interconnection-v2.png",
+  "route": "rec--v8b-ic--IC-101",
+  "landed": "rec--v8b-ic--IC-101",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "new-rec-technique-v2.png",
+  "route": "rec--v7a-att--T1078",
+  "landed": "rec--v7a-att--T1078",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "new-rec-agent-run-v2.png",
+  "route": "rec--v8w-run--w1",
+  "landed": "rec--v8w-run--w1",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "new-rec-product-v2.png",
+  "route": "rec--v7o-product--X800",
+  "landed": "rec--v7o-product--X800",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "new-onboarding-task-v2.png",
+  "route": "person-local-developer-onboarding",
+  "landed": "person-local-developer-onboarding",
+  "opened": true,
+  "errors": []
+ },
+ {
+  "file": "new-add-person-v2.png",
+  "route": "people",
+  "landed": "people",
+  "opened": true,
+  "errors": []
+ },
+ {
+  "file": "new-campaign-controls-v2.png",
+  "route": "campaign-controls",
+  "landed": "campaign-controls",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "new-control-sa24-v1.png",
+  "route": "controls",
+  "landed": "controls",
+  "opened": true,
+  "errors": []
+ },
+ {
+  "file": "new-control-ac1-v1.png",
+  "route": "controls",
+  "landed": "controls",
+  "opened": true,
+  "errors": []
+ },
+ {
+  "file": "new-campaign-conmon-v1.png",
+  "route": "assessments",
+  "landed": "assessments",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "new-rec-risk-v1.png",
+  "route": "risks",
+  "landed": "risks",
+  "opened": true,
+  "errors": []
+ },
+ {
+  "file": "new-rec-issue-v1.png",
+  "route": "findings",
+  "landed": "findings",
+  "opened": true,
+  "errors": []
+ },
+ {
+  "file": "new-rec-poam-v1.png",
+  "route": "poam",
+  "landed": "poam",
+  "opened": true,
+  "errors": []
+ },
+ {
+  "file": "new-rec-requirement-v1.png",
+  "route": "requirements",
+  "landed": "requirements",
+  "opened": true,
+  "errors": []
+ },
+ {
+  "file": "new-rec-decision-v1.png",
+  "route": "authorization",
+  "landed": "authorization",
+  "opened": true,
+  "errors": []
+ },
+ {
+  "file": "new-rec-supplier-v1.png",
+  "route": "suppliers",
+  "landed": "suppliers",
+  "opened": true,
+  "errors": []
+ },
+ {
+  "file": "new-rec-review-v1.png",
+  "route": "review-queue",
+  "landed": "review-queue",
+  "opened": true,
+  "errors": []
+ },
+ {
+  "file": "new-rec-task-v1.png",
+  "route": "schedule",
+  "landed": "schedule",
+  "opened": true,
+  "errors": []
+ },
+ {
+  "file": "new-rec-gate-v1.png",
+  "route": "schedule",
+  "landed": "schedule",
+  "opened": true,
+  "errors": []
+ },
+ {
+  "file": "new-rec-asset-v1.png",
+  "route": "inventory",
+  "landed": "inventory",
+  "opened": true,
+  "errors": []
+ },
+ {
+  "file": "new-rec-element-v1.png",
+  "route": "composition",
+  "landed": "composition",
+  "opened": true,
+  "errors": []
+ },
+ {
+  "file": "new-rec-interconnection-v1.png",
+  "route": "interconnections",
+  "landed": "interconnections",
+  "opened": true,
+  "errors": []
+ },
+ {
+  "file": "new-rec-technique-v1.png",
+  "route": "threats",
+  "landed": "threats",
+  "opened": true,
+  "errors": []
+ },
+ {
+  "file": "new-rec-agent-run-v1.png",
+  "route": "ai-drafts",
+  "landed": "ai-drafts",
+  "opened": true,
+  "errors": []
+ },
+ {
+  "file": "new-rec-product-v1.png",
+  "route": "products",
+  "landed": "products",
+  "opened": false,
+  "errors": []
+ },
+ {
+  "file": "new-onboarding-task-v1.png",
+  "route": "person-local-developer-onboarding",
+  "landed": "person-local-developer-onboarding",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "new-add-person-v1.png",
+  "route": "people",
+  "landed": "people",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "new-campaign-controls-v1.png",
+  "route": "campaign",
+  "landed": "campaign",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "new-added-asset-v1.png",
+  "route": "inventory",
+  "landed": "inventory",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "new-program-page-v2.png",
+  "landed": "program-start",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "new-program-empty-v2.png",
+  "landed": "requirements",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "new-program-page-v1.png",
+  "landed": "program-start",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "new-program-empty-v1.png",
+  "landed": "requirements",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "new-added-asset-v2.png",
+  "landed": "inventory",
+  "opened": null,
+  "errors": []
+ }
+]

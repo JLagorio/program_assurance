@@ -1,0 +1,16 @@
+/* Prototype v2, agent C1 (v2r-): record pages behind ↗ and a control's page for every control. */
+.v2r-body { display: grid; gap: 12px; min-width: 0; }
+.v2r-body > .ak-card, .v2r-body > .card { margin: 0; }
+/* A preview's fixed clip widths were for the 440px panel; on a page they follow its width. */
+.v2r-body [style*="max-width"] { max-width: 100% !important; }
+.v2r-body { overflow-wrap: anywhere; }
+.v2r-p { margin: 0 0 8px; font-size: 14px; line-height: 20px; color: var(--ink-2); }
+.v2r-links { display: grid; gap: 12px; }
+.v2r-links .v2k-lk { margin: 0; }
+.v2r-more { position: relative; display: inline-block; }
+.v2r-more > summary { list-style: none; cursor: pointer; }
+.v2r-more > summary::-webkit-details-marker { display: none; }
+.v2r-menu { position: absolute; inset-inline-end: 0; top: calc(100% + 4px); z-index: 20; min-width: 200px; display: grid; padding: 4px; background: var(--canvas, #fff); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 8px 24px rgb(24 24 29 / 0.12); }
+.v2r-menu > [role=menuitem] { padding: 8px 10px; border-radius: 6px; font-size: 14px; cursor: pointer; white-space: nowrap; }
+.v2r-menu > [role=menuitem]:hover, .v2r-menu > [role=menuitem]:focus { background: var(--band); outline: none; }
+@media (max-width: 600px) { .v2r-menu { inset-inline-end: auto; inset-inline-start: 0; } }

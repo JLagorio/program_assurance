@@ -1,0 +1,298 @@
+{
+ "overview": {
+  "h1pills": [],
+  "cardsAbove": 3,
+  "hasTeam": true,
+  "hasDetails": true,
+  "hasActivity": false,
+  "hasMiniTiles": false,
+  "lifecycle": false,
+  "lanes": false,
+  "aside": true,
+  "height": 844,
+  "text": "Programs › PRG-1090 WS-X90 Sentinel Mission System ATO with conditions Open package Controls satisfied Controls 31% 176 of 560 controls Satisfied 176 Partially satisfied 34 Other than satisfied 13 Not assessed 90 No evidence 233 No requirement 14 Open work Operational issues 17 past due · 2 critical 44 Open risks 12 critical or high · 40 with no owner 40 POA&M items open 7 of 41 completed 34 Evidence to revise 88 waiting on review 54 Your tasks assigned to you 6 Plans, assessments and setup System security plan Revision 3 · Draft · 74 placeholder narratives · started Nov 13 Version history Ass"
+ },
+ "si2": {
+  "tabs": [
+   "Implementation",
+   "Requirements 1",
+   "Evidence 1",
+   "Checks 2",
+   "Assessment 10",
+   "Findings 1",
+   "Activity 4"
+  ],
+  "tabCount": 7,
+  "cardsBeforeTabs": 0,
+  "ink": [
+   "Add evidence"
+  ],
+  "callouts": [
+   "next v2-callout:Placeholder text: 74 of SSP 3's 560 narratives read like thi"
+  ],
+  "text": "Controls › SI-2 SI-2 Flaw Remediation Add evidence Status Not assessed Family SI Owner Unassigned Determined by — Implementation Requirements 1 Evidence 1 Checks 2 Assessment 10 Findings 1 Activity 4 Implementation in SSP 3 Partial The SYS-WSX90 satisfies the tailored intent of SI-2 through a combination of system-level procedures and mapped component implementations. Placeholder text: 74 of SSP 3's 560 narratives read like this one. Draft it in the SSP Parameter SI-02_ODP — Asks time period to "
+ },
+ "settings": {
+  "leftList": true,
+  "summaryCards": false,
+  "tabs": 5,
+  "pills": [
+   "On",
+   "On",
+   "On",
+   "On"
+  ],
+  "stripVisible": false,
+  "text": "Deadlines How long each kind of finding has before it is overdue, set once for the workspace by Joel Barrantes, ISSM Edit deadlines WORKSPACE Deadlines Notifications Roles & permissions Enclaves & markings Common control providers Event log MY ACCOUNT Notifications All Vulnerabilities STIG Findings POA&M, evidence, accounts Vulnerabilities ACAS results and IAVA notices, counted from import or release. Open findings Critical vulnerability ACAS results rated critical, from import · recommended 7–1"
+ },
+ "shell": {
+  "railOn": {
+   "color": "rgb(24, 24, 29)",
+   "backgroundColor": "rgba(24, 24, 29, 0.06)",
+   "borderColor": "rgb(24, 24, 29)"
+  },
+  "navOn": {
+   "color": "rgb(24, 24, 29)",
+   "backgroundColor": "rgba(24, 24, 29, 0.06)",
+   "borderColor": "rgb(24, 24, 29)"
+  },
+  "switcher": {
+   "color": "rgb(24, 24, 29)",
+   "backgroundColor": "rgba(0, 0, 0, 0)",
+   "borderColor": "rgb(24, 24, 29)"
+  },
+  "navItemsVisible": 11,
+  "navIcons": 0,
+  "navHeight": 887,
+  "avatar": null
+ },
+ "queue": {
+  "tables": 1,
+  "height": 1327,
+  "heads": [
+   "Record",
+   "Kind",
+   "Program",
+   "Waiting on",
+   "Waiting since",
+   "Requested by"
+  ],
+  "ticked": 0
+ },
+ "mywork": {
+  "w": 367,
+  "h": 20,
+  "mainW": 1360
+ },
+ "campaign": {
+  "menu": [
+   "‹ WS-X90",
+   "Requests 368",
+   "Findings 245",
+   "Controls",
+   "All assessments"
+  ],
+  "tracker": "368",
+  "all": "368"
+ },
+ "page:rec--a-tests-control--AC-1": {
+  "h1": "",
+  "notDrawn": false,
+  "len": 1340,
+  "start": "Controls › AC-1 AC-1 Policy and Procedures ⋯ Status Partially satisfied Family AC Owner — Determined by Program assessment Implementation Requirements 1 Evidenc"
+ },
+ "page:rec--a-risk-risk--0a21dc94|overview": {
+  "h1": "",
+  "notDrawn": false,
+  "len": 1028,
+  "start": "Risks › Risk A password on its own reaches WS-X90 at the flightline Critical Start reassessment Request acceptance Overview Treatment 9 History 2 Comments 1 Ass"
+ },
+ "page:rec--a-risk-poam--4be4ddde|overview": {
+  "h1": "",
+  "notDrawn": false,
+  "len": 847,
+  "start": "POA&M › POA&M item Remediate REQ-100 In progress Change planned date… Add milestone Overview Milestones 3 Activity Comments 0 Progress 0 of 3 milestones The pla"
+ },
+ "page:rec--a-risk-issue--85973641": {
+  "h1": "",
+  "notDrawn": false,
+  "len": 678,
+  "start": "Findings › Operational issue Unmet requirement REQ-100 High Deactivate… Open POA&M item Assessment findings 1 CM-4 Other than satisfied POA&M item 1 Remediate R"
+ },
+ "page:rec--sys-asset--AST-109001": {
+  "h1": "",
+  "notDrawn": false,
+  "len": 363,
+  "start": "Asset AST-109001 Mission Computer In scope Edit asset Built from Mission Computer · X800 Missile component set version 1 STIG checklists2 RHEL 9 V2R929 open rul"
+ },
+ "panel": {
+  "btns": [
+   {
+    "t": "↗",
+    "ink": false,
+    "bg": "rgba(0, 0, 0, 0)"
+   },
+   {
+    "t": "✕",
+    "ink": false,
+    "bg": "rgba(0, 0, 0, 0)"
+   },
+   {
+    "t": "Map a requirement",
+    "ink": false,
+    "bg": "rgb(255, 255, 255)"
+   }
+  ],
+  "text": "Control preview ↗ ✕ SA-24 Design For Cyber Resiliency Map a requirement Status No requirement Objectives 0 of 10 mapped · 0 with evidence · 0 assessed Determined by — Campaign — Requirements 0 + Map a requirement No requirement maps SA-24 yet. Evidence 0 Evidence comes through a requirement that map"
+ },
+ "preticked": {
+  "controls": {
+   "ticked": 0,
+   "bar": null
+  },
+  "evidence": {
+   "ticked": 0,
+   "bar": null
+  },
+  "findings": {
+   "ticked": 0,
+   "bar": null
+  },
+  "risks": {
+   "ticked": 0,
+   "bar": null
+  },
+  "poam": {
+   "ticked": 0,
+   "bar": null
+  },
+  "checks": {
+   "ticked": 0,
+   "bar": null
+  },
+  "people": {
+   "ticked": 0,
+   "bar": null
+  },
+  "review-queue": {
+   "ticked": 0,
+   "bar": null
+  },
+  "inventory": {
+   "ticked": 0,
+   "bar": null
+  },
+  "schedule": {
+   "ticked": 0,
+   "bar": null
+  },
+  "campaign": {
+   "ticked": 0,
+   "bar": null
+  }
+ },
+ "tabs": {
+  "component-mc": {
+   "strips": 1,
+   "tabs": [
+    7
+   ],
+   "first": [
+    "Overview Assessment 61 Where used 4 Findings 1 SBOM 13 Versions 2 More 3 ⌄"
+   ]
+  },
+  "deadlines": {
+   "strips": 1,
+   "tabs": [
+    5
+   ],
+   "first": [
+    "All Vulnerabilities STIG Findings POA&M, evidence, accounts"
+   ]
+  },
+  "event-log": {
+   "strips": 1,
+   "tabs": [
+    5
+   ],
+   "first": [
+    "All 299 Evidence reviews 280 Imports 8 Decisions and publications 6 Daily job 5"
+   ]
+  },
+  "permissions": {
+   "strips": 1,
+   "tabs": [
+    4
+   ],
+   "first": [
+    "Roles 11 Permissions 9 Members 17 Changes 14"
+   ]
+  },
+  "control-si2": {
+   "strips": 1,
+   "tabs": [
+    7
+   ],
+   "first": [
+    "Implementation Requirements 1 Evidence 1 Checks 2 Assessment 10 Findings 1 Activ"
+   ]
+  },
+  "integration-emass": {
+   "strips": 1,
+   "tabs": [
+    4
+   ],
+   "first": [
+    "Overview Informs 4 WS-X90 sources 0 Activity"
+   ]
+  },
+  "enclaves": {
+   "strips": 0,
+   "tabs": [],
+   "first": []
+  }
+ },
+ "policiesToolbar": {
+  "quickViews": [
+   "All 21",
+   "Needs my approval 0",
+   "Sent back 8",
+   "No document 6",
+   "No approver 12"
+  ],
+  "filters": [
+   "Family ⌄",
+   "Control status ⌄",
+   "Latest version ⌄",
+   "Owner ⌄",
+   "+ Add filter"
+  ]
+ },
+ "integrations": {
+  "inTheApp": 0
+ },
+ "baseline": [
+  "+370:rgb(24, 24, 29)",
+  "−0:rgb(105, 105, 114)",
+  "+201:rgb(24, 24, 29)",
+  "−17:rgb(24, 24, 29)",
+  "+0:rgb(105, 105, 114)",
+  "−5:rgb(24, 24, 29)",
+  "+1:rgb(24, 24, 29)",
+  "−0:rgb(105, 105, 114)"
+ ],
+ "example": {
+  "text": "Example",
+  "color": "rgb(105, 105, 114)",
+  "bg": "rgba(0, 0, 0, 0)",
+  "border": "rgb(105, 105, 114)"
+ },
+ "launcher": "Esc No results for “which controls lack evidence?” Try a control code (AC-2), an element (LRU-013), a person or a page. ↑ ↓ Move ↵ Open Esc Close 0 results",
+ "ssp": {
+  "rings": 5,
+  "pills": 6,
+  "syncBars": 0,
+  "examples": 22
+ },
+ "errors": []
+}

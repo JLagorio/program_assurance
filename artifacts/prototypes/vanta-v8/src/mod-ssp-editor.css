@@ -443,3 +443,29 @@ textarea.se-in { height: auto; padding: 8px 10px; resize: vertical; }
   .se-inv { grid-template-columns: minmax(0, 1fr) auto; }
   .se-inv .btn { grid-column: 1 / -1; justify-content: center; }
 }
+
+/* ——— v2 (agent L2): the SSP editor's budget: colour only for the save state, open comments and what needs action ——— */
+/* The revision, state and system are one grey line beside the title (v1: three chips, Draft in amber). */
+.se-chips.v2l-meta { align-items: center; gap: 0; color: var(--ink-3); font-size: 13px; white-space: nowrap; }
+.v2l-meta > span + span::before { content: "·"; margin-inline: 6px; color: var(--ink-4); }
+@media (max-width: 1360px) { .v2l-meta .v2l-sys { display: none; } }
+/* Collaborators' avatars in the header: neutral initials, no coloured ring (their colour stays on their cursor). */
+.se-head .sd-av { color: var(--ink-2); background: var(--band); box-shadow: 0 0 0 2px var(--canvas), 0 0 0 3px var(--line); }
+/* Contents: one dot where a section needs action; counts grey. */
+.v2l-need { width: 7px; height: 7px; border-radius: 99px; background: var(--warn); flex: none; }
+.se-o .se-o-c { color: var(--ink-3); }
+/* A live table's source is a grey line under the section title, without the side rule; its actions show on pointing or focus. */
+.se-app .sd-live { border-inline-start: 0; padding-inline-start: 0; }
+.v2l-live { gap: 4px 6px; font-size: 12px; color: var(--ink-3); }
+.v2l-live .se-lacts { opacity: 0; transition: opacity 120ms ease; }
+.se-app .sd-live:hover .v2l-live .se-lacts, .se-app .sd-live:focus-within .v2l-live .se-lacts { opacity: 1; }
+@media (hover: none) { .v2l-live .se-lacts { opacity: 1; } }
+/* A control's implementation and status are words in its grey meta line (v1: two toned pills on each of 546 controls);
+   the chips that ask for action (placeholder text, a source changed, values not set) keep their tone. */
+.se-ctl-m .v2l-word { color: var(--ink-2); font-size: 12px; }
+.se-ctl-m .se-meta + .se-meta::before { content: "· "; color: var(--ink-4); }
+@media (prefers-reduced-motion: reduce) { .v2l-live .se-lacts { transition: none; } }
+/* v2 (H): a control a provider holds */
+.se-inh .se-provn { color: var(--ink-2); background: var(--band); border-radius: 8px; padding: 10px 12px; }
+.se-provp { margin: 6px 0 8px; font-size: 13px; color: var(--ink-2); line-height: 1.5; }
+.se-provo { display: block; margin-top: 2px; }

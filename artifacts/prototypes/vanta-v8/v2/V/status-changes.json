@@ -1,0 +1,1743 @@
+{
+ "overview": {
+  "n": 2,
+  "words": [
+   "Active"
+  ]
+ },
+ "controls": {
+  "n": 3,
+  "words": [
+   "Not assessed"
+  ]
+ },
+ "requirements": {
+  "n": 1,
+  "words": [
+   "Review"
+  ]
+ },
+ "evidence": {
+  "n": 6,
+  "words": [
+   "Pending review"
+  ]
+ },
+ "assessments": {
+  "n": 2,
+  "words": [
+   "Active"
+  ]
+ },
+ "campaign": {
+  "n": 15,
+  "words": [
+   "Active",
+   "Ready"
+  ]
+ },
+ "poam": {
+  "n": 13,
+  "words": [
+   "In progress"
+  ]
+ },
+ "sources": {
+  "n": 1,
+  "words": [
+   "Validating"
+  ]
+ },
+ "authorization": {
+  "n": 7,
+  "words": [
+   "ATO with conditions",
+   "Current",
+   "Draft",
+   "Draft results",
+   "IATT"
+  ]
+ },
+ "components": {
+  "n": 1,
+  "words": [
+   "Offer waiting"
+  ]
+ },
+ "control-si2": {
+  "n": 11,
+  "words": [
+   "Not assessed"
+  ]
+ },
+ "control-si2-requirements": {
+  "n": 1,
+  "words": [
+   "Not assessed"
+  ]
+ },
+ "control-si2-evidence": {
+  "n": 1,
+  "words": [
+   "Not assessed"
+  ]
+ },
+ "control-si2-assessment": {
+  "n": 1,
+  "words": [
+   "Not assessed"
+  ]
+ },
+ "control-si2-findings": {
+  "n": 1,
+  "words": [
+   "Not assessed"
+  ]
+ },
+ "policies": {
+  "n": 7,
+  "words": [
+   "In review",
+   "Not assessed"
+  ]
+ },
+ "assessments-plans": {
+  "n": 2,
+  "words": [
+   "Active"
+  ]
+ },
+ "assessments-results": {
+  "n": 1,
+  "words": [
+   "Draft"
+  ]
+ },
+ "campaign-findings": {
+  "n": 3,
+  "words": [
+   "Active",
+   "Not assessed"
+  ]
+ },
+ "cyber-te": {
+  "n": 1,
+  "words": [
+   "Planned"
+  ]
+ },
+ "frameworks-overlays": {
+  "n": 1,
+  "words": [
+   "Draft"
+  ]
+ },
+ "data-calls": {
+  "n": 2,
+  "words": [
+   "In review"
+  ]
+ },
+ "notifications": {
+  "n": 2,
+  "words": [
+   "Immediately"
+  ]
+ },
+ "enclaves": {
+  "n": 9,
+  "words": [
+   "Hosted model",
+   "In-enclave model",
+   "In-enclave, ISSM approves",
+   "You are here"
+  ]
+ },
+ "component-mc": {
+  "n": 4,
+  "words": [
+   "Not assessed",
+   "To review"
+  ]
+ },
+ "component-mc-assessment": {
+  "n": 5,
+  "words": [
+   "Not assessed",
+   "To review"
+  ]
+ },
+ "component-mc-where": {
+  "n": 3,
+  "words": [
+   "Issue open",
+   "Not assessed",
+   "To review"
+  ]
+ },
+ "component-mc-findings": {
+  "n": 3,
+  "words": [
+   "Not assessed",
+   "Offered",
+   "To review"
+  ]
+ },
+ "component-mc-sbom": {
+  "n": 3,
+  "words": [
+   "None",
+   "Not assessed",
+   "To review"
+  ]
+ },
+ "component-mc-sbom-v1": {
+  "n": 2,
+  "words": [
+   "Not assessed",
+   "To review"
+  ]
+ },
+ "component-mc-versions": {
+  "n": 2,
+  "words": [
+   "Not assessed",
+   "To review"
+  ]
+ },
+ "findings-vulns": {
+  "n": 3,
+  "words": [
+   "Awaiting rescan",
+   "Fix in version 2",
+   "Patch staged"
+  ]
+ },
+ "findings-assets": {
+  "n": 1,
+  "words": [
+   "CycloneDX 1.5"
+  ]
+ },
+ "poam-milestones": {
+  "n": 9,
+  "words": [
+   "In progress"
+  ]
+ },
+ "people-8140": {
+  "n": 2,
+  "words": [
+   "Hours due Jan 31, 2027",
+   "Qualifying by Mar 1, 2027"
+  ]
+ },
+ "people-access": {
+  "n": 1,
+  "words": [
+   "In review"
+  ]
+ },
+ "schedule": {
+  "n": 4,
+  "words": [
+   "In progress",
+   "In review",
+   "Ready"
+  ]
+ },
+ "conmon": {
+  "n": 3,
+  "words": [
+   "In progress",
+   "Ready"
+  ]
+ },
+ "ssp": {
+  "n": 12,
+  "words": [
+   "In progress",
+   "Not assessed"
+  ]
+ },
+ "composition-config": {
+  "n": 11,
+  "words": [
+   "Changed",
+   "Draft"
+  ]
+ },
+ "inheritance": {
+  "n": 1,
+  "words": [
+   "2 to review"
+  ]
+ },
+ "inheritance-controls": {
+  "n": 4,
+  "words": [
+   "Component",
+   "To review"
+  ]
+ },
+ "inheritance-sources": {
+  "n": 3,
+  "words": [
+   "None",
+   "Version 2 \u00b7 Nov 12"
+  ]
+ },
+ "traceability": {
+  "n": 3,
+  "words": [
+   "In progress"
+  ]
+ },
+ "traceability-risk": {
+  "n": 22,
+  "words": [
+   "In progress"
+  ]
+ },
+ "traceability-noev": {
+  "n": 6,
+  "words": [
+   "In progress"
+  ]
+ },
+ "products": {
+  "n": 1,
+  "words": [
+   "On version 1"
+  ]
+ },
+ "cyber-te-events": {
+  "n": 1,
+  "words": [
+   "Planned"
+  ]
+ },
+ "cyber-te-findings": {
+  "n": 1,
+  "words": [
+   "Operational issue opened"
+  ]
+ },
+ "component-mc-tasks": {
+  "n": 2,
+  "words": [
+   "Not assessed",
+   "To review"
+  ]
+ },
+ "component-mc-activity": {
+  "n": 2,
+  "words": [
+   "Not assessed",
+   "To review"
+  ]
+ },
+ "component-mc-comments": {
+  "n": 2,
+  "words": [
+   "Not assessed",
+   "To review"
+  ]
+ },
+ "itcsc-history": {
+  "n": 1,
+  "words": [
+   "Needed"
+  ]
+ },
+ "itcsc-import-review": {
+  "n": 33,
+  "words": [
+   "New",
+   "New draft interconnection",
+   "Same"
+  ]
+ },
+ "interconnections": {
+  "n": 5,
+  "words": [
+   "ISA \u00b7 Draft",
+   "Not assessed",
+   "Not required"
+  ]
+ },
+ "interconnections-expiring": {
+  "n": 1,
+  "words": [
+   "Not assessed"
+  ]
+ },
+ "interconnections-no-agreement": {
+  "n": 3,
+  "words": [
+   "ISA \u00b7 Draft",
+   "Not assessed"
+  ]
+ },
+ "interconnections-expired": {
+  "n": 1,
+  "words": [
+   "Not assessed"
+  ]
+ },
+ "ppsm": {
+  "n": 9,
+  "words": [
+   "Not applicable",
+   "Not required",
+   "Pending"
+  ]
+ },
+ "ppsm-dod": {
+  "n": 2,
+  "words": [
+   "Pending"
+  ]
+ },
+ "ppsm-unregistered": {
+  "n": 2,
+  "words": [
+   "Pending"
+  ]
+ },
+ "ppsm-conditional": {
+  "n": 3,
+  "words": [
+   "Not required",
+   "Pending"
+  ]
+ },
+ "stigs-imports": {
+  "n": 1,
+  "words": [
+   "Queued"
+  ]
+ },
+ "sse": {
+  "n": 1,
+  "words": [
+   "In review"
+  ]
+ },
+ "plan-irp": {
+  "n": 3,
+  "words": [
+   "Drafted"
+  ]
+ },
+ "plan-cmp": {
+  "n": 4,
+  "words": [
+   "In analysis",
+   "Review"
+  ]
+ },
+ "person-joel-barrantes-onboarding": {
+  "n": 1,
+  "words": [
+   "Open"
+  ]
+ },
+ "person-joel-barrantes-training": {
+  "n": 1,
+  "words": [
+   "Open"
+  ]
+ },
+ "person-ray-colston-onboarding": {
+  "n": 1,
+  "words": [
+   "In progress"
+  ]
+ },
+ "person-ray-colston-training": {
+  "n": 1,
+  "words": [
+   "Qualifying by Mar 1"
+  ]
+ },
+ "person-d-okafor-onboarding": {
+  "n": 1,
+  "words": [
+   "Open"
+  ]
+ },
+ "person-d-okafor-training": {
+  "n": 1,
+  "words": [
+   "Open"
+  ]
+ },
+ "person-nadia-fournier-onboarding": {
+  "n": 1,
+  "words": [
+   "In progress"
+  ]
+ },
+ "person-nadia-fournier-training": {
+  "n": 1,
+  "words": [
+   "Learning hours due Jan 31"
+  ]
+ },
+ "person-local-developer-onboarding": {
+  "n": 4,
+  "words": [
+   "In progress",
+   "Open"
+  ]
+ },
+ "person-local-developer-training": {
+  "n": 2,
+  "words": [
+   "Open"
+  ]
+ },
+ "person-ingrid-solberg-onboarding": {
+  "n": 1,
+  "words": [
+   "Open"
+  ]
+ },
+ "person-ingrid-solberg-training": {
+  "n": 1,
+  "words": [
+   "Open"
+  ]
+ },
+ "person-victor-amsel-offboarding": {
+  "n": 1,
+  "words": [
+   "In progress"
+  ]
+ },
+ "person-wes-duarte-onboarding": {
+  "n": 1,
+  "words": [
+   "Open"
+  ]
+ },
+ "ai-drafts-runs": {
+  "n": 7,
+  "words": [
+   "Waiting on you"
+  ]
+ },
+ "permissions": {
+  "n": 2,
+  "words": [
+   "One"
+  ]
+ },
+ "evidence-page-e1": {
+  "n": 2,
+  "words": [
+   "Pending review"
+  ]
+ },
+ "evidence-page-e2": {
+  "n": 2,
+  "words": [
+   "Pending review"
+  ]
+ },
+ "evidence-page-e3": {
+  "n": 2,
+  "words": [
+   "Pending review"
+  ]
+ },
+ "evidence-page-e4": {
+  "n": 2,
+  "words": [
+   "Pending review"
+  ]
+ },
+ "evidence-page-e5": {
+  "n": 2,
+  "words": [
+   "Pending review"
+  ]
+ },
+ "evidence-page-e6": {
+  "n": 2,
+  "words": [
+   "Pending review"
+  ]
+ },
+ "evidence-page-m1": {
+  "n": 2,
+  "words": [
+   "Pending review"
+  ]
+ },
+ "evidence-page-m2": {
+  "n": 2,
+  "words": [
+   "Pending review"
+  ]
+ },
+ "evidence-page-m3": {
+  "n": 2,
+  "words": [
+   "Pending review"
+  ]
+ },
+ "evidence-page-m4": {
+  "n": 2,
+  "words": [
+   "Pending review"
+  ]
+ },
+ "evidence-page-m5": {
+  "n": 2,
+  "words": [
+   "Pending review"
+  ]
+ },
+ "policy-page-ia-1": {
+  "n": 1,
+  "words": [
+   "Not assessed"
+  ]
+ },
+ "policy-page-mp-1": {
+  "n": 3,
+  "words": [
+   "In review",
+   "Not assessed"
+  ]
+ },
+ "integration-emass": {
+  "n": 1,
+  "words": [
+   "Works from a file"
+  ]
+ },
+ "integration-acas": {
+  "n": 1,
+  "words": [
+   "Works from a file"
+  ]
+ },
+ "integration-stig": {
+  "n": 1,
+  "words": [
+   "Works from a file"
+  ]
+ },
+ "integration-scap": {
+  "n": 1,
+  "words": [
+   "Works from a file"
+  ]
+ },
+ "integration-sbom": {
+  "n": 1,
+  "words": [
+   "Works from a file"
+  ]
+ },
+ "integration-sarif": {
+  "n": 1,
+  "words": [
+   "Works from a file"
+  ]
+ },
+ "integration-doors": {
+  "n": 1,
+  "words": [
+   "Works from a file"
+  ]
+ },
+ "integration-oscal": {
+  "n": 1,
+  "words": [
+   "Works from a file"
+  ]
+ },
+ "package-room-versions": {
+  "n": 1,
+  "words": [
+   "ATO with conditions"
+  ]
+ },
+ "package-room-preview": {
+  "n": 1,
+  "words": [
+   "ATO with conditions"
+  ]
+ },
+ "data-calls-fisma": {
+  "n": 6,
+  "words": [
+   "In review",
+   "Matches a source",
+   "Needs a date",
+   "Needs review"
+  ]
+ },
+ "data-calls-fisma-comments": {
+  "n": 1,
+  "words": [
+   "In review"
+  ]
+ },
+ "data-calls-ready": {
+  "n": 6,
+  "words": [
+   "In review",
+   "Matches a source",
+   "Needs a date",
+   "Needs review"
+  ]
+ },
+ "data-calls-ready-comments": {
+  "n": 1,
+  "words": [
+   "In review"
+  ]
+ },
+ "data-calls-scrm": {
+  "n": 5,
+  "words": [
+   "Matches a source",
+   "Needs a date",
+   "Needs review"
+  ]
+ },
+ "data-calls-cusa": {
+  "n": 5,
+  "words": [
+   "Matches a source",
+   "Needs a date",
+   "Needs review"
+  ]
+ },
+ "data-calls-fy26": {
+  "n": 5,
+  "words": [
+   "Matches a source",
+   "Needs a date",
+   "Needs review"
+  ]
+ },
+ "data-calls-kb": {
+  "n": 2,
+  "words": [
+   "Draft",
+   "With conditions"
+  ]
+ },
+ "control-si2-checks": {
+  "n": 1,
+  "words": [
+   "Not assessed"
+  ]
+ },
+ "control-si2-history": {
+  "n": 1,
+  "words": [
+   "Not assessed"
+  ]
+ },
+ "control-si2-comments": {
+  "n": 1,
+  "words": [
+   "Not assessed"
+  ]
+ },
+ "assessments-assessor": {
+  "n": 2,
+  "words": [
+   "Active"
+  ]
+ },
+ "check-scan": {
+  "n": 1,
+  "words": [
+   "In progress"
+  ]
+ },
+ "check-scan-history": {
+  "n": 1,
+  "words": [
+   "In progress"
+  ]
+ },
+ "check-scan-tasks": {
+  "n": 1,
+  "words": [
+   "In progress"
+  ]
+ },
+ "check-iava": {
+  "n": 2,
+  "words": [
+   "In review",
+   "Not assessed"
+  ]
+ },
+ "check-iava-tasks": {
+  "n": 1,
+  "words": [
+   "In review"
+  ]
+ },
+ "check-iava-controls": {
+  "n": 1,
+  "words": [
+   "Not assessed"
+  ]
+ },
+ "check-stig": {
+  "n": 1,
+  "words": [
+   "In progress"
+  ]
+ },
+ "check-stig-tasks": {
+  "n": 1,
+  "words": [
+   "In progress"
+  ]
+ },
+ "check-sbom": {
+  "n": 2,
+  "words": [
+   "In progress",
+   "Not assessed"
+  ]
+ },
+ "check-sbom-tasks": {
+  "n": 1,
+  "words": [
+   "In progress"
+  ]
+ },
+ "check-sbom-controls": {
+  "n": 1,
+  "words": [
+   "Not assessed"
+  ]
+ },
+ "check-priv-review-history": {
+  "n": 1,
+  "words": [
+   "In progress"
+  ]
+ },
+ "frameworks-high": {
+  "n": 3,
+  "words": [
+   "Active"
+  ]
+ },
+ "frameworks-moderate": {
+  "n": 3,
+  "words": [
+   "Active"
+  ]
+ },
+ "frameworks-low": {
+  "n": 3,
+  "words": [
+   "Active"
+  ]
+ },
+ "frameworks-privacy": {
+  "n": 3,
+  "words": [
+   "Active"
+  ]
+ },
+ "campaign-r1": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r1-objectives": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r1-activity": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r1-comments": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r1-internal": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r2": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r2-objectives": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r2-activity": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r2-comments": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r2-internal": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r3": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r3-objectives": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r3-activity": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r3-comments": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r3-internal": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r4": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r4-objectives": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r4-activity": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r4-comments": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r4-internal": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r5": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r5-objectives": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r5-activity": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r5-comments": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r5-internal": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r6": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r6-objectives": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r6-activity": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r6-comments": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r6-internal": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r7": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r7-objectives": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r7-activity": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r7-comments": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r7-internal": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r8": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r8-objectives": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r8-activity": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r8-comments": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r8-internal": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r9": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r9-objectives": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r9-activity": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r9-comments": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r9-internal": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r10": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r10-objectives": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r10-activity": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r10-comments": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r10-internal": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r11": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r11-objectives": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r11-activity": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r11-comments": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r11-internal": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r12": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r12-objectives": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r12-activity": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r12-comments": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r12-internal": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r13": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r13-objectives": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r13-activity": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r13-comments": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r13-internal": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r14": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r14-objectives": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r14-activity": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r14-comments": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "campaign-r14-internal": {
+  "n": 3,
+  "words": [
+   "Internal review",
+   "Ready"
+  ]
+ },
+ "notifications-workspace": {
+  "n": 7,
+  "words": [
+   "Immediately"
+  ]
+ },
+ "reports-trend": {
+  "n": 1,
+  "words": [
+   "Not assessed"
+  ]
+ },
+ "panel:a-tests-control": {
+  "n": 9,
+  "words": [
+   "Not assessed"
+  ]
+ },
+ "panel:v7p-req": {
+  "n": 4,
+  "words": [
+   "Needs review"
+  ]
+ },
+ "panel:a-docs-ev": {
+  "n": 36,
+  "words": [
+   "Pending review"
+  ]
+ },
+ "panel:a-risk-issue": {
+  "n": 13,
+  "words": [
+   "In progress",
+   "Open"
+  ]
+ },
+ "panel:a-risk-poam": {
+  "n": 87,
+  "words": [
+   "In progress",
+   "In review"
+  ]
+ },
+ "panel:a-risk-risk": {
+  "n": 25,
+  "words": [
+   "Reassessing"
+  ]
+ },
+ "panel:a-docs-src": {
+  "n": 13,
+  "words": [
+   "Importing",
+   "Not assessed",
+   "Validating"
+  ]
+ },
+ "panel:v7p-decision": {
+  "n": 2,
+  "words": [
+   "ATO with conditions",
+   "IATT"
+  ]
+ },
+ "panel:v7o-offer": {
+  "n": 1,
+  "words": [
+   "Offered"
+  ]
+ },
+ "panel:a-docs-pol": {
+  "n": 14,
+  "words": [
+   "In review",
+   "Not assessed"
+  ]
+ },
+ "panel:a-docs-int": {
+  "n": 7,
+  "words": [
+   "Not assessed",
+   "Validating"
+  ]
+ },
+ "panel:a-people-person": {
+  "n": 2,
+  "words": [
+   "Learning hours due Jan 31",
+   "Qualifying by Mar 1"
+  ]
+ },
+ "panel:a-people-par": {
+  "n": 4,
+  "words": [
+   "In review",
+   "Open"
+  ]
+ },
+ "panel:plat-offer": {
+  "n": 1,
+  "words": [
+   "Offered"
+  ]
+ },
+ "panel:plat-consumer": {
+  "n": 3,
+  "words": [
+   "Open",
+   "Unanswered"
+  ]
+ },
+ "panel:a-tests-check": {
+  "n": 8,
+  "words": [
+   "In progress",
+   "Not assessed"
+  ]
+ },
+ "panel:a-work-gate": {
+  "n": 1,
+  "words": [
+   "In review"
+  ]
+ },
+ "panel:a-work-task": {
+  "n": 3,
+  "words": [
+   "In progress",
+   "Ready"
+  ]
+ },
+ "panel:a-work-run": {
+  "n": 5,
+  "words": [
+   "Waiting"
+  ]
+ },
+ "panel:a-work-agent": {
+  "n": 2,
+  "words": [
+   "Active"
+  ]
+ },
+ "panel:v7p-obj": {
+  "n": 3,
+  "words": [
+   "Not assessed"
+  ]
+ },
+ "panel:control": {
+  "n": 1,
+  "words": [
+   "Not assessed"
+  ]
+ },
+ "panel:cmp-results": {
+  "n": 1,
+  "words": [
+   "Draft"
+  ]
+ },
+ "panel:v7a-evt": {
+  "n": 1,
+  "words": [
+   "Planned"
+  ]
+ },
+ "panel:v7a-camp": {
+  "n": 1,
+  "words": [
+   "Planned"
+  ]
+ },
+ "panel:v8w-run": {
+  "n": 59,
+  "words": [
+   "Waiting",
+   "Waiting on you"
+  ]
+ },
+ "panel:v7o-dl-item": {
+  "n": 1,
+  "words": [
+   "In progress"
+  ]
+ },
+ "panel:v7o-prog": {
+  "n": 12,
+  "words": [
+   "Active",
+   "In review"
+  ]
+ },
+ "panel:v7o-ccp": {
+  "n": 5,
+  "words": [
+   "Not assessed"
+  ]
+ },
+ "panel:v7o-version": {
+  "n": 2,
+  "words": [
+   "To review"
+  ]
+ },
+ "panel:v7o-consumer": {
+  "n": 3,
+  "words": [
+   "Open",
+   "Unanswered"
+  ]
+ },
+ "panel:v7o-mcctl": {
+  "n": 3,
+  "words": [
+   "Not assessed",
+   "To review"
+  ]
+ },
+ "panel:v7o-cve": {
+  "n": 1,
+  "words": [
+   "Issue open"
+  ]
+ },
+ "panel:v7o-q8140": {
+  "n": 2,
+  "words": [
+   "Learning hours due",
+   "Qualifying"
+  ]
+ },
+ "panel:v7p-check": {
+  "n": 3,
+  "words": [
+   "In progress",
+   "Ready"
+  ]
+ },
+ "panel:v7p-el": {
+  "n": 30,
+  "words": [
+   "Block 1",
+   "Block 1.1 proposed"
+  ]
+ },
+ "panel:v7a-src": {
+  "n": 9,
+  "words": [
+   "Not assessed",
+   "To review"
+  ]
+ },
+ "panel:v7a-inh-ctl": {
+  "n": 8,
+  "words": [
+   "Component assessment",
+   "Not assessed"
+  ]
+ },
+ "panel:v7a-app": {
+  "n": 31,
+  "words": [
+   "Not assessed"
+  ]
+ },
+ "panel:v7a-cctl": {
+  "n": 11,
+  "words": [
+   "Not assessed"
+  ]
+ },
+ "panel:v7a-trace": {
+  "n": 44,
+  "words": [
+   "In progress"
+  ]
+ },
+ "panel:v7o-bl": {
+  "n": 2,
+  "words": [
+   "Active"
+  ]
+ },
+ "panel:v7o-variant": {
+  "n": 3,
+  "words": [
+   "Modified",
+   "Removed"
+  ]
+ },
+ "panel:v8b-itv": {
+  "n": 1,
+  "words": [
+   "Needed"
+  ]
+ },
+ "panel:v8b-fld": {
+  "n": 37,
+  "words": [
+   "Conflict",
+   "New",
+   "Same"
+  ]
+ },
+ "panel:v8b-ic": {
+  "n": 28,
+  "words": [
+   "ISA \u00b7 Draft",
+   "Not applicable",
+   "Not assessed",
+   "Not required"
+  ]
+ },
+ "panel:v8b-pps": {
+  "n": 23,
+  "words": [
+   "CAL: not applicable",
+   "ISA \u00b7 Draft",
+   "Not assessed",
+   "Not required",
+   "Pending"
+  ]
+ },
+ "panel:v8g-imp": {
+  "n": 1,
+  "words": [
+   "Queued"
+  ]
+ },
+ "panel:v8g-review": {
+  "n": 1,
+  "words": [
+   "In review"
+  ]
+ },
+ "panel:v8g-csa": {
+  "n": 13,
+  "words": [
+   "Not assessed",
+   "Planned"
+  ]
+ },
+ "panel:v8w-agent": {
+  "n": 7,
+  "words": [
+   "Waiting on you"
+  ]
+ },
+ "panel:v8w-role": {
+  "n": 2,
+  "words": [
+   "One at a time"
+  ]
+ },
+ "panel:v8w-scn": {
+  "n": 31,
+  "words": [
+   "Not assessed"
+  ]
+ },
+ "panel:v8b-ctl": {
+  "n": 26,
+  "words": [
+   "Not assessed"
+  ]
+ },
+ "modal:v7p-overlays": {
+  "n": 1,
+  "words": [
+   "Added"
+  ]
+ },
+ "modal:v7a-take": {
+  "n": 2,
+  "words": [
+   "To review"
+  ]
+ },
+ "modal:plat-take": {
+  "n": 6,
+  "words": [
+   "Not assessed",
+   "Yes"
+  ]
+ },
+ "modal:v7o-take": {
+  "n": 18,
+  "words": [
+   "Not assessed",
+   "Yes"
+  ]
+ }
+}

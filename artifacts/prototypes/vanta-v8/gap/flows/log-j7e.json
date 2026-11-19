@@ -1,0 +1,77 @@
+{
+ "log": [
+  {
+   "step": 1,
+   "action": "go #ssp-review",
+   "why": "",
+   "hash": "ssp-review",
+   "h1": "Submit revision 3 for review",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 2,
+   "action": "click \"Submit for review\"",
+   "why": "",
+   "effect": "page changed in place",
+   "hash": "ssp-review",
+   "h1": "Submit revision 3 for review",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 3,
+   "action": "click \"Submit anyway as a draft for ISSM review\"",
+   "why": "",
+   "effect": "toast: Submitted for review. Joel Barrantes is emailed. ; page changed in place",
+   "hash": "ssp-review",
+   "h1": "Revision 3 is with the ISSM",
+   "modal": null,
+   "panel": null,
+   "toasts": "Submitted for review. Joel Barrantes is emailed.",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 3,
+   "shot": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/flows/shots/j7e-08-submitted-anyway.png"
+  },
+  {
+   "step": 4,
+   "action": "click \"Submit for approval\"",
+   "why": "send the package to the AO",
+   "effect": "dialog: Submit package version 2 for approval",
+   "hash": "authorization",
+   "h1": "Authorization",
+   "modal": "Submit package version 2 for approval",
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 4,
+   "shot": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/flows/shots/j7e-09-submit-package.png"
+  },
+  {
+   "step": 5,
+   "action": "click \"Submit\"",
+   "why": "confirm",
+   "effect": "(same screen)",
+   "hash": "authorization",
+   "h1": "Authorization",
+   "modal": "Submit package version 2 for approval",
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  }
+ ],
+ "errors": []
+}

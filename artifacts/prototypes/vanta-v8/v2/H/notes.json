@@ -1,0 +1,193 @@
+[
+ {
+  "route": "boundary",
+  "finding": "H-host",
+  "text": "New page: the authorization bubble, ATO or IATT; six subsystems inside, F-16 Block 70 and the facility left, interconnections right, interfaces drawn across the line."
+ },
+ {
+  "route": "boundary",
+  "finding": "H-host",
+  "text": "The IATT covers Increment 2's test configuration: Block 1.1 changes per subsystem, flight test instrumentation inside, the test range outside, SIPRNet not connected."
+ },
+ {
+  "route": "boundary",
+  "finding": "H-host",
+  "text": "One table under the bubble: element or system, inside or outside, what covers it, and who is responsible; every row opens its preview."
+ },
+ {
+  "route": "hosts",
+  "finding": "H-host",
+  "text": "New Host & providers page: each provider's offer and what WS-X90 takes (Offered, Inherited, Hybrid, Taken back), its authorization and expiry."
+ },
+ {
+  "route": "hosts",
+  "finding": "H-host",
+  "text": "The inheritance table lists 76 controls from providers, host first, with quick views and Provider and Family filters; rows open the control preview."
+ },
+ {
+  "route": "hosts",
+  "finding": "H-host",
+  "where": "dialog: v2h-resp",
+  "text": "Change responsibility, one row or several: Inherited, Hybrid (WS-X90's part required) or System-specific, with a reason; it says what each status becomes."
+ },
+ {
+  "route": "hosts",
+  "finding": "H-host",
+  "where": "dialog: v2h-add",
+  "text": "Add provider: the workspace's providers WS-X90 doesn't take from, what each offers, and that its controls become inherited by default."
+ },
+ {
+  "route": "hosts",
+  "finding": "H-host",
+  "where": "preview: v2h-prov",
+  "text": "Provider preview: owner, authorization, expiry, what it offers, what WS-X90 takes, its interfaces and the programs it carries; ↗ opens its page."
+ },
+ {
+  "route": "rec--v2h-prov--f16",
+  "finding": "H-host",
+  "text": "New page for F-16 Block 70: its offered controls (CRM), what it carries (WS-X90, Customer A), its interfaces and its authorization."
+ },
+ {
+  "route": "rec--v2h-prov--sqops",
+  "finding": "H-host",
+  "text": "New pages for the Squadron operations facility and the C-130J, lighter: the facility's POA&M item holds PE-15, which WS-X90 inherits as it is."
+ },
+ {
+  "route": "controls",
+  "finding": "H-host",
+  "text": "Responsibility column (Inherited, Hybrid or System-specific, with the provider) and a working Responsibility filter that lists the baseline's controls by it."
+ },
+ {
+  "route": "controls",
+  "finding": "H-host",
+  "text": "Counts follow inheritance: 227 of 560 satisfied, 52 inherited, Needs evidence 185, Not assessed 86, Short of satisfied 48."
+ },
+ {
+  "route": "controls",
+  "finding": "H-host",
+  "where": "preview: a-tests-control",
+  "text": "A Responsibility fact names the provider; an inherited control's card is the provider's statement and authorization, in place of requirements and evidence."
+ },
+ {
+  "route": "rec--a-tests-control--PE-13",
+  "finding": "H-host",
+  "text": "A control's page: Responsibility fact, the provider's statement on Implementation, no next step for WS-X90, Change responsibility in its ⋯."
+ },
+ {
+  "route": "control-si2",
+  "finding": "H-host",
+  "text": "SI-2's page gains the Responsibility fact (System-specific) and Change responsibility in its ⋯."
+ },
+ {
+  "route": "overview",
+  "finding": "H-host",
+  "text": "Details rail: Host system F-16 Block 70 (opens its preview); the completion card reads 227 of 560 controls · 52 inherited."
+ },
+ {
+  "route": "home",
+  "finding": "H-host",
+  "text": "WS-X90's card reads 41%, 227 of 560 controls satisfied: the controls it inherits read their providers' status."
+ },
+ {
+  "route": "portfolio",
+  "finding": "H-host",
+  "text": "WS-X90's row reads 41%, 227 of 560; its preview's control status counts follow too."
+ },
+ {
+  "route": "baseline",
+  "finding": "H-host",
+  "text": "The status strip counts with inheritance (Satisfied 227) and the heading says 18 families · 52 inherited."
+ },
+ {
+  "route": "ssp",
+  "finding": "H-host",
+  "text": "An inherited control shows its provider's statement and needs no narrative; a hybrid one shows the provider's part above WS-X90's narrative."
+ },
+ {
+  "route": "ssp",
+  "finding": "H-host",
+  "text": "Appendix A lists every control a provider holds, host first; the control status bar counts 227 satisfied; Assist answers who WS-X90 inherits from."
+ },
+ {
+  "route": "sctm",
+  "finding": "H-host",
+  "text": "SCTM and Controls sheets gain Responsibility and Provider columns; inherited rows read Inherited where a requirement or evidence would be."
+ },
+ {
+  "route": "sctm-analysis",
+  "finding": "H-host",
+  "text": "Analysis counts by responsibility (Inherited 52, 51 satisfied; Hybrid 24; System-specific 484) as live formulas; Mapped no longer counts inherited rows."
+ },
+ {
+  "route": "inheritance",
+  "finding": "H-host",
+  "text": "F-16 Block 70 and the Squadron operations facility join the elements and sources WS-X90 inherits from; their inherited controls decide status."
+ },
+ {
+  "route": "inheritance-controls",
+  "finding": "H-host",
+  "text": "A From the host and facility quick view lists their controls with the provider's status; the counts include them."
+ },
+ {
+  "route": "authorization",
+  "finding": "H-host",
+  "text": "Package tab rail: What it covers, the bubble drawn small (Increment 1 · Block 1, six subsystems, what stays outside), linking to Boundary."
+ },
+ {
+  "route": "program-new-systems",
+  "finding": "H-host",
+  "text": "The Systems step asks for the host system (None, F-16 Block 70, C-130J) and says how many controls it offers, inherited by default."
+ },
+ {
+  "route": "program-new-baseline",
+  "finding": "H-host",
+  "text": "The Baseline step says how many of the chosen baseline's controls are inherited from the host by default; the review lists it."
+ },
+ {
+  "route": "program-start",
+  "finding": "H-host",
+  "text": "A created program's Boundary and Host & providers pages show the host chosen and what it inherits by default."
+ },
+ {
+  "route": "common-controls",
+  "finding": "H-host",
+  "text": "Settings lists the host systems with the providers: what each offers, which programs inherit from it, its authorization; rows open the provider preview."
+ },
+ {
+  "route": "reports-trend",
+  "finding": "H-host",
+  "text": "The control status trend counts with inheritance: 227 of 560 today, each daily snapshot moved by what inheriting moves."
+ },
+ {
+  "route": "event-log",
+  "finding": "H-host",
+  "text": "The daily snapshots read 227 of 560 controls satisfied, as the snapshots taken with inheritance would."
+ },
+ {
+  "route": "hosts",
+  "finding": "H-host",
+  "text": "A changed row says so; its reason, who and when are kept and shown on the control's preview and page beside the provider's still-standing offer."
+ },
+ {
+  "route": "home",
+  "finding": "H-count",
+  "where": "launcher",
+  "text": "The launcher's answers count with inheritance too: 185 controls have no evidence (was 233)."
+ },
+ {
+  "route": "requirements-objectives",
+  "finding": "H-count",
+  "text": "Objectives assessed counts the providers' assessments of inherited controls: 970 of 1,791."
+ },
+ {
+  "route": "portfolio",
+  "finding": "H-count",
+  "where": "preview: v7o-prog",
+  "text": "WS-X90's program preview counts 41% satisfied: Satisfied 227, Partially 35, Not assessed 86, No evidence 185."
+ },
+ {
+  "route": "boundary",
+  "finding": "H-count",
+  "text": "Every place WS-X90's control totals show reads one number (227 of 560, 52 inherited): Home, Programs and its preview, Overview, Controls, Baseline, SSP editor, SCTM and Analysis, the trend, the event log, the launcher."
+ }
+]

@@ -1,0 +1,118 @@
+MYWORK: My work
+All
+Assigned to me
+My teams
+Needs my approval
+Type ⌄
+Urgent
+3
+Remediate CVE-2024-6387 on the Mission Computer
+WSX-409 • High • due Nov 9 • 8 days late
+IS
+Resolve 17 operational issues past their remediation date
+1 critical • 9 high • 7 moderate
+No owner
+Treat 2 critical risks
+a password alone reaches WS-X90 • unverifiable arm and release records
+No owner
+Coming soon
+4
+Close out the Expanded Control Set Assessment
+88 requests ready for the assessor • ends Nov 20
+DO
+Remediate 3 operational issues
+1 critical • 2 high • due within two weeks
+No owner
+Submit SSP 3 for review
+Draft
+Example
+PR
+Run the quarterly configuration baseline audit (CM-2, CM-3)
+WSX-397 • Planned • due Dec 28
+IS
+Unscheduled
+2
+Give an owner to 40 open risks
+No owner
+Revise 54 evidence versions
+sent back by reviewers
+No owner
+WD
+Waiting on others
+2
+88 evidence versions wait on a reviewer
+Pending review
+NF
+An offered finding, CVE-2024-6387, waits on Priya Raghavan
+offered Nov 14
+PR
+EFFECT → #findings-vulns ; panel: Operational issue preview
+LANDED: Findings
+Import scan
+Create operational issue
+By issue
+44
+Vulnerabilities
+4
+By asset
+20
+Assessment findings
+313
+Deactivated
+History
+Remediate-by status
+4 open
+Overdue
+CVE-2024-6387 · Nov 9 · 8d late
+1
+Due within two weeks Example
+3
+Due later
+0
+Deadlines: critical 15 · high 30 · moderate 90 · low 180 days · IAVA and IAVB from the notice
+Edit
+By severity
+4 open
+4
+Critical 1
+High 2
+Moderate 1
+Low 0
+Three of the four are invented Example
+All
+4
+Past due
+1
+IAVA
+2
+IAVB
+1
+Search CVEs
+Severity ⌄
+Asset ⌄
+IAVM ⌄
+Remediate by ⌄
++ Add filter
+Reset
+▥
+⚙
+Showing the CVE this row names 1
+Show all
+	CVE	Title	Severity	Asset	IAVA / IAVB	Remediate by	Status
+
+	CVE-2024-6387	Signal handler race in OpenSSH's sshd (regreSSHion)	
+High 8.1	Mission Computer · LRU-001	
+Not linked	Nov 9 · 8d late	
+Fix in version 2
+1–4 of 4
+25 per page · ‹ ›
+
+Example Only CVE-2024-6387 is WS-X90's, read from the Mission Computer SBOM (CycloneDX 1.5, Oct 8); the other three CVEs are invented.
+FILTER STATE {"rows":4,"search":[],"chips":["Vulnerabilities 4","All 4"],"mark":[]}
+CONTROLS: button⊡v2k-import-scan: Import scan ‖ summary: More findings actions ‖ span→deadlines:  ‖ span⊡v2k-export:  ‖ button⊡v2k-create-issue: Create operational issue ‖ span→findings: By issue 44 ‖ span: Vulnerabilities 4 ‖ span→findings-assets: By asset 20 ‖ span→findings-assessment: Assessment findings 313 ‖ span→findings-deactivated: Deactivated ‖ span→findings-history: History ‖ span→deadlines: Edit ‖ button: All 4 ‖ button: Past due 1 ‖ button: IAVA 2 ‖ button: IAVB 1 ‖ button: Show all ‖ span: Select every CVE on this page ‖ tr▤a-risk-issue: CVE-2024-6387 Signal handler race in OpenSSH's sshd (regreSS
+{"step":1,"action":"go #home","why":"land on Home","hash":"home","h1":"","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":2,"action":"click \"My work\"","why":"the engineer's own list","effect":"→ #my-work","hash":"my-work","h1":"","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":2,"shot":"/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/v2/R/flows/shots/j2-01-my-work.png"}
+{"step":3,"action":"click \"Remediate CVE-2024-6387\"","why":"top Urgent item","effect":"→ #findings-vulns ; panel: Operational issue preview","hash":"findings-vulns","h1":"","modal":null,"panel":"Operational issue preview","toasts":"","otherDlg":[],"notDrawn":false}
+{"step":3,"shot":"/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/v2/R/flows/shots/j2-02-landed-from-top-item.png"}
+errors: []

@@ -1,0 +1,11 @@
+FIELDS: [ '0:Review comment' ]
+SUBMIT → page changed in place | NEW LINES: [
+  "The categorization has no rationale. eMASS refuses an SSP without one, so the AO can't sign revision 3 until section 2 has it. Submitting anyway sends the draft to the ISSM only; the AO step stays blocked.",
+  'Submit anyway as a draft for ISSM review',
+  'Fix in the editor'
+]
+HEAD: Back to editing Submit revision 3 for review WS-X90 System Security Plan · Revision 3 · Draft · started Nov 13 Submit for review The categorization has no rationale. eMASS refuses an SSP without one, so the AO can't sign revision 3 until section 2 has it. Submitting anyway sends the draft to the ISSM only; the AO step stays blocked. Submit anyway as a draft for ISSM review Fix in the editor Change
+{"step":1,"action":"go #ssp-review","why":"","hash":"ssp-review","h1":"Submit revision 3 for review","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":2,"action":"click \"Submit for review\"","why":"","effect":"page changed in place","hash":"ssp-review","h1":"Submit revision 3 for review","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":2,"shot":"/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/v2/R/flows/shots/j7d-07-submitted.png"}
+errors: []

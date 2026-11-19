@@ -1,0 +1,114 @@
+{
+ "log": [
+  {
+   "step": 1,
+   "action": "go #overview",
+   "why": "",
+   "hash": "overview",
+   "h1": "WS-X90 Sentinel Mission System",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 2,
+   "action": "click \"People\"",
+   "why": "program menu People",
+   "effect": "→ #people",
+   "hash": "people",
+   "h1": "People",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 3,
+   "action": "click \"Victor Amsel\"",
+   "why": "open the leaver",
+   "effect": "panel: Person preview",
+   "hash": "people",
+   "h1": "People",
+   "modal": null,
+   "panel": "Person preview",
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 4,
+   "action": "go #people",
+   "why": "",
+   "hash": "people",
+   "h1": "People",
+   "modal": null,
+   "panel": "Person preview",
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 5,
+   "action": "click \"Assign a role\"",
+   "why": "onboard a newcomer?",
+   "effect": "dialog: Assign a role",
+   "hash": "people",
+   "h1": "People",
+   "modal": "Assign a role",
+   "panel": "Person preview",
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 5,
+   "shot": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/v2/R/flows2/shots/j8b-03-assign-role.png"
+  },
+  {
+   "step": 6,
+   "action": "click \"Assign role\"",
+   "why": "submit",
+   "effect": "dialog closed",
+   "hash": "people",
+   "h1": "People",
+   "modal": null,
+   "panel": "Person preview",
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 7,
+   "action": "go #people-access",
+   "why": "",
+   "hash": "people-access",
+   "h1": "People",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 8,
+   "action": "click \"Quarterly privileged account review (AC-2, AC-6)\"",
+   "why": "open the review",
+   "effect": "panel: Access review preview",
+   "hash": "people-access",
+   "h1": "People",
+   "modal": null,
+   "panel": "Access review preview",
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 8,
+   "shot": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/v2/R/flows2/shots/j8b-04-access-review.png"
+  }
+ ],
+ "errors": []
+}

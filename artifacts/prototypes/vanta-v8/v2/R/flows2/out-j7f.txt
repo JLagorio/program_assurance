@@ -1,0 +1,8 @@
+MY WORK after submit: {"submitRow":false,"snippet":""}
+REVIEW QUEUE waiting before/after: undefined undefined | SSP listed: false
+AUTH package SSP row: System security plan Revision 3 Version 2 In review Submitted 10:43 AM Waits on Joel Barrantes, ISSM
+{"step":1,"action":"go #ssp-review","why":"","hash":"ssp-review","h1":"Submit revision 3 for review","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":2,"action":"click \"Submit for review\"","why":"","effect":"page changed in place","hash":"ssp-review","h1":"Submit revision 3 for review","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":3,"action":"click \"Submit anyway as a draft for ISSM review\"","why":"","effect":"toast: Submitted for review. Joel Barrantes is emailed. ; page changed in place","hash":"ssp-review","h1":"Revision 3 is with the ISSM","modal":null,"panel":null,"toasts":"Submitted for review. Joel Barrantes is emailed.","otherDlg":[],"notDrawn":false}
+{"step":3,"shot":"/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/v2/R/flows2/shots/j7f-10-mywork-after-submit.png"}
+errors: []

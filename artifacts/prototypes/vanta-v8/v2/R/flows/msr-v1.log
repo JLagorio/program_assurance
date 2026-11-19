@@ -1,0 +1,73 @@
+products :: Take version 2 of X800 Missile → closes, toast only | X800-A-CUSA takes X800 Missile version 2 | via key
+suppliers :: Request from a supplier → closes silently, nothing changes  | via key
+review-queue :: Reassign reviewer → closes silently, nothing changes  | via key
+products :: Create product → closes, toast only | Product created | via key
+components :: Create component → closes, toast only | Component created as a draft | via key
+integrations :: Request a connector → closes, toast only | Request sent | via key
+reports :: Generate report → closes silently, nothing changes  | via key
+ai-drafts :: Run an agent → closes, toast only | Narrative drafter started on AU family: its suggestions will wait in Needs approval | via key
+enclaves :: Add enclave → closes, toast only | Enclave added | via key
+notifications :: Send a test → closes silently, nothing changes  | via key
+common-controls :: Add provider → closes, toast only | Offer requested | via key
+ai-drafts :: Reject the run → changes state, toast | Narrative drafter's run rejected: nothing it proposed is applied | via key
+permissions :: Invite a member → held by validation  | via key
+deadlines :: Edit high finding deadline → closes, toast only | High finding deadline saved | via key
+event-log :: Export event log → closes, toast only | Event log exported (.csv) | via key
+itcsc :: Start version 4 → changes state, toast | Version 4 started from version 3 · version 3 stays approved | via key
+interconnections :: Add interconnection → closes, toast only | Interconnection added as a draft · IC-110 | via key
+stigs :: Import a checklist → dialog changes in place  | via key
+composition :: Create element → closes, toast only | Element created under CN-109001 (prototype: nothing is saved) | via key
+composition :: Take version 2 of Mission Computer → closes, toast only | Mission Computer version 2 taken on CN-109101 (prototype: nothing is saved) | via key
+sources :: Retry import → closes silently, nothing changes  | via key
+sources :: Add source → dialog changes in place  | via key
+ppsm :: Add service → closes, toast only | Service added · its CAL assessment is looked up | via key
+inventory :: Assign owner → closes, toast only | Owner assigned to 20 assets | via key
+ssps :: New plan → closes, toast only | Supply chain risk management plan: a draft from its template is proposed for the next vers | via key
+inventory :: Mark not in boundary → closes silently, nothing changes  | via key
+controls :: Add to assessment campaign → closes silently, nothing changes  | via key
+baseline :: Edit overlays → closes, toast only | Overlays saved as a draft: it applies once the active assessments close (prototype: nothin | via key
+checks :: Deactivate 2 checks → changes state, no toast  | via key
+requirements :: Import requirements → closes, toast only | 14 requirements imported, 21 allocations made (prototype: nothing is saved) | via key
+requirements :: Create requirement → closes, toast only | REQ-641 created as a draft (prototype: nothing is saved) | via key
+assessments :: Plan an assessment → closes silently, nothing changes  | via key
+assessments :: Publish assessment results → closes silently, nothing changes  | via key
+cyber-te :: Plan a cyber test → closes silently, nothing changes  | via key
+policies :: Start a policy → navigates to policy-editor  | via key
+policies :: Assign approvers → closes, toast only | Sent to Nadia Fournier for step 1 | via key
+poam :: Change planned date → closes silently, nothing changes  | via key
+poam :: Create POA&M item → closes silently, nothing changes  | via key
+findings :: Deactivate 3 findings → closes silently, nothing changes  | via key
+threats :: Link ATT&CK technique → closes silently, nothing changes  | via key
+risks :: Create risk → closes silently, nothing changes  | via key
+risks :: Request acceptance → closes silently, nothing changes  | via key
+inheritance :: Add common control provider → closes silently, nothing changes  | via key
+package-room :: Share the package → closes silently, nothing changes  | via key
+sse :: Add security outcomes → dialog stays, nothing changes | Choose at least one outcome | via key
+traceability :: Link evidence → closes silently, nothing changes  | via key
+authorization :: Submit package version 2 for approval → dialog stays, nothing changes (primary disabled)  | via key
+program-new :: Save the draft and leave? → navigates to home | Draft saved · Customer D · X800 Eject Launch Integration | via key
+conmon :: Plan a check → closes, toast only | Check planned in WS-X90 continuous monitoring — FY2027 (prototype: nothing is saved) | via key
+schedule :: Create task → closes silently, nothing changes  | via key
+schedule :: Change due date → closes silently, nothing changes  | via key
+people :: Assign a role → closes silently, nothing changes  | via key
+people :: Recurring reminders → closes, toast only | Reminders scheduled for every Monday | via key
+people :: Change role → closes, toast only | Roles changed | via key
+people :: Send a reminder → closes, toast only | Reminder sent to 2 people | via key
+people :: End 2 roles → closes, toast only | 2 periods end Nov 17 | via key
+program-start :: Invite by email → dialog changes in place  | via key
+campaign :: Set Ready → closes silently, nothing changes  | via key
+control-si2 :: Add evidence → closes silently, nothing changes  | via key
+ssp-review :: Edit summary → changes state, toast | Summary saved. It goes to the ISSM with the submission. | via key
+ssp-history :: Compare versions → changes state, no toast  | via key
+ssp-history :: Name this version → dialog changes in place  | via key
+ssp-history :: Restore this version? → changes state, toast | Restored as a new version. Every version stays in the history. | via key
+check-scan :: Create ticket → changes state, toast | WSX-419 created in Jira · status syncs both ways | via key
+component-mc :: Remind consumers to take version 2 → closes, toast only | 3 consumers reminded | via key
+ssp :: Share the SSP → closes silently, nothing changes  | via key
+ssp :: Add section → changes state, toast | Added 14 New section | via key
+ssp :: Detach from the record? → changes state, toast | 1 System identification is detached: its values stay as text | via key
+ssp :: Replace Figure 1 → closes, toast only | Your file picker would open here: PNG, SVG or PDF, up to 10 MB | via key
+ssp :: Replace Figure 2 → closes, toast only | Your file picker would open here: PNG, SVG or PDF, up to 10 MB | via key
+ssp :: Set AC-2(3)'s parameters → changes state, toast | Set in WS-X90's program tailoring: 72 hours and 90 days | via key
+done 74
+done Wed Nov 18 21:27:28 PST 2026

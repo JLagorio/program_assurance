@@ -1,0 +1,117 @@
+[
+ {
+  "route": "lifecycle",
+  "finding": "G-lifecycle",
+  "text": "New Lifecycle page: five acquisition phases, milestones A, B and C as markers, the 19 steps as ticks, today and the current step marked."
+ },
+ {
+  "route": "lifecycle",
+  "finding": "G-lifecycle",
+  "text": "Steps grouped by phase, the current open, others folded with N of M done; each row: kind, due or decided, status, deliverables, criteria met."
+ },
+ {
+  "route": "lifecycle",
+  "finding": "G-lifecycle",
+  "text": "A switch between Increment 1 · Block 1 (fielded, ATO Sep 18) and Increment 2 · Block 1.1 (PDR in review); skipped steps say why."
+ },
+ {
+  "route": "lifecycle",
+  "finding": "G-deliverables",
+  "text": "Deliverables are WS-X90's own records (SSP, SCTM, ITCSC, baseline, requirements, boundary, STIGs, SAR, authorization…), each with its state; review packages open a document preview."
+ },
+ {
+  "route": "lifecycle-pdr-2",
+  "finding": "G-gate",
+  "text": "New page a gate: deliverables with state and owner, NIST SP 800-160 outcomes or the archive's cyber criterion, the approval chain and the decision."
+ },
+ {
+  "route": "lifecycle-pdr-2",
+  "finding": "G-gate",
+  "where": "dialog: v2g-decide",
+  "text": "Record decision: Approve, Approve with conditions or Not approved, conditions required short of approval; Lifecycle, header, Overview, queue and My work follow."
+ },
+ {
+  "route": "lifecycle-strat-2",
+  "finding": "G-gate",
+  "where": "dialog: v2g-request",
+  "text": "Request decision names the approvers in steps; the step reads In review and joins the Review queue as a Gate to decide."
+ },
+ {
+  "route": "lifecycle",
+  "finding": "G-gate",
+  "where": "preview: a-work-gate",
+  "text": "The lifecycle gate preview is the one gate record for every step, with deliverables, criteria and decision; ↗ opens the gate's page."
+ },
+ {
+  "route": "overview",
+  "finding": "G-stage",
+  "text": "A compact strip under the header: the phases, where WS-X90 is, and Next: PDR in 7 days · 2 deliverables not ready, opening the gate."
+ },
+ {
+  "route": "overview",
+  "finding": "G-stage",
+  "text": "The Details rail's Lifecycle fact (Planned) is gone: the stage is said once, in the strip."
+ },
+ {
+  "route": "overview",
+  "finding": "G-stage",
+  "where": "program menu",
+  "text": "Under the program switcher on every program page: Increment 2 · TMRR · next PDR Nov 24 · 3 of 5 ready, opening Lifecycle."
+ },
+ {
+  "route": "schedule",
+  "finding": "G-lifecycle",
+  "text": "Schedule holds tasks only: the PDR and CDR cards (CDR due before PDR) moved to Lifecycle; one grey line points there."
+ },
+ {
+  "route": "home",
+  "finding": "G-stage",
+  "text": "Each program card gets one grey line with its stage and next gate, a red mark only once the gate has passed its day."
+ },
+ {
+  "route": "portfolio",
+  "finding": "G-stage",
+  "text": "Each program's stage and next step in one grey line under its name, with its host system; the Next gate column it replaces is gone."
+ },
+ {
+  "route": "portfolio",
+  "finding": "G-stage",
+  "text": "Archived programs show their real stage from the archive; the customer programs a plausible one; Next gate past due counts 5."
+ },
+ {
+  "route": "portfolio",
+  "finding": "G-stage",
+  "where": "preview: v7o-prog",
+  "text": "The program preview's Next gate card became Stage: increment and phase, the next step and its day, opening the gate."
+ },
+ {
+  "route": "review-queue",
+  "finding": "G-gate",
+  "text": "Gate to decide rows open that gate's preview with its deliverables; WS-X90's row is PDR · Increment 2, waiting on the chief engineer."
+ },
+ {
+  "route": "review-queue",
+  "finding": "G-gate",
+  "text": "A decision recorded takes the gate off the queue and its counts; a decision requested adds it."
+ },
+ {
+  "route": "my-work",
+  "finding": "G-deliverables",
+  "text": "Due for PDR · Nov 24 groups the gate's deliverables not ready, each opening its record; gone when ready or decided."
+ },
+ {
+  "route": "lifecycle-ato-1",
+  "finding": "G-gate",
+  "text": "Increment 1's ATO has its page: authorization decision, POA&M and package room as deliverables, ISSM, SCA and AO approvals, approved with conditions Sep 18."
+ },
+ {
+  "route": "lifecycle-asr-2",
+  "finding": "G-lifecycle",
+  "text": "A step Increment 2 skips says why on its page and in its row: Not required for Increment 2, with the reason."
+ },
+ {
+  "route": "lifecycle",
+  "finding": "G-stage",
+  "text": "A program created in this session gets the 19-step template for Increment 1, dated from today, MSA current, nothing recorded."
+ }
+]

@@ -1,0 +1,81 @@
+/* mod-zzzz-v2-9clean (v2-): the visual layer of prototype v2. Rules that need no markup change live here; the rest is in the .js. */
+
+/* [N01, A4] A banner is a grey callout: the glyph alone carries the tone. */
+#proto .ak-banner.warn, #proto .ak-banner.bad, #proto .ak-banner.info, #proto .ak-banner.ok, #proto .v2-callout { background: var(--band); border: 1px solid var(--line); color: var(--ink); }
+#proto .ak-await { background: var(--band); box-shadow: inset 0 0 0 1px var(--line); }
+#proto .ak-ext { background: var(--band); color: var(--ink-2); box-shadow: inset 0 0 0 1px var(--line); }
+#proto .a-docs-bwrap .ak-banner, #proto .a-risk-prevbar { background: var(--band); border-color: var(--line); color: var(--ink); }
+#proto .a-docs-bwrap { background: var(--band); box-shadow: inset 0 0 0 1px var(--line); }
+#proto .a-docs-bwrap > .ak-banner { background: transparent; border-color: transparent; }
+/* [N01, A4] On a register, a banner whose fact is said nowhere else is one quiet grey line under the title: no box. */
+#proto .v2-line { display: flex; align-items: center; gap: 8px; min-width: 0; padding: 0 !important; border: 0 !important; border-radius: 0; background: none !important; box-shadow: none !important; color: var(--ink-3); font-size: 14px; line-height: 20px; flex-wrap: nowrap !important; }
+#proto .v2-line > .gl { width: 12px; height: 12px; flex: none; }
+#proto .v2-line > .gl.check::after { left: 3.5px; top: 2px; width: 3px; height: 6px; border-width: 0 1.6px 1.6px 0; }
+#proto .v2-line > .gl.clock::after { left: 3px; top: 1.5px; width: 2px; height: 3.5px; border-width: 0 0 1.6px 1.6px; }
+#proto .v2-line .x, #proto .v2-line > span:not(.gl):not(.btn) { flex: 0 1 auto !important; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#proto .v2-line b, #proto .v2-line strong { font-weight: 500; color: var(--ink-2); }
+#proto .v2-line .btn { flex: none; height: auto; min-height: 0; margin: 0 !important; padding: 0; border: 0; box-shadow: none; background: none; color: var(--brand-text); font-size: 14px; font-weight: 500; }
+#proto .v2-line .btn::before, #proto .v2-line .btn svg { display: none; }
+
+/* [N03] A word kept for screen readers only (an owner picker for nobody shows its dashed person glyph alone). */
+/* In flow, not absolute: an absolute one inside a scrolling table escapes its frame and widens the page at 390. */
+#proto .v2c-sr { position: static !important; display: inline-block !important; width: 1px; height: 1px; padding: 0 !important; margin: -1px !important; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; vertical-align: top; }
+
+/* [N17] Avatars: initials on grey; blue is for links and selection. */
+#proto .ak-av:not(.none) { background: var(--band); color: var(--ink-2); box-shadow: inset 0 0 0 1px var(--line); }
+#proto .ak-avs .ak-av:not(.none) { box-shadow: inset 0 0 0 1px var(--line), 0 0 0 2px var(--canvas); }
+
+/* [N02] A kit chip that is not a status is grey, never blue. */
+#proto .ak-chip.info { background: var(--band); color: var(--ink-2); border-color: var(--line); }
+
+/* [N05, N07] Toned text a row cannot keep, and counts of what changed, read in ink. */
+#proto .v2-ink { color: var(--ink) !important; }
+#proto .pill.v2-ink { background: var(--band) !important; color: var(--ink-2) !important; box-shadow: inset 0 0 0 1px var(--line); }
+#proto .v2-ink .gl, #proto .gl.v2-ink { filter: grayscale(1); opacity: 0.7; }
+
+/* [N13, N12] What folds under More: a chip or a tab that opens the rest. */
+#proto .v2-more { position: relative; display: inline-flex; flex: none; }
+#proto .v2-more > summary { list-style: none; cursor: pointer; }
+#proto .v2-more > summary::-webkit-details-marker { display: none; }
+#proto .v2-more[open] > summary { color: var(--ink); }
+#proto .v2-pop { position: absolute; z-index: 30; top: calc(100% + 6px); inset-inline-start: 0; display: grid; gap: 4px; min-width: 180px; max-width: min(320px, 80vw); padding: 6px; border-radius: 10px; background: var(--canvas); box-shadow: 0 0 0 1px var(--line), 0 12px 28px -12px rgb(24 24 29 / 0.25); }
+#proto .v2-pop > * { justify-self: stretch; }
+#proto .views .v2-pop .qv { justify-content: space-between; }
+#proto .v2-tabmore { align-self: stretch; align-items: center; }
+#proto .v2-tab-s { display: inline-flex; align-items: center; gap: 6px; padding: 10px 0 9px; font: 500 14px/20px var(--font); color: var(--ink-3); border: 0; border-bottom: 2px solid transparent; background: none; white-space: nowrap; cursor: pointer; }
+#proto .v2-tab-s[aria-expanded="true"] { color: var(--ink); }
+#proto .v2-tab-s:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; border-radius: 4px; }
+#proto .v2-pop[hidden] { display: none; }
+@media (min-width: 1100px) {
+  #proto .v2-tabmore .v2-pop { inset-inline-start: auto; inset-inline-end: 0; }
+  #proto .v2-tabmore .v2-pop > * { padding: 6px 8px; border-radius: 6px; border-bottom: 0; }
+  #proto .v2-tabmore .v2-pop > *:hover { background: var(--band); }
+  /* A strip that scrolls sideways would clip the menu: a strip with a More (seven slots) shows it in place. */
+  #proto .ak-tabs:has(> .v2-tabmore), #proto .tabsx:has(> .v2-tabmore) { overflow: visible; }
+}
+/* Narrower (a phone, a tablet, a window beside a preview) the strip stays one line and scrolls sideways, with every tab in it. */
+@media (max-width: 1099px) {
+  #proto .v2-tabmore, #proto .v2-tabmore > .v2-pop, #proto .v2-tabmore > .v2-pop[hidden] { display: contents !important; }
+  #proto .v2-tabmore > .v2-more-b { display: none; }
+}
+#proto .tools:has(.v2-fmore[open]), #proto .views:has(.v2-more[open]) { position: relative; z-index: 31; }
+
+/* [A5] A table fits its frame at 1440: a header may wrap to two lines, and cells sit a little closer. */
+#proto:not(.v2meta) .frame th { white-space: normal; line-height: 16px; padding-block: 6px; }
+#proto:not(.v2meta) .frame th, #proto:not(.v2meta) .frame td { padding-inline: 12px; }
+#proto:not(.v2meta) .frame.v2-fit th, #proto:not(.v2meta) .frame.v2-fit td { padding-inline: 8px; }
+#proto:not(.v2meta) .frame.v2-fit td, #proto:not(.v2meta) .frame.v2-fit td *:not(svg):not(svg *) { white-space: normal; }
+#proto:not(.v2meta) .frame.v2-fit td :is(.pill, .tag, .ak-chip, .num, .btn, .ak-code, .gl, .ak-av, .v2-dash, button, [role=button], summary, select) { white-space: nowrap; }
+#proto:not(.v2meta) .frame.v2-fit td :is(button, [role=button], summary) * { white-space: nowrap; }
+#proto:not(.v2meta) .frame.v2-fit td.v2-tok, #proto:not(.v2meta) .frame.v2-fit td.v2-tok * { white-space: nowrap; }
+
+/* [N12] A record never stacks the section's tab strip above its own. */
+#proto .main.v2-rec > .sectabs { display: none; }
+
+/* [A18] A preview's action demoted from ink keeps the outlined look (no extra rule: .btn without .ink). */
+
+/* [N10] One type scale: each rule's own size is snapped in place by the .js (collectSnaps); these fill the gaps it cannot reach.
+   A preview's title is a section title; avatar initials are 11px; bold text is 600 wherever a rule does not say otherwise. */
+#proto:not(.v2meta) #panel .ak-title { font-size: 16px; line-height: 24px; }
+#proto:not(.v2meta) .ak-av { font-size: 11px; }
+:where(#proto:not(.v2meta)) :where(b, strong) { font-weight: 600; }

@@ -1,0 +1,17 @@
+{
+ "log": [
+  {
+   "step": 1,
+   "action": "go #overview",
+   "why": "",
+   "hash": "overview",
+   "h1": "WS-X90 Sentinel Mission System",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  }
+ ],
+ "errors": []
+}

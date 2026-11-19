@@ -1,0 +1,3 @@
+ironcalc engine: ironcalc | fallback engine: mini | Formulas: the prototype's evaluator (WebAssembly is off here)
+PASS all 163 formula cells agree
+errors [] []

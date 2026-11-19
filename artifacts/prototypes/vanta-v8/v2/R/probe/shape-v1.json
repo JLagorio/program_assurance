@@ -1,0 +1,347 @@
+{
+ "overview": {
+  "h1pills": [],
+  "cardsAbove": 3,
+  "hasTeam": true,
+  "hasDetails": true,
+  "hasActivity": true,
+  "hasMiniTiles": true,
+  "lifecycle": true,
+  "lanes": false,
+  "aside": true,
+  "height": 1514,
+  "text": "Programs › PRG-1090 WS-X90 Sentinel Mission System ATO with conditions Lifecycle: Planned Synthetic mission platform used only to exercise security engineering, compliance, assessment, SSP, and POA&M workflows. Open package Authorizing official RC R. Calloway ISSM JB Joel Barrantes Baseline 560 controls Program PRG-1090 Next date Nov 20 · in 3 days Expanded assessment ends Controls satisfied 560 in the baseline 31% 176 of 560 controls · counted today Satisfied 176 Partially satisfied 34 Other than satisfied 13 Not assessed 90 No evidence 233 No requirement 14 Mapped 546 With evidence 313 Asses"
+ },
+ "si2": {
+  "tabs": [
+   "Implementation",
+   "Requirements 1",
+   "Evidence 1",
+   "Checks 2",
+   "Assessment 10",
+   "Findings 1",
+   "History 3",
+   "Comments 1"
+  ],
+  "tabCount": 8,
+  "cardsBeforeTabs": 2,
+  "ink": [
+   "Add evidence",
+   "Open assessment campaign"
+  ],
+  "callouts": [],
+  "text": "Controls › SI-2 SI-2 Flaw Remediation Add evidence Status Not assessed Implementation Partial in SSP 3 Family SI Owner Unassigned Determined by Nobody yet Parameter SI-02_ODP Not set Where it stands 0% of its 10 assessment objectives assessed 10 of 10 with evidence 10 of 10 mapped Checks 0/2 OK Evidence 1/1 accepted Requirements 1 Evidence 1 Findings None POA&M None Risks None Next step WS-X90 continuous monitoring — FY2027: its draft plan holds all 10 objectives. Open assessment campaign CVE-20"
+ },
+ "settings": {
+  "leftList": true,
+  "summaryCards": true,
+  "tabs": 5,
+  "pills": [
+   "2 overdue",
+   "Proposed",
+   "9 overdue",
+   "Proposed",
+   "31 on track",
+   "Proposed",
+   "112 on track",
+   "Proposed",
+   "Proposed",
+   "Proposed",
+   "2 overdue",
+   "Proposed"
+  ],
+  "stripVisible": false,
+  "text": "Settings Deadlines Notifications Event log Enclaves & markings Common control providers Roles & permissions Deadlines How long each kind of finding has before it is overdue, set once for the workspace by Joel Barrantes, ISSM Edit deadlines Deadline status 512 open items Overdue 21 Due within two weeks 11 Due later 73 No due date 407 WS-X90's open findings, POA&M milestones, evidence renewals and the access review. Scan results count in their own tabs. Imports that set deadlines 3 1 import failed"
+ },
+ "shell": {
+  "railOn": {
+   "color": "rgb(0, 103, 211)",
+   "backgroundColor": "rgb(235, 246, 255)",
+   "borderColor": "rgb(0, 103, 211)"
+  },
+  "navOn": {
+   "color": "rgb(24, 24, 29)",
+   "backgroundColor": "rgba(24, 24, 29, 0.06)",
+   "borderColor": "rgb(24, 24, 29)"
+  },
+  "switcher": {
+   "color": "rgb(24, 24, 29)",
+   "backgroundColor": "rgba(0, 0, 0, 0)",
+   "borderColor": "rgb(24, 24, 29)"
+  },
+  "navItemsVisible": 25,
+  "navIcons": 25,
+  "navHeight": 1420,
+  "avatar": null
+ },
+ "queue": {
+  "tables": 7,
+  "height": 2331,
+  "heads": [
+   "Record",
+   "Program",
+   "Waiting on",
+   "Waiting since",
+   "Owner",
+   "Record",
+   "Program",
+   "Waiting on",
+   "Waiting since",
+   "Requested by",
+   "Record",
+   "Program",
+   "Waiting on",
+   "Waiting since",
+   "Gate due",
+   "Record",
+   "Program",
+   "Waiting on",
+   "Waiting since",
+   "Requested by",
+   "Record",
+   "Program",
+   "Waiting on",
+   "Waiting since",
+   "Requested by",
+   "Record",
+   "Program",
+   "Waiting on",
+   "Waiting since",
+   "Requested by",
+   "Record",
+   "Program",
+   "Waiting on",
+   "Waiting since",
+   "Requested by"
+  ],
+  "ticked": 2
+ },
+ "mywork": {
+  "w": 79,
+  "h": 140,
+  "mainW": 1360
+ },
+ "campaign": {
+  "menu": [
+   "Overview",
+   "Getting started 25%",
+   "ITCSC",
+   "Composition",
+   "Inventory",
+   "STIG checklists",
+   "Interconnections",
+   "Ports & protocols",
+   "Evidence sources",
+   "Baseline",
+   "Controls",
+   "Plans",
+   "Requirements",
+   "Evidence 142"
+  ],
+  "tracker": "368",
+  "all": "14"
+ },
+ "page:rec--a-tests-control--AC-1": {
+  "h1": "",
+  "notDrawn": false,
+  "len": 1052,
+  "start": "Home View my work Mission Computer version 2 is published: 4 consumers are behind and 2 controls wait for review. Open component CVE-2024-6387 is open in the Mi"
+ },
+ "page:rec--a-risk-risk--0a21dc94|overview": {
+  "h1": "",
+  "notDrawn": false,
+  "len": 1052,
+  "start": "Home View my work Mission Computer version 2 is published: 4 consumers are behind and 2 controls wait for review. Open component CVE-2024-6387 is open in the Mi"
+ },
+ "page:rec--a-risk-poam--4be4ddde|overview": {
+  "h1": "",
+  "notDrawn": false,
+  "len": 1052,
+  "start": "Home View my work Mission Computer version 2 is published: 4 consumers are behind and 2 controls wait for review. Open component CVE-2024-6387 is open in the Mi"
+ },
+ "page:rec--a-risk-issue--85973641": {
+  "h1": "",
+  "notDrawn": false,
+  "len": 1052,
+  "start": "Home View my work Mission Computer version 2 is published: 4 consumers are behind and 2 controls wait for review. Open component CVE-2024-6387 is open in the Mi"
+ },
+ "page:rec--sys-asset--AST-109001": {
+  "h1": "",
+  "notDrawn": false,
+  "len": 1052,
+  "start": "Home View my work Mission Computer version 2 is published: 4 consumers are behind and 2 controls wait for review. Open component CVE-2024-6387 is open in the Mi"
+ },
+ "panel": {
+  "btns": [
+   {
+    "t": "↗",
+    "ink": false,
+    "bg": "rgba(0, 0, 0, 0)"
+   },
+   {
+    "t": "✕",
+    "ink": false,
+    "bg": "rgba(0, 0, 0, 0)"
+   },
+   {
+    "t": "Map a requirement",
+    "ink": true,
+    "bg": "rgb(24, 24, 29)"
+   }
+  ],
+  "text": "Control preview ↗ ✕ SA-24 Design For Cyber Resiliency Map a requirement Status No requirement Determined by Nobody yet Family SA Owner Unassigned Note Add a note… Requirements None map it Where it stands History 0 Objectives mapped 0 of 10 With evidence 0 of 10 Assessed 0 of 10 By system 1 SYS-WSX90"
+ },
+ "preticked": {
+  "controls": {
+   "ticked": 3,
+   "bar": "3 selected"
+  },
+  "evidence": {
+   "ticked": 2,
+   "bar": "2 selected"
+  },
+  "findings": {
+   "ticked": 3,
+   "bar": "3 selected"
+  },
+  "risks": {
+   "ticked": 2,
+   "bar": "2 selected"
+  },
+  "poam": {
+   "ticked": 2,
+   "bar": "2 selected"
+  },
+  "checks": {
+   "ticked": 2,
+   "bar": "2 selected"
+  },
+  "people": {
+   "ticked": 2,
+   "bar": "2 selected"
+  },
+  "review-queue": {
+   "ticked": 2,
+   "bar": "2 selected"
+  },
+  "inventory": {
+   "ticked": 3,
+   "bar": "3 selected"
+  },
+  "schedule": {
+   "ticked": 2,
+   "bar": "2 selected"
+  },
+  "campaign": {
+   "ticked": 3,
+   "bar": "3 selected"
+  }
+ },
+ "tabs": {
+  "component-mc": {
+   "strips": 1,
+   "tabs": [
+    9
+   ],
+   "first": [
+    "Overview Assessment 61 Where used 4 Findings 1 SBOM 13 Versions 2 Tasks 0 Activi"
+   ]
+  },
+  "deadlines": {
+   "strips": 1,
+   "tabs": [
+    5
+   ],
+   "first": [
+    "All 16 Vulnerabilities 6 STIG 3 Findings 4 POA&M, evidence, accounts 3"
+   ]
+  },
+  "event-log": {
+   "strips": 1,
+   "tabs": [
+    5
+   ],
+   "first": [
+    "All 299 Evidence reviews 280 Imports 8 Decisions and publications 6 Daily job 5"
+   ]
+  },
+  "permissions": {
+   "strips": 1,
+   "tabs": [
+    4
+   ],
+   "first": [
+    "Roles 11 Permissions 9 Members 17 Changes 14"
+   ]
+  },
+  "control-si2": {
+   "strips": 1,
+   "tabs": [
+    8
+   ],
+   "first": [
+    "Implementation Requirements 1 Evidence 1 Checks 2 Assessment 10 Findings 1 Histo"
+   ]
+  },
+  "integration-emass": {
+   "strips": 1,
+   "tabs": [
+    4
+   ],
+   "first": [
+    "Overview Informs 4 WS-X90 sources 0 Activity"
+   ]
+  },
+  "enclaves": {
+   "strips": 0,
+   "tabs": [],
+   "first": []
+  }
+ },
+ "policiesToolbar": {
+  "quickViews": [
+   "All",
+   "Needs my approval",
+   "Sent back",
+   "In review",
+   "No document",
+   "Approved"
+  ],
+  "filters": [
+   "Family ⌄",
+   "Control status ⌄",
+   "Latest version ⌄",
+   "Owner ⌄",
+   "Approver ⌄",
+   "Renew by ⌄",
+   "Sort by family ⌄"
+  ]
+ },
+ "integrations": {
+  "inTheApp": 7
+ },
+ "baseline": [
+  "+370:rgb(11, 145, 99)",
+  "−0:rgb(105, 105, 114)",
+  "+201:rgb(11, 145, 99)",
+  "−17:rgb(211, 59, 57)",
+  "+0:rgb(11, 145, 99)",
+  "−5:rgb(211, 59, 57)",
+  "+1:rgb(11, 145, 99)",
+  "−0:rgb(105, 105, 114)"
+ ],
+ "example": {
+  "text": "Example",
+  "color": "rgb(200, 118, 0)",
+  "bg": "rgb(255, 243, 223)",
+  "border": "rgb(200, 118, 0)"
+ },
+ "launcher": "Esc No results for “which controls lack evidence?” Try a control code (AC-2), an element (LRU-013), a person or a page. ↑ ↓ Move ↵ Open Esc Close 0 results",
+ "ssp": {
+  "rings": 58,
+  "pills": 110,
+  "syncBars": 0,
+  "examples": 22
+ },
+ "errors": []
+}

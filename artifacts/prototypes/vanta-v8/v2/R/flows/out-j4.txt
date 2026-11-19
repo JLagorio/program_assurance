@@ -1,0 +1,10 @@
+E1 page changed in place
+E2 dialog: Upload ; page changed in place
+DIALOG: Upload ✕ Into: A new artifact Drop a file, or choose one: PDF, image, .nessus, .ckl, CycloneDX or SPDX Filename A friendly name for the assessor. Description Optional Effective date Nov 17, 2026 The date the evidence speaks for. Renewal counts from it. Cancel Add evidence
+DIALOG CONTROLS: button: ✕ ‖ button: Cancel ‖ button: Add evidence
+{"step":1,"action":"go #evidence","why":"Evidence register","hash":"evidence","h1":"","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":1,"shot":"/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/v2/R/flows/shots/j4-01-evidence.png"}
+{"step":2,"action":"click \"Add evidence\"","why":"primary","effect":"page changed in place","hash":"evidence","h1":"","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":3,"action":"click \"Upload a file\"","why":"menu item","effect":"dialog: Upload ; page changed in place","hash":"evidence","h1":"","modal":"Upload","panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":3,"shot":"/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/v2/R/flows/shots/j4-02-upload-dialog.png"}
+errors: []

@@ -1,0 +1,1003 @@
+{
+ "findings": [
+  {
+   "id": "N01",
+   "screens": [
+    "Home",
+    "WS-X90 › Compliance › Policies",
+    "WS-X90 › System › Inventory",
+    "WS-X90 › Compliance › Baseline",
+    "WS-X90 › System › STIG checklists › Mission Computer · RHEL 9",
+    "Products › Products",
+    "Products › Components",
+    "Library › Data calls",
+    "Settings › Deadlines",
+    "Settings › Common control providers",
+    "WS-X90 › ITCSC",
+    "WS-X90 › System › Composition",
+    "WS-X90 › System › STIG checklists",
+    "WS-X90 › Compliance › Evidence",
+    "WS-X90 › Risk › Threats",
+    "WS-X90 › Analysis › Posture",
+    "WS-X90 › Analysis › Cyber resiliency",
+    "WS-X90 › Analysis › Security engineering",
+    "WS-X90 › Analysis › Inheritance",
+    "WS-X90 › Monitor › Continuous monitoring",
+    "WS-X90 › People",
+    "WS-X90 › Assess › Cyber T&E",
+    "Evidence record (E1)",
+    "Policy editor"
+   ],
+   "routes": [
+    "home",
+    "policies",
+    "inventory",
+    "baseline",
+    "stigs-mission-computer-rhel9",
+    "products",
+    "components",
+    "data-calls",
+    "deadlines",
+    "common-controls",
+    "itcsc",
+    "composition",
+    "stigs",
+    "evidence",
+    "threats",
+    "posture",
+    "resiliency",
+    "sse",
+    "inheritance",
+    "conmon",
+    "people",
+    "cyber-te",
+    "evidence-page-e1",
+    "policy-editor"
+   ],
+   "kind": "banner",
+   "we_do": "24 of 65 product pages open with a full-width tinted box (amber, red or blue fill); Home has two. Most repeat a fact the page says again below: Policies \"12 policies have no approver recorded\" above the quick views; Inventory \"20 assets have no owner\" above 20 per-row Assign owner buttons.",
+   "vanta_does": "Callouts on 2 of the 13 pages looked at (Home, and one inside a card on Vulnerabilities). Each is a grey box where only the glyph is coloured, with one bordered button.",
+   "severity": "high",
+   "fix": "cut to one per page, only for something that blocks work, and restyle as a grey callout whose glyph alone carries the tone",
+   "ours": [
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-home.png",
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-policies.png",
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-inventory.png",
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-baseline.png",
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-stigs-mission-computer-rhel9.png"
+   ],
+   "vanta": [
+    "/Users/joseflagorio/Development/program_assurance-ux-proposal/docs/products/vanta/images/ux/home/getting-started-with-workspaces--02.png",
+    "/Users/joseflagorio/Development/program_assurance-ux-proposal/docs/products/vanta/images/ux/vulnerabilities/the-vulnerabilities-page--01.png",
+    "V/style.md §1 \"Cards and summary cards\": \"A callout is a full-width grey box\""
+   ],
+   "judgment": false
+  },
+  {
+   "id": "N02",
+   "screens": [
+    "WS-X90 › Compliance › Controls",
+    "WS-X90 › Compliance › Policies",
+    "WS-X90 › System › Ports & protocols",
+    "WS-X90 › System › Interconnections",
+    "WS-X90 › Analysis › Security engineering",
+    "WS-X90 › Analysis › Traceability",
+    "WS-X90 › Monitor › Schedule",
+    "WS-X90 › Risk › POA&M",
+    "WS-X90 › Authorize › Authorization",
+    "WS-X90 › Assess › Cyber T&E",
+    "Assessments › Expanded Control Set Assessment"
+   ],
+   "routes": [
+    "controls",
+    "policies",
+    "ppsm",
+    "interconnections",
+    "sse",
+    "traceability",
+    "schedule",
+    "poam",
+    "authorization",
+    "cyber-te",
+    "campaign"
+   ],
+   "kind": "colour meaning",
+   "we_do": "The blue (info) pill carries 14 different words: Active, Ready, In review, In progress, Planned, Validating, Current, IATT, Offer waiting, Not assessed, Not required, Not applicable, You are here, One. Six words change tone between pages: Not assessed is blue on Controls and Policies, amber on Interconnections, grey on Security engineering; In progress amber on POA&M, Schedule and Continuous monitoring, blue on Traceability; In review amber on Policies and Data calls, blue on Schedule and Security engineering; Draft both amber and grey on Authorization; Planned grey on six pages, blue on Cyber T&E; Current green on Evidence sources, blue on Authorization. Blue is also the link, the chosen quick view, the checkbox and every avatar.",
+   "vanta_does": "Each status glyph keeps one meaning (filled check done, dashed ring not started, clock pending, diamond-! needs remediation, square-✕ overdue), and the accent is never a status.",
+   "severity": "high",
+   "fix": "rebuild the status map so each word has one tone everywhere: blue never a status; Not required, Not applicable and Planned grey; one neutral tone for In progress and In review",
+   "ours": [
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-controls.png",
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-ppsm.png",
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-policies.png",
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-campaign.png",
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-authorization.png"
+   ],
+   "vanta": [
+    "V/style.md §1 \"Pills, badges and tags\": \"The glyphs keep one meaning each\"",
+    "/Users/joseflagorio/Development/program_assurance-ux-proposal/docs/products/vanta/images/ux/policies/the-policies-page--01.png",
+    "/Users/joseflagorio/Development/program_assurance-ux-proposal/docs/products/vanta/images/ux/documents/documents-page--01.png"
+   ],
+   "judgment": false
+  },
+  {
+   "id": "N03",
+   "screens": [
+    "WS-X90 › Analysis › Traceability",
+    "WS-X90 › Risk › Risks",
+    "Products › Suppliers",
+    "WS-X90 › Compliance › Policies",
+    "WS-X90 › Compliance › Requirements",
+    "WS-X90 › Risk › POA&M"
+   ],
+   "routes": [
+    "traceability",
+    "risks",
+    "suppliers",
+    "policies",
+    "requirements",
+    "poam"
+   ],
+   "kind": "empty values",
+   "we_do": "An empty value is a dashed ring plus a word (None, Not recorded, No owner, Unassigned, Not requested). Above the fold: Traceability 43 rings and 22 such words (four columns of every row read \"None\"), Risks 34 and 24, Suppliers 26 and 18, Policies 20 and 19, Requirements 13 and 13.",
+   "vanta_does": "An empty value is an em dash: Risk register Treatment plan, Policies Renew by, Access reviews Date completed. Only the owner column keeps a dashed person glyph for nobody.",
+   "severity": "high",
+   "fix": "cut the ring and the word for empty values: print a subtle \"—\" and keep the dashed ring only as a \"not started\" status",
+   "ours": [
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-traceability.png",
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-risks.png",
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-policies.png",
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-requirements.png",
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-suppliers.png"
+   ],
+   "vanta": [
+    "/Users/joseflagorio/Development/program_assurance-ux-proposal/docs/products/vanta/images/ux/risk/managing-risks-and-risk-registers--01.png",
+    "/Users/joseflagorio/Development/program_assurance-ux-proposal/docs/products/vanta/images/ux/policies/the-policies-page--01.png",
+    "/Users/joseflagorio/Development/program_assurance-ux-proposal/docs/products/vanta/images/ux/access/access-reviews--01.png"
+   ],
+   "judgment": false
+  },
+  {
+   "id": "N04",
+   "screens": [
+    "WS-X90 › Compliance › Checks",
+    "WS-X90 › Compliance › Controls",
+    "WS-X90 › System › Inventory",
+    "WS-X90 › Compliance › Controls › SI-2",
+    "Risk preview over WS-X90 › Risk › Risks",
+    "WS-X90 › Risk › Risks"
+   ],
+   "routes": [
+    "checks",
+    "controls",
+    "inventory",
+    "control-si2",
+    "panel:risks",
+    "risks"
+   ],
+   "kind": "duplication",
+   "we_do": "One fact is drawn two to four times. Checks: overdue is a red pill, a red date, a red flag icon and a red failing count in the same row. Controls: the Status pill and a glyph in Next step say the same thing. Inventory: \"no owner\" is a banner, an Assign owners button, an Assign owner dropdown in each of 20 rows and the selection bar. SI-2: Partial and Not set each appear twice. The risk preview shows Start reassessment twice. Risks: every row carries the same two grey pills (Reassess by Dec 12, Not requested).",
+   "vanta_does": "Tests: overdue is one pill in the row and one line in the Needs attention card. Risk register: two score chips a row and nothing else toned. Documents is Vanta's own exception (Overdue glyph, red date and Expired pill).",
+   "severity": "high",
+   "fix": "merge each fact into one mark (the pill or the date, never both) and drop columns whose value is the same in every row",
+   "ours": [
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-checks.png",
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-controls.png",
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-inventory.png",
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-control-si2.png",
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-panel-risks.png",
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-risks.png"
+   ],
+   "vanta": [
+    "/Users/joseflagorio/Development/program_assurance-ux-proposal/docs/products/vanta/images/ux/tests/deactivated-tests--01.png",
+    "/Users/joseflagorio/Development/program_assurance-ux-proposal/docs/products/vanta/images/ux/risk/managing-risks-and-risk-registers--01.png",
+    "/Users/joseflagorio/Development/program_assurance-ux-proposal/docs/products/vanta/images/ux/documents/documents-page--01.png"
+   ],
+   "judgment": false
+  },
+  {
+   "id": "N05",
+   "screens": [
+    "WS-X90 › Risk › POA&M",
+    "WS-X90 › Compliance › Checks",
+    "Assessments › Expanded Control Set Assessment",
+    "WS-X90 › System › STIG checklists",
+    "WS-X90 › Compliance › Policies",
+    "WS-X90 › Compliance › Plans",
+    "WS-X90 › Monitor › Schedule",
+    "WS-X90 › Analysis › Inheritance"
+   ],
+   "routes": [
+    "poam",
+    "checks",
+    "campaign",
+    "stigs",
+    "policies",
+    "ssps",
+    "schedule",
+    "inheritance"
+   ],
+   "kind": "colour per row",
+   "we_do": "Of 44 tables measured (first 8 rows), 16 colour three or more cells in a typical row; Checks and POA&M colour four of eight. A POA&M row: amber In progress (on 33 of 41 rows), red Planned date, red Remediate-by date, amber \"plan +42d\".",
+   "vanta_does": "One or two toned cells a row: Tests 1, Controls 1, Access reviews 1, Risk register 2, Policies 2. Documents (3) and Vendors (4) are the busiest seen.",
+   "severity": "high",
+   "fix": "restyle tables to at most two toned cells a row: the status and one date or severity, the rest in ink",
+   "ours": [
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-poam.png",
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-checks.png",
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-campaign.png",
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-stigs.png",
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-policies.png"
+   ],
+   "vanta": [
+    "/Users/joseflagorio/Development/program_assurance-ux-proposal/docs/products/vanta/images/ux/tests/deactivated-tests--01.png",
+    "/Users/joseflagorio/Development/program_assurance-ux-proposal/docs/products/vanta/images/ux/controls/controls-page--01.png",
+    "/Users/joseflagorio/Development/program_assurance-ux-proposal/docs/products/vanta/images/ux/risk/managing-risks-and-risk-registers--01.png",
+    "/Users/joseflagorio/Development/program_assurance-ux-proposal/docs/products/vanta/images/ux/vendors/adding-and-managing-vendors--01.png"
+   ],
+   "judgment": false
+  },
+  {
+   "id": "N06",
+   "screens": [
+    "WS-X90 › Risk › POA&M",
+    "WS-X90 › ITCSC",
+    "Plans › WS-X90 System Security Plan (editor)",
+    "Assessments › Expanded Control Set Assessment",
+    "WS-X90 › System › Ports & protocols",
+    "WS-X90 › Authorize › Authorization"
+   ],
+   "routes": [
+    "poam",
+    "itcsc",
+    "ssp",
+    "campaign",
+    "ppsm",
+    "authorization"
+   ],
+   "kind": "colour meaning",
+   "we_do": "Amber marks neutral states and provenance: In progress (POA&M, Schedule, Continuous monitoring), Draft (Authorization, the editors' headers) and the EXAMPLE tag, which appears 190 times on 49 of 65 pages (34 on ITCSC, 22 in the SSP editor), often inside column headers.",
+   "vanta_does": "Amber is due soon or in review, always with its clock or triangle glyph; Draft and Not started are grey.",
+   "severity": "medium",
+   "fix": "restyle In progress and Draft neutral, and EXAMPLE as a grey outlined tag (it stays: the data is synthetic)",
+   "ours": [
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-poam.png",
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-itcsc.png",
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-ssp.png",
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-campaign.png",
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-ppsm.png"
+   ],
+   "vanta": [
+    "/Users/joseflagorio/Development/program_assurance-ux-proposal/docs/products/vanta/images/ux/tests/deactivated-tests--01.png",
+    "/Users/joseflagorio/Development/program_assurance-ux-proposal/docs/products/vanta/images/ux/policies/the-policies-page--01.png",
+    "/Users/joseflagorio/Development/program_assurance-ux-proposal/docs/products/vanta/images/ux/access/access-reviews--01.png"
+   ],
+   "judgment": false
+  },
+  {
+   "id": "N07",
+   "screens": [
+    "WS-X90 › Compliance › Baseline",
+    "WS-X90 › System › Interconnections",
+    "WS-X90 › ITCSC"
+   ],
+   "routes": [
+    "baseline",
+    "interconnections",
+    "itcsc"
+   ],
+   "kind": "colour meaning",
+   "we_do": "Red and green mark neutral changes: Baseline shows added controls (+370) in green, removed (−17) in red, and each layer's Apply switch in green. Red also prints plain sentences (\"3 interfaces since approval\", \"WS-X90's system record holds no rationale\", \"Block 2.1 is in SSP 3 since …\") and the required asterisk.",
+   "vanta_does": "The newest screens draw switches and radios in ink; green means passing or complete, red overdue or failing.",
+   "severity": "medium",
+   "fix": "restyle changes, switches and plain sentences in ink; keep red for late and failed, green for satisfied and done",
+   "ours": [
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-baseline.png",
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-interconnections.png",
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-itcsc.png"
+   ],
+   "vanta": [
+    "V/style.md §1 \"Brand and accent\": \"The newest screens use ink … for primaries, tab underlines, switches and radios\"",
+    "/Users/joseflagorio/Development/program_assurance-ux-proposal/docs/products/vanta/images/ux/risk/managing-risks-and-risk-registers--01.png"
+   ],
+   "judgment": false
+  },
+  {
+   "id": "N08",
+   "screens": [
+    "Programs",
+    "Products › Components",
+    "WS-X90 › Risk › Threats",
+    "WS-X90 › Risk › POA&M",
+    "Products › Products",
+    "Products › Suppliers",
+    "WS-X90 › Compliance › Baseline",
+    "WS-X90 › Analysis › Cyber resiliency"
+   ],
+   "routes": [
+    "portfolio",
+    "components",
+    "threats",
+    "poam",
+    "products",
+    "suppliers",
+    "baseline",
+    "resiliency"
+   ],
+   "kind": "gadget",
+   "we_do": "Gadgets sit in rows and repeat: a ring in all 9 rows of Programs beside the %, 23 rings on Components, bars in rows on Threats (32), POA&M (14), Products (13) and Suppliers (12), a four-colour stacked bar on each of Baseline's 18 family cards and 14 on Cyber resiliency. Seven gadget families are drawn under about 25 module-specific class names.",
+   "vanta_does": "Bars live inside summary cards (two or three a page), one donut at most, 16px rings only in framework cells; registers with no completion measure carry no gadget at all (Risk register, Vendors, Documents, Policies).",
+   "severity": "medium",
+   "fix": "cut gadgets from rows where the number sits beside them, and keep one strip or chart a page",
+   "ours": [
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-portfolio.png",
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-baseline.png",
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-poam.png",
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-threats.png",
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-components.png"
+   ],
+   "vanta": [
+    "/Users/joseflagorio/Development/program_assurance-ux-proposal/docs/products/vanta/images/ux/controls/controls-page--01.png",
+    "/Users/joseflagorio/Development/program_assurance-ux-proposal/docs/products/vanta/images/ux/frameworks/iso-27701--01.png",
+    "/Users/joseflagorio/Development/program_assurance-ux-proposal/docs/products/vanta/images/ux/risk/managing-risks-and-risk-registers--01.png"
+   ],
+   "judgment": false
+  },
+  {
+   "id": "N09",
+   "screens": [
+    "WS-X90 › Compliance › Controls"
+   ],
+   "routes": [
+    "controls"
+   ],
+   "kind": "gadget",
+   "we_do": "Controls opens with an Assignment donut at 0% (560 of 560 unassigned: one grey ring) beside a card with three mini tiles. At 390px the donut fills the first screen and no control row shows.",
+   "vanta_does": "Vanta's Controls page has the same donut, but with data in two segments (6% assigned), beside one completion card.",
+   "severity": "medium",
+   "fix": "cut the donut while one segment holds everything; say \"No owner 560\" as a quick view or a Needs attention row",
+   "ours": [
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-controls.png",
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/m-controls.png"
+   ],
+   "vanta": [
+    "/Users/joseflagorio/Development/program_assurance-ux-proposal/docs/products/vanta/images/ux/controls/controls-page--01.png"
+   ],
+   "judgment": false
+  },
+  {
+   "id": "N10",
+   "screens": [
+    "Plans › Contingency Plan (editor)",
+    "Policy editor",
+    "WS-X90 › Overview",
+    "Programs"
+   ],
+   "routes": [
+    "plan-cp",
+    "policy-editor",
+    "overview",
+    "portfolio"
+   ],
+   "kind": "type",
+   "we_do": "31 font sizes and 53 size/weight pairs across the product pages; five body sizes between 12 and 14px (12, 12.5, 13, 13.5, 14) all in heavy use. A median 12 pairs above the fold; 23 on the Contingency plan editor, 20 on the policy editor, 16 on the Overview.",
+   "vanta_does": "About 7–8 pairs: 14 regular body, 14 medium names, 13 grey secondary and headers, 12–13 pills, 20–22 sections, 26–28 titles, 32–36 numbers.",
+   "severity": "medium",
+   "fix": "restyle to Ledger's scale: one body size, one secondary size, no half-pixel sizes",
+   "ours": [
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-plan-cp.png",
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-policy-editor.png",
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-overview.png"
+   ],
+   "vanta": [
+    "V/style.md §1 \"Type\"",
+    "/Users/joseflagorio/Development/program_assurance-ux-proposal/docs/products/vanta/images/ux/controls/controls-page--01.png"
+   ],
+   "judgment": true
+  },
+  {
+   "id": "N11",
+   "screens": [
+    "WS-X90 › Overview",
+    "WS-X90 › Compliance › Controls"
+   ],
+   "routes": [
+    "overview",
+    "controls"
+   ],
+   "kind": "duplication",
+   "we_do": "The program Overview repeats Controls' \"Controls satisfied\" card with the same three mini tiles (Mapped 546, With evidence 313, Assessed 223), adds a six-colour strip with its legend, two labels beside the title (ATO with conditions, Lifecycle: Planned), a Team card and a Details card: 16 font pairs and 4 EXAMPLE tags above the fold.",
+   "vanta_does": "Home shows one card a framework (a % and one bar); a framework record shows one completion card with two mini tiles.",
+   "severity": "medium",
+   "fix": "cut the mini tiles and the Team card from the Overview, and keep the strip as its one chart",
+   "ours": [
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-overview.png",
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-controls.png"
+   ],
+   "vanta": [
+    "/Users/joseflagorio/Development/program_assurance-ux-proposal/docs/products/vanta/images/ux/home/getting-started-with-workspaces--02.png",
+    "/Users/joseflagorio/Development/program_assurance-ux-proposal/docs/products/vanta/images/ux/frameworks/iso-27701--01.png"
+   ],
+   "judgment": false
+  },
+  {
+   "id": "N12",
+   "screens": [
+    "Products › Components › Mission Computer",
+    "Settings › Deadlines",
+    "Settings › Event log",
+    "Settings › Roles & permissions",
+    "WS-X90 › Compliance › Controls › SI-2",
+    "Library › Integrations › eMASS"
+   ],
+   "routes": [
+    "component-mc",
+    "deadlines",
+    "event-log",
+    "permissions",
+    "control-si2",
+    "integration-emass"
+   ],
+   "kind": "tabs",
+   "we_do": "Mission Computer shows 12 tabs in two stacked strips (the section's Products, Components, Suppliers above its own nine, each with a count); Deadlines 11, Event log 11, Roles & permissions 10, SI-2 and eMASS 8.",
+   "vanta_does": "A risk scenario has four tabs (Overview, Impacted assets, Approval history 0, Comments) and no second strip.",
+   "severity": "medium",
+   "fix": "merge to at most seven tabs (the pattern contract's own limit), never two strips, counts only where they mean work",
+   "ours": [
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-component-mc.png",
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-control-si2.png",
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-deadlines.png"
+   ],
+   "vanta": [
+    "/Users/joseflagorio/Development/program_assurance-ux-proposal/docs/products/vanta/images/ux/risk/completing-risk-assessments--02.png"
+   ],
+   "judgment": false
+  },
+  {
+   "id": "N13",
+   "screens": [
+    "WS-X90 › Compliance › Policies",
+    "WS-X90 › System › STIG checklists › Mission Computer · RHEL 9",
+    "WS-X90 › Risk › Risks"
+   ],
+   "routes": [
+    "policies",
+    "stigs-mission-computer-rhel9",
+    "risks"
+   ],
+   "kind": "toolbar",
+   "we_do": "Policies: six quick views, seven filters, a checkbox and Sort, with Columns and Settings pushed to a second line; at 390px the first table row starts at 83% of the first screen. The STIG record stacks two rows of quick views (status, then CAT). Risks' selection bar repeats the header's Export.",
+   "vanta_does": "Four quick views at most (Vendors) and filters as borderless triggers; Documents also wraps its filters, but no page stacks two rows of chips.",
+   "severity": "medium",
+   "fix": "cut to five quick views and four filters plus Add filter, on one line",
+   "ours": [
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-policies.png",
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/m-policies.png",
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-stigs-mission-computer-rhel9.png",
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-risks.png"
+   ],
+   "vanta": [
+    "/Users/joseflagorio/Development/program_assurance-ux-proposal/docs/products/vanta/images/ux/vendors/adding-and-managing-vendors--01.png",
+    "/Users/joseflagorio/Development/program_assurance-ux-proposal/docs/products/vanta/images/ux/documents/documents-page--01.png"
+   ],
+   "judgment": false
+  },
+  {
+   "id": "N14",
+   "screens": [
+    "Plans › WS-X90 System Security Plan (editor)",
+    "Plans › Contingency Plan (editor)"
+   ],
+   "routes": [
+    "ssp",
+    "plan-cp"
+   ],
+   "kind": "editor",
+   "we_do": "The SSP editor's Contents marks each of about 24 sections with a progress ring, a sync icon, sometimes a coloured dot, and an amber count chip beside a grey total; the top bar adds four coloured avatar rings, a blue comment count and an amber Draft pill; 22 EXAMPLE tags.",
+   "vanta_does": "Vanta's editor screens carry little colour (0.48% and 0.36% colourful pixels on the policy builder and the system description generator); their section lists were not studied closely here.",
+   "severity": "medium",
+   "fix": "cut per-section markers except where a section needs action, and make the counts grey",
+   "ours": [
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-ssp.png",
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-plan-cp.png"
+   ],
+   "vanta": [
+    "/Users/joseflagorio/Development/program_assurance-ux-proposal/docs/products/vanta/images/ux/policies/using-ai-change-summaries-in-vanta--01.png",
+    "/Users/joseflagorio/Development/program_assurance-ux-proposal/docs/products/vanta/images/ux/documents/system-description-generator--03.png"
+   ],
+   "judgment": true
+  },
+  {
+   "id": "N15",
+   "screens": [
+    "WS-X90 › Compliance › Controls › SI-2",
+    "Risk preview over WS-X90 › Risk › Risks"
+   ],
+   "routes": [
+    "control-si2",
+    "panel:risks"
+   ],
+   "kind": "buttons",
+   "we_do": "SI-2 shows two black buttons (Add evidence, Open assessment campaign) and a red-filled callout inside its Next step card. The risk preview's header holds Start reassessment and Request acceptance, and its Assessment card repeats Start reassessment.",
+   "vanta_does": "One ink primary a surface; secondaries outlined; a section's action is a small outlined button or \"+\".",
+   "severity": "medium",
+   "fix": "merge to one primary per surface and drop the copy inside the card",
+   "ours": [
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-control-si2.png",
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-panel-risks.png"
+   ],
+   "vanta": [
+    "/Users/joseflagorio/Development/program_assurance-ux-proposal/docs/products/vanta/images/ux/risk/completing-risk-assessments--02.png",
+    "V/style.md §1 \"Buttons\""
+   ],
+   "judgment": false
+  },
+  {
+   "id": "N16",
+   "screens": [
+    "My work"
+   ],
+   "routes": [
+    "my-work"
+   ],
+   "kind": "defect",
+   "we_do": "At 1440px the second Urgent item's title wraps one word a line in a narrow column (\"Resolve / 16 / more / operational …\") and its avatar overlaps the text.",
+   "vanta_does": "Each item is one line: icon, title, grey meta, avatars at the end.",
+   "severity": "medium",
+   "fix": "rebuild the row so the title takes the free width",
+   "ours": [
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-my-work.png"
+   ],
+   "vanta": [
+    "/Users/joseflagorio/Development/program_assurance-ux-proposal/docs/products/vanta/images/ux/my-work/my-work-page--01.png"
+   ],
+   "judgment": false
+  },
+  {
+   "id": "N17",
+   "screens": [
+    "Programs",
+    "WS-X90 › Compliance › Checks",
+    "WS-X90 › Overview"
+   ],
+   "routes": [
+    "portfolio",
+    "checks",
+    "overview"
+   ],
+   "kind": "colour meaning",
+   "we_do": "Initials avatars are blue text on a blue tint on 22 pages, so nearly every register row carries brand blue.",
+   "vanta_does": "Vanta also tints avatars with its accent (lavender); style.md §3(d) lists the lavender tints among what not to copy.",
+   "severity": "low",
+   "fix": "restyle avatars neutral so blue stays for links and selection",
+   "ours": [
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-portfolio.png",
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-checks.png"
+   ],
+   "vanta": [
+    "/Users/joseflagorio/Development/program_assurance-ux-proposal/docs/products/vanta/images/ux/my-work/my-work-page--01.png",
+    "V/style.md §3 (d) \"What not to copy\""
+   ],
+   "judgment": true
+  },
+  {
+   "id": "N18",
+   "screens": [
+    "Products › Components › Mission Computer",
+    "Settings › Enclaves & markings"
+   ],
+   "routes": [
+    "component-mc",
+    "enclaves"
+   ],
+   "kind": "tabs",
+   "we_do": "The section tab strip begins with the section's name in grey, so the first word reads twice (\"Products\" then the \"Products\" tab; \"Settings\" then \"Deadlines …\").",
+   "vanta_does": "Tabs begin with the first tab under the page title (Common controls, Controls).",
+   "severity": "low",
+   "fix": "cut the label; the rail already names the section",
+   "ours": [
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-component-mc.png",
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-enclaves.png"
+   ],
+   "vanta": [
+    "/Users/joseflagorio/Development/program_assurance-ux-proposal/docs/products/vanta/images/ux/controls/controls-page--01.png"
+   ],
+   "judgment": false
+  },
+  {
+   "id": "N19",
+   "screens": [
+    "All product pages"
+   ],
+   "routes": [
+    "(65 routes)"
+   ],
+   "kind": "context",
+   "we_do": "Colour area is at Vanta's level: colourful pixels in the page area are a median 0.46% (middle half 0.26–0.76%) over 65 pages, hue families a median 3. Only Posture (12%, a one-hue heatmap), Enclaves & markings (2.75%, the DoD marking colours) and the campaign record (1.88%, its request tracker) go past Vanta's range, and all three colours carry meaning.",
+   "vanta_does": "Median 0.64% (middle half 0.46–1.04%) over 26 whole-page screenshots; hue families a median 2.",
+   "severity": "low",
+   "fix": "keep the amount of colour; cut the number of separate marks (N03–N05) and give each tone one meaning (N02)",
+   "ours": [
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-posture.png",
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-enclaves.png",
+    "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/noise/raw/shots/d-campaign.png"
+   ],
+   "vanta": [
+    "/Users/joseflagorio/Development/program_assurance-ux-proposal/docs/products/vanta/images/ux/controls/controls-page--01.png",
+    "/Users/joseflagorio/Development/program_assurance-ux-proposal/docs/products/vanta/images/ux/tests/deactivated-tests--01.png",
+    "/Users/joseflagorio/Development/program_assurance-ux-proposal/docs/products/vanta/images/ux/access/access-reviews--01.png"
+   ],
+   "judgment": false
+  }
+ ],
+ "ranking_top10": [
+  {
+   "rank": 1,
+   "route": "campaign",
+   "label": "campaign",
+   "type": "record",
+   "score": 85.7,
+   "cues_above": 69,
+   "cue_kinds": 10,
+   "coloured_marks": 28,
+   "colourful_pixels_pct": 1.88,
+   "font_pairs": 15,
+   "cut": [
+    "the Team column (every row \"Ready\" in a blue pill)",
+    "Assessor and Determination as two pills: show one status a row",
+    "amber due dates unless overdue",
+    "EXAMPLE tag in the column header (restyle grey)"
+   ],
+   "shot": "raw/shots/d-campaign.png"
+  },
+  {
+   "rank": 2,
+   "route": "overview",
+   "label": "Overview",
+   "type": "overview",
+   "score": 79.7,
+   "cues_above": 40,
+   "cue_kinds": 10,
+   "coloured_marks": 25,
+   "colourful_pixels_pct": 1.07,
+   "font_pairs": 16,
+   "cut": [
+    "the three mini tiles (they repeat Controls)",
+    "the Lifecycle label beside the ATO pill: one status in the title",
+    "the description sentence",
+    "the Team card (People owns it)"
+   ],
+   "shot": "raw/shots/d-overview.png"
+  },
+  {
+   "rank": 3,
+   "route": "controls",
+   "label": "Controls",
+   "type": "register",
+   "score": 78.4,
+   "cues_above": 70,
+   "cue_kinds": 12,
+   "coloured_marks": 20,
+   "colourful_pixels_pct": 0.68,
+   "font_pairs": 14,
+   "cut": [
+    "the Assignment donut at 0%",
+    "the three mini tiles",
+    "the glyphs in Next step (the pill says it)",
+    "blue for Not assessed"
+   ],
+   "shot": "raw/shots/d-controls.png"
+  },
+  {
+   "rank": 4,
+   "route": "policies",
+   "label": "Policies",
+   "type": "register",
+   "score": 76.3,
+   "cues_above": 111,
+   "cue_kinds": 10,
+   "coloured_marks": 26,
+   "colourful_pixels_pct": 0.91,
+   "font_pairs": 11,
+   "cut": [
+    "the banner (a quick view says it)",
+    "Control status as a pill: use glyph and ink word",
+    "dashed rings for Not recorded and 0 of 23: use \"—\"",
+    "filters beyond four, and the second toolbar line"
+   ],
+   "shot": "raw/shots/d-policies.png"
+  },
+  {
+   "rank": 5,
+   "route": "checks",
+   "label": "Checks",
+   "type": "register",
+   "score": 75.4,
+   "cues_above": 85,
+   "cue_kinds": 8,
+   "coloured_marks": 33,
+   "colourful_pixels_pct": 0.86,
+   "font_pairs": 14,
+   "cut": [
+    "the flag icon and the red failing count beside the Overdue pill",
+    "the eye icon in every row",
+    "red counts in the category rail stay; EXAMPLE tags in rows go grey"
+   ],
+   "shot": "raw/shots/d-checks.png"
+  },
+  {
+   "rank": 6,
+   "route": "portfolio",
+   "label": "Programs",
+   "type": "register",
+   "score": 72.6,
+   "cues_above": 49,
+   "cue_kinds": 10,
+   "coloured_marks": 29,
+   "colourful_pixels_pct": 0.66,
+   "font_pairs": 13,
+   "cut": [
+    "the ring in every row (the % is beside it)",
+    "the second line under Next gate",
+    "flag icons on late dates"
+   ],
+   "shot": "raw/shots/d-portfolio.png"
+  },
+  {
+   "rank": 7,
+   "route": "baseline",
+   "label": "Baseline",
+   "type": "register",
+   "score": 70.5,
+   "cues_above": 53,
+   "cue_kinds": 9,
+   "coloured_marks": 53,
+   "colourful_pixels_pct": 0.82,
+   "font_pairs": 12,
+   "cut": [
+    "the four-colour stack on each of 18 family cards",
+    "green/red for added/removed counts",
+    "green Apply switches (ink)",
+    "the banner (one line in the header)"
+   ],
+   "shot": "raw/shots/d-baseline.png"
+  },
+  {
+   "rank": 8,
+   "route": "ppsm",
+   "label": "Ports & protocols",
+   "type": "register",
+   "score": 68.6,
+   "cues_above": 74,
+   "cue_kinds": 8,
+   "coloured_marks": 36,
+   "colourful_pixels_pct": 1.1,
+   "font_pairs": 11,
+   "cut": [
+    "blue pills for Not required and Not applicable (grey or \"—\")",
+    "EXAMPLE tags in two column headers (grey)"
+   ],
+   "shot": "raw/shots/d-ppsm.png"
+  },
+  {
+   "rank": 9,
+   "route": "stigs-mission-computer-rhel9",
+   "label": "stigs-mission-computer-rhel9",
+   "type": "record",
+   "score": 68.5,
+   "cues_above": 42,
+   "cue_kinds": 9,
+   "coloured_marks": 27,
+   "colourful_pixels_pct": 0.64,
+   "font_pairs": 15,
+   "cut": [
+    "one of the two quick-view rows (CAT as a filter)",
+    "the Open pill in a list already filtered to Open",
+    "the blue banner (a line in the header)"
+   ],
+   "shot": "raw/shots/d-stigs-mission-computer-rhel9.png"
+  },
+  {
+   "rank": 10,
+   "route": "ssp",
+   "label": "ssp",
+   "type": "editor",
+   "score": 67.8,
+   "cues_above": 101,
+   "cue_kinds": 6,
+   "coloured_marks": 55,
+   "colourful_pixels_pct": 0.39,
+   "font_pairs": 16,
+   "cut": [
+    "the ring and sync icon on every section",
+    "amber count chips (grey)",
+    "coloured rings around collaborator avatars",
+    "22 EXAMPLE tags (grey)"
+   ],
+   "shot": "raw/shots/d-ssp.png"
+  }
+ ],
+ "budget": {
+  "register": "at most 2 summary cards (completion + Needs attention), only when the register has a completion measure; bars only inside them; no per-row gadgets; at most 2 toned cells a row; empty = \"—\"; no banner; at most 5 quick views and 4 filters on one line; 1 primary + at most 1 secondary + ⋯",
+  "record": "title + at most 1 status pill + at most 6 facts as labels over values; at most 1 card above the tabs; no tinted callouts; at most 7 tabs in one strip; 1 primary; each fact once",
+  "overview": "one band of at most 4 numbers or 2 cards, plus one chart; colour only inside that chart; no card repeated from another page",
+  "home": "one card a program (%, green bar, N of M); at most 1 grey callout; no pills",
+  "inbox": "rows only: icon, title, grey meta, avatar; one state word; ticket keys grey; no tags",
+  "editor": "colour only for the save state, open comments and sections that need action; at most 8 font pairs; 1 primary",
+  "settings": "lists and rules; On/Off the only pills; at most 7 tabs; no charts",
+  "panel": "1 pill in the header, 1 primary, at most 4 tabs, at most 3 cards, no action repeated",
+  "everywhere": "8 font size/weight pairs; one tone per status word; blue only for links and selection; tinted fills only inside pills"
+ },
+ "notes": "Counts in metrics.json; screenshots under raw/shots (d- = 1440x900, m- = 390x844). Vanta images stay on this machine.",
+ "gadget_inventory": [
+  {
+   "gadget": "Progress bar",
+   "pages": 18,
+   "instances": 129,
+   "above": 91,
+   "piles_up": "Threats 32, POA&M 14, Products 13, Suppliers 12",
+   "verdict": "keep inside completion cards; cut from rows",
+   "why": "Vanta draws bars only in summary cards; in a row the number beside it says the same"
+  },
+  {
+   "gadget": "Stacked bar (tally)",
+   "pages": 8,
+   "instances": 40,
+   "above": 26,
+   "piles_up": "Baseline 18 (one per family card), Cyber resiliency 14",
+   "verdict": "keep one a page (Overview strip, request tracker); cut per card",
+   "why": "18 four-colour bars on one screen is the noisiest block measured"
+  },
+  {
+   "gadget": "Ring (progress)",
+   "pages": 9,
+   "instances": 54,
+   "above": 29,
+   "piles_up": "Components 23, Getting started 7, Program setup 6; plus 9 on Programs and ~24 in each editor Contents",
+   "verdict": "keep only in a program or framework list cell; cut per section",
+   "why": "Vanta: 16px rings in framework cells only"
+  },
+  {
+   "gadget": "Donut",
+   "pages": 3,
+   "instances": 13,
+   "above": 13,
+   "piles_up": "Controls 1 (0% assigned), Getting started 3",
+   "verdict": "cut on Controls while one segment holds everything",
+   "why": "a one-segment donut carries one number"
+  },
+  {
+   "gadget": "Mini tiles in a card",
+   "pages": 12,
+   "instances": 34,
+   "above": 29,
+   "piles_up": "Assessments 7, Getting started 4, SI-2 4, Controls 3, Overview 3",
+   "verdict": "at most 2 per completion card; cut the Overview copy",
+   "why": "Vanta completion card holds two"
+  },
+  {
+   "gadget": "Heatmap",
+   "pages": 1,
+   "instances": 1,
+   "above": 1,
+   "piles_up": "Posture",
+   "verdict": "keep",
+   "why": "one hue, one meaning"
+  },
+  {
+   "gadget": "Stepper / phase bar",
+   "pages": 1,
+   "instances": 1,
+   "above": 1,
+   "piles_up": "Getting started (and Program setup)",
+   "verdict": "keep",
+   "why": "it is the task"
+  },
+  {
+   "gadget": "Banner (tinted)",
+   "pages": 24,
+   "instances": 30,
+   "above": 25,
+   "piles_up": "Home 2, SSP editor 3",
+   "verdict": "cut to one a page, restyle grey",
+   "why": "Vanta: callouts on 2 of 13 pages, grey with coloured glyph"
+  },
+  {
+   "gadget": "Status pill, toned",
+   "pages": 46,
+   "instances": 494,
+   "above": 207,
+   "piles_up": "SSP 86, SI-2 37, Campaign 31, Policies 30",
+   "verdict": "one status column per table",
+   "why": "Vanta 1-2 toned cells a row"
+  },
+  {
+   "gadget": "Status pill, grey",
+   "pages": 30,
+   "instances": 230,
+   "above": 91,
+   "piles_up": "Risks 50, Requirements 25",
+   "verdict": "cut constant columns",
+   "why": "same value in every row"
+  },
+  {
+   "gadget": "Tag",
+   "pages": 27,
+   "instances": 304,
+   "above": 144,
+   "piles_up": "Threats 64, Traceability 29, Risks 28",
+   "verdict": "one tag column per table",
+   "why": ""
+  },
+  {
+   "gadget": "Quick view / filter chip",
+   "pages": 46,
+   "instances": 260,
+   "above": 237,
+   "piles_up": "Policies 13, SSP 13, Components 12",
+   "verdict": "at most 5, one row",
+   "why": "Vanta at most 4"
+  },
+  {
+   "gadget": "EXAMPLE tag (amber)",
+   "pages": 49,
+   "instances": 190,
+   "above": null,
+   "piles_up": "ITCSC 34, SSP 22, Deadlines 8",
+   "verdict": "keep, restyle grey outlined",
+   "why": "amber reads as a warning"
+  },
+  {
+   "gadget": "Dashed empty ring",
+   "pages": "most registers",
+   "instances": null,
+   "above": "up to 43 (Traceability)",
+   "piles_up": "Risks 34, Suppliers 26, Policies 20",
+   "verdict": "cut for empty values; print —",
+   "why": "Vanta prints an em dash"
+  },
+  {
+   "gadget": "Tabs",
+   "pages": 53,
+   "instances": 249,
+   "above": 249,
+   "piles_up": "Mission Computer 12 (two strips), Deadlines 11, Event log 11",
+   "verdict": "at most 7 in one strip",
+   "why": "pattern contract limit; Vanta record has 4"
+  },
+  {
+   "gadget": "Buttons",
+   "pages": 60,
+   "instances": 780,
+   "above": 515,
+   "piles_up": "SSP 231 (editor); Inventory an Assign owner button in each of 20 rows",
+   "verdict": "cut per-row action buttons",
+   "why": "the selection bar acts on chosen rows"
+  }
+ ],
+ "colours": {
+  "amount": "colourful pixels median 0.46% (middle half 0.26-0.76%) over 65 pages vs Vanta 0.64% (0.46-1.04%) over 26 screenshots; hue families median 3 vs 2",
+  "one_colour_many_meanings": {
+   "blue": "brand, links, chosen quick view, checkbox, avatars (22 pages) and a status pill with 14 words",
+   "amber": "23 pill words: due soon and partly, but also In progress (33 of 41 POA&M rows), Draft, \"1 behind\", and EXAMPLE on 49 pages",
+   "red": "late/failed, plus Baseline \"−17\", the required asterisk and plain sentences",
+   "green": "satisfied/done, plus Baseline \"+370\", every Apply switch, Getting started steps"
+  },
+  "one_meaning_several_colours": {
+   "Not assessed": "blue (Controls, Policies), amber (Interconnections), grey (Security engineering)",
+   "In progress": "amber (POA&M, Schedule, ConMon), blue (Traceability)",
+   "In review": "amber (Policies, Data calls), blue (Schedule, SSE)",
+   "Draft": "amber and grey on Authorization",
+   "Planned": "grey on six pages, blue on Cyber T&E",
+   "Current": "green (Evidence sources), blue (Authorization)"
+  },
+  "keep": [
+   "DoD classification marking colours on Enclaves & markings",
+   "Posture one-hue heatmap",
+   "request tracker five states",
+   "CAL Green/Yellow on Ports & protocols"
+  ],
+  "type": "31 font sizes, 53 size/weight pairs; five body sizes 12-14px; median 12 pairs above the fold, 23 on the Contingency plan editor; Vanta about 7-8 (by eye)"
+ },
+ "report_note": "report.md was not written: the harness blocks report .md files from subagents. The report text is in the handback message; its tables are here (ranking_top10, gadget_inventory, colours, budget) and the numbers in metrics.json."
+}

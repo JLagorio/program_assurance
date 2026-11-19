@@ -170,51 +170,49 @@
   const ROLE = Object.fromEntries(D.roles.map(([k, , n]) => [k, n]));
 
   // ════════════════ Overview: WS-X90's home ════════════════
+  // v2 (A1, N11; overview budget): one completion card whose one bar is the control-status strip (the page's one chart, with its
+  // legend), then Open work and three link rows (the SSP, assessments, setup). The title carries one status; Team and the facts
+  // move to one Details rail; the mini tiles, the description, the facts row, the lanes, the two cards and the activity are cut.
   S.overview = () => {
-    const sat = CS.satisfied, mapped = TOTAL - CS.no_requirement, ev = mapped - CS.no_evidence, as = CS.satisfied + CS.partially_satisfied + CS.other_than_satisfied;
-    const mini = (l, n) => `<div class="mini"><span>${esc(l)}</span><b class="num">${fmt(n)}</b>${h.bar(pct(n, TOTAL), "var(--ok)")}</div>`;
-    const completion = card(`<b>Controls satisfied</b><span class="v7p-mu num">${fmt(TOTAL)} in the baseline</span>`,
-      `<div class="v7p-comp"><div class="v7p-comp-l"><div class="v7p-bigrow"><span class="v7p-big num">${pct(sat, TOTAL)}%</span><span class="v7p-mu num">${fmt(sat)} of ${fmt(TOTAL)} controls · counted today</span></div>${strip(CS)}${legend(CS)}</div>
-      <div class="minis v7p-minis">${mini("Mapped", mapped)}${mini("With evidence", ev)}${mini("Assessed", as)}</div></div>`);
-    const WORK = [
-      ["diamond", "Operational issues", 44, "17 past due · 2 critical", "findings"],
-      ["clock", "Open risks", 40, "12 critical or high · 40 with no owner", "risks"],
-      ["clock", "POA&M items open", 34, "of 41 · 7 completed · 33 in progress", "poam"],
-      ["ring", "Evidence to revise", 54, "226 of 368 accepted · 88 waiting on review", "evidence"],
-      ["ring", "Your tasks", 6, "assigned to you", "my-work"],
+    // v2 (C1): the numbers follow the assurance chain (mod-zzzz-v2-1chain.js): a control walked to a determination, the issues
+    // its results opened, and the POA&M items and risks a reader created count here as on Controls, Findings, POA&M and Risks.
+    const ch = PA.v2 && PA.v2.chain, cs = ch ? ch.counts() : CS;
+    const nIss = ch ? ch.issues().length : 0, cRisk = ch ? ch.risks() : [], nPoam = ch ? ch.poams().length : 0;
+    const sat = cs.satisfied;
+    const completion = `<div class="ak-card v2-ov-comp"><div class="v7p-cardh"><b>Controls satisfied</b><span class="ak-link" ${go("controls")}>Controls</span></div>
+      <div class="v7p-bigrow"><span class="v7p-big num">${pct(sat, TOTAL)}%</span><span class="v7p-mu num">${fmt(sat)} of ${fmt(TOTAL)} controls</span></div>${strip(cs)}${legend(cs)}</div>`;
+    const accepted = ch ? cRisk.filter((r) => (ch.acc(r.id) || {}).state === "accepted").length : 0;
+    const WORK2 = [
+      ["Operational issues", 44 + nIss, `17 past due · 2 critical${nIss ? ` · ${nIss} opened today` : ""}`, "findings"],
+      ["Open risks", 40 + cRisk.length, `${12 + cRisk.filter((r) => r.sev === "critical" || r.sev === "high").length} critical or high · ${40 + cRisk.filter((r) => !r.owner).length} with no owner${accepted ? ` · ${accepted} accepted` : ""}`, "risks"],
+      ["POA&M items open", 34 + nPoam, `7 of ${41 + nPoam} completed`, "poam"],
+      ["Evidence to revise", 54, "88 waiting on review", "evidence"],
+      ["Your tasks", 6, "assigned to you", "my-work"],
     ];
-    const work = AK.section("Open work", `<div class="ak-card v7p-lines">${WORK.map(([g, l, n, s, r]) => `<div class="v7p-line" ${go(r)}>${gl(g)}<span class="x"><b>${esc(l)}</b><span class="v7p-mu">${esc(s)}</span></span><b class="num">${fmt(n)}</b>${AK.i("back", "v7p-chev")}</div>`).join("")}</div>`);
-    const lanes = AK.section("Assessments", `<div class="ak-card v7p-lanes"><p class="v7p-p">Now until Nov 20: the Expanded Control Set Assessment, ${AK.days("2026-11-20")} days left.</p>${data.CAMPAIGNS.map(([t, s, , a, b]) => h.lane(t, s, a, b)).join("")}</div>`, { count: data.CAMPAIGNS.length, action: link("View all", 'data-go="assessments"') });
-    const cur = D.versions.find((v) => v.kind === "current") || D.versions[0];
-    const r2 = D.revisions.find((r) => r.v === 2), r3 = D.revisions.find((r) => r.v === 3);
-    const high = D.checks.filter((c) => c.sev === "high").length;
-    const ssp = card(`<b>System security plan</b>${AK.chip(`Revision ${D.doc.revision} · ${D.doc.state}`, { tone: "warn" })}`,
-      `<dl class="ak-kv"><dt>Placeholders</dt><dd><b class="num">${D.counts.placeholders}</b> narratives read as template text</dd><dt>Checks</dt><dd class="num">${D.checks.length} open · ${high} high</dd><dt>Last edit</dt><dd class="num">${clock(cur.at)} by ${esc(cur.who[0])}</dd><dt>Started</dt><dd class="num">${md(r3.started)} from revision 2</dd><dt>Published</dt><dd class="num">Revision 2 · ${md(r2.published)} · frozen</dd></dl>
-      <div class="btns">${btn("Open the SSP", 'data-go="ssp"')}${btn("Version history", 'data-go="ssp-history"')}</div>`, "v7p-ssp");
-    const setup = card(`<b>Set up WS-X90</b>${EX}`, `${AK.progress(2, 10, "steps done")}<p class="v7p-p">Next: give records owners. None of WS-X90's 640 requirements or 560 controls has one yet.</p><div class="btns">${btn("Continue setup", 'data-go="getting-started"')}</div>`, "v7p-setup");
-    const team = `<div class="ak-rail-s"><div class="v7p-cardh"><span class="ak-rail-t">Team</span>${link("People", 'data-go="people"')}</div><dl class="ak-kv">${D.roles.map(([, l, n]) => `<dt>${esc(l)}</dt><dd>${AK.owner(n)}</dd>`).join("")}<dt>Security engineer</dt><dd>${AK.owner(ME + " (You)")}</dd></dl></div>`;
-    const details = AK.railCard("Details", [["Program", AK.codes([D.program.code])], ["System", AK.codes([D.system.code])], ["Type", esc(D.system.type)], ["Categorization", `C ${esc(D.system.cia[0])} · I ${esc(D.system.cia[1])} · A ${esc(D.system.cia[2])}`], ["Catalog", esc(D.system.catalog)], ["Baseline", `<span ${go("baseline")} class="v7p-factlink">${esc(D.system.baseline)}</span>`]]);
-    const comment = D.comments.find((c) => c.id === "c7");
-    const acts = [
-      { who: ROLE.authorizing_official, what: "signed <b>ATO with conditions</b> on package version 1", when: "Sep 18" },
-      { who: null, what: `published Mission Computer version 2, which fixes CVE-2024-6387`, when: "Nov 12" },
-      { who: null, what: "recorded 225 determinations in the expanded control set's published results", when: "Nov 12" },
-      { who: "Priya Raghavan", what: `started SSP revision 3 from revision 2 <span ${go("ssp-history")} class="v7p-factlink">History</span>`, when: "Nov 13" },
-      comment ? { who: comment.thread[0][0], what: `commented on SSP section 2: “${esc(comment.thread[0][3])}” ${EX}`, when: clock(comment.thread[0][2]) } : null,
-      { who: cur.who[0], what: `edited ${esc(cur.changes[0][0])}'s narrative in SSP revision 3 ${EX}`, when: clock(cur.at) },
-    ].filter(Boolean);
-    const activity = `<div class="ak-rail-s"><div class="ak-rail-t">Recent activity</div>${AK.activity(acts)}</div>`;
+    const rowsOf = (list, plain = false) => `<div class="${plain ? "v2-ov-list plain" : "ak-card v2-ov-list"}">${list.map(([l, n, s, r, end = ""]) => `<div class="v2-ov-li" ${go(r)}><span class="x"><b>${esc(l)}</b><span class="v7p-mu">${s}</span></span>${end}${n === null ? "" : `<b class="num">${fmt(n)}</b>`}${AK.i("back", "v7p-chev")}</div>`).join("")}</div>`;
+    const work2 = AK.section("Open work", rowsOf(WORK2));
+    const r3v = D.revisions.find((r) => r.v === 3);
+    const links2 = AK.section("Plans, assessments and setup", rowsOf([
+      ["System security plan", null, `Revision ${D.doc.revision} · ${esc(D.doc.state)} · ${fmt(D.counts.placeholders)} placeholder narratives · started ${md(r3v.started)}`, "ssp", `<span class="ak-link v2-ov-sub" ${go("ssp-history")}>Version history</span>`],
+      ["Assessments", data.CAMPAIGNS.length, `The Expanded Control Set Assessment ends Nov 20, in ${AK.days("2026-11-20")} days`, "assessments"],
+      ["Set up WS-X90", null, `2 of 10 steps done · next, give records owners ${EX}`, "getting-started"],
+    ], true));
+    const rail2 = `<div class="ak-rail-s v2-ov-rail"><div class="ak-rail-t">Details</div><dl class="ak-kv">${[
+      ["Program", AK.codes([D.program.code])], ["System", AK.codes([D.system.code])], ["Type", esc(D.system.type)], ["Lifecycle", esc(D.system.lifecycle)],
+      ["Categorization", `C ${esc(D.system.cia[0])} · I ${esc(D.system.cia[1])} · A ${esc(D.system.cia[2])}`], ["Catalog", esc(D.system.catalog)],
+      ["Baseline", `<span ${go("baseline")} class="v7p-factlink">${esc(D.system.baseline)}</span> <span class="v7p-mu num">· ${fmt(TOTAL)} controls</span>`],
+      ["Next date", `<span class="num">Nov 20</span> <span class="v7p-mu">· Expanded assessment ends</span>`],
+    ].map(([k, v]) => `<dt>${esc(k)}</dt><dd>${v}</dd>`).join("")}</dl>
+      <div class="v7p-cardh v2-ov-team"><span class="ak-rail-t">Team</span>${link("People", 'data-go="people"')}</div><dl class="ak-kv">${D.roles.map(([, l, n]) => `<dt>${esc(l)}</dt><dd>${AK.owner(n)}</dd>`).join("")}<dt>Security engineer</dt><dd>${AK.owner(ME + " (You)")}</dd></dl></div>`;
     return h.page(
       AK.recordHead({
-        crumbs: [["Portfolio", "portfolio"], [D.program.code]],
+        crumbs: [["Programs", "portfolio"], [D.program.code]],
         title: D.program.name,
-        chip: `${AK.chip("ATO with conditions", { tone: "ok", icon: "check" })}${AK.chip("Lifecycle: " + D.system.lifecycle)}`,
-        desc: esc(D.system.description),
-        facts: [["Authorizing official", AK.owner(ROLE.authorizing_official)], ["ISSM", AK.owner(ROLE.security_manager)], ["Baseline", `<span ${go("baseline")} class="v7p-factlink num">${fmt(TOTAL)} controls</span>`], ["Program", AK.codes([D.program.code])], ["Next date", `<span class="v7p-next">${AK.due("2026-11-20", { prefix: false })}<span class="v7p-mu">Expanded assessment ends</span></span>`]],
-        actions: `${btn(AK.i("dots"), 'aria-label="More program actions" title="More program actions"', false, false)}${btn("Open package", 'data-go="authorization"', true, false)}`,
+        chip: AK.chip(decisionWord(), { tone: decisionWord() === "Denial of authorization" ? "bad" : "ok", icon: "check" }),
+        // v2 (C1) [B9]: the ⋯ that opened nothing is cut; the header keeps its one action.
+        actions: `${btn("Open package", 'data-go="authorization"', true, false)}`,
       }),
-      AK.withRail(`${completion}${work}${lanes}<div class="grid2 v7p-pair">${ssp}${setup}</div>`, `${team}${details}${activity}`),
-      AK.note("The setup checklist, and the SSP edit and comment in the activity, are examples from the SSP editor's session. Every count is WS-X90's."),
+      `<div class="v2-ov">${AK.withRail(`${completion}${work2}${links2}`, rail2)}</div>`,
     );
   };
 
@@ -374,8 +372,11 @@
   const famCount = (set) => { const m = {}; for (const c of set) m[famOf(c)] = (m[famOf(c)] || 0) + 1; return m; };
   const FAMST = (() => { const m = {}; for (const c of D.controls) { const f = (m[c.f] = m[c.f] || {}); f[c.cs] = (f[c.cs] || 0) + 1; } return m; })();
   const codesMore = (list, max = 48) => `${AK.codes(list.slice(0, max))}${list.length > max ? ` ${mu(`and ${list.length - max} more`)}` : ""}`;
+  // v2 (ranking 7): the amber "2 assessments are active" banner is one grey line under the title (outside the head's description,
+  // which the visual layer drops on registers as a count line).
   const baseHead = (cur) => [
     AK.indexHead({ title: "Baseline", desc: `${esc(D.system.baseline)} · NIST SP 800-53 Rev 5 High, four overlays, then the program tailoring · <span class="num">${fmt(TOTAL)}</span> controls`, actions: `${btn("Gap assessment", 'data-go="frameworks-gap"', false, false)}${btn("Edit overlays", 'data-modal="v7p-overlays"', true, false)}` }),
+    `<p class="v2-bl-line">${gl("clock")}<span>2 assessments are active: a change to the stack waits until they close on Nov 20.</span></p>`,
     AK.tabs([["Stack", LAYERS.length + 1, "baseline", cur === "stack"], ["Parameters", 1048, "baseline-params", cur === "params"]], "Baseline"),
   ].join("");
   const sw = (L) => `<button type="button" class="v7p-sw" role="switch" aria-checked="${!WI.has(L.key)}" aria-label="Apply ${esc(L.title)}" data-v7p-wi="${L.key}"></button>`;
@@ -384,12 +385,14 @@
     const more = [...cur.sel].filter((c) => !SAVED.sel.has(c)).length, fewer = [...SAVED.sel].filter((c) => !cur.sel.has(c)).length;
     const offNames = cur.rows.filter((r) => r.off).map((r) => r.title);
     const last = cur.rows.filter((r) => !r.off).slice(-1)[0];
-    const rows = [{ id: "high", cells: [mu("0"), `<b>NIST SP 800-53 Rev 5 High baseline</b>`, tag("Baseline"), mu("Reference · NIST"), `<span class="num v7p-ok">+370</span>`, `<span class="num v7p-mu">−0</span>`, `<b class="num">370</b>`, `<span class="num">${md("2026-09-16")}</span>`, mu("Root")] }]
-      .concat(cur.rows.map((r, i) => ({ id: r.key, off: r.off, cells: [mu(String(i + 1)), `<b>${esc(r.title)}</b>${r.ver ? ` <span class="v7p-mu">v${r.ver}</span>` : ""}`, tag(r.kind), r.publisher ? mu(`Reference · ${r.publisher}`) : ownerEdit("layer:" + r.key), r.off ? mu("Not applied") : `<span class="num v7p-ok">+${r.add.length}</span>`, r.off ? "" : `<span class="num ${r.rem.length ? "v7p-bad" : "v7p-mu"}">−${r.rem.length}</span>`, `<b class="num">${fmt(r.total)}</b>`, `<span class="num">${md(r.changed)}</span>`, sw(r)] })));
+    // v2 (N07; ranking 7): added and removed counts are ink, not green and red; the Apply switches are ink (CSS).
+    const rows = [{ id: "high", cells: [mu("0"), `<b>NIST SP 800-53 Rev 5 High baseline</b>`, tag("Baseline"), mu("Reference · NIST"), `<span class="num">+370</span>`, `<span class="num v7p-mu">−0</span>`, `<b class="num">370</b>`, `<span class="num">${md("2026-09-16")}</span>`, mu("Root")] }]
+      .concat(cur.rows.map((r, i) => ({ id: r.key, off: r.off, cells: [mu(String(i + 1)), `<b>${esc(r.title)}</b>${r.ver ? ` <span class="v7p-mu">v${r.ver}</span>` : ""}`, tag(r.kind), r.publisher ? mu(`Reference · ${r.publisher}`) : ownerEdit("layer:" + r.key), r.off ? mu("Not applied") : `<span class="num${r.add.length ? "" : " v7p-mu"}">+${r.add.length}</span>`, r.off ? "" : `<span class="num${r.rem.length ? "" : " v7p-mu"}">−${r.rem.length}</span>`, `<b class="num">${fmt(r.total)}</b>`, `<span class="num">${md(r.changed)}</span>`, sw(r)] })));
     const fc = famCount(cur.sel), sc = famCount(SAVED.sel);
     const fams = D.families.map(({ f, t }) => [f, t, fc[f] || 0, (fc[f] || 0) - (sc[f] || 0)]);
     const asList = (QV.baseview || "grid") === "list";
-    const grid = `<div class="v7p-fams">${fams.map(([f, t, k, d]) => `<div class="v7p-fam" ${go("controls")} title="${esc(`${f} ${t}`)}"><div class="v7p-famh"><b>${f}</b><span class="num">${fmt(k)}</span></div><span class="v7p-mu v7p-ell">${esc(t)}</span>${WI.size ? `<span class="v7p-mu num">${d ? `${d > 0 ? "+" : "−"}${Math.abs(d)} against saved` : "As saved"}</span>` : strip(FAMST[f] || {}, `${f}: ${STATUS.map(([s, l]) => `${l} ${(FAMST[f] || {})[s] || 0}`).join(", ")}`)}</div>`).join("")}</div>`;
+    // v2 (N08; ranking 7): one control-status strip for the page, above the families; a family card is its code, count and name.
+    const grid = `<div class="v7p-fams">${fams.map(([f, t, k, d]) => `<div class="v7p-fam" ${go("controls")} title="${esc(`${f} ${t}`)}"><div class="v7p-famh"><b>${f}</b><span class="num">${fmt(k)}</span></div><span class="v7p-mu v7p-ell">${esc(t)}</span>${WI.size ? `<span class="v7p-mu num">${d ? `${d > 0 ? "+" : "−"}${Math.abs(d)} against saved` : "As saved"}</span>` : ""}</div>`).join("")}</div>`;
     const listTbl = tbl({
       cols: ["Family", "Controls", "From High", "Added by the stack", "Satisfied", "Short of satisfied", "Not assessed", "No evidence"],
       rows: fams.map(([f, t, k]) => { const hi = [...cur.sel].filter((c) => famOf(c) === f && HIGHSET.has(c)).length, st = FAMST[f] || {}; return { go: "controls", cells: [`<b>${f}</b> ${clip(t, 230)}`, num(k), num(hi), num(k - hi), num(st.satisfied || 0), num((st.partially_satisfied || 0) + (st.other_than_satisfied || 0)), num(st.not_assessed || 0), num((st.no_evidence || 0) + (st.no_requirement || 0))] }; }),
@@ -397,11 +400,13 @@
     });
     return h.page(
       baseHead("stack"),
+      // v2: the what-if is a line with its Back to saved, not a banner (the visual layer drops banners on registers, and with it
+      // the only way back besides the switch).
       WI.size
-        ? banner({ tone: "info", text: `<b>What-if:</b> ${fmt(more)} more and ${fmt(fewer)} fewer controls than the saved baseline, with ${esc(offNames.join(", "))} not applied. Nothing is saved.`, action: "Back to saved" }, "data-v7p-wireset")
-        : AK.banner({ tone: "warn", text: `<b>2 assessments are active.</b> A change to the stack waits until they close: the Expanded Control Set Assessment ends Nov 20.` }),
+        ? `<p class="v2-bl-line v2-bl-wi"><span><b>What-if:</b> ${fmt(more)} more and ${fmt(fewer)} fewer controls than the saved baseline, with ${esc(offNames.join(", "))} not applied. Nothing is saved.</span><span class="btn sm" role="button" tabindex="0" data-v7p-wireset>Back to saved</span></p>`
+        : "",
       tbl({ cols: ["#", "Layer", "Type", "Owner", "Added", "Removed", "Controls", "Last changed", "Apply"], rows, total: LAYERS.length + 1, panel: "v7p-layer", pager: false, nm: 1, label: "Baseline stack" }),
-      AK.section(`${fmt(n)} controls after ${last ? last.title : "the reference baseline"}`, asList ? listTbl : `${grid}${WI.size ? "" : legend(CS)}`, { count: `${fams.length} families`, action: views("baseview", [["grid", "Grid"], ["list", "List"]]) }),
+      AK.section(`${fmt(n)} controls after ${last ? last.title : "the reference baseline"}`, asList ? listTbl : `${WI.size ? "" : `<div class="v2-bl-strip">${strip(CS)}${legend(CS)}</div>`}${grid}`, { count: `${fams.length} families${PA.v2host && !WI.size ? ` · ${fmt(PA.v2host.counts().inh)} inherited` : ""}`, action: views("baseview", [["grid", "Grid"], ["list", "List"]]) }), // v2 (H): the controls its providers hold, within the 560
       `<p class="v7p-p v7p-mu">A switch reads the stack without that layer: every layer after it applies again to what is beneath it, from the decisions it recorded. Mission Assurance off reads 565, five more than the saved 560.</p>`,
       AK.note("Owner is a proposed field: WS-X90 records no owner for an overlay or its tailoring, so they read Unassigned. Last changed is each layer's record."),
     );
@@ -417,7 +422,7 @@
     }
     const cur = derive(LAYERS, WI), r = cur.rows.find((x) => x.key === id) || cur.rows[0], s = SAVED.rows.find((x) => x.key === r.key);
     return { label: "Layer preview", body: wide(`${AK.recordHead({ title: r.title, chip: `${AK.chip(r.kind)}${r.off ? AK.chip("Not applied", { tone: "warn" }) : ""}`, actions: sw(r) })}
-      ${AK.facts([["Owner", r.publisher ? `Reference · ${esc(r.publisher)}` : ownerEdit("layer:" + r.key)], ["Version", r.ver ? `${r.ver} · ${pill("ok", "Published")}` : mu("The program's own")], ["Changes", `<span class="num"><span class="v7p-ok">+${s.add.length}</span> <span class="${s.rem.length ? "v7p-bad" : "v7p-mu"}">−${s.rem.length}</span> · ${fmt(s.total)} after it</span>`], ["Last changed", `<span class="num">${md(r.changed)}</span>`]])}
+      ${AK.facts([["Owner", r.publisher ? `Reference · ${esc(r.publisher)}` : ownerEdit("layer:" + r.key)], ["Version", r.ver ? `${r.ver} · ${pill("ok", "Published")}` : mu("The program's own")], ["Changes", `<span class="num"><span>+${s.add.length}</span> <span class="${s.rem.length ? "" : "v7p-mu"}">−${s.rem.length}</span> · ${fmt(s.total)} after it</span>`], ["Last changed", `<span class="num">${md(r.changed)}</span>`]])}
       <p class="v7p-prose">${esc(r.desc)}</p>
       ${AK.section("Added", s.add.length ? codesMore(s.add) : mu("Nothing added"), { count: s.add.length })}
       ${AK.section("Removed", s.rem.length ? codesMore(s.rem) : mu("Nothing removed"), { count: s.rem.length })}
@@ -428,7 +433,7 @@
     const next = derive([...LAYERS.slice(0, 4), CUSA, LAYERS[4]]), add = next.rows[4];
     const nowSel = SAVED.sel, afterSel = next.sel;
     const plus = [...afterSel].filter((c) => !nowSel.has(c)), minus = [...nowSel].filter((c) => !afterSel.has(c));
-    const row = (r, i, isNew) => `<div class="v7p-ovl${isNew ? " new" : ""}"><span class="num v7p-mu">${i}</span><span class="x"><b>${esc(r.title)}</b>${isNew ? pill("info", "Added") : ""}</span><span class="num"><span class="v7p-ok">+${r.add.length}</span> <span class="v7p-mu">−${r.rem.length}</span> · ${fmt(r.total)}</span>${r.kind === "Overlay" ? `<span class="v7p-icons"><span class="btn sm" aria-label="Move ${esc(r.title)} earlier">↑</span><span class="btn sm" aria-label="Move ${esc(r.title)} later">↓</span><span class="btn sm" aria-label="Remove ${esc(r.title)}">${AK.i("x")}</span></span>` : mu("Stays last")}</div>`;
+    const row = (r, i, isNew) => `<div class="v7p-ovl${isNew ? " new" : ""}"><span class="num v7p-mu">${i}</span><span class="x"><b>${esc(r.title)}</b>${isNew ? pill("info", "Added") : ""}</span><span class="num"><span>+${r.add.length}</span> <span class="v7p-mu">−${r.rem.length}</span> · ${fmt(r.total)}</span>${r.kind === "Overlay" ? `<span class="v7p-icons"><span class="btn sm" aria-label="Move ${esc(r.title)} earlier">↑</span><span class="btn sm" aria-label="Move ${esc(r.title)} later">↓</span><span class="btn sm" aria-label="Remove ${esc(r.title)}">${AK.i("x")}</span></span>` : mu("Stays last")}</div>`;
     return { title: "Edit overlays", body: `<p class="ak-desc">The program tailoring stays last. Systems that adopted the old top move to the new one; every SSP revision keeps the baseline it was pinned to.</p>
       <div class="v7p-ovls">${next.rows.map((r, i) => row(r, i + 1, r.key === "cusa")).join("")}</div>
       ${field("Add overlay", sel("Customer A rail integration · version 1"), "Published overlays of NIST SP 800-53 Rev 5 the stack does not hold.")}
@@ -502,8 +507,10 @@
   S.requirements = () => {
     const F = { all: () => true, noev: (r) => !r[5].length, noown: (r) => !ownerOf("req:" + r[0]), review: (r) => !!r[6] };
     const owned = REQS.filter((r) => ownerOf("req:" + r[0])).length;
-    const TOT = { all: 640, noev: 286, noown: 640 - owned, review: 1 };
-    const v = QV.req || "all", list = REQ_PAGE.filter(F[v] || F.all), ids = list.map((r) => r[0]);
+    // v2 (F): the controls and evidence the session linked count here as on the requirement's chain (PA.v2reqs, one source).
+    const RX = PA.v2reqs || null;
+    const TOT = { all: 640, noev: 286 - (RX ? RX.gainedEvidence() : 0), noown: 640 - owned, review: 1 };
+    const v = QV.req || "all", list = REQ_PAGE.map((r) => (RX ? RX.row(r) : r)).filter(F[v] || F.all), ids = list.map((r) => r[0]);
     return h.page(
       reqHead("reqs"),
       views("req", [["all", "All", TOT.all], ["noev", "Cite no evidence", TOT.noev], ["noown", "No owner", TOT.noown], ["review", "Mapping needs review", TOT.review]]),
@@ -548,6 +555,12 @@
     <div class="next" role="status">${gl("check")}<span>Read <b>CUSB-SRS Issue 2.csv</b> ${EX}: 14 requirements, 4 columns (Reference, Title, Statement, Elements); passed over 2 empty rows.</span></div>
     ${field("Add to", sel("A new requirements document"))}${field("Document code and title", input("CUSB-SRS · Customer B Security Requirements Specification"))}`, footer: foot("Import requirements", "14 requirements imported, 21 allocations made (prototype: nothing is saved)") });
   M["v7p-req-new"] = () => ({ title: "Create requirement", body: `${field("Code", input("REQ-641"))}${field("Title", input("What the system shall do"), "", true)}${field("Statement", input("The … shall …", true), "", true)}${field("Owner", sel(`${AK.avatar(null, 20)} Unassigned`))}${field("Allocate to", sel("Choose elements"), "A requirement maps controls on each element it is allocated to.")}`, footer: foot("Create requirement", "REQ-641 created as a draft (prototype: nothing is saved)") });
+  // v2 (F): the requirement's chain on the Requirements page (mod-zzzz-v2-3reqs.js) reads the register's own rows and elements.
+  PA.v7p = Object.assign(PA.v7p || {}, { REQS, REQ_PAGE, COMP, EBY, ctlOf, cover, owner: (code) => ownerOf("req:" + code), ownerEdit: (code) => ownerEdit("req:" + code), selected: () => [...SEL.req], clearSelected: () => SEL.req.clear(), acts: (code) => {
+    const r = REQS.find((x) => x[0] === code); if (!r) return [];
+    return [{ who: null, what: `imported ${esc(r[0])} from the supplied platform requirements`, when: "Sep 12" }, { who: null, what: `allocated it to ${esc(r[3].join(", "))}`, when: "Sep 12" },
+      { who: null, what: `mapped ${esc(r[4].join(", "))}${r[6] ? "; the mapping by objective needs review" : ""}`, when: "Sep 12" }, ...(OWN["req:" + r[0]] ? [{ who: ME, what: `made ${esc(OWN["req:" + r[0]])} the owner`, when: "Just now" }] : [])];
+  } });
 
   // Objectives: coverage by control objective, from PA.SSP's 560 controls.
   const SI413 = [["SI-04(13)(a)[01]", "communications traffic for the system is analyzed", true], ["SI-04(13)(a)[02]", "event patterns for the system are analyzed", false], ["SI-04(13)(b)[01]", "profiles representing common traffic are developed", true], ["SI-04(13)(b)[02]", "profiles representing event patterns are developed", false], ["SI-04(13)(c)[01]", "traffic profiles are used in tuning system-monitoring devices", true], ["SI-04(13)(c)[02]", "event profiles are used in tuning system-monitoring devices", false]];
@@ -630,19 +643,34 @@
   // ════════════════ Authorization: the package and its decision ════════════════
   const CONDITIONS = [
     ["Close the high-severity remediation items within 90 days", "2026-12-17", "12 high issues open"],
-    ["Complete the expanded control set assessment before Milestone C", "2026-11-20", "The campaign ends Nov 20"],
+    ["Complete the expanded control set assessment", "2026-11-20", "The campaign ends Nov 20"],
     ["Report the SA-24 design review at the annual authorization review", "2027-09-18", "Annual review"],
   ];
   const elapsed = pct(TODAY - new Date("2026-09-18T12:00:00"), new Date("2029-09-17T12:00:00") - new Date("2026-09-18T12:00:00"));
+  // v2 (C1) [B1 B5]: package version 2 moves with the chain: submitted, the ISSM's review, the AO's decision; SSP 3's review state
+  // (C2's ssp.rev3.state) and increment 2's publication read the same here as on the campaign and in the package room.
+  const CHN = () => PA.v2 && PA.v2.chain;
+  const PKG2 = () => (CHN() ? CHN().pkg() : {});
+  const DEC_WORD = { ato: "ATO", atoc: "ATO with conditions", dato: "Denial of authorization" };
+  const decisionWord = () => (PKG2().decision ? DEC_WORD[PKG2().decision] : "ATO with conditions");
+  const decided = () => !!PKG2().decision;
+  const fullDay = (iso) => new Date(iso + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  const v2State = () => { const p = PKG2(); return p.decision ? ["ok", `Decided ${md(p.at)}`] : p.step === 2 ? ["none", "With the AO"] : p.submitted ? ["none", "In ISSM review"] : ["none", "Draft"]; };
+  // SSP 3's state is C2's (PA.v2hubs.ssp() through the chain); C2's decoration of this row says it in the same words.
+  const sspRow = () => { const s = CHN() ? CHN().ssp3() : "draft"; return s === "approved" ? pill("none", "With the AO") : s === "submitted" ? pill("none", "In review") : s === "changes" ? pill("none", "Changes requested") : pill("warn", "Draft"); };
+  // The risk acceptances package version 2 holds: those a reader requested on a risk, each at its step.
+  const accRows = () => { const ch = CHN(); if (!ch) return []; const lk = PA.riskLookup || {}; return Object.entries(PA.v2.get("chain.acc", null) || {}).map(([rid, a]) => ({ rid, a, r: (ch.risks().find((x) => x.id === rid) || (lk.risk ? lk.risk(rid) : null) || { title: rid, sev: "moderate" }) })); };
   S.authorization = () => {
     const tab = TAB.auth || "pkg";
+    const p2 = PKG2(), dw = decisionWord();
+    const primary = decided() ? "" : p2.submitted && (p2.step === 1 || p2.step === 2) ? btn(p2.step === 2 ? "Record the AO's decision" : "Record the ISSM review", 'data-modal="v2k-pkgdecide"', true, false) : btn("Submit for approval", 'data-modal="v7p-submit"', true, false);
     const head = AK.recordHead({
       crumbs: [["WS-X90", "overview"], ["Authorization"]],
       title: "Authorization",
-      chip: AK.chip("ATO with conditions", { tone: "ok", icon: "check" }),
-      desc: "WS-X90 Sentinel Mission System's authorization package. Version 1 holds the decision in force; version 2, the FY2027 annual update, is a draft.",
-      facts: [["Decision", pill("ok", "ATO with conditions")], ["Signed", `<span class="num">${md("2026-09-18")}, 2026</span>`], ["ATD", `<span class="num">${md("2029-09-17")}</span>`], ["Authorizing official", AK.owner(ROLE.authorizing_official)], ["ISSM", AK.owner(ROLE.security_manager)], ["Package version 2", pill("none", "Draft")]],
-      actions: `${btn("Open package room", 'data-go="package-room"', false, false)}${btn("Submit for approval", 'data-modal="v7p-submit"', true, false)}`,
+      chip: AK.chip(dw, { tone: dw === "Denial of authorization" ? "bad" : "ok", icon: "check" }),
+      desc: decided() ? `Package version 2 holds the decision in force, signed ${md(p2.at)} by ${esc(ROLE.authorizing_official)}.` : "WS-X90 Sentinel Mission System's authorization package. Version 1 holds the decision in force; version 2, the FY2027 annual update, is a draft.",
+      facts: [["Signed", `<span class="num">${fullDay(decided() ? p2.at : "2026-09-18")}</span>`], ["ATD", `<span class="num">${fullDay(decided() ? p2.atd : "2029-09-17")}</span>`], ["Authorizing official", AK.owner(ROLE.authorizing_official)], ["ISSM", AK.owner(ROLE.security_manager)], ["Package version 2", pill(...v2State())]],
+      actions: `${btn("Open package room", 'data-go="package-room"', false, false)}${primary}`,
     });
     const tabs = ptabs("auth", [["pkg", "Package"], ["cond", "Conditions", CONDITIONS.length], ["comments", "Comments", 2], ["activity", "Activity", 5]], "Authorization");
     let body;
@@ -663,22 +691,29 @@
     return h.page(head.replace(/<\/div>$/, `${tabs}</div>`), body);
   };
   function railAuth() {
-    return `${AK.railCard("Decision in force", [["Decision", pill("ok", "ATO with conditions")], ["Signed by", AK.owner(ROLE.authorizing_official)], ["Effective", `<span class="num">Sep 18, 2026</span>`], ["ATD", `<span class="num">Sep 17, 2029</span>`], ["Term", `<span class="num">${elapsed}% elapsed</span>`]])}
-      ${AK.railCard("Residual risk", [["Open risks", `<b class="num">40</b>`], ["Critical", num(2)], ["High", num(10)], ["Moderate", num(18)], ["Low", num(10)], ["Accepted", `${num(0)} <span class="v7p-mu">all Mitigate</span>`]])}
+    const p2 = PKG2(), cr = CHN() ? CHN().risks() : [], n = (s) => cr.filter((r) => r.sev === s).length;
+    const acc = accRows().filter((x) => x.a.state === "accepted").length;
+    // v2 (H): what the decision covers, the bubble drawn small (PA.v2host.mini), with the way to the Boundary page.
+    return `${AK.railCard("Decision in force", [["Decision", pill(decisionWord() === "Denial of authorization" ? "bad" : "ok", decisionWord())], ["Signed by", AK.owner(ROLE.authorizing_official)], ["Effective", `<span class="num">${decided() ? fullDay(p2.at) : "Sep 18, 2026"}</span>`], ["ATD", `<span class="num">${decided() ? fullDay(p2.atd) : "Sep 17, 2029"}</span>`], ["Term", `<span class="num">${decided() ? "0" : elapsed}% elapsed</span>`]])}
+      ${PA.v2host && PA.v2host.mini ? PA.v2host.mini() : ""}
+      ${AK.railCard("Residual risk", [["Open risks", `<b class="num">${40 + cr.length}</b>`], ["Critical", num(2 + n("critical"))], ["High", num(10 + n("high"))], ["Moderate", num(18 + n("moderate"))], ["Low", num(10 + n("low"))], ["Accepted", acc ? `${num(acc)} <span class="v7p-mu">by the AO</span>` : `${num(0)} <span class="v7p-mu">all Mitigate</span>`]])}
       <div class="ak-rail-s"><div class="ak-rail-t">Package room</div><p class="v7p-p">Version 1 published Sep 2 and shared with the program's role holders. Every open is watermarked and logged.</p>${link("Open package room", 'data-go="package-room"')}</div>`;
   }
   function authPackage() {
-    const approval = AK.approval({ title: "Approval", sub: "Package version 2 · FY2027 annual update · not submitted yet", steps: [
-      { label: "Step 1 · ISSM review", approvers: [{ who: ROLE.security_manager, role: "ISSM", state: "waiting" }] },
-      { label: "Step 2 · Authorization decision", approvers: [{ who: ROLE.authorizing_official, role: "Authorizing official · signs", state: "waiting" }] },
-    ], note: "Only the AO signs. Version 2 can be submitted once SSP 3 and the expanded control set's increment 2 results are published." });
+    const p2 = PKG2(), ch = CHN(), i2 = ch && ch.inc2(), nPoam = ch ? ch.poams().length : 0, accs = accRows();
+    const st1 = p2.decision || p2.step === 2 ? "approved" : p2.submitted ? "sent" : "waiting", st2 = p2.decision ? "approved" : p2.step === 2 ? "sent" : "waiting";
+    const approval = AK.approval({ title: "Approval", sub: p2.decision ? `Package version 2 · signed ${md(p2.at)}: ${DEC_WORD[p2.decision]}` : p2.submitted ? `Package version 2 · submitted ${md(p2.at)} · step ${p2.step} of 2` : "Package version 2 · FY2027 annual update · not submitted yet", steps: [
+      { label: "Step 1 · ISSM review", approvers: [{ who: ROLE.security_manager, role: "ISSM", state: st1, when: md(p2.at || "") }] },
+      { label: "Step 2 · Authorization decision", approvers: [{ who: ROLE.authorizing_official, role: "Authorizing official · signs", state: st2, when: md(p2.at || "") }] },
+    ], note: p2.decision ? (p2.note ? `Rationale: ${esc(p2.note)}` : "") : "Only the AO signs. Version 2 can be submitted once SSP 3 is approved and the expanded control set's increment 2 results are published." });
+    const accWord = accs.length ? `${accs.length} requested · ${accs.filter((x) => x.a.state === "accepted").length} accepted` : "None recorded";
     const PKG = [
-      ["System security plan", "Revision 3", "Version 2", pill("warn", "Draft"), `Started ${md(D.revisions[2].started)}`, `${D.counts.placeholders} placeholder narratives`, "ssp-review"],
+      ["System security plan", "Revision 3", "Version 2", sspRow(), `Started ${md(D.revisions[2].started)}`, `${D.counts.placeholders} placeholder narratives`, "ssp-review"],
       ["System security plan", "Revision 2", "Version 1", pill("ok", "Published · frozen"), md(D.revisions[1].published), `${fmt(D.revisions[1].controls)} controls`, "ssp-history"],
-      ["Security assessment report", "Expanded control set, increment 2", "Version 2", pill("warn", "Draft results"), "Ends Nov 20", "20 findings in draft", "campaign"],
+      ["Security assessment report", "Expanded control set, increment 2", "Version 2", i2 ? pill("ok", "Published") : pill("warn", "Draft results"), i2 ? md(i2.at) : "Ends Nov 20", i2 ? "20 determinations" : "20 findings in draft", "campaign"],
       ["Security assessment report", "Initial authorization", "Version 1", pill("ok", "Published"), "Aug 28", "68 determinations", "assessments"],
-      ["POA&M", "41 items", "Version 2", pill("info", "Current"), "Live", "7 completed · 33 in progress · 1 open", "poam"],
-      ["Risk acceptances", "None recorded", "Version 2", pill("none", "None yet"), "", "40 open risks, all Mitigate", "risks"],
+      ["POA&M", `${41 + nPoam} items`, "Version 2", pill("info", "Current"), "Live", `7 completed · 33 in progress · ${1 + nPoam} not started`, "poam"],
+      ["Risk acceptances", accWord, "Version 2", accs.some((x) => x.a.state === "accepted") ? pill("ok", "Accepted") : accs.length ? pill("none", "Requested") : pill("none", "None yet"), "", accs.length ? accs.map((x) => x.r.title).join("; ") : "40 open risks, all Mitigate", "risks"],
     ];
     const contents = AK.section("In the package", tbl({
       cols: ["Document", "Revision", "Package", "State", "Date", "Holds"],
@@ -688,12 +723,16 @@
     const decisions = AK.section("Decision history", tbl({
       cols: ["Decision", "Package", "Decided", "Effective", "ATD", "Decided by"],
       rows: [
-        { id: "v2", cells: [ring("Pending"), "Version 2 · draft", mu("Not decided"), mu("—"), mu("—"), ring("Not signed")] },
+        p2.decision ? { id: "v2", cells: [pill(p2.decision === "dato" ? "bad" : "ok", DEC_WORD[p2.decision]), "Version 2 · FY2027 annual update", `<span class="num">${fullDay(p2.at)}</span>`, `<span class="num">${fullDay(p2.at)}</span>`, `<span class="num">${fullDay(p2.atd)}</span>`, AK.owner(ROLE.authorizing_official)] }
+          : { id: "v2", cells: [ring(p2.submitted ? "In review" : "Pending"), `Version 2 · ${p2.submitted ? "submitted" : "draft"}`, mu("Not decided"), mu("—"), mu("—"), ring("Not signed")] },
         { id: "v1", cells: [pill("ok", "ATO with conditions"), "Version 1 · published Sep 2", `<span class="num">Sep 18, 2026</span>`, `<span class="num">Sep 18, 2026</span>`, `<span class="num">Sep 17, 2029</span>`, AK.owner(ROLE.authorizing_official)] },
         { id: "ex", cells: [`${pill("info", "IATT")} ${EX}`, "Developmental test article", `<span class="num">Jun 2, 2026</span>`, `<span class="num">Jun 2, 2026</span>`, `<span class="num">Aug 31, 2026</span>`, AK.owner(ROLE.authorizing_official)] },
       ], panel: "v7p-decision", pager: false, label: "Decisions",
     }), { count: 3 });
-    const accept = AK.section("Risk acceptances proposed for version 2", `<p class="v7p-p">WS-X90 records no risk acceptance: all 40 open risks are Mitigate. Two the ISSO could ask the AO to accept, with their reasons: ${EX}</p>
+    // v2 (C1) [B1]: an acceptance a reader requested on a risk is decided here, step by step, the AO's decision last.
+    const STEPW = ["ISSO · Priya Raghavan", "ISSM · Joel Barrantes", `Authorizing official · ${ROLE.authorizing_official}`];
+    const requested = accs.length ? AK.section("Risk acceptances in version 2", `<div class="ak-card v7p-lines">${accs.map(({ rid, a, r }) => `<div class="v7p-line">${gl(a.state === "accepted" ? "check" : a.state === "returned" ? "diamond" : "clock")}<span class="x"><b><span class="ak-link" data-panel="a-risk-risk" data-id="${esc(rid)}|overview" role="link" tabindex="0">${esc(r.title)}</span></b><span class="v7p-mu">${a.state === "accepted" ? `Accepted by ${esc(ROLE.authorizing_official)} on ${md(a.at)}, until ${md(a.until)}` : a.state === "returned" ? "Sent back to the owner" : `Step ${a.step} of 3 · ${esc(STEPW[a.step - 1])}`}</span></span>${a.state === "requested" ? btn(a.step === 3 ? "Record the AO's decision" : "Record decision", `data-modal="v2k-decide" data-id="${esc(rid)}"`, a.step === 3) : ""}</div>`).join("")}</div>`, { count: accs.length }) : "";
+    const accept = requested + AK.section("Risk acceptances proposed for version 2", `<p class="v7p-p">WS-X90's own 40 open risks are all Mitigate. Two the ISSO could ask the AO to accept, with their reasons: ${EX}</p>
       <div class="grid2 v7p-pair">${wire(AK.reasonCard({ question: "Payload telemetry maintenance happens outside the work-order gate", reason: "Maintenance is supervised on the flightline until the Block 1.1 work-order gate ships. Accept the moderate residual risk for 12 months.", who: "Proposed by Priya Raghavan", when: "Not requested", action: "Request acceptance" }), "Request acceptance", 'data-modal="ak-approvers" data-id="the acceptance of this risk"')}
       ${wire(AK.reasonCard({ question: "Platform telemetry crosses to a party nobody has signed a responsibility split with", reason: "The split with the platform integrator is signed at the December review. Accept the moderate residual risk until then.", who: "Proposed by Priya Raghavan", when: "Not requested", action: "Request acceptance" }), "Request acceptance", 'data-modal="ak-approvers" data-id="the acceptance of this risk"')}</div>`, { count: 2 });
     const conditions = AK.section("Conditions of the decision", `<div class="ak-card v7p-lines">${CONDITIONS.map(([t, due, s2]) => `<div class="v7p-line v7p-dueline" data-v7p-tab="auth|cond" role="button" tabindex="0">${gl("clock")}<span class="x"><b>${esc(t)}</b><span class="v7p-mu">${esc(s2)}</span></span>${AK.due(due, { prefix: false })}${AK.i("back", "v7p-chev")}</div>`).join("")}</div>`, { count: CONDITIONS.length });
@@ -702,8 +741,9 @@
   P["v7p-decision"] = (id) => {
     mark("v7p-decision", id);
     if (id === "ex") return { label: "Decision preview", body: wide(`${AK.recordHead({ title: "IATT · developmental test article", chip: EX })}${AK.facts([["Decision", pill("info", "IATT")], ["For", "Interim authorization to test on the range"], ["ATD", "Aug 31, 2026"]])}`) };
-    if (id === "v2") return { label: "Decision preview", body: wide(`${AK.recordHead({ title: "Package version 2 · pending decision", actions: btn("Open package room", 'data-go="package-room"') })}${AK.facts([["State", pill("none", "Draft")], ["Holds", "SSP 3 with the Block 1.1 configuration"], ["Waits on", "Increment 2 results"]])}${li(gl("ring"), "Not submitted: the ISSM review and the AO decision start once SSP 3 and the increment 2 results are published.", "")}`) };
-    return { label: "Decision preview", body: wide(`${AK.recordHead({ title: "ATO with conditions · version 1", actions: btn("Export decision letter", 'data-v7p-toast="Decision letter exported (PDF, CUI marked)"') })}
+    // v2 (C1): version 2's preview reads where the package stands; Export opens its dialog rather than toasting an export that never ran.
+    if (id === "v2") { const p2 = PKG2(); return { label: "Decision preview", body: wide(`${AK.recordHead({ title: p2.decision ? `${DEC_WORD[p2.decision]} · version 2` : `Package version 2 · ${p2.submitted ? "in review" : "pending decision"}`, actions: btn("Open package room", 'data-go="package-room"') })}${AK.facts(p2.decision ? [["Decided by", AK.owner(ROLE.authorizing_official)], ["Decided", fullDay(p2.at)], ["ATD", fullDay(p2.atd)]] : [["State", pill(...v2State())], ["Holds", "SSP 3 with the Block 1.1 configuration"], ["Waits on", p2.submitted ? (p2.step === 2 ? ROLE.authorizing_official : ROLE.security_manager) : "SSP 3's approval and the increment 2 results"]])}${p2.decision && p2.note ? AK.section("Rationale", `<p class="v7p-prose">${esc(p2.note)}</p>`) : p2.decision ? "" : li(gl("ring"), p2.submitted ? `Submitted ${md(p2.at)}: the ISSM reviews, then the AO decides.` : "Not submitted: the ISSM review and the AO decision start once SSP 3 is approved and the increment 2 results are published.", "")}`) }; }
+    return { label: "Decision preview", body: wide(`${AK.recordHead({ title: "ATO with conditions · version 1", actions: btn("Export decision letter", 'data-modal="v2k-export" data-id="the decision letter"') })}
       ${AK.facts([["Decision", pill("ok", "ATO with conditions")], ["Decided by", AK.owner(ROLE.authorizing_official)], ["Decided", "Sep 18, 2026"], ["ATD", "Sep 17, 2029"]])}
       ${AK.section("Rationale", `<p class="v7p-prose">Residual risk is acceptable for operational use given the tailored cyber resiliency commitments and the conditions below.</p>`)}
       ${AK.section("Conditions", CONDITIONS.map(([t, due]) => li(gl("clock"), esc(t), AK.due(due, { prefix: false }))).join(""), { count: 3 })}

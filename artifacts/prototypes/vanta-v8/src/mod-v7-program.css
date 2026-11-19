@@ -190,3 +190,36 @@
   .v7p-dueline { grid-template-columns: 16px minmax(0, 1fr) 14px; }
   .v7p-dueline > .ak-due { grid-column: 2; grid-row: 2; }
 }
+
+/* ——— v2 (L1): the Overview's budget. One completion card (the strip is its one bar and the page's one chart), Open work and
+   three link rows in hairline lists, one Details rail. Colour stays inside the strip. ——— */
+.v2-ov-comp { gap: 12px; }
+.v2-ov-comp .v7p-bigrow { gap: 10px; }
+.v2-ov-list { padding-block: 2px; gap: 0; }
+.v2-ov-list.plain { display: grid; padding: 0; border-top: 1px solid var(--line); }
+.v2-ov-list.plain .v2-ov-li:last-child { border-bottom: 1px solid var(--line); }
+.v2-ov-li { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--line); cursor: pointer; font-size: 14px; min-width: 0; }
+.v2-ov-li:last-child { border-bottom: 0; }
+.v2-ov-li .x { flex: 1 1 auto; display: flex; flex-wrap: wrap; gap: 2px 10px; min-width: 0; align-items: baseline; }
+.v2-ov-li .x b { font-weight: 500; color: var(--ink); }
+.v2-ov-li .x .v7p-mu { font-size: 13px; }
+.v2-ov-li > b { font-size: 15px; font-weight: 600; }
+.v2-ov-li:hover .x b { text-decoration: underline; }
+.v2-ov-li:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
+.v2-ov-sub { font-size: 13px; white-space: nowrap; }
+.v2-ov-team { padding-top: 12px; border-top: 1px solid var(--line); }
+.v2-ov-rail .ak-kv { grid-template-columns: 112px minmax(0, 1fr); }
+@media (max-width: 640px) {
+  .v2-ov-li { flex-wrap: wrap; }
+  .v2-ov-li .x { flex: 1 1 calc(100% - 60px); }
+  .v2-ov-sub { order: 5; flex-basis: 100%; }
+}
+
+/* ——— v2 (L1): Baseline. One strip for the page above the family cards; changes and switches in ink; the banner a header line. ——— */
+.v2-bl-line { display: flex; align-items: center; gap: 8px; margin: 0; max-width: none; color: var(--ink-2); font-size: 13px; line-height: 18px; }
+.v2-bl-line .gl { width: 14px; height: 14px; }
+.v2-bl-line .gl.clock::after { left: 4px; top: 1.5px; width: 2.5px; height: 4px; }
+.v2-bl-strip { display: grid; gap: 10px; margin-bottom: 14px; }
+.v7p-sw[aria-checked="true"] { background: var(--ink); }
+.v2-bl-wi { flex-wrap: wrap; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--band); }
+.v2-bl-wi > span:first-child { flex: 1 1 320px; min-width: 0; }

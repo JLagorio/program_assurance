@@ -1,0 +1,1451 @@
+[
+ {
+  "route": "products",
+  "title": "Take version 2 of X800 Missile",
+  "how": "key",
+  "presses": 1,
+  "primary": "Take version 2",
+  "required": false,
+  "result": "closes, toast only",
+  "toast": "X800-A-CUSA takes X800 Missile version 2",
+  "trail": [
+   {
+    "label": "Take version 2",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "X800-A-CUSA takes X800 Missile version 2"
+   }
+  ]
+ },
+ {
+  "route": "suppliers",
+  "title": "Request from a supplier",
+  "how": "key",
+  "presses": 1,
+  "primary": "Send request",
+  "required": false,
+  "result": "closes silently, nothing changes",
+  "toast": "",
+  "trail": [
+   {
+    "label": "Send request",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": ""
+   }
+  ]
+ },
+ {
+  "route": "review-queue",
+  "title": "Reassign reviewer",
+  "how": "key",
+  "presses": 1,
+  "primary": "Reassign reviewer",
+  "required": false,
+  "result": "closes silently, nothing changes",
+  "toast": "",
+  "trail": [
+   {
+    "label": "Reassign reviewer",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": ""
+   }
+  ]
+ },
+ {
+  "route": "products",
+  "title": "Create product",
+  "how": "key",
+  "presses": 1,
+  "primary": "Create product",
+  "required": true,
+  "result": "closes, toast only",
+  "toast": "Product created",
+  "trail": [
+   {
+    "label": "Create product",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Product created"
+   }
+  ]
+ },
+ {
+  "route": "components",
+  "title": "Create component",
+  "how": "key",
+  "presses": 1,
+  "primary": "Create component",
+  "required": true,
+  "result": "closes, toast only",
+  "toast": "Component created as a draft",
+  "trail": [
+   {
+    "label": "Create component",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Component created as a draft"
+   }
+  ]
+ },
+ {
+  "route": "integrations",
+  "title": "Request a connector",
+  "how": "key",
+  "presses": 1,
+  "primary": "Send request",
+  "required": false,
+  "result": "closes, toast only",
+  "toast": "Request sent",
+  "trail": [
+   {
+    "label": "Send request",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Request sent"
+   }
+  ]
+ },
+ {
+  "route": "reports",
+  "title": "Generate report",
+  "how": "key",
+  "presses": 1,
+  "primary": "Generate",
+  "required": false,
+  "result": "closes silently, nothing changes",
+  "toast": "",
+  "trail": [
+   {
+    "label": "Generate",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": ""
+   }
+  ]
+ },
+ {
+  "route": "ai-drafts",
+  "title": "Run an agent",
+  "how": "key",
+  "presses": 1,
+  "primary": "Start run",
+  "required": false,
+  "result": "closes, toast only",
+  "toast": "Narrative drafter started on AU family: its suggestions will wait in Needs approval",
+  "trail": [
+   {
+    "label": "Start run",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Narrative drafter started on AU family: its suggestions will wait in Needs approval"
+   }
+  ]
+ },
+ {
+  "route": "enclaves",
+  "title": "Add enclave",
+  "how": "key",
+  "presses": 1,
+  "primary": "Add enclave",
+  "required": false,
+  "result": "closes, toast only",
+  "toast": "Enclave added",
+  "trail": [
+   {
+    "label": "Add enclave",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Enclave added"
+   }
+  ]
+ },
+ {
+  "route": "notifications",
+  "title": "Send a test",
+  "how": "key",
+  "presses": 1,
+  "primary": "Send test",
+  "required": false,
+  "result": "closes silently, nothing changes",
+  "toast": "",
+  "trail": [
+   {
+    "label": "Send test",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": ""
+   }
+  ]
+ },
+ {
+  "route": "common-controls",
+  "title": "Add provider",
+  "how": "key",
+  "presses": 1,
+  "primary": "Ask for an offer",
+  "required": false,
+  "result": "closes, toast only",
+  "toast": "Offer requested",
+  "trail": [
+   {
+    "label": "Ask for an offer",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Offer requested"
+   }
+  ]
+ },
+ {
+  "route": "ai-drafts",
+  "title": "Reject the run",
+  "how": "key",
+  "presses": 2,
+  "primary": "Reject run",
+  "required": true,
+  "result": "changes state, toast",
+  "toast": "Narrative drafter's run rejected: nothing it proposed is applied",
+  "trail": [
+   {
+    "label": "Reject run",
+    "disabled": false,
+    "open": true,
+    "title": "Reject the run",
+    "errs": "Say why you reject it: the reason is required.",
+    "toasts": ""
+   },
+   {
+    "label": "Reject run",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Narrative drafter's run rejected: nothing it proposed is applied"
+   }
+  ]
+ },
+ {
+  "route": "permissions",
+  "title": "Invite a member",
+  "how": "key",
+  "presses": 1,
+  "primary": "Send invitation",
+  "required": true,
+  "result": "held by validation",
+  "toast": "",
+  "trail": [
+   {
+    "label": "Send invitation",
+    "disabled": false,
+    "open": true,
+    "title": "Invite a member",
+    "errs": "Give an email address and a reason.",
+    "toasts": ""
+   }
+  ]
+ },
+ {
+  "route": "deadlines",
+  "title": "Edit high finding deadline",
+  "how": "key",
+  "presses": 1,
+  "primary": "Save deadline",
+  "required": true,
+  "result": "closes, toast only",
+  "toast": "High finding deadline saved",
+  "trail": [
+   {
+    "label": "Save deadline",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "High finding deadline saved"
+   }
+  ]
+ },
+ {
+  "route": "event-log",
+  "title": "Export event log",
+  "how": "key",
+  "presses": 1,
+  "primary": "Export",
+  "required": false,
+  "result": "closes, toast only",
+  "toast": "Event log exported (.csv)",
+  "trail": [
+   {
+    "label": "Export",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Event log exported (.csv)"
+   }
+  ]
+ },
+ {
+  "route": "itcsc",
+  "title": "Change owner",
+  "how": "key",
+  "result": "no primary",
+  "body": "Change owner ✕ Search people IS Ingrid Solberg (You) Security engineer PR Priya Raghavan ISSO JB Joel Barrantes ISSM RC Ray Colston System owner MR Marcus Ryde Component owner DO D. Okafor Lead assessor (SCA) NF Nadia Fournier Assessor RC R. Calloway Authorizing official Unassign owner Cancel"
+ },
+ {
+  "route": "itcsc",
+  "title": "Start version 4",
+  "how": "key",
+  "presses": 1,
+  "primary": "Start version 4",
+  "required": false,
+  "result": "changes state, toast",
+  "toast": "Version 4 started from version 3 · version 3 stays approved",
+  "trail": [
+   {
+    "label": "Start version 4",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Version 4 started from version 3 · version 3 stays approved"
+   }
+  ]
+ },
+ {
+  "route": "interconnections",
+  "title": "Add interconnection",
+  "how": "key",
+  "presses": 1,
+  "primary": "Add interconnection",
+  "required": true,
+  "result": "closes, toast only",
+  "toast": "Interconnection added as a draft · IC-110",
+  "trail": [
+   {
+    "label": "Add interconnection",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Interconnection added as a draft · IC-110"
+   }
+  ]
+ },
+ {
+  "route": "stigs",
+  "title": "Import a checklist",
+  "how": "key",
+  "presses": 1,
+  "primary": "Preview changes",
+  "required": true,
+  "result": "dialog changes in place",
+  "toast": "",
+  "trail": [
+   {
+    "label": "Preview changes",
+    "disabled": false,
+    "open": true,
+    "title": "Import a checklist",
+    "errs": "",
+    "toasts": ""
+   }
+  ]
+ },
+ {
+  "route": "composition",
+  "title": "Create element",
+  "how": "key",
+  "presses": 1,
+  "primary": "Create element",
+  "required": true,
+  "result": "closes, toast only",
+  "toast": "Element created under CN-109001 (prototype: nothing is saved)",
+  "trail": [
+   {
+    "label": "Create element",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Element created under CN-109001 (prototype: nothing is saved)"
+   }
+  ]
+ },
+ {
+  "route": "composition",
+  "title": "Take version 2 of Mission Computer",
+  "how": "key",
+  "presses": 1,
+  "primary": "Take version 2",
+  "required": false,
+  "result": "closes, toast only",
+  "toast": "Mission Computer version 2 taken on CN-109101 (prototype: nothing is saved)",
+  "trail": [
+   {
+    "label": "Take version 2",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Mission Computer version 2 taken on CN-109101 (prototype: nothing is saved)"
+   }
+  ]
+ },
+ {
+  "route": "sources",
+  "title": "Retry import",
+  "how": "key",
+  "presses": 1,
+  "primary": "Retry import",
+  "required": false,
+  "result": "closes silently, nothing changes",
+  "toast": "",
+  "trail": [
+   {
+    "label": "Retry import",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": ""
+   }
+  ]
+ },
+ {
+  "route": "sources",
+  "title": "Add source",
+  "how": "key",
+  "presses": 1,
+  "primary": "Next",
+  "required": false,
+  "result": "dialog changes in place",
+  "toast": "",
+  "trail": [
+   {
+    "label": "Next",
+    "disabled": false,
+    "open": true,
+    "title": "Add source",
+    "errs": "",
+    "toasts": ""
+   }
+  ]
+ },
+ {
+  "route": "ppsm",
+  "title": "Add service",
+  "how": "key",
+  "presses": 1,
+  "primary": "Add service",
+  "required": true,
+  "result": "closes, toast only",
+  "toast": "Service added · its CAL assessment is looked up",
+  "trail": [
+   {
+    "label": "Add service",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Service added · its CAL assessment is looked up"
+   }
+  ]
+ },
+ {
+  "route": "inventory",
+  "title": "Assign owner",
+  "how": "key",
+  "presses": 1,
+  "primary": "Assign owner",
+  "required": false,
+  "result": "closes, toast only",
+  "toast": "Owner assigned to 20 assets",
+  "trail": [
+   {
+    "label": "Assign owner",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Owner assigned to 20 assets"
+   }
+  ]
+ },
+ {
+  "route": "ssps",
+  "title": "New plan",
+  "how": "key",
+  "presses": 1,
+  "primary": "Create draft",
+  "required": false,
+  "result": "closes, toast only",
+  "toast": "Supply chain risk management plan: a draft from its template is proposed for the next version",
+  "trail": [
+   {
+    "label": "Create draft",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Supply chain risk management plan: a draft from its template is proposed for the next version"
+   }
+  ]
+ },
+ {
+  "route": "inventory",
+  "title": "Mark not in boundary",
+  "how": "key",
+  "presses": 1,
+  "primary": "Save",
+  "required": true,
+  "result": "closes silently, nothing changes",
+  "toast": "",
+  "trail": [
+   {
+    "label": "Save",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": ""
+   }
+  ]
+ },
+ {
+  "route": "controls",
+  "title": "Add to assessment campaign",
+  "how": "key",
+  "presses": 1,
+  "primary": "Add to assessment campaign",
+  "required": false,
+  "result": "closes silently, nothing changes",
+  "toast": "",
+  "trail": [
+   {
+    "label": "Add to assessment campaign",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": ""
+   }
+  ]
+ },
+ {
+  "route": "baseline",
+  "title": "Edit overlays",
+  "how": "key",
+  "presses": 1,
+  "primary": "Edit overlays",
+  "required": false,
+  "result": "closes, toast only",
+  "toast": "Overlays saved as a draft: it applies once the active assessments close (prototype: nothing is saved)",
+  "trail": [
+   {
+    "label": "Edit overlays",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Overlays saved as a draft: it applies once the active assessments close (prototype: nothing is saved)"
+   }
+  ]
+ },
+ {
+  "route": "checks",
+  "title": "Deactivate 2 checks",
+  "how": "key",
+  "presses": 1,
+  "primary": "Deactivate",
+  "required": true,
+  "result": "changes state, no toast",
+  "toast": "",
+  "trail": [
+   {
+    "label": "Deactivate",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": ""
+   }
+  ]
+ },
+ {
+  "route": "requirements",
+  "title": "Import requirements",
+  "how": "key",
+  "presses": 1,
+  "primary": "Import requirements",
+  "required": false,
+  "result": "closes, toast only",
+  "toast": "14 requirements imported, 21 allocations made (prototype: nothing is saved)",
+  "trail": [
+   {
+    "label": "Import requirements",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "14 requirements imported, 21 allocations made (prototype: nothing is saved)"
+   }
+  ]
+ },
+ {
+  "route": "requirements",
+  "title": "Create requirement",
+  "how": "key",
+  "presses": 1,
+  "primary": "Create requirement",
+  "required": true,
+  "result": "closes, toast only",
+  "toast": "REQ-641 created as a draft (prototype: nothing is saved)",
+  "trail": [
+   {
+    "label": "Create requirement",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "REQ-641 created as a draft (prototype: nothing is saved)"
+   }
+  ]
+ },
+ {
+  "route": "assessments",
+  "title": "Plan an assessment",
+  "how": "key",
+  "presses": 1,
+  "primary": "Plan an assessment",
+  "required": false,
+  "result": "closes silently, nothing changes",
+  "toast": "",
+  "trail": [
+   {
+    "label": "Plan an assessment",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": ""
+   }
+  ]
+ },
+ {
+  "route": "assessments",
+  "title": "Publish assessment results",
+  "how": "key",
+  "presses": 1,
+  "primary": "Publish assessment results",
+  "required": false,
+  "result": "closes silently, nothing changes",
+  "toast": "",
+  "trail": [
+   {
+    "label": "Publish assessment results",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": ""
+   }
+  ]
+ },
+ {
+  "route": "cyber-te",
+  "title": "Plan a cyber test",
+  "how": "key",
+  "presses": 1,
+  "primary": "Plan cyber test",
+  "required": true,
+  "result": "closes silently, nothing changes",
+  "toast": "",
+  "trail": [
+   {
+    "label": "Plan cyber test",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": ""
+   }
+  ]
+ },
+ {
+  "route": "policies",
+  "title": "Start a policy",
+  "how": "key",
+  "presses": 1,
+  "primary": "Continue",
+  "required": false,
+  "result": "navigates to policy-editor",
+  "toast": "",
+  "trail": [
+   {
+    "label": "Continue",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": ""
+   }
+  ]
+ },
+ {
+  "route": "policies",
+  "title": "Assign approvers",
+  "how": "key",
+  "presses": 1,
+  "primary": "Submit for approval",
+  "required": false,
+  "result": "closes, toast only",
+  "toast": "Sent to Nadia Fournier for step 1",
+  "trail": [
+   {
+    "label": "Submit for approval",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Sent to Nadia Fournier for step 1"
+   }
+  ]
+ },
+ {
+  "route": "poam",
+  "title": "Change planned date",
+  "how": "key",
+  "presses": 1,
+  "primary": "Change planned date",
+  "required": true,
+  "result": "closes silently, nothing changes",
+  "toast": "",
+  "trail": [
+   {
+    "label": "Change planned date",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": ""
+   }
+  ]
+ },
+ {
+  "route": "poam",
+  "title": "Create POA&M item",
+  "how": "key",
+  "presses": 1,
+  "primary": "Create POA&M item",
+  "required": true,
+  "result": "closes silently, nothing changes",
+  "toast": "",
+  "trail": [
+   {
+    "label": "Create POA&M item",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": ""
+   }
+  ]
+ },
+ {
+  "route": "findings",
+  "title": "Deactivate 3 findings",
+  "how": "key",
+  "presses": 1,
+  "primary": "Deactivate",
+  "required": true,
+  "result": "closes silently, nothing changes",
+  "toast": "",
+  "trail": [
+   {
+    "label": "Deactivate",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": ""
+   }
+  ]
+ },
+ {
+  "route": "threats",
+  "title": "Link ATT&CK technique",
+  "how": "key",
+  "presses": 1,
+  "primary": "Link technique",
+  "required": true,
+  "result": "closes silently, nothing changes",
+  "toast": "",
+  "trail": [
+   {
+    "label": "Link technique",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": ""
+   }
+  ]
+ },
+ {
+  "route": "risks",
+  "title": "Create risk",
+  "how": "key",
+  "presses": 1,
+  "primary": "Create risk",
+  "required": true,
+  "result": "closes silently, nothing changes",
+  "toast": "",
+  "trail": [
+   {
+    "label": "Create risk",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": ""
+   }
+  ]
+ },
+ {
+  "route": "risks",
+  "title": "Request acceptance",
+  "how": "key",
+  "presses": 1,
+  "primary": "Send to Priya Raghavan",
+  "required": true,
+  "result": "closes silently, nothing changes",
+  "toast": "",
+  "trail": [
+   {
+    "label": "Send to Priya Raghavan",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": ""
+   }
+  ]
+ },
+ {
+  "route": "inheritance",
+  "title": "Add common control provider",
+  "how": "key",
+  "presses": 1,
+  "primary": "Add provider",
+  "required": true,
+  "result": "closes silently, nothing changes",
+  "toast": "",
+  "trail": [
+   {
+    "label": "Add provider",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": ""
+   }
+  ]
+ },
+ {
+  "route": "package-room",
+  "title": "Share the package",
+  "how": "key",
+  "presses": 1,
+  "primary": "Share",
+  "required": false,
+  "result": "closes silently, nothing changes",
+  "toast": "",
+  "trail": [
+   {
+    "label": "Share",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": ""
+   }
+  ]
+ },
+ {
+  "route": "sse",
+  "title": "Add security outcomes",
+  "how": "key",
+  "presses": 1,
+  "primary": "Add outcomes",
+  "required": true,
+  "result": "dialog stays, nothing changes",
+  "toast": "Choose at least one outcome",
+  "trail": [
+   {
+    "label": "Add outcomes",
+    "disabled": false,
+    "open": true,
+    "title": "Add security outcomes",
+    "errs": "",
+    "toasts": "Choose at least one outcome"
+   }
+  ]
+ },
+ {
+  "route": "traceability",
+  "title": "Link evidence",
+  "how": "key",
+  "presses": 1,
+  "primary": "Link evidence",
+  "required": true,
+  "result": "closes silently, nothing changes",
+  "toast": "",
+  "trail": [
+   {
+    "label": "Link evidence",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": ""
+   }
+  ]
+ },
+ {
+  "route": "authorization",
+  "title": "Submit package version 2 for approval",
+  "how": "key",
+  "presses": 1,
+  "primary": "Submit",
+  "required": false,
+  "result": "dialog stays, nothing changes (primary disabled)",
+  "toast": "",
+  "trail": [
+   {
+    "label": "Submit",
+    "disabled": true,
+    "open": true,
+    "title": "Submit package version 2 for approval",
+    "errs": "",
+    "toasts": ""
+   }
+  ]
+ },
+ {
+  "route": "program-new",
+  "title": "Save the draft and leave?",
+  "how": "key",
+  "presses": 1,
+  "primary": "Save draft",
+  "required": false,
+  "result": "navigates to home",
+  "toast": "Draft saved · Customer D · X800 Eject Launch Integration",
+  "trail": [
+   {
+    "label": "Save draft",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Draft saved · Customer D · X800 Eject Launch Integration"
+   }
+  ]
+ },
+ {
+  "route": "conmon",
+  "title": "Plan a check",
+  "how": "key",
+  "presses": 1,
+  "primary": "Plan check",
+  "required": true,
+  "result": "closes, toast only",
+  "toast": "Check planned in WS-X90 continuous monitoring — FY2027 (prototype: nothing is saved)",
+  "trail": [
+   {
+    "label": "Plan check",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Check planned in WS-X90 continuous monitoring — FY2027 (prototype: nothing is saved)"
+   }
+  ]
+ },
+ {
+  "route": "schedule",
+  "title": "Create task",
+  "how": "key",
+  "presses": 1,
+  "primary": "Create task",
+  "required": true,
+  "result": "closes silently, nothing changes",
+  "toast": "",
+  "trail": [
+   {
+    "label": "Create task",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": ""
+   }
+  ]
+ },
+ {
+  "route": "schedule",
+  "title": "Change due date",
+  "how": "key",
+  "presses": 1,
+  "primary": "Change due date",
+  "required": true,
+  "result": "closes silently, nothing changes",
+  "toast": "",
+  "trail": [
+   {
+    "label": "Change due date",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": ""
+   }
+  ]
+ },
+ {
+  "route": "people",
+  "title": "Assign a role",
+  "how": "key",
+  "presses": 1,
+  "primary": "Assign role",
+  "required": false,
+  "result": "closes silently, nothing changes",
+  "toast": "",
+  "trail": [
+   {
+    "label": "Assign role",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": ""
+   }
+  ]
+ },
+ {
+  "route": "people",
+  "title": "Recurring reminders",
+  "how": "key",
+  "presses": 1,
+  "primary": "Schedule reminders",
+  "required": false,
+  "result": "closes, toast only",
+  "toast": "Reminders scheduled for every Monday",
+  "trail": [
+   {
+    "label": "Schedule reminders",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Reminders scheduled for every Monday"
+   }
+  ]
+ },
+ {
+  "route": "people",
+  "title": "Change role",
+  "how": "key",
+  "presses": 1,
+  "primary": "Change role",
+  "required": true,
+  "result": "closes, toast only",
+  "toast": "Roles changed",
+  "trail": [
+   {
+    "label": "Change role",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Roles changed"
+   }
+  ]
+ },
+ {
+  "route": "people",
+  "title": "Send a reminder",
+  "how": "key",
+  "presses": 1,
+  "primary": "Send reminder",
+  "required": false,
+  "result": "closes, toast only",
+  "toast": "Reminder sent to 2 people",
+  "trail": [
+   {
+    "label": "Send reminder",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Reminder sent to 2 people"
+   }
+  ]
+ },
+ {
+  "route": "people",
+  "title": "End 2 roles",
+  "how": "key",
+  "presses": 1,
+  "primary": "End role",
+  "required": true,
+  "result": "closes, toast only",
+  "toast": "2 periods end Nov 17",
+  "trail": [
+   {
+    "label": "End role",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "2 periods end Nov 17"
+   }
+  ]
+ },
+ {
+  "route": "program-start",
+  "title": "Invite by email",
+  "how": "key",
+  "presses": 1,
+  "primary": "Send invitation",
+  "required": true,
+  "result": "dialog changes in place",
+  "toast": "",
+  "trail": [
+   {
+    "label": "Send invitation",
+    "disabled": false,
+    "open": true,
+    "title": "Invite by email",
+    "errs": "",
+    "toasts": ""
+   }
+  ]
+ },
+ {
+  "route": "program-start",
+  "title": "Upload the architecture diagram",
+  "how": "key",
+  "result": "no primary",
+  "body": "Upload the architecture diagram ✕ The boundary and data flow diagram, as SVG, PNG or PDF. The SSP's section 6 shows it. EXAMPLE Drop a file here or choose one Cancel"
+ },
+ {
+  "route": "program-start",
+  "title": "Import the ITCSC",
+  "how": "key",
+  "result": "no primary",
+  "body": "Import the ITCSC ✕ A completed AF ITCSC, PDF or Word. The ITCSC reader reads it into the program's ITCSC record, where the PM and the AO sign it. EXAMPLE Drop a file here or choose one Cancel"
+ },
+ {
+  "route": "campaign",
+  "title": "Set Ready",
+  "how": "key",
+  "presses": 1,
+  "primary": "Set Ready",
+  "required": false,
+  "result": "closes silently, nothing changes",
+  "toast": "",
+  "trail": [
+   {
+    "label": "Set Ready",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": ""
+   }
+  ]
+ },
+ {
+  "route": "control-si2",
+  "title": "Add evidence",
+  "how": "key",
+  "presses": 1,
+  "primary": "Add evidence",
+  "required": false,
+  "result": "closes silently, nothing changes",
+  "toast": "",
+  "trail": [
+   {
+    "label": "Add evidence",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": ""
+   }
+  ]
+ },
+ {
+  "route": "ssp-review",
+  "title": "Edit summary",
+  "how": "key",
+  "presses": 1,
+  "primary": "Save summary",
+  "required": false,
+  "result": "changes state, toast",
+  "toast": "Summary saved. It goes to the ISSM with the submission.",
+  "trail": [
+   {
+    "label": "Save summary",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Summary saved. It goes to the ISSM with the submission."
+   }
+  ]
+ },
+ {
+  "route": "ssp-history",
+  "title": "Compare versions",
+  "how": "key",
+  "presses": 1,
+  "primary": "Compare",
+  "required": false,
+  "result": "changes state, no toast",
+  "toast": "",
+  "trail": [
+   {
+    "label": "Compare",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": ""
+   }
+  ]
+ },
+ {
+  "route": "ssp-history",
+  "title": "Name this version",
+  "how": "key",
+  "presses": 1,
+  "primary": "Save name",
+  "required": false,
+  "result": "dialog changes in place",
+  "toast": "",
+  "trail": [
+   {
+    "label": "Save name",
+    "disabled": false,
+    "open": true,
+    "title": "Name this version",
+    "errs": "",
+    "toasts": ""
+   }
+  ]
+ },
+ {
+  "route": "ssp-history",
+  "title": "Restore this version?",
+  "how": "key",
+  "presses": 1,
+  "primary": "Restore",
+  "required": false,
+  "result": "changes state, toast",
+  "toast": "Restored as a new version. Every version stays in the history.",
+  "trail": [
+   {
+    "label": "Restore",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Restored as a new version. Every version stays in the history."
+   }
+  ]
+ },
+ {
+  "route": "check-scan",
+  "title": "Create ticket",
+  "how": "key",
+  "presses": 1,
+  "primary": "Create ticket",
+  "required": true,
+  "result": "changes state, toast",
+  "toast": "WSX-419 created in Jira · status syncs both ways",
+  "trail": [
+   {
+    "label": "Create ticket",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "WSX-419 created in Jira · status syncs both ways"
+   }
+  ]
+ },
+ {
+  "route": "component-mc",
+  "title": "Remind consumers to take version 2",
+  "how": "key",
+  "presses": 1,
+  "primary": "Send reminders",
+  "required": false,
+  "result": "closes, toast only",
+  "toast": "3 consumers reminded",
+  "trail": [
+   {
+    "label": "Send reminders",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "3 consumers reminded"
+   }
+  ]
+ },
+ {
+  "route": "ssp",
+  "title": "Share the SSP",
+  "how": "key",
+  "presses": 1,
+  "primary": "Done",
+  "required": false,
+  "result": "closes silently, nothing changes",
+  "toast": "",
+  "trail": [
+   {
+    "label": "Done",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": ""
+   }
+  ]
+ },
+ {
+  "route": "ssp",
+  "title": "Add section",
+  "how": "key",
+  "presses": 1,
+  "primary": "Add section",
+  "required": false,
+  "result": "changes state, toast",
+  "toast": "Added 14 New section",
+  "trail": [
+   {
+    "label": "Add section",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Added 14 New section"
+   }
+  ]
+ },
+ {
+  "route": "ssp",
+  "title": "Detach from the record?",
+  "how": "key",
+  "presses": 1,
+  "primary": "Detach section 1",
+  "required": false,
+  "result": "changes state, toast",
+  "toast": "1 System identification is detached: its values stay as text",
+  "trail": [
+   {
+    "label": "Detach section 1",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "1 System identification is detached: its values stay as text"
+   }
+  ]
+ },
+ {
+  "route": "ssp",
+  "title": "Replace Figure 1",
+  "how": "key",
+  "presses": 1,
+  "primary": "Choose a file",
+  "required": false,
+  "result": "closes, toast only",
+  "toast": "Your file picker would open here: PNG, SVG or PDF, up to 10 MB",
+  "trail": [
+   {
+    "label": "Choose a file",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Your file picker would open here: PNG, SVG or PDF, up to 10 MB"
+   }
+  ]
+ },
+ {
+  "route": "ssp",
+  "title": "Replace Figure 2",
+  "how": "key",
+  "presses": 1,
+  "primary": "Choose a file",
+  "required": false,
+  "result": "closes, toast only",
+  "toast": "Your file picker would open here: PNG, SVG or PDF, up to 10 MB",
+  "trail": [
+   {
+    "label": "Choose a file",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Your file picker would open here: PNG, SVG or PDF, up to 10 MB"
+   }
+  ]
+ },
+ {
+  "route": "ssp",
+  "title": "Set AC-2(3)'s parameters",
+  "how": "key",
+  "presses": 1,
+  "primary": "Set parameters",
+  "required": true,
+  "result": "changes state, toast",
+  "toast": "Set in WS-X90's program tailoring: 72 hours and 90 days",
+  "trail": [
+   {
+    "label": "Set parameters",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Set in WS-X90's program tailoring: 72 hours and 90 days"
+   }
+  ]
+ }
+]

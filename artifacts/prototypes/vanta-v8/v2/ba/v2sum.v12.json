@@ -1,0 +1,61 @@
+{
+  "lede": "The gap review of 18 November put v1 at 3.4 out of 5 from Vanta. It found workflows that broke and screens with too many marks. v2 takes all three steps it proposed, and draws the screens the workflow needed and did not have.",
+  "steps": [
+    {
+      "title": "A cleanup pass on every screen",
+      "text": "Each status word has one tone, blue is never a status, and empty values print —. Banners are grey, EXAMPLE tags are gone, and nothing is pre-ticked. Registers lose the count line under their title and any column that reads the same in every row, keep at most two coloured cells a row, and drop gadgets from rows. Toolbars fit on one line, avatars are neutral, and the type uses one scale. In the navigation, the rail and the switcher are ink, and the menu folds every group but the current one.",
+      "items": [
+        "Tinted banners: 95 in v1, 0 in v2",
+        "Blue avatars: 1,142 in v1, 0 in v2",
+        "Screens with rows of more than two coloured cells: 73 in v1, 12 in v2",
+        "Tables wider than their frame at 1440: 56 in v1, 1 in v2",
+        "Type size and weight pairs: 62 in v1, 26 in v2",
+        "241 status words given one tone each; 74 of them changed"
+      ]
+    },
+    {
+      "title": "The budget on the heaviest pages",
+      "text": "Each page type has a budget (register, record, overview, home, inbox, editor, settings, panel), and the 25 heaviest pages were redrawn to meet it.",
+      "items": [
+        "The Overview: nine blocks down to one completion card, Open work, three link rows and a Details rail",
+        "Settings: a list of sections with setting cards, in place of a register under tabs",
+        "The review queue: one table with a Kind filter, in place of seven",
+        "SI-2: nothing between its facts and its tabs, one primary, seven tabs",
+        "The campaign: no Team column, one status a request, and the tracker and the chips both count 368",
+        "Controls: no donut and no mini tiles. Checks: overdue said once. Policies: one toolbar line. Programs: no rings. Baseline: one strip instead of 18",
+        "Home: one card a program, with Create program in the header. My work: the squeezed row fixed, one hairline list",
+        "Ports & protocols, the STIG checklist, the SSP editor, the Create program wizard and Suppliers each to their budget"
+      ]
+    },
+    {
+      "title": "A workflow you can walk",
+      "text": "Verbs change what the screens show, or say that the prototype does not save them, and links land on what they name.",
+      "items": [
+        "SA-24 can be walked from nothing to the authorizing official's decision, in 13 steps: map a requirement, link evidence, add it to a campaign, set it ready, record a determination, publish, create the POA&M item and the risk, and request acceptance. Every screen that shows those facts follows",
+        "39 dialogs that save nothing say so (\"Not saved: … isn't wired in this prototype\") in place of a success toast, and required fields block until filled",
+        "↗ opens a page on 53 of 54 previews, and every control has a page in SI-2's shape",
+        "My work rows and Home's callouts open their register filtered to what they count, with the record open when they count one",
+        "Submitting the SSP shows on My work, the review queue and Authorization; offboarding's Reassign all shows on People and the access review",
+        "A created program becomes the current program (switcher, menu, badges and links) and stays for the session. Add person starts onboarding. Access review decisions move the count",
+        "Counts are read from the lists they open. In assessment mode, the menu shows the campaign's pages"
+      ]
+    },
+    {
+      "title": "The missing screens",
+      "text": "24 screens v1 did not have, under New in v2: record pages for 17 kinds of record (every control among them), the continuous monitoring campaign, a created program's own pages, an onboarding task, Add person, Add asset and the campaign's Controls page. The 29 screens the version 6 comparison left out are compared here too, under three new groups.",
+      "items": []
+    }
+  ],
+  "left": [
+    "Bulk verbs and evidence upload are not wired. The dialog guard says so.",
+    "12 screens still have rows with more than two coloured cells, from glyphs and coloured text the cleanup rule cannot see.",
+    "The SSP editor's own tabs wrap at 1440. Its per-section guidance (A16) and question answering in the launcher (A19) are not done.",
+    "The review queue's Program filter does nothing. The Getting started badge updates on the next page change.",
+    "The check record pages kept their v1 layout apart from the cleanup rules."
+  ],
+  "method": [
+    "Five agents built v2 in two waves, each owning its own files. The first wave wrote a visual layer that runs over every screen (status map, empty values, banners, columns, gadgets, type) and the budgets on the 25 heaviest pages. The second wrote the workflow: shared state, a dialog guard, record pages, and links that land on what they count.",
+    "Checks on the assembled v2: all 791 routes open with no page error and no sideways scroll at 390. The version 7 and 8 flows (15 and 25 steps) and the navigation probe (39 checks) pass, and so do the chain walk (69 steps) and the hub walk (64 steps).",
+    "Screens were shot at 1440 from the frozen v1 build and the v2 build, and Before from version 5. The v1 screenshots of the version 6 pairs are the old After images, with their numbered callouts. The screens added since are v1 as it stood before the review."
+  ]
+}

@@ -265,3 +265,16 @@
 .a-tests-camp-t { overflow-wrap: anywhere; }
 .a-tests-camp .ak-chip { white-space: normal; height: auto; min-height: 24px; padding-block: 2px; max-width: 100%; }
 @media (max-width: 640px) { .a-tests-camp { padding: 16px; } }
+
+/* ——— v2 (agent L2): page budgets on Controls, SI-2, Checks and the campaign ——— */
+/* Controls: the completion card alone, one band: the figure and its bar side by side while there is room. */
+.v2l-one { display: grid; }
+.v2l-one .card { grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 6px 28px; padding: 18px 24px; }
+.v2l-one .card > .t, .v2l-one .card > .foot { grid-column: 1 / -1; }
+.v2l-one .card > .big { font-size: 36px; line-height: 40px; }
+@media (max-width: 600px) { .v2l-one .card { grid-template-columns: minmax(0, 1fr); padding: 16px 18px; } }
+/* SI-2: the implementation's two cards stack beside the Details rail; the rail's figures are plain numbers. */
+.ak-rec-b .v2l-impl { grid-template-columns: minmax(0, 1fr); }
+.v2l-next { gap: 8px; }
+/* Narrower, the rail comes first under the tabs, its two cards side by side while there is room. */
+@media (max-width: 1100px) { .v2l-si2 .ak-rail { order: -1; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); } }

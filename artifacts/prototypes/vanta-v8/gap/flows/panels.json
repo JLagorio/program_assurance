@@ -1,0 +1,326 @@
+[
+ {
+  "route": "portfolio",
+  "key": "TR|Air Defense 2 products · 2 programs PR Priya Raghavan||||v7o-bl|",
+  "n": 0,
+  "title": "Business line preview"
+ },
+ {
+  "route": "portfolio",
+  "key": "TR|Customer A · X800 Rail Integration 31% 116 of 374 No change DW Dan Whi||||v7o-prog|",
+  "n": 0,
+  "title": "Program preview"
+ },
+ {
+  "route": "products",
+  "key": "TR|X800 Missile X800 27 149 of 370 Version 2 Published Nov 10 2 programs ||||v7o-product|",
+  "n": 0,
+  "title": "Product preview"
+ },
+ {
+  "route": "products",
+  "key": "TR|A Lug & Rail Launch 20 169 of 370 Customer A · X800-A-CUSA On version ||||v7o-variant|",
+  "n": 0,
+  "title": "Variant preview"
+ },
+ {
+  "route": "review-queue",
+  "key": "TR|Account-issue gate configuration export, LRU-017 to LRU-013 provisioni||||a-work-rq|",
+  "n": 0,
+  "title": "Review preview"
+ },
+ {
+  "route": "suppliers",
+  "key": "TR|X800 Missile component set Component set Tier 1 Due Jan 15, 2027 1 of ||||a-risk-sup|",
+  "n": 0,
+  "title": "Supplier preview"
+ },
+ {
+  "route": "components",
+  "key": "SPAN|Review offer||||v7o-offer|button",
+  "n": 0,
+  "title": "Offer preview"
+ },
+ {
+  "route": "components",
+  "key": "TR|Audit Log Collector G25 launch control component set 1 MR Marcus Ryde ||||v7o-comp|",
+  "n": 0,
+  "title": "Component preview"
+ },
+ {
+  "route": "integrations",
+  "key": "DIV|AC ACAS / Tenable.sc IN THE APP Host matching Severity threshold IAVA ||||a-docs-int|button",
+  "n": 0,
+  "title": "Integration"
+ },
+ {
+  "route": "reports",
+  "key": "TR|System security plan EXAMPLE PA Program Assurance OSCAL JSON SSP 2 · p||||a-work-report|",
+  "n": 0,
+  "title": "Report preview"
+ },
+ {
+  "route": "ai-drafts",
+  "key": "BUTTON|Review items||||v8w-run|",
+  "n": 0,
+  "title": "Agent run preview"
+ },
+ {
+  "route": "enclaves",
+  "key": "TR|UNCLASSIFIED Unclassified Cloud · DoD IL2 5 corporate programs Hosted ||||v7o-enclave|",
+  "n": 0,
+  "title": "Enclave preview"
+ },
+ {
+  "route": "common-controls",
+  "key": "TR|Corporate identity provider Enterprise service 7 of 15 WS-X90 · 15 con||||v7o-ccp|",
+  "n": 0,
+  "title": "Provider preview"
+ },
+ {
+  "route": "deadlines",
+  "key": "TR|Critical vulnerability ACAS results rated critical, from import 15 day||||v7o-dl|",
+  "n": 0,
+  "title": "Deadline preview"
+ },
+ {
+  "route": "permissions",
+  "key": "TR|Owner Everything an admin does, and owns the workspace 1 DB Database||||v8w-role|",
+  "n": 0,
+  "title": "Role preview"
+ },
+ {
+  "route": "event-log",
+  "key": "TR|Nov 17, 23:55 Daily job Snapshot taken Control status · WS-X90 176 of ||||v7o-event|",
+  "n": 0,
+  "title": "Event preview"
+ },
+ {
+  "route": "stigs",
+  "key": "TR|Mission Computer RHEL 9 V2R9 ↑ V2R10 STIG Viewer 2.18 Oct 13 · Joel Ba||||v8g-ck|",
+  "n": 0,
+  "title": "Checklist preview"
+ },
+ {
+  "route": "interconnections",
+  "key": "TR|Ground data link Tactical data link network RF data link CUI Both ways||||v8b-ic|",
+  "n": 0,
+  "title": "Interconnection preview"
+ },
+ {
+  "route": "composition",
+  "key": "B|CN-109000 WS-X90 Sentinel Mission System||||v7p-el|button",
+  "n": 0,
+  "title": "Element preview"
+ },
+ {
+  "route": "sources",
+  "key": "TR|ACAS vulnerability scan — mission network Oct 10 · 31d past cadence Ev||||a-docs-src|",
+  "n": 0,
+  "title": "Evidence source"
+ },
+ {
+  "route": "ppsm",
+  "key": "TR|443/tcp HTTPS (TLS 1.3) Mission plan transfer Outbound Enclave Mission||||v8b-pps|",
+  "n": 0,
+  "title": "Service preview"
+ },
+ {
+  "route": "inventory",
+  "key": "TR|AST-109001 Mission Computer LRU-001 MC-FW 4.2.1 Assign owner In SYS-WS||||sys-asset|",
+  "n": 0,
+  "title": "Asset preview"
+ },
+ {
+  "route": "ssps",
+  "key": "TR|System security plan SSP 3 Draft PR Priya Raghavan PR MR Priya Raghava||||ssp|",
+  "n": 0,
+  "title": "System security plan"
+ },
+ {
+  "route": "ssps",
+  "key": "TR|Contingency plan CP 4 Draft AB Amara Bell AB Amara Bell 9:48 AM by Ama||||v8d-plan|",
+  "n": 0,
+  "title": "Plan preview"
+ },
+ {
+  "route": "controls",
+  "key": "TR|AC-1 Policy and Procedures Unassigned Partially satisfied 17 of 17 Ope||||a-tests-control|",
+  "n": 0,
+  "title": "Control preview"
+ },
+ {
+  "route": "evidence",
+  "key": "TR|Time source comparison test report, LRU-005 60-second cadence with inj||||a-docs-ev|",
+  "n": 0,
+  "title": "Evidence"
+ },
+ {
+  "route": "baseline",
+  "key": "TR|0 NIST SP 800-53 Rev 5 High baseline Baseline Reference · NIST +370 −0||||v7p-layer|",
+  "n": 0,
+  "title": "Layer preview"
+ },
+ {
+  "route": "requirements",
+  "key": "TR|REQ-001 AC Enforcement Requirement 001 Unassigned Draft AC-2 AC-7 28 o||||v7p-req|",
+  "n": 0,
+  "title": "Requirement preview"
+ },
+ {
+  "route": "cyber-te",
+  "key": "BUTTON|DT&E · PHASE 1 Understand cybersecurity requirements 640 requirements ||||v7a-phase|",
+  "n": 0,
+  "title": "Phase preview"
+ },
+ {
+  "route": "cyber-te",
+  "key": "BUTTON|Penetration test — maintenance access gateway Cancelled · Oct 8 – Oct ||||v7a-evt|",
+  "n": 0,
+  "title": "Test event preview"
+ },
+ {
+  "route": "cyber-te",
+  "key": "BUTTON|WS-X90 cooperative vulnerability identification — FY2027 3 · CVI · Jan||||v7a-camp|",
+  "n": 0,
+  "title": "Cyber test campaign preview"
+ },
+ {
+  "route": "policies",
+  "key": "TR|Access control AC-1 Partially satisfied Revision 3.2 Sent back Not rec||||a-docs-pol|",
+  "n": 0,
+  "title": "Policy"
+ },
+ {
+  "route": "poam",
+  "key": "TR|Remediate REQ-100 In progress 0 of 3 Oct 18 · 30d late Sep 6 · 72d lat||||a-risk-poam|",
+  "n": 0,
+  "title": "POA&M item preview"
+ },
+ {
+  "route": "findings",
+  "key": "TR|Unmet requirement REQ-100 High CM-4 Aug 7 Sep 6 · 72d late Remediate R||||a-risk-issue|",
+  "n": 0,
+  "title": "Operational issue preview"
+ },
+ {
+  "route": "threats",
+  "key": "TR|T1078 Valid Accounts Enterprise Initial Access +3 5 Critical 3 of 5 4 ||||v7a-att|",
+  "n": 0,
+  "title": "ATT&CK technique preview"
+ },
+ {
+  "route": "resiliency",
+  "key": "TR|Adaptive Response Chosen 11 of 23 4 +7 3||||v7a-tech|",
+  "n": 0,
+  "title": "Resiliency technique preview"
+ },
+ {
+  "route": "risks",
+  "key": "TR|A password on its own reaches WS-X90 at the flightline Critical T1078 ||||a-risk-risk|",
+  "n": 0,
+  "title": "Risk preview"
+ },
+ {
+  "route": "inheritance",
+  "key": "TR|CN-109101 Mission Computer Mission Computer 1 2 waits 54 None PR Priya||||v7a-src|",
+  "n": 0,
+  "title": "Inheritance source preview"
+ },
+ {
+  "route": "inheritance",
+  "key": "TR|SYS-WSX90 Authorization boundary Corporate identity provider SSP 1 Apr||||v7a-src|",
+  "n": 0,
+  "title": "Common control provider preview"
+ },
+ {
+  "route": "authorization",
+  "key": "TR|Pending Version 2 · draft Not decided — — Not signed||||v7p-decision|",
+  "n": 0,
+  "title": "Decision preview"
+ },
+ {
+  "route": "sse",
+  "key": "BUTTON|Open CDR||||v8g-review|",
+  "n": 0,
+  "title": "Technical review preview"
+ },
+ {
+  "route": "sse",
+  "key": "TR|SN.7 Stakeholder protection needs are defined. Stakeholder Needs and R||||v8g-outcome|",
+  "n": 0,
+  "title": "Security outcome preview"
+ },
+ {
+  "route": "traceability",
+  "key": "TR|REQ-001 AC Enforcement Requirement 001 AC-2 AC-7 1 None None None None||||v7a-trace|",
+  "n": 0,
+  "title": "Requirement chain preview"
+ },
+ {
+  "route": "schedule",
+  "key": "BUTTON|PDR Preliminary design review In review Due Oct 10 · 38 days ago 2 of ||||a-work-gate|",
+  "n": 0,
+  "title": "Lifecycle gate preview"
+ },
+ {
+  "route": "schedule",
+  "key": "TR|Monthly vulnerability scan — mission network (October) Oct 11 Monthly ||||a-work-task|",
+  "n": 0,
+  "title": "Task preview"
+ },
+ {
+  "route": "people",
+  "key": "TR|JB Joel Barrantes Information system security manager ISSM 2 past due ||||a-people-person|",
+  "n": 0,
+  "title": "Person preview"
+ },
+ {
+  "route": "program-start",
+  "key": "BUTTON|View||||pn-baseline|",
+  "n": 0,
+  "title": "Control baseline preview"
+ },
+ {
+  "route": "program-start",
+  "key": "BUTTON|View||||pn-roles|",
+  "n": 0,
+  "title": "Roles preview"
+ },
+ {
+  "route": "control-si2",
+  "key": "TR|V-257824 RHEL 9 must remove all software components after updated vers||||v8g-rule|",
+  "n": 0,
+  "title": "STIG rule preview"
+ },
+ {
+  "route": "people-access",
+  "key": "DIV|Complete review Quarterly privileged account review VA Victor Amsel Du||||a-people-par|button",
+  "n": 0,
+  "title": "Access review preview"
+ },
+ {
+  "route": "posture",
+  "key": "BUTTON|CN-109000 WS-X90 Sentinel Mission System||||v7a-pel|",
+  "n": 0,
+  "title": "Element posture preview"
+ },
+ {
+  "route": "posture",
+  "key": "BUTTON|156||||v7a-pcell|",
+  "n": 0,
+  "title": "Posture cell preview"
+ },
+ {
+  "route": "check-scan",
+  "key": "SPAN|How to fix||||a-tests-fix|button",
+  "n": 0,
+  "title": "How to fix"
+ },
+ {
+  "route": "component-mc",
+  "key": "DIV|X800 Missile Product GS-MC Product Version 1 · behind||||v7o-consumer|button",
+  "n": 0,
+  "title": "Consumer preview"
+ }
+]

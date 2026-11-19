@@ -1,0 +1,3047 @@
+[
+ {
+  "panel": "Business line preview",
+  "route": "portfolio",
+  "controls": [
+   {
+    "key": "BUTTON|↗|||||",
+    "n": 0,
+    "txt": "↗",
+    "tag": "BUTTON",
+    "effect": "nothing"
+   },
+   {
+    "key": "BUTTON|✕|||||",
+    "n": 0,
+    "txt": "✕",
+    "tag": "BUTTON",
+    "effect": "panel closed"
+   },
+   {
+    "key": "SPAN|Edit business line|||v7o-new-bl||button",
+    "n": 0,
+    "txt": "Edit business line",
+    "tag": "SPAN",
+    "effect": "modal:Create business line"
+   }
+  ],
+  "how": "key"
+ },
+ {
+  "panel": "Variant preview",
+  "route": "products",
+  "controls": [
+   {
+    "key": "BUTTON|↗|||||",
+    "n": 0,
+    "txt": "↗",
+    "tag": "BUTTON",
+    "effect": "nothing"
+   },
+   {
+    "key": "BUTTON|✕|||||",
+    "n": 0,
+    "txt": "✕",
+    "tag": "BUTTON",
+    "effect": "panel closed"
+   },
+   {
+    "key": "SPAN|Plan delta assessment|||v7o-plan-delta||button",
+    "n": 0,
+    "txt": "Plan delta assessment",
+    "tag": "SPAN",
+    "effect": "modal:Plan delta assessment"
+   },
+   {
+    "key": "SPAN|Take version 2|||v7o-take-product||button",
+    "n": 0,
+    "txt": "Take version 2",
+    "tag": "SPAN",
+    "effect": "modal:Take version 2 of X800 Missile"
+   }
+  ],
+  "how": "key"
+ },
+ {
+  "panel": "Program preview",
+  "route": "portfolio",
+  "controls": [
+   {
+    "key": "BUTTON|↗|||||",
+    "n": 0,
+    "txt": "↗",
+    "tag": "BUTTON",
+    "effect": "nothing"
+   },
+   {
+    "key": "BUTTON|✕|||||",
+    "n": 0,
+    "txt": "✕",
+    "tag": "BUTTON",
+    "effect": "panel closed"
+   },
+   {
+    "key": "SPAN|Open product delta||products-delta|||button",
+    "n": 0,
+    "txt": "Open product delta",
+    "tag": "SPAN",
+    "effect": "nav:products-delta ; panel closed"
+   },
+   {
+    "key": "SPAN|Take version 2|||v7o-take-product||button",
+    "n": 0,
+    "txt": "Take version 2",
+    "tag": "SPAN",
+    "effect": "modal:Take version 2 of X800 Missile"
+   }
+  ],
+  "how": "key"
+ },
+ {
+  "panel": "Product preview",
+  "route": "products",
+  "controls": [
+   {
+    "key": "BUTTON|↗|||||",
+    "n": 0,
+    "txt": "↗",
+    "tag": "BUTTON",
+    "effect": "nothing"
+   },
+   {
+    "key": "BUTTON|✕|||||",
+    "n": 0,
+    "txt": "✕",
+    "tag": "BUTTON",
+    "effect": "panel closed"
+   },
+   {
+    "key": "SPAN|Create configuration|||||button",
+    "n": 0,
+    "txt": "Create configuration",
+    "tag": "SPAN",
+    "effect": "toast:Configuration drafted"
+   },
+   {
+    "key": "SPAN|Remind Customer A|||||button",
+    "n": 0,
+    "txt": "Remind Customer A",
+    "tag": "SPAN",
+    "effect": "toast:Reminder sent to Customer A's ISSO, Nadia Fournier"
+   },
+   {
+    "key": "SPAN|Take version 2|||v7o-take-product||button",
+    "n": 0,
+    "txt": "Take version 2",
+    "tag": "SPAN",
+    "effect": "modal:Take version 2 of X800 Missile"
+   }
+  ],
+  "how": "key"
+ },
+ {
+  "panel": "Review preview",
+  "route": "review-queue",
+  "controls": [
+   {
+    "key": "BUTTON|↗|||||",
+    "n": 0,
+    "txt": "↗",
+    "tag": "BUTTON",
+    "effect": "nothing"
+   },
+   {
+    "key": "BUTTON|✕|||||",
+    "n": 0,
+    "txt": "✕",
+    "tag": "BUTTON",
+    "effect": "panel closed"
+   },
+   {
+    "key": "SPAN|Send back|||a-work-sendback||button",
+    "n": 0,
+    "txt": "Send back",
+    "tag": "SPAN",
+    "effect": "modal:Send back evidence"
+   },
+   {
+    "key": "SPAN|Accept evidence|||||button",
+    "n": 0,
+    "txt": "Accept evidence",
+    "tag": "SPAN",
+    "effect": "toast:Accepted: version 1 of Account-issue gate configuration export"
+   },
+   {
+    "key": "SPAN|Assessor comments 1||||a-work-rq|tab",
+    "n": 0,
+    "txt": "Assessor comments 1",
+    "tag": "SPAN",
+    "effect": "nothing"
+   },
+   {
+    "key": "SPAN|Internal comments 0||||a-work-rq|tab",
+    "n": 0,
+    "txt": "Internal comments 0",
+    "tag": "SPAN",
+    "effect": "panel changes"
+   }
+  ],
+  "how": "key"
+ },
+ {
+  "panel": "Component preview",
+  "route": "components",
+  "controls": [
+   {
+    "key": "BUTTON|↗|||||",
+    "n": 0,
+    "txt": "↗",
+    "tag": "BUTTON",
+    "effect": "nothing"
+   },
+   {
+    "key": "BUTTON|✕|||||",
+    "n": 0,
+    "txt": "✕",
+    "tag": "BUTTON",
+    "effect": "panel closed"
+   }
+  ],
+  "how": "key"
+ },
+ {
+  "panel": "Offer preview",
+  "route": "components",
+  "controls": [
+   {
+    "key": "BUTTON|↗|||||",
+    "n": 0,
+    "txt": "↗",
+    "tag": "BUTTON",
+    "effect": "nothing"
+   },
+   {
+    "key": "BUTTON|✕|||||",
+    "n": 0,
+    "txt": "✕",
+    "tag": "BUTTON",
+    "effect": "panel closed"
+   },
+   {
+    "key": "SPAN|Accept|||v7o-accept||button",
+    "n": 0,
+    "txt": "Accept",
+    "tag": "SPAN",
+    "effect": "modal:Accept offer"
+   },
+   {
+    "key": "SPAN|Return|||v7o-return||button",
+    "n": 0,
+    "txt": "Return",
+    "tag": "SPAN",
+    "effect": "modal:Return offer"
+   }
+  ],
+  "how": "key"
+ },
+ {
+  "panel": "Integration",
+  "route": "integrations",
+  "controls": [
+   {
+    "key": "BUTTON|↗|||||",
+    "n": 0,
+    "txt": "↗",
+    "tag": "BUTTON",
+    "effect": "nav:integration-acas ; panel closed"
+   },
+   {
+    "key": "BUTTON|✕|||||",
+    "n": 0,
+    "txt": "✕",
+    "tag": "BUTTON",
+    "effect": "panel closed"
+   },
+   {
+    "key": "BUTTON|Import file|||a-docs-import||",
+    "n": 0,
+    "txt": "Import file",
+    "tag": "BUTTON",
+    "effect": "modal:Add source"
+   },
+   {
+    "key": "A|View details|#integration-acas||||",
+    "n": 0,
+    "txt": "View details",
+    "tag": "A",
+    "effect": "nav:integration-acas ; panel closed"
+   },
+   {
+    "key": "A|and 3 more|#integration-acas||||",
+    "n": 0,
+    "txt": "and 3 more",
+    "tag": "A",
+    "effect": "nav:integration-acas ; panel closed"
+   },
+   {
+    "key": "BUTTON|Connect online||integration-connect-acas-1|||",
+    "n": 0,
+    "txt": "Connect online",
+    "tag": "BUTTON",
+    "effect": "nav:integration-connect-acas-1 ; panel closed"
+   }
+  ],
+  "how": "key"
+ },
+ {
+  "panel": "Enclave preview",
+  "route": "enclaves",
+  "controls": [
+   {
+    "key": "BUTTON|↗|||||",
+    "n": 0,
+    "txt": "↗",
+    "tag": "BUTTON",
+    "effect": "nothing"
+   },
+   {
+    "key": "BUTTON|✕|||||",
+    "n": 0,
+    "txt": "✕",
+    "tag": "BUTTON",
+    "effect": "panel closed"
+   },
+   {
+    "key": "SPAN|Edit|||v7o-enclave-new||button",
+    "n": 0,
+    "txt": "Edit",
+    "tag": "SPAN",
+    "effect": "modal:Add enclave"
+   }
+  ],
+  "how": "key"
+ },
+ {
+  "panel": "Supplier preview",
+  "route": "suppliers",
+  "controls": [
+   {
+    "key": "BUTTON|↗|||||",
+    "n": 0,
+    "txt": "↗",
+    "tag": "BUTTON",
+    "effect": "nothing"
+   },
+   {
+    "key": "BUTTON|✕|||||",
+    "n": 0,
+    "txt": "✕",
+    "tag": "BUTTON",
+    "effect": "panel closed"
+   },
+   {
+    "key": "SPAN|Start review||||a-risk-sup|button",
+    "n": 0,
+    "txt": "Start review",
+    "tag": "SPAN",
+    "effect": "panel changes"
+   },
+   {
+    "key": "SPAN|Send a request|||a-risk-portal||button",
+    "n": 0,
+    "txt": "Send a request",
+    "tag": "SPAN",
+    "effect": "modal:Request from a supplier"
+   },
+   {
+    "key": "SPAN|PR Priya Raghavan|||a-risk-owner||button",
+    "n": 0,
+    "txt": "PR Priya Raghavan",
+    "tag": "SPAN",
+    "effect": "modal:Assign owner"
+   },
+   {
+    "key": "SPAN|Overview||||a-risk-sup|tab",
+    "n": 0,
+    "txt": "Overview",
+    "tag": "SPAN",
+    "effect": "nothing"
+   },
+   {
+    "key": "SPAN|Reviews||||a-risk-sup|tab",
+    "n": 0,
+    "txt": "Reviews",
+    "tag": "SPAN",
+    "effect": "panel changes"
+   },
+   {
+    "key": "SPAN|Requests 5||||a-risk-sup|tab",
+    "n": 0,
+    "txt": "Requests 5",
+    "tag": "SPAN",
+    "effect": "panel changes"
+   },
+   {
+    "key": "SPAN|Comments 1||||a-risk-sup|tab",
+    "n": 0,
+    "txt": "Comments 1",
+    "tag": "SPAN",
+    "effect": "panel changes"
+   },
+   {
+    "key": "SPAN|CVE-2024-6387 in the OpenSSH server (regreSSHion)||||a-risk-issue|link",
+    "n": 0,
+    "txt": "CVE-2024-6387 in the OpenSSH server (regreSSHion)",
+    "tag": "SPAN",
+    "effect": "panel changes"
+   }
+  ],
+  "how": "key"
+ },
+ {
+  "panel": "Agent run preview",
+  "route": "ai-drafts",
+  "controls": [
+   {
+    "key": "BUTTON|↗|||||",
+    "n": 0,
+    "txt": "↗",
+    "tag": "BUTTON",
+    "effect": "nothing"
+   },
+   {
+    "key": "BUTTON|✕|||||",
+    "n": 0,
+    "txt": "✕",
+    "tag": "BUTTON",
+    "effect": "panel closed"
+   },
+   {
+    "key": "BUTTON|Approve all|||||",
+    "n": 0,
+    "txt": "Approve all",
+    "tag": "BUTTON",
+    "effect": "toast:10 narratives approved: they become SSP 3 edits under your name Undo ; panel changes ; page changes"
+   },
+   {
+    "key": "BUTTON|Open in place||ssp|||",
+    "n": 0,
+    "txt": "Open in place",
+    "tag": "BUTTON",
+    "effect": "nav:ssp ; panel closed"
+   },
+   {
+    "key": "BUTTON|Reject|||||",
+    "n": 0,
+    "txt": "Reject",
+    "tag": "BUTTON",
+    "effect": "toast:AC-2 rejected: it stays out of SSP 3 ; panel changes"
+   },
+   {
+    "key": "BUTTON|Approve|||||",
+    "n": 0,
+    "txt": "Approve",
+    "tag": "BUTTON",
+    "effect": "toast:AC-2 approved: it becomes an SSP 3 edit under your name ; panel changes"
+   },
+   {
+    "key": "BUTTON|Reject the run…|||v8w-reject||",
+    "n": 0,
+    "txt": "Reject the run…",
+    "tag": "BUTTON",
+    "effect": "modal:Reject the run"
+   }
+  ],
+  "how": "key"
+ },
+ {
+  "panel": "Report preview",
+  "route": "reports",
+  "controls": [
+   {
+    "key": "BUTTON|↗|||||",
+    "n": 0,
+    "txt": "↗",
+    "tag": "BUTTON",
+    "effect": "nothing"
+   },
+   {
+    "key": "BUTTON|✕|||||",
+    "n": 0,
+    "txt": "✕",
+    "tag": "BUTTON",
+    "effect": "panel closed"
+   },
+   {
+    "key": "SUMMARY|Share|||||",
+    "n": 0,
+    "txt": "Share",
+    "tag": "SUMMARY",
+    "effect": "menu:Manage access Manage schedule Copy link Access is limited to people cleared for  ; panel changes"
+   },
+   {
+    "key": "SPAN|Generate|||||button",
+    "n": 0,
+    "txt": "Generate",
+    "tag": "SPAN",
+    "effect": "toast:Generating System security plan: the run lands under Runs"
+   },
+   {
+    "key": "SPAN|Manage schedule|||a-work-schedule||button",
+    "n": 0,
+    "txt": "Manage schedule",
+    "tag": "SPAN",
+    "effect": "modal:Manage schedule"
+   },
+   {
+    "key": "SPAN|Send System security plan to Priya Raghavan now|||||button",
+    "n": 0,
+    "txt": "Send System security plan to Priya Raghavan now",
+    "tag": "SPAN",
+    "effect": "toast:Sent to Priya Raghavan once, by email"
+   },
+   {
+    "key": "SPAN|Send System security plan to Joel Barrantes now|||||button",
+    "n": 0,
+    "txt": "Send System security plan to Joel Barrantes now",
+    "tag": "SPAN",
+    "effect": "toast:Sent to Joel Barrantes once, by email"
+   },
+   {
+    "key": "SPAN|Send System security plan to R. Calloway now|||||button",
+    "n": 0,
+    "txt": "Send System security plan to R. Calloway now",
+    "tag": "SPAN",
+    "effect": "toast:Sent to R. Calloway once, by email"
+   }
+  ],
+  "how": "key"
+ },
+ {
+  "panel": "Provider preview",
+  "route": "common-controls",
+  "controls": [
+   {
+    "key": "BUTTON|↗|||||",
+    "n": 0,
+    "txt": "↗",
+    "tag": "BUTTON",
+    "effect": "nothing"
+   },
+   {
+    "key": "BUTTON|✕|||||",
+    "n": 0,
+    "txt": "✕",
+    "tag": "BUTTON",
+    "effect": "panel closed"
+   },
+   {
+    "key": "SPAN|Review acceptance|||v7o-ccp-new||button",
+    "n": 0,
+    "txt": "Review acceptance",
+    "tag": "SPAN",
+    "effect": "modal:Add provider"
+   }
+  ],
+  "how": "key"
+ },
+ {
+  "panel": "Deadline preview",
+  "route": "deadlines",
+  "controls": [
+   {
+    "key": "BUTTON|↗|||||",
+    "n": 0,
+    "txt": "↗",
+    "tag": "BUTTON",
+    "effect": "nothing"
+   },
+   {
+    "key": "BUTTON|✕|||||",
+    "n": 0,
+    "txt": "✕",
+    "tag": "BUTTON",
+    "effect": "panel closed"
+   },
+   {
+    "key": "SPAN|Edit|||v7o-dl-edit||button",
+    "n": 0,
+    "txt": "Edit",
+    "tag": "SPAN",
+    "effect": "modal:Edit critical vulnerability deadline"
+   }
+  ],
+  "how": "key"
+ },
+ {
+  "panel": "Event preview",
+  "route": "event-log",
+  "controls": [
+   {
+    "key": "BUTTON|↗|||||",
+    "n": 0,
+    "txt": "↗",
+    "tag": "BUTTON",
+    "effect": "nothing"
+   },
+   {
+    "key": "BUTTON|✕|||||",
+    "n": 0,
+    "txt": "✕",
+    "tag": "BUTTON",
+    "effect": "panel closed"
+   }
+  ],
+  "how": "key"
+ },
+ {
+  "panel": "Role preview",
+  "route": "permissions",
+  "controls": [
+   {
+    "key": "BUTTON|↗|||||",
+    "n": 0,
+    "txt": "↗",
+    "tag": "BUTTON",
+    "effect": "nothing"
+   },
+   {
+    "key": "BUTTON|✕|||||",
+    "n": 0,
+    "txt": "✕",
+    "tag": "BUTTON",
+    "effect": "panel closed"
+   },
+   {
+    "key": "BUTTON|Open permissions||permissions-matrix|||",
+    "n": 0,
+    "txt": "Open permissions",
+    "tag": "BUTTON",
+    "effect": "nav:permissions-matrix ; panel closed"
+   }
+  ],
+  "how": "key"
+ },
+ {
+  "panel": "Checklist preview",
+  "route": "stigs",
+  "controls": [
+   {
+    "key": "BUTTON|↗|||||",
+    "n": 0,
+    "txt": "↗",
+    "tag": "BUTTON",
+    "effect": "nothing"
+   },
+   {
+    "key": "BUTTON|✕|||||",
+    "n": 0,
+    "txt": "✕",
+    "tag": "BUTTON",
+    "effect": "panel closed"
+   },
+   {
+    "key": "BUTTON|Open checklist||stigs-mission-computer-rhel9|||",
+    "n": 0,
+    "txt": "Open checklist",
+    "tag": "BUTTON",
+    "effect": "nav:stigs-mission-computer-rhel9 ; panel closed"
+   },
+   {
+    "key": "SPAN|Mission Computer||inventory|||link",
+    "n": 0,
+    "txt": "Mission Computer",
+    "tag": "SPAN",
+    "effect": "nav:inventory ; panel closed"
+   },
+   {
+    "key": "DIV|CAT I V-257789 RHEL 9 must require a unique superusers name upon booti||||v8g-rule|button",
+    "n": 0,
+    "txt": "CAT I V-257789 RHEL 9 must require a unique superusers name upon booti",
+    "tag": "DIV",
+    "effect": "panel changes"
+   },
+   {
+    "key": "DIV|CAT I V-258230 RHEL 9 must enable FIPS mode.||||v8g-rule|button",
+    "n": 0,
+    "txt": "CAT I V-258230 RHEL 9 must enable FIPS mode.",
+    "tag": "DIV",
+    "effect": "panel changes"
+   },
+   {
+    "key": "DIV|CAT II V-257797 RHEL 9 must restrict access to the kernel message buff||||v8g-rule|button",
+    "n": 0,
+    "txt": "CAT II V-257797 RHEL 9 must restrict access to the kernel message buff",
+    "tag": "DIV",
+    "effect": "panel changes"
+   },
+   {
+    "key": "DIV|CAT II V-257801 RHEL 9 must enable kernel parameters to enforce discre||||v8g-rule|button",
+    "n": 0,
+    "txt": "CAT II V-257801 RHEL 9 must enable kernel parameters to enforce discre",
+    "tag": "DIV",
+    "effect": "panel changes"
+   },
+   {
+    "key": "DIV|CAT II V-257813 RHEL 9 must disable storing core dumps.||||v8g-rule|button",
+    "n": 0,
+    "txt": "CAT II V-257813 RHEL 9 must disable storing core dumps.",
+    "tag": "DIV",
+    "effect": "panel changes"
+   }
+  ],
+  "how": "key"
+ },
+ {
+  "panel": "Evidence source",
+  "route": "sources",
+  "controls": [
+   {
+    "key": "BUTTON|↗|||||",
+    "n": 0,
+    "txt": "↗",
+    "tag": "BUTTON",
+    "effect": "nothing"
+   },
+   {
+    "key": "BUTTON|✕|||||",
+    "n": 0,
+    "txt": "✕",
+    "tag": "BUTTON",
+    "effect": "panel closed"
+   },
+   {
+    "key": "BUTTON|More source actions|||||",
+    "n": 0,
+    "txt": "More source actions",
+    "tag": "BUTTON",
+    "effect": "menu:Edit cadence Pause Delete Configure scope ; panel changes"
+   },
+   {
+    "key": "BUTTON|Import file|||a-docs-import||",
+    "n": 0,
+    "txt": "Import file",
+    "tag": "BUTTON",
+    "effect": "modal:Add source"
+   },
+   {
+    "key": "BUTTON|JB Joel Barrantes|||a-docs-owner||",
+    "n": 0,
+    "txt": "JB Joel Barrantes",
+    "tag": "BUTTON",
+    "effect": "modal:Assign owner"
+   },
+   {
+    "key": "SPAN|Remind|||||",
+    "n": 0,
+    "txt": "Remind",
+    "tag": "SPAN",
+    "effect": "nothing"
+   },
+   {
+    "key": "BUTTON|Create a task when an import is due For the owner, due on the cadence |||||switch",
+    "n": 0,
+    "txt": "Create a task when an import is due For the owner, due on the cadence ",
+    "tag": "BUTTON",
+    "effect": "panel changes"
+   },
+   {
+    "key": "BUTTON|Manage|||a-docs-subs||",
+    "n": 0,
+    "txt": "Manage",
+    "tag": "BUTTON",
+    "effect": "modal:Manage subscribers"
+   }
+  ],
+  "how": "key"
+ },
+ {
+  "panel": "Service preview",
+  "route": "ppsm",
+  "controls": [
+   {
+    "key": "BUTTON|↗|||||",
+    "n": 0,
+    "txt": "↗",
+    "tag": "BUTTON",
+    "effect": "nothing"
+   },
+   {
+    "key": "BUTTON|✕|||||",
+    "n": 0,
+    "txt": "✕",
+    "tag": "BUTTON",
+    "effect": "panel closed"
+   },
+   {
+    "key": "BUTTON|Edit|||||",
+    "n": 0,
+    "txt": "Edit",
+    "tag": "BUTTON",
+    "effect": "toast:Edit service opens its form (prototype)"
+   },
+   {
+    "key": "SPAN|JB Joel Barrantes|||v8b-owner||button",
+    "n": 0,
+    "txt": "JB Joel Barrantes",
+    "tag": "SPAN",
+    "effect": "modal:Change owner"
+   },
+   {
+    "key": "DIV|Mission planning network · Mission planning network ISA · Signed||||v8b-ic|button",
+    "n": 0,
+    "txt": "Mission planning network · Mission planning network ISA · Signed",
+    "tag": "DIV",
+    "effect": "panel changes"
+   },
+   {
+    "key": "DIV|LRU-007 Protected Network Gateway||composition|||link",
+    "n": 0,
+    "txt": "LRU-007 Protected Network Gateway",
+    "tag": "DIV",
+    "effect": "nav:composition ; panel closed"
+   },
+   {
+    "key": "DIV|CM-7 Least Functionality Satisfied||||v8b-ctl|button",
+    "n": 0,
+    "txt": "CM-7 Least Functionality Satisfied",
+    "tag": "DIV",
+    "effect": "panel changes"
+   },
+   {
+    "key": "DIV|SC-7 Boundary Protection Satisfied||||v8b-ctl|button",
+    "n": 0,
+    "txt": "SC-7 Boundary Protection Satisfied",
+    "tag": "DIV",
+    "effect": "panel changes"
+   },
+   {
+    "key": "DIV|SA-4(9) Functions, Ports, Protocols, and Services in Use Satisfied||||v8b-ctl|button",
+    "n": 0,
+    "txt": "SA-4(9) Functions, Ports, Protocols, and Services in Use Satisfied",
+    "tag": "DIV",
+    "effect": "panel changes"
+   },
+   {
+    "key": "SPAN|Open the SSP||ssp|||link",
+    "n": 0,
+    "txt": "Open the SSP",
+    "tag": "SPAN",
+    "effect": "nav:ssp ; panel closed"
+   }
+  ],
+  "how": "key"
+ },
+ {
+  "panel": "Element preview",
+  "route": "composition",
+  "controls": [
+   {
+    "key": "BUTTON|↗|||||",
+    "n": 0,
+    "txt": "↗",
+    "tag": "BUTTON",
+    "effect": "nothing"
+   },
+   {
+    "key": "BUTTON|✕|||||",
+    "n": 0,
+    "txt": "✕",
+    "tag": "BUTTON",
+    "effect": "panel closed"
+   },
+   {
+    "key": "BUTTON|Edit element|||||",
+    "n": 0,
+    "txt": "Edit element",
+    "tag": "BUTTON",
+    "effect": "toast:Edit element opens the element form (prototype)"
+   },
+   {
+    "key": "SPAN|Unassigned|||v7p-owner||button",
+    "n": 0,
+    "txt": "Unassigned",
+    "tag": "SPAN",
+    "effect": "modal:Assign owner"
+   },
+   {
+    "key": "SPAN|Open in Controls||controls|||link",
+    "n": 0,
+    "txt": "Open in Controls",
+    "tag": "SPAN",
+    "effect": "nav:controls ; panel closed"
+   },
+   {
+    "key": "SPAN|Open in Requirements||requirements|||link",
+    "n": 0,
+    "txt": "Open in Requirements",
+    "tag": "SPAN",
+    "effect": "nav:requirements ; panel closed"
+   },
+   {
+    "key": "DIV|CN-109001 Mission Computing Subsystem 171 controls||||v7p-el|button",
+    "n": 0,
+    "txt": "CN-109001 Mission Computing Subsystem 171 controls",
+    "tag": "DIV",
+    "effect": "panel changes"
+   },
+   {
+    "key": "DIV|CN-109002 Navigation & Timing Subsystem 48 controls||||v7p-el|button",
+    "n": 0,
+    "txt": "CN-109002 Navigation & Timing Subsystem 48 controls",
+    "tag": "DIV",
+    "effect": "panel changes"
+   },
+   {
+    "key": "DIV|CN-109003 Communications Subsystem 112 controls||||v7p-el|button",
+    "n": 0,
+    "txt": "CN-109003 Communications Subsystem 112 controls",
+    "tag": "DIV",
+    "effect": "panel changes"
+   },
+   {
+    "key": "DIV|CN-109004 Payload Interface Subsystem 67 controls||||v7p-el|button",
+    "n": 0,
+    "txt": "CN-109004 Payload Interface Subsystem 67 controls",
+    "tag": "DIV",
+    "effect": "panel changes"
+   },
+   {
+    "key": "DIV|CN-109005 Platform Management Subsystem 263 controls||||v7p-el|button",
+    "n": 0,
+    "txt": "CN-109005 Platform Management Subsystem 263 controls",
+    "tag": "DIV",
+    "effect": "panel changes"
+   },
+   {
+    "key": "DIV|CN-109006 Ground Support Subsystem 354 controls||||v7p-el|button",
+    "n": 0,
+    "txt": "CN-109006 Ground Support Subsystem 354 controls",
+    "tag": "DIV",
+    "effect": "panel changes"
+   }
+  ],
+  "how": "key"
+ },
+ {
+  "panel": "Asset preview",
+  "route": "inventory",
+  "controls": [
+   {
+    "key": "BUTTON|↗|||||",
+    "n": 0,
+    "txt": "↗",
+    "tag": "BUTTON",
+    "effect": "nothing"
+   },
+   {
+    "key": "BUTTON|✕|||||",
+    "n": 0,
+    "txt": "✕",
+    "tag": "BUTTON",
+    "effect": "panel closed"
+   },
+   {
+    "key": "SPAN|Edit asset|||||",
+    "n": 0,
+    "txt": "Edit asset",
+    "tag": "SPAN",
+    "effect": "nothing"
+   },
+   {
+    "key": "DIV|RHEL 9 V2R929 open rules, 2 CAT I · imported Oct 13 93%||stigs-mission-computer-rhel9|||link",
+    "n": 0,
+    "txt": "RHEL 9 V2R929 open rules, 2 CAT I · imported Oct 13 93%",
+    "tag": "DIV",
+    "effect": "nav:stigs-mission-computer-rhel9 ; panel closed"
+   },
+   {
+    "key": "DIV|ASD V6R511 open rules · imported Nov 4 95%||stigs-mission-computer-asd|||link",
+    "n": 0,
+    "txt": "ASD V6R511 open rules · imported Nov 4 95%",
+    "tag": "DIV",
+    "effect": "nav:stigs-mission-computer-asd ; panel closed"
+   }
+  ],
+  "how": "key"
+ },
+ {
+  "panel": "Interconnection preview",
+  "route": "interconnections",
+  "controls": [
+   {
+    "key": "BUTTON|↗|||||",
+    "n": 0,
+    "txt": "↗",
+    "tag": "BUTTON",
+    "effect": "nothing"
+   },
+   {
+    "key": "BUTTON|✕|||||",
+    "n": 0,
+    "txt": "✕",
+    "tag": "BUTTON",
+    "effect": "panel closed"
+   },
+   {
+    "key": "BUTTON|Remind approvers|||||",
+    "n": 0,
+    "txt": "Remind approvers",
+    "tag": "BUTTON",
+    "effect": "toast:Reminder sent to R. Calloway about ISA-WSX90-TDL"
+   },
+   {
+    "key": "SPAN|PR Priya Raghavan|||v8b-owner||button",
+    "n": 0,
+    "txt": "PR Priya Raghavan",
+    "tag": "SPAN",
+    "effect": "modal:Change owner"
+   },
+   {
+    "key": "DIV|LRU-008 Tactical Data Radio Communications Subsystem||composition|||link",
+    "n": 0,
+    "txt": "LRU-008 Tactical Data Radio Communications Subsystem",
+    "tag": "DIV",
+    "effect": "nav:composition ; panel closed"
+   },
+   {
+    "key": "DIV|LRU-007 Protected Network Gateway where it terminates||composition|||link",
+    "n": 0,
+    "txt": "LRU-007 Protected Network Gateway where it terminates",
+    "tag": "DIV",
+    "effect": "nav:composition ; panel closed"
+   },
+   {
+    "key": "SPAN|Open in Composition||composition|||link",
+    "n": 0,
+    "txt": "Open in Composition",
+    "tag": "SPAN",
+    "effect": "nav:composition ; panel closed"
+   },
+   {
+    "key": "DIV|n/a Link protocol · Position reports and tasking Not applicable||||v8b-pps|button",
+    "n": 0,
+    "txt": "n/a Link protocol · Position reports and tasking Not applicable",
+    "tag": "DIV",
+    "effect": "panel changes"
+   },
+   {
+    "key": "SPAN|Open in Ports & protocols||ppsm|||link",
+    "n": 0,
+    "txt": "Open in Ports & protocols",
+    "tag": "SPAN",
+    "effect": "nav:ppsm ; panel closed"
+   },
+   {
+    "key": "SPAN|Open evidence||evidence|||link",
+    "n": 0,
+    "txt": "Open evidence",
+    "tag": "SPAN",
+    "effect": "nav:evidence ; panel closed"
+   },
+   {
+    "key": "BUTTON|Remind|||||",
+    "n": 0,
+    "txt": "Remind",
+    "tag": "BUTTON",
+    "effect": "toast:Reminder sent to R. Calloway"
+   },
+   {
+    "key": "SPAN|Open in Controls||controls|||link",
+    "n": 0,
+    "txt": "Open in Controls",
+    "tag": "SPAN",
+    "effect": "nav:controls ; panel closed"
+   },
+   {
+    "key": "DIV|CA-3 Information Exchange Not assessed||||v8b-ctl|button",
+    "n": 0,
+    "txt": "CA-3 Information Exchange Not assessed",
+    "tag": "DIV",
+    "effect": "panel changes"
+   },
+   {
+    "key": "DIV|SC-7 Boundary Protection Satisfied||||v8b-ctl|button",
+    "n": 0,
+    "txt": "SC-7 Boundary Protection Satisfied",
+    "tag": "DIV",
+    "effect": "panel changes"
+   }
+  ],
+  "how": "key"
+ },
+ {
+  "panel": "System security plan",
+  "route": "ssps",
+  "controls": [
+   {
+    "key": "BUTTON|↗|||||",
+    "n": 0,
+    "txt": "↗",
+    "tag": "BUTTON",
+    "effect": "nothing"
+   },
+   {
+    "key": "BUTTON|✕|||||",
+    "n": 0,
+    "txt": "✕",
+    "tag": "BUTTON",
+    "effect": "panel closed"
+   },
+   {
+    "key": "BUTTON|Open document||ssp|||",
+    "n": 0,
+    "txt": "Open document",
+    "tag": "BUTTON",
+    "effect": "nav:ssp ; panel closed"
+   },
+   {
+    "key": "BUTTON|Version history||ssp-history|||",
+    "n": 0,
+    "txt": "Version history",
+    "tag": "BUTTON",
+    "effect": "nav:ssp-history ; panel closed"
+   },
+   {
+    "key": "BUTTON|Review and submit||ssp-review|||",
+    "n": 0,
+    "txt": "Review and submit",
+    "tag": "BUTTON",
+    "effect": "nav:ssp-review ; panel closed"
+   }
+  ],
+  "how": "key"
+ },
+ {
+  "panel": "Plan preview",
+  "route": "ssps",
+  "controls": [
+   {
+    "key": "BUTTON|↗|||||",
+    "n": 0,
+    "txt": "↗",
+    "tag": "BUTTON",
+    "effect": "nothing"
+   },
+   {
+    "key": "BUTTON|✕|||||",
+    "n": 0,
+    "txt": "✕",
+    "tag": "BUTTON",
+    "effect": "panel closed"
+   },
+   {
+    "key": "BUTTON|Open document||plan-cp|||",
+    "n": 0,
+    "txt": "Open document",
+    "tag": "BUTTON",
+    "effect": "nav:plan-cp ; panel closed"
+   },
+   {
+    "key": "BUTTON|Version history||plan-cp-history|||",
+    "n": 0,
+    "txt": "Version history",
+    "tag": "BUTTON",
+    "effect": "nav:plan-cp-history ; panel closed"
+   },
+   {
+    "key": "BUTTON|Submit for review|||v8d-submit||",
+    "n": 0,
+    "txt": "Submit for review",
+    "tag": "BUTTON",
+    "effect": "modal:Submit for review"
+   }
+  ],
+  "how": "key"
+ },
+ {
+  "panel": "Layer preview",
+  "route": "baseline",
+  "controls": [
+   {
+    "key": "BUTTON|↗|||||",
+    "n": 0,
+    "txt": "↗",
+    "tag": "BUTTON",
+    "effect": "nothing"
+   },
+   {
+    "key": "BUTTON|✕|||||",
+    "n": 0,
+    "txt": "✕",
+    "tag": "BUTTON",
+    "effect": "panel closed"
+   },
+   {
+    "key": "BUTTON|Open in Frameworks||frameworks|||",
+    "n": 0,
+    "txt": "Open in Frameworks",
+    "tag": "BUTTON",
+    "effect": "nav:frameworks ; panel closed"
+   }
+  ],
+  "how": "key"
+ },
+ {
+  "panel": "Control preview",
+  "route": "controls",
+  "controls": [
+   {
+    "key": "BUTTON|↗|||||",
+    "n": 0,
+    "txt": "↗",
+    "tag": "BUTTON",
+    "effect": "nothing"
+   },
+   {
+    "key": "BUTTON|✕|||||",
+    "n": 0,
+    "txt": "✕",
+    "tag": "BUTTON",
+    "effect": "panel closed"
+   },
+   {
+    "key": "SPAN|Open assessment findings|||||button",
+    "n": 0,
+    "txt": "Open assessment findings",
+    "tag": "SPAN",
+    "effect": "nothing"
+   },
+   {
+    "key": "SPAN|Unassigned|||a-tests-owner||button",
+    "n": 0,
+    "txt": "Unassigned",
+    "tag": "SPAN",
+    "effect": "modal:Assign owner"
+   },
+   {
+    "key": "SPAN|Add a note…|||||button",
+    "n": 0,
+    "txt": "Add a note…",
+    "tag": "SPAN",
+    "effect": "nothing"
+   },
+   {
+    "key": "SPAN|Where it stands||||a-tests-control|tab",
+    "n": 0,
+    "txt": "Where it stands",
+    "tag": "SPAN",
+    "effect": "nothing"
+   },
+   {
+    "key": "SPAN|History 3||||a-tests-control|tab",
+    "n": 0,
+    "txt": "History 3",
+    "tag": "SPAN",
+    "effect": "panel changes"
+   }
+  ],
+  "how": "key"
+ },
+ {
+  "panel": "Test event preview",
+  "route": "cyber-te",
+  "controls": [
+   {
+    "key": "BUTTON|↗|||||",
+    "n": 0,
+    "txt": "↗",
+    "tag": "BUTTON",
+    "effect": "nothing"
+   },
+   {
+    "key": "BUTTON|✕|||||",
+    "n": 0,
+    "txt": "✕",
+    "tag": "BUTTON",
+    "effect": "panel closed"
+   },
+   {
+    "key": "A|Continuous monitoring FY2027|#assessments||||",
+    "n": 0,
+    "txt": "Continuous monitoring FY2027",
+    "tag": "A",
+    "effect": "nav:assessments ; panel closed"
+   }
+  ],
+  "how": "key"
+ },
+ {
+  "panel": "Phase preview",
+  "route": "cyber-te",
+  "controls": [
+   {
+    "key": "BUTTON|↗|||||",
+    "n": 0,
+    "txt": "↗",
+    "tag": "BUTTON",
+    "effect": "nothing"
+   },
+   {
+    "key": "BUTTON|✕|||||",
+    "n": 0,
+    "txt": "✕",
+    "tag": "BUTTON",
+    "effect": "panel closed"
+   },
+   {
+    "key": "A|Requirements|#requirements||||",
+    "n": 0,
+    "txt": "Requirements",
+    "tag": "A",
+    "effect": "nav:requirements ; panel closed"
+   },
+   {
+    "key": "A|Baseline|#baseline||||",
+    "n": 0,
+    "txt": "Baseline",
+    "tag": "A",
+    "effect": "nav:baseline ; panel closed"
+   }
+  ],
+  "how": "key"
+ },
+ {
+  "panel": "Cyber test campaign preview",
+  "route": "cyber-te",
+  "controls": [
+   {
+    "key": "BUTTON|↗|||||",
+    "n": 0,
+    "txt": "↗",
+    "tag": "BUTTON",
+    "effect": "nothing"
+   },
+   {
+    "key": "BUTTON|✕|||||",
+    "n": 0,
+    "txt": "✕",
+    "tag": "BUTTON",
+    "effect": "panel closed"
+   },
+   {
+    "key": "BUTTON|Plan the test|||v7a-cyber-plan||",
+    "n": 0,
+    "txt": "Plan the test",
+    "tag": "BUTTON",
+    "effect": "modal:Plan a cyber test"
+   }
+  ],
+  "how": "key"
+ },
+ {
+  "panel": "Requirement preview",
+  "route": "requirements",
+  "controls": [
+   {
+    "key": "BUTTON|↗|||||",
+    "n": 0,
+    "txt": "↗",
+    "tag": "BUTTON",
+    "effect": "nothing"
+   },
+   {
+    "key": "BUTTON|✕|||||",
+    "n": 0,
+    "txt": "✕",
+    "tag": "BUTTON",
+    "effect": "panel closed"
+   },
+   {
+    "key": "BUTTON|Link evidence|||v7p-link-ev||",
+    "n": 0,
+    "txt": "Link evidence",
+    "tag": "BUTTON",
+    "effect": "modal:Link evidence"
+   },
+   {
+    "key": "BUTTON|Map control|||v7p-map||",
+    "n": 0,
+    "txt": "Map control",
+    "tag": "BUTTON",
+    "effect": "modal:Map control"
+   },
+   {
+    "key": "SPAN|Unassigned|||v7p-owner||button",
+    "n": 0,
+    "txt": "Unassigned",
+    "tag": "SPAN",
+    "effect": "modal:Assign owner"
+   },
+   {
+    "key": "SPAN|Overview||||v7p-req|tab",
+    "n": 0,
+    "txt": "Overview",
+    "tag": "SPAN",
+    "effect": "nothing"
+   },
+   {
+    "key": "SPAN|Comments 0||||v7p-req|tab",
+    "n": 0,
+    "txt": "Comments 0",
+    "tag": "SPAN",
+    "effect": "panel changes"
+   },
+   {
+    "key": "SPAN|Activity 3||||v7p-req|tab",
+    "n": 0,
+    "txt": "Activity 3",
+    "tag": "SPAN",
+    "effect": "panel changes"
+   },
+   {
+    "key": "DIV|AC-2 Account Management Whole control · 26 objectives||||v7p-obj|button",
+    "n": 0,
+    "txt": "AC-2 Account Management Whole control · 26 objectives",
+    "tag": "DIV",
+    "effect": "panel changes"
+   },
+   {
+    "key": "DIV|AC-7 Unsuccessful Logon Attempts Whole control · 2 objectives||||v7p-obj|button",
+    "n": 0,
+    "txt": "AC-7 Unsuccessful Logon Attempts Whole control · 2 objectives",
+    "tag": "DIV",
+    "effect": "panel changes"
+   },
+   {
+    "key": "DIV|CN-109002 Navigation & Timing Subsystem CN-109002||||v7p-el|button",
+    "n": 0,
+    "txt": "CN-109002 Navigation & Timing Subsystem CN-109002",
+    "tag": "DIV",
+    "effect": "panel changes"
+   },
+   {
+    "key": "DIV|LRU-001 Mission Computer CN-109101||||v7p-el|button",
+    "n": 0,
+    "txt": "LRU-001 Mission Computer CN-109101",
+    "tag": "DIV",
+    "effect": "panel changes"
+   }
+  ],
+  "how": "key"
+ },
+ {
+  "panel": "Evidence",
+  "route": "evidence",
+  "controls": [
+   {
+    "key": "BUTTON|↗|||||",
+    "n": 0,
+    "txt": "↗",
+    "tag": "BUTTON",
+    "effect": "nav:evidence-page-e1 ; panel closed"
+   },
+   {
+    "key": "BUTTON|✕|||||",
+    "n": 0,
+    "txt": "✕",
+    "tag": "BUTTON",
+    "effect": "panel closed"
+   },
+   {
+    "key": "SPAN|Evidence||evidence|||link",
+    "n": 0,
+    "txt": "Evidence",
+    "tag": "SPAN",
+    "effect": "nothing"
+   },
+   {
+    "key": "BUTTON|More evidence actions|||||",
+    "n": 0,
+    "txt": "More evidence actions",
+    "tag": "BUTTON",
+    "effect": "menu:Manage subscribers Create task Mark not applicable Download ; panel changes"
+   },
+   {
+    "key": "BUTTON|Review|||a-docs-review||",
+    "n": 0,
+    "txt": "Review",
+    "tag": "BUTTON",
+    "effect": "modal:Review evidence"
+   },
+   {
+    "key": "BUTTON|IS Ingrid Solberg|||a-docs-owner||",
+    "n": 0,
+    "txt": "IS Ingrid Solberg",
+    "tag": "BUTTON",
+    "effect": "modal:Assign owner"
+   },
+   {
+    "key": "BUTTON|Not set|||a-docs-renewal||",
+    "n": 0,
+    "txt": "Not set",
+    "tag": "BUTTON",
+    "effect": "modal:Set renewal"
+   },
+   {
+    "key": "SPAN|Evidence||||a-docs-ev|tab",
+    "n": 0,
+    "txt": "Evidence",
+    "tag": "SPAN",
+    "effect": "nothing"
+   },
+   {
+    "key": "SPAN|Cited by 1||||a-docs-ev|tab",
+    "n": 0,
+    "txt": "Cited by 1",
+    "tag": "SPAN",
+    "effect": "panel changes"
+   },
+   {
+    "key": "SPAN|Tasks 0||||a-docs-ev|tab",
+    "n": 0,
+    "txt": "Tasks 0",
+    "tag": "SPAN",
+    "effect": "panel changes"
+   },
+   {
+    "key": "SPAN|Comments 2||||a-docs-ev|tab",
+    "n": 0,
+    "txt": "Comments 2",
+    "tag": "SPAN",
+    "effect": "panel changes"
+   },
+   {
+    "key": "SPAN|History||||a-docs-ev|tab",
+    "n": 0,
+    "txt": "History",
+    "tag": "SPAN",
+    "effect": "panel changes"
+   },
+   {
+    "key": "BUTTON|Set renewal|||a-docs-renewal||",
+    "n": 0,
+    "txt": "Set renewal",
+    "tag": "BUTTON",
+    "effect": "modal:Set renewal"
+   },
+   {
+    "key": "BUTTON|Replace the file|||||",
+    "n": 0,
+    "txt": "Replace the file",
+    "tag": "BUTTON",
+    "effect": "nothing"
+   }
+  ],
+  "how": "key"
+ },
+ {
+  "panel": "Operational issue preview",
+  "route": "findings",
+  "controls": [
+   {
+    "key": "BUTTON|↗|||||",
+    "n": 0,
+    "txt": "↗",
+    "tag": "BUTTON",
+    "effect": "nothing"
+   },
+   {
+    "key": "BUTTON|✕|||||",
+    "n": 0,
+    "txt": "✕",
+    "tag": "BUTTON",
+    "effect": "panel closed"
+   },
+   {
+    "key": "SPAN|Deactivate…|||a-risk-deactivate||button",
+    "n": 0,
+    "txt": "Deactivate…",
+    "tag": "SPAN",
+    "effect": "modal:Deactivate finding"
+   },
+   {
+    "key": "SPAN|Create POA&M item|||a-risk-poam-new||button",
+    "n": 0,
+    "txt": "Create POA&M item",
+    "tag": "SPAN",
+    "effect": "modal:Create POA&M item"
+   },
+   {
+    "key": "SPAN|Edit deadline||deadlines|||link",
+    "n": 0,
+    "txt": "Edit deadline",
+    "tag": "SPAN",
+    "effect": "nav:deadlines ; panel closed"
+   },
+   {
+    "key": "SPAN|No owner|||a-risk-owner||button",
+    "n": 0,
+    "txt": "No owner",
+    "tag": "SPAN",
+    "effect": "modal:Assign owner"
+   },
+   {
+    "key": "SPAN|Remediate REQ-100||||a-risk-poam|link",
+    "n": 0,
+    "txt": "Remediate REQ-100",
+    "tag": "SPAN",
+    "effect": "panel changes"
+   },
+   {
+    "key": "BUTTON|Create ticket|||v8w-ticket-new||",
+    "n": 0,
+    "txt": "Create ticket",
+    "tag": "BUTTON",
+    "effect": "modal:Create ticket"
+   },
+   {
+    "key": "SPAN|Manage||integration-jira|||link",
+    "n": 0,
+    "txt": "Manage",
+    "tag": "SPAN",
+    "effect": "nav:integration-jira ; panel closed"
+   }
+  ],
+  "how": "key"
+ },
+ {
+  "panel": "POA&M item preview",
+  "route": "poam",
+  "controls": [
+   {
+    "key": "BUTTON|↗|||||",
+    "n": 0,
+    "txt": "↗",
+    "tag": "BUTTON",
+    "effect": "nothing"
+   },
+   {
+    "key": "BUTTON|✕|||||",
+    "n": 0,
+    "txt": "✕",
+    "tag": "BUTTON",
+    "effect": "panel closed"
+   },
+   {
+    "key": "SPAN|Change planned date…|||a-risk-ms-move||button",
+    "n": 0,
+    "txt": "Change planned date…",
+    "tag": "SPAN",
+    "effect": "modal:Change planned date"
+   },
+   {
+    "key": "SPAN|Add milestone|||a-risk-ms-new||button",
+    "n": 0,
+    "txt": "Add milestone",
+    "tag": "SPAN",
+    "effect": "modal:Add milestone"
+   },
+   {
+    "key": "SPAN|No owner|||a-risk-owner||button",
+    "n": 0,
+    "txt": "No owner",
+    "tag": "SPAN",
+    "effect": "modal:Assign owner"
+   },
+   {
+    "key": "SPAN|Overview||||a-risk-poam|tab",
+    "n": 0,
+    "txt": "Overview",
+    "tag": "SPAN",
+    "effect": "nothing"
+   },
+   {
+    "key": "SPAN|Milestones 3||||a-risk-poam|tab",
+    "n": 0,
+    "txt": "Milestones 3",
+    "tag": "SPAN",
+    "effect": "panel changes"
+   },
+   {
+    "key": "SPAN|Activity||||a-risk-poam|tab",
+    "n": 0,
+    "txt": "Activity",
+    "tag": "SPAN",
+    "effect": "panel changes"
+   },
+   {
+    "key": "SPAN|Comments 0||||a-risk-poam|tab",
+    "n": 0,
+    "txt": "Comments 0",
+    "tag": "SPAN",
+    "effect": "panel changes"
+   },
+   {
+    "key": "BUTTON|Create ticket|||v8w-ticket-new||",
+    "n": 0,
+    "txt": "Create ticket",
+    "tag": "BUTTON",
+    "effect": "modal:Create ticket"
+   },
+   {
+    "key": "SPAN|Manage||integration-jira|||link",
+    "n": 0,
+    "txt": "Manage",
+    "tag": "SPAN",
+    "effect": "nav:integration-jira ; panel closed"
+   }
+  ],
+  "how": "key"
+ },
+ {
+  "panel": "Resiliency technique preview",
+  "route": "resiliency",
+  "controls": [
+   {
+    "key": "BUTTON|↗|||||",
+    "n": 0,
+    "txt": "↗",
+    "tag": "BUTTON",
+    "effect": "nothing"
+   },
+   {
+    "key": "BUTTON|✕|||||",
+    "n": 0,
+    "txt": "✕",
+    "tag": "BUTTON",
+    "effect": "panel closed"
+   },
+   {
+    "key": "BUTTON|Read the baseline by it||baseline|||",
+    "n": 0,
+    "txt": "Read the baseline by it",
+    "tag": "BUTTON",
+    "effect": "nav:baseline ; panel closed"
+   },
+   {
+    "key": "BUTTON|Add to tailoring|||v7a-tailor||",
+    "n": 0,
+    "txt": "Add to tailoring",
+    "tag": "BUTTON",
+    "effect": "modal:Add to tailoring"
+   },
+   {
+    "key": "BUTTON|Dynamic Reconfiguration 2 of 9||||v7a-app|",
+    "n": 0,
+    "txt": "Dynamic Reconfiguration 2 of 9",
+    "tag": "BUTTON",
+    "effect": "panel changes"
+   },
+   {
+    "key": "BUTTON|Dynamic Resource Allocation 1 of 3||||v7a-app|",
+    "n": 0,
+    "txt": "Dynamic Resource Allocation 1 of 3",
+    "tag": "BUTTON",
+    "effect": "panel changes"
+   },
+   {
+    "key": "BUTTON|Adaptive Management 10 of 18||||v7a-app|",
+    "n": 0,
+    "txt": "Adaptive Management 10 of 18",
+    "tag": "BUTTON",
+    "effect": "panel changes"
+   }
+  ],
+  "how": "key"
+ },
+ {
+  "panel": "Policy",
+  "route": "policies",
+  "controls": [
+   {
+    "key": "BUTTON|↗|||||",
+    "n": 0,
+    "txt": "↗",
+    "tag": "BUTTON",
+    "effect": "nav:policy-page-ac-1 ; panel closed"
+   },
+   {
+    "key": "BUTTON|✕|||||",
+    "n": 0,
+    "txt": "✕",
+    "tag": "BUTTON",
+    "effect": "panel closed"
+   },
+   {
+    "key": "SPAN|Policies||policies|||link",
+    "n": 0,
+    "txt": "Policies",
+    "tag": "SPAN",
+    "effect": "nothing"
+   },
+   {
+    "key": "BUTTON|More policy actions|||||",
+    "n": 0,
+    "txt": "More policy actions",
+    "tag": "BUTTON",
+    "effect": "menu:Download Copy link Re-send approval request Cancel approval request Delete draft ; panel changes"
+   },
+   {
+    "key": "BUTTON|Upload revision|||a-docs-upload||",
+    "n": 0,
+    "txt": "Upload revision",
+    "tag": "BUTTON",
+    "effect": "modal:Upload revision"
+   },
+   {
+    "key": "BUTTON|WD Wes Duarte|||a-docs-owner||",
+    "n": 0,
+    "txt": "WD Wes Duarte",
+    "tag": "BUTTON",
+    "effect": "modal:Assign owner"
+   },
+   {
+    "key": "BUTTON|Assign|||a-docs-approvers||",
+    "n": 0,
+    "txt": "Assign",
+    "tag": "BUTTON",
+    "effect": "modal:Assign approvers"
+   },
+   {
+    "key": "BUTTON|Every 6 months|||a-docs-recur||",
+    "n": 0,
+    "txt": "Every 6 months",
+    "tag": "BUTTON",
+    "effect": "modal:Edit recurrence"
+   },
+   {
+    "key": "SPAN|Versions||||a-docs-pol|tab",
+    "n": 0,
+    "txt": "Versions",
+    "tag": "SPAN",
+    "effect": "nothing"
+   },
+   {
+    "key": "SPAN|Objectives 17||||a-docs-pol|tab",
+    "n": 0,
+    "txt": "Objectives 17",
+    "tag": "SPAN",
+    "effect": "panel changes"
+   },
+   {
+    "key": "SPAN|Comments 2||||a-docs-pol|tab",
+    "n": 0,
+    "txt": "Comments 2",
+    "tag": "SPAN",
+    "effect": "panel changes"
+   },
+   {
+    "key": "SPAN|History||||a-docs-pol|tab",
+    "n": 0,
+    "txt": "History",
+    "tag": "SPAN",
+    "effect": "panel changes"
+   },
+   {
+    "key": "SUMMARY|Renew before Mar 18, 2027 in 121 days|||||",
+    "n": 0,
+    "txt": "Renew before Mar 18, 2027 in 121 days",
+    "tag": "SUMMARY",
+    "effect": "panel changes"
+   },
+   {
+    "key": "BUTTON|Update and renew||policy-editor|||",
+    "n": 0,
+    "txt": "Update and renew",
+    "tag": "BUTTON",
+    "effect": "nav:policy-editor ; panel closed"
+   }
+  ],
+  "how": "key"
+ },
+ {
+  "panel": "Decision preview",
+  "route": "authorization",
+  "controls": [
+   {
+    "key": "BUTTON|↗|||||",
+    "n": 0,
+    "txt": "↗",
+    "tag": "BUTTON",
+    "effect": "nothing"
+   },
+   {
+    "key": "BUTTON|✕|||||",
+    "n": 0,
+    "txt": "✕",
+    "tag": "BUTTON",
+    "effect": "panel closed"
+   },
+   {
+    "key": "BUTTON|Open package room||package-room|||",
+    "n": 0,
+    "txt": "Open package room",
+    "tag": "BUTTON",
+    "effect": "nav:package-room ; panel closed"
+   }
+  ],
+  "how": "key"
+ },
+ {
+  "panel": "ATT&CK technique preview",
+  "route": "threats",
+  "controls": [
+   {
+    "key": "BUTTON|↗|||||",
+    "n": 0,
+    "txt": "↗",
+    "tag": "BUTTON",
+    "effect": "nothing"
+   },
+   {
+    "key": "BUTTON|✕|||||",
+    "n": 0,
+    "txt": "✕",
+    "tag": "BUTTON",
+    "effect": "panel closed"
+   },
+   {
+    "key": "BUTTON|Add to tailoring|||v7a-tailor||",
+    "n": 0,
+    "txt": "Add to tailoring",
+    "tag": "BUTTON",
+    "effect": "modal:Add to tailoring"
+   },
+   {
+    "key": "A|A password on its own reaches WS-X90 at the flightline|#risks||||",
+    "n": 0,
+    "txt": "A password on its own reaches WS-X90 at the flightline",
+    "tag": "A",
+    "effect": "nav:risks ; panel closed"
+   },
+   {
+    "key": "A|A publicly known password is still a valid WS-X90 credential|#risks||||",
+    "n": 0,
+    "txt": "A publicly known password is still a valid WS-X90 credential",
+    "tag": "A",
+    "effect": "nav:risks ; panel closed"
+   },
+   {
+    "key": "A|Privilege that survived its own review still reaches platform manageme|#risks||||",
+    "n": 0,
+    "txt": "Privilege that survived its own review still reaches platform manageme",
+    "tag": "A",
+    "effect": "nav:risks ; panel closed"
+   },
+   {
+    "key": "A|Out-of-window privileged maintenance was recorded rather than refused|#risks||||",
+    "n": 0,
+    "txt": "Out-of-window privileged maintenance was recorded rather than refused",
+    "tag": "A",
+    "effect": "nav:risks ; panel closed"
+   },
+   {
+    "key": "A|The personnel procedure and the provisioning gate no longer agree|#risks||||",
+    "n": 0,
+    "txt": "The personnel procedure and the provisioning gate no longer agree",
+    "tag": "A",
+    "effect": "nav:risks ; panel closed"
+   },
+   {
+    "key": "BUTTON|AC-6(7) Review of User Privileges 2 of 2 mapped||||v7a-cctl|",
+    "n": 0,
+    "txt": "AC-6(7) Review of User Privileges 2 of 2 mapped",
+    "tag": "BUTTON",
+    "effect": "panel changes"
+   },
+   {
+    "key": "BUTTON|AU-6(3) Correlate Audit Record Repositories 1 of 1 mapped||||v7a-cctl|",
+    "n": 0,
+    "txt": "AU-6(3) Correlate Audit Record Repositories 1 of 1 mapped",
+    "tag": "BUTTON",
+    "effect": "panel changes"
+   },
+   {
+    "key": "BUTTON|SC-30(4) Misleading Information Not selected||||v7a-cctl|",
+    "n": 0,
+    "txt": "SC-30(4) Misleading Information Not selected",
+    "tag": "BUTTON",
+    "effect": "panel changes"
+   },
+   {
+    "key": "BUTTON|SI-20 Tainting Not selected||||v7a-cctl|",
+    "n": 0,
+    "txt": "SI-20 Tainting Not selected",
+    "tag": "BUTTON",
+    "effect": "panel changes"
+   },
+   {
+    "key": "BUTTON|SI-4(16) Correlate Monitoring Information 1 of 1 mapped||||v7a-cctl|",
+    "n": 0,
+    "txt": "SI-4(16) Correlate Monitoring Information 1 of 1 mapped",
+    "tag": "BUTTON",
+    "effect": "panel changes"
+   }
+  ],
+  "how": "key"
+ },
+ {
+  "panel": "Common control provider preview",
+  "route": "inheritance",
+  "controls": [
+   {
+    "key": "BUTTON|↗|||||",
+    "n": 0,
+    "txt": "↗",
+    "tag": "BUTTON",
+    "effect": "nothing"
+   },
+   {
+    "key": "BUTTON|✕|||||",
+    "n": 0,
+    "txt": "✕",
+    "tag": "BUTTON",
+    "effect": "panel closed"
+   },
+   {
+    "key": "BUTTON|Open SSP §7||ssp|||",
+    "n": 0,
+    "txt": "Open SSP §7",
+    "tag": "BUTTON",
+    "effect": "nav:ssp ; panel closed"
+   },
+   {
+    "key": "SPAN|Responsibilities 4||||v7a-src|tab",
+    "n": 0,
+    "txt": "Responsibilities 4",
+    "tag": "SPAN",
+    "effect": "nothing"
+   },
+   {
+    "key": "SPAN|Controls 15||||v7a-src|tab",
+    "n": 0,
+    "txt": "Controls 15",
+    "tag": "SPAN",
+    "effect": "panel changes"
+   },
+   {
+    "key": "SPAN|Comments 0||||v7a-src|tab",
+    "n": 0,
+    "txt": "Comments 0",
+    "tag": "SPAN",
+    "effect": "panel changes"
+   }
+  ],
+  "how": "key"
+ },
+ {
+  "panel": "Inheritance source preview",
+  "route": "inheritance",
+  "controls": [
+   {
+    "key": "BUTTON|↗|||||",
+    "n": 0,
+    "txt": "↗",
+    "tag": "BUTTON",
+    "effect": "nothing"
+   },
+   {
+    "key": "BUTTON|✕|||||",
+    "n": 0,
+    "txt": "✕",
+    "tag": "BUTTON",
+    "effect": "panel closed"
+   },
+   {
+    "key": "BUTTON|Review version 2|||v7a-take||",
+    "n": 0,
+    "txt": "Review version 2",
+    "tag": "BUTTON",
+    "effect": "modal:Take version 2 of Mission Computer"
+   },
+   {
+    "key": "BUTTON|Open component||component-mc|||",
+    "n": 0,
+    "txt": "Open component",
+    "tag": "BUTTON",
+    "effect": "nav:component-mc ; panel closed"
+   },
+   {
+    "key": "SPAN|Version 2 2||||v7a-src|tab",
+    "n": 0,
+    "txt": "Version 2 2",
+    "tag": "SPAN",
+    "effect": "nothing"
+   },
+   {
+    "key": "SPAN|Controls 54||||v7a-src|tab",
+    "n": 0,
+    "txt": "Controls 54",
+    "tag": "SPAN",
+    "effect": "panel changes"
+   },
+   {
+    "key": "SPAN|Comments 2||||v7a-src|tab",
+    "n": 0,
+    "txt": "Comments 2",
+    "tag": "SPAN",
+    "effect": "panel changes"
+   },
+   {
+    "key": "A|AC-17(2)|#controls||||",
+    "n": 0,
+    "txt": "AC-17(2)",
+    "tag": "A",
+    "effect": "nav:controls ; panel closed"
+   },
+   {
+    "key": "A|RA-5|#controls||||",
+    "n": 0,
+    "txt": "RA-5",
+    "tag": "A",
+    "effect": "nav:controls ; panel closed"
+   },
+   {
+    "key": "A|SC-23|#controls||||",
+    "n": 0,
+    "txt": "SC-23",
+    "tag": "A",
+    "effect": "nav:controls ; panel closed"
+   },
+   {
+    "key": "A|SI-2|#control-si2||||",
+    "n": 0,
+    "txt": "SI-2",
+    "tag": "A",
+    "effect": "nav:control-si2 ; panel closed"
+   },
+   {
+    "key": "SPAN|Ask Priya Raghavan|||||",
+    "n": 0,
+    "txt": "Ask Priya Raghavan",
+    "tag": "SPAN",
+    "effect": "nothing"
+   }
+  ],
+  "how": "key"
+ },
+ {
+  "panel": "Security outcome preview",
+  "route": "sse",
+  "controls": [
+   {
+    "key": "BUTTON|↗|||||",
+    "n": 0,
+    "txt": "↗",
+    "tag": "BUTTON",
+    "effect": "nothing"
+   },
+   {
+    "key": "BUTTON|✕|||||",
+    "n": 0,
+    "txt": "✕",
+    "tag": "BUTTON",
+    "effect": "panel closed"
+   },
+   {
+    "key": "BUTTON|Change status|||ak-reason||",
+    "n": 0,
+    "txt": "Change status",
+    "tag": "BUTTON",
+    "effect": "modal:Change the status of SN.7 at SRR"
+   },
+   {
+    "key": "SPAN|SRR||sse|||link",
+    "n": 0,
+    "txt": "SRR",
+    "tag": "SPAN",
+    "effect": "nothing"
+   },
+   {
+    "key": "SPAN|Mission-essential designation query output and generated critical asse||evidence|||link",
+    "n": 0,
+    "txt": "Mission-essential designation query output and generated critical asse",
+    "tag": "SPAN",
+    "effect": "nav:evidence ; panel closed"
+   },
+   {
+    "key": "A|PDF on nvlpubs.nist.gov ↗|https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-160v1r1.pdf||||",
+    "n": 0,
+    "txt": "PDF on nvlpubs.nist.gov ↗",
+    "tag": "A",
+    "effect": "nothing"
+   }
+  ],
+  "how": "key"
+ },
+ {
+  "panel": "Technical review preview",
+  "route": "sse",
+  "controls": [
+   {
+    "key": "BUTTON|↗|||||",
+    "n": 0,
+    "txt": "↗",
+    "tag": "BUTTON",
+    "effect": "nothing"
+   },
+   {
+    "key": "BUTTON|✕|||||",
+    "n": 0,
+    "txt": "✕",
+    "tag": "BUTTON",
+    "effect": "panel closed"
+   },
+   {
+    "key": "BUTTON|Add security outcomes|||v8g-outcomes||",
+    "n": 0,
+    "txt": "Add security outcomes",
+    "tag": "BUTTON",
+    "effect": "modal:Add security outcomes"
+   },
+   {
+    "key": "BUTTON|Request decision|||ak-approvers||",
+    "n": 0,
+    "txt": "Request decision",
+    "tag": "BUTTON",
+    "effect": "modal:Assign approvers"
+   },
+   {
+    "key": "BUTTON|Add|||v8g-outcomes||",
+    "n": 0,
+    "txt": "Add",
+    "tag": "BUTTON",
+    "effect": "modal:Add security outcomes"
+   },
+   {
+    "key": "DIV|DE.2 System requirements are allocated to address their security aspec||||v8g-outcome|button",
+    "n": 0,
+    "txt": "DE.2 System requirements are allocated to address their security aspec",
+    "tag": "DIV",
+    "effect": "panel changes"
+   },
+   {
+    "key": "DIV|DE.3 Security interfaces and security aspects of interfaces between sy||||v8g-outcome|button",
+    "n": 0,
+    "txt": "DE.3 Security interfaces and security aspects of interfaces between sy",
+    "tag": "DIV",
+    "effect": "panel changes"
+   },
+   {
+    "key": "DIV|DE.4 Security design characteristics of each system element are define||||v8g-outcome|button",
+    "n": 0,
+    "txt": "DE.4 Security design characteristics of each system element are define",
+    "tag": "DIV",
+    "effect": "panel changes"
+   },
+   {
+    "key": "DIV|DE.6 Traceability of security design characteristics is established. N||||v8g-outcome|button",
+    "n": 0,
+    "txt": "DE.6 Traceability of security design characteristics is established. N",
+    "tag": "DIV",
+    "effect": "panel changes"
+   },
+   {
+    "key": "SPAN|Open in Schedule||schedule|||link",
+    "n": 0,
+    "txt": "Open in Schedule",
+    "tag": "SPAN",
+    "effect": "nav:schedule ; panel closed"
+   }
+  ],
+  "how": "key"
+ },
+ {
+  "panel": "Task preview",
+  "route": "schedule",
+  "controls": [
+   {
+    "key": "BUTTON|↗|||||",
+    "n": 0,
+    "txt": "↗",
+    "tag": "BUTTON",
+    "effect": "nothing"
+   },
+   {
+    "key": "BUTTON|✕|||||",
+    "n": 0,
+    "txt": "✕",
+    "tag": "BUTTON",
+    "effect": "panel closed"
+   }
+  ],
+  "how": "key"
+ },
+ {
+  "panel": "Lifecycle gate preview",
+  "route": "schedule",
+  "controls": [
+   {
+    "key": "BUTTON|↗|||||",
+    "n": 0,
+    "txt": "↗",
+    "tag": "BUTTON",
+    "effect": "nothing"
+   },
+   {
+    "key": "BUTTON|✕|||||",
+    "n": 0,
+    "txt": "✕",
+    "tag": "BUTTON",
+    "effect": "panel closed"
+   },
+   {
+    "key": "SPAN|Add security outcomes|||||button",
+    "n": 0,
+    "txt": "Add security outcomes",
+    "tag": "SPAN",
+    "effect": "toast:The security outcome picker opens here"
+   },
+   {
+    "key": "SPAN|Request decision|||ak-approvers||button",
+    "n": 0,
+    "txt": "Request decision",
+    "tag": "SPAN",
+    "effect": "modal:Assign approvers"
+   }
+  ],
+  "how": "key"
+ },
+ {
+  "panel": "Risk preview",
+  "route": "risks",
+  "controls": [
+   {
+    "key": "BUTTON|↗|||||",
+    "n": 0,
+    "txt": "↗",
+    "tag": "BUTTON",
+    "effect": "nothing"
+   },
+   {
+    "key": "BUTTON|✕|||||",
+    "n": 0,
+    "txt": "✕",
+    "tag": "BUTTON",
+    "effect": "panel closed"
+   },
+   {
+    "key": "SPAN|Start reassessment||||a-risk-risk|button",
+    "n": 0,
+    "txt": "Start reassessment",
+    "tag": "SPAN",
+    "effect": "panel changes"
+   },
+   {
+    "key": "SPAN|Request acceptance|||a-risk-accept||button",
+    "n": 0,
+    "txt": "Request acceptance",
+    "tag": "SPAN",
+    "effect": "modal:Request acceptance"
+   },
+   {
+    "key": "SUMMARY|More risk actions|||||",
+    "n": 0,
+    "txt": "More risk actions",
+    "tag": "SUMMARY",
+    "effect": "menu:Assign owner Link ATT&CK technique Open full record Archive risk ; panel changes"
+   },
+   {
+    "key": "SPAN||||a-risk-owner||menuitem",
+    "n": 0,
+    "txt": "",
+    "tag": "SPAN",
+    "effect": "nothing"
+   },
+   {
+    "key": "SPAN||||||menuitem",
+    "n": 0,
+    "txt": "",
+    "tag": "SPAN",
+    "effect": "nothing"
+   },
+   {
+    "key": "SPAN|No owner|||a-risk-owner||button",
+    "n": 0,
+    "txt": "No owner",
+    "tag": "SPAN",
+    "effect": "modal:Assign owner"
+   },
+   {
+    "key": "SPAN|Overview||||a-risk-risk|tab",
+    "n": 0,
+    "txt": "Overview",
+    "tag": "SPAN",
+    "effect": "nothing"
+   },
+   {
+    "key": "SPAN|Treatment 9||||a-risk-risk|tab",
+    "n": 0,
+    "txt": "Treatment 9",
+    "tag": "SPAN",
+    "effect": "panel changes"
+   },
+   {
+    "key": "SPAN|History 2||||a-risk-risk|tab",
+    "n": 0,
+    "txt": "History 2",
+    "tag": "SPAN",
+    "effect": "panel changes"
+   },
+   {
+    "key": "SPAN|Comments 1||||a-risk-risk|tab",
+    "n": 0,
+    "txt": "Comments 1",
+    "tag": "SPAN",
+    "effect": "panel changes"
+   },
+   {
+    "key": "SPAN|Record decision|||a-risk-decision||button",
+    "n": 0,
+    "txt": "Record decision",
+    "tag": "SPAN",
+    "effect": "modal:Record decision"
+   },
+   {
+    "key": "SPAN|More|||||",
+    "n": 0,
+    "txt": "More",
+    "tag": "SPAN",
+    "effect": "nothing"
+   }
+  ],
+  "how": "key"
+ },
+ {
+  "panel": "Requirement chain preview",
+  "route": "traceability",
+  "controls": [
+   {
+    "key": "BUTTON|↗|||||",
+    "n": 0,
+    "txt": "↗",
+    "tag": "BUTTON",
+    "effect": "nothing"
+   },
+   {
+    "key": "BUTTON|✕|||||",
+    "n": 0,
+    "txt": "✕",
+    "tag": "BUTTON",
+    "effect": "panel closed"
+   },
+   {
+    "key": "BUTTON|Open requirement||requirements|||",
+    "n": 0,
+    "txt": "Open requirement",
+    "tag": "BUTTON",
+    "effect": "nav:requirements ; panel closed"
+   },
+   {
+    "key": "SPAN|Trace||||v7a-trace|tab",
+    "n": 0,
+    "txt": "Trace",
+    "tag": "SPAN",
+    "effect": "nothing"
+   },
+   {
+    "key": "SPAN|Comments 0||||v7a-trace|tab",
+    "n": 0,
+    "txt": "Comments 0",
+    "tag": "SPAN",
+    "effect": "panel changes"
+   },
+   {
+    "key": "BUTTON|Add to assessment campaign||assessments|||",
+    "n": 0,
+    "txt": "Add to assessment campaign",
+    "tag": "BUTTON",
+    "effect": "nav:assessments ; panel closed"
+   },
+   {
+    "key": "A|AC-2|#controls||||",
+    "n": 0,
+    "txt": "AC-2",
+    "tag": "A",
+    "effect": "nav:controls ; panel closed"
+   },
+   {
+    "key": "A|AC-7|#controls||||",
+    "n": 0,
+    "txt": "AC-7",
+    "tag": "A",
+    "effect": "nav:controls ; panel closed"
+   },
+   {
+    "key": "A|Evidence for REQ-001|#evidence||||",
+    "n": 0,
+    "txt": "Evidence for REQ-001",
+    "tag": "A",
+    "effect": "nav:evidence ; panel closed"
+   }
+  ],
+  "how": "key"
+ },
+ {
+  "panel": "Control baseline preview",
+  "route": "program-start",
+  "controls": [
+   {
+    "key": "BUTTON|↗|||||",
+    "n": 0,
+    "txt": "↗",
+    "tag": "BUTTON",
+    "effect": "nothing"
+   },
+   {
+    "key": "BUTTON|✕|||||",
+    "n": 0,
+    "txt": "✕",
+    "tag": "BUTTON",
+    "effect": "panel closed"
+   }
+  ],
+  "how": "key"
+ },
+ {
+  "panel": "Roles preview",
+  "route": "program-start",
+  "controls": [
+   {
+    "key": "BUTTON|↗|||||",
+    "n": 0,
+    "txt": "↗",
+    "tag": "BUTTON",
+    "effect": "nothing"
+   },
+   {
+    "key": "BUTTON|✕|||||",
+    "n": 0,
+    "txt": "✕",
+    "tag": "BUTTON",
+    "effect": "panel closed"
+   }
+  ],
+  "how": "key"
+ },
+ {
+  "panel": "STIG rule preview",
+  "route": "control-si2",
+  "controls": [
+   {
+    "key": "BUTTON|↗|||||",
+    "n": 0,
+    "txt": "↗",
+    "tag": "BUTTON",
+    "effect": "nothing"
+   },
+   {
+    "key": "BUTTON|✕|||||",
+    "n": 0,
+    "txt": "✕",
+    "tag": "BUTTON",
+    "effect": "panel closed"
+   },
+   {
+    "key": "BUTTON|Change status|||ak-reason||",
+    "n": 0,
+    "txt": "Change status",
+    "tag": "BUTTON",
+    "effect": "modal:Change the status of V-257824"
+   },
+   {
+    "key": "SPAN|Mission Computer||inventory|||link",
+    "n": 0,
+    "txt": "Mission Computer",
+    "tag": "SPAN",
+    "effect": "nav:inventory ; panel closed"
+   },
+   {
+    "key": "SPAN|RHEL 9 V2R9||stigs-mission-computer-rhel9|||link",
+    "n": 0,
+    "txt": "RHEL 9 V2R9",
+    "tag": "SPAN",
+    "effect": "nav:stigs-mission-computer-rhel9 ; panel closed"
+   },
+   {
+    "key": "SPAN|Deadlines||deadlines-stig|||link",
+    "n": 0,
+    "txt": "Deadlines",
+    "tag": "SPAN",
+    "effect": "nav:deadlines-stig ; panel closed"
+   },
+   {
+    "key": "SPAN|Remediate CVE-2024-6387 on the Mission Computer||poam|||link",
+    "n": 0,
+    "txt": "Remediate CVE-2024-6387 on the Mission Computer",
+    "tag": "SPAN",
+    "effect": "nav:poam ; panel closed"
+   },
+   {
+    "key": "SPAN|SI-2 (6)||controls|||link",
+    "n": 0,
+    "txt": "SI-2 (6)",
+    "tag": "SPAN",
+    "effect": "nav:controls ; panel closed"
+   }
+  ],
+  "how": "key"
+ },
+ {
+  "panel": "How to fix",
+  "route": "check-scan",
+  "controls": [
+   {
+    "key": "BUTTON|↗|||||",
+    "n": 0,
+    "txt": "↗",
+    "tag": "BUTTON",
+    "effect": "nothing"
+   },
+   {
+    "key": "BUTTON|✕|||||",
+    "n": 0,
+    "txt": "✕",
+    "tag": "BUTTON",
+    "effect": "panel closed"
+   },
+   {
+    "key": "SPAN|Back to the check||||a-tests-check|button",
+    "n": 0,
+    "txt": "Back to the check",
+    "tag": "SPAN",
+    "effect": "panel changes"
+   },
+   {
+    "key": "SPAN|Create POA&M item|||a-tests-poam||button",
+    "n": 0,
+    "txt": "Create POA&M item",
+    "tag": "SPAN",
+    "effect": "modal:Create POA&M item"
+   }
+  ],
+  "how": "key"
+ },
+ {
+  "panel": "Consumer preview",
+  "route": "component-mc",
+  "controls": [
+   {
+    "key": "BUTTON|↗|||||",
+    "n": 0,
+    "txt": "↗",
+    "tag": "BUTTON",
+    "effect": "nothing"
+   },
+   {
+    "key": "BUTTON|✕|||||",
+    "n": 0,
+    "txt": "✕",
+    "tag": "BUTTON",
+    "effect": "panel closed"
+   }
+  ],
+  "how": "key"
+ },
+ {
+  "panel": "Access review preview",
+  "route": "people-access",
+  "controls": [
+   {
+    "key": "BUTTON|↗|||||",
+    "n": 0,
+    "txt": "↗",
+    "tag": "BUTTON",
+    "effect": "nothing"
+   },
+   {
+    "key": "BUTTON|✕|||||",
+    "n": 0,
+    "txt": "✕",
+    "tag": "BUTTON",
+    "effect": "panel closed"
+   },
+   {
+    "key": "SPAN|Complete review|||||button",
+    "n": 0,
+    "txt": "Complete review",
+    "tag": "SPAN",
+    "effect": "nothing"
+   },
+   {
+    "key": "SPAN|Accounts 18||||a-people-par|tab",
+    "n": 0,
+    "txt": "Accounts 18",
+    "tag": "SPAN",
+    "effect": "nothing"
+   },
+   {
+    "key": "SPAN|Access changes 2||||a-people-par|tab",
+    "n": 0,
+    "txt": "Access changes 2",
+    "tag": "SPAN",
+    "effect": "panel changes"
+   },
+   {
+    "key": "SPAN|Deselect|||||button",
+    "n": 0,
+    "txt": "Deselect",
+    "tag": "SPAN",
+    "effect": "panel changes"
+   },
+   {
+    "key": "SPAN|Keep|||||button",
+    "n": 0,
+    "txt": "Keep",
+    "tag": "SPAN",
+    "effect": "toast:2 accounts marked Keep ; panel changes ; page changes"
+   },
+   {
+    "key": "SPAN|Revoke|||||button",
+    "n": 0,
+    "txt": "Revoke",
+    "tag": "SPAN",
+    "effect": "toast:2 accounts marked Revoke"
+   },
+   {
+    "key": "SPAN|Assign owner|||a-people-acct-owner||button",
+    "n": 0,
+    "txt": "Assign owner",
+    "tag": "SPAN",
+    "effect": "modal:Assign owner"
+   },
+   {
+    "key": "SPAN|Create task|||a-people-task||button",
+    "n": 0,
+    "txt": "Create task",
+    "tag": "SPAN",
+    "effect": "modal:Create task"
+   },
+   {
+    "key": "SPAN|Select svc-maint-07|||||checkbox",
+    "n": 0,
+    "txt": "Select svc-maint-07",
+    "tag": "SPAN",
+    "effect": "panel changes"
+   },
+   {
+    "key": "SPAN|Unassigned|||a-people-acct-owner||button",
+    "n": 0,
+    "txt": "Unassigned",
+    "tag": "SPAN",
+    "effect": "modal:Assign owner"
+   },
+   {
+    "key": "SPAN|Keep|||||radio",
+    "n": 0,
+    "txt": "Keep",
+    "tag": "SPAN",
+    "effect": "panel changes ; page changes"
+   },
+   {
+    "key": "SPAN|Revoke|||||radio",
+    "n": 0,
+    "txt": "Revoke",
+    "tag": "SPAN",
+    "effect": "panel changes ; page changes"
+   }
+  ],
+  "how": "key"
+ },
+ {
+  "panel": "Element posture preview",
+  "route": "posture",
+  "controls": [
+   {
+    "key": "BUTTON|↗|||||",
+    "n": 0,
+    "txt": "↗",
+    "tag": "BUTTON",
+    "effect": "nothing"
+   },
+   {
+    "key": "BUTTON|✕|||||",
+    "n": 0,
+    "txt": "✕",
+    "tag": "BUTTON",
+    "effect": "panel closed"
+   },
+   {
+    "key": "BUTTON|AC Access Control 156 · 45 without High||||v7a-pcell|",
+    "n": 0,
+    "txt": "AC Access Control 156 · 45 without High",
+    "tag": "BUTTON",
+    "effect": "panel changes"
+   },
+   {
+    "key": "BUTTON|AT Awareness and Training 52 · 40 without||||v7a-pcell|",
+    "n": 0,
+    "txt": "AT Awareness and Training 52 · 40 without",
+    "tag": "BUTTON",
+    "effect": "panel changes"
+   },
+   {
+    "key": "BUTTON|AU Audit and Accountability 79 · 12 without Critical||||v7a-pcell|",
+    "n": 0,
+    "txt": "AU Audit and Accountability 79 · 12 without Critical",
+    "tag": "BUTTON",
+    "effect": "panel changes"
+   },
+   {
+    "key": "BUTTON|CA Assessment, Authorization, and Monitoring 79 · 17 without Moderate||||v7a-pcell|",
+    "n": 0,
+    "txt": "CA Assessment, Authorization, and Monitoring 79 · 17 without Moderate",
+    "tag": "BUTTON",
+    "effect": "panel changes"
+   },
+   {
+    "key": "BUTTON|CM Configuration Management 167 · 34 without High||||v7a-pcell|",
+    "n": 0,
+    "txt": "CM Configuration Management 167 · 34 without High",
+    "tag": "BUTTON",
+    "effect": "panel changes"
+   },
+   {
+    "key": "BUTTON|CP Contingency Planning 88 · 23 without Moderate||||v7a-pcell|",
+    "n": 0,
+    "txt": "CP Contingency Planning 88 · 23 without Moderate",
+    "tag": "BUTTON",
+    "effect": "panel changes"
+   },
+   {
+    "key": "BUTTON|IA Identification and Authentication 83 · 14 without Critical||||v7a-pcell|",
+    "n": 0,
+    "txt": "IA Identification and Authentication 83 · 14 without Critical",
+    "tag": "BUTTON",
+    "effect": "panel changes"
+   },
+   {
+    "key": "BUTTON|IR Incident Response 97 · 28 without Moderate||||v7a-pcell|",
+    "n": 0,
+    "txt": "IR Incident Response 97 · 28 without Moderate",
+    "tag": "BUTTON",
+    "effect": "panel changes"
+   },
+   {
+    "key": "BUTTON|MA Maintenance 78 · 33 without Moderate||||v7a-pcell|",
+    "n": 0,
+    "txt": "MA Maintenance 78 · 33 without Moderate",
+    "tag": "BUTTON",
+    "effect": "panel changes"
+   },
+   {
+    "key": "BUTTON|MP Media Protection 46 · 15 without||||v7a-pcell|",
+    "n": 0,
+    "txt": "MP Media Protection 46 · 15 without",
+    "tag": "BUTTON",
+    "effect": "panel changes"
+   },
+   {
+    "key": "BUTTON|PE Physical and Environmental Protection 95 · 60 without High||||v7a-pcell|",
+    "n": 0,
+    "txt": "PE Physical and Environmental Protection 95 · 60 without High",
+    "tag": "BUTTON",
+    "effect": "panel changes"
+   },
+   {
+    "key": "BUTTON|PL Planning 86 · 66 without||||v7a-pcell|",
+    "n": 0,
+    "txt": "PL Planning 86 · 66 without",
+    "tag": "BUTTON",
+    "effect": "panel changes"
+   }
+  ],
+  "how": "fallback"
+ },
+ {
+  "panel": "Posture cell preview",
+  "route": "posture",
+  "controls": [
+   {
+    "key": "BUTTON|↗|||||",
+    "n": 0,
+    "txt": "↗",
+    "tag": "BUTTON",
+    "effect": "nothing"
+   },
+   {
+    "key": "BUTTON|✕|||||",
+    "n": 0,
+    "txt": "✕",
+    "tag": "BUTTON",
+    "effect": "panel closed"
+   },
+   {
+    "key": "BUTTON|All families||||v7a-pel|",
+    "n": 0,
+    "txt": "All families",
+    "tag": "BUTTON",
+    "effect": "panel changes"
+   },
+   {
+    "key": "BUTTON|Link evidence|||v7a-link-ev||",
+    "n": 0,
+    "txt": "Link evidence",
+    "tag": "BUTTON",
+    "effect": "modal:Link evidence"
+   },
+   {
+    "key": "BUTTON|Create task|||v7a-task||",
+    "n": 0,
+    "txt": "Create task",
+    "tag": "BUTTON",
+    "effect": "modal:Create task"
+   },
+   {
+    "key": "A|AC-1|#controls||||",
+    "n": 0,
+    "txt": "AC-1",
+    "tag": "A",
+    "effect": "nav:controls ; panel closed"
+   },
+   {
+    "key": "A|AC-2|#controls||||",
+    "n": 0,
+    "txt": "AC-2",
+    "tag": "A",
+    "effect": "nav:controls ; panel closed"
+   },
+   {
+    "key": "A|AC-2(1)|#controls||||",
+    "n": 0,
+    "txt": "AC-2(1)",
+    "tag": "A",
+    "effect": "nav:controls ; panel closed"
+   },
+   {
+    "key": "A|AC-2(2)|#controls||||",
+    "n": 0,
+    "txt": "AC-2(2)",
+    "tag": "A",
+    "effect": "nav:controls ; panel closed"
+   },
+   {
+    "key": "A|47 more · open Controls|#controls||||",
+    "n": 0,
+    "txt": "47 more · open Controls",
+    "tag": "A",
+    "effect": "nav:controls ; panel closed"
+   },
+   {
+    "key": "A|14 more · open Traceability|#traceability-noev||||",
+    "n": 0,
+    "txt": "14 more · open Traceability",
+    "tag": "A",
+    "effect": "nav:traceability-noev ; panel closed"
+   },
+   {
+    "key": "A|Unmet requirement REQ-008|#findings||||",
+    "n": 0,
+    "txt": "Unmet requirement REQ-008",
+    "tag": "A",
+    "effect": "nav:findings ; panel closed"
+   },
+   {
+    "key": "A|Unmet requirement REQ-083|#findings||||",
+    "n": 0,
+    "txt": "Unmet requirement REQ-083",
+    "tag": "A",
+    "effect": "nav:findings ; panel closed"
+   },
+   {
+    "key": "A|Seven access control procedures in field packages carry no current own|#findings||||",
+    "n": 0,
+    "txt": "Seven access control procedures in field packages carry no current own",
+    "tag": "A",
+    "effect": "nav:findings ; panel closed"
+   }
+  ],
+  "how": "fallback"
+ },
+ {
+  "panel": "Person preview",
+  "route": "people",
+  "controls": [
+   {
+    "key": "BUTTON|↗|||||",
+    "n": 0,
+    "txt": "↗",
+    "tag": "BUTTON",
+    "effect": "nothing"
+   },
+   {
+    "key": "BUTTON|✕|||||",
+    "n": 0,
+    "txt": "✕",
+    "tag": "BUTTON",
+    "effect": "panel closed"
+   },
+   {
+    "key": "SUMMARY|More actions for Joel Barrantes|||||",
+    "n": 0,
+    "txt": "More actions for Joel Barrantes",
+    "tag": "SUMMARY",
+    "effect": "menu:Change role Send reminder End role ; panel changes"
+   },
+   {
+    "key": "SPAN||||risk-role||menuitem",
+    "n": 0,
+    "txt": "",
+    "tag": "SPAN",
+    "effect": "nothing"
+   },
+   {
+    "key": "SPAN||||a-people-remind||menuitem",
+    "n": 0,
+    "txt": "",
+    "tag": "SPAN",
+    "effect": "nothing"
+   },
+   {
+    "key": "SPAN||||a-people-end||menuitem",
+    "n": 0,
+    "txt": "",
+    "tag": "SPAN",
+    "effect": "nothing"
+   },
+   {
+    "key": "BUTTON|Open person||person-joel-barrantes|||",
+    "n": 0,
+    "txt": "Open person",
+    "tag": "BUTTON",
+    "effect": "nav:person-joel-barrantes ; panel closed"
+   },
+   {
+    "key": "SPAN|Add start date|||a-people-date||button",
+    "n": 0,
+    "txt": "Add start date",
+    "tag": "SPAN",
+    "effect": "modal:Add start date"
+   },
+   {
+    "key": "SPAN|Add end date|||a-people-date||button",
+    "n": 0,
+    "txt": "Add end date",
+    "tag": "SPAN",
+    "effect": "modal:Add end date"
+   },
+   {
+    "key": "SPAN|Add note|||a-people-note||button",
+    "n": 0,
+    "txt": "Add note",
+    "tag": "SPAN",
+    "effect": "modal:Add note"
+   },
+   {
+    "key": "SPAN|Work 2||||a-people-person|tab",
+    "n": 0,
+    "txt": "Work 2",
+    "tag": "SPAN",
+    "effect": "nothing"
+   },
+   {
+    "key": "SPAN|Access||||a-people-person|tab",
+    "n": 0,
+    "txt": "Access",
+    "tag": "SPAN",
+    "effect": "panel changes"
+   },
+   {
+    "key": "SPAN|Qualifications||||a-people-person|tab",
+    "n": 0,
+    "txt": "Qualifications",
+    "tag": "SPAN",
+    "effect": "panel changes"
+   },
+   {
+    "key": "SPAN|Hand over||||a-people-person|tab",
+    "n": 0,
+    "txt": "Hand over",
+    "tag": "SPAN",
+    "effect": "panel changes"
+   }
+  ],
+  "how": "key"
+ }
+]

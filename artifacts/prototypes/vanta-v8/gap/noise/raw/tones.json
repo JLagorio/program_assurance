@@ -1,0 +1,4486 @@
+{
+ "home": [],
+ "my-work": [],
+ "review-queue": [
+  [
+   "text:blue",
+   "View all N →"
+  ],
+  [
+   "text:blue",
+   "Deselect"
+  ],
+  [
+   "text:blue",
+   "NF"
+  ],
+  [
+   "text:blue",
+   "WD"
+  ],
+  [
+   "text:blue",
+   "NF"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:blue",
+   "NF"
+  ],
+  [
+   "text:blue",
+   "IS"
+  ],
+  [
+   "text:blue",
+   "EV"
+  ],
+  [
+   "text:blue",
+   "NF"
+  ],
+  [
+   "text:blue",
+   "RC"
+  ],
+  [
+   "text:blue",
+   "HL"
+  ],
+  [
+   "text:blue",
+   "View all N →"
+  ],
+  [
+   "text:blue",
+   "LD"
+  ],
+  [
+   "text:blue",
+   "LD"
+  ],
+  [
+   "text:blue",
+   "LD"
+  ],
+  [
+   "text:blue",
+   "LD"
+  ],
+  [
+   "text:red",
+   "DATE, N · N days ago"
+  ],
+  [
+   "text:red",
+   "DATE, N · N days ago"
+  ],
+  [
+   "text:red",
+   "DATE · N days ago"
+  ],
+  [
+   "text:red",
+   "DATE · N days ago"
+  ],
+  [
+   "text:red",
+   "DATE · N day ago"
+  ],
+  [
+   "text:amber",
+   "DATE · in N days"
+  ],
+  [
+   "text:amber",
+   "DATE · in N days"
+  ],
+  [
+   "text:amber",
+   "DATE · in N days"
+  ],
+  [
+   "text:blue",
+   "EV"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:blue",
+   "IS"
+  ]
+ ],
+ "portfolio": [
+  [
+   "pill:warn",
+   "N behind"
+  ],
+  [
+   "pill:warn",
+   "N behind"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:blue",
+   "DW"
+  ],
+  [
+   "text:amber",
+   "DATE · in N days"
+  ],
+  [
+   "text:blue",
+   "HL"
+  ],
+  [
+   "text:red",
+   "DATE · N day ago"
+  ],
+  [
+   "text:blue",
+   "MR"
+  ],
+  [
+   "text:amber",
+   "DATE · in N days"
+  ],
+  [
+   "text:green",
+   "+N controls"
+  ],
+  [
+   "text:blue",
+   "RC"
+  ],
+  [
+   "text:red",
+   "DATE · N days ago"
+  ],
+  [
+   "text:red",
+   "DATE, N · N days ago"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:amber",
+   "DATE · in N days"
+  ],
+  [
+   "text:red",
+   "DATE, N · N days ago"
+  ],
+  [
+   "text:blue",
+   "MR"
+  ],
+  [
+   "text:red",
+   "DATE, N · N days ago"
+  ],
+  [
+   "text:red",
+   "DATE · N days ago"
+  ]
+ ],
+ "products": [
+  [
+   "pill:ok",
+   "Published"
+  ],
+  [
+   "pill:warn",
+   "N behind"
+  ],
+  [
+   "pill:warn",
+   "On version N"
+  ],
+  [
+   "pill:ok",
+   "Published"
+  ],
+  [
+   "pill:ok",
+   "Published"
+  ],
+  [
+   "pill:ok",
+   "Published"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:blue",
+   "MR"
+  ]
+ ],
+ "components": [
+  [
+   "pill:info",
+   "Offer waiting"
+  ],
+  [
+   "pill:bad",
+   "N high"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:amber",
+   "N behind"
+  ],
+  [
+   "text:blue",
+   "MR"
+  ],
+  [
+   "text:blue",
+   "MR"
+  ],
+  [
+   "text:blue",
+   "MR"
+  ],
+  [
+   "text:blue",
+   "MR"
+  ],
+  [
+   "text:blue",
+   "MR"
+  ],
+  [
+   "text:blue",
+   "MR"
+  ],
+  [
+   "text:blue",
+   "MR"
+  ],
+  [
+   "text:blue",
+   "MR"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:amber",
+   "N behind"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:amber",
+   "N behind"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:amber",
+   "N behind"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:amber",
+   "N behind"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:amber",
+   "N behind"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:amber",
+   "N behind"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:amber",
+   "N behind"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:amber",
+   "N behind"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:amber",
+   "N behind"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:amber",
+   "N behind"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:amber",
+   "N behind"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:amber",
+   "N behind"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:amber",
+   "N behind"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:amber",
+   "N behind"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:amber",
+   "N behind"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:amber",
+   "N behind"
+  ]
+ ],
+ "suppliers": [
+  [
+   "pill:none",
+   "Due Jan N, N"
+  ],
+  [
+   "pill:bad",
+   "Open CVE"
+  ],
+  [
+   "pill:none",
+   "Due Jan N, N"
+  ],
+  [
+   "pill:none",
+   "Due Mar N, N"
+  ],
+  [
+   "pill:none",
+   "Due Mar N, N"
+  ],
+  [
+   "pill:warn",
+   "Due Nov N · in Nd"
+  ],
+  [
+   "pill:bad",
+   "Counterfeit alert"
+  ],
+  [
+   "pill:none",
+   "Due Feb N, N"
+  ],
+  [
+   "pill:warn",
+   "DMSMS notice"
+  ],
+  [
+   "pill:none",
+   "Due Jun N, N"
+  ],
+  [
+   "pill:none",
+   "Due Jun N, N"
+  ],
+  [
+   "pill:none",
+   "Due Jun N, N"
+  ],
+  [
+   "pill:none",
+   "Due Jun N, N"
+  ],
+  [
+   "pill:none",
+   "Due Jun N, N"
+  ],
+  [
+   "pill:none",
+   "Due Jun N, N"
+  ]
+ ],
+ "frameworks": [
+  [
+   "pill:ok",
+   "In WS-XN's stack"
+  ],
+  [
+   "pill:none",
+   "Reference"
+  ],
+  [
+   "pill:none",
+   "Reference"
+  ],
+  [
+   "pill:none",
+   "Reference"
+  ],
+  [
+   "text:blue",
+   "N not in WS-XN"
+  ],
+  [
+   "text:blue",
+   "N not in WS-XN"
+  ],
+  [
+   "text:blue",
+   "N not in WS-XN"
+  ],
+  [
+   "text:blue",
+   "N not in WS-XN"
+  ]
+ ],
+ "integrations": [
+  [
+   "text:green",
+   "In the app"
+  ],
+  [
+   "text:green",
+   "In the app"
+  ],
+  [
+   "text:green",
+   "In the app"
+  ],
+  [
+   "text:green",
+   "In the app"
+  ],
+  [
+   "text:green",
+   "In the app"
+  ],
+  [
+   "text:red",
+   "WS-XN: N import, failed"
+  ],
+  [
+   "text:green",
+   "In the app"
+  ],
+  [
+   "text:green",
+   "In the app"
+  ]
+ ],
+ "data-calls": [
+  [
+   "pill:warn",
+   "In review"
+  ],
+  [
+   "pill:warn",
+   "In review"
+  ],
+  [
+   "pill:bad",
+   "Needs answers"
+  ],
+  [
+   "pill:none",
+   "Drafting"
+  ],
+  [
+   "text:red",
+   "· N conflicts"
+  ],
+  [
+   "text:red",
+   "· N conflict"
+  ],
+  [
+   "text:amber",
+   "DATE · in Nd"
+  ],
+  [
+   "text:red",
+   "· N conflicts"
+  ],
+  [
+   "text:amber",
+   "DATE · in Nd"
+  ]
+ ],
+ "reports": [
+  [
+   "text:blue",
+   "Page"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ]
+ ],
+ "ai-drafts": [
+  [
+   "text:blue",
+   "IS"
+  ],
+  [
+   "text:blue",
+   "SSP N · suggestions in the SSP editor"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:blue",
+   "Evidence · proposed links"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:blue",
+   "POA&M · N items"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:blue",
+   "STIG checklist · Maintenance Laptop"
+  ],
+  [
+   "text:blue",
+   "IS"
+  ],
+  [
+   "text:blue",
+   "ITCSC import · WS-XN"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:blue",
+   "Customer A data call · answers"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:blue",
+   "Requirements · drafts"
+  ]
+ ],
+ "deadlines": [
+  [
+   "pill:bad",
+   "N overdue"
+  ],
+  [
+   "pill:none",
+   "Proposed"
+  ],
+  [
+   "pill:bad",
+   "N overdue"
+  ],
+  [
+   "pill:none",
+   "Proposed"
+  ],
+  [
+   "pill:ok",
+   "N on track"
+  ],
+  [
+   "pill:none",
+   "Proposed"
+  ],
+  [
+   "pill:ok",
+   "N on track"
+  ],
+  [
+   "pill:none",
+   "Proposed"
+  ],
+  [
+   "pill:none",
+   "Proposed"
+  ],
+  [
+   "pill:none",
+   "Proposed"
+  ],
+  [
+   "pill:bad",
+   "N overdue"
+  ],
+  [
+   "pill:none",
+   "Proposed"
+  ],
+  [
+   "pill:ok",
+   "N on track"
+  ],
+  [
+   "pill:none",
+   "Proposed"
+  ],
+  [
+   "pill:ok",
+   "N on track"
+  ],
+  [
+   "pill:none",
+   "Proposed"
+  ],
+  [
+   "pill:bad",
+   "N overdue"
+  ],
+  [
+   "pill:warn",
+   "N due soon"
+  ],
+  [
+   "pill:ok",
+   "In use"
+  ],
+  [
+   "pill:bad",
+   "N overdue"
+  ],
+  [
+   "pill:warn",
+   "N due soon"
+  ],
+  [
+   "pill:ok",
+   "In use"
+  ],
+  [
+   "pill:bad",
+   "N overdue"
+  ],
+  [
+   "pill:ok",
+   "In use"
+  ],
+  [
+   "pill:ok",
+   "N on track"
+  ],
+  [
+   "pill:ok",
+   "In use"
+  ],
+  [
+   "pill:bad",
+   "N overdue"
+  ],
+  [
+   "pill:warn",
+   "N due soon"
+  ],
+  [
+   "pill:none",
+   "Proposed"
+  ],
+  [
+   "pill:none",
+   "Proposed"
+  ],
+  [
+   "pill:warn",
+   "N due soon"
+  ],
+  [
+   "pill:none",
+   "Proposed"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:blue",
+   "RC"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:blue",
+   "VA"
+  ]
+ ],
+ "notifications": [
+  [
+   "pill:none",
+   "Daily digest"
+  ],
+  [
+   "pill:warn",
+   "Immediately"
+  ],
+  [
+   "pill:warn",
+   "Immediately"
+  ]
+ ],
+ "event-log": [
+  [
+   "text:blue",
+   "IS"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:blue",
+   "NF"
+  ],
+  [
+   "text:blue",
+   "NF"
+  ],
+  [
+   "text:blue",
+   "NF"
+  ],
+  [
+   "text:blue",
+   "NF"
+  ],
+  [
+   "text:blue",
+   "NF"
+  ],
+  [
+   "text:blue",
+   "NF"
+  ],
+  [
+   "text:blue",
+   "NF"
+  ],
+  [
+   "text:blue",
+   "NF"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:blue",
+   "NF"
+  ],
+  [
+   "text:blue",
+   "NF"
+  ],
+  [
+   "text:blue",
+   "DO"
+  ],
+  [
+   "text:blue",
+   "NF"
+  ],
+  [
+   "text:blue",
+   "NF"
+  ],
+  [
+   "text:blue",
+   "NF"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:blue",
+   "NF"
+  ],
+  [
+   "text:blue",
+   "NF"
+  ],
+  [
+   "text:blue",
+   "NF"
+  ],
+  [
+   "text:blue",
+   "NF"
+  ],
+  [
+   "text:blue",
+   "NF"
+  ],
+  [
+   "text:blue",
+   "NF"
+  ],
+  [
+   "text:blue",
+   "NF"
+  ]
+ ],
+ "enclaves": [
+  [
+   "pill:ok",
+   "On"
+  ],
+  [
+   "pill:info",
+   "You are here"
+  ],
+  [
+   "pill:none",
+   "Off"
+  ],
+  [
+   "pill:none",
+   "Off"
+  ],
+  [
+   "pill:ok",
+   "Hosted model"
+  ],
+  [
+   "pill:ok",
+   "In-enclave model"
+  ],
+  [
+   "pill:none",
+   "Off"
+  ],
+  [
+   "pill:ok",
+   "Hosted model"
+  ],
+  [
+   "pill:ok",
+   "In-enclave model"
+  ],
+  [
+   "pill:none",
+   "Off"
+  ],
+  [
+   "pill:ok",
+   "Hosted model"
+  ],
+  [
+   "pill:ok",
+   "In-enclave model"
+  ],
+  [
+   "pill:none",
+   "Off"
+  ],
+  [
+   "pill:ok",
+   "Hosted model"
+  ],
+  [
+   "pill:warn",
+   "In-enclave, ISSM approves"
+  ],
+  [
+   "pill:none",
+   "Off"
+  ]
+ ],
+ "common-controls": [
+  [
+   "pill:none",
+   "Not authorized"
+  ],
+  [
+   "pill:ok",
+   "Authorized"
+  ],
+  [
+   "pill:ok",
+   "Accredited CSSP"
+  ],
+  [
+   "pill:warn",
+   "With conditions"
+  ]
+ ],
+ "permissions": [
+  [
+   "pill:info",
+   "One"
+  ],
+  [
+   "pill:info",
+   "One"
+  ],
+  [
+   "text:blue",
+   "RC"
+  ],
+  [
+   "text:blue",
+   "DO"
+  ],
+  [
+   "text:blue",
+   "LD"
+  ],
+  [
+   "text:blue",
+   "NF"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:blue",
+   "RC"
+  ]
+ ],
+ "overview": [
+  [
+   "pill:info",
+   "Active"
+  ],
+  [
+   "pill:info",
+   "Active"
+  ],
+  [
+   "pill:none",
+   "Planned"
+  ],
+  [
+   "pill:ok",
+   "Completed"
+  ],
+  [
+   "text:green",
+   "ATO with conditions"
+  ],
+  [
+   "text:blue",
+   "RC"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:blue",
+   "N controls"
+  ],
+  [
+   "text:amber",
+   "DATE · in N days"
+  ],
+  [
+   "text:blue",
+   "View all"
+  ],
+  [
+   "text:amber",
+   "Revision N · Draft"
+  ],
+  [
+   "text:blue",
+   "People"
+  ],
+  [
+   "text:blue",
+   "RC"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:blue",
+   "RC"
+  ],
+  [
+   "text:blue",
+   "DO"
+  ],
+  [
+   "text:blue",
+   "NF"
+  ],
+  [
+   "text:blue",
+   "IS"
+  ],
+  [
+   "text:blue",
+   "WS-XN Tailored Security Baseline"
+  ],
+  [
+   "text:blue",
+   "RC"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:blue",
+   "History"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ]
+ ],
+ "getting-started": [
+  [
+   "text:green",
+   "Import or complete the ITCSC · version N"
+  ],
+  [
+   "text:blue",
+   "Open"
+  ],
+  [
+   "text:green",
+   "Catalog and roles"
+  ],
+  [
+   "text:green",
+   "Load NIST SP N-N Rev N.N.N · N,N active "
+  ],
+  [
+   "text:green",
+   "Record WS-XN's roles · AO R. Calloway, l"
+  ],
+  [
+   "text:blue",
+   "Adopt the N proposed deadlines set by Jo"
+  ],
+  [
+   "text:blue",
+   "Open"
+  ]
+ ],
+ "itcsc": [
+  [
+   "pill:ok",
+   "Approved and signed"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:blue",
+   "N subsystems and N elements"
+  ],
+  [
+   "text:red",
+   "Block N.N is in SSP N since DATE"
+  ],
+  [
+   "text:blue",
+   "N of N AF AO boundaries"
+  ],
+  [
+   "text:blue",
+   "RC"
+  ],
+  [
+   "text:red",
+   "N interfaces since approval"
+  ],
+  [
+   "text:red",
+   "N added since: Ground support telemetry "
+  ],
+  [
+   "text:blue",
+   "SSP N, figure N, drawn from the system t"
+  ],
+  [
+   "text:red",
+   "Yes with SIPRNet reachback"
+  ],
+  [
+   "text:blue",
+   "Open the baseline"
+  ],
+  [
+   "text:red",
+   "Yes with SIPRNet reachback"
+  ],
+  [
+   "text:red",
+   "WS-XN's system record holds no rationale"
+  ],
+  [
+   "text:red",
+   "*"
+  ],
+  [
+   "text:blue",
+   "RC"
+  ],
+  [
+   "text:red",
+   "*"
+  ],
+  [
+   "text:blue",
+   "LM"
+  ],
+  [
+   "text:red",
+   "*"
+  ],
+  [
+   "text:blue",
+   "RC"
+  ],
+  [
+   "text:red",
+   "*"
+  ],
+  [
+   "text:blue",
+   "DO"
+  ],
+  [
+   "text:red",
+   "*"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:blue",
+   "IS"
+  ],
+  [
+   "text:blue",
+   "CT"
+  ],
+  [
+   "text:blue",
+   "SO"
+  ],
+  [
+   "text:red",
+   "*"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:blue",
+   "RC"
+  ],
+  [
+   "text:blue",
+   "RC"
+  ],
+  [
+   "text:blue",
+   "Open the baseline"
+  ]
+ ],
+ "composition": [
+  [
+   "pill:warn",
+   "N behind"
+  ],
+  [
+   "text:blue",
+   "Shown in SSP section N"
+  ],
+  [
+   "text:amber",
+   "→ N.N.N"
+  ],
+  [
+   "text:amber",
+   "→ N.N.N"
+  ],
+  [
+   "text:amber",
+   "→ N.N.N"
+  ],
+  [
+   "text:amber",
+   "→ N.N.N"
+  ],
+  [
+   "text:amber",
+   "→ N.N.N"
+  ],
+  [
+   "text:amber",
+   "→ N.N"
+  ],
+  [
+   "text:amber",
+   "→ N.N.N"
+  ],
+  [
+   "text:amber",
+   "→ N.N"
+  ],
+  [
+   "text:amber",
+   "→ N.N.N"
+  ]
+ ],
+ "inventory": [
+  [
+   "text:blue",
+   "Deselect"
+  ],
+  [
+   "text:blue",
+   "IS"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:blue",
+   "RC"
+  ],
+  [
+   "text:blue",
+   "Assign an organization"
+  ],
+  [
+   "text:blue",
+   "IS"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:blue",
+   "RC"
+  ],
+  [
+   "text:blue",
+   "Assign an organization"
+  ],
+  [
+   "text:blue",
+   "IS"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:blue",
+   "RC"
+  ],
+  [
+   "text:blue",
+   "Assign an organization"
+  ],
+  [
+   "text:blue",
+   "IS"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:blue",
+   "RC"
+  ],
+  [
+   "text:blue",
+   "Assign an organization"
+  ],
+  [
+   "text:blue",
+   "IS"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:blue",
+   "RC"
+  ],
+  [
+   "text:blue",
+   "Assign an organization"
+  ],
+  [
+   "text:blue",
+   "IS"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:blue",
+   "RC"
+  ],
+  [
+   "text:blue",
+   "Assign an organization"
+  ],
+  [
+   "text:blue",
+   "IS"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:blue",
+   "RC"
+  ],
+  [
+   "text:blue",
+   "Assign an organization"
+  ],
+  [
+   "text:blue",
+   "IS"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:blue",
+   "RC"
+  ],
+  [
+   "text:blue",
+   "Assign an organization"
+  ],
+  [
+   "text:blue",
+   "IS"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:blue",
+   "RC"
+  ],
+  [
+   "text:blue",
+   "Assign an organization"
+  ],
+  [
+   "text:blue",
+   "IS"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:blue",
+   "RC"
+  ],
+  [
+   "text:blue",
+   "Assign an organization"
+  ],
+  [
+   "text:blue",
+   "IS"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:blue",
+   "RC"
+  ],
+  [
+   "text:blue",
+   "Assign an organization"
+  ],
+  [
+   "text:blue",
+   "IS"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:blue",
+   "RC"
+  ],
+  [
+   "text:blue",
+   "Assign an organization"
+  ],
+  [
+   "text:blue",
+   "IS"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:blue",
+   "RC"
+  ],
+  [
+   "text:blue",
+   "Assign an organization"
+  ],
+  [
+   "text:blue",
+   "IS"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:blue",
+   "RC"
+  ],
+  [
+   "text:blue",
+   "Assign an organization"
+  ],
+  [
+   "text:blue",
+   "IS"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:blue",
+   "RC"
+  ],
+  [
+   "text:blue",
+   "Assign an organization"
+  ],
+  [
+   "text:blue",
+   "IS"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:blue",
+   "RC"
+  ],
+  [
+   "text:blue",
+   "Assign an organization"
+  ],
+  [
+   "text:blue",
+   "IS"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:blue",
+   "RC"
+  ],
+  [
+   "text:blue",
+   "Assign an organization"
+  ],
+  [
+   "text:blue",
+   "IS"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:blue",
+   "RC"
+  ],
+  [
+   "text:blue",
+   "Assign an organization"
+  ],
+  [
+   "text:blue",
+   "IS"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:blue",
+   "RC"
+  ],
+  [
+   "text:blue",
+   "Assign an organization"
+  ],
+  [
+   "text:blue",
+   "IS"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:blue",
+   "RC"
+  ],
+  [
+   "text:blue",
+   "Assign an organization"
+  ]
+ ],
+ "stigs": [
+  [
+   "text:blue",
+   "↑ VNRN"
+  ],
+  [
+   "text:red",
+   "N"
+  ],
+  [
+   "text:amber",
+   "N"
+  ],
+  [
+   "text:amber",
+   "N"
+  ],
+  [
+   "text:blue",
+   "↑ VNRN"
+  ],
+  [
+   "text:amber",
+   "N"
+  ],
+  [
+   "text:amber",
+   "N"
+  ],
+  [
+   "text:amber",
+   "N"
+  ],
+  [
+   "text:amber",
+   "N"
+  ],
+  [
+   "text:red",
+   "N"
+  ],
+  [
+   "text:amber",
+   "N"
+  ],
+  [
+   "text:blue",
+   "How deadlines are set"
+  ],
+  [
+   "text:blue",
+   "Evidence sources"
+  ]
+ ],
+ "interconnections": [
+  [
+   "pill:warn",
+   "Not assessed"
+  ],
+  [
+   "pill:ok",
+   "ISA · Signed"
+  ],
+  [
+   "pill:ok",
+   "ISA · Signed"
+  ],
+  [
+   "pill:ok",
+   "MOA · Signed"
+  ],
+  [
+   "pill:warn",
+   "ISA · Draft"
+  ],
+  [
+   "pill:warn",
+   "ISA · Draft"
+  ],
+  [
+   "pill:bad",
+   "MOU · Expired"
+  ],
+  [
+   "pill:bad",
+   "MOU · Expired"
+  ],
+  [
+   "pill:info",
+   "Not required"
+  ],
+  [
+   "pill:info",
+   "Not required"
+  ],
+  [
+   "text:blue",
+   "N added since ITCSC version N"
+  ],
+  [
+   "text:amber",
+   "DATE · in N days"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:amber",
+   "DATE · in N days"
+  ],
+  [
+   "text:blue",
+   "RC"
+  ],
+  [
+   "text:amber",
+   "DATE · in N days"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:red",
+   "SECRET"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:red",
+   "DATE · N days ago"
+  ],
+  [
+   "text:blue",
+   "RC"
+  ],
+  [
+   "text:red",
+   "DATE · N days ago"
+  ],
+  [
+   "text:blue",
+   "RC"
+  ],
+  [
+   "text:blue",
+   "IS"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ]
+ ],
+ "ppsm": [
+  [
+   "pill:ok",
+   "Green"
+  ],
+  [
+   "pill:ok",
+   "Registered"
+  ],
+  [
+   "pill:warn",
+   "Yellow"
+  ],
+  [
+   "pill:warn",
+   "Pending"
+  ],
+  [
+   "pill:ok",
+   "Green"
+  ],
+  [
+   "pill:info",
+   "Not required"
+  ],
+  [
+   "pill:info",
+   "Not applicable"
+  ],
+  [
+   "pill:info",
+   "Not required"
+  ],
+  [
+   "pill:warn",
+   "Yellow"
+  ],
+  [
+   "pill:bad",
+   "Not registered"
+  ],
+  [
+   "pill:none",
+   "Not listed"
+  ],
+  [
+   "pill:info",
+   "Not required"
+  ],
+  [
+   "pill:none",
+   "Not listed"
+  ],
+  [
+   "pill:info",
+   "Not required"
+  ],
+  [
+   "pill:ok",
+   "Green"
+  ],
+  [
+   "pill:warn",
+   "Pending"
+  ],
+  [
+   "pill:none",
+   "Temporary"
+  ],
+  [
+   "pill:bad",
+   "Not registered"
+  ],
+  [
+   "pill:ok",
+   "Green"
+  ],
+  [
+   "pill:ok",
+   "Registered"
+  ],
+  [
+   "pill:warn",
+   "Yellow"
+  ],
+  [
+   "pill:info",
+   "Not required"
+  ],
+  [
+   "pill:warn",
+   "Yellow"
+  ],
+  [
+   "pill:info",
+   "Not required"
+  ],
+  [
+   "text:blue",
+   "SSP N §N lists N"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:blue",
+   "RC"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:blue",
+   "RC"
+  ],
+  [
+   "text:blue",
+   "IS"
+  ],
+  [
+   "text:blue",
+   "IS"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:blue",
+   "IS"
+  ],
+  [
+   "text:blue",
+   "IS"
+  ]
+ ],
+ "sources": [
+  [
+   "pill:bad",
+   "Past cadence"
+  ],
+  [
+   "pill:ok",
+   "Current"
+  ],
+  [
+   "pill:bad",
+   "Past cadence"
+  ],
+  [
+   "pill:ok",
+   "Current"
+  ],
+  [
+   "pill:info",
+   "Validating"
+  ],
+  [
+   "pill:none",
+   "Queued"
+  ],
+  [
+   "pill:none",
+   "Cancelled"
+  ],
+  [
+   "text:red",
+   "DATE · Nd past cadence"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:red",
+   "DATE · Nd past cadence"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ]
+ ],
+ "baseline": [
+  [
+   "text:green",
+   "+N"
+  ],
+  [
+   "text:green",
+   "+N"
+  ],
+  [
+   "text:red",
+   "−N"
+  ],
+  [
+   "text:green",
+   "+N"
+  ],
+  [
+   "text:red",
+   "−N"
+  ],
+  [
+   "text:green",
+   "+N"
+  ],
+  [
+   "text:green",
+   "+N"
+  ],
+  [
+   "text:red",
+   "−N"
+  ],
+  [
+   "text:green",
+   "+N"
+  ]
+ ],
+ "controls": [
+  [
+   "pill:warn",
+   "Partially satisfied"
+  ],
+  [
+   "pill:ok",
+   "Satisfied"
+  ],
+  [
+   "pill:none",
+   "No evidence"
+  ],
+  [
+   "pill:info",
+   "Not assessed"
+  ],
+  [
+   "pill:bad",
+   "Other than satisfied"
+  ],
+  [
+   "pill:ok",
+   "Satisfied"
+  ],
+  [
+   "pill:bad",
+   "Other than satisfied"
+  ],
+  [
+   "pill:info",
+   "Not assessed"
+  ],
+  [
+   "pill:bad",
+   "Other than satisfied"
+  ],
+  [
+   "pill:ok",
+   "Satisfied"
+  ],
+  [
+   "pill:bad",
+   "Other than satisfied"
+  ],
+  [
+   "pill:info",
+   "Not assessed"
+  ],
+  [
+   "pill:none",
+   "No requirement"
+  ],
+  [
+   "pill:none",
+   "No requirement"
+  ],
+  [
+   "text:blue",
+   "Deselect"
+  ]
+ ],
+ "ssps": [
+  [
+   "pill:none",
+   "Draft"
+  ],
+  [
+   "pill:none",
+   "Draft"
+  ],
+  [
+   "pill:bad",
+   "Changes requested"
+  ],
+  [
+   "pill:none",
+   "Draft"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:amber",
+   "MR"
+  ],
+  [
+   "text:blue",
+   "N"
+  ],
+  [
+   "text:blue",
+   "AB"
+  ],
+  [
+   "text:blue",
+   "AB"
+  ],
+  [
+   "text:blue",
+   "N"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:blue",
+   "N"
+  ],
+  [
+   "text:blue",
+   "IS"
+  ],
+  [
+   "text:amber",
+   "MR"
+  ],
+  [
+   "text:blue",
+   "N"
+  ]
+ ],
+ "requirements": [
+  [
+   "pill:none",
+   "Draft"
+  ],
+  [
+   "pill:none",
+   "Draft"
+  ],
+  [
+   "pill:none",
+   "Draft"
+  ],
+  [
+   "pill:none",
+   "Draft"
+  ],
+  [
+   "pill:none",
+   "Draft"
+  ],
+  [
+   "pill:none",
+   "Draft"
+  ],
+  [
+   "pill:none",
+   "Draft"
+  ],
+  [
+   "pill:none",
+   "Draft"
+  ],
+  [
+   "pill:none",
+   "Draft"
+  ],
+  [
+   "pill:none",
+   "Draft"
+  ],
+  [
+   "pill:none",
+   "Draft"
+  ],
+  [
+   "pill:none",
+   "Draft"
+  ],
+  [
+   "pill:none",
+   "Draft"
+  ],
+  [
+   "pill:none",
+   "Draft"
+  ],
+  [
+   "pill:none",
+   "Draft"
+  ],
+  [
+   "pill:none",
+   "Draft"
+  ],
+  [
+   "pill:none",
+   "Draft"
+  ],
+  [
+   "pill:warn",
+   "Review"
+  ],
+  [
+   "pill:none",
+   "Draft"
+  ],
+  [
+   "pill:none",
+   "Draft"
+  ],
+  [
+   "pill:none",
+   "Draft"
+  ],
+  [
+   "pill:none",
+   "Draft"
+  ],
+  [
+   "pill:none",
+   "Draft"
+  ],
+  [
+   "pill:none",
+   "Draft"
+  ],
+  [
+   "pill:none",
+   "Draft"
+  ],
+  [
+   "pill:none",
+   "Draft"
+  ],
+  [
+   "text:amber",
+   "N of N"
+  ]
+ ],
+ "evidence": [
+  [
+   "pill:none",
+   "No renewal set"
+  ],
+  [
+   "pill:warn",
+   "Pending review"
+  ],
+  [
+   "pill:none",
+   "No renewal set"
+  ],
+  [
+   "pill:warn",
+   "Pending review"
+  ],
+  [
+   "pill:none",
+   "No renewal set"
+  ],
+  [
+   "pill:warn",
+   "Pending review"
+  ],
+  [
+   "pill:none",
+   "No renewal set"
+  ],
+  [
+   "pill:warn",
+   "Pending review"
+  ],
+  [
+   "pill:none",
+   "No renewal set"
+  ],
+  [
+   "pill:warn",
+   "Pending review"
+  ],
+  [
+   "pill:none",
+   "No renewal set"
+  ],
+  [
+   "pill:warn",
+   "Pending review"
+  ],
+  [
+   "text:blue",
+   "Deselect"
+  ],
+  [
+   "text:blue",
+   "IS"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:blue",
+   "VA"
+  ]
+ ],
+ "checks": [
+  [
+   "pill:bad",
+   "Overdue"
+  ],
+  [
+   "pill:bad",
+   "Overdue"
+  ],
+  [
+   "pill:bad",
+   "Overdue"
+  ],
+  [
+   "pill:bad",
+   "Overdue"
+  ],
+  [
+   "pill:warn",
+   "Due soon"
+  ],
+  [
+   "pill:ok",
+   "OK"
+  ],
+  [
+   "pill:ok",
+   "OK"
+  ],
+  [
+   "text:blue",
+   "Deselect"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:red",
+   "DATE · N days ago"
+  ],
+  [
+   "text:red",
+   "N"
+  ],
+  [
+   "text:red",
+   "DATE · N days ago"
+  ],
+  [
+   "text:red",
+   "N"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:red",
+   "DATE · N days ago"
+  ],
+  [
+   "text:red",
+   "N"
+  ],
+  [
+   "text:blue",
+   "IS"
+  ],
+  [
+   "text:red",
+   "DATE · N days ago"
+  ],
+  [
+   "text:red",
+   "N"
+  ],
+  [
+   "text:amber",
+   "DATE, N"
+  ],
+  [
+   "text:red",
+   "N"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:blue",
+   "VA"
+  ]
+ ],
+ "policies": [
+  [
+   "pill:warn",
+   "Partially satisfied"
+  ],
+  [
+   "pill:bad",
+   "Sent back"
+  ],
+  [
+   "pill:none",
+   "No evidence"
+  ],
+  [
+   "pill:none",
+   "No document"
+  ],
+  [
+   "pill:warn",
+   "Partially satisfied"
+  ],
+  [
+   "pill:bad",
+   "Sent back"
+  ],
+  [
+   "pill:ok",
+   "Satisfied"
+  ],
+  [
+   "pill:ok",
+   "Approved"
+  ],
+  [
+   "pill:warn",
+   "Partially satisfied"
+  ],
+  [
+   "pill:bad",
+   "Sent back"
+  ],
+  [
+   "pill:ok",
+   "Satisfied"
+  ],
+  [
+   "pill:ok",
+   "Approved"
+  ],
+  [
+   "pill:info",
+   "Not assessed"
+  ],
+  [
+   "pill:ok",
+   "Approved"
+  ],
+  [
+   "pill:warn",
+   "Partially satisfied"
+  ],
+  [
+   "pill:bad",
+   "Sent back"
+  ],
+  [
+   "pill:none",
+   "No evidence"
+  ],
+  [
+   "pill:none",
+   "No document"
+  ],
+  [
+   "pill:info",
+   "Not assessed"
+  ],
+  [
+   "pill:warn",
+   "In review"
+  ],
+  [
+   "pill:none",
+   "No evidence"
+  ],
+  [
+   "pill:none",
+   "No document"
+  ],
+  [
+   "pill:none",
+   "No evidence"
+  ],
+  [
+   "pill:none",
+   "No document"
+  ],
+  [
+   "pill:warn",
+   "Partially satisfied"
+  ],
+  [
+   "pill:bad",
+   "Sent back"
+  ],
+  [
+   "pill:none",
+   "No evidence"
+  ],
+  [
+   "pill:none",
+   "No document"
+  ],
+  [
+   "pill:warn",
+   "Partially satisfied"
+  ],
+  [
+   "pill:bad",
+   "Sent back"
+  ],
+  [
+   "pill:warn",
+   "Partially satisfied"
+  ],
+  [
+   "pill:bad",
+   "Sent back"
+  ],
+  [
+   "pill:warn",
+   "Partially satisfied"
+  ],
+  [
+   "pill:bad",
+   "Sent back"
+  ],
+  [
+   "pill:none",
+   "No evidence"
+  ],
+  [
+   "pill:none",
+   "No document"
+  ],
+  [
+   "pill:info",
+   "Not assessed"
+  ],
+  [
+   "pill:ok",
+   "Approved"
+  ],
+  [
+   "pill:info",
+   "Not assessed"
+  ],
+  [
+   "pill:warn",
+   "In review"
+  ],
+  [
+   "pill:info",
+   "Not assessed"
+  ],
+  [
+   "pill:ok",
+   "Approved"
+  ],
+  [
+   "text:blue",
+   "WD"
+  ],
+  [
+   "text:amber",
+   "DATE"
+  ],
+  [
+   "text:amber",
+   "DATE"
+  ],
+  [
+   "text:amber",
+   "DATE"
+  ],
+  [
+   "text:amber",
+   "DATE"
+  ],
+  [
+   "text:amber",
+   "DATE"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:amber",
+   "DATE"
+  ],
+  [
+   "text:amber",
+   "DATE"
+  ],
+  [
+   "text:amber",
+   "DATE"
+  ],
+  [
+   "text:amber",
+   "DATE"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:blue",
+   "RC"
+  ],
+  [
+   "text:blue",
+   "AB"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:blue",
+   "IS"
+  ]
+ ],
+ "assessments": [
+  [
+   "pill:info",
+   "Active"
+  ],
+  [
+   "pill:info",
+   "Active"
+  ],
+  [
+   "pill:none",
+   "Planned"
+  ],
+  [
+   "text:blue",
+   "DO"
+  ],
+  [
+   "text:blue",
+   "NF"
+  ],
+  [
+   "text:blue",
+   "DO"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:red",
+   "DATE · N days ago"
+  ],
+  [
+   "text:blue",
+   "IS"
+  ]
+ ],
+ "cyber-te": [
+  [
+   "pill:info",
+   "Planned"
+  ],
+  [
+   "pill:none",
+   "Proposed"
+  ],
+  [
+   "pill:none",
+   "Proposed"
+  ],
+  [
+   "pill:none",
+   "Proposed"
+  ],
+  [
+   "text:blue",
+   "IS"
+  ],
+  [
+   "text:blue",
+   "WD"
+  ]
+ ],
+ "findings": [
+  [
+   "pill:bad",
+   "High"
+  ],
+  [
+   "pill:bad",
+   "High"
+  ],
+  [
+   "pill:bad",
+   "High"
+  ],
+  [
+   "pill:bad",
+   "High"
+  ],
+  [
+   "pill:bad",
+   "High"
+  ],
+  [
+   "pill:bad",
+   "High"
+  ],
+  [
+   "pill:bad",
+   "Critical"
+  ],
+  [
+   "pill:warn",
+   "Moderate"
+  ],
+  [
+   "pill:warn",
+   "Moderate"
+  ],
+  [
+   "pill:warn",
+   "Moderate"
+  ],
+  [
+   "pill:bad",
+   "High"
+  ],
+  [
+   "pill:warn",
+   "Moderate"
+  ],
+  [
+   "text:blue",
+   "Edit"
+  ],
+  [
+   "text:blue",
+   "Deselect"
+  ],
+  [
+   "text:red",
+   "DATE · Nd late"
+  ],
+  [
+   "text:red",
+   "DATE · Nd late"
+  ],
+  [
+   "text:red",
+   "DATE · Nd late"
+  ],
+  [
+   "text:red",
+   "DATE · Nd late"
+  ],
+  [
+   "text:red",
+   "DATE · Nd late"
+  ],
+  [
+   "text:red",
+   "DATE · Nd late"
+  ],
+  [
+   "text:red",
+   "DATE · Nd late"
+  ],
+  [
+   "text:red",
+   "DATE · Nd late"
+  ],
+  [
+   "text:red",
+   "DATE · Nd late"
+  ],
+  [
+   "text:red",
+   "DATE · Nd late"
+  ],
+  [
+   "text:red",
+   "DATE · Nd late"
+  ],
+  [
+   "text:red",
+   "DATE · Nd late"
+  ]
+ ],
+ "poam": [
+  [
+   "pill:warn",
+   "In progress"
+  ],
+  [
+   "pill:warn",
+   "In progress"
+  ],
+  [
+   "pill:warn",
+   "In progress"
+  ],
+  [
+   "pill:warn",
+   "In progress"
+  ],
+  [
+   "pill:warn",
+   "In progress"
+  ],
+  [
+   "pill:warn",
+   "In progress"
+  ],
+  [
+   "pill:warn",
+   "In progress"
+  ],
+  [
+   "pill:warn",
+   "In progress"
+  ],
+  [
+   "pill:warn",
+   "In progress"
+  ],
+  [
+   "pill:warn",
+   "In progress"
+  ],
+  [
+   "pill:warn",
+   "In progress"
+  ],
+  [
+   "pill:warn",
+   "In progress"
+  ],
+  [
+   "pill:none",
+   "Not started"
+  ],
+  [
+   "pill:warn",
+   "In progress"
+  ],
+  [
+   "text:blue",
+   "Deselect"
+  ],
+  [
+   "text:red",
+   "DATE · Nd late"
+  ],
+  [
+   "text:red",
+   "DATE · Nd late"
+  ],
+  [
+   "text:amber",
+   "plan +Nd"
+  ],
+  [
+   "text:red",
+   "DATE · Nd late"
+  ],
+  [
+   "text:red",
+   "DATE · Nd late"
+  ],
+  [
+   "text:amber",
+   "plan +Nd"
+  ],
+  [
+   "text:red",
+   "DATE · Nd late"
+  ],
+  [
+   "text:red",
+   "DATE · Nd late"
+  ],
+  [
+   "text:amber",
+   "plan +Nd"
+  ],
+  [
+   "text:red",
+   "DATE · Nd late"
+  ],
+  [
+   "text:amber",
+   "plan +Nd"
+  ],
+  [
+   "text:red",
+   "DATE · Nd late"
+  ],
+  [
+   "text:amber",
+   "plan +Nd"
+  ],
+  [
+   "text:red",
+   "DATE · Nd late"
+  ],
+  [
+   "text:red",
+   "DATE · Nd late"
+  ],
+  [
+   "text:red",
+   "DATE · Nd late"
+  ],
+  [
+   "text:red",
+   "DATE · Nd late"
+  ],
+  [
+   "text:red",
+   "DATE · Nd late"
+  ],
+  [
+   "text:red",
+   "DATE · Nd late"
+  ],
+  [
+   "text:amber",
+   "plan +Nd"
+  ],
+  [
+   "text:red",
+   "DATE · Nd late"
+  ],
+  [
+   "text:amber",
+   "plan +Nd"
+  ],
+  [
+   "text:red",
+   "DATE · Nd late"
+  ],
+  [
+   "text:red",
+   "DATE · Nd late"
+  ],
+  [
+   "text:amber",
+   "plan +Nd"
+  ],
+  [
+   "text:red",
+   "DATE · Nd late"
+  ],
+  [
+   "text:amber",
+   "plan +Nd"
+  ],
+  [
+   "text:red",
+   "DATE · Nd late"
+  ],
+  [
+   "text:amber",
+   "plan +Nd"
+  ],
+  [
+   "text:red",
+   "DATE · Nd late"
+  ],
+  [
+   "text:amber",
+   "plan +Nd"
+  ],
+  [
+   "text:red",
+   "DATE · Nd late"
+  ],
+  [
+   "text:red",
+   "DATE · Nd late"
+  ]
+ ],
+ "risks": [
+  [
+   "pill:bad",
+   "Critical"
+  ],
+  [
+   "pill:none",
+   "Reassess by Dec N"
+  ],
+  [
+   "pill:none",
+   "Not requested"
+  ],
+  [
+   "pill:bad",
+   "Critical"
+  ],
+  [
+   "pill:none",
+   "Reassess by Dec N"
+  ],
+  [
+   "pill:none",
+   "Not requested"
+  ],
+  [
+   "pill:bad",
+   "High"
+  ],
+  [
+   "pill:none",
+   "Reassess by Dec N"
+  ],
+  [
+   "pill:none",
+   "Not requested"
+  ],
+  [
+   "pill:bad",
+   "High"
+  ],
+  [
+   "pill:none",
+   "Reassess by Dec N"
+  ],
+  [
+   "pill:none",
+   "Not requested"
+  ],
+  [
+   "pill:bad",
+   "High"
+  ],
+  [
+   "pill:none",
+   "Reassess by Dec N"
+  ],
+  [
+   "pill:none",
+   "Not requested"
+  ],
+  [
+   "pill:bad",
+   "High"
+  ],
+  [
+   "pill:none",
+   "Reassess by Dec N"
+  ],
+  [
+   "pill:none",
+   "Not requested"
+  ],
+  [
+   "pill:bad",
+   "High"
+  ],
+  [
+   "pill:none",
+   "Reassess by Dec N"
+  ],
+  [
+   "pill:none",
+   "Not requested"
+  ],
+  [
+   "pill:bad",
+   "High"
+  ],
+  [
+   "pill:none",
+   "Reassess by Dec N"
+  ],
+  [
+   "pill:none",
+   "Not requested"
+  ],
+  [
+   "pill:bad",
+   "High"
+  ],
+  [
+   "pill:none",
+   "Reassess by Dec N"
+  ],
+  [
+   "pill:none",
+   "Not requested"
+  ],
+  [
+   "pill:bad",
+   "High"
+  ],
+  [
+   "pill:none",
+   "Reassess by Dec N"
+  ],
+  [
+   "pill:none",
+   "Not requested"
+  ],
+  [
+   "pill:bad",
+   "High"
+  ],
+  [
+   "pill:none",
+   "Reassess by Dec N"
+  ],
+  [
+   "pill:none",
+   "Not requested"
+  ],
+  [
+   "pill:bad",
+   "High"
+  ],
+  [
+   "pill:none",
+   "Reassess by Dec N"
+  ],
+  [
+   "pill:none",
+   "Not requested"
+  ],
+  [
+   "pill:warn",
+   "Moderate"
+  ],
+  [
+   "pill:none",
+   "Reassess by Dec N"
+  ],
+  [
+   "pill:none",
+   "Not requested"
+  ],
+  [
+   "pill:warn",
+   "Moderate"
+  ],
+  [
+   "pill:none",
+   "Reassess by Dec N"
+  ],
+  [
+   "pill:none",
+   "Not requested"
+  ],
+  [
+   "pill:warn",
+   "Moderate"
+  ],
+  [
+   "pill:none",
+   "Reassess by Dec N"
+  ],
+  [
+   "pill:none",
+   "Not requested"
+  ],
+  [
+   "pill:warn",
+   "Moderate"
+  ],
+  [
+   "pill:none",
+   "Reassess by Dec N"
+  ],
+  [
+   "pill:none",
+   "Not requested"
+  ],
+  [
+   "pill:warn",
+   "Moderate"
+  ],
+  [
+   "pill:none",
+   "Reassess by Dec N"
+  ],
+  [
+   "pill:none",
+   "Not requested"
+  ],
+  [
+   "pill:warn",
+   "Moderate"
+  ],
+  [
+   "pill:none",
+   "Reassess by Dec N"
+  ],
+  [
+   "pill:none",
+   "Not requested"
+  ],
+  [
+   "pill:warn",
+   "Moderate"
+  ],
+  [
+   "pill:none",
+   "Reassess by Dec N"
+  ],
+  [
+   "pill:none",
+   "Not requested"
+  ],
+  [
+   "pill:warn",
+   "Moderate"
+  ],
+  [
+   "pill:none",
+   "Reassess by Dec N"
+  ],
+  [
+   "pill:none",
+   "Not requested"
+  ],
+  [
+   "pill:warn",
+   "Moderate"
+  ],
+  [
+   "pill:none",
+   "Reassess by Dec N"
+  ],
+  [
+   "pill:none",
+   "Not requested"
+  ],
+  [
+   "pill:warn",
+   "Moderate"
+  ],
+  [
+   "pill:none",
+   "Reassess by Dec N"
+  ],
+  [
+   "pill:none",
+   "Not requested"
+  ],
+  [
+   "pill:warn",
+   "Moderate"
+  ],
+  [
+   "pill:none",
+   "Reassess by Dec N"
+  ],
+  [
+   "pill:none",
+   "Not requested"
+  ],
+  [
+   "pill:warn",
+   "Moderate"
+  ],
+  [
+   "pill:none",
+   "Reassess by Dec N"
+  ],
+  [
+   "pill:none",
+   "Not requested"
+  ],
+  [
+   "pill:warn",
+   "Moderate"
+  ],
+  [
+   "pill:none",
+   "Reassess by Dec N"
+  ],
+  [
+   "pill:none",
+   "Not requested"
+  ],
+  [
+   "text:blue",
+   "Deselect"
+  ],
+  [
+   "text:red",
+   "DATE · Nd late"
+  ],
+  [
+   "text:amber",
+   "DATE · in Nd"
+  ],
+  [
+   "text:red",
+   "DATE · Nd late"
+  ],
+  [
+   "text:red",
+   "DATE · Nd late"
+  ],
+  [
+   "text:red",
+   "DATE · Nd late"
+  ],
+  [
+   "text:red",
+   "DATE · Nd late"
+  ],
+  [
+   "text:amber",
+   "DATE · in Nd"
+  ],
+  [
+   "text:red",
+   "DATE · Nd late"
+  ]
+ ],
+ "threats": [
+  [
+   "pill:bad",
+   "Critical"
+  ],
+  [
+   "pill:bad",
+   "High"
+  ],
+  [
+   "pill:bad",
+   "Critical"
+  ],
+  [
+   "pill:bad",
+   "Critical"
+  ],
+  [
+   "pill:bad",
+   "High"
+  ],
+  [
+   "pill:warn",
+   "Moderate"
+  ],
+  [
+   "pill:none",
+   "Low"
+  ],
+  [
+   "pill:bad",
+   "Critical"
+  ],
+  [
+   "pill:bad",
+   "High"
+  ],
+  [
+   "pill:bad",
+   "High"
+  ],
+  [
+   "pill:bad",
+   "High"
+  ],
+  [
+   "pill:bad",
+   "High"
+  ],
+  [
+   "pill:bad",
+   "High"
+  ],
+  [
+   "pill:bad",
+   "High"
+  ],
+  [
+   "pill:bad",
+   "High"
+  ],
+  [
+   "pill:bad",
+   "High"
+  ],
+  [
+   "pill:bad",
+   "High"
+  ],
+  [
+   "pill:warn",
+   "Moderate"
+  ],
+  [
+   "pill:warn",
+   "Moderate"
+  ],
+  [
+   "pill:warn",
+   "Moderate"
+  ],
+  [
+   "pill:warn",
+   "Moderate"
+  ],
+  [
+   "pill:warn",
+   "Moderate"
+  ],
+  [
+   "pill:warn",
+   "Moderate"
+  ],
+  [
+   "pill:warn",
+   "Moderate"
+  ],
+  [
+   "pill:warn",
+   "Moderate"
+  ],
+  [
+   "pill:warn",
+   "Moderate"
+  ],
+  [
+   "pill:warn",
+   "Moderate"
+  ],
+  [
+   "pill:none",
+   "Low"
+  ],
+  [
+   "pill:none",
+   "Low"
+  ],
+  [
+   "pill:none",
+   "Low"
+  ],
+  [
+   "pill:none",
+   "Low"
+  ],
+  [
+   "pill:bad",
+   "High"
+  ]
+ ],
+ "posture": [],
+ "resiliency": [
+  [
+   "text:blue",
+   "Chosen"
+  ],
+  [
+   "text:green",
+   "+N"
+  ],
+  [
+   "text:blue",
+   "Chosen"
+  ],
+  [
+   "text:green",
+   "+N"
+  ],
+  [
+   "text:green",
+   "+N"
+  ],
+  [
+   "text:blue",
+   "Chosen"
+  ],
+  [
+   "text:green",
+   "+N"
+  ],
+  [
+   "text:green",
+   "+N"
+  ],
+  [
+   "text:blue",
+   "Chosen"
+  ],
+  [
+   "text:green",
+   "+N"
+  ],
+  [
+   "text:green",
+   "+N"
+  ],
+  [
+   "text:blue",
+   "Chosen"
+  ],
+  [
+   "text:green",
+   "+N"
+  ],
+  [
+   "text:blue",
+   "Chosen"
+  ],
+  [
+   "text:green",
+   "+N"
+  ],
+  [
+   "text:green",
+   "+N"
+  ],
+  [
+   "text:blue",
+   "Chosen"
+  ],
+  [
+   "text:green",
+   "+N"
+  ],
+  [
+   "text:blue",
+   "Chosen"
+  ],
+  [
+   "text:green",
+   "+N"
+  ],
+  [
+   "text:blue",
+   "Chosen"
+  ],
+  [
+   "text:green",
+   "+N"
+  ],
+  [
+   "text:green",
+   "+N"
+  ]
+ ],
+ "sse": [
+  [
+   "pill:ok",
+   "Decided"
+  ],
+  [
+   "pill:info",
+   "In review"
+  ],
+  [
+   "pill:none",
+   "Not scheduled"
+  ],
+  [
+   "pill:none",
+   "Not started"
+  ],
+  [
+   "pill:none",
+   "Planned"
+  ],
+  [
+   "pill:none",
+   "Planned"
+  ],
+  [
+   "pill:ok",
+   "Met"
+  ],
+  [
+   "pill:ok",
+   "Met"
+  ],
+  [
+   "pill:ok",
+   "Met"
+  ],
+  [
+   "pill:ok",
+   "Met"
+  ],
+  [
+   "pill:bad",
+   "Not met"
+  ],
+  [
+   "pill:ok",
+   "Met"
+  ],
+  [
+   "pill:ok",
+   "Met"
+  ],
+  [
+   "pill:warn",
+   "Partly met"
+  ],
+  [
+   "pill:none",
+   "Not assessed"
+  ],
+  [
+   "pill:none",
+   "Not assessed"
+  ],
+  [
+   "pill:none",
+   "Not assessed"
+  ],
+  [
+   "pill:none",
+   "Not assessed"
+  ],
+  [
+   "pill:none",
+   "Not assessed"
+  ],
+  [
+   "pill:none",
+   "Not assessed"
+  ],
+  [
+   "pill:none",
+   "Not assessed"
+  ],
+  [
+   "pill:none",
+   "Not assessed"
+  ],
+  [
+   "pill:none",
+   "Not assessed"
+  ],
+  [
+   "pill:none",
+   "Not assessed"
+  ],
+  [
+   "pill:none",
+   "Not assessed"
+  ],
+  [
+   "pill:none",
+   "Not assessed"
+  ],
+  [
+   "pill:none",
+   "Not assessed"
+  ],
+  [
+   "pill:none",
+   "Not assessed"
+  ],
+  [
+   "pill:none",
+   "Not assessed"
+  ],
+  [
+   "pill:none",
+   "Not assessed"
+  ],
+  [
+   "text:red",
+   "Due DATE · N days ago"
+  ],
+  [
+   "text:red",
+   "Due DATE · N days ago"
+  ],
+  [
+   "text:blue",
+   "Schedule"
+  ],
+  [
+   "text:blue",
+   "Traceability"
+  ],
+  [
+   "text:blue",
+   "Vol. N: cyber resiliency"
+  ]
+ ],
+ "traceability": [
+  [
+   "pill:ok",
+   "Satisfied"
+  ],
+  [
+   "pill:none",
+   "No evidence"
+  ],
+  [
+   "pill:ok",
+   "Satisfied"
+  ],
+  [
+   "pill:ok",
+   "Satisfied"
+  ],
+  [
+   "pill:ok",
+   "Satisfied"
+  ],
+  [
+   "pill:none",
+   "No evidence"
+  ],
+  [
+   "pill:bad",
+   "High"
+  ],
+  [
+   "pill:bad",
+   "High"
+  ],
+  [
+   "pill:info",
+   "In progress"
+  ],
+  [
+   "pill:ok",
+   "Satisfied"
+  ],
+  [
+   "pill:ok",
+   "Satisfied"
+  ],
+  [
+   "pill:none",
+   "No evidence"
+  ],
+  [
+   "pill:ok",
+   "Satisfied"
+  ],
+  [
+   "pill:warn",
+   "Partially satisfied"
+  ],
+  [
+   "pill:none",
+   "Low"
+  ],
+  [
+   "pill:none",
+   "Low"
+  ],
+  [
+   "pill:info",
+   "In progress"
+  ],
+  [
+   "pill:none",
+   "No evidence"
+  ],
+  [
+   "pill:ok",
+   "Satisfied"
+  ],
+  [
+   "pill:ok",
+   "Satisfied"
+  ],
+  [
+   "pill:none",
+   "No evidence"
+  ],
+  [
+   "pill:ok",
+   "Satisfied"
+  ],
+  [
+   "pill:none",
+   "No evidence"
+  ],
+  [
+   "pill:warn",
+   "Moderate"
+  ],
+  [
+   "pill:warn",
+   "Moderate"
+  ],
+  [
+   "pill:info",
+   "In progress"
+  ],
+  [
+   "pill:ok",
+   "Satisfied"
+  ]
+ ],
+ "inheritance": [
+  [
+   "pill:warn",
+   "N to review"
+  ],
+  [
+   "pill:ok",
+   "Up to date"
+  ],
+  [
+   "text:amber",
+   "N waits"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:blue",
+   "MR"
+  ]
+ ],
+ "authorization": [
+  [
+   "pill:ok",
+   "ATO with conditions"
+  ],
+  [
+   "pill:none",
+   "Draft"
+  ],
+  [
+   "pill:ok",
+   "ATO with conditions"
+  ],
+  [
+   "pill:warn",
+   "Draft"
+  ],
+  [
+   "pill:ok",
+   "Published · frozen"
+  ],
+  [
+   "pill:warn",
+   "Draft results"
+  ],
+  [
+   "pill:ok",
+   "Published"
+  ],
+  [
+   "pill:info",
+   "Current"
+  ],
+  [
+   "pill:none",
+   "None yet"
+  ],
+  [
+   "pill:ok",
+   "ATO with conditions"
+  ],
+  [
+   "pill:info",
+   "IATT"
+  ],
+  [
+   "text:green",
+   "ATO with conditions"
+  ],
+  [
+   "text:blue",
+   "RC"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:blue",
+   "RC"
+  ],
+  [
+   "text:amber",
+   "DATE · in N days"
+  ],
+  [
+   "text:blue",
+   "RC"
+  ],
+  [
+   "text:blue",
+   "Open package room"
+  ],
+  [
+   "text:blue",
+   "RC"
+  ],
+  [
+   "text:blue",
+   "RC"
+  ]
+ ],
+ "package-room": [],
+ "conmon": [
+  [
+   "pill:warn",
+   "In progress"
+  ],
+  [
+   "pill:bad",
+   "Blocked"
+  ],
+  [
+   "pill:info",
+   "Ready"
+  ],
+  [
+   "pill:warn",
+   "In progress"
+  ],
+  [
+   "pill:none",
+   "Planned"
+  ],
+  [
+   "pill:none",
+   "Planned"
+  ],
+  [
+   "pill:none",
+   "Planned"
+  ],
+  [
+   "pill:none",
+   "Planned"
+  ],
+  [
+   "pill:none",
+   "Planned"
+  ],
+  [
+   "pill:none",
+   "Planned"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:red",
+   "DATE · N days ago"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:red",
+   "DATE · N days ago"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:amber",
+   "DATE · in N days"
+  ],
+  [
+   "text:blue",
+   "VA"
+  ],
+  [
+   "text:amber",
+   "DATE · in N days"
+  ],
+  [
+   "text:blue",
+   "NF"
+  ],
+  [
+   "text:blue",
+   "IS"
+  ],
+  [
+   "text:blue",
+   "NF"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:blue",
+   "AB"
+  ],
+  [
+   "text:blue",
+   "WD"
+  ],
+  [
+   "text:blue",
+   "Shown in SSP section N"
+  ],
+  [
+   "text:blue",
+   "Checks compare the system against its ba"
+  ],
+  [
+   "text:blue",
+   "Each run is a task in Schedule"
+  ]
+ ],
+ "schedule": [
+  [
+   "pill:info",
+   "In review"
+  ],
+  [
+   "pill:none",
+   "Not started"
+  ],
+  [
+   "pill:ok",
+   "Completed"
+  ],
+  [
+   "pill:ok",
+   "Completed"
+  ],
+  [
+   "pill:ok",
+   "Completed"
+  ],
+  [
+   "pill:none",
+   "Cancelled"
+  ],
+  [
+   "pill:bad",
+   "Blocked"
+  ],
+  [
+   "pill:warn",
+   "In progress"
+  ],
+  [
+   "pill:info",
+   "Ready"
+  ],
+  [
+   "pill:warn",
+   "In progress"
+  ],
+  [
+   "pill:none",
+   "Planned"
+  ],
+  [
+   "pill:none",
+   "Planned"
+  ],
+  [
+   "pill:none",
+   "Planned"
+  ],
+  [
+   "pill:none",
+   "Planned"
+  ],
+  [
+   "pill:none",
+   "Planned"
+  ],
+  [
+   "pill:none",
+   "Planned"
+  ],
+  [
+   "text:blue",
+   "Deselect"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:blue",
+   "WD"
+  ],
+  [
+   "text:red",
+   "DATE · N days ago"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:red",
+   "DATE · N days ago"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:amber",
+   "DATE · in N days"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:amber",
+   "DATE · in N days"
+  ],
+  [
+   "text:blue",
+   "VA"
+  ],
+  [
+   "text:blue",
+   "NF"
+  ],
+  [
+   "text:blue",
+   "IS"
+  ],
+  [
+   "text:blue",
+   "NF"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:blue",
+   "AB"
+  ],
+  [
+   "text:blue",
+   "WD"
+  ]
+ ],
+ "people": [
+  [
+   "pill:bad",
+   "N past due"
+  ],
+  [
+   "pill:warn",
+   "Due soon"
+  ],
+  [
+   "pill:warn",
+   "Due soon"
+  ],
+  [
+   "pill:none",
+   "Planned"
+  ],
+  [
+   "pill:none",
+   "Planned"
+  ],
+  [
+   "pill:none",
+   "Planned"
+  ],
+  [
+   "pill:none",
+   "Planned"
+  ],
+  [
+   "text:blue",
+   "Deselect"
+  ],
+  [
+   "text:blue",
+   "JB"
+  ],
+  [
+   "text:red",
+   "Due DATE · N days ago"
+  ],
+  [
+   "text:blue",
+   "PR"
+  ],
+  [
+   "text:amber",
+   "Due DATE · in N days"
+  ],
+  [
+   "text:blue",
+   "VA"
+  ],
+  [
+   "text:amber",
+   "Due DATE · in N days"
+  ],
+  [
+   "text:blue",
+   "NF"
+  ],
+  [
+   "text:blue",
+   "IS"
+  ],
+  [
+   "text:blue",
+   "AB"
+  ],
+  [
+   "text:blue",
+   "WD"
+  ],
+  [
+   "text:blue",
+   "RC"
+  ],
+  [
+   "text:blue",
+   "DO"
+  ],
+  [
+   "text:blue",
+   "LD"
+  ],
+  [
+   "text:blue",
+   "RC"
+  ]
+ ]
+}

@@ -1,0 +1,74 @@
+F walk · 2026-11-19T16:42:28.770Z · /private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/v2-F.html
+69 passed, 0 failed
+=== 1440px ===
+PASS  Requirement preview carries one Chain card with six counted stages  · Requirement preview ✕ REQ-008 AC Monitoring Requirement 008 Link evidence Map control Owner Unassigned State Draft Version 1 Overview Comments 0 Activity 3 Statement The assigned component shall produ
+PASS  No ↗ on a requirement's preview
+PASS  Map control and Link evidence stay in its header
+PASS  A risk in the chain opens the risk's own preview  · Risk preview ↗ ✕ Risk arising from REQ-008 Start reassessment Request acceptance
+PASS  A control in the chain opens the control's preview
+PASS  Evidence the register lists opens its own preview (REQ-599's, Needs revision)
+PASS  The old requirement page's address opens the Requirements page with the preview open  · requirements
+PASS  Map control names its missing Control  · Control is required.
+PASS  Map control maps it: the toast says what moved  · REQ-004 maps AC-4(21): 2 of 2 objectives mapped; AC-4(21) reads No evidence now Open REQ-004
+PASS  …the chain lists AC-4(21), mapped today  · Controls mapped 2 AC-5 Separation of Duties Satisfied AC-4(21) Physical or Logical Separation of Information Flows No evidence 
+PASS  …and the register's row lists it
+PASS  Link evidence links it; AC-4(21) waits on an assessor  · Evidence linked to REQ-004: AC-4(21) waits on an assessor now Open REQ-004
+PASS  …Cite no evidence drops by one  · 286 → 285
+PASS  …the chain's Evidence stage lists it, pending review
+PASS  AC-4(21)'s own preview lists REQ-004 (one source for the mapping)  · Control preview ↗ ✕ AC-4(21) Physical or Logical Separation of Information Flows Add to assessment campaign Status Not assessed Objectives 2 of 2 mapped · 2 wit
+PASS  Traceability's No evidence counts it too  · No evidence 285
+PASS  Accept saves the review (no wrongly required field)  · Accepted: Time source comparison test report, LRU-005 60-second cadence with injected 1.5-second offset Open Evidence
+PASS  …Pending review 87, Accepted 227  · All 368 | Owned by me 27 | Requires my approval 0 | Pending review 87 | Needs revision 54 | More 1 ⌄ | Accepted 227
+PASS  Send back requires What to revise, and only then  · What to revise is required to send it back.
+PASS  …then Needs revision 55  · All 368 | Owned by me 27 | Requires my approval 0 | Pending review 86 | Needs revision 55 | More 1 ⌄ | Accepted 227
+PASS  Upload with no file says File is required and stays open  · File is required.
+PASS  With a file it is added, pending review: All 369  · All 369 | Owned by me 28 | Requires my approval 0 | Pending review 87 | Needs revision 55 | More 1 ⌄ | Accepted 227
+PASS  POA&M's Create POA&M item names Answers and Title  · Answers is required. | Title is required.
+PASS  …creates the item: Items 42  · POA&M item created: Close the gap the issue names Open POA&M item
+PASS  Risks' Create risk creates it: Register 41  · Risk created: Unsigned firmware reaches a fielded unit Open risk
+PASS  Schedule's Create task creates it: All 15, Open 11  · Task created: Collect the alert log export, due Dec 1 Open task
+PASS  SI-2's Add evidence needs a file  · File is required.
+PASS  …then its Evidence tab lists 2, the new one pending review  · 2
+PASS  …and REQ-064's chain lists the same version (one source)
+PASS  The CVI card's Plan an assessment gives it its first plan  · WS-X90 cooperative vulnerability identification — FY2027 has its first plan, a draft on SSP 2 Open campaign
+PASS  …and the card now opens its campaign
+PASS  Treat 2 critical risks lands on exactly the 2 critical risks, with the filter shown  · 2
+PASS  …the pager counts them
+PASS  …and removing the chip lists the register again
+PASS  Add security outcomes adds AR.1 to PDR's criteria (5)  · Gate criteria 5
+PASS  Ask Priya Raghavan records the ask
+PASS  Edit asset saves the serial number into the preview
+PASS  Invite people on the example page says nothing is kept  · Not saved: invitations are kept for a program created in this session; this page is an example
+PASS  The launcher answers which controls lack evidence  · Answer 1 233 controls have no evidence yet Controls · Needs evidence Controls ›
+PASS  …and its answer opens Controls on Needs evidence  · Needs evidence 233
+PASS  …whose rows all read No evidence
+PASS  A question it cannot answer points at AI agents
+PASS  Components rows carry no mini bars
+PASS  POA&M rows carry no bars
+PASS  Suppliers rows carry no rings
+PASS  plan-cp: 8 or fewer type pairs above the fold  · 8
+PASS  checks: 8 or fewer type pairs above the fold  · 8
+PASS  overview: 8 or fewer type pairs above the fold  · 8
+PASS  ITCSC prints no red sentence
+PASS  1440 no page errors
+
+=== 390px ===
+PASS  390 Requirements has no sideways scroll
+PASS  390 the requirement preview holds its chain
+PASS  390 the chain fits the panel (no sideways scroll inside it)
+PASS  390 the old address opens the preview on Requirements
+PASS  390 evidence has no sideways scroll
+PASS  390 poam has no sideways scroll
+PASS  390 risks has no sideways scroll
+PASS  390 schedule has no sideways scroll
+PASS  390 components has no sideways scroll
+PASS  390 suppliers has no sideways scroll
+PASS  390 controls has no sideways scroll
+PASS  390 control-si2-evidence has no sideways scroll
+PASS  390 assessments has no sideways scroll
+PASS  390 itcsc has no sideways scroll
+PASS  390 traceability has no sideways scroll
+PASS  390 checks has no sideways scroll
+PASS  390 overview has no sideways scroll
+PASS  390 Treat 2 critical risks keeps the 2, with the chip
+PASS  390 no page errors

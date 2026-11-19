@@ -1,0 +1,101 @@
+{
+ "log": [
+  {
+   "step": 1,
+   "action": "go #campaign-r2",
+   "why": "",
+   "hash": "campaign-r2",
+   "h1": "Remote privileged command admission test report, approved list, attestation and ",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 2,
+   "action": "click \"Accept\"",
+   "why": "assessor accepts",
+   "effect": "dialog: Accept request",
+   "hash": "campaign-r2",
+   "h1": "Remote privileged command admission test report, approved list, attestation and ",
+   "modal": "Accept request",
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 3,
+   "action": "click \"Accept\"",
+   "why": "confirm",
+   "effect": "(same screen)",
+   "hash": "campaign-r2",
+   "h1": "Remote privileged command admission test report, approved list, attestation and ",
+   "modal": "Accept request",
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 4,
+   "action": "go #campaign",
+   "why": "",
+   "hash": "campaign",
+   "h1": "Expanded Control Set Assessment",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 4,
+   "shot": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/v2/R/flows/shots/j6b-03-campaign.png"
+  },
+  {
+   "step": 5,
+   "action": "click \"Publish results\"",
+   "why": "publish",
+   "effect": "dialog: Publish assessment results",
+   "hash": "campaign",
+   "h1": "Expanded Control Set Assessment",
+   "modal": "Publish assessment results",
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 5,
+   "shot": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/v2/R/flows/shots/j6b-04-publish-dialog.png"
+  },
+  {
+   "step": 6,
+   "action": "click \"Publish assessment results\"",
+   "why": "confirm publish",
+   "effect": "dialog closed ; page changed in place",
+   "hash": "campaign",
+   "h1": "Expanded Control Set Assessment",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 7,
+   "action": "go #assessments",
+   "why": "",
+   "hash": "assessments",
+   "h1": "",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  }
+ ],
+ "errors": []
+}

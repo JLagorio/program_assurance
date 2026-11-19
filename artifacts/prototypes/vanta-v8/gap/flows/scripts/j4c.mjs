@@ -1,0 +1,11 @@
+import { start } from "./walk.mjs";
+const W = await start("j4c");
+await W.go("evidence");
+let e = await W.click("View", { within: "#main", exact: true, why: "banner: 88 pending review", wait: 500 });
+console.log("VIEW →", e && e.effect, "| chips on:", await W.p.evaluate(() => [...document.querySelectorAll("#main .on,[aria-pressed=true]")].map(x => x.innerText.trim().replace(/\s+/g, " ")).filter(Boolean).slice(0, 5)));
+e = await W.click("Time source comparison test report", { why: "open a pending artifact", wait: 600 });
+console.log("ROW →", e && e.effect);
+console.log("PANEL:", (await W.text("#panel", 1800)).replace(/\s+/g, " ").slice(0, 1200));
+console.log("PANEL CONTROLS:", (await W.see("panel")).join(" ‖ "));
+await W.shot("04-evidence-panel");
+await W.done();

@@ -1,0 +1,78 @@
+PASS workbook opens (via program menu)
+PASS full window: the shell's top bar and navigation step aside
+PASS seven sheets as tabs: SCTM, Controls, Requirements, Evidence, Findings, Risks, Analysis
+PASS SCTM has one row a control (560)
+PASS a control walked elsewhere reads the same here (SA-24: No evidence, mapped by REQ-641)
+PASS a mapping made on the Requirements page shows (AC-3 mapped by REQ-001, REQ-002, REQ-076)
+PASS a click selects a cell (name box B1)
+PASS shift-click selects a range (B1:D4)
+PASS the status bar counts the range
+PASS arrow keys move the active cell (C3)
+PASS shift+arrows extend (C3:D4)
+PASS ctrl+down jumps to the last row (C560)
+PASS ctrl+home returns to A1
+PASS a row header selects the row
+PASS a column header selects the column (C1:C560)
+PASS Sort Z to A from the column menu (aria-sort descending)
+PASS the sorted column leads with Satisfied
+PASS row numbers keep their places after a sort (first row is row 2)
+PASS Filter… keeps only family AC
+PASS the status bar says how many rows the filter shows
+PASS the filtered column's header says it is filtered
+PASS the No evidence view keeps controls with no evidence
+PASS find counts matches (1 match)
+PASS Enter in find moves to the first match (H5)
+PASS All sheets finds more (3 matches)
+PASS the name box takes a record code (AC-2(5) → A7)
+PASS a choice edit stages (Partially implemented → Implemented)
+PASS the staged cell is marked
+PASS the header says 1 change staged
+PASS a derived cell stays read only and says so
+PASS a narrative edit stages (2 changes)
+PASS Analysis calculates (controls with no evidence: 234)
+PASS coverage by family reads (AC: 52 | 51 | 36 | 24 | 5 | 7 | 46% | 6)
+PASS a typed formula calculates over the staged sheet (163 = 162 implemented + 1 staged)
+PASS formulas run on IronCalc 0.8.4 (Formulas: IronCalc 0.8.4)
+PASS a requirement title edit stages (3 changes)
+PASS ctrl+z undoes the last edit (2)
+PASS ctrl+y redoes it (3)
+PASS staged edits survive leaving the workbook; sctm-requirements opens that sheet
+PASS staged edits survive a reload in the same tab
+PASS Review changes names every record and field
+PASS Apply clears the staged changes
+PASS the change is in PA.v2.state and WS-X90's records
+PASS a toast says the changes were applied
+PASS the requirement preview shows the edited title
+PASS the Requirements register shows the edited title
+PASS the SSP editor shows AC-1's new narrative
+PASS every record in a cell renders its preview (840 records, kinds a-tests-control, v7p-req, v7p-el, a-risk-issue, a-risk-poam, a-risk-risk, a-docs-ev)
+PASS a a-tests-control record opens its preview beside the grid (Control preview)
+PASS a v7p-req record opens its preview beside the grid (Requirement preview)
+PASS a v7p-el record opens its preview beside the grid (Element preview)
+PASS a a-risk-issue record opens its preview beside the grid (Operational issue preview)
+PASS a a-risk-poam record opens its preview beside the grid (POA&M item preview)
+PASS a a-risk-risk record opens its preview beside the grid (Risk preview)
+PASS the grid narrows beside the open preview
+PASS a a-docs-ev record opens its preview beside the grid (Evidence)
+PASS Enter on a control cell opens its preview
+PASS a cell's context menu offers the row's control preview and page
+PASS the context menu opens the control's preview
+PASS a row's context menu opens its control's page (#rec--a-tests-control--AC-2)
+PASS a column resizes by dragging its edge (220 → 300 px)
+PASS Fit to contents sizes the column
+PASS the header row and the first column stay in view while the grid scrolls
+PASS Ctrl+V pastes tab-separated values into editable cells (2 staged)
+PASS a pasted value a choice does not hold is refused, in words
+PASS Discard staged changes clears the draft
+PASS Freeze up to Title keeps the first two columns in view
+PASS More › Keyboard shortcuts lists the keys
+PASS no page errors at 1440
+PASS 390: the page never scrolls sideways
+PASS 390: the grid scrolls inside its frame
+PASS 390: the sheet tabs scroll
+PASS 390: a record opens as a sheet from the bottom (top 177 px, 374 of the shell's 374 px)
+PASS 390: an edit through the formula bar stages
+PASS 390: still no sideways page scroll after editing
+PASS 390: Review changes fits the phone
+PASS no page errors at 390
+ALL PASS

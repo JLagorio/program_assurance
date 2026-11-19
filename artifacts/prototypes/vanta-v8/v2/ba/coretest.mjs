@@ -1,0 +1,18 @@
+import { createRequire } from "module";
+const require = createRequire("/Users/joseflagorio/Development/program_assurance-ux-proposal/package.json");
+const { chromium } = require("playwright");
+const b = await chromium.launch(); const p = await b.newPage({ viewport: { width: 1440, height: 900 } });
+const errs = []; p.on("pageerror", (e) => errs.push(String(e)));
+await p.goto("file://" + process.argv[2] + "#home", { waitUntil: "domcontentloaded" }); await p.waitForTimeout(400);
+const r = {};
+r.set = await p.evaluate(() => { PA.v2.set("t.a", 1); return PA.v2.get("t.a"); });
+await p.evaluate(() => PA.v2.go("risks", { rows: ["password"], note: "Showing the risks My work counted" })); await p.waitForTimeout(500);
+r.kept = await p.evaluate(() => ({ hash: location.hash, shown: [...document.querySelectorAll("#main tbody tr")].filter((t) => !t.hidden).length, all: document.querySelectorAll("#main tbody tr").length, line: (document.querySelector(".v2-kept") || {}).textContent }));
+const first = await p.evaluate(() => { const el = document.querySelector("#main [data-panel]:not([data-panel=''])"); return el ? { kind: el.dataset.panel, id: el.dataset.id } : null; });
+await p.evaluate((f) => PA.v2.go("home", null), first); await p.waitForTimeout(300);
+await p.evaluate((f) => PA.v2.go("risks", { open: f }), first); await p.waitForTimeout(600);
+r.open = await p.evaluate(() => ({ panel: !document.getElementById("panel").hidden, last: PA.v2.lastPanel() }));
+await p.evaluate(() => PA.v2.toast("Saved", { label: "Open", route: "home" }));
+r.toast = await p.evaluate(() => !document.getElementById("v2-toast").hidden);
+console.log(JSON.stringify(r), "errors:", errs);
+await b.close();

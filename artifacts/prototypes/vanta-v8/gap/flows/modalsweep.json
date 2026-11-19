@@ -1,0 +1,612 @@
+[
+ {
+  "route": "products",
+  "key": "SPAN|Review update|||v7o-take-product||button",
+  "n": 0,
+  "title": "Take version 2 of X800 Missile",
+  "result": "no primary",
+  "body": "Take version 2 of X800 Missile ✕ X800-A-CUSA takes X800 Missile version 2, Lug & Rail Launch. What the program changed stays. Kept 18 elements, still as the program changed them Added PS-HMU Health Monitoring Unit, as CA-PS-HMU Stays removed SE-MDL Mission Data Loader Library pins 0 changed Assessme"
+ },
+ {
+  "route": "suppliers",
+  "key": "BUTTON|Request from a supplier|||a-risk-portal||",
+  "n": 0,
+  "title": "Request from a supplier",
+  "result": "no primary",
+  "body": "Request from a supplier ✕ Supplier X800 Missile component set Ask for SBOM (CycloneDX or SPDX) HBOM Supplier attestation of provenance (SR-4) CMMC status and SPRS score Counterfeit avoidance plan (SR-11) Due Dec 17, 2026 Reminders Weekly until answered The supplier answers each item in the request p"
+ },
+ {
+  "route": "review-queue",
+  "key": "SPAN|Reassign reviewer|||a-work-owner||button",
+  "n": 0,
+  "title": "Reassign reviewer",
+  "result": "no primary",
+  "body": "Reassign reviewer ✕ 2 records chosen. The person you pick replaces whoever holds them now. Search people IS Ingrid Solberg (You) NF Nadia Fournier Assessor DO D. Okafor Lead assessor PR Priya Raghavan ISSO JB Joel Barrantes ISSM RC Ray Colston System owner WD Wes Duarte Engineer Unassign owner Cance"
+ },
+ {
+  "route": "products",
+  "key": "SPAN|Create product|||v7o-new-product||button",
+  "n": 0,
+  "title": "Create product",
+  "result": "no primary",
+  "body": "Create product ✕ Name Required Name the product Code Required A short code, such as X900 Business line Air Defense The product starts at version 1, a draft, with no configuration. Cancel Create product"
+ },
+ {
+  "route": "integrations",
+  "key": "BUTTON|Missing a connector? Request one|||a-docs-request||",
+  "n": 0,
+  "title": "Request a connector",
+  "result": "no primary",
+  "body": "Request a connector ✕ Tool For example Xacta, Nessus Manager or GitLab What it should read Network Files from a closed network Online inside the enclave Cancel Send request"
+ },
+ {
+  "route": "reports",
+  "key": "SPAN|Generate|||a-work-generate||button",
+  "n": 0,
+  "title": "Generate report",
+  "result": "no primary",
+  "body": "Generate report ✕ Report System security plan · OSCAL JSON Read from SSP 2 · published Jul 25 SSP 3 · draft Marked DRAFT on every page. Exports carry the CUI banner, the designation indicator and Distribution D, and each is logged in the event log. Cancel Generate"
+ },
+ {
+  "route": "components",
+  "key": "SPAN|Create component|||v7o-new-component||button",
+  "n": 0,
+  "title": "Create component",
+  "result": "no primary",
+  "body": "Create component ✕ Name Required Name the component Component set Required X800 Missile component set Type Hardware Owner Search people A new component starts as a draft of the set's next version. Cancel Create component"
+ },
+ {
+  "route": "ai-drafts",
+  "title": "Run an agent",
+  "primary": "Start run",
+  "required": false,
+  "result": "closes, toast only",
+  "toast": "Narrative drafter started on AU family: its suggestions will wait in Needs approval",
+  "after": ""
+ },
+ {
+  "route": "enclaves",
+  "key": "SPAN|Add enclave|||v7o-enclave-new||button",
+  "n": 0,
+  "title": "Add enclave",
+  "result": "no primary",
+  "body": "Add enclave ✕ Classification Unclassified CUI Secret Runs Cloud · DoD IL4 or IL5 On-premises Air-gapped AI drafting Model inside the enclave Off EXAMPLE Enclaves are a proposal. Cancel Add enclave"
+ },
+ {
+  "route": "notifications",
+  "key": "SPAN|Send a test|||a-work-test||button",
+  "n": 0,
+  "title": "Send a test",
+  "result": "no primary",
+  "body": "Send a test ✕ Sends one of each alert you have on to you, Ingrid Solberg, by email and in the app. Chat stays off in the CUI enclave. To IS Ingrid Solberg Marking CUI Cancel Send test"
+ },
+ {
+  "route": "ai-drafts",
+  "title": "Reject the run",
+  "primary": "Reject run",
+  "required": true,
+  "result": "dialog changes (next step or validation)",
+  "toast": "",
+  "after": "Reject the run ✕ Narrative drafter: 10 implementation narratives for AC in SSP 3. Nothing it proposed is applied; the reason stays on the run. Reason Required S"
+ },
+ {
+  "route": "common-controls",
+  "key": "SPAN|Add provider|||v7o-ccp-new||button",
+  "n": 0,
+  "title": "Add provider",
+  "result": "no primary",
+  "body": "Add provider ✕ Provider A hosting enclave Physical, contingency, boundary A CSSP Incident response and monitoring PEO enterprise services Shared tools and keys An offer names each capability, the controls it covers and the consumer's duty. WS-X90 accepts it control by control on its SSP. Cancel Ask "
+ },
+ {
+  "route": "deadlines",
+  "key": "SPAN|Edit deadlines|||v7o-dl-edit||button",
+  "n": 0,
+  "title": "Edit high finding deadline",
+  "result": "no primary",
+  "body": "Edit high finding deadline ✕ Days Required 30 Recommended 15–30 days Count from The day it was found or opened The day it was imported Open items Apply to new items only Recompute every open item's due date Logged in the event log Owner Priya Raghavan Applies to: Operational issues, from when opened"
+ },
+ {
+  "route": "permissions",
+  "title": "Invite a member",
+  "primary": "Send invitation",
+  "required": true,
+  "result": "dialog stays, nothing changes",
+  "toast": "",
+  "after": "Invite a member ✕ They get an email. Their workspace role decides what they can do; a program role holds them to its acts. Email Required Name Optional Workspac"
+ },
+ {
+  "route": "event-log",
+  "key": "SPAN|Export CSV|||v7o-export-log||button",
+  "n": 0,
+  "title": "Export event log",
+  "result": "no primary",
+  "body": "Export event log ✕ Events All 299 events Jun 30 to Nov 17 Last 30 days The view shown Format CSV JSON The file carries the CUI banner, and the export is recorded as an event. Cancel Export"
+ },
+ {
+  "route": "itcsc",
+  "key": "BUTTON|Start version 4|||v8b-itc-new||",
+  "n": 0,
+  "title": "Start version 4",
+  "result": "no primary",
+  "body": "Start version 4 ✕ Version 3 stays approved until version 4 is signed. Start from a copy of version 3 or read a completed form. Copy version 3 and edit 37 answers carry over; section 5 adds the 2 interfaces from the register Import a completed ITCSC PDF or Word, read by the ITCSC reader What changes "
+ },
+ {
+  "route": "itcsc",
+  "key": "SPAN|JB Joel Barrantes|||v8b-owner||button",
+  "n": 0,
+  "title": "Change owner",
+  "result": "no primary",
+  "body": "Change owner ✕ Search people IS Ingrid Solberg (You) Security engineer PR Priya Raghavan ISSO JB Joel Barrantes ISSM RC Ray Colston System owner MR Marcus Ryde Component owner DO D. Okafor Lead assessor (SCA) NF Nadia Fournier Assessor RC R. Calloway Authorizing official Unassign owner Cancel"
+ },
+ {
+  "route": "interconnections",
+  "key": "BUTTON|Add interconnection|||v8b-ic-new||",
+  "n": 0,
+  "title": "Add interconnection",
+  "result": "no primary",
+  "body": "Add interconnection ✕ A connection that crosses WS-X90's boundary. CA-3 asks for an agreement unless the exchange needs none. Connection Required Name the connection Connected system Required The system on the other side Owning organization Who runs it Its AO Search people or type a name Type Ethern"
+ },
+ {
+  "route": "composition",
+  "key": "BUTTON|Create element|||v7p-el-new||",
+  "n": 0,
+  "title": "Create element",
+  "result": "no primary",
+  "body": "Create element ✕ Name Required Name the element Kind Hardware Inside CN-109001 Mission Computing Subsystem LRU LRU-021 The line-replaceable unit it ships as, if it is one. Cancel Create element"
+ },
+ {
+  "route": "composition",
+  "key": "SPAN|Review version 2|||v7p-take||button",
+  "n": 0,
+  "title": "Take version 2 of Mission Computer",
+  "result": "no primary",
+  "body": "Take version 2 of Mission Computer ✕ LRU-001 on CN-109101 takes the X800 Missile component set's Mission Computer at version 1. Version 2 was published on Nov 12. What version 2 changes The maintenance image carries OpenSSH server 9.8p1 in place of 9.6p1, which fixes CVE-2024-6387 (regreSSHion). Not"
+ },
+ {
+  "route": "stigs",
+  "title": "Import a checklist",
+  "primary": "Preview changes",
+  "required": true,
+  "result": "dialog changes (next step or validation)",
+  "toast": "",
+  "after": "Import a checklist ✕ Choose a file 2 Preview changes 3 Apply disa-stig-checklist-mission-computing-rhel-9-v2r10.ckl .ckl · read just now Status changes 11 New r"
+ },
+ {
+  "route": "sources",
+  "key": "BUTTON|Retry import|||a-docs-retry||",
+  "n": 0,
+  "title": "Retry import",
+  "result": "no primary",
+  "body": "Retry import ✕ Source Container image scan — telemetry services File SARIF 2.1.0 Failed Oct 30 · 03:40 UTC runs[0].results[17].locations has no physicalLocation. Retry with A corrected file Upload a new SARIF file This file, skipping results with no location Says how many it skipped Cancel Retry imp"
+ },
+ {
+  "route": "ppsm",
+  "key": "BUTTON|Add service|||v8b-pps-new||",
+  "n": 0,
+  "title": "Add service",
+  "result": "no primary",
+  "body": "Add service ✕ A port, protocol or service WS-X90 uses. The CAL says how it is assessed. Port Required 443 Transport TCP Protocol Required HTTPS Service Required What it carries Direction Outbound Boundary Enclave Internal only, enclave or DISN Interconnection Mission planning network Element Protect"
+ },
+ {
+  "route": "sources",
+  "title": "Add source",
+  "primary": "Next",
+  "required": false,
+  "result": "dialog changes (next step or validation)",
+  "toast": "",
+  "after": "Add source ✕ ✓ Type 2 System 3 Hosts 4 Scope 5 Threshold 6 Review 2. System System SYS-WSX90 WS-X90 Sentinel Mission System PRG-1090 · 20 system components X800"
+ },
+ {
+  "route": "inventory",
+  "key": "SPAN|Assign owners|||a-people-assign||button",
+  "n": 0,
+  "title": "Assign owner",
+  "result": "no primary",
+  "body": "Assign owner ✕ 20 assets take this owner. An owner is a person or an organization. Person Search people Or an organization Search organizations Cancel Assign owner"
+ },
+ {
+  "route": "inventory",
+  "key": "SPAN|Mark not in boundary|||ak-reason||button",
+  "n": 0,
+  "title": "Mark not in boundary",
+  "result": "no primary",
+  "body": "Mark not in boundary ✕ 3 assets leave SYS-WSX90. The reason, the date and any evidence show on each asset and under Scope changes. Duration Indefinitely Reason Required Why is this changing? The reason shows on the record, with your name and the date. Evidence Optional Upload a file or link a docume"
+ },
+ {
+  "route": "controls",
+  "key": "SPAN|Add to assessment campaign|||a-tests-addcamp||button",
+  "n": 0,
+  "title": "Add to assessment campaign",
+  "result": "no primary",
+  "body": "Add to assessment campaign ✕ The 3 controls join the campaign's draft plan as the assessment objectives nobody has judged yet. WS-X90 continuous monitoring — FY2027 · plan 1, draft Holds 10 objectives today WS-X90 Expanded Control Set Assessment Its plan is published: no draft to add to Cancel Add t"
+ },
+ {
+  "route": "baseline",
+  "key": "BUTTON|Edit overlays|||v7p-overlays||",
+  "n": 0,
+  "title": "Edit overlays",
+  "result": "no primary",
+  "body": "Edit overlays ✕ The program tailoring stays last. Systems that adopted the old top move to the new one; every SSP revision keeps the baseline it was pinned to. 1 CNSSI 1253 National Security System Allocation +201 −17 · 554 ↑ ↓ 2 Mission Assurance Overlay +0 −5 · 549 ↑ ↓ 3 Deployed Platform Overlay "
+ },
+ {
+  "route": "ssps",
+  "title": "New plan",
+  "primary": "Create draft",
+  "required": false,
+  "result": "closes, toast only",
+  "toast": "Supply chain risk management plan: a draft from its template is proposed for the next version",
+  "after": ""
+ },
+ {
+  "route": "checks",
+  "key": "SPAN|Deactivate|||a-tests-deactivate||button",
+  "n": 0,
+  "title": "Deactivate 2 checks",
+  "result": "no primary",
+  "body": "Deactivate 2 checks ✕ IAVA and IAVB patches inside their windows; Evidence renewed before it expires Duration Indefinitely Until a date Dec 1, 2026 EXAMPLE: it switches back on by itself Reason for deactivation Required Tell the team and the assessor why this check is off. The reason shows on the ch"
+ },
+ {
+  "route": "requirements",
+  "key": "BUTTON|Import requirements|||v7p-import||",
+  "n": 0,
+  "title": "Import requirements",
+  "result": "no primary",
+  "body": "Import requirements ✕ A CSV, the first sheet of an Excel workbook, a ReqIF file, or rows pasted from a spreadsheet. Drop a file, or choose one Read CUSB-SRS Issue 2.csv EXAMPLE: 14 requirements, 4 columns (Reference, Title, Statement, Elements); passed over 2 empty rows. Add to A new requirements do"
+ },
+ {
+  "route": "requirements",
+  "key": "BUTTON|Create requirement|||v7p-req-new||",
+  "n": 0,
+  "title": "Create requirement",
+  "result": "no primary",
+  "body": "Create requirement ✕ Code REQ-641 Title Required What the system shall do Statement Required The … shall … Owner Unassigned Allocate to Choose elements A requirement maps controls on each element it is allocated to. Cancel Create requirement"
+ },
+ {
+  "route": "assessments",
+  "key": "SPAN|Plan an assessment|||a-tests-plan||button",
+  "n": 0,
+  "title": "Plan an assessment",
+  "result": "no primary",
+  "body": "Plan an assessment ✕ Title WS-X90 cooperative vulnerability identification — FY2027 SSP SYS-WSX90 · SSP 2, published Jul 25 · 560 controls Window Jan 11 – Feb 5, 2027 Lead assessor DO D. Okafor Cancel Plan an assessment"
+ },
+ {
+  "route": "assessments",
+  "key": "SPAN|Publish results|||a-tests-publish||button",
+  "n": 0,
+  "title": "Publish assessment results",
+  "result": "no primary",
+  "body": "Publish assessment results ✕ Interim results — expanded control set, increment 2 holds 20 findings: 13 satisfied, 4 partially, 1 other than satisfied and 2 not assessed. Publishing freezes them. WS-X90's control statuses and traces read them from then on. Satisfied 13 Partially 4 Other than 1 Not as"
+ },
+ {
+  "route": "cyber-te",
+  "key": "BUTTON|Plan a cyber test|||v7a-cyber-plan||",
+  "n": 0,
+  "title": "Plan a cyber test",
+  "result": "no primary",
+  "body": "Plan a cyber test ✕ Phase Required 3 · Cooperative vulnerability identification 4 · Adversarial cybersecurity DT&E 5 · Cooperative vulnerability and penetration assessment 6 · Adversarial assessment Title Required WS-X90 adversarial cybersecurity DT&E — FY2027 Scope CN-109101 Mission Computer, CN-10"
+ },
+ {
+  "route": "policies",
+  "key": "BUTTON|Assign approvers|||a-docs-approvers||",
+  "n": 0,
+  "title": "Assign approvers",
+  "result": "no primary",
+  "body": "Assign approvers ✕ Approvers are emailed and see Approve once they sign in. Everyone in a step approves before the next step starts. 1 Step 1 · Evidence review Up to three approvers. Each must approve. NF Nadia Fournier Assessor Search people 2 Step 2 · ISSM EXAMPLE Up to three approvers. Each must "
+ },
+ {
+  "route": "poam",
+  "key": "BUTTON|Create POA&M item|||a-risk-poam-new||",
+  "n": 0,
+  "title": "Create POA&M item",
+  "result": "no primary",
+  "body": "Create POA&M item ✕ Answers Choose operational issues, risks or findings Title Required What the item fixes, in one line Owner No owner Planned completion Dec 17, 2026 The item joins the WS-X90 POA&M and exports to eMASS and OSCAL with its milestones. Cancel Create POA&M item"
+ },
+ {
+  "route": "policies",
+  "title": "Start a policy",
+  "primary": "Continue",
+  "required": false,
+  "result": "navigates to policy-editor",
+  "toast": "",
+  "after": ""
+ },
+ {
+  "route": "poam",
+  "key": "SPAN|Change planned date…|||a-risk-ms-move||button",
+  "n": 0,
+  "title": "Change planned date",
+  "result": "no primary",
+  "body": "Change planned date ✕ Changing 2 POA&M items New planned date Jan 15, 2027 Reason for the change Required Why the date moves; it stays in the item's history and the eMASS export. Cancel Change planned date"
+ },
+ {
+  "route": "findings",
+  "key": "SPAN|Deactivate…|||a-risk-deactivate||button",
+  "n": 0,
+  "title": "Deactivate 3 findings",
+  "result": "no primary",
+  "body": "Deactivate 3 findings ✕ Findings Unmet requirement REQ-100 Unmet requirement REQ-008 Unmet requirement REQ-068 Applies to Every asset it is found on (none named) Chosen assets Reason Not applicable to this system Justification Required Why this finding does not apply, in one or two sentences. The as"
+ },
+ {
+  "route": "threats",
+  "key": "BUTTON|Link ATT&CK technique|||v7a-att-link||",
+  "n": 0,
+  "title": "Link ATT&CK technique",
+  "result": "no primary",
+  "body": "Link ATT&CK technique ✕ A risk names the techniques it concerns; the countering controls then show what WS-X90 holds against it. Risk Required Choose one of WS-X90's 40 open risks Technique Required Search ATT&CK for Enterprise, then ATT&CK for ICS Appendix F for Enterprise, Appendix G for ICS Cance"
+ },
+ {
+  "route": "risks",
+  "key": "BUTTON|Create risk|||a-risk-new-risk||",
+  "n": 0,
+  "title": "Create risk",
+  "result": "no primary",
+  "body": "Create risk ✕ Title Required What could happen, to what, in one sentence Threat Who or what, and how Likelihood Moderate Impact High Response Mitigate Owner No owner Cancel Create risk"
+ },
+ {
+  "route": "risks",
+  "key": "SPAN|Request acceptance|||a-risk-accept||button",
+  "n": 0,
+  "title": "Request acceptance",
+  "result": "no primary",
+  "body": "Request acceptance ✕ Risk 2 risks 1 ISSO · Priya Raghavan 2 ISSM · Joel Barrantes 3 Authorizing official · R. Calloway signs Residual risk statement Required What remains after the planned mitigation, and why it is acceptable for operational use Acceptance expires Nov 17, 2027 At most 12 months, and"
+ },
+ {
+  "route": "inheritance",
+  "key": "BUTTON|Add common control provider|||v7a-ccp||",
+  "n": 0,
+  "title": "Add common control provider",
+  "result": "no primary",
+  "body": "Add common control provider ✕ A provider offers implementations of controls from its own SSP; WS-X90 accepts each one and keeps the responsibility the offer names. Provider Required Choose a system of the workspace The corporate identity provider is already one Offered implementations Choose from it"
+ },
+ {
+  "route": "package-room",
+  "key": "SPAN|Share the package|||a-risk-share||button",
+  "n": 0,
+  "title": "Share the package",
+  "result": "no primary",
+  "body": "Share the package ✕ Recipient Name or .mil address Role Reciprocity reviewer Version Version 1 · published Documents System security plan Security assessment report POA&M Evidence (3 documents) Will share: SSP, SAR and POA&M of version 1 Access expires Feb 15, 2027 Every share expires. Downloads Wat"
+ },
+ {
+  "route": "traceability",
+  "key": "BUTTON|Link evidence|||v7a-link-ev||",
+  "n": 0,
+  "title": "Link evidence",
+  "result": "no primary",
+  "body": "Link evidence ✕ The evidence version a requirement cites is what an assessor examines, and what the requirement's trace reaches. Requirement Required Choose a requirement Evidence Required Search published evidence versions WS-X90's evidence artifacts, latest published version first Passage Optional"
+ },
+ {
+  "route": "sse",
+  "title": "Add security outcomes",
+  "primary": "Add outcomes",
+  "required": true,
+  "result": "dialog stays, nothing changes",
+  "toast": "Choose at least one outcome",
+  "after": "Add security outcomes ✕ NIST SP 800-160 Vol. 1 Rev. 1: 181 outcomes in 30 processes. An outcome added to a review becomes one of its gate criteria, Not assessed"
+ },
+ {
+  "route": "conmon",
+  "key": "BUTTON|Plan a check|||v7p-plan-check||",
+  "n": 0,
+  "title": "Plan a check",
+  "result": "no primary",
+  "body": "Plan a check ✕ A recurring check becomes a task in the continuous monitoring plan each time it falls due. Check Required What is checked Cadence Monthly Controls Choose controls Owner Unassigned First due Dec 15, 2026 Cancel Plan check"
+ },
+ {
+  "route": "schedule",
+  "key": "SPAN|Create task|||a-work-task-new||button",
+  "n": 0,
+  "title": "Create task",
+  "result": "no primary",
+  "body": "Create task ✕ Title Required What is done, in one line Owner No owner Due date Choose a day Source Custom Or the recurring check it fulfils, such as Monthly · CM-6. Cancel Create task"
+ },
+ {
+  "route": "program-new",
+  "title": "Save the draft and leave?",
+  "primary": "Save draft",
+  "required": false,
+  "result": "navigates to home",
+  "toast": "Draft saved · Customer D · X800 Eject Launch Integration",
+  "after": ""
+ },
+ {
+  "route": "authorization",
+  "title": "Submit package version 2 for approval",
+  "primary": "Submit",
+  "required": false,
+  "result": "dialog stays, nothing changes (primary disabled)",
+  "toast": "",
+  "after": "Submit package version 2 for approval ✕ Joel Barrantes reviews first; then R. Calloway decides and signs. Version 2 can be submitted once each item below is don"
+ },
+ {
+  "route": "schedule",
+  "key": "SPAN|Change due date|||a-work-due||button",
+  "n": 0,
+  "title": "Change due date",
+  "result": "no primary",
+  "body": "Change due date ✕ 2 tasks chosen. Each keeps its window's start. Due date Required Choose a day Reason Required Why the date moves. It is kept in each task's activity. Cancel Change due date"
+ },
+ {
+  "route": "people",
+  "key": "SPAN|Assign a role|||risk-role||button",
+  "n": 0,
+  "title": "Assign a role",
+  "result": "no primary",
+  "body": "Assign a role ✕ Person Amara Bell D. Okafor Dan Whitfield Elena Vasquez Hana Lindqvist Ingrid Solberg Joel Barrantes Marcus Ryde Nadia Fournier Priya Raghavan R. Calloway Ray Colston Sarah Chen Tom Okafor Victor Amsel Wes Duarte Role Authorizing official Lead assessor Assessor ISSM ISSO System owner"
+ },
+ {
+  "route": "people",
+  "key": "SPAN|Schedule reminders|||a-people-recurring||button",
+  "n": 0,
+  "title": "Recurring reminders",
+  "result": "no primary",
+  "body": "Recurring reminders ✕ WS-X90 has no reminders scheduled. A recurring reminder emails each person their open tasks. Send Every Monday To People with tasks past due or due within 14 days Method Email EXAMPLE The schedule is proposed; nothing is sent until it is saved. Cancel Schedule reminders"
+ },
+ {
+  "route": "people",
+  "key": "SPAN|Send reminder|||a-people-remind||button",
+  "n": 0,
+  "title": "Send a reminder",
+  "result": "no primary",
+  "body": "Send a reminder ✕ Each person gets one email listing their open WS-X90 tasks and when each is due. Send to JB Joel Barrantes PR Priya Raghavan 2 selected personnel Method Email Message Optional Your open WS-X90 tasks are listed below. Reply here if a date needs to move. Cancel Send reminder"
+ },
+ {
+  "route": "people",
+  "key": "SPAN|Change role|||a-people-change-role||button",
+  "n": 0,
+  "title": "Change role",
+  "result": "no primary",
+  "body": "Change role ✕ People JB Joel Barrantes PR Priya Raghavan Role Required Choose a role Starts Nov 17, 2026 WS-X90 has one authorizing official and one lead assessor at a time; giving either role ends the current holder's period. Cancel Change role"
+ },
+ {
+  "route": "people",
+  "key": "SPAN|End role|||a-people-end||button",
+  "n": 0,
+  "title": "End 2 roles",
+  "result": "no primary",
+  "body": "End 2 roles ✕ WS-X90 keeps one holder of each of these roles at a time, so each needs a successor. Successor as ISSM Required Choose the next information system security manager Successor as ISSO Required Choose the next information system security officer Ends Nov 17, 2026 What moves EXAMPLE ISSM: "
+ },
+ {
+  "route": "program-start",
+  "key": "BUTTON|Import|||pn-itcsc||",
+  "n": 0,
+  "title": "Import the ITCSC",
+  "result": "no primary",
+  "body": "Import the ITCSC ✕ A completed AF ITCSC, PDF or Word. The ITCSC reader reads it into the program's ITCSC record, where the PM and the AO sign it. EXAMPLE Drop a file here or choose one Cancel"
+ },
+ {
+  "route": "program-start",
+  "key": "BUTTON|Upload|||pn-diagram||",
+  "n": 0,
+  "title": "Upload the architecture diagram",
+  "result": "no primary",
+  "body": "Upload the architecture diagram ✕ The boundary and data flow diagram, as SVG, PNG or PDF. The SSP's section 6 shows it. EXAMPLE Drop a file here or choose one Cancel"
+ },
+ {
+  "route": "campaign",
+  "key": "SPAN|Set Ready|||a-tests-ready||button",
+  "n": 0,
+  "title": "Set Ready",
+  "result": "no primary",
+  "body": "Set Ready ✕ The 3 requests go back to the assessor as Ready. Each flag's justification stays in its assessor thread. Cancel Set Ready"
+ },
+ {
+  "route": "program-start",
+  "title": "Invite by email",
+  "primary": "Send invitation",
+  "required": true,
+  "result": "dialog changes (next step or validation)",
+  "toast": "",
+  "after": "Invite by email ✕ Someone not yet in the workspace. They get an email, and hold the role once they accept. EXAMPLE Email Required Enter an email address, as nam"
+ },
+ {
+  "route": "control-si2",
+  "key": "SPAN|Add evidence|||a-tests-addev||button",
+  "n": 0,
+  "title": "Add evidence",
+  "result": "no primary",
+  "body": "Add evidence ✕ Control SI-2 Flaw Remediation Cited by REQ-064 Drop a file, or choose one: PDF, image, .nessus, .ckl, CycloneDX or SPDX Title openssh-server 9.8p1 update record, Mission Computer maintenance image version 2 Cancel Add evidence"
+ },
+ {
+  "route": "ssp-review",
+  "title": "Edit summary",
+  "primary": "Save summary",
+  "required": false,
+  "result": "closes, toast, page changes",
+  "toast": "Summary saved. It goes to the ISSM with the submission.",
+  "after": ""
+ },
+ {
+  "route": "ssp-history",
+  "title": "Compare versions",
+  "primary": "Compare",
+  "required": false,
+  "result": "closes, page changes, no toast",
+  "toast": "",
+  "after": ""
+ },
+ {
+  "route": "ssp-history",
+  "title": "Name this version",
+  "primary": "Save name",
+  "required": false,
+  "result": "dialog changes (next step or validation)",
+  "toast": "",
+  "after": "Name this version ✕ Nov 13, 3:10 PM. A name keeps the version in view when only named versions show. Name Write a name, or cancel. Cancel Save name"
+ },
+ {
+  "route": "ssp-history",
+  "title": "Restore this version?",
+  "primary": "Restore",
+  "required": false,
+  "result": "closes, toast, page changes",
+  "toast": "Restored as a new version. Every version stays in the history.",
+  "after": ""
+ },
+ {
+  "route": "component-mc",
+  "key": "SPAN|Send reminder|||v7o-remind||button",
+  "n": 0,
+  "title": "Remind consumers to take version 2",
+  "result": "no primary",
+  "body": "Remind consumers to take version 2 ✕ Each program that runs version 1 gets one email, and its Where used line records the reminder. WS-X90 Sentinel Mission System SYS-WSX90 · LRU-001 · version 1 Customer A · X800 Rail Integration X800-A-CUSA · CA-GS-MC · version 1 Customer B · X800 Palletized Integr"
+ },
+ {
+  "route": "check-scan",
+  "title": "Create ticket",
+  "primary": "Create ticket",
+  "required": true,
+  "result": "closes, toast, page changes",
+  "toast": "WSX-419 created in Jira · status syncs both ways",
+  "after": ""
+ },
+ {
+  "route": "ssp",
+  "title": "Share the SSP",
+  "primary": "Copy link",
+  "required": false,
+  "result": "dialog stays, nothing changes",
+  "toast": "Link copied",
+  "after": "Share the SSP ✕ Editor Commenter Viewer Invite People with access 8 IS Ingrid Solberg (you) Security engineer Editor PR Priya Raghavan ISSO Editor Commenter Vie"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|Detach|||se-detach||",
+  "n": 0,
+  "title": "Detach from the record?",
+  "result": "no primary",
+  "body": "Detach from the record? ✕ 1 System identification keeps today's values as text you can edit, and stops updating from its record. You can reattach it later; edits to the text are then replaced by the record's values. Cancel Detach section 1"
+ },
+ {
+  "route": "ssp",
+  "title": "Add section",
+  "primary": "Add section",
+  "required": false,
+  "result": "closes, toast, page changes",
+  "toast": "Added 14 New section",
+  "after": ""
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|Replace with an image|||se-upload||",
+  "n": 0,
+  "title": "Replace Figure 1",
+  "result": "no primary",
+  "body": "Replace Figure 1 ✕ Drop a PNG, SVG or PDF here, up to 10 MB An uploaded figure is kept with this revision of the SSP; it does not update from the records. Cancel Choose a file"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|Replace with an image|||se-upload||",
+  "n": 1,
+  "title": "Replace Figure 2",
+  "result": "no primary",
+  "body": "Replace Figure 2 ✕ Drop a PNG, SVG or PDF here, up to 10 MB An uploaded figure is kept with this revision of the SSP; it does not update from the records. Cancel Choose a file"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|2 values the baseline doesn't set|||se-params||",
+  "n": 0,
+  "title": "Set AC-2(3)'s parameters",
+  "result": "no primary",
+  "body": "Set AC-2(3)'s parameters ✕ The narrative says 72 hours and 90 days, but WS-X90's program tailoring sets neither value, so the assessor can't test against them. Setting them adds them to the tailoring, the baseline's last layer. AC-2(3) time period before an account is disabled AC-2(3)d inactivity pe"
+ }
+]

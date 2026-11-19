@@ -1,0 +1,21 @@
+19 pages with a facts line; 16 with numbers
+review-queue       # Across the workspace Waiting 148 Programs 8 Longest wait 66 days
+suppliers          # Supply chain risk management · SR family Component sets 4 Organizations 6 SBOM upstreams 1
+frameworks         # Catalog NIST SP 800-53 Rev 5.1.1 · 1,014 active controls · 20 families
+integrations         Connectors for a DoD program: files from closed networks first, online where the enclave allows
+data-calls           FISMA and readiness data calls and customer questionnaires, answered from what the program already holds
+reports            # WS-X90 Sentinel Mission System · CUI banner on every export
+before-after       # 2,597 help-center images looked at 1,645 of them Vanta's own screens 39 screens compared 184 changes, each che
+nav-options        # 5 wireframes Only the navigation is drawn Colour marks the program's menu
+notifications        Workspace CUI EXAMPLE Chat only on unclassified enclaves
+sources            # System SYS-WSX90 Requested by Joel Barrantes, ISSM
+controls           # SSP 3 draft · 560 controls in the baseline 1,791 assessment objectives
+checks             # Derived from WS-X90's records, run daily 7 checks · 5 read real data, 2 are partly Example
+policies           # Policy and procedures for each family, the -1 controls 18 families in WS-X90's baseline
+assessments        # 4 campaigns · 2 active Lead assessor D. Okafor
+findings           # WS-X90 · SYS-WSX90 Open issues 44 Open CVEs 1 Determinations 313
+poam               # WS-X90 Sentinel Mission System — POA&M Items 41 Milestones 123
+risks              # WS-X90 risk register Open 40 Last decision snapshot Sep 18
+package-room       # WS-X90 Sentinel Mission System authorization package Version 1 published Version 2 draft
+schedule           # WS-X90 Sentinel Mission System Tasks 14 Lifecycle gates 2
+nav buttons: ["WS-X90Sentinel Mission System▾","System⌄","Compliance⌄","Assess⌄","Risk⌄","Analysis›","Authorize⌄","Monitor›"]

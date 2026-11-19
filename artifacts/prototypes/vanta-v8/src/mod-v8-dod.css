@@ -143,3 +143,19 @@
 
 /* The SI-2 block sits in the page grid: let it shrink so its table scrolls inside the frame. */
 .v8g-si2 { min-width: 0; }
+
+/* ——— v2 (agent L2): a checklist's one row of chips, CAT as a filter, the release line in the header ——— */
+.v2l-tools { flex-wrap: nowrap; }
+.v2l-tools .v8g-search { flex: 0 1 260px; min-width: 0; }
+.v2l-tools > .flt, .v2l-tools .v2l-flt > summary { white-space: nowrap; flex: none; }
+.v2l-flt { position: relative; }
+.v2l-flt > summary { list-style: none; cursor: pointer; }
+.v2l-flt > summary::-webkit-details-marker { display: none; }
+.v2l-flt > summary.v2l-on { color: var(--ink); background: var(--band); }
+.v2l-flt:not([open]) > .v2l-menu { display: none; }
+.v2l-menu { position: absolute; inset-inline-start: 0; top: calc(100% + 4px); z-index: 20; min-width: 168px; display: grid; padding: 4px; background: var(--canvas); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 8px 24px rgb(24 24 29 / 0.12); }
+.v2l-mi { display: flex; justify-content: space-between; gap: 16px; align-items: center; height: 34px; padding: 0 10px; border: 0; border-radius: 6px; background: none; font: inherit; font-size: 13px; color: var(--ink); text-align: start; cursor: pointer; }
+.v2l-mi:hover, .v2l-mi:focus-visible { background: var(--band); }
+.v2l-mi[aria-checked="true"] { font-weight: 600; }
+.v2l-mi .num { color: var(--ink-3); font-weight: 400; }
+.v2l-lk { border: 0; background: none; padding: 0; font: inherit; cursor: pointer; }

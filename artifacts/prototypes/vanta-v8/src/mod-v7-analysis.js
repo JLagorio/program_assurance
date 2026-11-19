@@ -201,6 +201,7 @@
 
   // ═════════ Traceability: control → requirement → evidence → finding → issue → risk → remediation ═════════
   const TR = D.tr.map(([c, t, ctl, e, f, i, k, ev, rem]) => ({ code: c, t, ctl, e, f, i, k, ev, rem }));
+  PA.v7aTR = TR; // v2 (F): a requirement's chain on the Requirements page reads the same chains
   const T0 = D.trTot;
   const REMN = TR.filter((r) => r.rem.length).length;
   const TRV = { traceability: TR.slice(0, 25), "traceability-risk": TR.filter((r) => r.k.length), "traceability-noev": TR.filter((r) => !r.e) };
@@ -210,7 +211,10 @@
   const openCell = (rows) => { const o = rows.filter((x) => x[2] === "open"); return o.length ? `${num(o.length)} ${sevPill(worst(o))}` : rows.length ? mu(`${rows.length} closed`) : ring("None"); };
   const remCell = (r) => (r.rem.length ? `${poamPill(r.rem[0][1])}${r.rem.length > 1 ? ` ${mu(`+${r.rem.length - 1}`)}` : ""}` : r.i.some((x) => x[2] === "open") || r.k.some((x) => x[2] === "open") ? pill("bad", "None planned") : ring("None"));
   const trHead = () => AK.indexHead({ title: "Traceability", desc: "Each requirement's chain: control → requirement → evidence → assessment finding → operational issue → risk → remediation", actions: `<span class="btn">Export ${AK.i("down")}</span><button type="button" class="btn ink" data-modal="v7a-link-ev" data-id="">Link evidence</button>` });
-  const trTabs = (cur) => tabsOf([["Table", T0.all, "traceability"], ["Reaches a risk", T0.k, "traceability-risk"], ["No evidence", T0.all - T0.ev, "traceability-noev"], ["Matrix", null, "traceability-matrix"]], cur, "Traceability views");
+  // v2 (F): evidence linked in the session to a requirement that cited none counts here as on the Requirements page (PA.v2reqs).
+  const GAIN = () => (PA.v2reqs ? PA.v2reqs.gainedSet() : new Set());
+  const evN = (r) => r.e + (PA.v2reqs ? PA.v2reqs.gained(r.code) : 0);
+  const trTabs = (cur) => tabsOf([["Table", T0.all, "traceability"], ["Reaches a risk", T0.k, "traceability-risk"], ["No evidence", T0.all - T0.ev - GAIN().size, "traceability-noev"], ["Matrix", null, "traceability-matrix"]], cur, "Traceability views");
   const STAGES = [["Map a control", T0.ctl, "Every requirement maps one", "ok"], ["Cite evidence", T0.ev, `${fmt(T0.all - T0.ev)} cite none`, "ok"], ["Reach an assessment finding", T0.f, `${T0.fshort} short of satisfied`, "warn"], ["Reach an operational issue", T0.i, `${T0.iopen} still open`, "bad"], ["Reach a risk", T0.k, `${T0.kopen} open`, "bad"], ["Reach a POA&M item", REMN, "Each of their issues has one", "info"]];
   const funnel = () => {
     const body = VIEW.trace === "table"
@@ -219,11 +223,12 @@
     return `<section class="v7a-chart"><div class="v7a-chart-h"><div class="v7a-chart-t"><b>How far each chain reaches</b><span class="v7a-mu num">${fmt(T0.all)} requirements, current revisions</span></div>${seg("trace", [["chart", "Chart"], ["table", "Table"]])}</div>${body}</section>`;
   };
   function trScreen(route) {
-    const rows = TRV[route];
-    return h.page(trHead(), trTabs(route), route === "traceability" ? funnel() : route === "traceability-noev" ? banner({ tone: "warn", text: `<b>${fmt(T0.all - T0.ev)} requirements cite no evidence,</b> so their chains stop at the requirement.`, action: "Link evidence", modal: "v7a-link-ev" }) : banner({ tone: "bad", text: `<b>${T0.k} requirements reach a risk;</b> all ${T0.kopen} of those risks are open, and each issue behind them has a POA&M item.`, action: "Open risks", to: "risks" }),
+    const G = GAIN(), rows = route === "traceability-noev" ? TRV[route].filter((r) => !G.has(r.code)) : TRV[route];
+    const TRN = { traceability: T0.all, "traceability-risk": T0.k, "traceability-noev": T0.all - T0.ev - G.size };
+    return h.page(trHead(), trTabs(route), route === "traceability" ? funnel() : route === "traceability-noev" ? banner({ tone: "warn", text: `<b>${fmt(TRN["traceability-noev"])} requirements cite no evidence,</b> so their chains stop at the requirement.`, action: "Link evidence", modal: "v7a-link-ev" }) : banner({ tone: "bad", text: `<b>${T0.k} requirements reach a risk;</b> all ${T0.kopen} of those risks are open, and each issue behind them has a POA&M item.`, action: "Open risks", to: "risks" }),
       h.tools("Search requirements", ["Control family", "Evidence", "Determination", "Remediation"]),
       tbl({ cols: ["Requirement", "Controls", "Evidence", "Findings", "Issues", "Risks", "Remediation"], label: "Requirement chains", total: TRN[route], panel: "v7a-trace",
-        rows: rows.slice(0, 25).map((r) => ({ id: r.code, cells: [`<span class="v7a-req">${code(r.code)}${cut(r.t, 196)}</span>`, `${r.ctl.slice(0, 2).map(tag).join(" ")}${r.ctl.length > 2 ? ` ${mu(`+${r.ctl.length - 2}`)}` : ""}`, r.e ? num(r.e) : pill("none", "No evidence"), r.f.length ? `${csPill(worstDet(r.f))}${r.f.length > 1 ? ` ${mu(`+${r.f.length - 1}`)}` : ""}` : ring("None"), openCell(r.i), openCell(r.k), remCell(r)] })) }),
+        rows: rows.slice(0, 25).map((r) => ({ id: r.code, cells: [`<span class="v7a-req">${code(r.code)}${cut(r.t, 196)}</span>`, `${r.ctl.slice(0, 2).map(tag).join(" ")}${r.ctl.length > 2 ? ` ${mu(`+${r.ctl.length - 2}`)}` : ""}`, evN(r) ? num(evN(r)) : pill("none", "No evidence"), r.f.length ? `${csPill(worstDet(r.f))}${r.f.length > 1 ? ` ${mu(`+${r.f.length - 1}`)}` : ""}` : ring("None"), openCell(r.i), openCell(r.k), remCell(r)] })) }),
       plain("Every chain is WS-X90's, read from the current requirement revisions. A row opens its seven stages; a gap carries the step that closes it."));
   }
   ["traceability", "traceability-risk", "traceability-noev"].forEach((r) => { S[r] = () => trScreen(r); });
@@ -291,30 +296,42 @@
     .sort((x, y) => (DECIDES[y.code] ? 1 : 0) - (DECIDES[x.code] ? 1 : 0) || (TOREVIEW.includes(y.code) ? 1 : 0) - (TOREVIEW.includes(x.code) ? 1 : 0) || (y.short ? 1 : 0) - (x.short ? 1 : 0) || byCode(x.code, y.code));
   const inhHead = () => AK.indexHead({ title: "Inheritance", desc: "What WS-X90 takes from components assessed once and from a common control provider", actions: `<span class="btn">Export ${AK.i("down")}</span><button type="button" class="btn ink" data-modal="v7a-ccp" data-id="">Add common control provider</button>` });
   const inhBanner = () => banner({ tone: "warn", text: `<b>Mission Computer version 2 was published Nov 12.</b> It carries 52 determinations and leaves AC-17(2) and SC-23 to review before WS-X90 takes it.`, action: "Review version 2", modal: "v7a-take" });
-  const inhTabs = (cur) => tabsOf([["Elements", 3, "inheritance"], ["Controls", ICTL.length, "inheritance-controls"], ["Sources", 3, "inheritance-sources"]], cur, "Inheritance");
+  // v2 (H): the host system and the facility are sources too (PA.v2host, mod-zzzz-v2-8host.js): what WS-X90 inherits from them
+  // takes their status, so they decide the status of every control they hold whole.
+  const HP = ["f16", "sqops"];
+  const hostSrc = () => (PA.v2host ? HP.map((id) => ({ id, p: PA.v2host.PROV[id], t: PA.v2host.takes(id) })) : []);
+  const hostCtls = () => (PA.v2host ? PA.v2host.all().filter((r) => HP.includes(r.pid) && r.kind !== "System-specific") : []);
+  const hostEl = (id) => (id === "f16" ? ["CN-109001", "Five airborne subsystems"] : ["CN-109006", "Ground Support Subsystem"]);
+  const inhTabs = (cur) => tabsOf([["Elements", 3 + hostSrc().length, "inheritance"], ["Controls", ICTL.length + hostCtls().length, "inheritance-controls"], ["Sources", 3 + hostSrc().length, "inheritance-sources"]], cur, "Inheritance");
   S.inheritance = () => h.page(inhHead(), inhTabs("inheritance"), inhBanner(),
-    tbl({ cols: ["Element", "Inherits from", "Version", "Determinations", "Decides status", "Owner", "Next step"], label: "Where WS-X90 inherits", total: 3, panel: "v7a-src",
+    tbl({ cols: ["Element", "Inherits from", "Version", "Determinations", "Decides status", "Owner", "Next step"], label: "Where WS-X90 inherits", total: 3 + hostSrc().length, panel: "v7a-src",
       rows: [
+        ...hostSrc().map(({ id, p, t }) => ({ id, panel: "v2h-prov", cells: [`<span class="v7a-req">${code(hostEl(id)[0])}${esc(hostEl(id)[1])}</span>`, esc(p.name), `${esc(p.kind)} ${mu(`· its ATO ${AK.md(p.auth.on)}`)}`, `${num(t.offered)} ${mu("offered")}`, `${num(t.inh)} ${mu("inherited")}`, esc(p.owner), id === "sqops" ? mu("1 control on its POA&M") : pill("ok", "Up to date")] })),
         ...Object.values(SRC).map((s) => { const rs = rowsOf(s); const el = EBY[s.el]; const dec = D.ctlInh.filter((c) => rs.some((r) => r[1] === c.c)).map((c) => c.c);
           return { id: s.id, cells: [`<span class="v7a-req">${code(s.el)}${esc(el ? el.name : "")}</span>`, esc(s.n), `${s.v}${s.latest > s.v ? ` ${AK.chip(`${s.latest} waits`, { tone: "warn" })}` : ` ${mu("latest")}`}`, `<span class="v7a-tl v7a-tl-s">${detTally(rs)}<span class="num">${rs.length}</span></span>`, dec.length ? esc(dec.join(", ")) : mu("None"), AK.owner(s.owner), s.latest > s.v ? pill("warn", "2 to review") : pill("ok", "Up to date")] }; }),
         { id: "idp", cells: [`<span class="v7a-req">${code("SYS-WSX90")}Authorization boundary</span>`, esc(IDP.n), `SSP 1 ${mu(AK.md(IDP.offered))}`, `${num(15)} ${mu("accepted")}`, mu("None"), AK.owner(null), `${num(4)} ${mu("to keep")}`] },
       ] }),
     `<div class="legend"><span style="--c:var(--ok)">Satisfied</span><span style="--c:var(--warn)">Partially satisfied</span><span style="--c:var(--bad)">Other than satisfied</span><span class="v7a-mu">determinations the source's own assessment made</span></div>`,
-    plain("Every row is WS-X90's: two library components it is built from, assessed once, and the corporate identity provider whose offered implementations Priya Raghavan accepted on Jun 30 into SSP 2 and 3. WS-X90 is built from no product."));
+    plain(`${hostSrc().length ? "F-16 Block 70 carries the five airborne subsystems and the Squadron operations facility serves the Ground Support Subsystem; their offers are synthetic. " : ""}The other rows are WS-X90's: two library components it is built from, assessed once, and the corporate identity provider whose offered implementations Priya Raghavan accepted on Jun 30 into SSP 2 and 3. WS-X90 is built from no product.`));
   S["inheritance-controls"] = () => {
-    const f = { all: () => true, dec: (x) => DECIDES[x.code], rev: (x) => TOREVIEW.includes(x.code), short: (x) => x.short, idp: (x) => x.idp }[QV.inh || "all"];
+    const qv = QV.inh || "all";
+    const f = { all: () => true, dec: (x) => DECIDES[x.code], rev: (x) => TOREVIEW.includes(x.code), short: (x) => x.short, idp: (x) => x.idp, host: () => false }[qv] || (() => true);
+    const hc = hostCtls(), hcShown = qv === "all" || qv === "host" ? hc : qv === "short" ? hc.filter((r) => r.kind === "Inherited" && r.offer.st !== "satisfied") : qv === "dec" ? hc.filter((r) => r.kind === "Inherited") : [];
     const rows = ICTL.filter(f);
+    const all = hcShown.length + rows.length;
+    const hostRow = (r) => { const k = ctlOf(r.code); return { id: r.code, panel: "a-tests-control", cells: [`<span class="v7a-req">${code(r.code)}${cut(k ? k.t : ctlName(r.code), 190)}</span>`, esc(PA.v2host.PROV[r.pid].name), csPill(r.offer.st), k ? csPill(k.cs) : mu("Not in the baseline"), r.kind === "Inherited" ? pill("ok", "Provider") : mu("Program"), ""] }; };
     return h.page(inhHead(), inhTabs("inheritance-controls"), inhBanner(),
-      views("inh", [["all", "All", ICTL.length], ["dec", "Decide the status", D.ctlInh.length], ["rev", "To review in version 2", TOREVIEW.length], ["short", "Short of satisfied", ICTL.filter((x) => x.short).length], ["idp", "From the identity provider", Object.keys(IDPC).length]]),
+      views("inh", [["all", "All", ICTL.length + hc.length], ["dec", "Decide the status", D.ctlInh.length + hc.filter((r) => r.kind === "Inherited").length], ["rev", "To review in version 2", TOREVIEW.length], ["short", "Short of satisfied", ICTL.filter((x) => x.short).length + hc.filter((r) => r.kind === "Inherited" && r.offer.st !== "satisfied").length], ["idp", "From the identity provider", Object.keys(IDPC).length], ...(hc.length ? [["host", "From the host and facility", hc.length]] : [])]),
       h.tools("Search controls", ["Source", "Determination", "Decided by"]),
-      tbl({ cols: ["Control", "Inherited from", "Source says", "WS-X90 status", "Decided by", "Version 2"], label: "Inherited controls", total: rows.length, panel: "v7a-inh-ctl",
-        rows: rows.slice(0, 25).map((x) => { const k = ctlOf(x.code); const from = [...x.comp.map((r) => srcOfEl[r[0]].n), ...(x.idp ? ["Identity provider"] : [])];
+      tbl({ cols: ["Control", "Inherited from", "Source says", "WS-X90 status", "Decided by", "Version 2"], label: "Inherited controls", total: all, panel: "v7a-inh-ctl",
+        rows: [...hcShown.map(hostRow), ...rows.map((x) => ({ x }))].slice(0, 25).map((o) => { if (!o.x) return o; const x = o.x; const k = ctlOf(x.code); const from = [...x.comp.map((r) => srcOfEl[r[0]].n), ...(x.idp ? ["Identity provider"] : [])];
           return { id: x.code, cells: [`<span class="v7a-req">${code(x.code)}${cut(x.title, 190)}</span>`, cut(from.join(", "), 170), x.comp.length ? csPill(x.comp.find((r) => r[3] !== "satisfied") ? x.comp.find((r) => r[3] !== "satisfied")[3] : x.comp[0][3]) : pill("ok", "Accepted"), k ? csPill(k.cs) : mu("Not in the baseline"), DECIDES[x.code] ? pill("ok", "Component") : mu("Program"), TOREVIEW.includes(x.code) ? pill("warn", "To review") : x.comp.some((r) => r[0] === "CN-109101") ? mu("Carried") : ""] }; }) }),
       plain("A component's determination decides WS-X90's status only where the program's mappings place the control's objectives on that element alone: AU-7 and SI-4(2). Elsewhere WS-X90's own assessors decide."));
   };
   S["inheritance-sources"] = () => h.page(inhHead(), inhTabs("inheritance-sources"), inhBanner(),
-    tbl({ cols: ["Source", "Kind", "Version taken", "Newer version", "Owner", "Assessed", "Controls"], label: "Sources", total: 3, panel: "v7a-src",
+    tbl({ cols: ["Source", "Kind", "Version taken", "Newer version", "Owner", "Assessed", "Controls"], label: "Sources", total: 3 + hostSrc().length, panel: "v7a-src",
       rows: [
+        ...hostSrc().map(({ id, p, t }) => ({ id, panel: "v2h-prov", cells: [`<b class="v7a-b">${esc(p.name)}</b>`, tag(p.kind), `Its ATO ${mu(`· ${AK.md(p.auth.on)}`)}`, pill("ok", "None"), esc(p.owner), `${esc(p.ao)} ${mu(`· ${AK.md(p.auth.on)}`)}`, num(t.offered)] })),
         ...Object.values(SRC).map((s) => ({ id: s.id, cells: [`<b class="v7a-b">${esc(s.n)}</b>`, tag("Component"), `Version ${s.v}`, s.latest > s.v ? pill("warn", `Version ${s.latest} · Nov 12`) : pill("ok", "None"), AK.owner(s.owner), `${esc(s.by)} ${mu(`· ${AK.md(s.done)}`)}`, num(rowsOf(s).length)] })),
         { id: "idp", cells: [`<b class="v7a-b">${esc(IDP.n)}</b>`, tag("Common control provider"), "SSP 1", pill("ok", "None"), AK.owner(null), `Offered ${AK.md(IDP.offered)}`, num(15)] },
       ] }),

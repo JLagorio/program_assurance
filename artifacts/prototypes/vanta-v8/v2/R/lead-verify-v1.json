@@ -1,0 +1,34 @@
+{
+ "myworkRow": {
+  "hash": "#risks",
+  "activeChips": [
+   "Register40",
+   "All 40"
+  ],
+  "rows": 25
+ },
+ "evidence": {
+  "menu": "Evidence sources",
+  "listChips": [
+   "All 368"
+  ]
+ },
+ "riskPanel": {
+  "panelOpen": true,
+  "hasOpener": 1,
+  "before": "#risks",
+  "after": "#risks",
+  "panelStillOpen": true
+ },
+ "poamCreate": {
+  "found": 1,
+  "modalOpen": true,
+  "primary": "Create POA&M item",
+  "afterSubmit": {
+   "modalOpen": false,
+   "toast": "",
+   "rowsBefore": 14,
+   "rowsAfter": 14
+  }
+ }
+}

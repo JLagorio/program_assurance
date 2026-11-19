@@ -1,0 +1,99 @@
+/* Prototype v2, agent H (v2h-): host systems, providers and the authorization boundary. */
+.v2h-mu { color: var(--ink-3); }
+.v2h-p { margin: 0 0 6px; font-size: 13px; line-height: 1.5; color: var(--ink-2); }
+.v2h-p:last-child { margin-bottom: 0; }
+.v2h-foot { margin-top: 12px; }
+.v2h-late { color: var(--bad); }
+.v2h-tr, .frame td .v2h-tr { display: block; max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap !important; }
+.v2h-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ink-4); flex: none; margin-top: 7px; }
+.v2h-pl { font-weight: 500; }
+
+/* The switch between the two authorizations */
+.v2h-seg { display: inline-flex; border: 1px solid var(--line-strong); border-radius: 8px; overflow: hidden; }
+.v2h-segb { font: inherit; font-size: 13px; font-weight: 500; padding: 0 14px; height: 30px; background: var(--canvas); color: var(--ink-2); border: 0; cursor: pointer; }
+.v2h-segb + .v2h-segb { border-left: 1px solid var(--line-strong); }
+.v2h-segb.on { background: var(--brand-soft); color: var(--brand-text); }
+.v2h-segb:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; }
+
+/* The bubble: providers outside on the left, what the authorization covers inside, interconnections outside on the right.
+   One grid; each item names its row on a wide screen (--r) and on a phone (--mr), where everything stacks in one column. */
+.v2h-bd { display: grid; grid-template-columns: minmax(150px, 1fr) minmax(104px, 0.75fr) minmax(210px, 1.35fr) minmax(104px, 0.75fr) minmax(170px, 1.1fr); column-gap: 0; row-gap: 10px; margin: 6px 0 22px; position: relative; }
+.v2h-bd > * { grid-row: var(--r); min-width: 0; }
+.v2h-ch { grid-column: 1; align-self: end; font-size: 12px; color: var(--ink-3); padding-bottom: 6px; }
+.v2h-chr { grid-column: 5; }
+.v2h-bub { grid-column: 3; z-index: 0; margin: -10px -26px -12px; border: 2px dashed var(--ink-3); border-radius: 22px; background: var(--band); }
+.v2h-cap { grid-column: 3; z-index: 1; display: grid; gap: 2px; padding: 4px 6px 8px; text-align: center; justify-items: center; }
+.v2h-cap b { font-size: 14px; color: var(--ink); }
+.v2h-k { font-size: 11px; font-weight: 600; letter-spacing: .02em; color: var(--ink-3); text-transform: uppercase; }
+.v2h-s { font-size: 12px; color: var(--ink-3); }
+.v2h-el, .v2h-ext, .v2h-ic { display: grid; gap: 2px; align-content: center; background: var(--canvas); border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; cursor: pointer; text-align: left; }
+.v2h-el { grid-column: 3; z-index: 1; min-height: 50px; }
+.v2h-el.test { border-style: dashed; }
+.v2h-el b, .v2h-ext b, .v2h-ic b { font-size: 13px; font-weight: 600; color: var(--ink); overflow-wrap: anywhere; }
+.v2h-el:hover, .v2h-ext:hover, .v2h-ic:hover { border-color: var(--line-strong); }
+.v2h-el:focus-visible, .v2h-ext:focus-visible, .v2h-ic:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.v2h-ext { grid-column: 1; align-self: stretch; align-content: center; }
+.v2h-ext.v2h-none { cursor: default; color: var(--ink-3); border-style: dashed; }
+.v2h-ifm { display: none; font-size: 12px; color: var(--ink-2); }
+.v2h-rb { grid-column: 5; display: grid; gap: 6px; align-content: center; }
+.v2h-ic { padding: 6px 10px; }
+.v2h-ic.off { border-style: dashed; color: var(--ink-3); }
+.v2h-ic.off b { color: var(--ink-3); font-weight: 500; }
+/* The interfaces drawn across the line: a rule from the outside to the element, its names above it. */
+.v2h-lc, .v2h-rc { display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 1px; position: relative; padding: 0 6px; z-index: 2; }
+.v2h-lc { grid-column: 2; }
+.v2h-rc { grid-column: 4; }
+.v2h-lc::before, .v2h-rc::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; border-top: 1.5px solid var(--ink-4); z-index: -1; }
+.v2h-lc:empty::before, .v2h-rc:empty::before { display: none; }
+.v2h-lc span, .v2h-rc span { font-size: 11px; line-height: 1.3; color: var(--ink-2); background: var(--canvas); padding: 0 4px; border-radius: 4px; text-align: center; max-width: 100%; overflow-wrap: anywhere; }
+.v2h-rc span.off { color: var(--ink-4); text-decoration: line-through; }
+.v2h-cov td:first-child { font-weight: 500; }
+
+/* A phone (or a narrow main): one column, providers first, then the bubble, then what connects to it. */
+@media (max-width: 860px) {
+  .v2h-bd { grid-template-columns: minmax(0, 1fr); row-gap: 8px; }
+  .v2h-bd > * { grid-column: 1; grid-row: var(--mr); }
+  .v2h-lc, .v2h-rc { display: none; }
+  .v2h-bub { margin: -6px -8px; border-radius: 16px; }
+  .v2h-cap { padding: 10px 6px 4px; }
+  .v2h-el { margin: 0 8px; }
+  .v2h-ifm { display: block; }
+  .v2h-ch { padding-top: 8px; }
+  .v2h-rb:empty { display: none; }
+}
+
+/* Host & providers */
+.v2h-flt { position: relative; display: inline-block; }
+.v2h-flt > summary { list-style: none; cursor: pointer; }
+.v2h-flt > summary::-webkit-details-marker { display: none; }
+.v2h-menu { position: absolute; z-index: 30; top: calc(100% + 4px); left: 0; min-width: 220px; max-height: 320px; overflow: auto; background: var(--canvas); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 8px 24px rgb(24 24 29 / .12); padding: 4px; display: grid; }
+.v2h-mi { padding: 7px 10px; border-radius: 6px; font-size: 13px; color: var(--ink); cursor: pointer; white-space: nowrap; }
+.v2h-mi:hover, .v2h-mi:focus-visible { background: var(--band); outline: none; }
+.v2h-mi.on { color: var(--brand-text); font-weight: 500; }
+.v2h-bulk { gap: 12px; align-items: center; }
+.v2h-pg { display: inline-flex; gap: 4px; }
+.v2h-pg .ib[disabled] { opacity: .4; cursor: default; }
+.v2h-inh td:nth-child(6) { max-width: 340px; }
+.v2h-crm td:last-child { max-width: 380px; }
+.v2h-cb { cursor: pointer; }
+
+/* Dialogs */
+.v2h-what { margin-top: 10px; font-size: 13px; color: var(--ink-2); line-height: 1.5; }
+.v2h-addbox { margin-top: 10px; font-size: 13px; color: var(--ink-2); line-height: 1.5; }
+.v2h-addsum b { color: var(--ink); }
+/* Menus and hidden labels stay inside their frame at 390 */
+.v2h-flt:not([open]) > .v2h-menu { display: none; }
+.v2h-flt + .v2h-flt .v2h-menu { left: auto; right: 0; }
+.v2h-menu { max-width: min(340px, calc(100vw - 40px)); }
+.v2h-mi { white-space: normal; }
+.v2h-inh th:last-child, .v2h-inh td:last-child, .v2h-crm th:last-child { position: relative; }
+/* The bubble drawn small (Authorization › Package) */
+.v2h-mini { display: grid; gap: 8px; margin: 4px 0 8px; }
+.v2h-minib { display: grid; gap: 2px; justify-items: center; text-align: center; border: 2px dashed var(--ink-3); border-radius: 14px; background: var(--band); padding: 10px 8px; }
+.v2h-minib b { font-size: 13px; color: var(--ink); }
+.v2h-minio { display: flex; flex-wrap: wrap; gap: 4px 6px; }
+.v2h-minio span { font-size: 12px; color: var(--ink-2); border: 1px solid var(--line); border-radius: 6px; padding: 2px 6px; background: var(--canvas); }
+.v2h-crm td.nm, .v2h-inh td.nm { min-width: 200px; }
+/* Lead, v15: the offered-controls table fits its frame beside the rail; What it implements takes the room left and ends in an ellipsis. */
+.v2h-crm td:last-child { width: 100%; max-width: 0; }
+.v2h-crm td:last-child .v2h-tr { max-width: 100%; }

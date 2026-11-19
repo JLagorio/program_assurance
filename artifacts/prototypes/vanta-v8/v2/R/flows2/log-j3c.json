@@ -1,0 +1,69 @@
+{
+ "log": [
+  {
+   "step": 1,
+   "action": "go #control-si2",
+   "why": "the one control with a full record",
+   "hash": "control-si2",
+   "h1": "SI-2 Flaw Remediation",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 1,
+   "shot": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/v2/R/flows2/shots/j3c-04-si2.png"
+  },
+  {
+   "step": 2,
+   "action": "go #control-si2-requirements",
+   "why": "",
+   "hash": "control-si2-requirements",
+   "h1": "SI-2 Flaw Remediation",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 3,
+   "action": "go #control-si2-evidence",
+   "why": "",
+   "hash": "control-si2-evidence",
+   "h1": "SI-2 Flaw Remediation",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 4,
+   "action": "go #control-si2-assessment",
+   "why": "",
+   "hash": "control-si2-assessment",
+   "h1": "SI-2 Flaw Remediation",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 5,
+   "action": "go #control-si2-findings",
+   "why": "",
+   "hash": "control-si2-findings",
+   "h1": "SI-2 Flaw Remediation",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  }
+ ],
+ "errors": []
+}

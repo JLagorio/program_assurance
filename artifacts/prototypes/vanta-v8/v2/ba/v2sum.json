@@ -1,0 +1,89 @@
+{
+  "lede": "The gap review of 18 November put v1 at 3.4 out of 5 from Vanta. It found workflows that broke and screens with too many marks. v2 takes all three steps it proposed, and draws the screens the workflow needed and did not have. On 19 November a re-review found 42 of its 58 findings fixed, and v2 took Josef's next requests: nested navigation, no EXAMPLE badges, a requirement's chain in its preview, and an SCTM workbook. Then it took two more: the program's lifecycle, with its stages, gates and deliverables, and host systems, with the controls a program inherits and the authorization boundary.",
+  "steps": [
+    {
+      "title": "A cleanup pass on every screen",
+      "text": "Each status word has one tone, blue is never a status, and empty values print —. Banners are grey, EXAMPLE tags are gone, and nothing is pre-ticked. Registers lose the count line under their title and any column that reads the same in every row (only when every row is on screen, and never a status), keep at most two coloured cells a row, and drop gadgets from rows. Toolbars fit on one line, avatars are neutral, and the type uses one scale. In the navigation, the rail and the switcher are ink, and the menu folds every group but the current one.",
+      "items": [
+        "Tinted banners: 95 in v1, 0 in v2",
+        "Blue avatars: 1,142 in v1, 0 in v2",
+        "Screens with rows of more than two coloured cells: 73 in v1, 12 in v2",
+        "Tables wider than their frame at 1440: 56 in v1, 1 in v2",
+        "Type size and weight pairs: 62 in v1, 26 in v2",
+        "241 status words given one tone each; 74 of them changed"
+      ]
+    },
+    {
+      "title": "The budget on the heaviest pages",
+      "text": "Each page type has a budget (register, record, overview, home, inbox, editor, settings, panel), and the 25 heaviest pages were redrawn to meet it.",
+      "items": [
+        "The Overview: nine blocks down to one completion card, Open work, three link rows and a Details rail",
+        "Settings: a list of sections with setting cards, in place of a register under tabs",
+        "The review queue: one table with a Kind filter, in place of seven",
+        "SI-2: nothing between its facts and its tabs, one primary, seven tabs",
+        "The campaign: no Team column, one status a request, and the tracker and the chips both count 368",
+        "Controls: no donut and no mini tiles. Checks: overdue said once. Policies: one toolbar line. Programs: no rings. Baseline: one strip instead of 18",
+        "Home: one card a program, with Create program in the header. My work: the squeezed row fixed, one hairline list",
+        "Ports & protocols, the STIG checklist, the SSP editor, the Create program wizard and Suppliers each to their budget"
+      ]
+    },
+    {
+      "title": "A workflow you can walk",
+      "text": "Verbs change what the screens show, or say that the prototype does not save them, and links land on what they name.",
+      "items": [
+        "SA-24 can be walked from nothing to the authorizing official's decision, in 13 steps: map a requirement, link evidence, add it to a campaign, set it ready, record a determination, publish, create the POA&M item and the risk, and request acceptance. Every screen that shows those facts follows",
+        "Dialogs that save nothing say so (\"Not saved: … isn't wired in this prototype\") in place of a success toast, and required fields block until filled. At the re-review 49 dialogs said so and 1 still showed a success toast, where v1 showed 27",
+        "↗ opens a page on every preview that has one (51 at the re-review, 3 of 54 in v1), and every control has a page in SI-2's shape",
+        "My work rows and Home's callouts open their register filtered to what they count, with the record open when they count one",
+        "Submitting the SSP shows on My work, the review queue and Authorization; offboarding's Reassign all shows on People and the access review",
+        "A created program becomes the current program (switcher, menu, badges and links) and stays for the session. Add person starts onboarding. Access review decisions move the count",
+        "Counts are read from the lists they open. In assessment mode, the menu shows the campaign's pages"
+      ]
+    },
+    {
+      "title": "The missing screens",
+      "text": "44 screens under New in v2. 39 are screens v1 did not have: Lifecycle and a page for each gate, the authorization boundary with its ATO and its IATT, Host & providers and a page for each provider, three sheets of the SCTM workbook, record pages for 15 kinds of record (every control among them), a requirement's chain in its preview, the continuous monitoring campaign, a created program's own pages, an onboarding task, Add person, Add asset and the campaign's Controls page. Five are screens a request changed: the Overview, Schedule, My work, Programs and Create program's Systems step. The 29 screens the version 6 comparison left out are compared here too, under three new groups.",
+      "items": []
+    },
+    {
+      "title": "Asked for on 19 November",
+      "text": "Every area with several pages uses the program's navigation: a menu beside the rail, the area's name at its top, in place of tabs. EXAMPLE badges are gone. A requirement's chain is part of its preview on Requirements, not a page of its own. The SCTM workbook projects controls, implementation, requirements, evidence, findings and risk into one spreadsheet.",
+      "items": [
+        "Side menus for Library (4 pages), Products (3), About (3), AI agents (3) and Settings (7, grouped Workspace and My account). On a phone ☰ opens the menu, as it does in a program",
+        "EXAMPLE badges: none on 873 routes, 1,803 previews and 1,019 dialogs (the sweep counted 4,724 before). A footnote a badge introduced stays as a plain sentence",
+        "A requirement's preview has one Chain card: the controls it maps, where it is allocated, its evidence, findings, risks and remediation, each counted and each record opening its own preview. Map control and Link evidence move the register, the control and Traceability",
+        "The SCTM workbook, under Compliance after Requirements and in the ⋯ menu of Requirements and Controls: one row for each control in WS-X90's baseline, then Controls, Requirements, Evidence, Findings and Risks sheets, and an Analysis sheet with 163 live formulas. The formulas run on the repo's own spreadsheet core with IronCalc 0.8.4",
+        "In the workbook: a name box and formula bar, selection of cells, ranges, rows and columns, keyboard moves, edit, paste and undo, resizing, a frozen header and first column, sort, filter, filter views, find across sheets and context menus. A record in a cell opens its preview beside the grid. Edits wait in Review changes, then show in the SSP editor, the requirement preview and the Requirements register",
+        "From the re-review: Accept on evidence saves the review, an upload needs a file, Create POA&M item, Create risk and Create task work from the registers' own buttons, Treat 2 critical risks opens Risks filtered to Critical, and Evidence and Requirements keep their status columns"
+      ]
+    },
+    {
+      "title": "Asked for on 19 November: lifecycle, host systems and the boundary",
+      "text": "Lifecycle gates lived only on Schedule, two of them and no deliverables, and nothing said what WS-X90 inherits from the aircraft it rides on. Lifecycle is now the second entry of the program menu, with a page for every gate, and the stage shows on every program page. A host system's controls are inherited by default, and Boundary draws what the ATO and the IATT cover.",
+      "items": [
+        "Lifecycle: the archive's 19 steps in five phases, with milestones A, B and C, for each of WS-X90's increments. Increment 1 · Block 1 is fielded under the ATO of Sep 18, 2026. Increment 2 · Block 1.1 has its PDR in review, due Nov 24, with CDR after it on Mar 23, 2027, and says why it skips ASR, Milestone A, PRR and Milestone C",
+        "Every step has a page: its deliverables, each a WS-X90 record showing its own state (3 of 5 ready for PDR), its criteria, who approves it and its decision. Request decision and Record decision move Lifecycle, the line under the program switcher, the Overview strip, the Review queue and My work",
+        "The stage shows under the program switcher on every program page, in a strip on the Overview, on the Home and Programs cards (with the host system) and in My work, which lists what is due for PDR. Schedule holds tasks only, and Security engineering's reviews follow Lifecycle's dates and decisions. The five archived programs show their real stage from the archive",
+        "Host & providers: the F-16 Block 70 carries WS-X90, and its Ground Support Subsystem runs in the Squadron operations facility. 52 controls are inherited and 24 hybrid, the hybrid ones with the program's part in one line. Change responsibility moves one control or several, with a reason, and every count follows",
+        "An inherited control reads its provider's status, so WS-X90 goes from 176 to 227 of 560 controls satisfied, the same number on Home, Programs, the Overview, Controls, the baseline, the SSP editor, the SCTM workbook, the trend and the launcher. PE-15 inherits the facility's open POA&M item as Partially satisfied",
+        "Boundary: the bubble shows what the ATO covers (Increment 1's six subsystems) and what the IATT of May 18, 2027 covers (Increment 2's test configuration, flight test instrumentation inside and the test range outside). The F-16 Block 70, the facility and nine interconnections sit outside the line, with the interfaces that cross it named",
+        "Pages for the F-16 Block 70, the facility and the C-130J: what each offers and which programs it carries (the F-16 carries WS-X90 and Customer A's X800 rail integration). Responsibility shows on Controls, a control's page, the SSP editor, the SCTM and Settings › Host systems & providers, and Create program asks for the host"
+      ]
+    }
+  ],
+  "left": [
+    "Bulk verbs, Create and Import on Requirements, bulk Request acceptance, Accept in a campaign and Assign a role are not wired. The dialog guard says so.",
+    "Other records could fold into their previews the way the requirement did: a review-queue item, a lifecycle gate, an ATT&CK technique, an asset, an interconnection, an AI agent run and an authorization decision. They keep their own pages until Josef decides.",
+    "The SCTM workbook's snapshot names the requirements for 91 of its 560 controls; the other rows show only how many. It has no fill handle and no wrapped rows.",
+    "Controls lists sample rows under All, three of them inherited, while its Responsibility filter and its counts cover the whole baseline.",
+    "12 screens still have rows with more than two coloured cells, from glyphs and coloured text the cleanup rule cannot see.",
+    "The SSP editor's own tabs wrap at 1440, and its guidance for each section (A16) is not done. The launcher answers a few questions from the data and points the rest to AI agents.",
+    "The review queue's Program filter does nothing. The Getting started badge updates on the next page change.",
+    "The check record pages kept their v1 layout apart from the cleanup rules."
+  ],
+  "method": [
+    "Ten agents built v2 in four waves, each owning its own files. The first wrote a visual layer that runs over every screen (status map, empty values, banners, columns, gadgets, type) and the budgets on the 25 heaviest pages. The second wrote the workflow: shared state, a dialog guard, record pages, and links that land on what they count. A ninth agent then re-ran the gap review's own scripts on v2: 42 of the 58 findings fixed, 15 partly, 1 not, and none made worse. The third wave fixed what it found and built the first 19 November requests, and the fourth built the lifecycle and host systems.",
+    "Checks on the assembled v2: all 873 routes open with no page error and no sideways scroll at 390, and no EXAMPLE badge shows on any of them, their 1,803 previews or their 1,019 dialogs. The version 7 and 8 flows (15 and 25 steps), the navigation probe (40 checks), the chain walk (69 steps), the hub walk (64), the fixes walk (70) and sweep (94 checks), the workbook walk (77 checks at 1440 and 390), the lifecycle walk (76) and the host walk (92) pass.",
+    "Screens were shot at 1440 from the frozen v1 build and the v2 build, and Before from version 5. The v1 screenshots of the version 6 pairs are the old After images, with their numbered callouts. The screens added since are v1 as it stood before the review."
+  ]
+}

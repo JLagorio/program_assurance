@@ -1,0 +1,65 @@
+{
+ "log": [
+  {
+   "step": 1,
+   "action": "go #overview",
+   "why": "",
+   "hash": "overview",
+   "h1": "WS-X90 Sentinel Mission System",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 2,
+   "action": "go #home",
+   "why": "",
+   "hash": "home",
+   "h1": "",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 3,
+   "action": "go #overview",
+   "why": "",
+   "hash": "overview",
+   "h1": "WS-X90 Sentinel Mission System",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 4,
+   "action": "go #home",
+   "why": "",
+   "hash": "home",
+   "h1": "",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 5,
+   "action": "go #overview",
+   "why": "",
+   "hash": "overview",
+   "h1": "WS-X90 Sentinel Mission System",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  }
+ ],
+ "errors": []
+}

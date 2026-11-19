@@ -1,0 +1,41 @@
+/* Full-window routes (PA.fullWindow): no app top bar, no navigation; the route's own header carries the way out. */
+#proto.fullwin { grid-template-rows: minmax(0, 1fr); }
+#proto.fullwin > .top { display: none; }
+#proto.fullwin .pt-shell { grid-template-columns: minmax(0, 1fr); }
+#proto.fullwin .pt-shell > .side { display: none !important; }
+
+/* Document surfaces shared by the SSP editor and its version history (prefix sd-). People's colours come in as --c. */
+.sd-desk { background: var(--page); padding: 28px 24px 72px; display: grid; justify-items: center; align-content: start; min-width: 0; }
+.sd-page { width: 100%; max-width: 816px; min-width: 0; background: var(--canvas); color: var(--ink); border: 1px solid var(--line); border-radius: 4px; box-shadow: 0 1px 2px rgb(24 24 29 / 0.05), 0 12px 32px -18px rgb(24 24 29 / 0.25); padding: 64px 72px 88px; font: 15px/24px var(--font); }
+.sd-title { font: 600 28px/34px var(--font); letter-spacing: -0.02em; margin: 0 0 4px; text-wrap: balance; }
+.sd-sub { color: var(--ink-3); font-size: 13px; line-height: 18px; }
+.sd-h1 { font: 600 20px/28px var(--font); letter-spacing: -0.01em; margin: 40px 0 10px; display: flex; gap: 10px; align-items: baseline; scroll-margin-top: 16px; }
+.sd-h2 { font: 600 16px/24px var(--font); margin: 28px 0 6px; display: flex; gap: 8px; align-items: baseline; scroll-margin-top: 16px; }
+.sd-h3 { font: 600 14px/20px var(--font); margin: 16px 0 4px; }
+.sd-num { color: var(--ink-4); font-variant-numeric: tabular-nums; flex: none; }
+.sd-p { margin: 0 0 12px; }
+.sd-ph { color: var(--ink-3); font-style: italic; }
+.sd-tablebox { overflow-x: auto; max-width: 100%; margin: 8px 0 16px; }
+.sd-table { width: 100%; border-collapse: collapse; font-size: 13px; line-height: 18px; }
+.sd-table th, .sd-table td { border: 1px solid var(--line); padding: 7px 10px; text-align: start; vertical-align: top; }
+.sd-table th { background: var(--band); font-weight: 600; color: var(--ink-2); }
+.sd-live { position: relative; border-inline-start: 2px solid var(--line); padding-inline-start: 14px; margin: 10px 0 18px; }
+.sd-live:hover, .sd-live:focus-within, .sd-live.on { border-inline-start-color: var(--brand); }
+.sd-live-h { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; font-size: 12px; line-height: 16px; color: var(--ink-3); margin-bottom: 6px; }
+.sd-live-tag { display: inline-flex; gap: 4px; align-items: center; color: var(--brand-text); font-weight: 500; }
+.sd-ins { color: var(--c, var(--brand-text)); text-decoration: underline; text-decoration-color: var(--c, var(--brand)); text-underline-offset: 2px; background: color-mix(in srgb, var(--c, var(--brand)) 9%, transparent); }
+.sd-del { color: var(--c, var(--brand-text)); text-decoration: line-through; opacity: 0.75; }
+.sd-ai { background: var(--brand-soft); box-shadow: inset 0 -1px 0 var(--brand); }
+.sd-mark { background: var(--warn-soft); box-shadow: inset 0 -2px 0 var(--warn); cursor: pointer; border-radius: 2px; }
+.sd-mark.on { background: color-mix(in srgb, var(--warn) 32%, transparent); }
+.sd-mark.resolved { background: transparent; box-shadow: inset 0 -1px 0 var(--line-strong); }
+.sd-cur { position: relative; display: inline-block; width: 0; height: 1.25em; vertical-align: text-bottom; border-inline-start: 2px solid var(--c); margin-inline: -1px; }
+.sd-cur::after { content: attr(data-name); position: absolute; bottom: 100%; inset-inline-start: -2px; white-space: nowrap; font: 500 11px/16px var(--font); padding: 0 5px; border-radius: 3px 3px 3px 0; background: var(--c); color: var(--canvas); }
+.sd-sel { background: color-mix(in srgb, var(--c) 18%, transparent); }
+.sd-av { --s: 26px; width: var(--s); height: var(--s); flex: none; display: inline-grid; place-items: center; border-radius: 999px; font: 600 calc(var(--s) * 0.4)/1 var(--font); color: var(--c); background: color-mix(in srgb, var(--c) 14%, var(--canvas)); box-shadow: 0 0 0 2px var(--canvas), 0 0 0 3.5px var(--c); }
+.sd-fig { border: 1px solid var(--line); border-radius: 8px; padding: 12px; margin: 10px 0 6px; background: var(--canvas); overflow-x: auto; }
+.sd-fig svg { display: block; max-width: 100%; height: auto; }
+.sd-cap { font-size: 12px; line-height: 16px; color: var(--ink-3); margin: 0 0 16px; }
+.sd-toasts { position: fixed; inset-inline: 0; bottom: max(16px, env(safe-area-inset-bottom, 0px)); display: grid; justify-items: center; gap: 8px; z-index: 60; pointer-events: none; }
+.sd-toasts > * { pointer-events: auto; box-shadow: 0 8px 24px -8px rgb(24 24 29 / 0.3); }
+@media (max-width: 760px) { .sd-desk { padding: 0; } .sd-page { border: 0; border-radius: 0; box-shadow: none; padding: 24px 16px 56px; } .sd-title { font-size: 24px; line-height: 30px; } }

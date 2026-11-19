@@ -1,0 +1,142 @@
+{
+ "log": [
+  {
+   "step": 1,
+   "action": "go #person-victor-amsel-offboarding",
+   "why": "offboard Victor",
+   "hash": "person-victor-amsel-offboarding",
+   "h1": "Victor Amsel",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 1,
+   "shot": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/v2/R/flows2/shots/j8-01-offboarding-before.png"
+  },
+  {
+   "step": 2,
+   "action": "click \"Reassign all to Nadia Fournier\"",
+   "why": "offboarding step",
+   "effect": "toast: Everything Victor Amsel owns moves to Nadia Fournier ; page changed in place",
+   "hash": "person-victor-amsel-offboarding",
+   "h1": "Victor Amsel",
+   "modal": null,
+   "panel": null,
+   "toasts": "Everything Victor Amsel owns moves to Nadia Fournier",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 3,
+   "action": "click \"Disable now\"",
+   "why": "offboarding step",
+   "effect": "toast: Disabled; the integration confirmed it ; page changed in place",
+   "hash": "person-victor-amsel-offboarding",
+   "h1": "Victor Amsel",
+   "modal": null,
+   "panel": null,
+   "toasts": "Disabled; the integration confirmed it",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 4,
+   "action": "click \"Disable now\"",
+   "why": "offboarding step",
+   "effect": "toast: Disabled; the integration confirmed it ; page changed in place",
+   "hash": "person-victor-amsel-offboarding",
+   "h1": "Victor Amsel",
+   "modal": null,
+   "panel": null,
+   "toasts": "Disabled; the integration confirmed it",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 5,
+   "action": "click \"Record manual check\"",
+   "why": "offboarding step",
+   "effect": "toast: Manual check recorded ; page changed in place",
+   "hash": "person-victor-amsel-offboarding",
+   "h1": "Victor Amsel",
+   "modal": null,
+   "panel": null,
+   "toasts": "Manual check recorded",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 6,
+   "action": "click \"Record manual check\"",
+   "why": "offboarding step",
+   "effect": "toast: Manual check recorded ; page changed in place",
+   "hash": "person-victor-amsel-offboarding",
+   "h1": "Victor Amsel",
+   "modal": null,
+   "panel": null,
+   "toasts": "Manual check recorded",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 7,
+   "action": "click \"Mark returned\"",
+   "why": "offboarding step",
+   "effect": "page changed in place",
+   "hash": "person-victor-amsel-offboarding",
+   "h1": "Victor Amsel",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 8,
+   "action": "click \"Mark returned\"",
+   "why": "offboarding step",
+   "effect": "page changed in place",
+   "hash": "person-victor-amsel-offboarding",
+   "h1": "Victor Amsel",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 9,
+   "action": "click \"Record debrief\"",
+   "why": "offboarding step",
+   "effect": "toast: SF-312 debriefing recorded ; page changed in place",
+   "hash": "person-victor-amsel-offboarding",
+   "h1": "Victor Amsel",
+   "modal": null,
+   "panel": null,
+   "toasts": "SF-312 debriefing recorded",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 9,
+   "shot": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/v2/R/flows2/shots/j8-02-offboarding-after.png"
+  },
+  {
+   "step": 10,
+   "action": "click \"Close offboarding\"",
+   "why": "finish",
+   "effect": "toast: Finish step 3 first: Remove access",
+   "hash": "person-victor-amsel-offboarding",
+   "h1": "Victor Amsel",
+   "modal": null,
+   "panel": null,
+   "toasts": "Finish step 3 first: Remove access",
+   "otherDlg": [],
+   "notDrawn": false
+  }
+ ],
+ "errors": []
+}

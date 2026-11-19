@@ -1,0 +1,81 @@
+{
+ "log": [
+  {
+   "step": 1,
+   "action": "go #people-access",
+   "why": "",
+   "hash": "people-access",
+   "h1": "People",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 2,
+   "action": "click \"Quarterly privileged account review (AC-2, AC-6)\"",
+   "why": "",
+   "effect": "panel: Access review preview",
+   "hash": "people-access",
+   "h1": "People",
+   "modal": null,
+   "panel": "Access review preview",
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 3,
+   "action": "click \"Keep\"",
+   "why": "decide svc-maint-07",
+   "effect": "page changed in place ; panel changed in place",
+   "hash": "people-access",
+   "h1": "People",
+   "modal": null,
+   "panel": "Access review preview",
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 4,
+   "action": "click \"Complete review\"",
+   "why": "finish",
+   "effect": "panel changed in place",
+   "hash": "people-access",
+   "h1": "People",
+   "modal": null,
+   "panel": "Access review preview",
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 5,
+   "action": "go #person-victor-amsel-offboarding",
+   "why": "",
+   "hash": "person-victor-amsel-offboarding",
+   "h1": "Victor Amsel",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 6,
+   "action": "click \"Reassign all to Nadia Fournier\"",
+   "why": "",
+   "effect": "toast: Everything Victor Amsel owns moves to Nadia Fournier ; page changed in place",
+   "hash": "person-victor-amsel-offboarding",
+   "h1": "Victor Amsel",
+   "modal": null,
+   "panel": null,
+   "toasts": "Everything Victor Amsel owns moves to Nadia Fournier",
+   "otherDlg": [],
+   "notDrawn": false
+  }
+ ],
+ "errors": []
+}

@@ -1,0 +1,106 @@
+route                        type     score | cues knd mark   pix fnt | pill  gad card  ban  btn icon | row%  ex tabs
+campaign                     record    85.7 |   69  10   28  1.88  15 |   33    1    1    0    5   29 |   64   2    2
+overview                     overview  79.7 |   40  10   25  1.07  16 |   14    4    7    0    2   13 | None   4    0
+controls                     register  78.4 |   70  12   20  0.68  14 |   18    5    5    0   18   24 |   69   0    0
+policies                     register  76.3 |  111  10   26  0.91  11 |   46    0    0    1    6   58 |   46   5    0
+checks                       register  75.4 |   85   8   33  0.86  14 |   18    1    2    0   31   33 |   53   3    0
+portfolio                    register  72.6 |   49  10   29  0.66  13 |   19    9    0    0    2   19 |   31   1    0
+baseline                     register  70.5 |   53   9   53  0.82  12 |    8   12   12    1   11    9 |   36   1    2
+ppsm                         register  68.6 |   74   8   36  1.10  11 |   43    0    0    0    2   29 |   33   3    4
+stigs-mission-computer-rhel9 record    68.5 |   42   9   27  0.64  15 |   27    0    3    1    2    9 |   63   1    3
+ssp                          editor    67.8 |  101   6   55  0.39  16 |    4    0    0    0   58   39 |   48  22    2
+deadlines                    settings  66.3 |   45   9   21  0.39  16 |   18    1    2    1    2   21 |   70   8   11
+plan-cp                      editor    65.7 |   64   7   29  0.39  23 |   11    0    2    0   28   23 |  148   7    2
+findings                     register  64.3 |   44   9   20  0.91  12 |   16    1    2    0   10   15 |   75   0    6
+risks                        register  63.1 |  112   9   21  0.68   9 |   48    0    0    0    8   56 |   41   2    3
+interconnections             register  62.9 |   61   8   28  0.98  11 |   35    0    0    0    2   24 |   33   2    4
+poam                         register  62.2 |   63   8   42  1.62   9 |   27   10    0    0    5   21 |   41   0    2
+evidence                     register  62.0 |   69   9   17  0.52  12 |   30    0    0    1   10   28 |   39   0    0
+data-calls                   register  61.7 |   50  10   16  0.39  13 |   20    4    0    1    4   21 |   56   2    6
+sources                      register  61.4 |   65   9   15  0.76  12 |   19    0    1    0   20   25 |   60   2    3
+conmon                       overview  60.5 |   77   9   19  0.49  11 |   27    0    0    1   11   38 |   47   1    3
+assessments                  register  59.7 |   38  10   11  0.83  13 |    9    1    5    0   10   13 | None   0    2
+people                       register  59.6 |   51   9   19  0.50  12 |   23    0    0    1    6   21 |   50   1    4
+policy-editor                editor    59.4 |   31   8   16  0.84  20 |   14    0    4    1    4    8 | None   2    0
+threats                      register  58.9 |   65  10   19  0.51   9 |   35    9    0    1    4   16 |   50   2    2
+sse                          overview  58.3 |   49   8   15  0.65  15 |   16    0    0    1   12   20 |   61   5    3
+frameworks-high              record    55.7 |   36   9   13  0.76  13 |   10    6    5    0    4   11 |   92   0    7
+data-calls-fisma             record    54.6 |   39   8   16  0.48  15 |   16    0    1    0    5   17 | None   4    6
+component-mc                 record    54.3 |   45   8   15  0.52  14 |   17    0    5    0    8   15 | None   3   12
+stigs                        register  53.9 |   32   8   31  0.83  11 |   14    7    0    1    2    8 |   42   1    4
+suppliers                    register  53.1 |   90   9   16  0.26  11 |   40    9    0    0    4   37 |   47   3    5
+ai-drafts                    register  53.1 |   64   6   22  0.71  11 |   17    0    1    0   23   23 | None   8    3
+authorization                overview  52.9 |   35   9   12  0.35  16 |    9    3    5    0    5   13 |  125   3    4
+itcsc                        overview  52.8 |   27   9   13  0.39  17 |   11    0    4    1    5    6 |  294  34    6
+components                   register  52.5 |   48  11   16  0.24  11 |   23    8    0    1    2   14 |   48   0    3
+policy-page-ac-1             record    52.0 |   35  10   10  0.32  15 |    7    2    5    0    9   12 | None   3    4
+schedule                     register  51.5 |   39   7   21  0.85  11 |   12    0    0    0    7   20 |   72   5    0
+reports                      register  49.7 |   46   8   16  0.48  12 |   28    0    0    0    3   15 |   33   7    4
+getting-started              overview  48.9 |   26   9   19  1.02   9 |    1   11    5    0    1    8 | None   2    0
+traceability                 overview  48.2 |   88  10    9  0.28  10 |   16    6    1    0    6   59 |   69   0    4
+control-si2                  record    48.0 |   32  10    8  0.46  13 |    5    3    8    0    5   11 |  104   0    8
+products                     register  47.7 |   30   9   17  0.31  13 |    7   11    0    1    2    9 |   42   0    5
+ssps                         register  47.5 |   37   8   19  0.30  13 |   21    0    0    0    3   13 |   33   1    3
+posture                      overview  46.8 |    8   5  210 12.03  11 |    0    1    0    1    4    2 |   46   0    4
+resiliency                   overview  46.3 |   27   8   30  0.65  10 |    8    8    4    1    2    4 |   54   0    2
+evidence-page-e1             record    46.0 |   35  10    7  0.20  15 |    5    0    4    1   11   14 | None   2    5
+common-controls              settings  44.8 |   34  10   12  0.36  11 |   15    7    0    1    1   10 |   41   4    6
+enclaves                     settings  43.7 |   23   6   13  2.75  13 |    7    0    5    0    1   10 |   25   1    6
+check-scan                   record    43.5 |   34   8   10  0.32  16 |    8    0    4    0    7   15 | None   1    5
+requirements                 register  38.3 |  105   8   10  0.21  10 |   44    0    0    0   13   48 |   38   1    3
+composition                  register  35.1 |   54   7    7  0.20  13 |    0    0    7    1   25   21 | None   1    3
+notifications                settings  34.3 |   19   7   12  0.35  14 |    6    0    3    0    1    9 | None   4    8
+package-room                 register  31.7 |   25   8    3  0.10  17 |    9    0    3    0    6    7 |   64   5    5
+frameworks                   register  30.3 |   35   8   13  0.28   9 |    7    8    0    0    8   12 |   40   0    6
+inheritance                  overview  30.3 |   15   9   11  0.26  11 |    5    2    0    1    2    5 |   36   0    3
+review-queue                 inbox     28.9 |   34   6   19  0.22  10 |   17    0    0    0    5   12 |   43   0    2
+inventory                    register  26.9 |   77   7    6  0.17   9 |   30    0    0    1   15   31 |   42   1    3
+person-joel-barrantes        record    26.2 |   19   7    6  0.20  15 |    4    1    2    0    9    3 |   41   3    7
+cyber-te                     register  23.5 |   22   5   11  0.21  13 |    0    0    1    1   13    7 |  128   4    3
+program-new                  editor    20.2 |   25   5    2  0.04  15 |    0    6    1    0   12    6 | None   1    0
+my-work                      inbox     19.4 |   37   6   11  0.14   9 |   12    0    8    0    0   17 | None   2    0
+integration-emass            record    19.4 |   12   8    3  0.11  12 |    7    0    2    0    1    2 | None   2    8
+event-log                    settings  19.1 |   30   6   15  0.15   9 |   10    0    0    0    1   19 |   40   1   11
+permissions                  settings  19.1 |   19   6    8  0.09  13 |   14    0    0    0    2    3 |   37   2   10
+home                         home      18.0 |   29   7    6  0.23  10 |    0    4    5    2    1   17 | None   0    0
+integrations                 register  12.6 |   16   4   10  0.33   8 |    4    0    0    0    8    4 | None   5    7
+
+MEDIANS BY TYPE
+record    n=11 cues  35.0 kinds  9.0 marks  10.0 pix 0.46 fonts 15.0 pills  8.0 gadgets  0.0 cards  4.0 banners 0.0 buttons  5.0 icons 12.0
+overview  n=10 cues  31.0 kinds  9.0 marks  17.0 pix 0.57 fonts 11.0 pills 10.0 gadgets  2.5 cards  2.5 banners 1.0 buttons  4.5 icons 10.5
+register  n=31 cues  53.0 kinds  8.0 marks  19.0 pix 0.52 fonts 12.0 pills 19.0 gadgets  0.0 cards  0.0 banners 0.0 buttons  7.0 icons 21.0
+editor    n= 4 cues  47.5 kinds  6.5 marks  22.5 pix 0.39 fonts 18.0 pills  7.5 gadgets  0.0 cards  1.5 banners 0.0 buttons 20.0 icons 15.5
+settings  n= 6 cues  26.5 kinds  6.5 marks  12.5 pix 0.35 fonts 13.0 pills 12.0 gadgets  0.0 cards  1.0 banners 0.0 buttons  1.0 icons 10.0
+inbox     n= 2 cues  35.5 kinds  6.0 marks  15.0 pix 0.18 fonts  9.5 pills 14.5 gadgets  0.0 cards  4.0 banners 0.0 buttons  2.5 icons 14.5
+home      n= 1 cues  29.0 kinds  7.0 marks   6.0 pix 0.23 fonts 10.0 pills  0.0 gadgets  4.0 cards  5.0 banners 2.0 buttons  1.0 icons 17.0
+
+INVENTORY
+button:outlined/plain          pages 60 all   706 above  444 top: ssp:231, plan-cp:41, controls:33, checks:29, composition:28, requirements:26, ai-drafts:22, sources:19
+icon:svg                       pages 60 all   923 above  496 top: ssp:225, inventory:60, requirements:50, plan-cp:49, schedule:31, campaign:31, controls:28, risks:26
+icon:glyph                     pages 60 all  1253 above  559 top: traceability:185, risks:110, ssp:110, policies:70, requirements:51, deadlines:44, suppliers:42, control-si2:42
+button:filled                  pages 58 all    74 above   71 top: baseline:6, ssp:4, inventory:2, checks:2, assessments:2, package-room:2, control-si2:2, policy-page-ac-1:2
+pill:other (toned)             pages 56 all   499 above  251 top: itcsc:46, ssp:30, event-log:26, components:25, stigs-mission-computer-rhel9:25, deadlines:24, review-queue:18, overview:17
+tab                            pages 53 all   249 above  249 top: component-mc:12, deadlines:11, event-log:11, permissions:10, notifications:8, control-si2:8, integration-emass:8, integrations:7
+frame:table                    pages 48 all    64 above   49 top: review-queue:7, itcsc:6, enclaves:2, permissions:2, authorization:2, control-si2:2, frameworks-high:2, portfolio:1
+pill:chip/filter               pages 46 all   260 above  237 top: policies:13, ssp:13, components:12, suppliers:12, resiliency:12, data-calls:11, stigs-mission-computer-rhel9:10, requirements:9
+pill:status (toned)            pages 46 all   494 above  207 top: ssp:86, control-si2:37, campaign:31, policies:30, threats:27, risks:25, stigs-mission-computer-rhel9:25, ppsm:21
+card:top                       pages 38 all   145 above  106 top: baseline:18, my-work:11, itcsc:11, ssp:9, overview:8, composition:7, authorization:7, component-mc:6
+icon:symbol                    pages 32 all   139 above  126 top: traceability:12, composition:9, policies:9, review-queue:8, suppliers:7, data-calls:7, sources:6, home:5
+pill:status (neutral)          pages 30 all   230 above   91 top: risks:50, requirements:25, ssp:24, sse:16, deadlines:12, policies:12, suppliers:11, traceability:8
+banner (toned)                 pages 27 all    30 above   25 top: ssp:3, home:2, products:1, components:1, data-calls:1, deadlines:1, common-controls:1, itcsc:1
+pill:tag                       pages 27 all   304 above  144 top: threats:64, traceability:29, risks:28, policies:21, inventory:20, poam:14, campaign:14, controls:13
+pill:other (neutral)           pages 23 all   213 above  112 top: requirements:54, inventory:40, sse:24, permissions:11, ssp:10, checks:9, interconnections:8, itcsc:7
+gadget:progress bar            pages 18 all   129 above   91 top: threats:32, poam:14, products:13, suppliers:12, frameworks:8, overview:7, stigs:7, traceability:6
+card:nested                    pages 12 all    34 above   29 top: assessments:7, getting-started:4, control-si2:4, enclaves:3, overview:3, controls:3, policy-page-ac-1:3, frameworks-high:3
+gadget:ring                    pages  9 all    54 above   29 top: components:23, getting-started:7, program-new:6, products:3, deadlines:3, common-controls:3, authorization:3, policy-page-ac-1:3
+gadget:tally (stacked bar)     pages  8 all    40 above   26 top: baseline:18, resiliency:14, inheritance:2, ssp:2, overview:1, assessments:1, findings:1, campaign:1
+gadget:donut                   pages  3 all    13 above   13 top: portfolio:9, getting-started:3, controls:1
+gadget:phase/stage bar         pages  1 all     1 above    1 top: getting-started:1
+pill:count                     pages  1 all    13 above    2 top: itcsc:13
+gadget:heatmap                 pages  1 all     1 above    1 top: posture:1
+gadget:ring/donut (svg)        pages  1 all     2 above    0 top: ssp:2
+
+FONT SIZES 31 [('7.2px', 1), ('7.5px', 2), ('8px', 1), ('8.8px', 7), ('9.24px', 227), ('9.5px', 7), ('10px', 26), ('10.08px', 29), ('10.4px', 6), ('10.92px', 11), ('11px', 290), ('11.2px', 7), ('11.5px', 63), ('11.76px', 6), ('12px', 1346), ('12.5px', 1521), ('13px', 3215), ('13.5px', 2308), ('14px', 1004), ('14.5px', 82), ('15px', 133), ('16px', 100), ('17px', 1), ('18px', 50), ('20px', 55), ('22px', 42), ('24px', 9), ('26px', 1), ('28px', 22), ('32px', 3), ('36px', 9)]
+PAIRS 53
+EXAMPLE markers total 190 pages 49 [('campaign', 2), ('overview', 4), ('policies', 5), ('checks', 3), ('portfolio', 1), ('baseline', 1), ('ppsm', 3), ('stigs-mission-computer-rhel9', 1), ('ssp', 22), ('deadlines', 8), ('plan-cp', 7), ('risks', 2), ('interconnections', 2), ('data-calls', 2), ('sources', 2), ('conmon', 1), ('people', 1), ('policy-editor', 2), ('threats', 2), ('sse', 5), ('data-calls-fisma', 4), ('component-mc', 3), ('stigs', 1), ('suppliers', 3), ('ai-drafts', 8), ('authorization', 3), ('itcsc', 34), ('policy-page-ac-1', 3), ('schedule', 5), ('reports', 7), ('getting-started', 2), ('ssps', 1), ('evidence-page-e1', 2), ('common-controls', 4), ('enclaves', 1), ('check-scan', 1), ('requirements', 1), ('composition', 1), ('notifications', 4), ('package-room', 5), ('inventory', 1), ('person-joel-barrantes', 3), ('cyber-te', 4), ('program-new', 1), ('my-work', 2), ('integration-emass', 2), ('event-log', 1), ('permissions', 2), ('integrations', 5)]
+banner pages 24 of 65

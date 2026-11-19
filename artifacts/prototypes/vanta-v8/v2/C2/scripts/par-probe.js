@@ -1,0 +1,11 @@
+await page.click("#main tbody tr[data-panel]");
+await page.waitForTimeout(400);
+const p1 = await page.$eval("#panel", (p) => p.textContent.replace(/\s+/g, " ").slice(0, 700));
+const bulk = await page.$$eval("#panel [data-apbulk]", (b) => b.map((x) => x.textContent.trim()));
+const decided1 = await page.$eval("#main tbody tr", (r) => r.textContent.replace(/\s+/g, " "));
+const keeps = await page.$$("#panel [data-apdec][data-apk=keep]");
+await keeps[keeps.length - 1].click();
+await page.waitForTimeout(300);
+const decided2 = await page.$eval("#main tbody tr", (r) => r.textContent.replace(/\s+/g, " "));
+const cl = await page.$eval("#panel .a-people-check", (x) => x.textContent.replace(/\s+/g, " "));
+return { p1, bulk, decided1, decided2, cl };

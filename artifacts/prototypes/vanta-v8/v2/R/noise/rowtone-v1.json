@@ -1,0 +1,276 @@
+{
+ "home": null,
+ "my-work": null,
+ "review-queue": {
+  "cols": 6,
+  "rows": 5,
+  "median": 2,
+  "max": 3
+ },
+ "portfolio": {
+  "cols": 6,
+  "rows": 8,
+  "median": 1,
+  "max": 4
+ },
+ "products": {
+  "cols": 6,
+  "rows": 8,
+  "median": 1,
+  "max": 3
+ },
+ "components": {
+  "cols": 8,
+  "rows": 8,
+  "median": 1,
+  "max": 5
+ },
+ "suppliers": {
+  "cols": 8,
+  "rows": 8,
+  "median": 0,
+  "max": 3
+ },
+ "frameworks": {
+  "cols": 7,
+  "rows": 4,
+  "median": 1,
+  "max": 3
+ },
+ "integrations": null,
+ "data-calls": {
+  "cols": 7,
+  "rows": 4,
+  "median": 3,
+  "max": 3
+ },
+ "reports": {
+  "cols": 7,
+  "rows": 8,
+  "median": 2,
+  "max": 2
+ },
+ "ai-drafts": null,
+ "deadlines": {
+  "cols": 7,
+  "rows": 8,
+  "median": 2,
+  "max": 2
+ },
+ "notifications": null,
+ "event-log": {
+  "cols": 5,
+  "rows": 8,
+  "median": 1,
+  "max": 2
+ },
+ "enclaves": {
+  "cols": 6,
+  "rows": 3,
+  "median": 1,
+  "max": 2
+ },
+ "common-controls": {
+  "cols": 5,
+  "rows": 4,
+  "median": 3,
+  "max": 3
+ },
+ "permissions": {
+  "cols": 4,
+  "rows": 5,
+  "median": 0,
+  "max": 1
+ },
+ "overview": null,
+ "getting-started": null,
+ "itcsc": {
+  "cols": 3,
+  "rows": 6,
+  "median": 0,
+  "max": 0
+ },
+ "composition": null,
+ "inventory": {
+  "cols": 7,
+  "rows": 8,
+  "median": 1,
+  "max": 2
+ },
+ "stigs": {
+  "cols": 7,
+  "rows": 7,
+  "median": 3,
+  "max": 5
+ },
+ "interconnections": {
+  "cols": 9,
+  "rows": 8,
+  "median": 3,
+  "max": 3
+ },
+ "ppsm": {
+  "cols": 9,
+  "rows": 8,
+  "median": 3,
+  "max": 3
+ },
+ "sources": {
+  "cols": 7,
+  "rows": 7,
+  "median": 2,
+  "max": 3
+ },
+ "baseline": {
+  "cols": 9,
+  "rows": 6,
+  "median": 3,
+  "max": 3
+ },
+ "controls": {
+  "cols": 8,
+  "rows": 8,
+  "median": 2,
+  "max": 3
+ },
+ "ssps": {
+  "cols": 8,
+  "rows": 4,
+  "median": 3,
+  "max": 4
+ },
+ "requirements": {
+  "cols": 8,
+  "rows": 8,
+  "median": 1,
+  "max": 1
+ },
+ "evidence": {
+  "cols": 8,
+  "rows": 6,
+  "median": 2,
+  "max": 3
+ },
+ "checks": {
+  "cols": 8,
+  "rows": 7,
+  "median": 4,
+  "max": 5
+ },
+ "policies": {
+  "cols": 7,
+  "rows": 8,
+  "median": 3,
+  "max": 3
+ },
+ "assessments": null,
+ "cyber-te": {
+  "cols": 7,
+  "rows": 4,
+  "median": 2,
+  "max": 2
+ },
+ "findings": {
+  "cols": 8,
+  "rows": 8,
+  "median": 2,
+  "max": 3
+ },
+ "poam": {
+  "cols": 8,
+  "rows": 8,
+  "median": 4,
+  "max": 5
+ },
+ "risks": {
+  "cols": 9,
+  "rows": 8,
+  "median": 2,
+  "max": 3
+ },
+ "threats": {
+  "cols": 6,
+  "rows": 8,
+  "median": 2,
+  "max": 2
+ },
+ "posture": {
+  "cols": 20,
+  "rows": 8,
+  "median": 0,
+  "max": 0
+ },
+ "resiliency": {
+  "cols": 6,
+  "rows": 8,
+  "median": 3,
+  "max": 3
+ },
+ "sse": {
+  "cols": 4,
+  "rows": 8,
+  "median": 1,
+  "max": 1
+ },
+ "traceability": {
+  "cols": 7,
+  "rows": 8,
+  "median": 1,
+  "max": 3
+ },
+ "inheritance": {
+  "cols": 7,
+  "rows": 3,
+  "median": 3,
+  "max": 4
+ },
+ "authorization": {
+  "cols": 6,
+  "rows": 6,
+  "median": 1,
+  "max": 1
+ },
+ "package-room": {
+  "cols": 5,
+  "rows": 7,
+  "median": 0,
+  "max": 1
+ },
+ "conmon": {
+  "cols": 7,
+  "rows": 8,
+  "median": 3,
+  "max": 3
+ },
+ "schedule": {
+  "cols": 8,
+  "rows": 8,
+  "median": 3,
+  "max": 4
+ },
+ "people": {
+  "cols": 7,
+  "rows": 8,
+  "median": 1,
+  "max": 4
+ },
+ "campaign": {
+  "cols": 8,
+  "rows": 8,
+  "median": 3,
+  "max": 5
+ },
+ "control-si2": {
+  "cols": 5,
+  "rows": 4,
+  "median": 2,
+  "max": 2
+ },
+ "component-mc": null,
+ "stigs-mission-computer-rhel9": {
+  "cols": 6,
+  "rows": 8,
+  "median": 3,
+  "max": 3
+ }
+}

@@ -1,0 +1,50 @@
+pairs 39 + 53 | v2 shots 92 | notes 559 on 68 screens | unplaced 14
+  unplaced: study | About's pages leave the tab strip over the page for a side menu beside the rail,
+  unplaced: before-after | About's pages leave the tab strip over the page for a side menu beside the rail,
+built out/prototype.html with 37 modules: mod-a-ssp-data.js, mod-after-0kit.js, mod-after-docs.js, m
+== audit7
+record page links checked: 28 drawn
+nav items: 57 | nav items drawn the old way: none
+old screens still reachable: none
+links to routes that don't exist: none
+screen problems: none
+errors: none
+== sweep
+routes: 799 | nav routes without a screen: none
+panel opens: true closes: true
+problems: none
+errors: none
+== flows7
+errors: none
+== flows8
+errors: none
+== probe-v9
+errors: none
+== C1 walk
+PASS Controls: SA-24's next step is in the campaign ·  SA-24 Design For Cyber Resiliency Not assessed 10 of 10 Set Ready in the campaign REQ-641 
+PASS A draft decides nothing: SA-24 still Not assessed, next Publish ·  SA-24 Design For Cyber Resiliency Not assessed 10 of 10 Publish assessment results REQ-641 
+PASS Controls: SA-24 Other than satisfied, next Create POA&M item ·  SA-24 Design For Cyber Resiliency Other than satisfied 10 of 10 Create POA&M item REQ-641 
+PASS Risks: Awaiting acceptance 1 · All 41 | Critical or high 13 | No owner 41 | Response date passed 6 | Awaiting acceptance 1
+PASS Two approvals later the acceptance waits on the AO · Step 3 of 3 
+PASS SA-24's preview lists its requirement, evidence, finding, issue, POA&M item and risk · Control preview ↗ ✕ SA-24 Design For Cyber Resiliency Open assessment findings Status Other than satisfied Objectives 10 of 10 mapped · 10 with evidence · 10 assessed Determined by Program assessment 
+== C2 walk
+64 passed, 0 failed
+PASS  Kind filter keeps one kind, and the pager counts it (96)  · 1–5 of 9625 per page · ‹ ›
+PASS  Mark complete moves the progress to 1 of 9
+7.4M	/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html
+== F walk
+69 passed, 0 failed
+== F sweep
+F sweep · 94 checks, 0 failed
+== S walk
+PASS 390: the grid scrolls inside its frame
+PASS 390: the sheet tabs scroll
+PASS 390: a record opens as a sheet from the bottom (top 177 px, 374 of the shell's 374 px)
+PASS 390: an edit through the formula bar stages
+PASS 390: still no sideways page scroll after editing
+PASS 390: Review changes fits the phone
+== EXAMPLE sweep
+routes 799
+previews 1673 dialogs 940
+hits 61 distinct 59 page errors 0
+DONE

@@ -1,0 +1,20 @@
+[
+  {"id": "control-sa24", "title": "A control's page (SA-24, in SI-2's shape)", "route": "rec--a-tests-control--SA-24", "v1": "Only SI-2 had a page; ↗ on SA-24's preview did nothing"},
+  {"id": "control-ac1", "title": "A control's page (AC-1)", "route": "rec--a-tests-control--AC-1", "v1": "↗ on AC-1's preview did nothing"},
+  {"id": "campaign-conmon", "title": "Continuous monitoring FY2027 campaign", "route": "campaign-conmon", "v1": "Open campaign on its card did nothing; SI-2's Open assessment campaign opened the Assessments list"},
+  {"id": "rec-risk", "title": "A risk's page", "route": "rec--a-risk-risk--0a21dc94%7Coverview", "v1": "↗ on the risk preview did nothing"},
+  {"id": "rec-issue", "title": "An operational issue's page", "route": "rec--a-risk-issue--85973641", "v1": "↗ on the operational issue preview did nothing"},
+  {"id": "rec-poam", "title": "A POA&M item's page", "route": "rec--a-risk-poam--4be4ddde%7Coverview", "v1": "↗ on the POA&M item preview did nothing"},
+  {"id": "rec-requirement", "title": "A requirement's page", "route": "rec--v7p-req--REQ-001", "v1": "↗ on the requirement preview did nothing"},
+  {"id": "rec-decision", "title": "An authorization decision's page", "route": "rec--v7p-decision--v2", "v1": "↗ on the decision preview did nothing"},
+  {"id": "rec-supplier", "title": "A supplier's page", "route": "rec--a-risk-sup--x800%7Coverview", "v1": "↗ on the supplier preview did nothing"},
+  {"id": "rec-review", "title": "A review queue item's page", "route": "rec--a-work-rq--evidence%3Ae1", "v1": "↗ on the review preview did nothing"},
+  {"id": "rec-task", "title": "A task's page", "route": "rec--a-work-task--t1", "v1": "↗ on the task preview did nothing"},
+  {"id": "rec-gate", "title": "A lifecycle gate's page", "route": "rec--a-work-gate--pdr", "v1": "↗ on the lifecycle gate preview did nothing"},
+  {"id": "rec-asset", "title": "An asset's page", "route": "rec--sys-asset--AST-109001", "v1": "↗ on the asset preview did nothing"},
+  {"id": "rec-element", "title": "A system element's page", "route": "rec--v7p-el--CN-109000", "v1": "↗ on the element preview did nothing"},
+  {"id": "rec-interconnection", "title": "An interconnection's page", "route": "rec--v8b-ic--IC-101", "v1": "↗ on the interconnection preview did nothing"},
+  {"id": "rec-technique", "title": "An ATT&CK technique's page", "route": "rec--v7a-att--T1078", "v1": "↗ on the ATT&CK technique preview did nothing"},
+  {"id": "rec-agent-run", "title": "An AI agent run's page", "route": "rec--v8w-run--w1", "v1": "↗ on the agent run preview did nothing"},
+  {"id": "rec-product", "title": "A product's page", "route": "rec--v7o-product--X800", "v1": "↗ on the product preview did nothing"}
+]

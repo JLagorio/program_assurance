@@ -1,0 +1,134 @@
+VULNS: Findings
+Import scan
+Create operational issue
+By issue
+44
+Vulnerabilities
+4
+By asset
+20
+Assessment findings
+313
+Deactivated
+History
+Remediate-by status
+4 open
+Overdue
+CVE-2024-6387 · Nov 9 · 8d late
+1
+Due within two weeks Example
+3
+Due later
+0
+Deadlines: critical 15 · high 30 · moderate 90 · low 180 days · IAVA and IAVB from the notice
+Edit
+By severity
+4 open
+4
+Critical 1
+High 2
+Moderate 1
+Low 0
+Three of the four are invented Example
+All
+4
+Past due
+1
+IAVA
+2
+IAVB
+1
+Search CVEs
+Severity ⌄
+Asset ⌄
+IAVM ⌄
+Remediate by ⌄
++ Add filter
+Reset
+▥
+⚙
+Showing the CVE this row names 1
+Show all
+	CVE	Title	Severity	Asset	IAVA / IAVB	Remediate by	Status
+
+	CVE-2024-6387	Signal handler race in OpenSSH's sshd (regreSSHion)	
+High 8.1	Mission Computer · LRU-001	
+Not linked	Nov 9 · 8d late	
+Fix in version 2
+1–4 of 4
+25 per page · ‹ ›
+
+Example Only CVE-2024-6387 is WS-X90's, read from the Mission Computer SBOM (CycloneDX 1.5, Oct 8); the other three CVEs are invented.
+CONTROLS: button⊡v2k-import-scan: Import scan ‖ summary: More findings actions ‖ span→deadlines:  ‖ span⊡v2k-export:  ‖ button⊡v2k-create-issue: Create operational issue ‖ span→findings: By issue 44 ‖ span: Vulnerabilities 4 ‖ span→findings-assets: By asset 20 ‖ span→findings-assessment: Assessment findings 313 ‖ span→findings-deactivated: Deactivated ‖ span→findings-history: History ‖ span→deadlines: Edit ‖ button: All 4 ‖ button: Past due 1 ‖ button: IAVA 2 ‖ button: IAVB 1 ‖ button: Show all ‖ span: Select every CVE on this page ‖ tr▤a-risk-issue: CVE-2024-6387 Signal handler race in OpenSSH's sshd (regreSS
+EFFECT panel: POA&M item preview
+PANEL: POA&M item preview
+↗
+✕
+Remediate CVE-2024-6387 on the Mission Computer
+Change planned date…
+Add milestone
+Status
+Not started
+Planned
+Dec 8
+Remediate by
+Nov 9 · 8d late
+Owner
+IS
+Ingrid Solberg
+Overview
+Milestones
+3
+Activity
+Comments
+1
+Progress
+0 of 3 milestones
+The plan ends 29 days after the remediate-by date. Move a milestone or record why.
+Tickets
+2
+Create ticket
+JI
+WSX-408
+Milestone 1 · Set LoginGraceTime 0 on the maintenance interface
+In review
+synced 4 min ago
+IS
+Ingrid Solberg
+Task
+Open in Jira
+In review in Jira → milestone 1 stays planned until it is Done
+JI
+WSX-409
+Milestone 2 · Take Mission Computer version 2
+In progress
+synced 4 min ago
+IS
+Ingrid Solberg
+Task
+Open in Jira
+Jira · WSX project · status, assignee and comments sync both ways · POA&M milestones ↔ issues
+Manage
+
+Example Tickets are invented: Jira is connected to a WSX project in this prototype only.
+
+Answers
+1
+CVE-2024-6387 in the OpenSSH server (regreSSHion)
+Nov 9 · 8d late
+Risk it carries
+0
+Create risk
+No risk rests on it yet
+Remediation plan
+
+Close the race on the maintenance interface now, take version 2 of the Mission Computer, which carries OpenSSH server 9.8p1, and rescan LRU-001 to confirm the fix.
+PANEL CONTROLS: button: ↗ ‖ button: ✕ ‖ span⊡a-risk-ms-move: Change planned date… ‖ span⊡a-risk-ms-new: Add milestone ‖ span⊡a-risk-owner: IS Ingrid Solberg ‖ span▤a-risk-poam: Overview ‖ span▤a-risk-poam: Milestones 3 ‖ span▤a-risk-poam: Activity ‖ span▤a-risk-poam: Comments 1 ‖ button⊡v8w-ticket-new: Create ticket ‖ span→integration-jira: Manage ‖ span▤a-risk-issue: CVE-2024-6387 in the OpenSSH server (regreSSHion) ‖ span⊡v2k-risk: Create risk
+BACK1 → #my-work
+BACK2 → #home
+{"step":1,"action":"go #my-work","why":"","hash":"my-work","h1":"","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":2,"action":"click \"Remediate CVE-2024-6387\"","why":"top Urgent item","effect":"→ #findings-vulns ; panel: Operational issue preview","hash":"findings-vulns","h1":"","modal":null,"panel":"Operational issue preview","toasts":"","otherDlg":[],"notDrawn":false}
+{"step":3,"action":"click \"Vulnerabilities\"","why":"the CVE is not under By issue; find its tab","effect":"(same screen)","hash":"findings-vulns","h1":"","modal":null,"panel":"Operational issue preview","toasts":"","otherDlg":[],"notDrawn":false}
+{"step":4,"action":"click \"CVE-2024-6387\"","why":"open the CVE","effect":"panel: POA&M item preview","hash":"findings-vulns","h1":"","modal":null,"panel":"POA&M item preview","toasts":"","otherDlg":[],"notDrawn":false}
+{"step":4,"shot":"/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/v2/R/flows2/shots/j2c-03-cve-open.png"}
+errors: []

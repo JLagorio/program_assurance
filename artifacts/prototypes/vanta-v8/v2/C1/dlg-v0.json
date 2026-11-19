@@ -1,0 +1,1544 @@
+[
+ {
+  "route": "review-queue",
+  "key": "SPAN|Reassign reviewer|||a-work-owner||button",
+  "n": 0,
+  "title": "Reassign reviewer",
+  "result": "opener not found"
+ },
+ {
+  "route": "products",
+  "key": "SPAN|Review update|||v7o-take-product||button",
+  "title": "Take version 2 of X800 Missile",
+  "o": {
+   "title": "Take version 2 of X800 Missile",
+   "foot": [
+    {
+     "txt": "Cancel",
+     "attrs": "type class data-close-modal"
+    },
+    {
+     "txt": "Take version 2",
+     "attrs": "type class data-close-modal data-v7o-toast=X800-A-CUSA takes X800 Missile version 2"
+    }
+   ],
+   "reqs": [],
+   "inputs": 0,
+   "dlgAttrs": "class role aria-modal aria-labelledby"
+  }
+ },
+ {
+  "route": "suppliers",
+  "key": "BUTTON|Request from a supplier|||a-risk-portal||",
+  "title": "Request from a supplier",
+  "o": {
+   "title": "Request from a supplier",
+   "foot": [
+    {
+     "txt": "Cancel",
+     "attrs": "type class data-close-modal"
+    },
+    {
+     "txt": "Send request",
+     "attrs": "type class data-close-modal"
+    }
+   ],
+   "reqs": [],
+   "inputs": 0,
+   "dlgAttrs": "class role aria-modal aria-labelledby"
+  }
+ },
+ {
+  "route": "products",
+  "key": "SPAN|Create product|||v7o-new-product||button",
+  "title": "Create product",
+  "o": {
+   "title": "Create product",
+   "foot": [
+    {
+     "txt": "Cancel",
+     "attrs": "type class data-close-modal"
+    },
+    {
+     "txt": "Create product",
+     "attrs": "type class data-close-modal data-v7o-toast=Product created"
+    }
+   ],
+   "reqs": [
+    {
+     "label": "Name Required",
+     "fieldCls": "",
+     "ctl": "Name <span class=\"req\">Required</span>"
+    },
+    {
+     "label": "Code Required",
+     "fieldCls": "",
+     "ctl": "Code <span class=\"req\">Required</span>"
+    }
+   ],
+   "inputs": 0,
+   "dlgAttrs": "class role aria-modal aria-labelledby"
+  }
+ },
+ {
+  "route": "components",
+  "key": "SPAN|Create component|||v7o-new-component||button",
+  "title": "Create component",
+  "o": {
+   "title": "Create component",
+   "foot": [
+    {
+     "txt": "Cancel",
+     "attrs": "type class data-close-modal"
+    },
+    {
+     "txt": "Create component",
+     "attrs": "type class data-close-modal data-v7o-toast=Component created as a draft"
+    }
+   ],
+   "reqs": [
+    {
+     "label": "Name Required",
+     "fieldCls": "",
+     "ctl": "Name <span class=\"req\">Required</span>"
+    },
+    {
+     "label": "Component set Required",
+     "fieldCls": "",
+     "ctl": "Component set <span class=\"req\">Required</span>"
+    }
+   ],
+   "inputs": 0,
+   "dlgAttrs": "class role aria-modal aria-labelledby"
+  }
+ },
+ {
+  "route": "ai-drafts",
+  "key": "BUTTON|Run an agent|||v8w-run-new||",
+  "title": "Run an agent",
+  "o": {
+   "title": "Run an agent",
+   "foot": [
+    {
+     "txt": "Cancel",
+     "attrs": "type class data-close-modal"
+    },
+    {
+     "txt": "Start run",
+     "attrs": "type class data-v8w-submit=run data-id=narr"
+    }
+   ],
+   "reqs": [],
+   "inputs": 3,
+   "dlgAttrs": "class role aria-modal aria-labelledby"
+  }
+ },
+ {
+  "route": "reports",
+  "key": "SPAN|Generate|||a-work-generate||button",
+  "title": "Generate report",
+  "o": {
+   "title": "Generate report",
+   "foot": [
+    {
+     "txt": "Cancel",
+     "attrs": "type class data-close-modal"
+    },
+    {
+     "txt": "Generate",
+     "attrs": "type class data-close-modal"
+    }
+   ],
+   "reqs": [],
+   "inputs": 0,
+   "dlgAttrs": "class role aria-modal aria-labelledby"
+  }
+ },
+ {
+  "route": "integrations",
+  "key": "BUTTON|Missing a connector? Request one|||a-docs-request||",
+  "title": "Request a connector",
+  "o": {
+   "title": "Request a connector",
+   "foot": [
+    {
+     "txt": "Cancel",
+     "attrs": "type class data-close-modal"
+    },
+    {
+     "txt": "Send request",
+     "attrs": "type class data-close-modal data-adtoast=Request sent"
+    }
+   ],
+   "reqs": [],
+   "inputs": 0,
+   "dlgAttrs": "class role aria-modal aria-labelledby"
+  }
+ },
+ {
+  "route": "ai-drafts",
+  "key": "BUTTON|Reject…|||v8w-reject||",
+  "title": "Reject the run",
+  "o": {
+   "title": "Reject the run",
+   "foot": [
+    {
+     "txt": "Cancel",
+     "attrs": "type class data-close-modal"
+    },
+    {
+     "txt": "Reject run",
+     "attrs": "type class data-v8w-submit=reject data-id=w1"
+    }
+   ],
+   "reqs": [
+    {
+     "label": "Reason Required",
+     "fieldCls": "ak-field v8w-field",
+     "ctl": "<span class=\"v8w-lbl\">Reason <span class=\"req\">Required</span></span><textarea class=\"v8w-in tall\" name=\"reason\" aria-label=\"Reason\" placeholder=\"What was wrong? The agent's owner reads it, and it shapes the next run.\"></textarea>"
+    }
+   ],
+   "inputs": 1,
+   "dlgAttrs": "class role aria-modal aria-labelledby"
+  }
+ },
+ {
+  "route": "notifications",
+  "key": "SPAN|Send a test|||a-work-test||button",
+  "title": "Send a test",
+  "o": {
+   "title": "Send a test",
+   "foot": [
+    {
+     "txt": "Cancel",
+     "attrs": "type class data-close-modal"
+    },
+    {
+     "txt": "Send test",
+     "attrs": "type class data-close-modal"
+    }
+   ],
+   "reqs": [],
+   "inputs": 0,
+   "dlgAttrs": "class role aria-modal aria-labelledby"
+  }
+ },
+ {
+  "route": "enclaves",
+  "key": "SPAN|Add enclave|||v7o-enclave-new||button",
+  "title": "Add enclave",
+  "o": {
+   "title": "Add enclave",
+   "foot": [
+    {
+     "txt": "Cancel",
+     "attrs": "type class data-close-modal"
+    },
+    {
+     "txt": "Add enclave",
+     "attrs": "type class data-close-modal data-v7o-toast=Enclave added"
+    }
+   ],
+   "reqs": [],
+   "inputs": 0,
+   "dlgAttrs": "class role aria-modal aria-labelledby"
+  }
+ },
+ {
+  "route": "common-controls",
+  "key": "SPAN|Add provider|||v7o-ccp-new||button",
+  "title": "Add provider",
+  "o": {
+   "title": "Add provider",
+   "foot": [
+    {
+     "txt": "Cancel",
+     "attrs": "type class data-close-modal"
+    },
+    {
+     "txt": "Ask for an offer",
+     "attrs": "type class data-close-modal data-v7o-toast=Offer requested"
+    }
+   ],
+   "reqs": [],
+   "inputs": 0,
+   "dlgAttrs": "class role aria-modal aria-labelledby"
+  }
+ },
+ {
+  "route": "deadlines",
+  "key": "SPAN|Edit deadlines|||v7o-dl-edit||button",
+  "title": "Edit high finding deadline",
+  "o": {
+   "title": "Edit high finding deadline",
+   "foot": [
+    {
+     "txt": "Cancel",
+     "attrs": "type class data-close-modal"
+    },
+    {
+     "txt": "Save deadline",
+     "attrs": "type class data-close-modal data-v7o-toast=High finding deadline saved"
+    }
+   ],
+   "reqs": [
+    {
+     "label": "Days Required",
+     "fieldCls": "",
+     "ctl": "Days <span class=\"req\">Required</span>"
+    }
+   ],
+   "inputs": 0,
+   "dlgAttrs": "class role aria-modal aria-labelledby"
+  }
+ },
+ {
+  "route": "permissions",
+  "key": "BUTTON|Invite|||v8w-invite||",
+  "title": "Invite a member",
+  "o": {
+   "title": "Invite a member",
+   "foot": [
+    {
+     "txt": "Cancel",
+     "attrs": "type class data-close-modal"
+    },
+    {
+     "txt": "Send invitation",
+     "attrs": "type class data-v8w-submit=invite data-id"
+    }
+   ],
+   "reqs": [
+    {
+     "label": "Email Required",
+     "fieldCls": "ak-field v8w-field",
+     "ctl": "<span class=\"v8w-lbl\">Email <span class=\"req\">Required</span></span><input class=\"v8w-in\" type=\"text\" name=\"email\" value=\"\" aria-label=\"Email\" placeholder=\"name@equinox.mil\" autocomplete=\"off\">"
+    },
+    {
+     "label": "Reason Required",
+     "fieldCls": "ak-field v8w-field",
+     "ctl": "<span class=\"v8w-lbl\">Reason <span class=\"req\">Required</span></span><textarea class=\"v8w-in tall\" name=\"reason\" aria-label=\"Reason\" placeholder=\"Why do they need access? The reason shows in Changes, with your name and the date.\"></textarea>"
+    }
+   ],
+   "inputs": 9,
+   "dlgAttrs": "class role aria-modal aria-labelledby"
+  }
+ },
+ {
+  "route": "event-log",
+  "key": "SPAN|Export CSV|||v7o-export-log||button",
+  "title": "Export event log",
+  "o": {
+   "title": "Export event log",
+   "foot": [
+    {
+     "txt": "Cancel",
+     "attrs": "type class data-close-modal"
+    },
+    {
+     "txt": "Export",
+     "attrs": "type class data-close-modal data-v7o-toast=Event log exported (.csv)"
+    }
+   ],
+   "reqs": [],
+   "inputs": 0,
+   "dlgAttrs": "class role aria-modal aria-labelledby"
+  }
+ },
+ {
+  "route": "itcsc",
+  "key": "BUTTON|Start version 4|||v8b-itc-new||",
+  "title": "Start version 4",
+  "o": {
+   "title": "Start version 4",
+   "foot": [
+    {
+     "txt": "Cancel",
+     "attrs": "type class data-close-modal"
+    },
+    {
+     "txt": "Start version 4",
+     "attrs": "type class data-close-modal data-v8b-v4=started"
+    }
+   ],
+   "reqs": [],
+   "inputs": 0,
+   "dlgAttrs": "class role aria-modal aria-labelledby"
+  }
+ },
+ {
+  "route": "itcsc",
+  "key": "SPAN|JB Joel Barrantes|||v8b-owner||button",
+  "title": "Change owner",
+  "o": {
+   "title": "Change owner",
+   "foot": [
+    {
+     "txt": "Cancel",
+     "attrs": "type class data-close-modal"
+    }
+   ],
+   "reqs": [],
+   "inputs": 0,
+   "dlgAttrs": "class role aria-modal aria-labelledby"
+  }
+ },
+ {
+  "route": "stigs",
+  "key": "BUTTON|Import checklist|||v8g-import||",
+  "title": "Import a checklist",
+  "o": {
+   "title": "Import a checklist",
+   "foot": [
+    {
+     "txt": "Cancel",
+     "attrs": "type class data-close-modal"
+    },
+    {
+     "txt": "Preview changes",
+     "attrs": "type class data-v8g-imp=next"
+    }
+   ],
+   "reqs": [
+    {
+     "label": "Format Required CKL .ckl STIG Viewer 2 checklist CKLB .cklb STIG Viewer 3 or Eva",
+     "fieldCls": "ak-field v8g-field",
+     "ctl": "<span class=\"v8g-lbl\">Format <span class=\"req\">Required</span></span><div class=\"v8g-fmts\" role=\"radiogroup\" aria-label=\"Format\"><label class=\"v8g-opt\"><input type=\"radio\" name=\"v8g-fmt\" value=\"CKL\" checked=\"\"><span><b>CKL <span class=\"v8g-mu\">.ckl</span></b><small>STIG Viewer 2 checklist</small></span></label><label class=\"v8g-opt\"><input type=\"radio\" name=\"v8g-fmt\" value=\"CKLB\"><span><b>CKLB <sp"
+    },
+    {
+     "label": "Checklist Required Mission Computer · RHEL 9 V2R9 Mission Computer · ASD V6R5 In",
+     "fieldCls": "ak-field v8g-field",
+     "ctl": "<span class=\"v8g-lbl\">Checklist <span class=\"req\">Required</span></span><select class=\"v8g-in\" name=\"v8g-ck\" aria-label=\"Checklist\"><option value=\"mission-computer-rhel9\" selected=\"\">Mission Computer · RHEL 9 V2R9</option><option value=\"mission-computer-asd\">Mission Computer · ASD V6R5</option><option value=\"ethernet-switch-ndm\">Internal Ethernet Switch · Cisco IOS Switch NDM V3R6</option><option "
+    },
+    {
+     "label": "File Required disa-stig-checklist-mission-computing-rhel-9-v2r10.ckl Chosen just",
+     "fieldCls": "ak-field v8g-field",
+     "ctl": "<span class=\"v8g-lbl\">File <span class=\"req\">Required</span></span><div class=\"v8g-drop\"><svg class=\"ak-i \" width=\"14\" height=\"14\" viewBox=\"0 0 16 16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M8 11V3M5 6l3-3 3 3M3 13h10\"></path></svg><span><b class=\"v8g-brk\">disa-stig-checklist-mission-computing-rhel-9-v2r10.ckl"
+    }
+   ],
+   "inputs": 4,
+   "dlgAttrs": "class role aria-modal aria-labelledby"
+  }
+ },
+ {
+  "route": "composition",
+  "key": "BUTTON|Create element|||v7p-el-new||",
+  "title": "Create element",
+  "o": {
+   "title": "Create element",
+   "foot": [
+    {
+     "txt": "Cancel",
+     "attrs": "type class data-close-modal"
+    },
+    {
+     "txt": "Create element",
+     "attrs": "type class data-close-modal data-v7p-toast=Element created under CN-109001 (prototy"
+    }
+   ],
+   "reqs": [
+    {
+     "label": "Name Required",
+     "fieldCls": "",
+     "ctl": "Name <span class=\"req\">Required</span>"
+    }
+   ],
+   "inputs": 0,
+   "dlgAttrs": "class role aria-modal aria-labelledby"
+  }
+ },
+ {
+  "route": "interconnections",
+  "key": "BUTTON|Add interconnection|||v8b-ic-new||",
+  "title": "Add interconnection",
+  "o": {
+   "title": "Add interconnection",
+   "foot": [
+    {
+     "txt": "Cancel",
+     "attrs": "type class data-close-modal"
+    },
+    {
+     "txt": "Add interconnection",
+     "attrs": "type class data-close-modal data-v8b-toast=Interconnection added as a draft · IC-11"
+    }
+   ],
+   "reqs": [
+    {
+     "label": "Connection Required",
+     "fieldCls": "",
+     "ctl": "Connection <span class=\"req\">Required</span>"
+    },
+    {
+     "label": "Connected system Required",
+     "fieldCls": "",
+     "ctl": "Connected system <span class=\"req\">Required</span>"
+    }
+   ],
+   "inputs": 0,
+   "dlgAttrs": "class role aria-modal aria-labelledby"
+  }
+ },
+ {
+  "route": "composition",
+  "key": "SPAN|Review version 2|||v7p-take||button",
+  "title": "Take version 2 of Mission Computer",
+  "o": {
+   "title": "Take version 2 of Mission Computer",
+   "foot": [
+    {
+     "txt": "Cancel",
+     "attrs": "type class data-close-modal"
+    },
+    {
+     "txt": "Take version 2",
+     "attrs": "type class data-close-modal data-v7p-toast=Mission Computer version 2 taken on CN-1"
+    }
+   ],
+   "reqs": [],
+   "inputs": 0,
+   "dlgAttrs": "class role aria-modal aria-labelledby"
+  }
+ },
+ {
+  "route": "sources",
+  "key": "BUTTON|Retry import|||a-docs-retry||",
+  "title": "Retry import",
+  "o": {
+   "title": "Retry import",
+   "foot": [
+    {
+     "txt": "Cancel",
+     "attrs": "type class data-close-modal"
+    },
+    {
+     "txt": "Retry import",
+     "attrs": "type class data-close-modal"
+    }
+   ],
+   "reqs": [],
+   "inputs": 0,
+   "dlgAttrs": "class role aria-modal aria-labelledby"
+  }
+ },
+ {
+  "route": "ppsm",
+  "key": "BUTTON|Add service|||v8b-pps-new||",
+  "title": "Add service",
+  "o": {
+   "title": "Add service",
+   "foot": [
+    {
+     "txt": "Cancel",
+     "attrs": "type class data-close-modal"
+    },
+    {
+     "txt": "Add service",
+     "attrs": "type class data-close-modal data-v8b-toast=Service added · its CAL assessment is lo"
+    }
+   ],
+   "reqs": [
+    {
+     "label": "Port Required",
+     "fieldCls": "",
+     "ctl": "Port <span class=\"req\">Required</span>"
+    },
+    {
+     "label": "Protocol Required",
+     "fieldCls": "",
+     "ctl": "Protocol <span class=\"req\">Required</span>"
+    },
+    {
+     "label": "Service Required",
+     "fieldCls": "",
+     "ctl": "Service <span class=\"req\">Required</span>"
+    }
+   ],
+   "inputs": 0,
+   "dlgAttrs": "class role aria-modal aria-labelledby"
+  }
+ },
+ {
+  "route": "sources",
+  "key": "BUTTON|Import file|||a-docs-import||",
+  "title": "Add source",
+  "o": {
+   "title": "Add source",
+   "foot": [
+    {
+     "txt": "Cancel",
+     "attrs": "type class data-close-modal"
+    },
+    {
+     "txt": "Next",
+     "attrs": "type class data-plat-wiz=next"
+    }
+   ],
+   "reqs": [],
+   "inputs": 0,
+   "dlgAttrs": "class role aria-modal aria-labelledby"
+  }
+ },
+ {
+  "route": "inventory",
+  "key": "SPAN|Assign owners|||a-people-assign||button",
+  "title": "Assign owner",
+  "o": {
+   "title": "Assign owner",
+   "foot": [
+    {
+     "txt": "Cancel",
+     "attrs": "type class data-close-modal"
+    },
+    {
+     "txt": "Assign owner",
+     "attrs": "type class data-close-modal data-aptoast=Owner assigned to 20 assets"
+    }
+   ],
+   "reqs": [],
+   "inputs": 0,
+   "dlgAttrs": "class role aria-modal aria-labelledby"
+  }
+ },
+ {
+  "route": "controls",
+  "key": "SPAN|Add to assessment campaign|||a-tests-addcamp||button",
+  "n": 0,
+  "title": "Add to assessment campaign",
+  "result": "opener not found"
+ },
+ {
+  "route": "inventory",
+  "key": "SPAN|Mark not in boundary|||ak-reason||button",
+  "n": 0,
+  "title": "Mark not in boundary",
+  "result": "opener not found"
+ },
+ {
+  "route": "ssps",
+  "key": "BUTTON|New plan|||v8d-newplan||",
+  "title": "New plan",
+  "o": {
+   "title": "New plan",
+   "foot": [
+    {
+     "txt": "Cancel",
+     "attrs": "type class data-close-modal"
+    },
+    {
+     "txt": "Create draft",
+     "attrs": "type class data-v8d-act=newplan-ok"
+    }
+   ],
+   "reqs": [],
+   "inputs": 3,
+   "dlgAttrs": "class role aria-modal aria-labelledby"
+  }
+ },
+ {
+  "route": "checks",
+  "key": "SPAN|Deactivate|||a-tests-deactivate||button",
+  "n": 0,
+  "title": "Deactivate 2 checks",
+  "result": "opener not found"
+ },
+ {
+  "route": "baseline",
+  "key": "BUTTON|Edit overlays|||v7p-overlays||",
+  "title": "Edit overlays",
+  "o": {
+   "title": "Edit overlays",
+   "foot": [
+    {
+     "txt": "Cancel",
+     "attrs": "type class data-close-modal"
+    },
+    {
+     "txt": "Edit overlays",
+     "attrs": "type class data-close-modal data-v7p-toast=Overlays saved as a draft: it applies on"
+    }
+   ],
+   "reqs": [],
+   "inputs": 0,
+   "dlgAttrs": "class role aria-modal aria-labelledby"
+  }
+ },
+ {
+  "route": "requirements",
+  "key": "BUTTON|Import requirements|||v7p-import||",
+  "title": "Import requirements",
+  "o": {
+   "title": "Import requirements",
+   "foot": [
+    {
+     "txt": "Cancel",
+     "attrs": "type class data-close-modal"
+    },
+    {
+     "txt": "Import requirements",
+     "attrs": "type class data-close-modal data-v7p-toast=14 requirements imported, 21 allocations"
+    }
+   ],
+   "reqs": [],
+   "inputs": 0,
+   "dlgAttrs": "class role aria-modal aria-labelledby"
+  }
+ },
+ {
+  "route": "requirements",
+  "key": "BUTTON|Create requirement|||v7p-req-new||",
+  "title": "Create requirement",
+  "o": {
+   "title": "Create requirement",
+   "foot": [
+    {
+     "txt": "Cancel",
+     "attrs": "type class data-close-modal"
+    },
+    {
+     "txt": "Create requirement",
+     "attrs": "type class data-close-modal data-v7p-toast=REQ-641 created as a draft (prototype: n"
+    }
+   ],
+   "reqs": [
+    {
+     "label": "Title Required",
+     "fieldCls": "",
+     "ctl": "Title <span class=\"req\">Required</span>"
+    },
+    {
+     "label": "Statement Required",
+     "fieldCls": "",
+     "ctl": "Statement <span class=\"req\">Required</span>"
+    }
+   ],
+   "inputs": 0,
+   "dlgAttrs": "class role aria-modal aria-labelledby"
+  }
+ },
+ {
+  "route": "assessments",
+  "key": "SPAN|Plan an assessment|||a-tests-plan||button",
+  "title": "Plan an assessment",
+  "o": {
+   "title": "Plan an assessment",
+   "foot": [
+    {
+     "txt": "Cancel",
+     "attrs": "type class data-close-modal"
+    },
+    {
+     "txt": "Plan an assessment",
+     "attrs": "type class data-close-modal"
+    }
+   ],
+   "reqs": [],
+   "inputs": 0,
+   "dlgAttrs": "class role aria-modal aria-labelledby"
+  }
+ },
+ {
+  "route": "assessments",
+  "key": "SPAN|Publish results|||a-tests-publish||button",
+  "title": "Publish assessment results",
+  "o": {
+   "title": "Publish assessment results",
+   "foot": [
+    {
+     "txt": "Cancel",
+     "attrs": "type class data-close-modal"
+    },
+    {
+     "txt": "Publish assessment results",
+     "attrs": "type class data-close-modal"
+    }
+   ],
+   "reqs": [],
+   "inputs": 0,
+   "dlgAttrs": "class role aria-modal aria-labelledby"
+  }
+ },
+ {
+  "route": "cyber-te",
+  "key": "BUTTON|Plan a cyber test|||v7a-cyber-plan||",
+  "title": "Plan a cyber test",
+  "o": {
+   "title": "Plan a cyber test",
+   "foot": [
+    {
+     "txt": "Cancel",
+     "attrs": "type class data-close-modal"
+    },
+    {
+     "txt": "Plan cyber test",
+     "attrs": "type class data-close-modal"
+    }
+   ],
+   "reqs": [
+    {
+     "label": "Phase Required",
+     "fieldCls": "",
+     "ctl": "Phase <span class=\"req\">Required</span>"
+    },
+    {
+     "label": "Title Required",
+     "fieldCls": "",
+     "ctl": "Title <span class=\"req\">Required</span>"
+    }
+   ],
+   "inputs": 0,
+   "dlgAttrs": "class role aria-modal aria-labelledby"
+  }
+ },
+ {
+  "route": "policies",
+  "key": "BUTTON|Assign approvers|||a-docs-approvers||",
+  "n": 0,
+  "title": "Assign approvers",
+  "result": "opener not found"
+ },
+ {
+  "route": "policies",
+  "key": "BUTTON|Create policy|||a-docs-start||",
+  "title": "Start a policy",
+  "o": {
+   "title": "Start a policy",
+   "foot": [
+    {
+     "txt": "Cancel",
+     "attrs": "type class data-close-modal"
+    },
+    {
+     "txt": "Continue",
+     "attrs": "type class data-adcontinue=start"
+    }
+   ],
+   "reqs": [],
+   "inputs": 0,
+   "dlgAttrs": "class role aria-modal aria-labelledby"
+  }
+ },
+ {
+  "route": "poam",
+  "key": "SPAN|Change planned date…|||a-risk-ms-move||button",
+  "n": 0,
+  "title": "Change planned date",
+  "result": "opener not found"
+ },
+ {
+  "route": "findings",
+  "key": "SPAN|Deactivate…|||a-risk-deactivate||button",
+  "n": 0,
+  "title": "Deactivate 3 findings",
+  "result": "opener not found"
+ },
+ {
+  "route": "poam",
+  "key": "BUTTON|Create POA&M item|||a-risk-poam-new||",
+  "title": "Create POA&M item",
+  "o": {
+   "title": "Create POA&M item",
+   "foot": [
+    {
+     "txt": "Cancel",
+     "attrs": "type class data-close-modal"
+    },
+    {
+     "txt": "Create POA&M item",
+     "attrs": "type class data-close-modal"
+    }
+   ],
+   "reqs": [
+    {
+     "label": "Title Required",
+     "fieldCls": "",
+     "ctl": "Title <span class=\"req\">Required</span>"
+    }
+   ],
+   "inputs": 0,
+   "dlgAttrs": "class role aria-modal aria-labelledby"
+  }
+ },
+ {
+  "route": "risks",
+  "key": "SPAN|Request acceptance|||a-risk-accept||button",
+  "n": 0,
+  "title": "Request acceptance",
+  "result": "opener not found"
+ },
+ {
+  "route": "threats",
+  "key": "BUTTON|Link ATT&CK technique|||v7a-att-link||",
+  "title": "Link ATT&CK technique",
+  "o": {
+   "title": "Link ATT&CK technique",
+   "foot": [
+    {
+     "txt": "Cancel",
+     "attrs": "type class data-close-modal"
+    },
+    {
+     "txt": "Link technique",
+     "attrs": "type class data-close-modal"
+    }
+   ],
+   "reqs": [
+    {
+     "label": "Risk Required",
+     "fieldCls": "",
+     "ctl": "Risk <span class=\"req\">Required</span>"
+    },
+    {
+     "label": "Technique Required",
+     "fieldCls": "",
+     "ctl": "Technique <span class=\"req\">Required</span>"
+    }
+   ],
+   "inputs": 0,
+   "dlgAttrs": "class role aria-modal aria-labelledby"
+  }
+ },
+ {
+  "route": "risks",
+  "key": "BUTTON|Create risk|||a-risk-new-risk||",
+  "title": "Create risk",
+  "o": {
+   "title": "Create risk",
+   "foot": [
+    {
+     "txt": "Cancel",
+     "attrs": "type class data-close-modal"
+    },
+    {
+     "txt": "Create risk",
+     "attrs": "type class data-close-modal"
+    }
+   ],
+   "reqs": [
+    {
+     "label": "Title Required",
+     "fieldCls": "",
+     "ctl": "Title <span class=\"req\">Required</span>"
+    }
+   ],
+   "inputs": 0,
+   "dlgAttrs": "class role aria-modal aria-labelledby"
+  }
+ },
+ {
+  "route": "inheritance",
+  "key": "BUTTON|Add common control provider|||v7a-ccp||",
+  "title": "Add common control provider",
+  "o": {
+   "title": "Add common control provider",
+   "foot": [
+    {
+     "txt": "Cancel",
+     "attrs": "type class data-close-modal"
+    },
+    {
+     "txt": "Add provider",
+     "attrs": "type class data-close-modal"
+    }
+   ],
+   "reqs": [
+    {
+     "label": "Provider Required",
+     "fieldCls": "",
+     "ctl": "Provider <span class=\"req\">Required</span>"
+    }
+   ],
+   "inputs": 0,
+   "dlgAttrs": "class role aria-modal aria-labelledby"
+  }
+ },
+ {
+  "route": "authorization",
+  "key": "BUTTON|Submit for approval|||v7p-submit||",
+  "title": "Submit package version 2 for approval",
+  "o": {
+   "title": "Submit package version 2 for approval",
+   "foot": [
+    {
+     "txt": "Close",
+     "attrs": "type class data-close-modal"
+    },
+    {
+     "txt": "Submit",
+     "attrs": "type class aria-disabled title"
+    }
+   ],
+   "reqs": [],
+   "inputs": 0,
+   "dlgAttrs": "class role aria-modal aria-labelledby"
+  }
+ },
+ {
+  "route": "sse",
+  "key": "BUTTON|Add security outcomes|||v8g-outcomes||",
+  "title": "Add security outcomes",
+  "o": {
+   "title": "Add security outcomes",
+   "foot": [
+    {
+     "txt": "Cancel",
+     "attrs": "type class data-close-modal"
+    },
+    {
+     "txt": "Add outcomes",
+     "attrs": "type class data-v8g-submit=outcomes"
+    }
+   ],
+   "reqs": [
+    {
+     "label": "Review Required SRR · System requirements review PDR · Preliminary design review",
+     "fieldCls": "ak-field v8g-field",
+     "ctl": "<span class=\"v8g-lbl\">Review <span class=\"req\">Required</span></span><select class=\"v8g-in\" name=\"v8g-pk-rev\" aria-label=\"Review\"><option value=\"srr\">SRR · System requirements review</option><option value=\"pdr\">PDR · Preliminary design review</option><option value=\"msb\">Milestone B · Engineering and manufacturing development decision</option><option value=\"cdr\" selected=\"\">CDR · Critical design re"
+    }
+   ],
+   "inputs": 184,
+   "dlgAttrs": "class role aria-modal aria-labelledby"
+  }
+ },
+ {
+  "route": "package-room",
+  "key": "SPAN|Share the package|||a-risk-share||button",
+  "title": "Share the package",
+  "o": {
+   "title": "Share the package",
+   "foot": [
+    {
+     "txt": "Cancel",
+     "attrs": "type class data-close-modal"
+    },
+    {
+     "txt": "Share",
+     "attrs": "type class data-close-modal"
+    }
+   ],
+   "reqs": [],
+   "inputs": 0,
+   "dlgAttrs": "class role aria-modal aria-labelledby"
+  }
+ },
+ {
+  "route": "traceability",
+  "key": "BUTTON|Link evidence|||v7a-link-ev||",
+  "title": "Link evidence",
+  "o": {
+   "title": "Link evidence",
+   "foot": [
+    {
+     "txt": "Cancel",
+     "attrs": "type class data-close-modal"
+    },
+    {
+     "txt": "Link evidence",
+     "attrs": "type class data-close-modal"
+    }
+   ],
+   "reqs": [
+    {
+     "label": "Requirement Required",
+     "fieldCls": "",
+     "ctl": "Requirement <span class=\"req\">Required</span>"
+    },
+    {
+     "label": "Evidence Required",
+     "fieldCls": "",
+     "ctl": "Evidence <span class=\"req\">Required</span>"
+    }
+   ],
+   "inputs": 0,
+   "dlgAttrs": "class role aria-modal aria-labelledby"
+  }
+ },
+ {
+  "route": "program-new",
+  "key": "BUTTON|Close: save the draft or leave|||pn-leave||",
+  "title": "Save the draft and leave?",
+  "o": {
+   "title": "Save the draft and leave?",
+   "foot": [
+    {
+     "txt": "Keep editing",
+     "attrs": "type class data-close-modal"
+    },
+    {
+     "txt": "Discard",
+     "attrs": "type class data-pn=leave-discard"
+    },
+    {
+     "txt": "Save draft",
+     "attrs": "type class data-pn=leave-save"
+    }
+   ],
+   "reqs": [],
+   "inputs": 0,
+   "dlgAttrs": "class role aria-modal aria-labelledby"
+  }
+ },
+ {
+  "route": "schedule",
+  "key": "SPAN|Change due date|||a-work-due||button",
+  "n": 0,
+  "title": "Change due date",
+  "result": "opener not found"
+ },
+ {
+  "route": "conmon",
+  "key": "BUTTON|Plan a check|||v7p-plan-check||",
+  "title": "Plan a check",
+  "o": {
+   "title": "Plan a check",
+   "foot": [
+    {
+     "txt": "Cancel",
+     "attrs": "type class data-close-modal"
+    },
+    {
+     "txt": "Plan check",
+     "attrs": "type class data-close-modal data-v7p-toast=Check planned in WS-X90 continuous monit"
+    }
+   ],
+   "reqs": [
+    {
+     "label": "Check Required",
+     "fieldCls": "",
+     "ctl": "Check <span class=\"req\">Required</span>"
+    }
+   ],
+   "inputs": 0,
+   "dlgAttrs": "class role aria-modal aria-labelledby"
+  }
+ },
+ {
+  "route": "schedule",
+  "key": "SPAN|Create task|||a-work-task-new||button",
+  "title": "Create task",
+  "o": {
+   "title": "Create task",
+   "foot": [
+    {
+     "txt": "Cancel",
+     "attrs": "type class data-close-modal"
+    },
+    {
+     "txt": "Create task",
+     "attrs": "type class data-close-modal"
+    }
+   ],
+   "reqs": [
+    {
+     "label": "Title Required",
+     "fieldCls": "",
+     "ctl": "Title <span class=\"req\">Required</span>"
+    }
+   ],
+   "inputs": 0,
+   "dlgAttrs": "class role aria-modal aria-labelledby"
+  }
+ },
+ {
+  "route": "people",
+  "key": "SPAN|Schedule reminders|||a-people-recurring||button",
+  "n": 0,
+  "title": "Recurring reminders",
+  "result": "opener not found"
+ },
+ {
+  "route": "people",
+  "key": "SPAN|Send reminder|||a-people-remind||button",
+  "n": 0,
+  "title": "Send a reminder",
+  "result": "opener not found"
+ },
+ {
+  "route": "people",
+  "key": "SPAN|Change role|||a-people-change-role||button",
+  "n": 0,
+  "title": "Change role",
+  "result": "opener not found"
+ },
+ {
+  "route": "people",
+  "key": "SPAN|Assign a role|||risk-role||button",
+  "title": "Assign a role",
+  "o": {
+   "title": "Assign a role",
+   "foot": [
+    {
+     "txt": "Cancel",
+     "attrs": "type class data-close-modal"
+    },
+    {
+     "txt": "Assign role",
+     "attrs": "type class data-close-modal data-risk-toast=Role saved"
+    }
+   ],
+   "reqs": [],
+   "inputs": 4,
+   "dlgAttrs": "class role aria-modal aria-labelledby"
+  }
+ },
+ {
+  "route": "people",
+  "key": "SPAN|End role|||a-people-end||button",
+  "n": 0,
+  "title": "End 2 roles",
+  "result": "opener not found"
+ },
+ {
+  "route": "program-start",
+  "key": "BUTTON|Invite people|||pn-invite||",
+  "title": "Invite by email",
+  "o": {
+   "title": "Invite by email",
+   "foot": [
+    {
+     "txt": "Cancel",
+     "attrs": "type class data-close-modal"
+    },
+    {
+     "txt": "Send invitation",
+     "attrs": "type class data-pn=iv-ok"
+    }
+   ],
+   "reqs": [
+    {
+     "label": "Email Required",
+     "fieldCls": "pn-label",
+     "ctl": "Email <span class=\"req\">Required</span>"
+    }
+   ],
+   "inputs": 2,
+   "dlgAttrs": "class role aria-modal aria-labelledby"
+  }
+ },
+ {
+  "route": "campaign",
+  "key": "SPAN|Set Ready|||a-tests-ready||button",
+  "n": 0,
+  "title": "Set Ready",
+  "result": "opener not found"
+ },
+ {
+  "route": "program-start",
+  "key": "BUTTON|Import|||pn-itcsc||",
+  "title": "Import the ITCSC",
+  "o": {
+   "title": "Import the ITCSC",
+   "foot": [
+    {
+     "txt": "Cancel",
+     "attrs": "type class data-close-modal"
+    }
+   ],
+   "reqs": [],
+   "inputs": 0,
+   "dlgAttrs": "class role aria-modal aria-labelledby"
+  }
+ },
+ {
+  "route": "program-start",
+  "key": "BUTTON|Upload|||pn-diagram||",
+  "title": "Upload the architecture diagram",
+  "o": {
+   "title": "Upload the architecture diagram",
+   "foot": [
+    {
+     "txt": "Cancel",
+     "attrs": "type class data-close-modal"
+    }
+   ],
+   "reqs": [],
+   "inputs": 0,
+   "dlgAttrs": "class role aria-modal aria-labelledby"
+  }
+ },
+ {
+  "route": "control-si2",
+  "key": "SPAN|Add evidence|||a-tests-addev||button",
+  "title": "Add evidence",
+  "o": {
+   "title": "Add evidence",
+   "foot": [
+    {
+     "txt": "Cancel",
+     "attrs": "type class data-close-modal"
+    },
+    {
+     "txt": "Add evidence",
+     "attrs": "type class data-close-modal"
+    }
+   ],
+   "reqs": [],
+   "inputs": 0,
+   "dlgAttrs": "class role aria-modal aria-labelledby"
+  }
+ },
+ {
+  "route": "ssp-review",
+  "key": "BUTTON|Edit summary|||sh-summary||",
+  "title": "Edit summary",
+  "o": {
+   "title": "Edit summary",
+   "foot": [
+    {
+     "txt": "Cancel",
+     "attrs": "type class data-close-modal"
+    },
+    {
+     "txt": "Save summary",
+     "attrs": "type class data-sh-act=sum-ok"
+    }
+   ],
+   "reqs": [],
+   "inputs": 1,
+   "dlgAttrs": "class role aria-modal aria-labelledby"
+  }
+ },
+ {
+  "route": "ssp-history",
+  "key": "BUTTON|Compare|||sh-compare||",
+  "title": "Compare versions",
+  "o": {
+   "title": "Compare versions",
+   "foot": [
+    {
+     "txt": "Cancel",
+     "attrs": "type class data-close-modal"
+    },
+    {
+     "txt": "Compare",
+     "attrs": "type class data-sh-act=compare-ok"
+    }
+   ],
+   "reqs": [],
+   "inputs": 2,
+   "dlgAttrs": "class role aria-modal aria-labelledby"
+  }
+ },
+ {
+  "route": "ssp-history",
+  "key": "BUTTON|Name this version|||sh-name||",
+  "title": "Name this version",
+  "o": {
+   "title": "Name this version",
+   "foot": [
+    {
+     "txt": "Cancel",
+     "attrs": "type class data-close-modal"
+    },
+    {
+     "txt": "Save name",
+     "attrs": "type class data-sh-act=name-ok"
+    }
+   ],
+   "reqs": [],
+   "inputs": 1,
+   "dlgAttrs": "class role aria-modal aria-labelledby"
+  }
+ },
+ {
+  "route": "ssp-history",
+  "key": "BUTTON|Restore this version|||sh-restore||",
+  "title": "Restore this version?",
+  "o": {
+   "title": "Restore this version?",
+   "foot": [
+    {
+     "txt": "Cancel",
+     "attrs": "type class data-close-modal"
+    },
+    {
+     "txt": "Restore",
+     "attrs": "type class data-sh-act=restore-ok"
+    }
+   ],
+   "reqs": [],
+   "inputs": 0,
+   "dlgAttrs": "class role aria-modal aria-labelledby"
+  }
+ },
+ {
+  "route": "check-scan",
+  "key": "BUTTON|Create ticket|||v8w-ticket-new||",
+  "title": "Create ticket",
+  "o": {
+   "title": "Create ticket",
+   "foot": [
+    {
+     "txt": "Cancel",
+     "attrs": "type class data-close-modal"
+    },
+    {
+     "txt": "Create ticket",
+     "attrs": "type class data-v8w-submit=ticket data-id=check:scan"
+    }
+   ],
+   "reqs": [
+    {
+     "label": "Summary Required Prefilled from the record",
+     "fieldCls": "ak-field v8w-field",
+     "ctl": "<span class=\"v8w-lbl\">Summary <span class=\"req\">Required</span></span><input class=\"v8w-in\" type=\"text\" name=\"summary\" value=\"Failing check: Vulnerability scans run at RA-5's frequency\" aria-label=\"Summary\" placeholder=\"\" autocomplete=\"off\"><span class=\"s\">Prefilled from the record</span>"
+    }
+   ],
+   "inputs": 8,
+   "dlgAttrs": "class role aria-modal aria-labelledby"
+  }
+ },
+ {
+  "route": "component-mc",
+  "key": "SPAN|Send reminder|||v7o-remind||button",
+  "title": "Remind consumers to take version 2",
+  "o": {
+   "title": "Remind consumers to take version 2",
+   "foot": [
+    {
+     "txt": "Cancel",
+     "attrs": "type class data-close-modal"
+    },
+    {
+     "txt": "Send reminders",
+     "attrs": "type class data-close-modal data-v7o-toast=3 consumers reminded"
+    }
+   ],
+   "reqs": [],
+   "inputs": 0,
+   "dlgAttrs": "class role aria-modal aria-labelledby"
+  }
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|Share|||se-share||",
+  "title": "Share the SSP",
+  "o": {
+   "title": "Share the SSP",
+   "foot": [
+    {
+     "txt": "Copy link",
+     "attrs": "type class data-mact=copy style"
+    },
+    {
+     "txt": "Done",
+     "attrs": "type class data-close-modal"
+    }
+   ],
+   "reqs": [],
+   "inputs": 10,
+   "dlgAttrs": "class role aria-modal aria-labelledby"
+  }
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|Add section|||se-add||",
+  "title": "Add section",
+  "o": {
+   "title": "Add section",
+   "foot": [
+    {
+     "txt": "Cancel",
+     "attrs": "type class data-close-modal"
+    },
+    {
+     "txt": "Add section",
+     "attrs": "type class data-mact=add"
+    }
+   ],
+   "reqs": [],
+   "inputs": 7,
+   "dlgAttrs": "class role aria-modal aria-labelledby"
+  }
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|Detach|||se-detach||",
+  "title": "Detach from the record?",
+  "o": {
+   "title": "Detach from the record?",
+   "foot": [
+    {
+     "txt": "Cancel",
+     "attrs": "type class data-close-modal"
+    },
+    {
+     "txt": "Detach section 1",
+     "attrs": "type class data-mact=detach data-id=s1 data-close-modal"
+    }
+   ],
+   "reqs": [],
+   "inputs": 0,
+   "dlgAttrs": "class role aria-modal aria-labelledby"
+  }
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|Replace with an image|||se-upload||",
+  "title": "Replace Figure 1",
+  "o": {
+   "title": "Replace Figure 1",
+   "foot": [
+    {
+     "txt": "Cancel",
+     "attrs": "type class data-close-modal"
+    },
+    {
+     "txt": "Choose a file",
+     "attrs": "type class data-mact=pick data-close-modal"
+    }
+   ],
+   "reqs": [],
+   "inputs": 0,
+   "dlgAttrs": "class role aria-modal aria-labelledby"
+  }
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|Replace with an image|||se-upload||",
+  "title": "Replace Figure 2",
+  "o": {
+   "title": "Replace Figure 2",
+   "foot": [
+    {
+     "txt": "Cancel",
+     "attrs": "type class data-close-modal"
+    },
+    {
+     "txt": "Choose a file",
+     "attrs": "type class data-mact=pick data-close-modal"
+    }
+   ],
+   "reqs": [],
+   "inputs": 0,
+   "dlgAttrs": "class role aria-modal aria-labelledby"
+  }
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|2 values the baseline doesn't set|||se-params||",
+  "title": "Set AC-2(3)'s parameters",
+  "o": {
+   "title": "Set AC-2(3)'s parameters",
+   "foot": [
+    {
+     "txt": "Cancel",
+     "attrs": "type class data-close-modal"
+    },
+    {
+     "txt": "Set parameters",
+     "attrs": "type class data-mact=params data-close-modal"
+    }
+   ],
+   "reqs": [
+    {
+     "label": "Rationale Required",
+     "fieldCls": "",
+     "ctl": "Rationale <span class=\"req\">Required</span>"
+    }
+   ],
+   "inputs": 3,
+   "dlgAttrs": "class role aria-modal aria-labelledby"
+  }
+ }
+]

@@ -13,7 +13,7 @@ const info = await p.evaluate(() => {
   const PA = window.PA, S = PA.S, owned = [...(PA.OWNED || [])], canonT = new Set(Object.entries(PA.canon.CANON).filter(([r, x]) => S[x[0]] && S[x[0]].__from && !owned.includes(x[0])).map(([, x]) => x[0]));
   const v6 = (r) => /^(ssp|ssps|ssps-.*|ssp-.*|program-new.*|program-start)$/.test(r), meta = (r) => /^(study|before-after.*)$/.test(r);
   const kind = (r) => owned.includes(r) ? "v7" : canonT.has(r) ? "after" : v6(r) ? "v6" : meta(r) ? "meta" : r.startsWith("after-") ? "alias" : "old";
-  const routes = Object.keys(S), nav = [...document.querySelectorAll("#nav a.item")].map((a) => a.getAttribute("href").slice(1));
+  const routes = Object.keys(S), nav = PA.navItems ? PA.navItems().map(([k]) => k) : [...document.querySelectorAll("#nav a.item")].map((a) => a.getAttribute("href").slice(1));
   return { routes: routes.map((r) => [r, kind(r)]), owned, nav };
 });
 const kinds = {}; for (const [, k] of info.routes) kinds[k] = (kinds[k] || 0) + 1;

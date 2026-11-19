@@ -1,0 +1,10 @@
+[
+  {"id": "lifecycle", "title": "Lifecycle · Increment 2 (current)", "route": "lifecycle-increment-2", "v1": "Two gates on Schedule, under Monitor; the CDR due before the PDR; no stages or deliverables"},
+  {"id": "lifecycle-inc1", "title": "Lifecycle · Increment 1 (fielded)", "route": "lifecycle-increment-1", "v1": "Nothing: the fielded increment's milestones, reviews and ATO were not shown"},
+  {"id": "gate-pdr", "title": "Gate page · PDR, Increment 2", "route": "lifecycle-pdr-2", "v1": "A Schedule card and a preview with four outcomes; Request decision changed nothing"},
+  {"id": "gate-ato", "title": "Gate page · ATO, Increment 1", "route": "lifecycle-ato-1", "v1": "The ATO lived only on Authorization; no step showed its deliverables or approvers"},
+  {"id": "overview-strip", "title": "Overview · the stage strip", "route": "overview", "v1": "A Details fact reading Lifecycle: Planned"},
+  {"id": "schedule-tasks", "title": "Schedule · tasks only", "route": "schedule", "v1": "Two lifecycle gate cards above the tasks"},
+  {"id": "my-work-due", "title": "My work · Due for PDR", "route": "my-work", "v1": "No deliverables due for a gate anywhere"},
+  {"id": "programs-stage", "title": "Programs · stage and host", "route": "portfolio", "v1": "A Next gate date per program, WS-X90's the CDR, past due"}
+]

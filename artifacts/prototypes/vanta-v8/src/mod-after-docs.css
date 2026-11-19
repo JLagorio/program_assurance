@@ -252,3 +252,12 @@ td .a-docs-mbtn.icon:hover, td .a-docs-mbtn.icon[aria-expanded="true"] { backgro
   .a-docs-asap { padding-inline-start: 0; }
   .a-docs-pecard, .a-docs-prev-h, .a-docs-psec { padding-inline: 14px; }
 }
+
+/* ——— v2 (agent L2): Policies ——— */
+/* A control status as a glyph and an ink word. */
+.v2l-st { display: inline-flex; align-items: center; gap: 8px; color: var(--ink); white-space: nowrap; }
+.v2l-st .gl { width: 14px; height: 14px; }
+.v2l-st .gl.check::after { left: 4px; top: 2.5px; width: 3.5px; height: 6.5px; }
+.v2l-st .gl.ring { border-width: 1.6px; }
+/* One toolbar line: the filters keep their row and the search gives way first. */
+.a-docs-tools .in { flex: 0 1 220px; min-width: 140px; }

@@ -86,6 +86,8 @@
     if (d) { e.stopPropagation(); e.preventDefault(); SEL[d.dataset.awDesel] = new Set(); redraw(`[data-aw-sel="${d.dataset.awDesel}"][data-aw-id="*"]`); return; }
     const w = t.closest("[data-aw-sw]");
     if (w) { e.stopPropagation(); e.preventDefault(); const on = w.getAttribute("aria-checked") !== "true"; w.setAttribute("aria-checked", String(on)); w.classList.toggle("on", on); return; }
+    const kd = t.closest("[data-aw-kind]");
+    if (kd) { e.stopPropagation(); e.preventDefault(); RQ_ON = kd.dataset.awKind || null; closeMenus(); SEL["rq-all"] = new Set(); redraw(".v2-rq") ; return; }
     const o = t.closest("[data-aw-opt]");
     if (o) { e.stopPropagation(); e.preventDefault(); const b = o.querySelector(".ak-cb"); if (b) { b.classList.toggle("on"); o.setAttribute("aria-checked", String(b.classList.contains("on"))); } return; }
     const rd = t.closest("[data-aw-radio]");
@@ -115,7 +117,7 @@
     const t = e.target;
     if (e.key === "Escape") { closeInbox(); closeMenus(); return; }
     if ((e.key === "Enter" || e.key === " ") && t && t.matches) {
-      if (t.matches("[data-aw-sel], [data-aw-desel], [data-aw-sw], [data-aw-toast], [data-aw-opt], [data-aw-radio]")) { e.preventDefault(); e.stopPropagation(); t.click(); }
+      if (t.matches("[data-aw-sel], [data-aw-desel], [data-aw-sw], [data-aw-toast], [data-aw-opt], [data-aw-radio], [data-aw-kind]")) { e.preventDefault(); e.stopPropagation(); t.click(); }
       else if (t.matches("#panel .a-work-pan [data-panel]:not(button), #panel .a-work-pan [data-go]:not(button), #panel .a-work-pan [data-modal]:not(button)")) { e.preventDefault(); t.click(); }
     }
   }, true);
@@ -186,21 +188,28 @@
   const card = (body) => AK.card(body, { cls: "a-work-card" });
 
   // ═════════════ 1. Home, and the program overview its WS-X90 card opens ═════════════
+  // v2 (home budget): one card a program: its name, a %, one green bar and N of M. No note line, no pills.
   const progCard = (p) => {
     const v = pct(p.sat, p.total);
-    const inner = `<div class="nm2"><span>${esc(p.name)}</span><span class="a-work-pcr"><span class="code">${esc(p.code)}</span>${chevR}</span></div><div class="big num">${v}%</div>${bar(v)}<div class="foot"><span class="num">${p.sat} controls satisfied</span><span class="num">${p.total} total</span></div><div class="note-p">${esc(p.note)}</div>`;
-    return p.code === "PRG-1090" ? `<a class="pcard" href="#after-home-overview">${inner}</a>` : `<div class="pcard a-work-pcoff">${inner}</div>`;
+    const inner = `<div class="nm2"><span>${esc(p.name)}</span><span class="a-work-pcr"><span class="code">${esc(p.code)}</span>${chevR}</span></div><div class="big num">${v}%</div>${bar(v)}<div class="foot"><span class="num">${fmt(p.sat)} of ${fmt(p.total)} controls satisfied</span></div>`;
+    // v2 C2 (B2, B6): WS-X90's card opens its overview and makes it the current program; another program's card opens Programs with
+    // that program's preview; a program created in this session opens its own page.
+    if (p.made) return `<a class="pcard" href="#program-start" data-v2prog="${esc(p.code)}">${inner}</a>`;
+    return p.code === "PRG-1090" ? `<a class="pcard" href="#after-home-overview" data-v2prog="PRG-1090">${inner}</a>` : `<a class="pcard" href="#portfolio" data-v2go="portfolio" data-v2q="${esc(JSON.stringify({ open: { kind: "v7o-prog", id: p.code } }))}">${inner}</a>`;
   };
+  const OTHER_CODE = { "Atlas payments platform": "PRG-1041", "Corporate identity provider": "PRG-1013", "Field operations mobile": "PRG-1007", "Legacy billing gateway": "PRG-0994", "Northwind data warehouse": "PRG-1028" };
+  const madeCards = () => ((window.PA.v2hubs && window.PA.v2hubs.made()) || []).map((d) => ({ code: d.code, name: d.name, sat: 0, total: d.total || 0, made: true }));
+  const offerQ = esc(JSON.stringify({ open: { kind: "v7o-offer", id: "cve" } }));
+  // v2 (B16, home budget): Create program is Home's primary, beside View my work; the two tinted banners are one grey callout.
   S["after-home"] = () => {
     navItem(false, co(2));
     switcherCreate();
     return h.page(
-      h.header("Home", "", `<span class="btn" ${go("after-my-work")}>${AK.i("eye")}View my work</span>${co(4)}`),
-      `<div class="a-work-banners">${banner({ tone: "warn", text: "<b>Mission Computer version 2</b> is published: 4 consumers are behind and 2 controls wait for review.", action: "Open component", co: co(1) }, go("components"))}${banner({ tone: "bad", text: "<b>CVE-2024-6387</b> is open in the Mission Computer's OpenSSH server; WS-X90 offered it on Nov 14 and it waits on Priya Raghavan.", action: "Open offer" }, go("components"))}</div>`,
+      h.header("Home", "", `<span class="btn" ${go("after-my-work")}>View my work</span>${co(4)}<span class="btn ink" ${go("program-new")}>Create program</span>`),
+      `<div class="a-work-banners v2-home-call">${banner({ tone: "warn", text: "<b>Mission Computer version 2</b> is published: 4 consumers are behind, and its CVE-2024-6387 offer waits on Priya Raghavan.", action: "Open offer", co: co(1) }, `data-v2go="component-mc-findings" data-v2q="${offerQ}"`)}</div>`,
       `<div class="a-work-secth"><h4 class="subhead">Controls satisfied, by program</h4>${stamp(co(3))}</div>`,
-      `<div class="grid3">${data.PROGRAMS.map(progCard).join("")}</div>`,
-      `<div class="card"><div class="t">Other programs <span class="num">${data.OTHER.length}</span></div><div class="rows">${data.OTHER.map((n) => `<div class="row">${gl("ring")}<span>${esc(n)}</span><b class="muted a-work-open">Open →</b></div>`).join("")}</div></div>`,
-      `<p class="note-p">The WS-X90 card opens the program overview, redrawn the same way. Create program now sits in the program switcher's menu.</p>`,
+      `<div class="grid3">${madeCards().concat(data.PROGRAMS).map(progCard).join("")}</div>`,
+      `<div class="card v2-home-other"><div class="t">Other programs <span class="num">${data.OTHER.length}</span></div><div class="rows">${data.OTHER.map((n) => `<a class="row" href="#portfolio"${OTHER_CODE[n] ? ` data-v2go="portfolio" data-v2q="${esc(JSON.stringify({ open: { kind: "v7o-prog", id: OTHER_CODE[n] } }))}"` : ""}><span>${esc(n)}</span><span class="muted num">0 of ${n === "Legacy billing gateway" ? 149 : 287} controls satisfied</span></a>`).join("")}</div></div>`,
     );
   };
   ROUTE_NAV["after-home"] = "before-after";
@@ -232,6 +241,9 @@
       { icon: "policies", title: "System security plan", line: "SSP 3, in draft for the Block 1.1 configuration.", items: [["Replace the 74 placeholder narratives in SSP 3", 0, "ssp", "Open the SSP"], ["Submit SSP 3 for review", 0, "ssp-review", "Review and submit"]] },
     ] },
   ];
+  // v2 C2 (B7): the share done is counted from the checklist's items, here and on the menu's Getting started (it read 25% there).
+  const gsCount = () => { const items = GS.flatMap((s) => s.groups.flatMap((g) => g.items)); return { done: items.filter((x) => x[1]).length, total: items.length }; };
+  window.PA.gs = { pct: () => { const c = gsCount(); return pct(c.done, c.total); } };
   function gsPage(si, withCo) {
     navItem(true);
     const c = (n) => (withCo ? co(n) : "");
@@ -255,7 +267,7 @@
     const next = GS[si + 1];
     return h.page(
       AK.indexHead({ title: "Getting started", desc: `Set up the workspace, give records owners, then close WS-X90's gaps. ${EX}`, co: c(1) }),
-      `<div class="a-work-gsp">${AK.progress(2, 10, "done")}<span class="num">· 20%</span>${c(3)}</div>`,
+      `<div class="a-work-gsp">${AK.progress(gsCount().done, gsCount().total, "done")}<span class="num">· ${window.PA.gs.pct()}%</span>${c(3)}</div>`,
       `<div class="a-work-stepper">${steps}</div>`,
       `<section class="a-work-gsc" aria-label="${esc(step.label)}"><div class="a-work-gsch"><h3>${esc(step.label)}</h3><p>${esc(step.line)}</p></div>${step.groups.map(group).join("")}${next ? `<div class="a-work-gsf"><span class="btn" ${go(next.route)}>Continue to ${esc(next.label)} →</span></div>` : ""}</section>`,
       AK.note("The checklist is an example: its three steps, their order and their wording are invented. Every number in it is already on WS-X90's screens."),
@@ -270,42 +282,63 @@
   // Two broad kinds, as Vanta draws them: a checklist for work to do, a clipboard for documents (the SSP, evidence).
   const KIND = { act: [svg(I.list), "Work item"], doc: [svg(I.clip), "Document"] };
   const av = (n) => `<span class="a-work-av" title="${esc(n || "No owner")}">${AK.avatar(n, 24)}${n ? "" : sr("No owner")}</span>`;
-  const MW = [
-    { title: "Urgent", glyph: "diamond", rows: [
-      { k: "act", t: "Remediate CVE-2024-6387 on the Mission Computer", m: `High • due Nov 9 • <span class="a-work-bad">${ago("2026-11-09")}d late</span>`, o: [ME], r: "findings", me: true },
-      { k: "act", t: "Resolve 16 more operational issues past their remediation date", m: "1 critical • 8 high • 7 moderate", o: [null], r: "findings" },
-      { k: "act", t: "Treat 2 critical risks", m: "a password alone reaches WS-X90 • unverifiable arm and release records", o: [null], r: "risks" },
-    ] },
-    { title: "Coming soon", glyph: "clock", rows: [
-      { k: "act", t: "Close out the Expanded Control Set Assessment", m: "89 controls not assessed • ends Nov 20", o: ["D. Okafor"], r: "campaign" },
-      { k: "act", t: "Remediate 3 operational issues", m: "1 critical • 2 high • due within two weeks", o: [null], r: "findings" },
-      { k: "doc", t: "Submit SSP 3 for review", m: "Draft", o: ["Priya Raghavan"], r: "ssp-review", ex: true },
-      { k: "act", t: "Run the quarterly configuration baseline audit (CM-2, CM-3)", m: "Planned • due Dec 28", o: [ME], r: "schedule", me: true },
-    ] },
-    { title: "Unscheduled", glyph: "ring", rows: [
-      { k: "act", t: "Give an owner to 40 open risks", m: "", o: [null], r: "risks" },
-      { k: "doc", t: "Revise 54 evidence versions", m: "sent back by reviewers", o: [null, "Wes Duarte"], r: "evidence" },
-    ] },
-    { title: "Waiting on others", glyph: "info", rows: [
-      { k: "doc", t: "88 evidence versions wait on a reviewer", m: "27 of them yours", o: ["Nadia Fournier"], r: "evidence" },
-      { k: "act", t: "An offered finding, CVE-2024-6387, waits on Priya Raghavan", m: "offered Nov 14", o: ["Priya Raghavan"], r: "components" },
-    ] },
-  ];
-  const mwRow = (x, cs = {}) => `<a class="a-work-mw${cs[1] ? " co1" : ""}" href="#${x.r}"><span class="a-work-sq" title="${KIND[x.k][1]}">${KIND[x.k][0]}</span>${cs[1] || ""}<span class="a-work-mwt"><b>${esc(x.t)}</b>${cs[5] || ""}${x.m ? `<span class="m">${x.m}</span>` : ""}${x.ex ? EX : ""}${cs[4] || ""}</span><span class="a-work-mwo"><span class="ak-avs">${x.o.map(av).join("")}</span>${cs[2] || ""}</span></a>`;
-  const mwGroup = (g, rows, cs = {}) => `<details class="a-work-mwg" open><summary>${svg(I.down, "a-work-chv")}${gl(g.glyph)}<b>${esc(g.title)}</b><span class="ct num">${rows.length}</span>${cs.g || ""}</summary><div class="a-work-mwl">${rows.map((x, i) => mwRow(x, (cs.rows || [])[i])).join("")}</div></details>`;
+  // v2 C2 (B2, B7): each row opens its register asked for exactly the records it counts (a quick view, the rows, the record's
+  // preview), and each count is read from the screen the row opens (PA.v2hubs.count), so the row and the list cannot disagree.
+  // B5: SSP 3's row follows the review state the submit page writes (ssp.rev3).
+  const live = (route, label, d) => { const H = window.PA.v2hubs, n = H && H.count(route, label); return n == null ? d : n; };
+  const v2get = (path, d) => (window.PA.v2 ? window.PA.v2.get(path, d) : d);
+  const plural = (n, one, many) => `${fmt(n)} ${n === 1 ? one : many || one + "s"}`;
+  const CRIT = ["A password on its own reaches WS-X90 at the flightline", "Payload arm and release records become unverifiable as signing keys rotate"];
+  function mwData() {
+    const late = live("findings", "Past due", 17), soon = live("findings", "Due soon", 3), noOwner = live("risks", "No owner", 40);
+    const revise = live("evidence", "Needs revision", 54), pending = live("evidence", "Pending review", 88), ready = live("campaign", "Ready", 88);
+    const H = window.PA.v2hubs, crit = H ? H.rows("risks", (tr) => /\bCritical\b/.test(tr.textContent)) : { n: 2, names: CRIT };
+    const critNames = crit.n ? crit.names : CRIT;
+    const ssp = v2get("ssp.rev3.state", "draft");
+    const sspRow = ssp === "submitted" || ssp === "approved"
+      ? { k: "doc", t: `SSP 3 waits on ${ssp === "approved" ? "R. Calloway, the AO" : "Joel Barrantes, the ISSM"}`, m: ssp === "approved" ? "Approved by the ISSM" : "In review", o: [ssp === "approved" ? "R. Calloway" : "Joel Barrantes"], r: "ssp-review" }
+      : { k: "doc", t: ssp === "changes" ? "Revise SSP 3: the ISSM sent it back" : "Submit SSP 3 for review", m: ssp === "changes" ? "Changes requested" : "Draft", o: ["Priya Raghavan"], r: "ssp-review", ex: true };
+    const waiting = [
+      { k: "doc", t: `${plural(pending, "evidence version")} wait on a reviewer`, m: "Pending review", o: ["Nadia Fournier"], r: "evidence", q: { filter: { qv: "Pending review" } } },
+      { k: "act", t: "An offered finding, CVE-2024-6387, waits on Priya Raghavan", m: "offered Nov 14", o: ["Priya Raghavan"], r: "component-mc-findings", q: { open: { kind: "v7o-offer", id: "cve" } } },
+    ];
+    const soonRows = [
+      { k: "act", t: "Close out the Expanded Control Set Assessment", m: `${plural(ready, "request")} ready for the assessor • ends Nov 20`, o: ["D. Okafor"], r: "campaign", q: { filter: { qv: "Ready" } } },
+      { k: "act", t: `Remediate ${plural(soon, "operational issue")}`, m: "1 critical • 2 high • due within two weeks", o: [null], r: "findings", q: { filter: { qv: "Due soon" } } },
+      { k: "act", t: "Run the quarterly configuration baseline audit (CM-2, CM-3)", m: "WSX-397 • Planned • due Dec 28", o: [ME], r: "schedule", me: true, q: { open: { kind: "a-work-task", id: "t10" } } },
+    ];
+    if (sspRow.r && !(ssp === "submitted" || ssp === "approved")) soonRows.splice(2, 0, sspRow); else waiting.unshift(sspRow);
+    return [
+      { title: "Urgent", glyph: "diamond", rows: [
+        { k: "act", t: "Remediate CVE-2024-6387 on the Mission Computer", m: `WSX-409 • High • due Nov 9 • ${ago("2026-11-09")} days late`, o: [ME], r: "findings-vulns", me: true, q: { rows: ["CVE-2024-6387"], open: { kind: "a-risk-issue", id: "c0fdce4e" }, note: "Showing the CVE this row names" } },
+        { k: "act", t: `Resolve ${plural(late, "operational issue")} past their remediation date`, m: "1 critical • 9 high • 7 moderate", o: [null], r: "findings", q: { filter: { qv: "Past due" } } },
+        { k: "act", t: `Treat ${plural(critNames.length, "critical risk")}`, m: "a password alone reaches WS-X90 • unverifiable arm and release records", o: [null], r: "risks", q: { filter: { sev: "critical" } } }, // v2 F [B2]: Risks applies Severity: Critical, so its rows are the ones counted
+      ] },
+      { title: "Coming soon", glyph: "clock", rows: soonRows },
+      { title: "Unscheduled", glyph: "ring", rows: [
+        { k: "act", t: `Give an owner to ${plural(noOwner, "open risk")}`, m: "", o: [null], r: "risks", q: { filter: { qv: "No owner" } } },
+        { k: "doc", t: `Revise ${plural(revise, "evidence version")}`, m: "sent back by reviewers", o: [null, "Wes Duarte"], r: "evidence", q: { filter: { qv: "Needs revision" } } },
+      ] },
+      { title: "Waiting on others", glyph: "wait", rows: waiting },
+    ];
+  }
+  window.PA.mywork = { data: mwData }; // the rail's My work count reads these rows
+  // v2 (A12, A13, N16; inbox budget): one hairline list a group, each row an icon, the title, grey meta (a ticket key as plain grey
+  // text, one state word) and the avatars. The callout column that squeezed the second Urgent row is gone (callouts are hidden).
+  const mwGo = (x) => (x.q ? ` data-v2go="${esc(x.r)}" data-v2q="${esc(JSON.stringify(x.q))}"` : "");
+  const mwRow = (x, cs = {}) => `<a class="a-work-mw" href="#${x.r}"${mwGo(x)}><span class="a-work-sq" title="${KIND[x.k][1]}">${KIND[x.k][0]}</span>${cs[1] || ""}<span class="a-work-mwt"><span class="a-work-mwtt">${esc(x.t)}</span>${cs[5] || ""}${x.m ? `<span class="m">${x.m}</span>` : ""}${x.ex ? EX : ""}${cs[4] || ""}</span><span class="a-work-mwo"><span class="ak-avs">${x.o.map(av).join("")}</span>${cs[2] || ""}</span></a>`;
+  const mwGroup = (g, rows, cs = {}) => `<details class="a-work-mwg" open><summary>${svg(I.down, "a-work-chv")}${g.glyph === "wait" ? '<span class="gl info a-work-glg"></span>' : gl(g.glyph)}<b>${esc(g.title)}</b><span class="ct num">${rows.length}</span>${cs.g || ""}</summary><div class="a-work-mwl">${rows.map((x, i) => mwRow(x, (cs.rows || [])[i])).join("")}</div></details>`;
   const TYPES = ["Operational issue", "Risk", "Assessment", "SSP", "Evidence", "Gate", "Task", "POA&M milestone", "Component offer"];
   const mwViews = (cur, c3 = "") => `<div class="views a-work-mwv">${[["all", "All", "after-my-work"], ["mine", "Assigned to me", "after-my-work-mine"], ["teams", "My teams", null], ["approval", "Needs my approval", "after-my-work-approval"]].map(([k, l, r]) => `<span class="qv${k === cur ? " on" : ""}"${k === cur ? ' aria-current="true"' : r ? ` ${go(r)}` : ""}>${esc(l)}</span>`).join("")}<span class="a-work-type">${dd("Type", TYPES.map((t) => [t, null]), { search: "Search types" })}${c3}</span></div>`;
   S["after-my-work"] = () => h.page(
     h.header("My work", "", ""),
     mwViews("all", co(3)),
-    `<div class="mw">${MW.map((g, gi) => mwGroup(g, g.rows, gi === 0 ? { g: co(6), rows: [{ 5: co(5), 4: co(4) }, { 1: co(1), 2: co(2) }] } : {})).join("")}</div>`,
-    AK.note("The owner of Submit SSP 3 for review, Priya Raghavan as the ISSO who owns the package, is invented; every other row, count and owner is WS-X90's."),
+    `<div class="mw">${mwData().map((g, gi) => mwGroup(g, g.rows, gi === 0 ? { g: co(6), rows: [{ 5: co(5), 4: co(4) }, { 1: co(1), 2: co(2) }] } : {})).join("")}</div>`,
   );
   S["after-my-work-mine"] = () => h.page(
     h.header("My work", "", ""),
     mwViews("mine"),
-    `<div class="mw">${MW.map((g) => [g, g.rows.filter((x) => x.me)]).filter(([, r]) => r.length).map(([g, r]) => mwGroup(g, r)).join("")}</div>`,
-    `<p class="note-p">Ingrid Solberg owns these two: the CVE-2024-6387 issue, 8 days past its 30-day window, and the quarterly configuration baseline audit.</p>`,
+    `<div class="mw">${mwData().map((g) => [g, g.rows.filter((x) => x.me)]).filter(([, r]) => r.length).map(([g, r]) => mwGroup(g, r)).join("")}</div>`,
   );
   S["after-my-work-approval"] = () => h.page(h.header("My work", "", ""), mwViews("approval"), AK.empty({ title: "Nothing waits on your approval", line: "Approvals assigned to you, Ingrid Solberg, show here." }));
   ["after-my-work", "after-my-work-mine", "after-my-work-approval"].forEach((r) => { ROUTE_NAV[r] = "before-after"; });
@@ -345,29 +378,59 @@
     component_offer: [["co1", "CVE-2024-6387 in the Mission Computer's OpenSSH server", "WS-X90", "Priya Raghavan", "2026-11-14", "Ingrid Solberg"]],
   };
   const RQ_ALL = Object.entries(RQ).flatMap(([k, rows]) => rows.map((r) => ({ kind: k, id: r[0], name: r[1], prog: r[2], on: r[3], since: r[4], by: r[5], due: r[6] })));
-  const ROLE_OF = { "Nadia Fournier": "Assessor", "D. Okafor": "Lead assessor", "Elena Vasquez": "Assessor", "Ray Colston": "System owner", "Priya Raghavan": "Component owner" };
+  const ROLE_OF = { "Nadia Fournier": "Assessor", "D. Okafor": "Lead assessor", "Elena Vasquez": "Assessor", "Ray Colston": "System owner", "Priya Raghavan": "Component owner", "Joel Barrantes": "ISSM", "R. Calloway": "Authorizing official" };
   const sinceCell = (iso) => `<span class="num">${md(iso)}</span> <span class="a-work-mu num">· ${ago(iso)}d</span>`;
   const nobody = (n) => AK.owner(n, { label: "Nobody named" });
-  function rqGroup(k, l, n, g, c) {
-    const key = "rq-" + k, rows = RQ[k], s = sel(key, k === "evidence" ? ["e1", "e2"] : []);
-    const last = k === "gate" ? "Gate due" : k === "evidence" ? "Owner" : "Requested by";
-    const named = [...new Set(rows.filter((r) => s.has(r[0]) && r[3]).map((r) => r[3]))];
-    const remind = named.length ? `${named.join(" and ")} reminded of ${s.size} waiting record${s.size === 1 ? "" : "s"}` : "Nobody is named on these; reassign a reviewer first";
-    const barHtml = s.size ? bulk(key, s.size, ["Reassign reviewer", "Remind"], { co: k === "evidence" ? c(6) : "", attrs: { "Reassign reviewer": `data-modal="a-work-owner" data-id="Reassign reviewer|${s.size} record${s.size === 1 ? "" : "s"}"`, Remind: `data-aw-toast="${esc(remind)}"` } }) : "";
-    return `<div class="a-work-rqg"><h4 class="a-work-rqh">${gl(g)}${esc(l)} <span class="ct num">${n}</span>${n > rows.length ? `<span class="a-work-va">View all ${n} →</span>` : ""}</h4>${barHtml}${tbl({
-      cols: [cbAll(key, rows.map((r) => r[0]), `Select every row of ${l}`), "Record", "Program", "Waiting on", "Waiting since", last],
-      rows: rows.map((r) => ({ id: `${k}:${r[0]}`, sel: s.has(r[0]), cells: [cb(key, r[0], s.has(r[0]), `Select ${r[1]}`), tr(r[1], 330), tr(r[2], 170), nobody(r[3]), sinceCell(r[4]), k === "gate" ? AK.due(r[6], { prefix: false }) : r[5] ? AK.owner(r[5]) : mu("Not recorded")] })),
-      total: n, panel: "a-work-rq", nm: 1, cls: "a-work-tight",
-    })}</div>`;
+  // v2 (A11): one table for every kind, with a Kind column and a Kind filter, the record that has waited longest first; nothing is
+  // ticked when the page opens (the selection bar takes the filters' place only once a row is chosen).
+  const RQ_KIND = { evidence: "Evidence to accept", discussion: "Discussion to resolve", gate: "Gate to decide", assessment_results: "Assessment results to publish", product_assessment: "Product assessment to publish", package: "Package to decide", component_offer: "Component offer to review" };
+  const RQ_ORDER = RQK.map(([k]) => k).concat(["ssp"]);
+  const RQ_ROWS = [...RQ_ALL].sort((a, b) => (a.since < b.since ? -1 : a.since > b.since ? 1 : RQ_ORDER.indexOf(a.kind) - RQ_ORDER.indexOf(b.kind)));
+  // v2 C2 (B7, B5): one source for every count on the page: the kinds' counts, summed for the header, the All tab and the pager.
+  // The evidence kind takes WS-X90's share from the Evidence register's Pending review, the same records, plus the 8 versions
+  // pending in Customer A and Customer B (review_queue_rows, Nov 17). SSP revision 3 joins once it is submitted for review.
+  // The Kind filter works: it keeps the rows of one kind, and the pager counts that kind.
+  RQ_KIND.ssp = "SSP to approve";
+  const RQ_OTHER_EVIDENCE = 8;
+  let RQ_ON = null;
+  const sspState = () => v2get("ssp.rev3.state", "draft");
+  function rqKinds() {
+    const ev = live("evidence", "Pending review", 88) + RQ_OTHER_EVIDENCE, s = sspState();
+    return RQK.map((k) => (k[0] === "evidence" ? [k[0], k[1], ev, k[3]] : k)).concat(s === "submitted" || s === "approved" ? [["ssp", "SSP to approve", 1, "clock"]] : []);
   }
+  function rqRows() {
+    const s = sspState();
+    const ssp = s === "submitted" || s === "approved" ? [{ kind: "ssp", id: "rev3", name: "WS-X90 system security plan · revision 3", prog: "WS-X90", on: s === "approved" ? "R. Calloway" : "Joel Barrantes", since: v2get("ssp.rev3.day", "2026-11-17"), by: ME }] : [];
+    return RQ_ROWS.concat(ssp);
+  }
+  const rqTotal = () => rqKinds().reduce((a, k) => a + k[2], 0);
+  const kindFilter = (kinds) => {
+    const on = kinds.find((k) => k[0] === RQ_ON);
+    const html = `<details class="a-work-dd"><summary class="flt${on ? " on" : ""}">${on ? `Kind: ${esc(on[1])}` : "Kind"} ⌄</summary><div class="a-work-pop" role="group" aria-label="Kind">${[["", "Every kind", kinds.reduce((a, k) => a + k[2], 0)]].concat(kinds).map(([k, l, n]) => `<span class="a-work-opt" role="menuitemradio" tabindex="0" aria-checked="${(RQ_ON || "") === k}" data-aw-kind="${esc(k)}">${AK.check((RQ_ON || "") === k)}<span>${esc(l)}</span><span class="num">${fmt(n)}</span></span>`).join("")}</div></details>`;
+    return { html, toString: () => html };
+  };
+  function rqTable() {
+    const key = "rq-all", s = sel(key), kinds = rqKinds(), all = rqRows();
+    const list = RQ_ON ? all.filter((r) => r.kind === RQ_ON) : all;
+    const total = RQ_ON ? (kinds.find((k) => k[0] === RQ_ON) || [0, 0, list.length])[2] : rqTotal();
+    const chosen = list.filter((r) => s.has(`${r.kind}:${r.id}`));
+    const named = [...new Set(chosen.filter((r) => r.on).map((r) => r.on))];
+    const remind = named.length ? `${named.join(" and ")} reminded of ${s.size} waiting record${s.size === 1 ? "" : "s"}` : "Nobody is named on these; reassign a reviewer first";
+    const tools = toolbar(key, "Search the queue", [kindFilter(kinds), dd("Program", [...new Set(all.map((r) => r.prog))].map((p) => [p, null])), "Waiting on", dd("Waiting longer than", [["30 days", 8], ["7 days", 1]])], ["Reassign reviewer", "Remind"],
+      { attrs: { "Reassign reviewer": `data-modal="a-work-owner" data-id="Reassign reviewer|${s.size} record${s.size === 1 ? "" : "s"}"`, Remind: `data-aw-toast="${esc(remind)}"` } });
+    return tools + tbl({
+      cols: [cbAll(key, list.map((r) => `${r.kind}:${r.id}`), "Select every row"), "Record", "Kind", "Program", "Waiting on", "Waiting since", "Requested by"],
+      rows: list.map((r) => { const id = `${r.kind}:${r.id}`; return { id, sel: s.has(id), cells: [cb(key, id, s.has(id), `Select ${r.name}`), tr(r.name, 330), esc(RQ_KIND[r.kind]), tr(r.prog, 170), r.on ? AK.owner(r.on) : mu("—"), sinceCell(r.since), r.by ? AK.owner(r.by) : mu("—")] }; }),
+      total, panel: "a-work-rq", nm: 1, cls: "a-work-tight v2-rq",
+    });
+  }
+  window.PA.reviewQueue = { total: rqTotal }; // the rail's Review count reads the queue's own total
   function rqPage(view, withCo) {
-    const c = (n) => (withCo ? co(n) : "");
-    const head = h.header("Review queue", `<span>Across the workspace</span><span>Waiting <b>148</b></span><span>Programs <b>8</b></span><span>Longest wait <b>66 days</b></span>${c(1)}`, "");
-    const tabs = AK.tabs([["All", 148, view === "all" ? null : "after-review-queue", view === "all"], ["Waiting on me", 0, view === "mine" ? null : "after-review-queue-mine", view === "mine"]], "Review queue").replace(/<\/div>$/, `${c(2)}</div>`);
-    const tools = filters("Search the queue", [dd("Kind", RQK.map(([, l, n]) => [l, n])), "Program", "Waiting on", dd("Waiting longer than", [["30 days", 8], ["7 days", 1]])]);
-    if (view === "mine") return h.page(head, tabs, tools, AK.empty({ title: "Nothing waits on you", line: "Records waiting on Ingrid Solberg as reviewer, approver or assessor show here. None does today." }));
-    return h.page(head, tabs, tools, RQK.map(([k, l, n, g]) => rqGroup(k, l, n, g, c)).join(""),
-      `<p class="note-p">From review_queue_rows: 148 records waiting on a reviewer, 88 of them WS-X90's evidence for Nadia Fournier, and none on Ingrid Solberg. Each kind shows its first rows.</p>`);
+    const c = (n) => (withCo ? co(n) : ""), total = rqTotal();
+    const head = h.header("Review queue", `<span>Across the workspace</span><span>Waiting <b>${fmt(total)}</b></span><span>Programs <b>8</b></span><span>Longest wait <b>66 days</b></span>${c(1)}`, "");
+    const tabs = AK.tabs([["All", total, view === "all" ? null : "after-review-queue", view === "all"], ["Waiting on me", 0, view === "mine" ? null : "after-review-queue-mine", view === "mine"]], "Review queue").replace(/<\/div>$/, `${c(2)}</div>`);
+    if (view === "mine") return h.page(head, tabs, filters("Search the queue", [dd("Kind", rqKinds().map(([, l, n]) => [l, n])), "Program", "Waiting on", dd("Waiting longer than", [["30 days", 8], ["7 days", 1]])]), AK.empty({ title: "Nothing waits on you", line: "Records waiting on Ingrid Solberg as reviewer, approver or assessor show here. None does today." }));
+    return h.page(head, tabs, rqTable());
   }
   S["after-review-queue"] = () => rqPage("all", true);
   S["after-review-queue-mine"] = () => rqPage("mine", false);
@@ -378,17 +441,20 @@
   P["a-work-rq"] = (id) => {
     const [base, thread = "assessor"] = String(id).split("|");
     const [k, rid] = base.split(":");
-    const r = RQ_ALL.find((x) => x.kind === k && x.id === rid) || RQ_ALL[0];
+    const r = rqRows().find((x) => x.kind === k && x.id === rid) || RQ_ALL[0];
     const first = r.kind === "evidence" && r.id === "e1";
     const c = (n) => (first ? co(n) : "");
-    const kind = RQK.find((x) => x[0] === r.kind)[1];
+    const kind = (rqKinds().find((x) => x[0] === r.kind) || [0, RQ_KIND[r.kind]])[1];
     const days = ago(r.since);
     const wait = `${md(r.since)} · waiting ${days} days`;
     let actions;
-    if (r.kind === "evidence") actions = `${btn("Send back", `data-modal="a-work-sendback" data-id="${esc(base)}"`)}${c(4)}${btn("Accept evidence", `data-aw-toast="${esc(`Accepted: version 1 of ${r.name.split(",")[0]}`)}"`, true)}`;
+    if (r.kind === "evidence") actions = `${btn("Send back", `data-modal="a-work-sendback" data-id="${esc(base)}"`)}${c(4)}${btn("Accept evidence", `data-aw-toast="${esc("Not saved: Accept evidence isn't wired in the review queue; the Evidence register's Review saves a decision")}"`, true)}`; // v2 F [B1]: no success toast for nothing
     else if (r.kind === "assessment_results") actions = `<span class="btn sm ink a-work-held" aria-disabled="true" title="Held to D. Okafor, the lead assessor">Publish assessment results</span>`;
     else if (r.kind === "gate" || r.kind === "package") actions = btn("Request decision", `data-modal="ak-approvers" data-id="${esc(r.name)}"`, true);
-    else actions = btn({ discussion: "Open discussion", product_assessment: "Publish product assessment", component_offer: "Review offer" }[r.kind], `data-aw-toast="${esc(r.kind === "discussion" ? "The discussion opens on the record it was started on" : "Opened for review")}"`, true);
+    // v2 C2 (B17 in this file): the offer opens the offer, and SSP revision 3 opens its review page.
+    else if (r.kind === "component_offer") actions = btn("Review offer", `data-v2go="component-mc-findings" data-v2q="${offerQ}"`, true);
+    else if (r.kind === "ssp") actions = btn("Open the review", 'data-go="ssp-review"', true);
+    else actions = btn({ discussion: "Open discussion", product_assessment: "Publish product assessment" }[r.kind], `data-aw-toast="${esc(r.kind === "discussion" ? "The discussion opens on the record it was started on" : "Opened for review")}"`, true);
     const head = AK.recordHead({ title: r.name, actions });
     const facts = [["Kind", esc(kind)], ["Program", esc(r.prog)], ["Waiting since", `${dfull(r.since)} · ${days} days`]];
     if (r.kind === "evidence") facts.push(["Owner", AK.owner(r.by)]);
@@ -441,7 +507,16 @@
     ["t12", "Incident response tabletop (IR-3)", "planned", "2027-02-16", "2027-03-13", "Priya Raghavan"],
     ["t13", "Contingency plan test on a whole article (CP-4)", "planned", "2027-03-23", "2027-04-12", "Amara Bell"],
     ["t14", "Cyber resiliency exercise — Redundancy and Non-Persistence (SA-24)", "planned", "2027-05-02", "2027-06-01", "Wes Duarte"],
-  ].map(([id, t, s, a, b, o]) => ({ id, t, s, a, b, o }));
+  ].map(([id, t, s, a, b, o]) => ({ id, t, s, a, b, o, o0: o, s0: s }));
+  // v2 F (B1): a task the Schedule's Create task made (sched.tasks, mod-zzzz-v2-4wire.js) is listed first, counted with the rest.
+  const TASKS0 = TASKS.slice();
+  // v2 C2 (B5): a task's owner follows an offboarding's reassignment (people.off), and the quarterly privileged account review's
+  // task completes with its review (access.q1), as People and the access review show them.
+  const syncTasks = () => {
+    const made = (v2get("sched.tasks", []) || []).slice().reverse().map((m) => TASKS.find((x) => x.id === m.id) || { id: m.id, t: m.t, s: m.s, a: m.a, b: m.b, o: m.o, o0: m.o, s0: m.s, made: true });
+    TASKS.splice(0, TASKS.length, ...made, ...TASKS0);
+    const off = v2get("people.off", {}) || {}, done = v2get("access.q1.done"); for (const x of TASKS) { const o = off[x.o0]; x.o = (o && o.owners && o.owners[x.id]) || x.o0; x.s = x.id === "t8" && done ? "completed" : x.s0; }
+  };
   // Source: the recurring check each task fulfils, from the cadence of checks on Continuous monitoring.
   const CHECK = { vuln: ["Monthly", "RA-5, SI-2", "vulnerability scan"], stig: ["Monthly", "CM-6", "STIG compliance scan"], poamr: ["Monthly", "CA-5", "POA&M review"], par: ["Quarterly", "AC-2, AC-6", "privileged account review"], au6: ["Quarterly", "AU-6", "audit log review sampling"], cm: ["Quarterly", "CM-2, CM-3", "configuration baseline audit"], subset: ["Yearly", "CA-2, CA-7", "control subset assessment"], ir: ["Yearly", "IR-3", "incident response tabletop"], cp: ["Yearly", "CP-4", "contingency plan test"], sa24: ["Yearly", "SA-24", "cyber resiliency exercise"] };
   const TCHECK = { t1: "vuln", t6: "vuln", t2: "stig", t5: "stig", t3: "poamr", t7: "poamr", t8: "par", t9: "au6", t10: "cm", t11: "subset", t12: "ir", t13: "cp", t14: "sa24" };
@@ -450,39 +525,49 @@
   const tstat = (s) => pill(TSTAT[s][0], TSTAT[s][1]);
   const openTask = (x) => x.s !== "completed" && x.s !== "cancelled";
   const openCount = (o) => TASKS.filter((x) => x.o === o && openTask(x)).length;
+  // v2 G: these are Increment 2's PDR and CDR (pdr-2, cdr-2 on Lifecycle, mod-zzzz-v2-8life.js): the PDR in review now, due Nov 24,
+  // the CDR after it. Their NIST SP 800-160 Vol. 1 outcomes are the gate criteria Lifecycle reads (PA.lifeGates below).
   const GATES = [
-    { id: "pdr", t: "PDR", long: "Preliminary design review", st: "in_review", due: "2026-10-10", crit: [["AR.4", "Identified stakeholder protection concerns are addressed by the system architecture.", "System Architecture Definition", "check"], ["AR.5", "Traceability of the security aspects of system architecture elements to key architecturally relevant stakeholder and system requirements is established.", "System Architecture Definition", "check"], ["AR.7", "Security aspects of system elements, their interactions, and their interfaces are defined.", "System Architecture Definition", "clock"], ["SR.6", "Traceability of the security aspects of system requirements and associated security-relevant constraints to stakeholder requirements is established.", "System Requirements Definition", "ring"]] },
-    { id: "cdr", t: "CDR", long: "Critical design review", st: "not_started", due: "2026-10-01", crit: [["DE.2", "System requirements are allocated to address their security aspects.", "Design Definition", "ring"], ["DE.3", "Security interfaces and security aspects of interfaces between system elements composing the system are defined.", "Design Definition", "ring"], ["DE.4", "Security design characteristics of each system element are defined.", "Design Definition", "ring"], ["DE.6", "Traceability of security design characteristics is established.", "Design Definition", "ring"]] },
+    { id: "pdr", t: "PDR", long: "Preliminary design review", st: "in_review", due: "2026-11-24", crit: [["AR.4", "Identified stakeholder protection concerns are addressed by the system architecture.", "System Architecture Definition", "check"], ["AR.5", "Traceability of the security aspects of system architecture elements to key architecturally relevant stakeholder and system requirements is established.", "System Architecture Definition", "check"], ["AR.7", "Security aspects of system elements, their interactions, and their interfaces are defined.", "System Architecture Definition", "clock"], ["SR.6", "Traceability of the security aspects of system requirements and associated security-relevant constraints to stakeholder requirements is established.", "System Requirements Definition", "ring"]] },
+    { id: "cdr", t: "CDR", long: "Critical design review", st: "not_started", due: "2027-03-23", crit: [["DE.2", "System requirements are allocated to address their security aspects.", "Design Definition", "ring"], ["DE.3", "Security interfaces and security aspects of interfaces between system elements composing the system are defined.", "Design Definition", "ring"], ["DE.4", "Security design characteristics of each system element are defined.", "Design Definition", "ring"], ["DE.6", "Traceability of security design characteristics is established.", "Design Definition", "ring"]] },
   ];
   const gpill = (g) => pill(g.st === "in_review" ? "info" : "none", g.st === "in_review" ? "In review" : "Not started");
-  const gateCard = (g) => {
-    const met = g.crit.filter((x) => x[3] === "check").length;
-    return `<button type="button" class="card a-work-gate" data-panel="a-work-gate" data-id="${g.id}"><span class="t">${esc(g.t)} <span>${esc(g.long)}</span></span><span class="a-work-gr">${gpill(g)}${AK.due(g.due)}</span>${bar(pct(met, g.crit.length))}<span class="foot"><span class="num">${met} of ${g.crit.length} security outcomes met ${EX}</span><span>NIST SP 800-160 Vol. 1</span></span>${g.id === "pdr" ? `<span class="a-work-dec"><span class="ak-ring sm"></span><span>Decision: step 1 waits on <b>Ray Colston</b>, system owner · requested Oct 10 ${EX}</span>${co(7)}</span>` : ""}</button>`;
+  // v2 F (B17): Add security outcomes adds the outcomes chosen (gate.<id>.added, mod-zzzz-v2-4wire.js) to the gate's criteria, not met yet.
+  const critOf = (g) => [...g.crit, ...((v2get("gate." + g.id + ".added", []) || []).map((x) => [x.code, x.title, x.proc, "ring"]))];
+  // v2 G: the gates left the Schedule for Lifecycle, which reads their outcomes here: the base list, or with the outcomes added.
+  window.PA.lifeGates = { crit: (id, added) => { const g = GATES.find((x) => x.id === id); return g ? (added ? critOf(g) : g.crit.slice()) : []; } };
+  // The one grey line that points to Lifecycle: its next step, read from PA.v2life when the page draws.
+  const lifeLine = () => {
+    const L = window.PA.v2life, sg = L && L.stage("PRG-1090"), nx = sg && sg.next;
+    return `<p class="note-p a-work-lifeln">Reviews, milestones and RMF steps are on <span class="ak-link" role="link" tabindex="0" data-go="lifecycle">Lifecycle</span>${nx ? `: next ${esc(nx.short)}, ${md(nx.due)}` : ""}.</p>`;
   };
   S["after-schedule"] = () => {
+    syncTasks();
     // The STIG scan's preview opens beside the list on a wide screen, so its reason, reminder and activity show with the page.
     if (!quiet && window.innerWidth >= 1100) setTimeout(() => { if ((location.hash || "") !== "#after-schedule") return; const row = document.querySelector('#main tr[data-panel="a-work-task"][data-id="t5"]'); if (!row) return; row.click(); const f = document.activeElement; if (f && f.id === "closePanel") f.blur(); }, 0);
-    const key = "sch", s = sel(key, ["t5", "t6"]);
+    const key = "sch", s = sel(key); // v2 C2 (A2): nothing ticked when the page opens
     const chosen = TASKS.filter((x) => s.has(x.id));
     const owners = [...new Set(chosen.map((x) => x.o))];
     const remind = owners.length ? owners.map((o) => `${o} (${openCount(o)} open task${openCount(o) === 1 ? "" : "s"})`).join(", ") + " reminded of everything still open" : "";
+    // v2 F (B7): the chips count the rows, so a task Create task made joins All and Open (and Due soon when it falls due soon).
+    const opn = TASKS.filter(openTask), dd = (x) => AK.days(x.b);
+    const CHIPS = [["All", TASKS.length], ["Open", opn.length], ["Past due", opn.filter((x) => dd(x) < 0).length], ["Due soon", opn.filter((x) => dd(x) >= 0 && dd(x) <= 14).length], ["Blocked", TASKS.filter((x) => x.s === "blocked").length], ["Completed", TASKS.filter((x) => x.s === "completed").length]];
     return h.page(
-      h.header("Schedule", `<span>WS-X90 Sentinel Mission System</span><span>Tasks <b>14</b></span><span>Lifecycle gates <b>2</b></span>`, btn("Create task", 'data-modal="a-work-task-new"', true)),
-      `<h4 class="subhead">Lifecycle gates</h4>`,
-      `<div class="grid2">${GATES.map(gateCard).join("")}</div>`,
-      `<h4 class="subhead">Tasks</h4>`,
-      `<div class="views a-work-chips">${[["All", 14], ["Open", 10], ["Past due", 2], ["Due soon", 2], ["Blocked", 1], ["Completed", 3]].map(([l, n], i) => `<span class="qv${i ? "" : " on"}">${esc(l)} <span class="num">${n}</span></span>`).join("")}${co(1)}</div>`,
+      h.header("Schedule", `<span>WS-X90 Sentinel Mission System</span><span>Tasks <b>${TASKS.length}</b></span>`, btn("Create task", 'data-modal="a-work-task-new"', true)),
+      lifeLine(),
+      `<div class="views a-work-chips">${CHIPS.map(([l, n], i) => `<span class="qv${i ? "" : " on"}">${esc(l)} <span class="num">${n}</span></span>`).join("")}${co(1)}</div>`,
       toolbar(key, "Search tasks", ["Status", "Owner", "Due", "Source"], ["Assign owner", "Change due date", "Remind owners"], { co: co(6), attrs: { "Assign owner": `data-modal="a-work-owner" data-id="Assign owner|${s.size} task${s.size === 1 ? "" : "s"}"`, "Change due date": `data-modal="a-work-due" data-id="${s.size}"`, "Remind owners": `data-aw-toast="${esc(remind)}"` } }),
       tbl({
         cols: [cbAll(key, TASKS.map((x) => x.id), "Select every task"), "Task", "Due", `Source${co(2)}`, "Owner", "Status", `<span class="a-work-cc" title="Comments">${AK.i("chat")}${sr("Comments")}${EX}</span>`, sr("Row actions")],
         rows: TASKS.map((x) => ({ id: x.id, sel: s.has(x.id), cells: [cb(key, x.id, s.has(x.id), `Select ${x.t}`), tr(x.t, 240), openTask(x) ? AK.due(x.b, { prefix: false }) : AK.due(x.b, { done: true, prefix: false }), mu(srcOf(x)), AK.owner(x.o), tstat(x.s), x.id === "t5" ? `<span class="num">2</span>` : mu("0"), dots] })),
-        total: 14, panel: "a-work-task", nm: 1, cls: "a-work-tight",
+        total: TASKS.length, panel: "a-work-task", nm: 1, cls: "a-work-tight",
       }),
-      AK.note("The PDR's approver and request date, the STIG scan's blocker and reason, its comment count and who assigned it are invented. The tasks, their windows, owners and sources are WS-X90's continuous monitoring FY2027 plan."),
+      AK.note("The STIG scan's blocker and reason, its comment count and who assigned it are invented. The tasks, their windows, owners and sources are WS-X90's continuous monitoring FY2027 plan."),
     );
   };
   ROUTE_NAV["after-schedule"] = "before-after";
   P["a-work-task"] = (id) => {
+    syncTasks();
     const x = TASKS.find((t) => t.id === id) || TASKS[4];
     const stig = x.id === "t5", c = (n) => (stig ? co(n) : "");
     const open = openTask(x), n = openCount(x.o);
@@ -498,14 +583,17 @@
     if (stig) act.push({ who: "Priya Raghavan", what: `assigned it to <b>Joel Barrantes</b> ${EX}`, when: "Nov 1" }, { who: "Joel Barrantes", what: `set the status to <b>Blocked</b> and said why ${EX}`, when: "Nov 11" });
     return { label: "Task preview", body: `<div class="a-work-pan">${head}${reason}${kv}${AK.section("Activity", AK.activity(act), { co: c(3) })}${stig ? AK.note("The blocker, its reason and who assigned the task are invented.") : ""}</div>` };
   };
+  // v2 G: one gate record. Lifecycle (mod-zzzz-v2-8life.js) draws every step's preview, PDR and CDR included, with its deliverables,
+  // criteria, approval and decision, and ↗ to the gate's page; this drawing stays only for a build without that module.
   P["a-work-gate"] = (id) => {
+    if (window.PA.v2life && window.PA.v2life.preview) { const o = window.PA.v2life.preview(id); if (o) return o; }
     const g = GATES.find((x) => x.id === id) || GATES[0];
     const pdr = g.id === "pdr";
-    const head = AK.recordHead({ title: `${g.t} · ${g.long}`, chip: gpill(g), actions: `${btn("Add security outcomes", 'data-aw-toast="The security outcome picker opens here"')}${btn("Request decision", `data-modal="ak-approvers" data-id="${esc(g.t)}"`, true)}` });
+    const head = AK.recordHead({ title: `${g.t} · ${g.long}`, chip: gpill(g), actions: `${btn("Add security outcomes", `data-modal="v2f-outcomes" data-id="${g.id}"`)}${btn("Request decision", `data-modal="ak-approvers" data-id="${esc(g.t)}"`, true)}` });
     const kv = dl([["Due", AK.due(g.due)], ["Decided", `<span class="who">${gl("ring")}Not yet</span>`]]);
     const appr = pdr ? AK.approval({ title: "Approval", sub: "Requested Oct 10 · the gate is decided when every step approves", steps: [{ label: "Step 1", approvers: [{ who: "Ray Colston", role: "System owner", state: "sent", when: `Oct 10 · waiting ${ago("2026-10-10")} days` }] }] })
       : AK.approval({ title: "Approval", sub: "No decision requested yet. Request decision names the approvers, in steps." });
-    const crit = AK.section("Gate criteria", `<div class="a-work-crit">${g.crit.map(([code, t, proc, st]) => `<div>${gl(st)}<span><span>${esc(t)}</span><small>${tag(code)} ${esc(proc)}</small></span></div>`).join("")}</div>`, { count: g.crit.length, co: " " + EX });
+    const crit = AK.section("Gate criteria", `<div class="a-work-crit">${critOf(g).map(([code, t, proc, st]) => `<div>${gl(st)}<span><span>${esc(t)}</span><small>${tag(code)} ${esc(proc)}</small></span></div>`).join("")}</div>`, { count: critOf(g).length, co: " " + EX });
     return { label: "Lifecycle gate preview", body: `<div class="a-work-pan">${head}${kv}${appr}${pdr ? AK.note("The approver and the request date are invented; WS-X90's PDR names no approver yet.") : ""}${crit}</div>` };
   };
   M["a-work-blocked"] = (id) => {
@@ -526,7 +614,8 @@
   ];
   const sw = (on, label) => `<span class="a-work-sw${on ? " on" : ""}" role="switch" tabindex="0" aria-checked="${!!on}" aria-label="${esc(label)}" data-aw-sw></span>`;
   const chan = (t = "In the app and email") => `<span class="ak-select a-work-chan">${esc(t)} ${AK.i("down")}</span>`;
-  const freq = (f) => (f === "Immediately" ? pill("warn", f) : pill("none", f));
+  // v2 (settings budget): On and Off are the only pills; a frequency is a grey word.
+  const freq = (f) => `<span class="a-work-mu a-work-freq">${esc(f)}</span>`;
   const radio = (label, on, hint = "") => `<span class="a-work-radio${on ? " on" : ""}" role="radio" tabindex="0" aria-checked="${!!on}" data-aw-radio><span class="dot" aria-hidden="true"></span><span>${esc(label)}${hint ? `<small>${esc(hint)}</small>` : ""}</span></span>`;
   // New for the reader (0337's ownership, comment-thread and task-deadline alerts), then today's events as they reach her.
   const MINE = [
@@ -538,13 +627,14 @@
     ["When a finding is offered on a component I own", 0, "Immediately"],
   ];
   const alertRow = ([t, on, f, , hint], c = "") => `<div class="a-work-al">${sw(on, t)}<span class="x"><span>${esc(t)}${c}</span>${hint ? `<small>${esc(hint)}</small>` : ""}</span><span class="a-work-alf">${f ? freq(f) : ""}${on ? chan() : ""}</span></div>`;
-  const onOff = (on, dis) => (dis ? pill("none", "Off · CUI") : on ? pill("ok", "On") : pill("none", "Off"));
+  const onOff = (on, dis) => (dis ? pill("none", "Off") : on ? pill("ok", "On") : pill("none", "Off"));
+  // v2 (A7): the Settings frame's list of sections holds My account › Notifications and Workspace › Notifications, so the page's
+  // own My alerts / Workspace tabs are gone (the two routes stay); each page names itself.
   function notifPage(tab, withCo) {
     bell(withCo ? co(4) : "");
     const c = (n) => (withCo ? co(n) : "");
-    const tabs = AK.tabs([["My alerts", null, tab === "mine" ? null : "after-notifications", tab === "mine"], ["Workspace", null, tab === "ws" ? null : "after-notifications-workspace", tab === "ws"]], "Notifications")
-      .replace(/(>My alerts)(<\/span>)/, `$1${c(2)}$2`).replace(/(>Workspace)(<\/span>)/, `$1${c(5)}$2`);
-    const head = h.header("Notifications", `<span>Workspace <b>CUI</b> ${EX}</span><span>Chat only on unclassified enclaves</span>${c(1)}`, btn("Send a test", 'data-modal="a-work-test"', true));
+    const tabs = "";
+    const head = AK.indexHead({ title: tab === "mine" ? "Notifications" : "Workspace notifications", desc: tab === "mine" ? `What reaches you, Ingrid Solberg, and how. The workspace is CUI ${EX}, so chat is off.` : `What the workspace sends, to whom and when. The workspace is CUI ${EX}, so chat is off.`, actions: `${c(1)}${btn("Send a test", 'data-modal="a-work-test"', true)}` });
     if (tab === "mine") {
       const alerts = card(`<div class="a-work-ch"><b>Alerts</b>${EX}<span class="a-work-mu">Sent to you, Ingrid Solberg.</span></div><div class="a-work-als">${MINE.map((r, i) => alertRow(r, i === 0 ? c(3) : "")).join("")}</div>`);
       const lines = [["Findings", "17 operational issues past their remediation date", "findings"], ["Evidence", "54 evidence versions to revise", "evidence"], ["Risks", "40 open risks with no owner", "risks"], ["Schedule", "2 tasks past due", "schedule"]];
@@ -599,7 +689,7 @@
   P["a-work-report"] = (id) => {
     const r = REP.find((x) => x.id === id) || REP[0];
     const first = r.id === "ssp", c = (n) => (first ? co(n) : "");
-    const head = AK.recordHead({ title: r.name, actions: `${shareMenu(r)}${btn("Generate", `data-aw-toast="${esc(`Generating ${r.name}: the run lands under Runs`)}"`)}${c(3)}` });
+    const head = AK.recordHead({ title: r.name, actions: `${shareMenu(r)}${btn("Generate", `data-aw-toast="${esc(`Not saved: Generate isn't wired in this prototype; no run of ${r.name} is made`)}"`)}${c(3)}` });
     const kv = dl([["Format", tag(r.fmt)], ["From", esc(r.source)], ["Schedule", `<span class="a-work-schd">${esc(r.sched)} · <span class="ak-link" role="button" tabindex="0" data-modal="a-work-schedule" data-id="${r.id}">Manage schedule</span>${c(4)}</span>`], ["Marking", tag("CUI")], ["Created by", byCell(r)]]);
     const shared = AK.section("Shared with", `<div class="a-work-share">${SHARED.map(([n, role, can]) => `<div class="a-work-sh">${AK.avatar(n, 26)}<span class="x"><b>${esc(n)}</b><small>${esc(role)}</small></span><span class="a-work-can">${esc(can)}</span><span class="a-work-ib" role="button" tabindex="0" title="Send now" aria-label="${esc(`Send ${r.name} to ${n} now`)}" data-aw-toast="${esc(`Sent to ${n} once, by email`)}">${AK.i("mail")}</span><span class="a-work-ib" title="More" aria-label="${esc(`More for ${n}`)}">${AK.i("dots")}</span></div>`).join("")}</div>`, { count: 3, co: " " + EX });
     const runs = (RUNS[r.id] || (r.last ? [[`${md(r.last)} · ${r.fmt}`, pill("ok", "Done")]] : [])).map(([t, p]) => `<div class="a-work-run"><span>${esc(t)}</span>${p}</div>`).join("") || `<span class="who">${gl("ring")}Never run</span>`;

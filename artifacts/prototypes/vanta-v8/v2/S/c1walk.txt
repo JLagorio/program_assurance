@@ -1,0 +1,71 @@
+PASS Controls: SA-24 reads No requirement, next Map a requirement ·  SA-24 Design For Cyber Resiliency No requirement 0 of 10 Map a requirement — 
+PASS Controls: quick views count the baseline · All 560 | Needs evidence 233 | Not assessed 90 | Short of satisfied 47 | No owner 560
+PASS Header Map a requirement opens its dialog with a Control choice
+PASS Empty required fields block the primary and are named · Control is required. Requirement is required.
+PASS SA-24 preview lists Requirements, Evidence, Findings and risks, each with its add · Control preview ↗ ✕ SA-24 Design For Cyber Resiliency Map a requirement Status No requirement Objectives 0 of 10 mapped · 0 with evidence · 0 assessed Determined by — Campaign — Requirements 0 + Map a
+PASS Map a requirement closes and says what changed · REQ-641 maps SA-24: 10 of 10 objectives mapped Open SA-24
+PASS Controls: SA-24 reads No evidence, next Link evidence to REQ-641 ·  SA-24 Design For Cyber Resiliency No evidence 0 of 10 Link evidence to REQ-641 REQ-641 
+PASS Controls: Needs evidence counts it · All 560 | Needs evidence 234 | Not assessed 90 | Short of satisfied 47 | No owner 560
+PASS Link evidence: SA-24 reads Not assessed, next Add to assessment campaign ·  SA-24 Design For Cyber Resiliency Not assessed 10 of 10 Add to assessment campaign REQ-641 
+PASS Controls: Not assessed 91 · All 560 | Needs evidence 233 | Not assessed 91 | Short of satisfied 47 | No owner 560
+PASS Preview's primary is the next step: Add to assessment campaign
+PASS Add to assessment campaign wants a campaign
+PASS Added: the toast names the campaign · 10 objectives of SA-24 added to WS-X90 continuous monitoring — FY2027 Open campaign
+PASS Controls: SA-24's next step is in the campaign ·  SA-24 Design For Cyber Resiliency Not assessed 10 of 10 Set Ready in the campaign REQ-641 
+PASS Assessments: the continuous monitoring card counts its request
+PASS Open campaign opens the continuous monitoring campaign · #campaign-conmon
+PASS Set Ready: the request reads Ready
+PASS A determination short of satisfied needs its rationale
+PASS Determination recorded in the draft
+PASS A draft decides nothing: SA-24 still Not assessed, next Publish ·  SA-24 Design For Cyber Resiliency Not assessed 10 of 10 Publish assessment results REQ-641 
+PASS Publish: an operational issue opened · Continuous monitoring FY2027 results — first set published: 1 determination, 1 operational issue opened Open the issue
+PASS Controls: SA-24 Other than satisfied, next Create POA&M item ·  SA-24 Design For Cyber Resiliency Other than satisfied 10 of 10 Create POA&M item REQ-641 
+PASS Controls: Short of satisfied 48 and Not assessed 90 · All 560 | Needs evidence 233 | Not assessed 90 | Short of satisfied 48 | No owner 560
+PASS Findings: By issue 45, the SA-24 issue listed first · Findings Import scan Create operational issue By issue 45 Vulnerabilities 4 By asset 20 Assessment findings 314 Deactivated History Remediate-by status 45 open 
+PASS Findings › Assessment findings: 314 with SA-24's
+PASS Overview: Operational issues 45 · Operational issues 17 past due · 2 critical · 1 opened today 45
+PASS Issue preview offers Create POA&M item
+PASS Create POA&M item: Title is required
+PASS POA&M item created, toast links to it · POA&M item created: Complete the SA-24 design review for the remaining techniques Open POA&M item
+PASS Issue preview now offers Open POA&M item instead of Create · Operational issue preview ↗ ✕ SA-24 Design For Cyber Resiliency judged other than satisfied (Continuous monitoring FY2027) Deactivate… Open POA&M item Severity High Opened Nov 17, 2026 Remediate by De
+PASS POA&M: Items 42 with the new item
+PASS POA&M preview shows the risk it carries (none yet) with Create risk · POA&M item preview ↗ ✕ Complete the SA-24 design review for the remaining techniques Change planned date… Add milestone Status Not started Planned Dec 17 Remediate by Dec 17 Owner PR Priya Raghavan Ov
+PASS Risk created · Risk created: A compromised element takes down the mission because two resiliency techniques are not designed in Open risk
+PASS Risks: Register 41 with the new risk
+PASS POA&M preview names its risk
+PASS Request acceptance: Why accept it is required
+PASS Acceptance requested: step 1 waits on the ISSO · Acceptance requested: step 1 waits on Priya Raghavan Open Authorization
+PASS Risks: Awaiting acceptance 1 · All 41 | Critical or high 13 | No owner 41 | Response date passed 6 | Awaiting acceptance 1
+PASS Authorization lists the acceptance at step 1
+PASS Two approvals later the acceptance waits on the AO · Step 3 of 3 
+PASS The last step is the authorizing official's decision
+PASS The AO accepted: Authorization says so · Accepted by R
+PASS Residual risk: Open risks 41, Accepted 1
+PASS Risks: the risk reads Accepted
+PASS Overview: Open risks 41 · 1 accepted · Open risks 13 critical or high · 41 with no owner · 1 accepted 41
+PASS SA-24's preview lists its requirement, evidence, finding, issue, POA&M item and risk · Control preview ↗ ✕ SA-24 Design For Cyber Resiliency Open assessment findings Status Other than satisfied Objectives 10 of 10 mapped · 10 with evidence · 10 assessed Determined by Program assessment 
+PASS Increment 2 published from the campaign · Increment 2 published: 20 determinations now decide WS-X90's control statuses Open Controls
+PASS Submit waits on SSP 3's approval (C2's state), saying so
+PASS Package version 2 submitted · Package version 2 submitted: Joel Barrantes reviews first
+PASS The AO signed version 2 · R. Calloway signed ATO with conditions on package version 2
+PASS Unwired Create operational issue: Title blocks the primary
+PASS …then closes with Not saved · Not saved: Create operational issue isn't wired in this prototype
+PASS SI-2's Open assessment campaign opens the campaign it names
+PASS ↗ on AC-1's preview opens AC-1's page, in SI-2's shape · #rec--a-tests-control--AC-1
+PASS The control page's tabs are pages: Requirements lists REQ-436
+PASS ↗ on a risk opens its page with a Details rail · #rec--a-risk-risk--0a21dc94%7Coverview
+PASS ↗ on evidence still opens its own page (kept) · #evidence-page-e1
+PASS Checks: All counts the checks it lists (7)
+PASS Run all now runs the checks and says what they found · 7 checks ran: 5 still need attention
+PASS A check's Ran says when it ran
+PASS Frameworks: Create overlay opens its dialog
+PASS …its Name blocks the primary
+PASS …then says it is not wired · Not saved: Create overlay isn't wired in this prototype
+PASS A toast-only Export outside a dialog says it is not wired · Not saved: Export isn't wired in this prototype
+PASS Findings: Vulnerabilities and Open CVEs count the 4 listed
+PASS Assessments: the head counts what the tabs hold
+PASS PA.v2.go(campaign, Ready) chooses the Ready quick view and keeps its rows
+PASS Flagged keeps only flagged requests
+PASS Authorization reads SSP 3 In review from C2's state, one copy
+errors: none
+exit 0

@@ -1,0 +1,32 @@
+pairs 39 + 29 | v2 shots 0 | notes 407 on 63 screens | unplaced 2
+  unplaced: program-start | The switcher names the new program; its badges are its own; the starter guide's 
+  unplaced: program-start | The switcher lists the created program and WS-X90; choosing one makes it current
+built out/prototype.html with 32 modules: mod-a-ssp-data.js, mod-after-0kit.js, mod-after-docs.js, m
+== audit7
+old screens still reachable: campaign-conmon (from assessments)
+links to routes that don't exist: rec--a-tests-control--AC-1 (from controls), rec--a-tests-control--AC-2 (from controls), rec--a-tests-control--AC-2(5) (from controls), rec--a-tests-control--AC-2(7) (from controls), rec--a-tests-control--AC-11 (from controls), rec--a-tests-control--AU-7 (from controls), rec--a-tests-control--AU-10 (from controls), rec--a-tests-control--IA-2(2) (from controls), rec--a-tests-control--IA-5 (from controls), rec--a-tests-control--RA-5 (from controls), rec--a-tests-control--SC-5(3) (from controls), rec--a-tests-control--SI-4(13) (from controls), rec--a-tests-control--SA-24 (from controls)
+screen problems: none
+errors: none
+== sweep
+routes: 791 | nav routes without a screen: none
+panel opens: true closes: true
+problems: none
+errors: none
+== flows7
+errors: none
+== flows8
+errors: none
+== probe-v9
+errors: none
+== C1 walk
+PASS Controls: SA-24's next step is in the campaign ·  SA-24 Design For Cyber Resiliency Unassigned Not assessed 10 of 10 Set Ready in the campaign REQ-641 
+PASS A draft decides nothing: SA-24 still Not assessed, next Publish ·  SA-24 Design For Cyber Resiliency Unassigned Not assessed 10 of 10 Publish assessment results REQ-641 
+PASS Controls: SA-24 Other than satisfied, next Create POA&M item ·  SA-24 Design For Cyber Resiliency Unassigned Other than satisfied 10 of 10 Create POA&M item REQ-641 
+PASS Risks: Awaiting acceptance 1 · All 41 | Critical or high 13 | No owner 41 | Response date passed 6 | Awaiting acceptance 1
+PASS Two approvals later the acceptance waits on the AO · Step 3 of 3 
+PASS SA-24's preview lists its requirement, evidence, finding, issue, POA&M item and risk · Control preview ↗ ✕ SA-24 Design For Cyber Resiliency Open assessment findings Status Other than satisfied Objectives 10 of 10 mapped · 10 with evidence · 10 assessed Determined by Program assessment 
+== C2 walk
+64 passed, 0 failed
+PASS  Kind filter keeps one kind, and the pager counts it (96)  · 1–5 of 9625 per page · ‹ ›
+PASS  Mark complete moves the progress to 1 of 9
+4.5M	/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html

@@ -1,0 +1,3 @@
+Wed Nov 18 21:18:59 PST 2026
+MD5 (v2/R/v2-snap.html) = 3677abb92ab7424b7da8cc3079b45d12
+21:28:37 prototype.html changed: md5 a927b98e3e2f5141d74f8d60b0cdf13d, mtime Nov 18 21:26:24 2026

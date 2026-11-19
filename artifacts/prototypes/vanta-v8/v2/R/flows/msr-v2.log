@@ -1,0 +1,73 @@
+suppliers :: Request from a supplier → says not wired | Not saved: Request from a supplier isn't wired in this prototype | via key
+products :: Take version 2 of X800 Missile → says not wired | Not saved: Take version 2 of X800 Missile isn't wired in this prototype | via key
+review-queue :: Reassign reviewer → says not wired | Not saved: Reassign reviewer isn't wired in this prototype | via after ticking a row: key
+products :: Create product → says not wired | Not saved: Create product isn't wired in this prototype | via key
+integrations :: Request a connector → says not wired | Not saved: Request a connector isn't wired in this prototype | via key
+reports :: Generate report → says not wired | Not saved: Generate report isn't wired in this prototype | via key
+ai-drafts :: Run an agent → says not wired | Not saved: Run an agent isn't wired in this prototype | via key
+components :: Create component → says not wired | Not saved: Create component isn't wired in this prototype | via key
+enclaves :: Add enclave → says not wired | Not saved: Add enclave isn't wired in this prototype | via key
+common-controls :: Add provider → says not wired | Not saved: Add provider isn't wired in this prototype | via key
+notifications :: Send a test → says not wired | Not saved: Send a test isn't wired in this prototype | via key
+ai-drafts :: Reject the run → changes state, toast | Narrative drafter's run rejected: nothing it proposed is applied | via key
+event-log :: Export event log → says not wired | Not saved: Export event log isn't wired in this prototype | via key
+itcsc :: Start version 4 → changes state, toast | Version 4 started from version 3 · version 3 stays approved | via key
+deadlines :: Edit high finding deadline → says not wired | Not saved: Edit high finding deadline isn't wired in this prototype | via key
+permissions :: Invite a member → changes state, toast | Invitation sent to Reviewer test value as editor View changes | via key
+stigs :: Import a checklist → dialog changes in place  | via key
+composition :: Take version 2 of Mission Computer → says not wired | Not saved: Take version 2 of Mission Computer isn't wired in this prototype | via key
+interconnections :: Add interconnection → says not wired | Not saved: Add interconnection isn't wired in this prototype | via key
+sources :: Retry import → says not wired | Not saved: Retry import isn't wired in this prototype | via key
+composition :: Create element → says not wired | Not saved: Create element isn't wired in this prototype | via key
+sources :: Add source → dialog changes in place  | via key
+inventory :: Assign owner → says not wired | Not saved: Assign owner isn't wired in this prototype | via key
+ppsm :: Add service → says not wired | Not saved: Add service isn't wired in this prototype | via key
+ssps :: New plan → says not wired | Not saved: New plan isn't wired in this prototype | via key
+controls :: Add to assessment campaign → says not wired | Not saved: Add to assessment campaign isn't wired in this prototype | via after ticking a row: key
+baseline :: Edit overlays → says not wired | Not saved: Edit overlays isn't wired in this prototype | via key
+inventory :: Mark not in boundary → says not wired | Not saved: Mark not in boundary isn't wired in this prototype | via data-modal
+requirements :: Import requirements → says not wired | Not saved: Import requirements isn't wired in this prototype | via key
+assessments :: Plan an assessment → says not wired | Not saved: Plan an assessment isn't wired in this prototype | via key
+requirements :: Create requirement → says not wired | Not saved: Create requirement isn't wired in this prototype | via key
+checks :: Deactivate 2 checks → changes state, no toast  | via data-modal
+assessments :: Publish assessment results → changes state, toast | Increment 2 published: 20 determinations now decide WS-X90's control statuses Open Control | via key
+policies :: Assign approvers → opener not found
+policies :: Start a policy → navigates to policy-editor  | via key
+cyber-te :: Plan a cyber test → says not wired | Not saved: Plan a cyber test isn't wired in this prototype | via key
+poam :: Create POA&M item → says not wired | Not saved: Create POA&M item isn't wired in this prototype | via key
+poam :: Change planned date → says not wired | Not saved: Change planned date isn't wired in this prototype | via after ticking a row: key
+findings :: Deactivate 3 findings → says not wired | Not saved: Deactivate finding isn't wired in this prototype | via after ticking a row: key
+threats :: Link ATT&CK technique → says not wired | Not saved: Link ATT&CK technique isn't wired in this prototype | via key
+risks :: Create risk → says not wired | Not saved: Create risk isn't wired in this prototype | via key
+risks :: Request acceptance → says not wired | Not saved: Request acceptance isn't wired in this prototype | via after ticking a row: key
+inheritance :: Add common control provider → says not wired | Not saved: Add common control provider isn't wired in this prototype | via key
+sse :: Add security outcomes → dialog stays, nothing changes | Choose at least one outcome | via key
+authorization :: Submit package version 2 for approval → dialog stays, nothing changes (primary disabled)  | via key
+package-room :: Share the package → says not wired | Not saved: Share the package isn't wired in this prototype | via key
+program-new :: Save the draft and leave? → navigates to home | Draft saved · Customer D · X800 Eject Launch Integration | via key
+traceability :: Link evidence → says not wired | Not saved: Link evidence isn't wired in this prototype | via key
+conmon :: Plan a check → says not wired | Not saved: Plan a check isn't wired in this prototype | via key
+schedule :: Create task → says not wired | Not saved: Create task isn't wired in this prototype | via key
+people :: Assign a role → says not wired | Not saved: Assign a role isn't wired in this prototype | via key
+schedule :: Change due date → says not wired | Not saved: Change due date isn't wired in this prototype | via after ticking a row: key
+people :: Recurring reminders → says not wired | Not saved: Recurring reminders isn't wired in this prototype | via key
+people :: Change role → says not wired | Not saved: Change role isn't wired in this prototype | via after ticking a row: key
+people :: Send a reminder → says not wired | Not saved: Send a reminder isn't wired in this prototype | via data-modal
+program-start :: Invite by email → closes, toast only | Invitation sent to new.person@example.test · Assessors | via key
+people :: End 2 roles → says not wired | Not saved: End Joel Barrantes's period as information system security manager isn't wired  | via after ticking a row: key
+control-si2 :: Add evidence → says not wired | Not saved: Add evidence isn't wired in this prototype | via key
+campaign :: Set Ready → changes state, toast | 1 request back with the assessor as Ready | via after ticking a row: key
+ssp-review :: Edit summary → changes state, toast | Summary saved. It goes to the ISSM with the submission. | via key
+ssp-history :: Compare versions → changes state, no toast  | via key
+ssp-history :: Name this version → dialog changes in place  | via key
+ssp-history :: Restore this version? → changes state, toast | Restored as a new version. Every version stays in the history. | via key
+check-scan :: Create ticket → changes state, toast | WSX-419 created in Jira · status syncs both ways | via key
+component-mc :: Remind consumers to take version 2 → says not wired | Not saved: Remind consumers to take version 2 isn't wired in this prototype | via key
+ssp :: Share the SSP → says not wired | Not saved: Share the SSP isn't wired in this prototype | via key
+ssp :: Add section → changes state, toast | Added 14 New section | via key
+ssp :: Detach from the record? → changes state, toast | 1 System identification is detached: its values stay as text | via key
+ssp :: Replace Figure 1 → says not wired | Not saved: Replace Figure 1 isn't wired in this prototype | via key
+ssp :: Replace Figure 2 → says not wired | Not saved: Replace Figure 2 isn't wired in this prototype | via key
+ssp :: Set AC-2(3)'s parameters → changes state, toast | Set in WS-X90's program tailoring: 72 hours and 90 days | via key
+done 74
+done Wed Nov 18 21:25:24 PST 2026

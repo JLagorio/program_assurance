@@ -9,8 +9,8 @@ const res = []; const ok = (name, cond, extra = "") => res.push(`${cond ? "PASS"
 const hash = () => p.evaluate(() => location.hash.slice(1));
 const full = () => p.evaluate(() => document.getElementById("proto").classList.contains("fullwin"));
 
-// 1. The program switcher's Create program opens the walkthrough, full window
-await p.goto(file + "#home"); await p.waitForTimeout(500);
+// 1. The program switcher's Create program opens the walkthrough, full window (the switcher heads the program's menu)
+await p.goto(file + "#overview"); await p.waitForTimeout(500);
 await p.click("#swBtn"); await p.waitForTimeout(200);
 await p.click('#swMenu a[href="#program-new"]'); await p.waitForTimeout(500);
 ok("Switcher > Create program", (await hash()) === "program-new" && (await full()), await hash());
@@ -23,8 +23,10 @@ ok("Create lands on Getting started in the shell", (await hash()) === "program-s
 ok("Program created shows", await p.evaluate(() => /just now|Program created/i.test(document.body.innerText)));
 // 3. The switcher offers Create program
 ok("Switcher has Create program", await p.evaluate(() => !!document.querySelector('#swMenu a[href="#program-new"]')));
-// 4. Nav SSP > register > panel > document
-await p.goto(file + "#home"); await p.waitForTimeout(300);
+// 4. Nav SSP > register > panel > document (Plans is in the program's menu)
+await p.goto(file + "#overview"); await p.waitForTimeout(300);
+// v2 folds every menu group but the current one (A9): open Compliance first when Plans is folded away.
+if (!(await p.$('#nav a[href="#ssps"]')) || !(await p.isVisible('#nav a[href="#ssps"]'))) { const g = await p.$('#nav [data-group="Compliance"][aria-expanded="false"]'); if (g) { await g.click(); await p.waitForTimeout(200); } }
 await p.click('#nav a[href="#ssps"]'); await p.waitForTimeout(500);
 ok("Nav SSP opens the register", (await hash()) === "ssps");
 await p.locator('#main [data-panel="ssp"]').first().click(); await p.waitForTimeout(400);

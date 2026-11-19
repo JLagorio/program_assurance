@@ -1,0 +1,27 @@
+
+pill:bad: 17 distinct words
+High (4) | Critical (3) | Blocked (2) | N high (1) | Open CVE (1) | Counterfeit alert (1) | Needs answers (1) | N overdue (1) | MOU · Expired (1) | Not registered (1) | Past cadence (1) | Other than satisfied (1) | Changes requested (1) | Overdue (1) | Sent back (1) | Not met (1) | N past due (1)
+
+pill:info: 14 distinct words
+Active (2) | Not required (2) | Not assessed (2) | In review (2) | Ready (2) | Offer waiting (1) | You are here (1) | One (1) | Not applicable (1) | Validating (1) | Planned (1) | In progress (1) | Current (1) | IATT (1)
+
+pill:none: 27 distinct words
+Planned (6) | No evidence (3) | Draft (3) | Not started (3) | Proposed (2) | Cancelled (2) | Low (2) | Due Jan N, N (1) | Due Mar N, N (1) | Due Feb N, N (1) | Due Jun N, N (1) | Reference (1) | Drafting (1) | Daily digest (1) | Off (1) | Not authorized (1) | Not listed (1) | Temporary (1) | Queued (1) | No requirement (1) | No renewal set (1) | No document (1) | Reassess by Dec N (1) | Not requested (1) | Not scheduled (1) | Not assessed (1) | None yet (1)
+
+pill:ok: 24 distinct words
+Satisfied (3) | Published (2) | Completed (2) | In WS-XN's stack (1) | N on track (1) | In use (1) | On (1) | Hosted model (1) | In-enclave model (1) | Authorized (1) | Accredited CSSP (1) | Approved and signed (1) | ISA · Signed (1) | MOA · Signed (1) | Green (1) | Registered (1) | Current (1) | OK (1) | Approved (1) | Decided (1) | Met (1) | Up to date (1) | ATO with conditions (1) | Published · frozen (1)
+
+pill:warn: 23 distinct words
+Moderate (4) | N behind (3) | Partially satisfied (3) | In progress (3) | In review (2) | Due soon (2) | On version N (1) | Due Nov N · in Nd (1) | DMSMS notice (1) | N due soon (1) | Immediately (1) | In-enclave, ISSM approves (1) | With conditions (1) | Not assessed (1) | ISA · Draft (1) | Yellow (1) | Pending (1) | Review (1) | Pending review (1) | Partly met (1) | N to review (1) | Draft (1) | Draft results (1)
+
+text:amber: 14 distinct words
+DATE · in N days (7) | DATE · in Nd (2) | N behind (1) | Revision N · Draft (1) | → N.N.N (1) | → N.N (1) | N (1) | MR (1) | N of N (1) | DATE, N (1) | DATE (1) | plan +Nd (1) | N waits (1) | Due DATE · in N days (1)
+
+text:blue: 55 distinct words
+PR (22) | JB (18) | IS (17) | RC (12) | Deselect (10) | NF (8) | WD (6) | VA (6) | DO (6) | AB (5) | MR (4) | LD (3) | HL (2) | Shown in SSP section N (2) | View all N → (1) | EV (1) | DW (1) | N not in WS-XN (1) | Page (1) | SSP N · suggestions in the SSP editor (1) | Evidence · proposed links (1) | POA&M · N items (1) | STIG checklist · Maintenance Laptop (1) | ITCSC import · WS-XN (1) | Customer A data call · answers (1) | Requirements · drafts (1) | N controls (1) | View all (1) | People (1) | WS-XN Tailored Security Baseline (1) | History (1) | Open (1) | Adopt the N proposed deadlines set by Jo (1) | N subsystems and N elements (1) | N of N AF AO boundaries (1) | SSP N, figure N, drawn from the system t (1) | Open the baseline (1) | LM (1) | CT (1) | SO (1)
+
+text:green: 8 distinct words
+ATO with conditions (2) | +N (2) | +N controls (1) | In the app (1) | Import or complete the ITCSC · version N (1) | Catalog and roles (1) | Load NIST SP N-N Rev N.N.N · N,N active  (1) | Record WS-XN's roles · AO R. Calloway, l (1)
+
+text:red: 18 distinct words
+DATE · N days ago (7) | DATE · Nd late (3) | DATE, N · N days ago (2) | DATE · N day ago (2) | N (2) | Due DATE · N days ago (2) | WS-XN: N import, failed (1) | · N conflicts (1) | · N conflict (1) | Block N.N is in SSP N since DATE (1) | N interfaces since approval (1) | N added since: Ground support telemetry  (1) | Yes with SIPRNet reachback (1) | WS-XN's system record holds no rationale (1) | * (1) | SECRET (1) | DATE · Nd past cadence (1) | −N (1)

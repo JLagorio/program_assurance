@@ -1,0 +1,14 @@
+import { start } from "./walk.mjs";
+const W = await start("j2");
+await W.go("home", "land on Home");
+await W.click("My work", { within: "#rail", why: "the engineer's own list" });
+const mw = await W.text("#main", 2500); console.log("MYWORK:", mw.slice(0, 1500));
+await W.shot("01-my-work");
+const e1 = await W.click("Remediate CVE-2024-6387", { why: "top Urgent item" , wait: 700});
+console.log("EFFECT", e1 && e1.effect);
+const f = await W.text("#main", 2500); console.log("LANDED:", f.slice(0, 1400));
+const filt = await W.p.evaluate(() => ({ rows: document.querySelectorAll("#main table tbody tr").length, search: [...document.querySelectorAll("#main input")].map(i => i.value).filter(Boolean), chips: [...document.querySelectorAll("#main .chip.on, #main [aria-pressed=true], #main .on")].map(e => e.innerText.trim().replace(/\s+/g, " ")).slice(0, 8), mark: [...document.querySelectorAll("#main tr.on, #main tr.hit, #main tr[aria-selected=true], #main .flash")].map(e => e.innerText.slice(0, 80)) }));
+console.log("FILTER STATE", JSON.stringify(filt));
+await W.shot("02-landed-from-top-item");
+console.log("CONTROLS:", (await W.see()).slice(0, 50).join(" ‖ "));
+await W.done();

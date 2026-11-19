@@ -1,0 +1,16 @@
+PASS Switcher > Create program · program-new
+PASS Wizard reaches review · program-new > program-new-details > program-new-systems > program-new-baseline > program-new-team
+PASS Create lands on Getting started in the shell · program-start
+PASS Program created shows
+PASS Switcher has Create program
+PASS Nav SSP opens the register
+PASS Register row opens its panel
+PASS Open document opens the editor, full window
+PASS Accept writes AC-2's narrative · rv 2 · placeholder no · Saved to AC-2's implementation · record revision 2
+PASS Accept is logged to the session · 1 entries
+PASS Version history lists the session edit · AC-2 · AI draft accepted by Ingrid Solberg
+PASS Submit shows the blocker or the submitted state
+PASS Portfolio offers Create program
+PASS Overview links to the SSP
+PASS Shell is back after leaving
+errors: none

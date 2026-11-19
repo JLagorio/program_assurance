@@ -1,0 +1,60 @@
+{
+ "log": [
+  {
+   "step": 1,
+   "action": "go #my-work",
+   "why": "",
+   "hash": "my-work",
+   "h1": "",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 2,
+   "action": "click \"Remediate CVE-2024-6387\"",
+   "why": "top Urgent item",
+   "effect": "→ #findings-vulns ; panel: Operational issue preview",
+   "hash": "findings-vulns",
+   "h1": "",
+   "modal": null,
+   "panel": "Operational issue preview",
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 3,
+   "action": "click \"Vulnerabilities\"",
+   "why": "the CVE is not under By issue; find its tab",
+   "effect": "(same screen)",
+   "hash": "findings-vulns",
+   "h1": "",
+   "modal": null,
+   "panel": "Operational issue preview",
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 4,
+   "action": "click \"CVE-2024-6387\"",
+   "why": "open the CVE",
+   "effect": "panel: POA&M item preview",
+   "hash": "findings-vulns",
+   "h1": "",
+   "modal": null,
+   "panel": "POA&M item preview",
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 4,
+   "shot": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/v2/R/flows/shots/j2c-03-cve-open.png"
+  }
+ ],
+ "errors": []
+}

@@ -1,0 +1,13 @@
+import { start } from "./walk.mjs";
+const W = await start("j3");
+await W.go("overview", "in WS-X90");
+await W.click("Controls", { within: "#nav", why: "program menu Controls" });
+await W.shot("01-controls");
+let e = await W.click("SA-24 Design For Cyber Resiliency", { why: "a control with No requirement", wait: 500 });
+console.log("E", e && e.effect);
+console.log("PANEL:", (await W.text("#panel", 2500)));
+console.log("PANEL CONTROLS:", (await W.see("panel")).join(" ‖ "));
+await W.shot("02-sa24-preview");
+e = await W.click('css:#panel .bar-top button[aria-label="Open the full record"]', { why: "open the full record ↗", wait: 600 });
+console.log("FULL RECORD:", e && e.effect, await W.p.evaluate(() => location.hash));
+await W.done();

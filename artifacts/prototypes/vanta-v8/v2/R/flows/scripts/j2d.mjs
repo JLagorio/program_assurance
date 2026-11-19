@@ -1,0 +1,15 @@
+import { start } from "./walk.mjs";
+const W = await start("j2d");
+await W.go("findings-vulns");
+const sel0 = await W.p.evaluate(() => [...document.querySelectorAll("#main input[type=checkbox]")].filter(c => c.checked).length);
+const bar0 = await W.p.evaluate(() => { const t = document.getElementById("main").innerText; const m = t.match(/(\d+) selected/); return m ? m[0] : null; });
+console.log("BEFORE: checked", sel0, "bar", bar0);
+await W.shot("04-vulns-before");
+const e = await W.click("Signal handler race", { why: "click the CVE's title", wait: 500 });
+const sel1 = await W.p.evaluate(() => [...document.querySelectorAll("#main input[type=checkbox]")].filter(c => c.checked).length);
+const bar1 = await W.p.evaluate(() => { const t = document.getElementById("main").innerText; const m = t.match(/(\d+) selected/); return m ? m[0] : null; });
+console.log("AFTER:", e && e.effect, "checked", sel1, "bar", bar1);
+await W.shot("04-vulns-after-click");
+const links = await W.p.evaluate(() => [...document.querySelectorAll("#main a[href], #main [data-go], #main [data-panel]")].filter(a => /CVE-2024-6387/.test(a.innerText)).map(a => a.outerHTML.slice(0, 160)));
+console.log("CVE links:", links);
+await W.done();

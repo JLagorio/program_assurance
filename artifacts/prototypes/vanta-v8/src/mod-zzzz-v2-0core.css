@@ -1,0 +1,8 @@
+/* Prototype v2 core: the toast and the "showing the records you opened" line. */
+#v2-toast { position: fixed; inset-inline: 0; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); margin-inline: auto; width: max-content; max-width: calc(100% - 32px); z-index: 60;
+  display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 10px; background: var(--ink); color: var(--on-ink, #fff); font-size: 14px; line-height: 20px; box-shadow: 0 8px 24px rgb(24 24 29 / 0.18); }
+#v2-toast .v2-toast-link { border: 0; background: none; color: inherit; font: inherit; font-weight: 600; text-decoration: underline; cursor: pointer; padding: 0; }
+.v2-kept { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--band); font-size: 13px; line-height: 20px; color: var(--ink-2); }
+.v2-kept .num { color: var(--ink); font-weight: 600; }
+.v2-kept-all { border: 0; background: none; padding: 0; font: inherit; color: var(--brand-text); cursor: pointer; }
+.v2-kept-all:hover { text-decoration: underline; }

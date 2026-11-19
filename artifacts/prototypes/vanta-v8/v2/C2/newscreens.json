@@ -1,0 +1,8 @@
+[
+  {"id": "new-program-page", "title": "A created program's page", "route": "program-new", "v1": "After Create program the page kept WS-X90's switcher, badges and links, and the program was gone once you left; walk: run the wizard to Create program"},
+  {"id": "new-program-empty", "title": "A created program's own pages (Requirements, Controls, SSP…)", "route": "requirements", "v1": "The starter guide's links opened WS-X90's pages; open after creating a program"},
+  {"id": "onboarding-task", "title": "Onboarding task preview", "route": "person-local-developer-onboarding", "open": {"kind": "v8d-ob", "id": "Local developer|rob"}, "v1": "The onboarding page's 9 task rows could not be opened or completed"},
+  {"id": "add-person", "title": "Add person and the new person's onboarding", "route": "people", "v1": "People had no Add person; Assign a role closed silently"},
+  {"id": "campaign-controls", "title": "The campaign's Controls page in assessment mode", "route": "campaign-controls", "v1": "Assessment mode kept the whole program menu; the campaign had no Controls page"},
+  {"id": "added-asset", "title": "Add asset and its preview", "route": "inventory", "v1": "Inventory's Add asset and Import scan did nothing"}
+]

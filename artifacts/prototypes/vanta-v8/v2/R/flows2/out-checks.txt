@@ -1,0 +1,70 @@
+CHECK a.openers :: ["v2k-plan in header visible=true text=Plan an assessment","a-tests-plan in card a-tests-camp visible=true text=Plan an assessment"]
+CHECK a.plan.v2k-plan :: dialog closed ; toast: Reviewer R campaign planned Open campaign ; page changed in place | tabs: Active 4 Completed 1 | listed: true
+CHECK a.plan.a-tests-plan :: dialog closed | tabs: Active 3 Completed 1 | listed: false
+CHECK b.home.header :: Home View my work Create program Mission Computer version 2 is p
+CHECK b.home.openoffer :: → #component-mc-findings ; panel: Offer preview | Components › Mission Computer Mission Computer Version 2 Create task Review offer Status Published Owner PR Priya Raghavan Version 2 · Nov 12 Business line Air 
+CHECK c.si2.campaign :: → #campaign-conmon | h1 WS-X90 continuous monitoring — FY2027
+CHECK c.si2.top :: Controls › SI-2 SI-2 Flaw Remediation Add evidence Status Not assessed Family SI Owner Unassigned Determined by — Implementation Requirements 1 Evidence 1 Checks 2 Assessment 10 Findings 1 Activity 4 Implementation in SSP 3 Partial The SYS-WSX90 satisfies the tailored intent of SI-2 through a combination of system-level procedures and mapped component implementations. Placehold
+CHECK d.evidence.accept :: (same screen) | Pending review 88, Needs revision 54
+CHECK d.evidence.panel :: Evidence ↗ ✕ Evidence › Test records Time source comparison test report, LRU-005 60-second cadence with injected 1.5-second offset Asked by REQ-248: comparison records no more than 60 seconds apart across a one-hour capture, and an injected 1.5-second offset corrected and logged with before and afte
+CHECK d.queue.after :: All 148
+CHECK e.decided.before :: 11 of 18
+CHECK e.decided.after-keep-svc-maint-07 :: 11 of 18
+CHECK e.complete :: panel changed in place | Access review preview ↗ ✕ Quarterly privileged account review (AC-2, AC-6) In review Complete review Still owed: 2 accounts without an owner · 7 accounts not decided · 1 revoked account without a note or task Reviewer VA Victor Amsel Started Nov 7 Due Due Dec 1 · in 14 days Scope Platform Management Controller, Maintenance Access Gateway ✓ Draft 2 In re
+CHECK f.addperson.open :: dialog: Add person
+CHECK f.addperson.form :: Add person ✕ Adding a person to WS-X90 starts the onboarding tasks of their role's task set: a DD Form 2875 for each system account, the rules of behavior, training and the role's own tasks. Name Required Role in WS-X90 Assessor Information system security officer System owner No RMF role Start date
+CHECK f.addperson.empty :: Add person ✕ Adding a person to WS-X90 starts the onboarding tasks of their role's task set: a DD Form 2875 for each system account, the rules of behavior, training and the role's own tasks. Name Requ
+CHECK f.addperson.submit :: → #person-reviewer-newperson-onboarding ; dialog closed ; toast: Reviewer Newperson added · onboarding started with 9 tasks Open People |  | listed true
+CHECK f.onboarding.top :: People › Local developer Local developer SCA Records determinations Send reminder Change role WS-X90 role Assessor Programs 1 Sponsor JB Joel Barrantes Next due Due Nov 12 · 5 days ago Onboarding 4 of 9 complete Overview Onboarding 4/9 Access 4 Training 4 Offboarding Comments 1 Activity 5 1 onboarding task overdue: Rules of behavior (PL-4). 4 of 9 complete The union of Program 
+CHECK f.onboarding.mark1 :: null
+CHECK f.onboarding.row :: panel: Onboarding task preview | Onboarding task preview ↗ ✕ DD Form 2875 · eMASS In progress Mark complete Person LD Local developer Owner JB Joel Barrantes Due Due Nov 20 · in 3 days Task set Program access Joel Barrantes completes
+CHECK f.onboarding.markInPanel :: toast: DD Form 2875 · eMASS complete · onboarding 5 of 9 ; page changed in place ; panel changed in place | 5 of 9
+CHECK g.step2 #program-new-details :: Create program Step 2 of 6 Start 2 Program 3 Systems 4 Baseline 5 Team 6 Review P
+CHECK g.step3 #program-new-systems :: Create program Step 3 of 6 Start Program 3 Systems 4 Baseline 5 Team 6 Review Sys
+CHECK g.step4 #program-new-baseline :: Create program Step 4 of 6 Start Program Systems 4 Baseline 5 Team 6 Review Contr ‖  High baseline · 370 controls Because Confidentiality and Integrity are High in step 3, Systems
+CHECK g.step5 #program-new-team :: Create program Step 5 of 6 Start Program Systems Baseline 5 Team 6 Review Team Na ‖ ia Fournier System owner From the ITCSC §11 Owner of X800-EL-CUSD, carried from step 3, Systems
+CHECK h.queue :: All 149 | SSP row:  IS Ingrid Solberg WS-X90 system security plan · revision 3 SSP to approve WS-X90 JB Joel Barrantes Nov 17 · 0d IS Ingrid Solberg 1–22 of 149 2
+CHECK h.mywork :: Waiting on others 3 SSP 3 waits on Joel Barrantes, the ISSM In review JB 88 evidence versions wait on a reviewer Pending review NF An offered finding, CVE-2024-6387, waits on Priya Raghavan offered Nov 14 PR
+CHECK i.resolve17 :: → #findings | on: By issue 44, Past due 17 | rows 12
+CHECK i.treat2 :: → #risks | on: Register 40, All 40 | rows 25 | panel 
+CHECK j.req.preview :: panel: Requirement preview
+CHECK j.mapcontrol.open :: dialog: Map control
+CHECK j.mapcontrol.press :: dialog closed ; toast: 3 objectives of SI-4(13) mapped (prototype: nothing is saved)
+CHECK k.accept :: dialog closed | Status Flagged
+CHECK k.campaign :: Ready 88 Flagged 54 Accepted 226
+{"step":1,"action":"click \"Plan an assessment\"","why":"plan v2k-plan","effect":"dialog closed ; toast: Reviewer R campaign planned Open campaign ; page changed in place","hash":"assessments","h1":"","modal":null,"panel":null,"toasts":"Reviewer R campaign planned Open campaign","otherDlg":[],"notDrawn":false}
+{"step":2,"action":"click \"Plan an assessment\"","why":"plan a-tests-plan","effect":"dialog closed","hash":"assessments","h1":"","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":3,"action":"click \"Open offer\"","why":"","effect":"→ #component-mc-findings ; panel: Offer preview","hash":"component-mc-findings","h1":"Mission Computer","modal":null,"panel":"Offer preview","toasts":"","otherDlg":[],"notDrawn":false}
+{"step":4,"action":"click \"Open assessment campaign\"","why":"","effect":"→ #campaign-conmon","hash":"campaign-conmon","h1":"WS-X90 continuous monitoring — FY2027","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":5,"action":"click \"Time source comparison test report\"","why":"","effect":"panel: Evidence","hash":"evidence","h1":"","modal":null,"panel":"Evidence","toasts":"","otherDlg":[],"notDrawn":false}
+{"step":6,"action":"click \"Accept\"","why":"","effect":"dialog: Review evidence","hash":"evidence","h1":"","modal":"Review evidence","panel":"Evidence","toasts":"","otherDlg":[],"notDrawn":false}
+{"step":7,"action":"click \"Accept It meets\"","why":"","effect":"(same screen)","hash":"evidence","h1":"","modal":"Review evidence","panel":"Evidence","toasts":"","otherDlg":[],"notDrawn":false}
+{"step":8,"action":"click \"Save review\"","why":"save review","effect":"(same screen)","hash":"evidence","h1":"","modal":"Review evidence","panel":"Evidence","toasts":"","otherDlg":[],"notDrawn":false}
+{"step":9,"action":"go #review-queue","why":"","hash":"review-queue","h1":"","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":10,"action":"click \"Quarterly privileged account review (AC-2, AC-6)\"","why":"","effect":"panel: Access review preview","hash":"people-access","h1":"People","modal":null,"panel":"Access review preview","toasts":"","otherDlg":[],"notDrawn":false}
+{"step":11,"action":"click \"Complete review\"","why":"","effect":"panel changed in place","hash":"people-access","h1":"People","modal":null,"panel":"Access review preview","toasts":"","otherDlg":[],"notDrawn":false}
+{"step":12,"action":"click \"Add person\"","why":"","effect":"dialog: Add person","hash":"people","h1":"People","modal":"Add person","panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":13,"action":"click \"Add person\"","why":"empty submit","effect":"(same screen)","hash":"people","h1":"People","modal":"Add person","panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":14,"action":"click \"Add person\"","why":"add","effect":"→ #person-reviewer-newperson-onboarding ; dialog closed ; toast: Reviewer Newperson added · onboarding started with 9 tasks Open People","hash":"person-reviewer-newperson-onboarding","h1":"Reviewer Newperson","modal":null,"panel":null,"toasts":"Reviewer Newperson added · onboarding started with 9 tasks Open People","otherDlg":[],"notDrawn":false}
+{"step":15,"action":"click \"Mark complete\"","why":"","result":"NOT FOUND","hash":"person-local-developer-onboarding","h1":"Local developer","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":16,"action":"click \"DD Form 2875 · eMASS JB J\"","why":"","effect":"panel: Onboarding task preview","hash":"person-local-developer-onboarding","h1":"Local developer","modal":null,"panel":"Onboarding task preview","toasts":"","otherDlg":[],"notDrawn":false}
+{"step":17,"action":"click \"Mark complete\"","why":"","effect":"toast: DD Form 2875 · eMASS complete · onboarding 5 of 9 ; page changed in place ; panel changed in place","hash":"person-local-developer-onboarding","h1":"Local developer","modal":null,"panel":"Onboarding task preview","toasts":"DD Form 2875 · eMASS complete · onboarding 5 of 9","otherDlg":[],"notDrawn":false}
+{"step":18,"action":"click \"From an ITCSC\"","why":"","effect":"page changed in place","hash":"program-new","h1":"Create program","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":19,"action":"click \"Drop a completed AF ITCSC here\"","why":"","effect":"toast: ITCSC reader read 37 of 41 fields from CustomerD_X800-EL_ITCSC.pdf ; page changed in place","hash":"program-new","h1":"Create program","modal":null,"panel":null,"toasts":"ITCSC reader read 37 of 41 fields from CustomerD_X800-EL_ITCSC.pdf","otherDlg":[],"notDrawn":false}
+{"step":20,"action":"click \"Continue\"","why":"","effect":"→ #program-new-details","hash":"program-new-details","h1":"Create program","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":21,"action":"click \"Continue\"","why":"","effect":"→ #program-new-systems","hash":"program-new-systems","h1":"Create program","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":22,"action":"click \"Continue\"","why":"","effect":"→ #program-new-baseline","hash":"program-new-baseline","h1":"Create program","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":23,"action":"click \"Continue\"","why":"","effect":"→ #program-new-team","hash":"program-new-team","h1":"Create program","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":24,"action":"click \"Submit for review\"","why":"","effect":"page changed in place","hash":"ssp-review","h1":"Submit revision 3 for review","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":25,"action":"click \"Submit anyway as a draft for ISSM review\"","why":"","effect":"toast: Submitted for review. Joel Barrantes is emailed. ; page changed in place","hash":"ssp-review","h1":"Revision 3 is with the ISSM","modal":null,"panel":null,"toasts":"Submitted for review. Joel Barrantes is emailed.","otherDlg":[],"notDrawn":false}
+{"step":26,"action":"go #review-queue","why":"","hash":"review-queue","h1":"","modal":null,"panel":null,"toasts":"Submitted for review. Joel Barrantes is emailed.","otherDlg":[],"notDrawn":false}
+{"step":27,"action":"go #my-work","why":"","hash":"my-work","h1":"","modal":null,"panel":null,"toasts":"Submitted for review. Joel Barrantes is emailed.","otherDlg":[],"notDrawn":false}
+{"step":28,"action":"click \"Resolve 17 operational issues\"","why":"","effect":"→ #findings","hash":"findings","h1":"","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":29,"action":"click \"Treat 2 critical risks\"","why":"","effect":"→ #risks","hash":"risks","h1":"","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":30,"action":"click \"REQ-001\"","why":"","effect":"panel: Requirement preview","hash":"requirements","h1":"Requirements","modal":null,"panel":"Requirement preview","toasts":"","otherDlg":[],"notDrawn":false}
+{"step":31,"action":"click \"Map control\"","why":"","effect":"dialog: Map control","hash":"requirements","h1":"Requirements","modal":"Map control","panel":"Requirement preview","toasts":"","otherDlg":[],"notDrawn":false}
+{"step":32,"action":"click \"Map control\"","why":"map control","effect":"dialog closed ; toast: 3 objectives of SI-4(13) mapped (prototype: nothing is saved)","hash":"requirements","h1":"Requirements","modal":null,"panel":"Requirement preview","toasts":"3 objectives of SI-4(13) mapped (prototype: nothing is saved)","otherDlg":[],"notDrawn":false}
+{"step":33,"action":"click \"Accept\"","why":"","effect":"dialog: Accept request","hash":"campaign-r2","h1":"Remote privileged command admission test report, approved list, attestation and ","modal":"Accept request","panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":34,"action":"click \"Accept\"","why":"accept","effect":"dialog closed","hash":"campaign-r2","h1":"Remote privileged command admission test report, approved list, attestation and ","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":35,"action":"go #campaign","why":"","hash":"campaign","h1":"Expanded Control Set Assessment","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+errors: []

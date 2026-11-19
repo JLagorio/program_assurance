@@ -1,0 +1,126 @@
+== NOTHING (excluding All-chips and self links)
+products                           SPAN     "Products 4"
+frameworks                         SPAN     "Import OSCAL"
+frameworks                         SPAN     "Create overlay"
+frameworks                         SPAN     "Baselines 4"
+suppliers                          BUTTON   "Import SBOM"
+suppliers                          SPAN     "Managed 12"
+integrations                       SPAN     "Available 11"
+data-calls                         BUTTON   "Import data call"
+data-calls                         SPAN     "Data calls 5"
+data-calls                         SPAN     "Review conflicts"
+ai-drafts                          SPAN     "Needs approval 7"
+notifications                      SPAN     "My alerts"
+permissions                        SPAN     "Roles 11"
+getting-started                    LI       "1 Workspace setup"
+overview                           BUTTON   "More program actions"
+itcsc                              SPAN     "Checklist 11"
+stigs                              SPAN     "Checklists 7"
+composition                        SPAN     "Tree"
+sources                            SPAN     "Connected 7"
+inventory                          SPAN     "Import scan"
+inventory                          SPAN     "Add asset"
+inventory                          SPAN     "Assets 20"
+inventory                          SPAN     "Discovered by scans 5"
+ssps                               SPAN     "Plans 4"
+controls                           SPAN     "Export ▾"
+controls                           SPAN     "Map a requirement"
+baseline                           SPAN     "Stack 6"
+baseline                           BUTTON   "Grid"
+checks                             SPAN     "Run all now"
+checks                             SPAN     "Create check"
+requirements                       SPAN     "Requirements 640"
+assessments                        SPAN     "Active 3"
+assessments                        SPAN     "Download"
+assessments                        SPAN     "Open campaign"
+cyber-te                           SPAN     "Export test plan"
+cyber-te                           SPAN     "Campaigns 4"
+poam                               BUTTON   "Export ▾"
+poam                               SPAN     "Items 41"
+findings                           BUTTON   "Import scan"
+findings                           BUTTON   "Create operational issue"
+findings                           SPAN     "By issue 44"
+threats                            SPAN     "Export"
+threats                            SPAN     "Techniques 32"
+resiliency                         SPAN     "Techniques 14"
+risks                              BUTTON   "Export ▾"
+risks                              SPAN     "Register 40"
+risks                              SPAN     "Start reassessment"
+risks                              SPAN     "Export"
+inheritance                        SPAN     "Export"
+inheritance                        SPAN     "Elements 3"
+authorization                      SPAN     "Package"
+sse                                SPAN     "Technical reviews 6"
+package-room                       BUTTON   "Export ▾"
+package-room                       SPAN     "Edit version 2"
+package-room                       SPAN     "Recipients 7"
+package-room                       TR       "RC R. Calloway Authorizing official Full package · sign Sep 17,
+package-room                       TR       "DO D. Okafor Lead assessor Full package Mar 31, 2027 Not logged
+package-room                       TR       "JB Joel Barrantes ISSM Full package · share Sep 17, 2027 Not lo
+package-room                       TR       "PR Priya Raghavan ISSO Full package · share Sep 17, 2027 Not lo
+package-room                       TR       "RC Ray Colston System owner Read only Sep 17, 2027 Not logged y
+package-room                       TR       "Receiving AO's representative EXAMPLE Reciprocity reviewer SSP,
+package-room                       TR       "CSSP analyst EXAMPLE Cybersecurity service provider SSP and POA
+traceability                       SPAN     "Export"
+traceability                       SPAN     "Table 640"
+traceability                       BUTTON   "Chart"
+program-new                        BUTTON   "From a product Recommended Its configuration's elements arrive 
+program-new                        BUTTON   "X800 Missile Version 2 · published Nov 13, 2026 Air Defense 3 c
+program-new                        BUTTON   "B Eject Launch 21 elements No program uses it yet"
+conmon                             SPAN     "Recurring checks 10"
+people                             SPAN     "People 11"
+campaign                           SPAN     "Requests 368"
+control-si2                        SPAN     "Implementation"
+people-access                      SPAN     "Privileged access reviews 3"
+person-joel-barrantes              SPAN     "Overview"
+person-joel-barrantes              TR       "ISSM WS-X90 Sentinel Mission System Not recorded"
+person-joel-barrantes              TR       "ISSO Customer B · X800 Palletized Integration Not recorded"
+person-joel-barrantes              TR       "ISSO Customer C · G25 Battery Control Fielding Not recorded"
+person-joel-barrantes              TR       "SSP editor WS-X90 System Security Plan Revision 3"
+person-local-developer-onboarding  SPAN     "Onboarding 4/9"
+person-local-developer-onboarding  TR       "DD Form 2875 · eMASS JB Joel Barrantes Nov 20 · in 3 days In pr
+person-local-developer-onboarding  TR       "DD Form 2875 · Jira JB Joel Barrantes Sep 15 Complete Not neede
+person-local-developer-onboarding  TR       "Rules of behavior (PL-4) LD Local developer Nov 12 · 5 days ago
+person-local-developer-onboarding  TR       "SF-312 nondisclosure agreement SO Security office Aug 4 Complet
+person-local-developer-onboarding  TR       "Background investigation SO Security office Aug 11 Complete Not
+person-local-developer-onboarding  TR       "CAC issued SO Security office Aug 18 Complete Not needed Signed
+person-local-developer-onboarding  TR       "Cyber Awareness Challenge (AT-2) LD Local developer Nov 24 · in
+person-local-developer-onboarding  TR       "DoD 8140 qualification LD Local developer Feb 1, 2027 Open Not 
+person-local-developer-onboarding  TR       "Role-based training (AT-3) LD Local developer Dec 1 · in 14 day
+ssp-history                        BUTTON   "Nov 13, 3:10 PM Real changes"
+posture                            SPAN     "Columns: Control families"
+posture                            SPAN     "Export CSV"
+posture                            SPAN     "Objectives mapped 1,761"
+posture                            BUTTON   "Heatmap"
+person-victor-amsel-offboarding    SPAN     "Offboarding Dec 1"
+check-scan                         SPAN     "Results"
+component-mc                       SPAN     "Overview"
+ssp                                BUTTON   "Internal 7"
+ssp                                BUTTON   "Open"
+
+== TOAST ONLY (no page change)
+review-queue         "Remind"                                       → Nadia Fournier reminded of 2 waiting records
+permissions          "Export"                                       → Roles and permissions exported (.csv)
+itcsc                "Export as AF ITCSC"                           → Export as AF ITCSC v2.0 · a PDF, filled from version 3
+itcsc                "Copy the justification to the system record   → Justification copied to SYS-WSX90's categorization rationale
+stigs                "Export .ckl"                                  → 7 checklists exported as .ckl files
+interconnections     "Export"                                       → Exported 9 interconnections as CSV
+composition          "Export"                                       → Composition exported (.csv)
+ppsm                 "Export"                                       → Exported 12 services as the PPSM registry's CSV
+inventory            "Export"                                       → 3 assets exported (.csv)
+conmon               "Export ConMon report"                         → ConMon report exported (PDF, CUI marked)
+schedule             "Remind owners"                                → Joel Barrantes (2 open tasks) reminded of everything still open
+program-start        "Plan delta assessment"                        → Plan delta assessment waits for a published SSP: X800-B-CUSD's SSP is a draft.
+ssp-review           "OSCAL SSP JSON"                               → OSCAL SSP of revision 3 would download now; the prototype's viewer blocks downloads.
+ssp-review           "Word .docx"                                   → Word of revision 3 would download now; the prototype's viewer blocks downloads.
+ssp-review           "PDF .pdf"                                     → PDF of revision 3 would download now; the prototype's viewer blocks downloads.
+ssp-review           "eMASS package For upload to eMASS"            → eMASS package of revision 3 would download now; the prototype's viewer blocks downloads.
+ssp                  "Undo"                                         → Nothing to undo yet
+ssp                  "Redo"                                         → Nothing to redo
+ssp                  "B"                                            → Formatting applies to authored sections. Narratives and live tables are plain text in their records.
+ssp                  "I"                                            → Formatting applies to authored sections. Narratives and live tables are plain text in their records.
+ssp                  "U"                                            → Formatting applies to authored sections. Narratives and live tables are plain text in their records.
+ssp                  "Insert link"                                  → Select text in an authored section to link it
+ssp                  "Bulleted list"                                → Formatting applies to authored sections. Narratives and live tables are plain text in their records.
+ssp                  "Numbered list"                                → Formatting applies to authored sections. Narratives and live tables are plain text in their records.
+ssp                  "Add comment"                                  → Select text in the page to comment on it

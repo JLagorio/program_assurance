@@ -1,0 +1,19 @@
+ROW → → #ssp | 
+PANEL CONTROLS: 
+OPEN BTN: undefined
+EDITABLE: [
+  'Categorization rationale :: ',
+  'Mission and purpose :: WS-X90 Sentinel carries a payload, navigates on its own timing source and report',
+  'Authorization boundary :: The boundary is SYS-WSX90 and everything inside it: six subsystems and the twent',
+  'Mission Computer description :: ',
+  'Secure Boot Controller description :: ',
+  'Cryptographic Services Module description :: ',
+  'Navigation Processor description :: ',
+  'Timing Receiver description :: '
+]
+TOP CONTROLS: span→ssps: Plans ‖ input: WS-X90 System Security Plan ‖ button: Switch plan ‖ button: PR ‖ button: JB ‖ button: MR ‖ button: DO ‖ button: 6 ‖ button→ssp-history: Version history ‖ button⊡se-share: Share ‖ button: Editing ‖ button→ssp-review: Submit for review ‖ button: Undo ‖ button: Redo ‖ select: Normal text Heading 1 Heading 2 Heading 3 ‖ button: B ‖ button: I ‖ button: U ‖ button: Insert link ‖ button: Bulleted list ‖ button: Numbered list ‖ button: Insert table ‖ button: Insert ‖ button: Add comment ‖ button: Assist ‖ button: Gaps only ‖ button: 1 System identification , 100% complete ‖ button: 2 Security categorization , needs action ‖ button: 3 Roles and responsibilities , 100% complete ‖ button: 4 Mission and purpose , 100% complete
+{"step":1,"action":"go #overview","why":"","hash":"overview","h1":"WS-X90 Sentinel Mission System","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":2,"action":"click \"Plans\"","why":"program menu Plans","result":"NOT FOUND","hash":"overview","h1":"WS-X90 Sentinel Mission System","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":3,"action":"click \"System security plan\"","why":"open the SSP row","effect":"→ #ssp","hash":"ssp","h1":"WS-X90 System Security Plan","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":3,"shot":"/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/v2/R/flows/shots/j7-01-ssp-editor.png"}
+errors: []

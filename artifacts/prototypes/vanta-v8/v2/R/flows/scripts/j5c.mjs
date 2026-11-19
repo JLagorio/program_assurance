@@ -1,0 +1,15 @@
+import { start } from "./walk.mjs";
+const W = await start("j5c");
+await W.go("risks");
+console.log("RISKS:", (await W.text("#main", 1800)).replace(/\s+/g, " ").slice(0, 1100));
+const rows = await W.see();
+console.log("CONTROLS:", rows.slice(0, 45).join(" ‖ "));
+await W.shot("04-risks");
+const firstRisk = rows.find(r => r.startsWith("tr▤"));
+const label = firstRisk.split(": ")[1].slice(0, 30);
+let e = await W.click(label, { why: "open the first risk", wait: 500 });
+console.log("ROW →", e && e.effect);
+console.log("PANEL:", (await W.text("#panel", 2500)).replace(/\s+/g, " ").slice(0, 1500));
+console.log("PANEL CONTROLS:", (await W.see("panel")).join(" ‖ "));
+await W.shot("05-risk-panel");
+await W.done();

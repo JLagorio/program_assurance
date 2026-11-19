@@ -1,0 +1,28 @@
+/* Prototype v2, agent C2: the dialogs it wires, a new program's pages, the access review's owed line. */
+.v2c-dlg { display: grid; gap: 14px; }
+.v2c-f { display: grid; gap: 6px; }
+.v2c-in, .a-people-in { width: 100%; box-sizing: border-box; min-height: 36px; padding: 7px 10px; border: 1px solid var(--line-strong, #c9cbd3); border-radius: 8px; background: var(--card, #fff); color: var(--ink); font: inherit; font-size: 14px; line-height: 20px; }
+textarea.a-people-in { min-height: 72px; resize: vertical; }
+.v2c-in:focus, .a-people-in:focus { outline: 2px solid var(--brand, #2f6fed); outline-offset: 1px; border-color: transparent; }
+.v2c-in[aria-invalid="true"], .a-people-in[aria-invalid="true"] { border-color: var(--bad, #c4314b); }
+.v2c-err, .a-people-err { margin: 0; color: var(--bad-text, #b42318); font-size: 12px; line-height: 16px; }
+.v2c-err[hidden], .a-people-err[hidden] { display: none; }
+.v2c-lbl { font-size: 14px; font-weight: 500; color: var(--ink); }
+.v2c-file { display: block; padding: 10px 12px; border: 1px dashed var(--line-strong, #c9cbd3); border-radius: 8px; color: var(--ink-3, #6b6e7b); font-size: 14px; }
+.v2c-crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 6px; font-size: 12px; line-height: 16px; color: var(--ink-3, #6b6e7b); }
+.v2c-crumbs .ak-link { cursor: pointer; }
+.v2c-newp .ph { margin-bottom: 0; }
+.v2c-fw { min-height: 100%; padding: 16px; box-sizing: border-box; background: var(--bg, #fff); }
+.v2c-pan { display: grid; gap: 12px; }
+.a-people-owed { margin: 8px 0 0; padding: 8px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--band); color: var(--ink); font-size: 12px; line-height: 16px; }
+.v8d-obp { display: grid; gap: 12px; }
+@media (max-width: 600px) { .v2c-fw { padding: 12px 16px; } }
+/* A badge with nothing to count is not drawn (a created program's pages, a count that could not be read). */
+.ri-b:empty, #nav .item .c:empty { display: none; }
+/* Assessment mode: the campaign's pages in the program menu. */
+.v2c-camp { display: grid; gap: 8px; padding-bottom: 10px; }
+.v2c-back { justify-self: start; color: var(--ink-2); font-size: 12px; line-height: 16px; text-decoration: none; }
+.v2c-back:hover { color: var(--ink); text-decoration: underline; }
+.v2c-campt { display: grid; gap: 2px; }
+.v2c-campt b { font-size: 14px; line-height: 20px; font-weight: 600; color: var(--ink); }
+.v2c-campt small { font-size: 12px; line-height: 16px; color: var(--ink-3, #6b6e7b); }

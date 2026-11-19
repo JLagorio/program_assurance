@@ -1,0 +1,60 @@
+products :: Create product → dialog changes (next step or validation) 
+suppliers :: Request from a supplier → closes silently, nothing changes 
+products :: Take version 2 of X800 Missile → closes silently, nothing changes 
+components :: Create component → dialog changes (next step or validation) 
+integrations :: Request a connector → closes silently, nothing changes 
+reports :: Generate report → closes silently, nothing changes 
+ai-drafts :: Run an agent → closes silently, nothing changes 
+ai-drafts :: Reject the run → dialog changes (next step or validation) 
+enclaves :: Add enclave → closes silently, nothing changes 
+notifications :: Send a test → closes silently, nothing changes 
+common-controls :: Add provider → closes silently, nothing changes 
+deadlines :: Edit high finding deadline → dialog changes (next step or validation) 
+permissions :: Invite a member → dialog changes (next step or validation) 
+event-log :: Export event log → closes silently, nothing changes 
+itcsc :: Start version 4 → closes, toast, page changes | Version 4 started from version 3 · version 3 stays approved
+stigs :: Import a checklist → dialog changes (next step or validation) 
+composition :: Create element → dialog changes (next step or validation) 
+interconnections :: Add interconnection → dialog changes (next step or validation) 
+composition :: Take version 2 of Mission Computer → closes silently, nothing changes 
+sources :: Retry import → closes silently, nothing changes 
+ppsm :: Add service → dialog changes (next step or validation) 
+sources :: Add source → dialog changes (next step or validation) 
+inventory :: Assign owner → closes silently, nothing changes 
+ssps :: New plan → closes silently, nothing changes 
+baseline :: Edit overlays → closes silently, nothing changes 
+requirements :: Import requirements → closes silently, nothing changes 
+requirements :: Create requirement → dialog changes (next step or validation) 
+assessments :: Plan an assessment → closes silently, nothing changes 
+assessments :: Publish assessment results → closes, page changes, no toast 
+cyber-te :: Plan a cyber test → dialog changes (next step or validation) 
+policies :: Start a policy → navigates to policy-editor 
+poam :: Create POA&M item → dialog changes (next step or validation) 
+threats :: Link ATT&CK technique → dialog changes (next step or validation) 
+risks :: Create risk → dialog changes (next step or validation) 
+inheritance :: Add common control provider → dialog changes (next step or validation) 
+sse :: Add security outcomes → dialog stays, nothing changes | Choose at least one outcome
+package-room :: Share the package → closes silently, nothing changes 
+traceability :: Link evidence → dialog changes (next step or validation) 
+authorization :: Submit package version 2 for approval → dialog stays, nothing changes (primary disabled) 
+program-new :: Save the draft and leave? → navigates to home | Draft saved · Customer D · X800 Eject Launch Integration
+conmon :: Plan a check → dialog changes (next step or validation) 
+schedule :: Create task → dialog changes (next step or validation) 
+people :: Assign a role → closes silently, nothing changes 
+people :: Recurring reminders → closes silently, nothing changes 
+program-start :: Invite by email → dialog changes (next step or validation) 
+control-si2 :: Add evidence → closes silently, nothing changes 
+ssp-review :: Edit summary → closes, toast, page changes | Summary saved. It goes to the ISSM with the submission.
+ssp-history :: Compare versions → closes, page changes, no toast 
+ssp-history :: Name this version → dialog changes (next step or validation) 
+check-scan :: Create ticket → closes, toast, page changes | WSX-419 created in Jira · status syncs both ways
+component-mc :: Remind consumers to take version 2 → closes silently, nothing changes 
+ssp-history :: Restore this version? → closes, toast, page changes | Restored as a new version. Every version stays in the history.
+ssp :: Share the SSP → closes silently, nothing changes 
+ssp :: Detach from the record? → closes, toast, page changes | 1 System identification is detached: its values stay as text
+ssp :: Replace Figure 1 → closes silently, nothing changes 
+ssp :: Add section → closes, toast, page changes | Added 14 New section
+ssp :: Replace Figure 2 → closes silently, nothing changes 
+ssp :: Set AC-2(3)'s parameters → closes, toast, page changes | Set in WS-X90's program tailoring: 72 hours and 90 days
+done 74
+modal done Wed Nov 18 21:21:09 PST 2026

@@ -1,0 +1,235 @@
+[
+ {
+  "route": "home",
+  "finding": "B16",
+  "text": "Create program is Home's primary, in the header beside View my work; the footnote pointing at the switcher is gone."
+ },
+ {
+  "route": "home",
+  "finding": "home budget",
+  "text": "Two tinted banners become one grey callout (Mission Computer version 2 and its CVE offer), with one action."
+ },
+ {
+  "route": "home",
+  "finding": "home budget",
+  "text": "One card a program: name, %, one green bar and \"176 of 560 controls satisfied\"; the note line under each card is gone."
+ },
+ {
+  "route": "home",
+  "finding": "home budget",
+  "text": "Other programs is a plain list, each row a link with \"0 of 287 controls satisfied\" in grey; no dashed rings or Open arrows."
+ },
+ {
+  "route": "overview",
+  "finding": "A1",
+  "text": "Nine blocks become three: one completion card, Open work and three link rows, beside one Details rail; all above the fold at 1440."
+ },
+ {
+  "route": "overview",
+  "finding": "N11",
+  "text": "The three mini tiles (Mapped, With evidence, Assessed) are cut; Controls owns them. The card links to Controls."
+ },
+ {
+  "route": "overview",
+  "finding": "N11",
+  "text": "The control-status strip is the completion card's one bar and the page's one chart, with its legend; 31% and 176 of 560 beside it."
+ },
+ {
+  "route": "overview",
+  "finding": "ranking 2",
+  "text": "The title carries one status, ATO with conditions; the Lifecycle label moves to Details and the description sentence is cut."
+ },
+ {
+  "route": "overview",
+  "finding": "A1",
+  "text": "The facts row is gone: Team and Details are one Details rail (program, system, lifecycle, baseline, next date, then the seven roles)."
+ },
+ {
+  "route": "overview",
+  "finding": "A1",
+  "text": "The SSP, setup and assessments cards and the four-lane timeline become three link rows with grey meta; Version history stays a link."
+ },
+ {
+  "route": "overview",
+  "finding": "overview budget",
+  "text": "Open work rows lose their red and amber glyphs; colour stays inside the strip. Recent activity and the footnote are cut."
+ },
+ {
+  "route": "my-work",
+  "finding": "A12",
+  "text": "The second Urgent row no longer wraps one word a line: the hidden callout column that squeezed it is gone."
+ },
+ {
+  "route": "my-work",
+  "finding": "A13",
+  "text": "Rows are one hairline list a group, not bordered boxes: icon, title in medium weight, grey meta, avatars."
+ },
+ {
+  "route": "my-work",
+  "finding": "N16",
+  "text": "Jira keys are plain grey text in the meta (WSX-409); the ticket's own state and the red \"8d late\" go, one state word a row."
+ },
+ {
+  "route": "my-work",
+  "finding": "inbox budget",
+  "text": "Waiting on others' blue ring is grey; the empty avatar is a plain circle; the two footnotes under the lists are cut."
+ },
+ {
+  "route": "review-queue",
+  "finding": "A11",
+  "text": "Seven stacked tables become one table with a Kind column and the Kind filter, the record that has waited longest first."
+ },
+ {
+  "route": "review-queue",
+  "finding": "A11",
+  "text": "Nothing is ticked when the queue opens; the selection bar replaces the filters only once a row is chosen."
+ },
+ {
+  "route": "review-queue",
+  "finding": "A11",
+  "text": "Each kind's View all link and the closing footnote are gone; Requested by is the one last column for every kind."
+ },
+ {
+  "route": "deadlines",
+  "finding": "A7",
+  "text": "Settings is a left list of sections (Workspace, My account) beside the page, as Vanta's; the area tab strip is hidden on these pages."
+ },
+ {
+  "route": "deadlines",
+  "finding": "A7",
+  "text": "Deadlines is setting cards of rules, one card a group: deadline, what it applies to, its days, On or Proposed. No register."
+ },
+ {
+  "route": "deadlines",
+  "finding": "A7",
+  "text": "The Deadline status and Imports cards, the At risk pills and the Items at risk tables are cut; the counts stay on Findings and POA&M."
+ },
+ {
+  "route": "deadlines",
+  "finding": "settings budget",
+  "text": "In use reads as an On pill and Proposed as a grey word; the group tabs drop their counts."
+ },
+ {
+  "route": "deadlines",
+  "finding": "A7",
+  "where": "preview: v7o-dl",
+  "text": "A rule opens its deadline preview, which now carries Disable beside Edit (the v1 group cards held Disable)."
+ },
+ {
+  "route": "notifications",
+  "finding": "A7",
+  "text": "My alerts and Workspace tabs are gone: My account › Notifications and Workspace › Notifications are two sections of the list."
+ },
+ {
+  "route": "notifications",
+  "finding": "settings budget",
+  "text": "Frequencies (Immediately, Daily digest) are grey words, not amber and grey pills; the head is a title and one line."
+ },
+ {
+  "route": "notifications-workspace",
+  "finding": "settings budget",
+  "text": "Named Workspace notifications; the defaults keep On and Off pills, \"Off · CUI\" reads Off, frequencies are grey words."
+ },
+ {
+  "route": "event-log",
+  "finding": "settings budget",
+  "text": "The log sits in the Settings frame; each action is an ink word without its green, amber or red glyph; None given reads —."
+ },
+ {
+  "route": "enclaves",
+  "finding": "A7",
+  "text": "Three setting cards of rules: Enclaves (Chat On or Off), Markings (each rule On, then the CUI preview), Where AI drafting may run."
+ },
+ {
+  "route": "enclaves",
+  "finding": "settings budget",
+  "text": "You are here is a grey word, not a blue pill; Hosted model and In-enclave pills become words; On and Off are the only pills."
+ },
+ {
+  "route": "common-controls",
+  "finding": "A7",
+  "text": "One card of providers, a row each: kind and what WS-X90 inherits in grey, \"7 of 15 satisfied\" with no bar, authorization in words."
+ },
+ {
+  "route": "common-controls",
+  "finding": "settings budget",
+  "text": "The amber banner is one grey line in the identity provider's row, with Open program; the kind tags and the filters are cut."
+ },
+ {
+  "route": "permissions",
+  "finding": "settings budget",
+  "text": "In the Settings frame; RMF roles' \"One\" is a word, not a blue pill; the database's rules are a plain list without green checks."
+ },
+ {
+  "route": "portfolio",
+  "finding": "A14",
+  "text": "The subtitle is cut, and so is the second line under Next gate (the gate's name is the date's tooltip)."
+ },
+ {
+  "route": "portfolio",
+  "finding": "N08",
+  "text": "No ring in each row: Controls satisfied reads \"31% 116 of 374\"."
+ },
+ {
+  "route": "portfolio",
+  "finding": "ranking 6",
+  "text": "Next gate is one plain date with a red mark only when it has passed; no flag icons or red and amber dates."
+ },
+ {
+  "route": "portfolio",
+  "finding": "A14",
+  "text": "\"+2 controls\" and \"1 behind\" are words, not green and amber pills."
+ },
+ {
+  "route": "baseline",
+  "finding": "N08",
+  "text": "One control-status strip with its legend for the page, above the family cards; the 18 cards lose their four-colour stacks."
+ },
+ {
+  "route": "baseline",
+  "finding": "N07",
+  "text": "Added and removed counts are ink, not green and red; the Apply switches are ink when on."
+ },
+ {
+  "route": "baseline",
+  "finding": "ranking 7",
+  "text": "The amber \"2 assessments are active\" banner is one grey line under the title; the what-if banner stays for a switched-off layer."
+ },
+ {
+  "route": "program-new",
+  "finding": "A17",
+  "text": "The third column, What you're creating, is cut (and its phone disclosure); the Review step's cards and What creating writes carry it."
+ },
+ {
+  "route": "program-new",
+  "finding": "B15",
+  "text": "Step references follow the stepper: categorization is in step 3, Systems; the baseline is chosen in step 4."
+ },
+ {
+  "route": "program-new",
+  "finding": "N10",
+  "text": "The bar title stays 16px: the visual layer's type scale had raised it to the 44px page h1, clipped in the bar."
+ },
+ {
+  "route": "baseline",
+  "finding": "A4",
+  "text": "The what-if message is a line with Back to saved, not a banner the visual layer would drop on a register."
+ },
+ {
+  "route": "baseline",
+  "finding": "N07",
+  "where": "preview: v7p-layer",
+  "text": "A layer's Changes (+201 −17) are ink, not green and red."
+ },
+ {
+  "route": "baseline",
+  "finding": "N07",
+  "where": "dialog: v7p-overlays",
+  "text": "Each layer's added count in Edit overlays is ink, not green."
+ },
+ {
+  "route": "notifications",
+  "finding": "N07",
+  "text": "Inside Settings, switches and radios are ink when on, not blue; blue is left for links."
+ }
+]

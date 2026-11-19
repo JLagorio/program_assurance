@@ -187,3 +187,9 @@
   .v7o-li > .v7o-le { flex-basis: 100%; padding-inline-start: 26px; justify-content: flex-start; }
   .v7o-card .v7o-li .x { flex-wrap: wrap; row-gap: 0; }
 }
+
+/* ——— v2 (L1): Programs. No ring in rows; Next gate one plain date, a red mark only when it has passed. ——— */
+.v2-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
+.v2-pf-sat { display: inline-flex; align-items: baseline; gap: 8px; white-space: nowrap; }
+.v2-pf-gate { position: relative; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.v2-pf-gate .gl { width: 12px; height: 12px; }

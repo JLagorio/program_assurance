@@ -1,0 +1,34 @@
+ROW "Remediate CVE-2024-6387" → → #findings-vulns ; panel: Operational issue preview | {"h":"Findings","on":["Vulnerabilities 4","All 4"],"rows":4,"inputs":[],"panel":"Operational issue preview ↗ ✕ CVE-2024-6387 in the OpenSSH server (regreSSHion) "}
+ROW "Resolve 16 more operational issues" → null | {"h":"My work","on":["All"],"rows":0,"inputs":[],"panel":null}
+ROW "Treat 2 critical risks" → → #risks | {"h":"Risks","on":["Register 40","All 40"],"rows":25,"inputs":[],"panel":null}
+ROW "Close out the Expanded Control Set Assessment" → → #campaign | {"h":"Assessments","on":["Requests 368","Ready 88"],"rows":6,"inputs":[],"panel":null}
+ROW "Remediate 3 operational issues" → → #findings | {"h":"Findings","on":["By issue 44","Due soon 3"],"rows":3,"inputs":[],"panel":null}
+ROW "Submit SSP 3 for review" → → #ssp-review | {"h":"Submit revision 3 for review","on":[],"rows":0,"inputs":[],"panel":null}
+ROW "Run the quarterly configuration baseline audit" → → #schedule ; panel: Task preview | {"h":"Schedule","on":["All 14"],"rows":14,"inputs":[],"panel":"Task preview ↗ ✕ Quarterly configuration baseline audit (CM-2, CM-3) Planned Mar"}
+ROW "Give an owner to 40 open risks" → → #risks | {"h":"Risks","on":["Register 40","No owner 40"],"rows":25,"inputs":[],"panel":null}
+ROW "Revise 54 evidence versions" → → #evidence | {"h":"Evidence","on":["Needs revision 54"],"rows":6,"inputs":[],"panel":null}
+ROW "88 evidence versions wait on a reviewer" → → #evidence | {"h":"Evidence","on":["Pending review 88"],"rows":6,"inputs":[],"panel":null}
+ROW "An offered finding, CVE-2024-6387" → → #component-mc-findings ; panel: Offer preview | {"h":"Components","on":["Components","Findings 1"],"rows":2,"inputs":[],"panel":"Offer preview ↗ ✕ CVE-2024-6387 in the Mission Computer's OpenSSH server Offered"}
+{"step":1,"action":"go #my-work","why":"","hash":"my-work","h1":"","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":2,"action":"click \"Remediate CVE-2024-6387\"","why":"My work row","effect":"→ #findings-vulns ; panel: Operational issue preview","hash":"findings-vulns","h1":"","modal":null,"panel":"Operational issue preview","toasts":"","otherDlg":[],"notDrawn":false}
+{"step":3,"action":"go #my-work","why":"","hash":"my-work","h1":"","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":4,"action":"click \"Resolve 16 more operational issues\"","why":"My work row","result":"NOT FOUND","hash":"my-work","h1":"","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":5,"action":"go #my-work","why":"","hash":"my-work","h1":"","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":6,"action":"click \"Treat 2 critical risks\"","why":"My work row","effect":"→ #risks","hash":"risks","h1":"","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":7,"action":"go #my-work","why":"","hash":"my-work","h1":"","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":8,"action":"click \"Close out the Expanded Control Set Assessment\"","why":"My work row","effect":"→ #campaign","hash":"campaign","h1":"Expanded Control Set Assessment","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":9,"action":"go #my-work","why":"","hash":"my-work","h1":"","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":10,"action":"click \"Remediate 3 operational issues\"","why":"My work row","effect":"→ #findings","hash":"findings","h1":"","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":11,"action":"go #my-work","why":"","hash":"my-work","h1":"","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":12,"action":"click \"Submit SSP 3 for review\"","why":"My work row","effect":"→ #ssp-review","hash":"ssp-review","h1":"Submit revision 3 for review","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":13,"action":"go #my-work","why":"","hash":"my-work","h1":"","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":14,"action":"click \"Run the quarterly configuration baseline audit\"","why":"My work row","effect":"→ #schedule ; panel: Task preview","hash":"schedule","h1":"","modal":null,"panel":"Task preview","toasts":"","otherDlg":[],"notDrawn":false}
+{"step":15,"action":"go #my-work","why":"","hash":"my-work","h1":"","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":16,"action":"click \"Give an owner to 40 open risks\"","why":"My work row","effect":"→ #risks","hash":"risks","h1":"","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":17,"action":"go #my-work","why":"","hash":"my-work","h1":"","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":18,"action":"click \"Revise 54 evidence versions\"","why":"My work row","effect":"→ #evidence","hash":"evidence","h1":"","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":19,"action":"go #my-work","why":"","hash":"my-work","h1":"","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":20,"action":"click \"88 evidence versions wait on a reviewer\"","why":"My work row","effect":"→ #evidence","hash":"evidence","h1":"","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":21,"action":"go #my-work","why":"","hash":"my-work","h1":"","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":22,"action":"click \"An offered finding, CVE-2024-6387\"","why":"My work row","effect":"→ #component-mc-findings ; panel: Offer preview","hash":"component-mc-findings","h1":"Mission Computer","modal":null,"panel":"Offer preview","toasts":"","otherDlg":[],"notDrawn":false}
+errors: []

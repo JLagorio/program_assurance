@@ -1,0 +1,15 @@
+ACCEPT → dialog: Review evidence
+DIALOG: Review evidence ✕ Time source comparison test report, LRU-005 60-second cadence with injected 1.5-second offset · version 1 Decision Accept It meets REQ-248's acceptance criteria Send back for revision The owner revises it and submits it again What to revise Required to send back Your decision shows on the record and in History, with your name and the date. Cancel Save review
+DIALOG CONTROLS: button: ✕ ‖ button: Accept It meets REQ-248's acceptance criteria ‖ button: Send back for revision The owner revises it and submits it a ‖ textarea: Say what is missing or wrong. The owner sees it on the recor ‖ button: Cancel ‖ button: Save review
+PRIMARY: button: Save review
+CONFIRM → (same screen)
+PANEL AFTER: Evidence ↗ ✕ Evidence › Test records Time source comparison test report, LRU-005 60-second cadence with injected 1.5-second offset Asked by REQ-248: comparison records no more than 60 seconds apart across a one-hour capture, and an injected 1.5-second offset corrected and logged with before and after values. Review Owner IS Ingrid Solberg Review Pending review Renew Not set Kind Test record Collected Nov 15 Evidence Cited by 1 Tasks 0 Comments 2 History No renewal set Set renewal Repeat it from 
+REGISTER COUNTS: [ 'Pending review\n88' ]
+ROW1:  Time source comparison test report, LRU-005 60-second cadence with injected 1.5-second offset Test record IS Ingrid Solberg 
+{"step":1,"action":"go #evidence","why":"","hash":"evidence","h1":"","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":2,"action":"click \"Time source comparison test report\"","why":"","effect":"panel: Evidence","hash":"evidence","h1":"","modal":null,"panel":"Evidence","toasts":"","otherDlg":[],"notDrawn":false}
+{"step":3,"action":"click \"Accept\"","why":"reviewer accepts","effect":"dialog: Review evidence","hash":"evidence","h1":"","modal":"Review evidence","panel":"Evidence","toasts":"","otherDlg":[],"notDrawn":false}
+{"step":3,"shot":"/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/v2/R/flows2/shots/j4e-06-accept-dialog.png"}
+{"step":4,"action":"click \"Save review\"","why":"confirm","effect":"(same screen)","hash":"evidence","h1":"","modal":"Review evidence","panel":"Evidence","toasts":"","otherDlg":[],"notDrawn":false}
+{"step":4,"shot":"/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/v2/R/flows2/shots/j4e-07-after-accept.png"}
+errors: []

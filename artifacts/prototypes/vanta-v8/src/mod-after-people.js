@@ -62,19 +62,28 @@
   ];
   const TSTAT = { blocked: "Blocked", in_progress: "In progress", ready: "Ready", planned: "Planned" };
   const OWNERS_ONLY = ["Victor Amsel", "Ingrid Solberg", "Amara Bell", "Wes Duarte"];
-  const PERSONS = [...ROLES.map(([n, role, short, acts]) => ({ n, role, short, acts })), ...OWNERS_ONLY.map((n) => ({ n, role: null }))].map((p) => {
-    const open = TASKS.filter((t) => t[5] === p.n).sort((a, b) => a[4].localeCompare(b[4]));
-    const late = open.filter((t) => days(t[4]) < 0).length;
-    const next = open[0] || null;
-    const status = late ? ["bad", `${late} past due`] : next && days(next[4]) <= 14 ? ["warn", "Due soon"] : next ? ["none", "Planned"] : null;
-    return { ...p, open, late, next, status };
-  });
-  const PERSON = Object.fromEntries(PERSONS.map((p) => [p.n, p]));
-  const BY_DUE = PERSONS.filter((p) => p.next).sort((a, b) => a.next[4].localeCompare(b.next[4])).concat(PERSONS.filter((p) => !p.next));
-  const BY_ROLE = PERSONS;
+  // v2 C2 (B5, B13): People is drawn from the state other screens change: a task's owner follows an offboarding's reassignment
+  // (people.off, written by the person's Offboarding tab), the quarterly review's task is done once that review is completed
+  // (access.q1), and a person added here (people.added) is listed with their onboarding.
+  const v2get = (p, d) => (window.PA.v2 ? window.PA.v2.get(p, d) : d);
+  const taskOwner = (t) => { const o = (v2get("people.off", {}) || {})[t[5]]; return (o && o.owners && o.owners[t[0]]) || t[5]; };
+  const taskOpen = (t) => !(t[0] === "t8" && v2get("access.q1.done"));
+  const addedPeople = () => v2get("people.added", []) || [];
+  function personsNow() {
+    const base = [...ROLES.map(([n, role, short, acts]) => ({ n, role, short, acts })), ...OWNERS_ONLY.map((n) => ({ n, role: null })), ...addedPeople().map((a) => ({ n: a.n, role: a.roleLabel || null, short: a.short || null, acts: a.acts || "", added: a }))];
+    return base.map((p) => {
+      const open = TASKS.filter((t) => taskOwner(t) === p.n && taskOpen(t)).sort((a, b) => a[4].localeCompare(b[4]));
+      const ob = p.added && window.PA.v8people ? window.PA.v8people.onboarding(p.n).filter((r) => r.status !== "done").sort((a, b) => a.due.localeCompare(b.due)) : [];
+      const late = open.filter((t) => days(t[4]) < 0).length + ob.filter((r) => days(r.due) < 0).length;
+      const next = open[0] || (ob[0] ? ["ob", `Onboarding · ${ob[0].t}`, "open", null, ob[0].due, p.n] : null);
+      const status = late ? ["bad", `${late} past due`] : ob.length ? ["none", "Onboarding"] : next && days(next[4]) <= 14 ? ["warn", "Due soon"] : next ? ["none", "Planned"] : null;
+      return { ...p, open, late, next, status };
+    });
+  }
+  const personOf = (n) => personsNow().find((p) => p.n === n) || null;
   // The Sep 18 ATO's conditions (mod-risk.js CONDITIONS), soonest first, and the package room's recipients (RECIPIENTS, ACCESS).
   const CONDS = [
-    ["Expanded control set assessment before Milestone C", "2026-11-20", "WS-X90 Expanded Control Set Assessment ends Nov 20"],
+    ["Expanded control set assessment", "2026-11-20", "WS-X90 Expanded Control Set Assessment ends Nov 20"],
     ["High-severity remediation items closed within 90 days", "2026-12-17", "12 high issues open"],
     ["SA-24 design review reported at the annual authorization review", "2027-09-18", "Annual authorization review"],
   ];
@@ -104,7 +113,24 @@
     { id: "w.duarte-adm", sys: "Platform Management Controller", owner: "Wes Duarte", dec: null },
   ];
   const ACCT_OF = { "Joel Barrantes": "j.barrantes-adm", "Priya Raghavan": "p.raghavan-adm", "Wes Duarte": "w.duarte-adm" };
-  const HIDDEN = { total: 13, keep: 7, owners: 13 }; // the 13 accounts the panel folds: all owned, 7 kept, 6 not decided
+  // v2 C2 (B14): the 13 accounts the panel folded are accounts too (Show all lists them), so every one can be decided: all owned,
+  // 7 kept, 6 not decided, as the folded counts said. Owners, notes and tasks set in the review are kept for the session.
+  const MORE_ACCTS = [
+    ["r.colston-adm", "Platform Management Controller", "Ray Colston", "keep"], ["n.fournier-adm", "Maintenance Access Gateway", "Nadia Fournier", "keep"],
+    ["i.solberg-adm", "Platform Management Controller", "Ingrid Solberg", "keep"], ["svc-backup-02", "Platform Management Controller", "Joel Barrantes", "keep"],
+    ["svc-logship-01", "Maintenance Access Gateway", "Joel Barrantes", "keep"], ["a.bell-adm", "Maintenance Access Gateway", "Amara Bell", "keep"],
+    ["svc-update-04", "Platform Management Controller", "Priya Raghavan", "keep"], ["field-tech-01", "Maintenance Access Gateway", "Ray Colston", null],
+    ["field-tech-02", "Maintenance Access Gateway", "Ray Colston", null], ["svc-diag-05", "Platform Management Controller", "Joel Barrantes", null],
+    ["v.amsel-adm", "Platform Management Controller", "Victor Amsel", null], ["svc-maint-03", "Maintenance Access Gateway", "Priya Raghavan", null],
+    ["ldev-adm", "Platform Management Controller", "Local developer", null],
+  ].map(([id, sys, owner, dec]) => ({ id, sys, owner, dec, more: true }));
+  const ALL_ACCTS = ACCTS.concat(MORE_ACCTS);
+  const AOWN = {}, ATASK = {};
+  let SHOWALL = false, OWED = false;
+  // PA.v2.reset() puts the review back as it started (the hubs module calls this).
+  window.PA.accessReview = { reset: () => { [DEC, AOWN, ATASK].forEach((o) => Object.keys(o).forEach((k) => delete o[k])); SHOWALL = false; OWED = false; } };
+  const reviewerOf = (r) => (r.id === "q1" ? taskOwner(TASKS.find((t) => t[0] === "t8")) : r.rev);
+  const parsNow = () => { const done = v2get("access.q1.done"); return PARS.map((r) => (r.id === "q1" ? { ...r, rev: reviewerOf(r), ...(done ? { st: ["ok", "Completed"], done, step: 3 } : {}) } : r)); };
 
   // ——— Data: SYS-WSX90's 20 assets with their components and Block 1 firmware (mod-system.js SD) ———
   const SUBS = [["CN-109001", "Mission Computing Subsystem"], ["CN-109002", "Navigation & Timing Subsystem"], ["CN-109003", "Communications Subsystem"], ["CN-109004", "Payload Interface Subsystem"], ["CN-109005", "Platform Management Subsystem"], ["CN-109006", "Ground Support Subsystem"]];
@@ -168,7 +194,8 @@
   ];
 
   // ——— State kept while the prototype is open: chosen rows, chip filters, owners and decisions set here ———
-  const DEF = { pr: ["Joel Barrantes", "Priya Raghavan"], inv: ["AST-109001", "AST-109002", "AST-109003"], chg: DRAFTS.map((d) => d.id), acct: ["svc-maint-07", "field-tech-03"] };
+  // v2 C2 (A2, B8, B14): nothing is ticked when a register or the review opens; ticking a row shows the selection bar.
+  const DEF = { pr: [], inv: [], chg: [], acct: [] };
   const SEL = {};
   const sel = (k) => SEL[k] || (SEL[k] = new Set(DEF[k] || []));
   const QV = {};
@@ -178,13 +205,13 @@
   let LASTP = null;
   const decOf = (a) => (a.id in DEC ? DEC[a.id] : a.dec);
   function acctState() {
-    const shown = ACCTS.map((a) => ({ ...a, d: decOf(a) }));
-    const keep = HIDDEN.keep + shown.filter((a) => a.d === "keep").length;
-    const revoke = shown.filter((a) => a.d === "revoke").length;
-    const change = shown.filter((a) => a.d === "change").length;
+    const all = ALL_ACCTS.map((a) => ({ ...a, d: decOf(a), owner: a.id in AOWN ? AOWN[a.id] : a.owner, task: ATASK[a.id] || a.task || null }));
+    const keep = all.filter((a) => a.d === "keep").length, revoke = all.filter((a) => a.d === "revoke").length, change = all.filter((a) => a.d === "change").length;
     const decided = keep + revoke + change;
-    return { shown, keep, revoke, change, decided, nd: HIDDEN.total + ACCTS.length - decided, owners: HIDDEN.owners + shown.filter((a) => a.owner).length, noted: shown.filter((a) => a.d === "revoke" && a.task).length, active: shown.filter((a) => a.d === "revoke" && a.active).length };
+    return { all, shown: SHOWALL ? all : all.slice(0, ACCTS.length), total: all.length, keep, revoke, change, decided, nd: all.length - decided, owners: all.filter((a) => a.owner).length, noted: all.filter((a) => a.d === "revoke" && a.task).length, active: all.filter((a) => a.d === "revoke" && a.active).length };
   }
+  // What Complete review still waits on, in the words of the checklist.
+  const owedOf = (k) => [k.owners < k.total ? `${k.total - k.owners} account${k.total - k.owners === 1 ? "" : "s"} without an owner` : "", k.nd ? `${k.nd} account${k.nd === 1 ? "" : "s"} not decided` : "", k.revoke > k.noted ? `${k.revoke - k.noted} revoked account${k.revoke - k.noted === 1 ? "" : "s"} without a note or task` : ""].filter(Boolean);
 
   function redraw(focus) {
     const r = route();
@@ -243,7 +270,7 @@
     if ((x = hit("[data-apown]"))) { stop(e); OWN[x.dataset.apown] = x.dataset.apname; PICK = null; redraw(`[data-appick="${x.dataset.apown}"] > summary`); toast(`${x.dataset.apname} owns ${x.dataset.apown}`); return; }
     if ((x = hit("[data-apdec]"))) {
       stop(e);
-      const id = x.dataset.apdec, k = x.dataset.apk, a = ACCTS.find((y) => y.id === id);
+      const id = x.dataset.apdec, k = x.dataset.apk, a = ALL_ACCTS.find((y) => y.id === id);
       DEC[id] = decOf(a) === k ? null : k;
       redraw(); redrawPanel(`[data-apdec="${CSS.escape(id)}"][data-apk="${k}"]`);
       return;
@@ -254,6 +281,40 @@
       sel("acct").forEach((id) => { DEC[id] = k; });
       redraw(); redrawPanel(`[data-apbulk="${k}"]`);
       toast(`${n} account${n === 1 ? "" : "s"} marked ${k === "keep" ? "Keep" : "Revoke"}`);
+      return;
+    }
+    // v2 C2 (B14): Show all lists every account; Complete review completes once nothing is owed, and otherwise says what is.
+    if ((x = hit("[data-apshowall]"))) { stop(e); SHOWALL = !SHOWALL; redrawPanel("[data-apshowall]"); return; }
+    if ((x = hit("[data-apcomplete]"))) {
+      stop(e);
+      const owed = owedOf(acctState());
+      if (owed.length) { OWED = true; redrawPanel("[data-apcomplete]"); return; } // the owed line under the header says it once
+      const k = acctState();
+      if (window.PA.v2) window.PA.v2.set("access.q1", { done: "2026-11-17", decided: k.decided, total: k.total, revoked: k.revoke });
+      OWED = false; redraw(); redrawPanel();
+      toast(`Review completed: ${k.decided} of ${k.total} accounts decided, ${k.revoke} to remove`);
+      return;
+    }
+    if ((x = hit("[data-apowner-ok]"))) {
+      stop(e);
+      const s = document.getElementById("ap-acct-owner"), who = s ? s.value : "";
+      const err = document.getElementById("ap-acct-owner-err");
+      if (!who) { if (err) { err.hidden = false; err.textContent = "Choose an owner."; } if (s) { s.setAttribute("aria-invalid", "true"); s.focus(); } return; }
+      const ids = String(x.dataset.id || "").split("|").filter(Boolean);
+      ids.forEach((id) => { AOWN[id] = who; });
+      const close = document.querySelector("#modal .dlg-h [data-close-modal]"); if (close) close.click();
+      redraw(); redrawPanel(); toast(`${who} owns ${ids.length === 1 ? ids[0] : `${ids.length} accounts`}`);
+      return;
+    }
+    if ((x = hit("[data-aptask-ok]"))) {
+      stop(e);
+      const t = document.getElementById("ap-task-t"), n = document.getElementById("ap-task-n"), a = document.getElementById("ap-task-a"), d = document.getElementById("ap-task-d");
+      const err = document.getElementById("ap-task-t-err");
+      if (!t || !t.value.trim()) { if (err) { err.hidden = false; err.textContent = "Name the task: what the remover does."; } if (t) { t.setAttribute("aria-invalid", "true"); t.focus(); } return; }
+      const ids = String(x.dataset.id || "").split("|").filter(Boolean);
+      ids.forEach((id) => { ATASK[id] = [ids.length === 1 ? t.value.trim() : `${t.value.trim()} · ${id}`, a ? a.value : "Joel Barrantes", d && d.value ? d.value : "2026-11-24", n ? n.value.trim() : ""]; });
+      const close = document.querySelector("#modal .dlg-h [data-close-modal]"); if (close) close.click();
+      redraw(); redrawPanel(); toast(`Task created for ${ids.length === 1 ? ids[0] : `${ids.length} accounts`}, assigned to ${a ? a.value : "Joel Barrantes"}`);
       return;
     }
     if ((x = hit("details.a-people-dd > summary"))) { e.stopPropagation(); closeMenus(x.parentElement); return; }
@@ -276,7 +337,7 @@
     if (!t || !t.matches) return;
     if (e.key === "Escape" && document.querySelector("details.a-people-dd[open]")) { const open = t.closest && t.closest("details.a-people-dd[open]"); closeMenus(null); if (open) open.querySelector("summary").focus(); return; }
     if (e.key !== "Enter" && e.key !== " ") return;
-    if (t.matches("[data-apsel], [data-apdesel], [data-apq], [data-apown], [data-apdec], [data-apbulk], .a-people-mi:not([data-modal]):not([data-go]):not([data-panel]), span[data-aptoast]")) { e.preventDefault(); e.stopPropagation(); t.click(); return; }
+    if (t.matches("[data-apsel], [data-apdesel], [data-apq], [data-apown], [data-apdec], [data-apbulk], [data-apshowall], .a-people-mi:not([data-modal]):not([data-go]):not([data-panel]), span[data-aptoast]")) { e.preventDefault(); e.stopPropagation(); t.click(); return; }
     if (t.matches("#panel .a-people-pan [data-panel]:not(button), #panel .a-people-pan [data-modal]:not(button), #panel .a-people-pan [data-go]:not(button), .ak-pop-f[data-modal]")) { e.preventDefault(); e.stopPropagation(); t.click(); }
   }, true);
   window.addEventListener("hashchange", () => { LASTP = null; document.querySelectorAll(".a-people-toastw").forEach((n) => n.remove()); });
@@ -312,18 +373,22 @@
   const ownerEdit = (n, attrs, label = "Unassigned") => `<span class="a-people-own" role="button" tabindex="0" ${attrs} title="Change owner">${AK.owner(n, { label })}${AK.i("pen")}</span>`;
 
   // ═════════════ 1. People ═════════════
+  // v2 C2 (B13): Add person is the primary and starts the person's onboarding task set; Assign a role, for people already here, is
+  // the secondary.
   const peopleHead = () => AK.indexHead({ title: "People", desc: "Role holders and task owners of WS-X90",
-    actions: `${more("More people actions", [["Send one-time reminder", 'data-modal="a-people-remind" data-id="all"'], ["Manage recurring reminders", 'data-modal="a-people-recurring"'], ["Export", 'data-aptoast="People exported (.csv)"']])}${btn("Assign a role", 'data-modal="risk-role"', true, false)}` });
-  const peopleTabs = (cur, c = 0) => tabs([["People", 11, "after-people-register", cur === "people"], ["Roles", 6, "after-people-roles", cur === "roles"], ["DoD 8140 qualifications", 7, "people-8140", false], ["Privileged access reviews", 3, "after-access-reviews", cur === "access"]], { People: c }, "People");
+    actions: `${more("More people actions", [["Send one-time reminder", 'data-modal="a-people-remind" data-id="all"'], ["Manage recurring reminders", 'data-modal="a-people-recurring"'], ["Export", 'data-aptoast="People exported (.csv)"']])}${btn("Assign a role", 'data-modal="risk-role"', false, false)}${btn("Add person", 'data-modal="v2c-add-person"', true, false)}` });
+  const peopleTabs = (cur, c = 0) => tabs([["People", personsNow().length, "after-people-register", cur === "people"], ["Roles", 6, "after-people-roles", cur === "roles"], ["DoD 8140 qualifications", 7, "people-8140", false], ["Privileged access reviews", 3, "after-access-reviews", cur === "access"]], { People: c }, "People");
   const personCell = (n) => `<span class="a-people-pers">${AK.avatar(n, 26)}<span>${esc(n)}</span></span>`;
   const roleCell = (p) => (p.role ? `<span class="a-people-role">${tr(p.role, 236)}${tag(p.short)}</span>` : mu("No RMF role"));
   const statusCell = (p) => (p.status ? pill(p.status[0], p.status[1]) : mu("No open tasks"));
   const nextCell = (p) => (p.next ? two(AK.due(p.next[4]), esc(p.next[1]), 220) : AK.due(null));
   function peopleScreen({ key, byRole = false, withCo = false }) {
     const c = (n) => (withCo ? co(n) : "");
-    const F = { all: () => true, late: (p) => p.late > 0, soon: (p) => !!p.status && p.status[0] === "warn", nostart: (p) => !!p.role, planned: (p) => !!p.status && p.status[0] === "none", none: (p) => !p.status };
+    const F = { all: () => true, late: (p) => p.late > 0, soon: (p) => !!p.status && p.status[0] === "warn", nostart: (p) => !!p.role && !p.added, planned: (p) => !!p.status && p.status[0] === "none", none: (p) => !p.status };
+    const PERSONS = personsNow();
+    const BY_DUE = PERSONS.filter((p) => p.next).sort((a, b) => a.next[4].localeCompare(b.next[4])).concat(PERSONS.filter((p) => !p.next));
     const count = (k) => PERSONS.filter(F[k]).length;
-    const list = (byRole ? BY_ROLE : BY_DUE).filter(F[QV[key] || "all"] || F.all);
+    const list = (byRole ? PERSONS : BY_DUE).filter(F[QV[key] || "all"] || F.all);
     const s = sel(key), chosen = [...s];
     const bar = s.size
       ? selbar("Search people", key, [["Send reminder", `data-modal="a-people-remind" data-id="${esc(chosen.join("|"))}"`], ["Change role", `data-modal="a-people-change-role" data-id="${esc(chosen.join("|"))}"`], ["End role", `data-modal="a-people-end" data-id="${esc(chosen.join("|"))}"`]], c(5))
@@ -333,11 +398,11 @@
       peopleTabs("people", withCo ? 2 : 0),
       AK.banner({ tone: "warn", text: "WS-X90 has no reminders scheduled. <b>Joel Barrantes</b> has 2 tasks past due.", action: "Schedule reminders" })
         .replace('<span class="btn sm">Schedule reminders</span>', btn("Schedule reminders", 'data-modal="a-people-recurring"')),
-      chips(key, [["all", "All", 11], ["late", "Past due", 1], ["soon", "Due soon", 2], ["nostart", "No start date", 7]], c(1)),
+      chips(key, [["all", "All", PERSONS.length], ["late", "Past due", count("late")], ["soon", "Due soon", count("soon")], ["nostart", "No start date", count("nostart")]], c(1)),
       bar,
       tbl({
         cols: [cbAll(key, list.map((p) => p.n), "Select every person"), "Person", "Role", `Task status${c(3)}`, "Next due", `Last reminded${c(4)}`, "Since"],
-        rows: list.map((p) => ({ id: p.n, sel: s.has(p.n), cells: [cb(key, p.n, `Select ${p.n}`), personCell(p.n), roleCell(p), statusCell(p), nextCell(p), mu("Never"), p.role ? ring("Not recorded") : ""] })),
+        rows: list.map((p) => ({ id: p.n, sel: s.has(p.n), cells: [cb(key, p.n, `Select ${p.n}`), personCell(p.n), roleCell(p), statusCell(p), nextCell(p), mu("Never"), p.added ? num(md(p.added.start)) : p.role ? ring("Not recorded") : ""] })),
         total: list.length, panel: "a-people-person", cls: "a-people-tight", label: "People",
       }),
       AK.note("The banner, the reminders, the selection bar and the Roles tab are proposed, and the list leaves out the workspace's 6 people with no WS-X90 role or task. Tasks and due dates are WS-X90's Schedule; Last reminded reads Never because WS-X90 has sent none."),
@@ -350,7 +415,7 @@
   const addLink = (label, n, kind) => `<span class="ak-link a-people-add" role="button" tabindex="0" data-modal="${kind}" data-id="${esc(label + "|" + n)}">${AK.i("plus")}${esc(label)}</span>`;
   P["a-people-person"] = (id) => {
     const [n0, tab0] = String(id || "R. Calloway").split("|");
-    const p = PERSON[n0] || PERSON["R. Calloway"];
+    const p = personOf(n0) || personOf("R. Calloway");
     const ao = p.short === "AO";
     const work = ao ? 1 + CONDS.length : p.open.length;
     const tl = [["work", "Work", work], ["access", "Access"], ["quals", "Qualifications"]];
@@ -414,15 +479,16 @@
     const k = acctState();
     const parts = [[k.keep, "var(--ok)", "Keep", "check"], [k.revoke, "var(--bad)", "Revoke", "diamond"], ...(k.change ? [[k.change, "var(--warn)", "Change privileges", "clock"]] : []), [k.nd, "var(--track)", "Not decided", "ring"]];
     return AK.card(`${secHead("Accounts in the quarterly review", null, "", `${EX}${c}`)}
-      <div class="a-people-dw">${donut(parts, HIDDEN.total + ACCTS.length, "accounts")}<div class="a-people-dl">${parts.map(([n, , l, g]) => `<div class="a-people-dlr">${gl(g)}<span>${esc(l)}</span><b class="num">${n}</b></div>`).join("")}</div></div>`, { cls: "a-people-dcard" });
+      <div class="a-people-dw">${donut(parts, k.total, "accounts")}<div class="a-people-dl">${parts.map(([n, , l, g]) => `<div class="a-people-dlr">${gl(g)}<span>${esc(l)}</span><b class="num">${n}</b></div>`).join("")}</div></div>`, { cls: "a-people-dcard" });
   }
   function todoCard() {
+    const q1 = parsNow()[0];
     const rows = [
-      ["q1", "Complete review", "Quarterly privileged account review", "Victor Amsel", "2026-12-01", false],
+      ...(q1.done ? [] : [["q1", "Complete review", "Quarterly privileged account review", q1.rev, "2026-12-01", false]]),
       ["q1|changes", "Remove access", "svc-maint-07 and field-tech-03, revoked and still active", undefined, "2026-11-24", true],
       ["ml", "Start review", "Maintenance Laptop local accounts", "Priya Raghavan", "2026-12-13", true],
     ];
-    return AK.card(`${secHead("To-do list", 3)}<div class="a-people-todos">${rows.map(([id, t, s, o, d, ex]) => {
+    return AK.card(`${secHead("To-do list", rows.length)}<div class="a-people-todos">${rows.map(([id, t, s, o, d, ex]) => {
       let html = AK.task({ title: t, source: s, owner: o, due: d });
       if (ex) html = html.replace("<span></span>", EX);
       return html.replace('<div class="ak-task', `<div role="button" tabindex="0" data-panel="a-people-par" data-id="${id}" class="a-people-todo ak-task`);
@@ -430,7 +496,7 @@
   }
   function reviewCells(r) {
     const k = acctState();
-    const acc = r.id === "q1" ? `${num(`${k.decided} of ${HIDDEN.total + ACCTS.length}`)} ${EX}` : num(`${r.acc[0]} of ${r.acc[1]}`);
+    const acc = r.id === "q1" ? `${num(`${k.decided} of ${k.total}`)} ${EX}` : num(`${r.acc[0]} of ${r.acc[1]}`);
     return [
       two(`${esc(r.t)}${r.ex ? " " + EX : ""}`, esc(r.sched), 330),
       AK.owner(r.rev),
@@ -448,7 +514,7 @@
       peopleTabs("access"),
       `<div class="grid2 a-people-cards">${donutCard(c(1))}${todoCard()}</div>`,
       filters("Search reviews", ["Reviewer", "Status"], `${dd("Create", [["One-time review", 'data-modal="a-people-review-new"'], ["Schedule", 'data-modal="a-people-schedule"', "Repeats a check"]], { ink: true, sm: true })}${c(2)}`),
-      tbl({ cols: ["Review", "Reviewer", "Started", `Due${c(3)}`, "Completed", "Status", "Accounts decided"], rows: PARS.map((r) => ({ id: r.id, cells: reviewCells(r) })), total: 3, panel: "a-people-par", nm: 0, cls: "a-people-tight", label: "Privileged access reviews" }),
+      tbl({ cols: ["Review", "Reviewer", "Started", `Due${c(3)}`, "Completed", "Status", "Accounts decided"], rows: parsNow().map((r) => ({ id: r.id, cells: reviewCells(r) })), total: 3, panel: "a-people-par", nm: 0, cls: "a-people-tight", label: "Privileged access reviews" }),
       AK.note("The account split, the Q3 and Maintenance Laptop reviews and the removal step are invented. The quarterly review (Victor Amsel, Nov 7 to Dec 1) is WS-X90's Schedule task and repeats with the Privileged account review check on Continuous monitoring."),
     );
   }
@@ -471,7 +537,7 @@
   }
   P["a-people-par"] = (id) => {
     const [rid, tab0] = String(id || "q1").split("|");
-    const r = PARS.find((x) => x.id === rid) || PARS[0];
+    const r = parsNow().find((x) => x.id === rid) || parsNow()[0];
     const tab = tab0 || "accounts";
     LASTP = ["a-people-par", id];
     const withCo = route() === "after-access-review" && r.id === "q1" && tab === "accounts";
@@ -485,15 +551,17 @@
         ${AK.card(`${secHead("Conduct the review")}${[["Assign an owner to each account", done ? 21 : 2, r.acc[1]], ["Keep, revoke or change each account", r.acc[0], r.acc[1]], ["Note or task for each revoked account", done ? 1 : 0, done ? 1 : 0]].map(([l, d2, t]) => `<div class="a-people-cl${t && d2 === t ? " done" : ""}"><span class="ak-ring sm${t && d2 === t ? " done" : ""}"></span><span>${l}</span><b class="num">${t ? `${d2} of ${t}` : "None revoked"}</b></div>`).join("")}`, { cls: "a-people-check" })}
         ${AK.note(done ? "This review and its counts are invented: the quarter before WS-X90's records start." : "This review, its six accounts and its owner are invented.")}</div>` };
     }
-    const k = acctState(), total = HIDDEN.total + ACCTS.length;
-    const why = k.nd ? `${k.nd} account${k.nd === 1 ? "" : "s"} not decided` : k.active ? `${k.active} revoked account${k.active === 1 ? "" : "s"} still active` : "";
+    const k = acctState(), total = k.total, owed = owedOf(k);
+    // v2 C2 (B14): Complete review is pressable; pressed while anything is owed, it names what is owed under the header (and stays
+    // named as the reader works); with nothing owed it completes the review, which People and the Schedule then read.
     const head = `<div class="a-people-rh"><div class="a-people-rht"><h4>${esc(r.t)}</h4>${pill(r.st[0], r.st[1])}</div>
-      <div class="a-people-rha">${why ? `<span class="btn sm ink a-people-off" role="button" aria-disabled="true" aria-describedby="a-people-why" tabindex="0">Complete review</span><span class="a-people-mu" id="a-people-why">${why}</span>` : btn("Complete review", 'data-aptoast="Review completed"', true)}</div></div>`;
-    const changed = k.shown.filter((a) => a.d === "revoke" || a.d === "change");
+      <div class="a-people-rha">${r.done ? `<span class="a-people-mu">Completed ${esc(md(r.done))}</span>` : `<button type="button" class="btn sm ink" data-apcomplete aria-describedby="a-people-why">Complete review</button>`}</div></div>
+      ${!r.done && OWED ? `<p class="a-people-owed" id="a-people-why" role="status">${owed.length ? `Still owed: ${esc(owed.join(" · "))}` : "Nothing is owed: Complete review completes it."}</p>` : ""}`;
+    const changed = k.all.filter((a) => a.d === "revoke" || a.d === "change");
     let body;
     if (tab === "changes") {
       body = `<div class="a-people-chgs">${changed.map((a) => AK.card(`<div class="a-people-ah a-people-ah2"><span class="x"><b class="a-people-mono">${esc(a.id)}</b><span class="s">${esc(a.sys)}</span></span>${pill(a.d === "revoke" ? "bad" : "warn", a.d === "revoke" ? "Revoke" : "Change privileges")}</div>
-        <dl class="ak-kv"><dt>Note</dt><dd>${a.id === "svc-maint-07" ? "Contractor maintenance account; the support contract ended Oct 31." : `<span class="a-people-need">${AK.i("flag")}<span class="ak-link" role="button" tabindex="0" data-modal="a-people-task" data-id="${esc(a.id)}">Add a note or create a task</span><span class="req">Required</span></span>`}</dd>
+        <dl class="ak-kv"><dt>Note</dt><dd>${a.id === "svc-maint-07" ? "Contractor maintenance account; the support contract ended Oct 31." : a.task && a.task[3] ? esc(a.task[3]) : a.task ? mu("—") : `<span class="a-people-need">${AK.i("flag")}<span class="ak-link" role="button" tabindex="0" data-modal="a-people-task" data-id="${esc(a.id)}">Add a note or create a task</span><span class="req">Required</span></span>`}</dd>
         <dt>Task</dt><dd>${a.task ? `${esc(a.task[0])} · ${pill("none", "Open")}` : mu("None")}</dd>
         <dt>Assigned to</dt><dd>${a.task ? AK.owner(a.task[1]) : mu("Nobody")}</dd>
         <dt>Remediation</dt><dd>${a.active ? pill("bad", "Still active") : pill("none", "Not started")}</dd></dl>`)).join("") || AK.empty({ title: "No access changes", line: "Nothing is revoked or changed yet." })}</div>`;
@@ -501,7 +569,7 @@
       const accts = k.shown;
       body = `${sel("acct").size ? bulk("acct", [["Keep", 'data-apbulk="keep"'], ["Revoke", 'data-apbulk="revoke"'], ["Assign owner", `data-modal="a-people-acct-owner" data-id="${esc([...sel("acct")].join("|"))}"`], ["Create task", `data-modal="a-people-task" data-id="${esc([...sel("acct")].join("|"))}"`]], c(5)) : `<div class="tools a-people-tools a-people-ptools"><span class="in">Search accounts</span><span class="flt">Decision ⌄</span><span class="flt">Owner ⌄</span></div>`}
         <div class="a-people-accts">${accts.map((a, i) => acctRow(a, i === 0, c)).join("")}</div>
-        <p class="a-people-ho">${num(`${HIDDEN.total} more accounts`)} · <span class="ak-link" role="button" tabindex="0">Show all ${total}</span></p>`;
+        <p class="a-people-ho">${SHOWALL ? `<span class="ak-link" role="button" tabindex="0" data-apshowall>Show the first ${ACCTS.length}</span>` : `${num(`${total - ACCTS.length} more accounts`)} · <span class="ak-link" role="button" tabindex="0" data-apshowall>Show all ${total}</span>`}</p>`;
     }
     return { label: "Access review preview", body: `<div class="a-people-pan">${head}
       ${AK.facts([["Reviewer", AK.owner(r.rev)], ["Started", md(r.started)], ["Due", AK.due(r.due)], ["Scope", esc(r.scope)]])}
@@ -513,8 +581,13 @@
   };
 
   // ═════════════ 5. Inventory ═════════════
-  const invHead = () => AK.indexHead({ title: "Inventory", desc: "SYS-WSX90 authorization boundary · WS-X90 Block 1 production configuration", actions: `${btn("Import scan", "", false, false)}${btn("Add asset", "", true, false)}` });
-  const invTabs = (cur) => tabs([["Assets", 20, "after-inventory", cur === "assets"], ["Discovered by scans", 5, null, false], ["Scope changes", 16, "after-scope-changes", cur === "changes"]], {}, "Inventory");
+  // v2 C2 (B9): Add asset opens a dialog that adds the asset here (counted on the tab, in the groups and the owner count); Import
+  // scan opens its dialog, which says plainly that the prototype does not import.
+  const invAdded = () => (window.PA.v2 ? window.PA.v2.get("inv.added", []) : []) || [];
+  const invNow = () => INV.concat(invAdded().map((a) => [a.id, a.name, a.lru, a.fw, a.sub, a.kind]));
+  window.PA.invData = { subs: SUBS, count: () => invNow().length, nextId: () => `AST-1090${String(invNow().length + 1).padStart(2, "0")}` };
+  const invHead = () => AK.indexHead({ title: "Inventory", desc: "SYS-WSX90 authorization boundary · WS-X90 Block 1 production configuration", actions: `${btn("Import scan", 'data-modal="v2c-import-scan"', false, false)}${btn("Add asset", 'data-modal="v2c-add-asset"', true, false)}` });
+  const invTabs = (cur) => tabs([["Assets", invNow().length, "after-inventory", cur === "assets"], ["Discovered by scans", 5, null, false], ["Scope changes", 16, "after-scope-changes", cur === "changes"]], {}, "Inventory");
   function picker(id, c = "") {
     const names = PICK_PEOPLE.map((p) => p[0]);
     let i = 0;
@@ -527,6 +600,7 @@
   const ownerCell = (id, c = "") => { const o = OWN[id]; return `<details class="a-people-dd a-people-pick" data-appick="${esc(id)}"${PICK === id ? " open" : ""}><summary class="a-people-ownbtn${o ? " set" : ""}" aria-label="Owner of ${esc(id)}">${o ? AK.owner(o) : `${AK.avatar(null, 20)}<span>Assign owner</span>`}${AK.i("down")}</summary>${picker(id, c)}</details>`; };
   const scopeCell = (a) => `<details class="a-people-dd a-people-scoped"><summary class="a-people-scope" aria-label="Scope of ${esc(a[0])}">In SYS-WSX90${AK.i("down")}</summary><div class="a-people-menu" role="menu">${menuItems([["Mark not in boundary…", `data-modal="ak-reason" data-id="${esc(`Mark not in boundary|${a[0]} ${a[1]} (${a[2]}) leaves SYS-WSX90. The reason, the date and any evidence show on the asset and under Scope changes.`)}"`]])}</div></details>`;
   S["after-inventory"] = () => {
+    const INV = invNow();
     const v = QV.inv || "all";
     const list = INV.filter((a) => (v === "all" ? true : v.startsWith("sub:") ? a[4] === v.slice(4) : a[5] === v.slice(5)));
     const s = sel("inv"), chosen = [...s];
@@ -677,7 +751,7 @@
   };
 
   // ——— Dialogs ———
-  const namesOf = (id) => (id === "all" ? PERSONS.filter((p) => p.open.length).map((p) => p.n) : String(id || "").split("|").filter(Boolean));
+  const namesOf = (id) => (id === "all" ? personsNow().filter((p) => p.open.length).map((p) => p.n) : String(id || "").split("|").filter(Boolean));
   M["a-people-remind"] = (id) => {
     const names = namesOf(id), n = names.length;
     return { title: "Send a reminder", body: `<p class="ak-desc">Each person gets one email listing their open WS-X90 tasks and when each is due.</p>
@@ -690,7 +764,7 @@
     ${field("Send", select("Every Monday"))}${field("To", select("People with tasks past due or due within 14 days"))}${field("Method", select("Email"))}
     ${AK.note("The schedule is proposed; nothing is sent until it is saved.")}`, footer: foot("Schedule reminders", "Reminders scheduled for every Monday") });
   M["a-people-end"] = (id) => {
-    const ps = String(id || "R. Calloway").split("|").map((n) => PERSON[n]).filter((p) => p && p.role);
+    const ps = String(id || "R. Calloway").split("|").map((n) => personOf(n)).filter((p) => p && p.role);
     if (!ps.length) return { title: "End role", body: `<p class="ak-desc">The people chosen hold no RMF role in WS-X90.</p>`, footer: `<button type="button" class="btn" data-close-modal>Close</button>` };
     const one = ps.length === 1 ? ps[0] : null;
     const moves = one && one.short === "AO" ? ["Package version 2's decision moves to the successor", "Signing in the package room moves on the end date", "The Sep 18 decision and its three conditions stay signed by R. Calloway"] : ps.map((p) => `${p.short}: ${p.acts.charAt(0).toLowerCase() + p.acts.slice(1)}`);
@@ -708,8 +782,17 @@
     ${field("Repeats with", select("Privileged account review · Quarterly · AC-2, AC-6"), "", "The check's owner, Victor Amsel, reviews each quarter.")}
     ${field("Each review takes", select("24 days, ending on the check's due date"))}
     <div class="ak-field"><label>Next reviews ${EX}</label><div class="a-people-moves">${[["Feb 5 – Mar 1, 2027", "Created Jan 29"], ["May 8 – Jun 1, 2027", "Created May 1"]].map(([w, c2]) => li(gl("ring"), esc(w), esc(c2))).join("")}</div></div>`, footer: foot("Save schedule", "Schedule saved") });
-  M["a-people-acct-owner"] = (id) => { const ids = String(id || "").split("|").filter(Boolean); return { title: "Assign owner", body: `<p class="ak-desc">${ids.length === 1 ? `The owner answers for ${esc(ids[0])}.` : `The owner answers for ${ids.length} accounts.`}</p>${AK.ownerPicker({ you: ME, people: PICK_PEOPLE.concat([["Wes Duarte", ""]]) })}`, footer: foot("Assign owner", "Owner assigned") }; };
-  M["a-people-task"] = (id) => { const ids = String(id || "").split("|").filter(Boolean); const one = ids.length === 1 ? ids[0] : null; return { title: one ? `Note or task for ${one}` : "Create task", body: `<p class="ak-desc">A revoked account needs a note or a task before the review completes.</p>${field("Note", input("Why the account goes, and anything the remover needs", true), OPT)}${field("Task", input(one ? `Remove ${one}` : `Remove ${ids.length} accounts`, false, true))}${field("Assignee", select("Joel Barrantes"))}${field("Due date", select("Nov 24, 2026"))}`, footer: foot("Create task", "Task created") }; };
+  // v2 C2 (B14): the review's owner and task dialogs are wired: real inputs, a required field checked before they close, and the
+  // owner or task shows on the account and moves the review's checklist.
+  const PEOPLE_OPTS = [ME, "Priya Raghavan", "Joel Barrantes", "Ray Colston", "Nadia Fournier", "Wes Duarte", "Amara Bell"];
+  const sel1 = (id, opts, value, ph) => `<select id="${id}" class="a-people-in">${ph ? `<option value="">${esc(ph)}</option>` : ""}${opts.map((o) => `<option${o === value ? " selected" : ""}>${esc(o)}</option>`).join("")}</select>`;
+  const errP = (id) => `<p class="a-people-err" id="${id}-err" role="alert" hidden></p>`;
+  M["a-people-acct-owner"] = (id) => { const ids = String(id || "").split("|").filter(Boolean); return { title: "Assign owner", body: `<p class="ak-desc">${ids.length === 1 ? `The owner answers for ${esc(ids[0])}.` : `The owner answers for ${ids.length} accounts.`}</p><div class="ak-field"><label for="ap-acct-owner">Owner <span class="req">Required</span></label>${sel1("ap-acct-owner", PEOPLE_OPTS, "", "Choose a person")}${errP("ap-acct-owner")}</div>`, footer: `<button type="button" class="btn" data-close-modal>Cancel</button><button type="button" class="btn ink" data-v2-wired data-apowner-ok data-id="${esc(ids.join("|"))}">Assign owner</button>` }; };
+  M["a-people-task"] = (id) => { const ids = String(id || "").split("|").filter(Boolean); const one = ids.length === 1 ? ids[0] : null; return { title: one ? `Note or task for ${one}` : "Create task", body: `<p class="ak-desc">A revoked account needs a note or a task before the review completes.</p>
+    <div class="ak-field"><label for="ap-task-n">Note <span class="opt">Optional</span></label><textarea id="ap-task-n" class="a-people-in" rows="3" placeholder="Why the account goes, and anything the remover needs"></textarea></div>
+    <div class="ak-field"><label for="ap-task-t">Task <span class="req">Required</span></label><input id="ap-task-t" class="a-people-in" value="${esc(one ? `Remove ${one}` : `Remove ${ids.length} accounts`)}">${errP("ap-task-t")}</div>
+    <div class="ak-field"><label for="ap-task-a">Assignee</label>${sel1("ap-task-a", PEOPLE_OPTS, "Joel Barrantes")}</div>
+    <div class="ak-field"><label for="ap-task-d">Due date</label><input id="ap-task-d" class="a-people-in" type="date" value="2026-11-24" min="2026-11-17"></div>`, footer: `<button type="button" class="btn" data-close-modal>Cancel</button><button type="button" class="btn ink" data-v2-wired data-aptask-ok data-id="${esc(ids.join("|"))}">Create task</button>` }; };
   M["a-people-assign"] = (id) => { const ids = String(id || "").split("|").filter(Boolean); const n = ids.length; return { title: "Assign owner", body: `<p class="ak-desc">${n === 1 ? `${esc(ids[0])} takes this owner.` : `${n} assets take this owner.`} An owner is a person or an organization.</p>${field("Person", select("Search people"))}${field("Or an organization", select("Search organizations"))}`, footer: foot("Assign owner", `Owner assigned to ${n} asset${n === 1 ? "" : "s"}`) }; };
   M["a-people-remind-cons"] = () => ({ title: "Remind consumers to take version 2", body: `<p class="ak-desc">Each program that runs version 1 gets one email, and its Where used line records the reminder.</p>
     ${field("Send to", `<div class="a-people-tos">${["WS-X90 Sentinel Mission System", "Customer A · X800 Rail Integration", "Customer B · X800 Palletized Integration"].map((n) => `<span class="ak-chip">${esc(n)}</span>`).join("")}</div>`, "", "3 programs · each program's ISSM")}

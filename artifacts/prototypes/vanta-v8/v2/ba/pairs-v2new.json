@@ -1,0 +1,323 @@
+{
+ "groups": [
+  {
+   "key": "v2new",
+   "short": "New in v2",
+   "label": "Screens v2 adds",
+   "intro": "Screens v1 did not have, and five whose shape a 19 November request changed (the Overview, Schedule, My work, Programs and Create program's Systems step). Where a preview's \u2197, a link or a button led nowhere in v1, v2 draws the page it names; v1 shows what was there instead."
+  }
+ ],
+ "pairs": [
+  {
+   "id": "new-control-sa24",
+   "group": "v2new",
+   "title": "A control's page (SA-24, in SI-2's shape)",
+   "route": "rec--a-tests-control--SA-24",
+   "v1none": "Only SI-2 had a page; \u2197 on SA-24's preview did nothing"
+  },
+  {
+   "id": "new-control-ac1",
+   "group": "v2new",
+   "title": "A control's page (AC-1)",
+   "route": "rec--a-tests-control--AC-1",
+   "v1none": "\u2197 on AC-1's preview did nothing"
+  },
+  {
+   "id": "new-campaign-conmon",
+   "group": "v2new",
+   "title": "Continuous monitoring FY2027 campaign",
+   "route": "campaign-conmon",
+   "v1none": "Open campaign on its card did nothing; SI-2's Open assessment campaign opened the Assessments list"
+  },
+  {
+   "id": "new-rec-risk",
+   "group": "v2new",
+   "title": "A risk's page",
+   "route": "rec--a-risk-risk--0a21dc94%7Coverview",
+   "v1none": "\u2197 on the risk preview did nothing"
+  },
+  {
+   "id": "new-rec-issue",
+   "group": "v2new",
+   "title": "An operational issue's page",
+   "route": "rec--a-risk-issue--85973641",
+   "v1none": "\u2197 on the operational issue preview did nothing"
+  },
+  {
+   "id": "new-rec-poam",
+   "group": "v2new",
+   "title": "A POA&M item's page",
+   "route": "rec--a-risk-poam--4be4ddde%7Coverview",
+   "v1none": "\u2197 on the POA&M item preview did nothing"
+  },
+  {
+   "id": "new-rec-requirement",
+   "group": "v2new",
+   "title": "A requirement's chain, in its preview",
+   "route": "rec--v7p-req--REQ-200",
+   "v1none": "The requirement preview listed the controls it maps, and its \u2197 did nothing. The chain was on no screen."
+  },
+  {
+   "id": "new-rec-decision",
+   "group": "v2new",
+   "title": "An authorization decision's page",
+   "route": "rec--v7p-decision--v2",
+   "v1none": "\u2197 on the decision preview did nothing"
+  },
+  {
+   "id": "new-rec-supplier",
+   "group": "v2new",
+   "title": "A supplier's page",
+   "route": "rec--a-risk-sup--x800%7Coverview",
+   "v1none": "\u2197 on the supplier preview did nothing"
+  },
+  {
+   "id": "new-rec-review",
+   "group": "v2new",
+   "title": "A review queue item's page",
+   "route": "rec--a-work-rq--evidence%3Ae1",
+   "v1none": "\u2197 on the review preview did nothing"
+  },
+  {
+   "id": "new-rec-task",
+   "group": "v2new",
+   "title": "A task's page",
+   "route": "rec--a-work-task--t1",
+   "v1none": "\u2197 on the task preview did nothing"
+  },
+  {
+   "id": "new-rec-gate",
+   "group": "v2new",
+   "title": "A lifecycle gate's page",
+   "route": "rec--a-work-gate--pdr",
+   "v1none": "\u2197 on the lifecycle gate preview did nothing"
+  },
+  {
+   "id": "new-rec-asset",
+   "group": "v2new",
+   "title": "An asset's page",
+   "route": "rec--sys-asset--AST-109001",
+   "v1none": "\u2197 on the asset preview did nothing"
+  },
+  {
+   "id": "new-rec-element",
+   "group": "v2new",
+   "title": "A system element's page",
+   "route": "rec--v7p-el--CN-109000",
+   "v1none": "\u2197 on the element preview did nothing"
+  },
+  {
+   "id": "new-rec-interconnection",
+   "group": "v2new",
+   "title": "An interconnection's page",
+   "route": "rec--v8b-ic--IC-101",
+   "v1none": "\u2197 on the interconnection preview did nothing"
+  },
+  {
+   "id": "new-rec-technique",
+   "group": "v2new",
+   "title": "An ATT&CK technique's page",
+   "route": "rec--v7a-att--T1078",
+   "v1none": "\u2197 on the ATT&CK technique preview did nothing"
+  },
+  {
+   "id": "new-rec-agent-run",
+   "group": "v2new",
+   "title": "An AI agent run's page",
+   "route": "rec--v8w-run--w1",
+   "v1none": "\u2197 on the agent run preview did nothing"
+  },
+  {
+   "id": "new-rec-product",
+   "group": "v2new",
+   "title": "A product's page",
+   "route": "rec--v7o-product--X800",
+   "v1none": "\u2197 on the product preview did nothing"
+  },
+  {
+   "id": "new-program-page",
+   "group": "v2new",
+   "title": "A created program's page",
+   "route": "program-new",
+   "v1none": "After Create program the page kept WS-X90's switcher, badges and links, and the program was gone once you left; walk: run the wizard to Create program"
+  },
+  {
+   "id": "new-program-empty",
+   "group": "v2new",
+   "title": "A created program's own pages (Requirements, Controls, SSP\u2026)",
+   "route": "requirements",
+   "v1none": "The starter guide's links opened WS-X90's pages; open after creating a program"
+  },
+  {
+   "id": "new-onboarding-task",
+   "group": "v2new",
+   "title": "Onboarding task preview",
+   "route": "person-local-developer-onboarding",
+   "v1none": "The onboarding page's 9 task rows could not be opened or completed"
+  },
+  {
+   "id": "new-add-person",
+   "group": "v2new",
+   "title": "Add person and the new person's onboarding",
+   "route": "people",
+   "v1none": "People had no Add person; Assign a role closed silently"
+  },
+  {
+   "id": "new-campaign-controls",
+   "group": "v2new",
+   "title": "The campaign's Controls page in assessment mode",
+   "route": "campaign-controls",
+   "v1none": "Assessment mode kept the whole program menu; the campaign had no Controls page"
+  },
+  {
+   "id": "new-added-asset",
+   "group": "v2new",
+   "title": "Add asset and its preview",
+   "route": "inventory",
+   "v1none": "Inventory's Add asset and Import scan did nothing"
+  },
+  {
+   "id": "new-lifecycle",
+   "group": "v2new",
+   "title": "Lifecycle \u00b7 Increment 2 (current)",
+   "route": "lifecycle-increment-2",
+   "v1none": "Two gates on Schedule, under Monitor; the CDR due before the PDR; no stages or deliverables",
+   "also": [
+    "lifecycle"
+   ]
+  },
+  {
+   "id": "new-lifecycle-inc1",
+   "group": "v2new",
+   "title": "Lifecycle \u00b7 Increment 1 (fielded)",
+   "route": "lifecycle-increment-1",
+   "v1none": "Nothing: the fielded increment's milestones, reviews and ATO were not shown"
+  },
+  {
+   "id": "new-gate-pdr",
+   "group": "v2new",
+   "title": "Gate page \u00b7 PDR, Increment 2",
+   "route": "lifecycle-pdr-2",
+   "v1none": "A Schedule card and a preview with four outcomes; Request decision changed nothing"
+  },
+  {
+   "id": "new-gate-ato",
+   "group": "v2new",
+   "title": "Gate page \u00b7 ATO, Increment 1",
+   "route": "lifecycle-ato-1",
+   "v1none": "The ATO lived only on Authorization; no step showed its deliverables or approvers"
+  },
+  {
+   "id": "new-overview-strip",
+   "group": "v2new",
+   "title": "Overview \u00b7 the stage strip",
+   "route": "overview",
+   "v1none": "A Details fact reading Lifecycle: Planned"
+  },
+  {
+   "id": "new-schedule-tasks",
+   "group": "v2new",
+   "title": "Schedule \u00b7 tasks only",
+   "route": "schedule",
+   "v1none": "Two lifecycle gate cards above the tasks"
+  },
+  {
+   "id": "new-my-work-due",
+   "group": "v2new",
+   "title": "My work \u00b7 Due for PDR",
+   "route": "my-work",
+   "v1none": "No deliverables due for a gate anywhere"
+  },
+  {
+   "id": "new-programs-stage",
+   "group": "v2new",
+   "title": "Programs \u00b7 stage and host",
+   "route": "portfolio",
+   "v1none": "A Next gate date per program, WS-X90's the CDR, past due"
+  },
+  {
+   "id": "new-boundary-ato",
+   "group": "v2new",
+   "title": "Boundary \u00b7 the ATO",
+   "route": "boundary",
+   "v1none": "No boundary page. Interconnections listed the external connections; the bubble was a figure in the SSP, with no host system, provider or interface crossing the line."
+  },
+  {
+   "id": "new-boundary-iatt",
+   "group": "v2new",
+   "title": "Boundary \u00b7 the IATT (Increment 2's test configuration)",
+   "route": "boundary-iatt",
+   "v1none": "No IATT: Increment 2's test configuration had no authorization drawn"
+  },
+  {
+   "id": "new-hosts",
+   "group": "v2new",
+   "title": "Host & providers",
+   "route": "hosts",
+   "v1none": "No host system. Settings \u203a Common control providers listed four providers, and only the identity provider's 15 controls applied to WS-X90."
+  },
+  {
+   "id": "new-host-f16",
+   "group": "v2new",
+   "title": "F-16 Block 70 (host system) page",
+   "route": "rec--v2h-prov--f16",
+   "v1none": "No host system record"
+  },
+  {
+   "id": "new-host-f16-carries",
+   "group": "v2new",
+   "title": "F-16 Block 70 \u00b7 what it carries",
+   "route": "rec--v2h-prov--f16|carries",
+   "v1none": "Nothing said which programs a host carries"
+  },
+  {
+   "id": "new-provider-facility",
+   "group": "v2new",
+   "title": "Squadron operations facility (common control provider) page",
+   "route": "rec--v2h-prov--sqops",
+   "v1none": "No facility provider; WS-X90 owed evidence for the ground spaces' physical protection"
+  },
+  {
+   "id": "new-control-inherited",
+   "group": "v2new",
+   "title": "An inherited control's page (PE-13)",
+   "route": "rec--a-tests-control--PE-13",
+   "v1none": "PE-13 read No evidence: WS-X90 owed a requirement's evidence for the jet's fire protection"
+  },
+  {
+   "id": "new-control-inherited-poam",
+   "group": "v2new",
+   "title": "An inherited control held by its provider's POA&M (PE-15)",
+   "route": "rec--a-tests-control--PE-15",
+   "v1none": "PE-15 read No evidence on WS-X90's own to-do"
+  },
+  {
+   "id": "new-program-new-host",
+   "group": "v2new",
+   "title": "Create program \u00b7 Systems step asks for the host",
+   "route": "program-new",
+   "v1none": "Program creation asked for no host system"
+  },
+  {
+   "id": "new-sctm",
+   "group": "v2new",
+   "title": "SCTM workbook",
+   "route": "sctm",
+   "v1none": "No SCTM; the Traceability page was a register"
+  },
+  {
+   "id": "new-sctm-analysis",
+   "group": "v2new",
+   "title": "SCTM workbook \u00b7 Analysis",
+   "route": "sctm-analysis",
+   "v1none": "No analysis sheet; coverage by family was counted on the Posture page, with no formulas"
+  },
+  {
+   "id": "new-sctm-requirements",
+   "group": "v2new",
+   "title": "SCTM workbook \u00b7 Requirements",
+   "route": "sctm-requirements",
+   "v1none": "Requirements were a register only; a requirement's chain sat on its own page"
+  }
+ ]
+}

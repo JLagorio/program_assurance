@@ -1,0 +1,21 @@
+import { start } from "./walk.mjs";
+const W = await start("j5d");
+await W.go("risks");
+await W.click("Risk arising from REQ-100", { why: "the risk that matches the issue", wait: 500 });
+console.log("PANEL:", (await W.text("#panel", 900)).replace(/\s+/g, " ").slice(0, 300));
+let e = await W.click("Request acceptance", { within: "#panel", why: "ask the AO chain", wait: 500 });
+console.log("REQ →", e && e.effect, "|", (await W.text("#modal", 1500)).replace(/\s+/g, " ").slice(0, 800));
+console.log("DIALOG CONTROLS:", (await W.see("#modal")).join(" ‖ "));
+await W.shot("06-request-acceptance");
+const btns = await W.see("#modal"); const primary = btns.filter(b => /^button/.test(b) && !/Cancel|✕/.test(b)).pop();
+e = await W.click(primary.split(": ").slice(1).join(": "), { within: "#modal", exact: true, why: "send", wait: 700 });
+console.log("SEND →", e && e.effect);
+console.log("PANEL AFTER:", (await W.text("#panel", 1600)).replace(/\s+/g, " ").slice(0, 700));
+console.log("AWAITING chip:", await W.p.evaluate(() => (document.getElementById("main").innerText.match(/Awaiting acceptance\s*\d+/) || [])[0]));
+e = await W.click("Record decision", { within: "#panel", why: "AO records the decision", wait: 500 });
+console.log("DECISION →", e && e.effect, "|", (await W.text("#modal", 1500)).replace(/\s+/g, " ").slice(0, 800));
+await W.shot("07-record-decision");
+const b2 = await W.see("#modal"); const p2 = b2.filter(b => /^button/.test(b) && !/Cancel|✕/.test(b)).pop();
+if (p2) { e = await W.click(p2.split(": ").slice(1).join(": "), { within: "#modal", exact: true, why: "sign", wait: 700 }); console.log("SIGN →", e && e.effect); }
+console.log("PANEL AFTER 2:", (await W.text("#panel", 1600)).replace(/\s+/g, " ").slice(0, 600));
+await W.done();

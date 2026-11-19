@@ -1,0 +1,17 @@
+import { start } from "./walk.mjs";
+const W = await start("j7f");
+const rq0 = await (async () => { await W.p.evaluate(() => { location.hash = "review-queue"; }); await W.p.waitForTimeout(400); return W.p.evaluate(() => (document.getElementById("main").innerText.match(/Waiting\s*(\d+)/) || [])[1]); })();
+await W.go("ssp-review");
+await W.p.fill("#main textarea", "AC-2(1) narrative now names the 30-day account review.");
+await W.click("Submit for review", { within: "#main", exact: true, wait: 800 });
+await W.click("Submit anyway as a draft for ISSM review", { within: "#main", wait: 900 });
+await W.p.evaluate(() => { location.hash = "my-work"; }); await W.p.waitForTimeout(500);
+const mw = await W.p.evaluate(() => { const t = document.getElementById("main").innerText; return { submitRow: /Submit SSP 3 for review/.test(t), snippet: (t.match(/Submit SSP 3 for review[^\n]*\n[^\n]*/) || [""])[0] }; });
+console.log("MY WORK after submit:", JSON.stringify(mw));
+await W.shot("10-mywork-after-submit");
+await W.p.evaluate(() => { location.hash = "review-queue"; }); await W.p.waitForTimeout(500);
+const rq = await W.p.evaluate(() => { const t = document.getElementById("main").innerText; return { waiting: (t.match(/Waiting\s*(\d+)/) || [])[1], ssp: /System Security Plan|SSP 3|Revision 3/.test(t) }; });
+console.log("REVIEW QUEUE waiting before/after:", rq0, rq.waiting, "| SSP listed:", rq.ssp);
+await W.p.evaluate(() => { location.hash = "authorization"; }); await W.p.waitForTimeout(500);
+console.log("AUTH package SSP row:", await W.p.evaluate(() => { const r = [...document.querySelectorAll("#main table tbody tr")].find(x => /System security plan/.test(x.innerText)); return r ? r.innerText.replace(/\s+/g, " ") : null; }));
+await W.done();

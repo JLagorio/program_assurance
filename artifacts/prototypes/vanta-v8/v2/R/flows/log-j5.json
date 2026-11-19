@@ -1,0 +1,34 @@
+{
+ "log": [
+  {
+   "step": 1,
+   "action": "go #findings",
+   "why": "Findings › By issue",
+   "hash": "findings",
+   "h1": "",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 2,
+   "action": "click \"Payload arm and release commands signed\"",
+   "why": "open an operational issue",
+   "effect": "panel: Operational issue preview",
+   "hash": "findings",
+   "h1": "",
+   "modal": null,
+   "panel": "Operational issue preview",
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 2,
+   "shot": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/v2/R/flows/shots/j5-01-issue-panel.png"
+  }
+ ],
+ "errors": []
+}

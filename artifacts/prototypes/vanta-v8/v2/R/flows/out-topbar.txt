@@ -1,0 +1,9 @@
+TOP: [ '0:Search', '1:Inbox, 1 unread' ]
+0:Search →  ["Esc Recent 2 Overview WS-X90 Page › Home Work Page › Suggested commands 7 Create program S"] (DOM changed)
+1:Inbox, 1 unread →  ["Esc Recent 2 Overview WS-X90 Page › Home Work Page › Suggested commands 7 Create program S"] (DOM changed)
+{"step":1,"action":"go #overview","why":"","hash":"overview","h1":"WS-X90 Sentinel Mission System","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":2,"action":"go #home","why":"","hash":"home","h1":"","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":3,"action":"go #overview","why":"","hash":"overview","h1":"WS-X90 Sentinel Mission System","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":4,"action":"go #home","why":"","hash":"home","h1":"","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":5,"action":"go #overview","why":"","hash":"overview","h1":"WS-X90 Sentinel Mission System","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+errors: []

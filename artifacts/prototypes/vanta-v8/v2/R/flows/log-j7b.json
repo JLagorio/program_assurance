@@ -1,0 +1,59 @@
+{
+ "log": [
+  {
+   "step": 1,
+   "action": "go #ssp",
+   "why": "SSP editor",
+   "hash": "ssp",
+   "h1": "WS-X90 System Security Plan",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 1,
+   "note": "typed into AC-2(1) implementation narrative"
+  },
+  {
+   "step": 1,
+   "shot": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/v2/R/flows/shots/j7b-02-narrative-edited.png"
+  },
+  {
+   "step": 2,
+   "action": "click \"Submit for review\"",
+   "why": "header primary",
+   "effect": "→ #ssp-review",
+   "hash": "ssp-review",
+   "h1": "Submit revision 3 for review",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 2,
+   "shot": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/v2/R/flows/shots/j7b-03-submit-review-page.png"
+  },
+  {
+   "step": 3,
+   "action": "click \"Submit for review\"",
+   "why": "submit on the review page",
+   "effect": "page changed in place",
+   "hash": "ssp-review",
+   "h1": "Submit revision 3 for review",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 3,
+   "shot": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/v2/R/flows/shots/j7b-04-after-submit.png"
+  }
+ ],
+ "errors": []
+}

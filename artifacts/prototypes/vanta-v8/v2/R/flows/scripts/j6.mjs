@@ -1,0 +1,16 @@
+import { start } from "./walk.mjs";
+const W = await start("j6");
+const prim = async () => { const b = await W.see("#modal"); const p = b.filter(x => /^button/.test(x) && !/Cancel|✕|Back/.test(x)).pop(); return p ? p.split(": ").slice(1).join(": ") : null; };
+await W.go("assessments");
+let e = await W.click("Plan an assessment", { within: "#main", why: "plan", wait: 500 });
+console.log("PLAN →", e && e.effect, "|", (await W.text("#modal", 2500)).replace(/\s+/g, " ").slice(0, 1200));
+console.log("DIALOG CONTROLS:", (await W.see("#modal")).join(" ‖ "));
+await W.shot("01-plan-dialog");
+let p = await prim(); e = await W.click(p, { within: "#modal", exact: true, why: "submit plan", wait: 900 });
+console.log("SUBMIT PLAN (" + p + ") →", e && e.effect, "| hash", await W.p.evaluate(() => location.hash), "|", (await W.text("#main", 400)).replace(/\s+/g, " ").slice(0, 200));
+await W.go("campaign", "run the active campaign");
+e = await W.click("Approved WS-X90 external network baseline", { why: "open a request", wait: 600 });
+console.log("REQUEST →", e && e.effect, "|", (await W.text("#main", 2500)).replace(/\s+/g, " ").slice(0, 1200));
+console.log("REQ CONTROLS:", (await W.see()).slice(0, 40).join(" ‖ "));
+await W.shot("02-request");
+await W.done();

@@ -1,0 +1,51 @@
+{
+ "log": [
+  {
+   "step": 1,
+   "action": "go #home",
+   "why": "land on Home",
+   "hash": "home",
+   "h1": "",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 2,
+   "action": "click \"My work\"",
+   "why": "the engineer's own list",
+   "effect": "→ #my-work",
+   "hash": "my-work",
+   "h1": "",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 2,
+   "shot": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/flows/shots/j2-01-my-work.png"
+  },
+  {
+   "step": 3,
+   "action": "click \"Remediate CVE-2024-6387\"",
+   "why": "top Urgent item",
+   "effect": "→ #findings",
+   "hash": "findings",
+   "h1": "",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 3,
+   "shot": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/flows/shots/j2-02-landed-from-top-item.png"
+  }
+ ],
+ "errors": []
+}

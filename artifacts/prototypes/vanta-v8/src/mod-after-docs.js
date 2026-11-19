@@ -284,26 +284,44 @@
     ev("a6", "Privileged two-factor enforcement test report, LRU-013 and LRU-014, build 4.2.1", "Test record", null, "2026-09-22", "accepted", ["REQ-598", "Two distinct factors before any privileged administrative command"], "2026-11-12", R_OK),
   ];
   const EV_ALL = [...EV_TOP, ...EV_MINE, ...EV_BACK, ...EV_OK];
-  const evById = (id) => EV_ALL.find((r) => r.id === id) || EV_TOP[0];
+  // v2 (F) [B10, the re-review's new high]: an artifact Upload or Add link added in the session (evx.add) and a review Save review
+  // recorded (evx.rev.<id>, mod-zzzz-v2-4wire.js) read here at draw time, so the register's rows, its quick views, the preview
+  // and a requirement's chain agree on each artifact's review.
+  const V2 = () => window.PA.v2 || null;
+  const added = () => ((V2() && V2().get("evx.add", null)) || []).map((x) => ev(x.id, x.title, x.kind, x.owner, x.collected, "pending", x.req || ["", ""]));
+  const cur = (r) => { const x = V2() && V2().get("evx.rev." + r.id, null); return x ? { ...r, state: x.state, reviewed: x.at, why: x.why || (x.state === "accepted" ? R_OK : R_BACK) } : r; };
+  const allNow = () => [...added(), ...EV_ALL].map(cur);
+  const evById = (id) => allNow().find((r) => r.id === id) || cur(EV_TOP[0]);
+  // v2 (F): a requirement's chain opens an artifact the register lists by its title.
+  window.PA.evLookup = { byTitle: (t) => allNow().find((r) => r.title === t) || null, all: allNow };
   const LATEST = { pending: ["warn", "Pending review"], needs_revision: ["bad", "Needs revision"], accepted: ["ok", "Accepted"] };
   const latest = (r) => pill(LATEST[r.state][0], LATEST[r.state][1]);
-  const EVQ = [["all", "All", 368], ["mine", "Owned by me", 27], ["approval", "Requires my approval", 0], ["pending", "Pending review", 88], ["revision", "Needs revision", 54], ["accepted", "Accepted", 226]];
-  const evView = (v) => ({ all: EV_TOP, mine: [EV_TOP[0], ...EV_MINE], approval: [], pending: EV_TOP, revision: EV_BACK, accepted: EV_OK })[v] || EV_TOP;
+  const evq = () => {
+    const a = added(), moved = [...a, ...EV_ALL].map((r) => [r, cur(r)]).filter(([r, c]) => r.state !== c.state);
+    const d = (k) => moved.filter(([, c]) => c.state === k).length - moved.filter(([r]) => r.state === k).length;
+    return [["all", "All", 368 + a.length], ["mine", "Owned by me", 27 + a.filter((r) => r.owner === ME).length], ["approval", "Requires my approval", 0], ["pending", "Pending review", 88 + a.length + d("pending")], ["revision", "Needs revision", 54 + d("needs_revision")], ["accepted", "Accepted", 226 + d("accepted")]];
+  };
+  const evView = (v) => {
+    const a = added(), st = (list, k) => list.map(cur).filter((r) => r.state === k);
+    const moved = (k) => [...a, ...EV_TOP, ...EV_MINE, ...EV_BACK, ...EV_OK].filter((r) => r.state !== k && cur(r).state === k);
+    return ({ all: [...a, ...EV_TOP].map(cur), mine: [...a.filter((r) => r.owner === ME), EV_TOP[0], ...EV_MINE].map(cur), approval: [], pending: st([...a, ...EV_TOP], "pending"),
+      revision: st([...moved("needs_revision"), ...EV_BACK], "needs_revision"), accepted: st([...moved("accepted"), ...EV_OK], "accepted") })[v] || [...a, ...EV_TOP].map(cur);
+  };
   const evRowMenu = (r) => menu(`Row actions for ${r.title}`, [["Open", `data-panel="a-docs-ev" data-id="${r.id}|evidence"`], ["Assign owner", `data-modal="a-docs-owner" data-id="${esc(r.title)}"`],
     ["Mark not applicable", `data-modal="ak-reason" data-id="Mark not applicable|The artifact leaves the register's counts until the end date. The reason shows on the record and in History."`]], { sm: true });
 
   function evRegister(key, withCo) {
     const v = QS[key] || "all";
-    const rows = evView(v);
-    const total = (EVQ.find((x) => x[0] === v) || EVQ[0])[2];
+    const rows = evView(v), Q = evq(), pend = Q[3][2];
+    const total = (Q.find((x) => x[0] === v) || Q[0])[2];
     const s = sel(key, withCo ? ["e1", "e2"] : []);
     const c = (n) => (withCo ? co(n) : "");
     const n = s.size;
     const actions = `${menu("More evidence actions", [["View not applicable", 'data-adtoast="No artifact is marked not applicable yet"'], ["Export all", 'data-adtoast="Exporting 368 artifacts as CSV"'], ["Import evidence", 'data-modal="a-docs-upload" data-id="import|"']])}${menu("Add evidence", [["Upload a file", 'data-modal="a-docs-upload" data-id="upload|"'], ["Add a link", 'data-modal="a-docs-upload" data-id="link|"'], ["Import from evidence sources", 'data-modal="a-docs-upload" data-id="import|"']], { text: `Add evidence ${AK.i("down")}`, ink: true })}`;
     return h.page(
       h.header("Evidence", "", actions),
-      banner("warn", "<b>88 artifacts</b> are pending review, waiting on Nadia Fournier.", "View", `data-adq="${key}" data-adv="pending"`, c(1)),
-      qv(key, EVQ),
+      banner("warn", `<b>${fmt(pend)} artifacts</b> are pending review, waiting on Nadia Fournier.`, "View", `data-adq="${key}" data-adv="pending"`, c(1)),
+      qv(key, Q),
       n ? selbar(key, "Search evidence", n, [["Assign owner", `data-modal="a-docs-owner" data-id="${n} artifact${n === 1 ? "" : "s"}"`, `Assign owner ${AK.i("down")}`]], c(2))
         : filters("Search evidence", ["Kind", "Status", "Latest version", "Owner", "Renew by"], { reset: "Reset view" }),
       tbl({
@@ -338,7 +356,7 @@
         : `<div class="a-docs-dec">${gl("diamond")}<span>Sent back by <b>Nadia Fournier</b> on ${md(r.reviewed)}</span></div>`;
     const ver = AK.card(`
       <div class="a-docs-verh"><span class="a-docs-veri ${r.state}">${AK.i(r.state === "accepted" ? "check" : r.state === "needs_revision" ? "flag" : "clock")}</span><div class="a-docs-vert"><div class="a-docs-rowt"><b>Version 1</b>${latest(r)}${c(2)}</div><span class="a-docs-mu">Collected ${md(r.collected)}${r.owner ? ` · added by ${esc(r.owner)}` : ""}</span></div></div>
-      <div class="a-docs-file"><span class="a-docs-fi">${h.icon("evidence")}</span><div class="x"><span class="a-docs-fn"><b>${esc(fileOf(r))}</b>${EX}</span><span class="a-docs-mu">Effective ${md(r.collected)} · ${r.kind === "Dataset" ? "CSV" : "PDF"} · ${r.owner ? `Added by ${esc(r.owner)}` : "Owner not recorded"}</span></div><span class="a-docs-ibs">${["upload", "pen", "x"].map((k, i) => `<button type="button" class="a-docs-ib" aria-label="${["Replace the file", "Edit the file's details", "Remove the file"][i]}">${AK.i(k)}</button>`).join("")}</span></div>
+      <div class="a-docs-file"><span class="a-docs-fi">${h.icon("evidence")}</span><div class="x"><span class="a-docs-fn"><b>${esc(fileOf(r))}</b>${EX}</span><span class="a-docs-mu">Effective ${md(r.collected)} · ${r.kind === "Dataset" ? "CSV" : "PDF"} · ${r.owner ? `Added by ${esc(r.owner)}` : "Owner not recorded"}</span></div><span class="a-docs-ibs"><button type="button" class="a-docs-ib" aria-label="Replace the file" data-modal="a-docs-upload" data-id="upload|${esc(r.id)}">${AK.i("upload")}</button></span></div>
       ${decision}`, { cls: "a-docs-ver" });
     const start = `<div class="a-docs-start"><b>Start version 2</b><span class="a-docs-acts">${btn(`${AK.i("upload")}Upload`, `data-modal="a-docs-upload" data-id="upload|${r.id}"`)}${btn(`${AK.i("link")}Add link`, `data-modal="a-docs-upload" data-id="link|${r.id}"`)}${btn("Import from evidence sources", `data-modal="a-docs-upload" data-id="import|${r.id}"`)}</span><span class="a-docs-mu">Each asks an effective date.</span></div>`;
     const prior = `<p class="a-docs-prior">${AK.i("history")}<span>No prior versions</span>${mu("Earlier versions show here")}</p>`;
@@ -384,14 +402,14 @@
     const list = [["evidence", "Evidence"], ["cited", "Cited by", 1], ["tasks", "Tasks", 0], ["comments", "Comments", r.id === "e1" ? 2 : 0], ["history", "History"]];
     const strip = mode === "panel" ? ptabs("a-docs-ev", r.id, list, tab, pair ? { Tasks: 6, Comments: 4 } : {}) : qtabs(`evp-${r.id}`, list, tab);
     const body = tab === "cited" ? evCited(r) : tab === "tasks" ? evTasks(r) : tab === "comments" ? evComments(r) : tab === "history" ? evHistory(r) : evEvidence(r, c);
-    return `<div class="a-docs-pan${mode === "panel" ? " a-docs-wide" : " a-docs-page"}"${mode === "panel" ? ` data-adfull="after-evidence-page-${r.id}"` : ""}>${head}${strip}${body}</div>`;
+    return `<div class="a-docs-pan${mode === "panel" ? " a-docs-wide" : " a-docs-page"}"${mode === "panel" && S[`after-evidence-page-${r.id}`] ? ` data-adfull="after-evidence-page-${r.id}"` : ""}>${head}${strip}${body}</div>`;
   }
   P["a-docs-ev"] = (id) => {
     const [rid, tab] = String(id || "").split("|");
     const r = evById(rid);
     return { label: "Evidence", body: evRecord(r, tab || "evidence", "panel", r.id === "e1" && here() === "after-evidence-record") };
   };
-  EV_ALL.forEach((r) => { S[`after-evidence-page-${r.id}`] = () => h.page(evRecord(r, QS[`evp-${r.id}`] || "evidence", "page", false)); nav(`after-evidence-page-${r.id}`); });
+  EV_ALL.forEach((r) => { S[`after-evidence-page-${r.id}`] = () => h.page(evRecord(evById(r.id), QS[`evp-${r.id}`] || "evidence", "page", false)); nav(`after-evidence-page-${r.id}`); });
 
   // ═════════════ Policies: the -1 control of each family in WS-X90's baseline (mod-compliance.js POL) ═════════════
   const POL = [
@@ -427,8 +445,14 @@
   const stPill = (s) => pill(ST[s][0], ST[s][1]);
   const renewCell = (iso) => (ahead(iso) <= 120 ? `<span class="a-docs-soon" title="Renew by within 120 days">${AK.i("clock")}${md(iso)}</span>` : num(md(iso)));
   const polCode = (code) => code.toLowerCase();
-  const PQ = [["all", "All"], ["mine", "Needs my approval"], ["back", "Sent back"], ["review", "In review"], ["nodoc", "No document"], ["ok", "Approved"]];
-  const polKeep = (v) => ({ all: () => true, mine: () => false, back: (p) => p[5] === "needs_revision", review: (p) => p[5] === "pending", nodoc: (p) => !p[4], ok: (p) => p[5] === "accepted" })[v] || (() => true);
+  // v2: five quick views, counted. No approver says what v1's banner said (12 policies have a document and no approver);
+  // In review and Approved are values of the Latest version filter.
+  const PQ = [["all", "All", 21], ["mine", "Needs my approval", 0], ["back", "Sent back", 8], ["nodoc", "No document", 6], ["noappr", "No approver", 12]];
+  const polKeep = (v) => ({ all: () => true, mine: () => false, back: (p) => p[5] === "needs_revision", review: (p) => p[5] === "pending", nodoc: (p) => !p[4], ok: (p) => p[5] === "accepted", noappr: (p) => !!p[4] })[v] || (() => true);
+  // v2: a policy's control status is a glyph and an ink word, as Vanta draws Overall policy status; the one pill a row is
+  // the latest version's state.
+  const ST_GL = { satisfied: "check", partially_satisfied: "part", other_than_satisfied: "diamond", not_assessed: "ring", no_evidence: "ring", no_requirement: "ring" };
+  const stInk = (s) => `<span class="v2l-st">${gl(ST_GL[s] || "ring")}<span>${esc(ST[s][1])}</span></span>`;
 
   function polRows(v, c) {
     let first = true;
@@ -437,12 +461,14 @@
       if (!t) {
         const cc = first ? c(4) : "";
         first = false;
-        return { id: `${code}|versions`, cells: [name, stPill(s), { span: 5, html: `<span class="a-docs-split">${pill("none", "No document")}<span class="a-docs-push">${btn("Start", `data-modal="a-docs-start" data-id="${code}"`)}${cc}</span></span>` }] };
+        return { id: `${code}|versions`, cells: [name, stInk(s), { span: 5, html: `<span class="a-docs-split">${pill("none", "No document")}<span class="a-docs-push">${btn("Start", `data-modal="a-docs-start" data-id="${code}"`)}${cc}</span></span>` }] };
       }
-      return { id: `${code}|versions`, cells: [name, stPill(s), `<span class="a-docs-lv">${ver ? esc(ver) : mu("Not stated")}${polPill(r)}</span>`, ring("Not recorded"), renewCell(renew), ring("0 of 23"), owner(own)] };
+      // v2: Renew by is a plain day (v1 drew the next 120 days amber), so a row tones two cells at most: the status glyph
+      // and the version's pill. An empty value is a dash; nobody has acknowledged a policy yet, said without a ring.
+      return { id: `${code}|versions`, cells: [name, stInk(s), `<span class="a-docs-lv">${ver ? esc(ver) : mu("—")}${polPill(r)}</span>`, mu("—"), num(md(renew)), mu("0 of 23"), owner(own)] };
     });
     const ex = v === "all" || v === "ok" || v === "review"
-      ? POL_EX.filter(([, , , r]) => v === "all" || (v === "ok" ? r === "accepted" : r === "pending")).map(([code, fam, , r, ver, ap, renew, own]) => ({ id: `${code}|versions`, cells: [`<span class="a-docs-pn">${tr(fam, 108)}${EX}${tag(code)}</span>`, pill("info", "Not assessed"), `<span class="a-docs-lv">${esc(ver)}${polPill(r)}</span>`, owner(ap), renewCell(renew), ring("0 of 23"), owner(own)] }))
+      ? POL_EX.filter(([, , , r]) => v === "all" || (v === "ok" ? r === "accepted" : r === "pending")).map(([code, fam, , r, ver, ap, renew, own]) => ({ id: `${code}|versions`, cells: [`<span class="a-docs-pn">${tr(fam, 108)}${EX}${tag(code)}</span>`, stInk("not_assessed"), `<span class="a-docs-lv">${esc(ver)}${polPill(r)}</span>`, owner(ap), num(md(renew)), mu("0 of 23"), owner(own)] }))
       : [];
     return rows.concat(ex);
   }
@@ -450,12 +476,15 @@
     const v = QS[key] || "all";
     const c = (n) => (withCo ? co(n) : "");
     const rows = polRows(v, c);
+    // v2: no banner on the register: its count is the No approver quick view and its action, Assign approvers, is in the ⋯
+    // menu (and beside the filters while No approver is shown). One toolbar line: four filters and + Add filter; the
+    // Require my approval box repeated the Needs my approval quick view, and the order is said under the table.
+    const assign = 'data-modal="a-docs-approvers" data-id="the 12 policies with a document"';
     return h.page(
       h.header("Policies", "<span>Policy and procedures for each family, the -1 controls</span><span>18 families in WS-X90's baseline</span>",
-        `${menu("More policy actions", [["Download policy packet", 'data-adtoast="Packing the 12 policy documents into one PDF"'], ["Bulk replace text", 'data-modal="a-docs-bulk"', true], ["Renewal SLA: every 6 months", 'data-modal="a-docs-sla"'], ["Download acknowledgment history", 'data-adtoast="Downloading the acknowledgment history as CSV"']])}${c(5)}${big("Create policy", 'data-modal="a-docs-start" data-id=""', true)}`),
-      banner("warn", "<b>12 policies</b> have no approver recorded, so no version can be approved.", "Assign approvers", 'data-modal="a-docs-approvers" data-id="the 12 policies with a document"', c(1)),
+        `${menu("More policy actions", [["Assign approvers", assign], ["Download policy packet", 'data-adtoast="Packing the 12 policy documents into one PDF"'], ["Bulk replace text", 'data-modal="a-docs-bulk"', true], ["Renewal SLA: every 6 months", 'data-modal="a-docs-sla"'], ["Download acknowledgment history", 'data-adtoast="Downloading the acknowledgment history as CSV"']])}${c(5)}${big("Create policy", 'data-modal="a-docs-start" data-id=""', true)}`),
       qv(key, PQ),
-      filters("Search policies", ["Family", "Control status", "Latest version", "Owner", "Approver", "Renew by"], { add: false, extra: `<span class="a-docs-chk">${AK.check(false)}Require my approval</span><span class="flt">Sort by family ⌄</span>` }),
+      filters("Search policies", ["Family", "Control status", "Latest version", "Owner"], { extra: v === "noappr" ? btn("Assign approvers", assign) : "" }),
       tbl({
         cols: ["Policy", `<span class="a-docs-th">Control status${c(3)}</span>`, "Latest version", "Approver", "Renew by", `<span class="a-docs-th2"><span>Acknowledged</span><span class="a-docs-th">${EX}${c(2)}</span></span>`, "Owner"],
         rows, total: v === "all" ? 21 : rows.length, panel: "a-docs-pol", nm: 0, cls: "a-docs-tight a-docs-polt",
@@ -858,8 +887,8 @@
     const facts = AK.railCard("Details", [["Kind", tag(s.kind)], ["Reads", esc(s.reads)], ["Cadence", esc(cadenceText(s))], ["Last imported", lastCell(s)], ["Next import due", due ? AK.due(due, { prefix: false }) : ring(s.cadence ? "After the first import" : "With each release")],
       ["Owner", `<span class="a-docs-inl">${ownerBtn(srcOwner(s), s.name)}${EX}</span>`], ["System", tag("SYS-WSX90")], ["Requested by", s.id === "sbom-mc" ? mu("Imported as SBOM records") : owner("Joel Barrantes")]]);
     const told = late
-      ? `<p class="a-docs-p">Notified on ${md(due)}: Joel Barrantes, the requester and ISSM, by email and in the app, as the “Import failed or past its cadence” rule sends it.</p>${AK.remind({ last: md(due) })}`
-      : s.state === "failed" ? `<p class="a-docs-p">Notified on Oct 30: Joel Barrantes, the requester and ISSM, by email and in the app, when the import failed.</p>${AK.remind({ last: "Oct 30" })}`
+      ? `<p class="a-docs-p">Notified on ${md(due)}: Joel Barrantes, the requester and ISSM, by email and in the app, as the “Import failed or past its cadence” rule sends it.</p>${AK.remind({ last: md(due) }).replace('<span class="btn sm">', '<span class="btn sm" role="button" tabindex="0" data-adtoast="Reminder sent">')}`
+      : s.state === "failed" ? `<p class="a-docs-p">Notified on Oct 30: Joel Barrantes, the requester and ISSM, by email and in the app, when the import failed.</p>${AK.remind({ last: "Oct 30" }).replace('<span class="btn sm">', '<span class="btn sm" role="button" tabindex="0" data-adtoast="Reminder sent">')}`
         : `<p class="a-docs-p">${due ? `Joel Barrantes is told if no file arrives by ${md(due)}.` : "No reminder: this source has no cadence date yet."}</p>`;
     const rem = AK.card(`${rowh(`<b>Reminders and tasks</b>${EX}`)}${told}${toggles(`task-${s.id}`, [["Create a task when an import is due", "For the owner, due on the cadence date", false]])}${rowh(`${mu("Subscribers")}<span class="a-docs-inl">${AK.avatars(["Joel Barrantes"])}Joel Barrantes</span><span class="a-docs-push">${lk("Manage", `data-modal="a-docs-subs" data-id="src-${s.id}"`)}</span>`)}`);
     return { label: "Evidence source", body: `<div class="a-docs-pan">${head}${s.state === "failed" ? AK.banner({ tone: "bad", text: esc(s.note) }) : `<p class="a-docs-p">${esc(s.note)}</p>`}${facts}${rem}

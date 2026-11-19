@@ -1,0 +1,1151 @@
+{
+ "keys": [
+  [
+   "colours.above.togetherClustered",
+   "distinct non-grey colours"
+  ],
+  [
+   "colours.above.hues.length",
+   "hue families"
+  ],
+  [
+   "above.pills",
+   "pills/chips/tags"
+  ],
+  [
+   "above.gadgets",
+   "charts and meters"
+  ],
+  [
+   "above.cards",
+   "cards"
+  ],
+  [
+   "above.banners",
+   "banners"
+  ],
+  [
+   "above.buttons",
+   "buttons"
+  ],
+  [
+   "above.icons",
+   "icons and glyphs"
+  ],
+  [
+   "fonts.distinctAbove",
+   "font size/weight pairs"
+  ],
+  [
+   "pixels.colourfulPct",
+   "colourful pixels %"
+  ]
+ ],
+ "ranked": [
+  {
+   "route": "checks",
+   "label": "Checks",
+   "noise": 71.8,
+   "pct": {
+    "colours.above.togetherClustered": 76.2,
+    "colours.above.hues.length": 76.2,
+    "above.pills": 66.9,
+    "above.gadgets": 59.2,
+    "above.cards": 67.7,
+    "above.banners": 31.5,
+    "above.buttons": 97.7,
+    "above.icons": 88.5,
+    "fonts.distinctAbove": 70.8,
+    "pixels.colourfulPct": 83.8
+   }
+  },
+  {
+   "route": "controls",
+   "label": "Controls",
+   "noise": 70.3,
+   "pct": {
+    "colours.above.togetherClustered": 76.2,
+    "colours.above.hues.length": 76.2,
+    "above.pills": 66.9,
+    "above.gadgets": 76.2,
+    "above.cards": 67.7,
+    "above.banners": 31.5,
+    "above.buttons": 90,
+    "above.icons": 78.5,
+    "fonts.distinctAbove": 70.8,
+    "pixels.colourfulPct": 69.2
+   }
+  },
+  {
+   "route": "campaign",
+   "label": null,
+   "noise": 69.3,
+   "pct": {
+    "colours.above.togetherClustered": 76.2,
+    "colours.above.hues.length": 76.2,
+    "above.pills": 88.5,
+    "above.gadgets": 59.2,
+    "above.cards": 52.3,
+    "above.banners": 31.5,
+    "above.buttons": 48.5,
+    "above.icons": 84.6,
+    "fonts.distinctAbove": 80,
+    "pixels.colourfulPct": 96.2
+   }
+  },
+  {
+   "route": "baseline",
+   "label": "Baseline",
+   "noise": 68.7,
+   "pct": {
+    "colours.above.togetherClustered": 76.2,
+    "colours.above.hues.length": 76.2,
+    "above.pills": 30,
+    "above.gadgets": 99.2,
+    "above.cards": 99.2,
+    "above.banners": 80.8,
+    "above.buttons": 79.2,
+    "above.icons": 24.6,
+    "fonts.distinctAbove": 45.4,
+    "pixels.colourfulPct": 76.2
+   }
+  },
+  {
+   "route": "plan-cp",
+   "label": null,
+   "noise": 65.9,
+   "pct": {
+    "colours.above.togetherClustered": 99.2,
+    "colours.above.hues.length": 76.2,
+    "above.pills": 41.5,
+    "above.gadgets": 26.9,
+    "above.cards": 67.7,
+    "above.banners": 31.5,
+    "above.buttons": 96.2,
+    "above.icons": 75.4,
+    "fonts.distinctAbove": 99.2,
+    "pixels.colourfulPct": 45.4
+   }
+  },
+  {
+   "route": "deadlines",
+   "label": "Deadlines",
+   "noise": 65.4,
+   "pct": {
+    "colours.above.togetherClustered": 76.2,
+    "colours.above.hues.length": 76.2,
+    "above.pills": 66.9,
+    "above.gadgets": 59.2,
+    "above.cards": 67.7,
+    "above.banners": 80.8,
+    "above.buttons": 21.5,
+    "above.icons": 70,
+    "fonts.distinctAbove": 90,
+    "pixels.colourfulPct": 45.4
+   }
+  },
+  {
+   "route": "policies",
+   "label": "Policies",
+   "noise": 65.3,
+   "pct": {
+    "colours.above.togetherClustered": 76.2,
+    "colours.above.hues.length": 76.2,
+    "above.pills": 97.7,
+    "above.gadgets": 26.9,
+    "above.cards": 23.1,
+    "above.banners": 80.8,
+    "above.buttons": 56.9,
+    "above.icons": 97.7,
+    "fonts.distinctAbove": 30.8,
+    "pixels.colourfulPct": 86.2
+   }
+  },
+  {
+   "route": "sources",
+   "label": "Evidence sources",
+   "noise": 64.6,
+   "pct": {
+    "colours.above.togetherClustered": 96.9,
+    "colours.above.hues.length": 76.2,
+    "above.pills": 70.8,
+    "above.gadgets": 26.9,
+    "above.cards": 52.3,
+    "above.banners": 31.5,
+    "above.buttons": 91.5,
+    "above.icons": 80.8,
+    "fonts.distinctAbove": 45.4,
+    "pixels.colourfulPct": 73.8
+   }
+  },
+  {
+   "route": "sse",
+   "label": "Security engineering",
+   "noise": 63.2,
+   "pct": {
+    "colours.above.togetherClustered": 76.2,
+    "colours.above.hues.length": 76.2,
+    "above.pills": 56.9,
+    "above.gadgets": 26.9,
+    "above.cards": 23.1,
+    "above.banners": 80.8,
+    "above.buttons": 83.1,
+    "above.icons": 64.6,
+    "fonts.distinctAbove": 80,
+    "pixels.colourfulPct": 64.6
+   }
+  },
+  {
+   "route": "data-calls",
+   "label": "Data calls",
+   "noise": 61.6,
+   "pct": {
+    "colours.above.togetherClustered": 76.2,
+    "colours.above.hues.length": 76.2,
+    "above.pills": 73.1,
+    "above.gadgets": 73.1,
+    "above.cards": 23.1,
+    "above.banners": 80.8,
+    "above.buttons": 38.5,
+    "above.icons": 70,
+    "fonts.distinctAbove": 59.2,
+    "pixels.colourfulPct": 45.4
+   }
+  },
+  {
+   "route": "component-mc",
+   "label": null,
+   "noise": 61.4,
+   "pct": {
+    "colours.above.togetherClustered": 76.2,
+    "colours.above.hues.length": 76.2,
+    "above.pills": 62.3,
+    "above.gadgets": 26.9,
+    "above.cards": 93.1,
+    "above.banners": 31.5,
+    "above.buttons": 66.2,
+    "above.icons": 50.8,
+    "fonts.distinctAbove": 70.8,
+    "pixels.colourfulPct": 60
+   }
+  },
+  {
+   "route": "overview",
+   "label": "Overview",
+   "noise": 60.5,
+   "pct": {
+    "colours.above.togetherClustered": 43.8,
+    "colours.above.hues.length": 76.2,
+    "above.pills": 49.2,
+    "above.gadgets": 73.1,
+    "above.cards": 86.9,
+    "above.banners": 31.5,
+    "above.buttons": 21.5,
+    "above.icons": 41.5,
+    "fonts.distinctAbove": 90,
+    "pixels.colourfulPct": 91.5
+   }
+  },
+  {
+   "route": "poam",
+   "label": "POA&M",
+   "noise": 60.3,
+   "pct": {
+    "colours.above.togetherClustered": 76.2,
+    "colours.above.hues.length": 76.2,
+    "above.pills": 80.8,
+    "above.gadgets": 94.6,
+    "above.cards": 23.1,
+    "above.banners": 31.5,
+    "above.buttons": 48.5,
+    "above.icons": 70,
+    "fonts.distinctAbove": 7.7,
+    "pixels.colourfulPct": 94.6
+   }
+  },
+  {
+   "route": "threats",
+   "label": "Threats",
+   "noise": 59.7,
+   "pct": {
+    "colours.above.togetherClustered": 76.2,
+    "colours.above.hues.length": 76.2,
+    "above.pills": 90.8,
+    "above.gadgets": 91.5,
+    "above.cards": 23.1,
+    "above.banners": 80.8,
+    "above.buttons": 38.5,
+    "above.icons": 54.6,
+    "fonts.distinctAbove": 7.7,
+    "pixels.colourfulPct": 57.7
+   }
+  },
+  {
+   "route": "ssp",
+   "label": null,
+   "noise": 59.4,
+   "pct": {
+    "colours.above.togetherClustered": 96.9,
+    "colours.above.hues.length": 76.2,
+    "above.pills": 11.5,
+    "above.gadgets": 26.9,
+    "above.cards": 23.1,
+    "above.banners": 31.5,
+    "above.buttons": 99.2,
+    "above.icons": 93.1,
+    "fonts.distinctAbove": 90,
+    "pixels.colourfulPct": 45.4
+   }
+  },
+  {
+   "route": "portfolio",
+   "label": "Programs",
+   "noise": 57.8,
+   "pct": {
+    "colours.above.togetherClustered": 76.2,
+    "colours.above.hues.length": 76.2,
+    "above.pills": 70.8,
+    "above.gadgets": 91.5,
+    "above.cards": 23.1,
+    "above.banners": 31.5,
+    "above.buttons": 21.5,
+    "above.icons": 61.5,
+    "fonts.distinctAbove": 59.2,
+    "pixels.colourfulPct": 66.9
+   }
+  },
+  {
+   "route": "suppliers",
+   "label": "Suppliers",
+   "noise": 57.5,
+   "pct": {
+    "colours.above.togetherClustered": 76.2,
+    "colours.above.hues.length": 76.2,
+    "above.pills": 93.1,
+    "above.gadgets": 91.5,
+    "above.cards": 23.1,
+    "above.banners": 31.5,
+    "above.buttons": 38.5,
+    "above.icons": 90,
+    "fonts.distinctAbove": 30.8,
+    "pixels.colourfulPct": 24.6
+   }
+  },
+  {
+   "route": "assessments",
+   "label": "Assessments",
+   "noise": 56.7,
+   "pct": {
+    "colours.above.togetherClustered": 43.8,
+    "colours.above.hues.length": 76.2,
+    "above.pills": 34.6,
+    "above.gadgets": 59.2,
+    "above.cards": 67.7,
+    "above.banners": 31.5,
+    "above.buttons": 74.6,
+    "above.icons": 41.5,
+    "fonts.distinctAbove": 59.2,
+    "pixels.colourfulPct": 78.5
+   }
+  },
+  {
+   "route": "check-scan",
+   "label": null,
+   "noise": 56.4,
+   "pct": {
+    "colours.above.togetherClustered": 76.2,
+    "colours.above.hues.length": 76.2,
+    "above.pills": 30,
+    "above.gadgets": 26.9,
+    "above.cards": 86.9,
+    "above.banners": 31.5,
+    "above.buttons": 61.5,
+    "above.icons": 50.8,
+    "fonts.distinctAbove": 90,
+    "pixels.colourfulPct": 33.8
+   }
+  },
+  {
+   "route": "ppsm",
+   "label": "Ports & protocols",
+   "noise": 55.9,
+   "pct": {
+    "colours.above.togetherClustered": 76.2,
+    "colours.above.hues.length": 76.2,
+    "above.pills": 94.6,
+    "above.gadgets": 26.9,
+    "above.cards": 23.1,
+    "above.banners": 31.5,
+    "above.buttons": 21.5,
+    "above.icons": 84.6,
+    "fonts.distinctAbove": 30.8,
+    "pixels.colourfulPct": 93.1
+   }
+  },
+  {
+   "route": "policy-editor",
+   "label": null,
+   "noise": 55.6,
+   "pct": {
+    "colours.above.togetherClustered": 43.8,
+    "colours.above.hues.length": 39.2,
+    "above.pills": 49.2,
+    "above.gadgets": 26.9,
+    "above.cards": 80,
+    "above.banners": 80.8,
+    "above.buttons": 38.5,
+    "above.icons": 19.2,
+    "fonts.distinctAbove": 97.7,
+    "pixels.colourfulPct": 80.8
+   }
+  },
+  {
+   "route": "findings",
+   "label": "Findings",
+   "noise": 55.5,
+   "pct": {
+    "colours.above.togetherClustered": 43.8,
+    "colours.above.hues.length": 39.2,
+    "above.pills": 56.9,
+    "above.gadgets": 59.2,
+    "above.cards": 67.7,
+    "above.banners": 31.5,
+    "above.buttons": 74.6,
+    "above.icons": 50.8,
+    "fonts.distinctAbove": 45.4,
+    "pixels.colourfulPct": 86.2
+   }
+  },
+  {
+   "route": "conmon",
+   "label": "Continuous monitoring",
+   "noise": 55.1,
+   "pct": {
+    "colours.above.togetherClustered": 43.8,
+    "colours.above.hues.length": 39.2,
+    "above.pills": 80.8,
+    "above.gadgets": 26.9,
+    "above.cards": 23.1,
+    "above.banners": 80.8,
+    "above.buttons": 79.2,
+    "above.icons": 91.5,
+    "fonts.distinctAbove": 30.8,
+    "pixels.colourfulPct": 54.6
+   }
+  },
+  {
+   "route": "control-si2",
+   "label": null,
+   "noise": 54.6,
+   "pct": {
+    "colours.above.togetherClustered": 76.2,
+    "colours.above.hues.length": 76.2,
+    "above.pills": 16.2,
+    "above.gadgets": 69.2,
+    "above.cards": 86.9,
+    "above.banners": 31.5,
+    "above.buttons": 48.5,
+    "above.icons": 32.3,
+    "fonts.distinctAbove": 59.2,
+    "pixels.colourfulPct": 50
+   }
+  },
+  {
+   "route": "interconnections",
+   "label": "Interconnections",
+   "noise": 54.4,
+   "pct": {
+    "colours.above.togetherClustered": 76.2,
+    "colours.above.hues.length": 76.2,
+    "above.pills": 90.8,
+    "above.gadgets": 26.9,
+    "above.cards": 23.1,
+    "above.banners": 31.5,
+    "above.buttons": 21.5,
+    "above.icons": 78.5,
+    "fonts.distinctAbove": 30.8,
+    "pixels.colourfulPct": 88.5
+   }
+  },
+  {
+   "route": "components",
+   "label": "Components",
+   "noise": 54.1,
+   "pct": {
+    "colours.above.togetherClustered": 76.2,
+    "colours.above.hues.length": 76.2,
+    "above.pills": 76.9,
+    "above.gadgets": 86.9,
+    "above.cards": 23.1,
+    "above.banners": 80.8,
+    "above.buttons": 21.5,
+    "above.icons": 46.2,
+    "fonts.distinctAbove": 30.8,
+    "pixels.colourfulPct": 22.3
+   }
+  },
+  {
+   "route": "traceability",
+   "label": "Traceability",
+   "noise": 54.1,
+   "pct": {
+    "colours.above.togetherClustered": 43.8,
+    "colours.above.hues.length": 76.2,
+    "above.pills": 56.9,
+    "above.gadgets": 79.2,
+    "above.cards": 52.3,
+    "above.banners": 31.5,
+    "above.buttons": 56.9,
+    "above.icons": 99.2,
+    "fonts.distinctAbove": 17.7,
+    "pixels.colourfulPct": 27.7
+   }
+  },
+  {
+   "route": "stigs-mission-computer-rhel9",
+   "label": null,
+   "noise": 54,
+   "pct": {
+    "colours.above.togetherClustered": 43.8,
+    "colours.above.hues.length": 39.2,
+    "above.pills": 80.8,
+    "above.gadgets": 26.9,
+    "above.cards": 80,
+    "above.banners": 80.8,
+    "above.buttons": 21.5,
+    "above.icons": 24.6,
+    "fonts.distinctAbove": 80,
+    "pixels.colourfulPct": 62.3
+   }
+  },
+  {
+   "route": "stigs",
+   "label": "STIG checklists",
+   "noise": 53.9,
+   "pct": {
+    "colours.above.togetherClustered": 76.2,
+    "colours.above.hues.length": 76.2,
+    "above.pills": 49.2,
+    "above.gadgets": 83.1,
+    "above.cards": 23.1,
+    "above.banners": 80.8,
+    "above.buttons": 21.5,
+    "above.icons": 19.2,
+    "fonts.distinctAbove": 30.8,
+    "pixels.colourfulPct": 78.5
+   }
+  },
+  {
+   "route": "itcsc",
+   "label": "ITCSC",
+   "noise": 52.1,
+   "pct": {
+    "colours.above.togetherClustered": 43.8,
+    "colours.above.hues.length": 39.2,
+    "above.pills": 41.5,
+    "above.gadgets": 26.9,
+    "above.cards": 86.9,
+    "above.banners": 80.8,
+    "above.buttons": 48.5,
+    "above.icons": 12.3,
+    "fonts.distinctAbove": 95.4,
+    "pixels.colourfulPct": 45.4
+   }
+  },
+  {
+   "route": "people",
+   "label": "People",
+   "noise": 51.9,
+   "pct": {
+    "colours.above.togetherClustered": 43.8,
+    "colours.above.hues.length": 39.2,
+    "above.pills": 76.9,
+    "above.gadgets": 26.9,
+    "above.cards": 23.1,
+    "above.banners": 80.8,
+    "above.buttons": 56.9,
+    "above.icons": 70,
+    "fonts.distinctAbove": 45.4,
+    "pixels.colourfulPct": 56.2
+   }
+  },
+  {
+   "route": "enclaves",
+   "label": "Enclaves & markings",
+   "noise": 51.8,
+   "pct": {
+    "colours.above.togetherClustered": 76.2,
+    "colours.above.hues.length": 99.2,
+    "above.pills": 23.8,
+    "above.gadgets": 26.9,
+    "above.cards": 67.7,
+    "above.banners": 31.5,
+    "above.buttons": 6.9,
+    "above.icons": 29.2,
+    "fonts.distinctAbove": 59.2,
+    "pixels.colourfulPct": 97.7
+   }
+  },
+  {
+   "route": "schedule",
+   "label": "Schedule",
+   "noise": 51.8,
+   "pct": {
+    "colours.above.togetherClustered": 76.2,
+    "colours.above.hues.length": 76.2,
+    "above.pills": 44.6,
+    "above.gadgets": 26.9,
+    "above.cards": 23.1,
+    "above.banners": 31.5,
+    "above.buttons": 61.5,
+    "above.icons": 64.6,
+    "fonts.distinctAbove": 30.8,
+    "pixels.colourfulPct": 82.3
+   }
+  },
+  {
+   "route": "evidence",
+   "label": "Evidence",
+   "noise": 51.5,
+   "pct": {
+    "colours.above.togetherClustered": 20.8,
+    "colours.above.hues.length": 14.6,
+    "above.pills": 86.2,
+    "above.gadgets": 26.9,
+    "above.cards": 23.1,
+    "above.banners": 80.8,
+    "above.buttons": 74.6,
+    "above.icons": 82.3,
+    "fonts.distinctAbove": 45.4,
+    "pixels.colourfulPct": 60
+   }
+  },
+  {
+   "route": "authorization",
+   "label": "Authorization",
+   "noise": 50.7,
+   "pct": {
+    "colours.above.togetherClustered": 20.8,
+    "colours.above.hues.length": 39.2,
+    "above.pills": 34.6,
+    "above.gadgets": 69.2,
+    "above.cards": 93.1,
+    "above.banners": 31.5,
+    "above.buttons": 48.5,
+    "above.icons": 41.5,
+    "fonts.distinctAbove": 90,
+    "pixels.colourfulPct": 38.5
+   }
+  },
+  {
+   "route": "frameworks-high",
+   "label": null,
+   "noise": 50.4,
+   "pct": {
+    "colours.above.togetherClustered": 43.8,
+    "colours.above.hues.length": 39.2,
+    "above.pills": 38.5,
+    "above.gadgets": 79.2,
+    "above.cards": 67.7,
+    "above.banners": 31.5,
+    "above.buttons": 38.5,
+    "above.icons": 32.3,
+    "fonts.distinctAbove": 59.2,
+    "pixels.colourfulPct": 73.8
+   }
+  },
+  {
+   "route": "risks",
+   "label": "Risks",
+   "noise": 50.3,
+   "pct": {
+    "colours.above.togetherClustered": 43.8,
+    "colours.above.hues.length": 39.2,
+    "above.pills": 99.2,
+    "above.gadgets": 26.9,
+    "above.cards": 23.1,
+    "above.banners": 31.5,
+    "above.buttons": 66.2,
+    "above.icons": 96.2,
+    "fonts.distinctAbove": 7.7,
+    "pixels.colourfulPct": 69.2
+   }
+  },
+  {
+   "route": "policy-page-ac-1",
+   "label": null,
+   "noise": 49.3,
+   "pct": {
+    "colours.above.togetherClustered": 43.8,
+    "colours.above.hues.length": 39.2,
+    "above.pills": 23.8,
+    "above.gadgets": 66.2,
+    "above.cards": 67.7,
+    "above.banners": 31.5,
+    "above.buttons": 70.8,
+    "above.icons": 36.2,
+    "fonts.distinctAbove": 80,
+    "pixels.colourfulPct": 33.8
+   }
+  },
+  {
+   "route": "person-joel-barrantes",
+   "label": null,
+   "noise": 49.1,
+   "pct": {
+    "colours.above.togetherClustered": 76.2,
+    "colours.above.hues.length": 76.2,
+    "above.pills": 11.5,
+    "above.gadgets": 59.2,
+    "above.cards": 67.7,
+    "above.banners": 31.5,
+    "above.buttons": 70.8,
+    "above.icons": 4.6,
+    "fonts.distinctAbove": 80,
+    "pixels.colourfulPct": 13.1
+   }
+  },
+  {
+   "route": "data-calls-fisma",
+   "label": null,
+   "noise": 48.9,
+   "pct": {
+    "colours.above.togetherClustered": 43.8,
+    "colours.above.hues.length": 39.2,
+    "above.pills": 56.9,
+    "above.gadgets": 26.9,
+    "above.cards": 52.3,
+    "above.banners": 31.5,
+    "above.buttons": 48.5,
+    "above.icons": 57.7,
+    "fonts.distinctAbove": 80,
+    "pixels.colourfulPct": 52.3
+   }
+  },
+  {
+   "route": "ai-drafts",
+   "label": "AI agents",
+   "noise": 47.9,
+   "pct": {
+    "colours.above.togetherClustered": 20.8,
+    "colours.above.hues.length": 14.6,
+    "above.pills": 62.3,
+    "above.gadgets": 26.9,
+    "above.cards": 52.3,
+    "above.banners": 31.5,
+    "above.buttons": 93.1,
+    "above.icons": 75.4,
+    "fonts.distinctAbove": 30.8,
+    "pixels.colourfulPct": 71.5
+   }
+  },
+  {
+   "route": "composition",
+   "label": "Composition",
+   "noise": 46.6,
+   "pct": {
+    "colours.above.togetherClustered": 6.9,
+    "colours.above.hues.length": 14.6,
+    "above.pills": 3.8,
+    "above.gadgets": 26.9,
+    "above.cards": 96.2,
+    "above.banners": 80.8,
+    "above.buttons": 94.6,
+    "above.icons": 70,
+    "fonts.distinctAbove": 59.2,
+    "pixels.colourfulPct": 13.1
+   }
+  },
+  {
+   "route": "cyber-te",
+   "label": "Cyber T&E",
+   "noise": 46.1,
+   "pct": {
+    "colours.above.togetherClustered": 43.8,
+    "colours.above.hues.length": 76.2,
+    "above.pills": 3.8,
+    "above.gadgets": 26.9,
+    "above.cards": 52.3,
+    "above.banners": 80.8,
+    "above.buttons": 86.2,
+    "above.icons": 15.4,
+    "fonts.distinctAbove": 59.2,
+    "pixels.colourfulPct": 16.9
+   }
+  },
+  {
+   "route": "evidence-page-e1",
+   "label": null,
+   "noise": 45.8,
+   "pct": {
+    "colours.above.togetherClustered": 20.8,
+    "colours.above.hues.length": 14.6,
+    "above.pills": 16.2,
+    "above.gadgets": 26.9,
+    "above.cards": 80,
+    "above.banners": 80.8,
+    "above.buttons": 79.2,
+    "above.icons": 46.2,
+    "fonts.distinctAbove": 80,
+    "pixels.colourfulPct": 13.1
+   }
+  },
+  {
+   "route": "resiliency",
+   "label": "Cyber resiliency",
+   "noise": 45.6,
+   "pct": {
+    "colours.above.togetherClustered": 20.8,
+    "colours.above.hues.length": 39.2,
+    "above.pills": 30,
+    "above.gadgets": 86.9,
+    "above.cards": 86.9,
+    "above.banners": 80.8,
+    "above.buttons": 21.5,
+    "above.icons": 7.7,
+    "fonts.distinctAbove": 17.7,
+    "pixels.colourfulPct": 64.6
+   }
+  },
+  {
+   "route": "inventory",
+   "label": "Inventory",
+   "noise": 44.5,
+   "pct": {
+    "colours.above.togetherClustered": 20.8,
+    "colours.above.hues.length": 14.6,
+    "above.pills": 86.2,
+    "above.gadgets": 26.9,
+    "above.cards": 23.1,
+    "above.banners": 80.8,
+    "above.buttons": 88.5,
+    "above.icons": 86.9,
+    "fonts.distinctAbove": 7.7,
+    "pixels.colourfulPct": 10
+   }
+  },
+  {
+   "route": "products",
+   "label": "Products",
+   "noise": 44.4,
+   "pct": {
+    "colours.above.togetherClustered": 43.8,
+    "colours.above.hues.length": 39.2,
+    "above.pills": 23.8,
+    "above.gadgets": 96.9,
+    "above.cards": 23.1,
+    "above.banners": 80.8,
+    "above.buttons": 21.5,
+    "above.icons": 24.6,
+    "fonts.distinctAbove": 59.2,
+    "pixels.colourfulPct": 31.5
+   }
+  },
+  {
+   "route": "ssps",
+   "label": "Plans",
+   "noise": 43.5,
+   "pct": {
+    "colours.above.togetherClustered": 76.2,
+    "colours.above.hues.length": 39.2,
+    "above.pills": 74.6,
+    "above.gadgets": 26.9,
+    "above.cards": 23.1,
+    "above.banners": 31.5,
+    "above.buttons": 32.3,
+    "above.icons": 41.5,
+    "fonts.distinctAbove": 59.2,
+    "pixels.colourfulPct": 30
+   }
+  },
+  {
+   "route": "home",
+   "label": "Home",
+   "noise": 43.2,
+   "pct": {
+    "colours.above.togetherClustered": 20.8,
+    "colours.above.hues.length": 39.2,
+    "above.pills": 3.8,
+    "above.gadgets": 73.1,
+    "above.cards": 93.1,
+    "above.banners": 99.2,
+    "above.buttons": 6.9,
+    "above.icons": 57.7,
+    "fonts.distinctAbove": 17.7,
+    "pixels.colourfulPct": 20.8
+   }
+  },
+  {
+   "route": "inheritance",
+   "label": "Inheritance",
+   "noise": 42.6,
+   "pct": {
+    "colours.above.togetherClustered": 76.2,
+    "colours.above.hues.length": 76.2,
+    "above.pills": 16.2,
+    "above.gadgets": 66.2,
+    "above.cards": 23.1,
+    "above.banners": 80.8,
+    "above.buttons": 21.5,
+    "above.icons": 10,
+    "fonts.distinctAbove": 30.8,
+    "pixels.colourfulPct": 24.6
+   }
+  },
+  {
+   "route": "requirements",
+   "label": "Requirements",
+   "noise": 41.5,
+   "pct": {
+    "colours.above.togetherClustered": 6.9,
+    "colours.above.hues.length": 14.6,
+    "above.pills": 96.2,
+    "above.gadgets": 26.9,
+    "above.cards": 23.1,
+    "above.banners": 31.5,
+    "above.buttons": 86.2,
+    "above.icons": 94.6,
+    "fonts.distinctAbove": 17.7,
+    "pixels.colourfulPct": 16.9
+   }
+  },
+  {
+   "route": "posture",
+   "label": "Posture",
+   "noise": 41.5,
+   "pct": {
+    "colours.above.togetherClustered": 76.2,
+    "colours.above.hues.length": 2.3,
+    "above.pills": 3.8,
+    "above.gadgets": 59.2,
+    "above.cards": 23.1,
+    "above.banners": 80.8,
+    "above.buttons": 38.5,
+    "above.icons": 1.5,
+    "fonts.distinctAbove": 30.8,
+    "pixels.colourfulPct": 99.2
+   }
+  },
+  {
+   "route": "getting-started",
+   "label": "Getting started",
+   "noise": 39.6,
+   "pct": {
+    "colours.above.togetherClustered": 43.8,
+    "colours.above.hues.length": 39.2,
+    "above.pills": 8.5,
+    "above.gadgets": 96.9,
+    "above.cards": 52.3,
+    "above.banners": 31.5,
+    "above.buttons": 6.9,
+    "above.icons": 19.2,
+    "fonts.distinctAbove": 7.7,
+    "pixels.colourfulPct": 90
+   }
+  },
+  {
+   "route": "common-controls",
+   "label": "Common control providers",
+   "noise": 38.3,
+   "pct": {
+    "colours.above.togetherClustered": 20.8,
+    "colours.above.hues.length": 14.6,
+    "above.pills": 53.1,
+    "above.gadgets": 83.1,
+    "above.cards": 23.1,
+    "above.banners": 80.8,
+    "above.buttons": 6.9,
+    "above.icons": 29.2,
+    "fonts.distinctAbove": 30.8,
+    "pixels.colourfulPct": 40.8
+   }
+  },
+  {
+   "route": "reports",
+   "label": "Reports & exports",
+   "noise": 38.1,
+   "pct": {
+    "colours.above.togetherClustered": 20.8,
+    "colours.above.hues.length": 14.6,
+    "above.pills": 83.8,
+    "above.gadgets": 26.9,
+    "above.cards": 23.1,
+    "above.banners": 31.5,
+    "above.buttons": 32.3,
+    "above.icons": 50.8,
+    "fonts.distinctAbove": 45.4,
+    "pixels.colourfulPct": 52.3
+   }
+  },
+  {
+   "route": "my-work",
+   "label": "My work",
+   "noise": 35.7,
+   "pct": {
+    "colours.above.togetherClustered": 43.8,
+    "colours.above.hues.length": 39.2,
+    "above.pills": 44.6,
+    "above.gadgets": 26.9,
+    "above.cards": 97.7,
+    "above.banners": 31.5,
+    "above.buttons": 0.8,
+    "above.icons": 57.7,
+    "fonts.distinctAbove": 7.7,
+    "pixels.colourfulPct": 6.9
+   }
+  },
+  {
+   "route": "package-room",
+   "label": "Package room",
+   "noise": 34.8,
+   "pct": {
+    "colours.above.togetherClustered": 1.5,
+    "colours.above.hues.length": 2.3,
+    "above.pills": 34.6,
+    "above.gadgets": 26.9,
+    "above.cards": 80,
+    "above.banners": 31.5,
+    "above.buttons": 56.9,
+    "above.icons": 15.4,
+    "fonts.distinctAbove": 95.4,
+    "pixels.colourfulPct": 3.8
+   }
+  },
+  {
+   "route": "program-new",
+   "label": null,
+   "noise": 34.7,
+   "pct": {
+    "colours.above.togetherClustered": 1.5,
+    "colours.above.hues.length": 2.3,
+    "above.pills": 3.8,
+    "above.gadgets": 79.2,
+    "above.cards": 52.3,
+    "above.banners": 31.5,
+    "above.buttons": 83.1,
+    "above.icons": 12.3,
+    "fonts.distinctAbove": 80,
+    "pixels.colourfulPct": 0.8
+   }
+  },
+  {
+   "route": "frameworks",
+   "label": "Frameworks & overlays",
+   "noise": 32.5,
+   "pct": {
+    "colours.above.togetherClustered": 6.9,
+    "colours.above.hues.length": 14.6,
+    "above.pills": 23.8,
+    "above.gadgets": 86.9,
+    "above.cards": 23.1,
+    "above.banners": 31.5,
+    "above.buttons": 66.2,
+    "above.icons": 36.2,
+    "fonts.distinctAbove": 7.7,
+    "pixels.colourfulPct": 27.7
+   }
+  },
+  {
+   "route": "notifications",
+   "label": "Notifications",
+   "noise": 30.8,
+   "pct": {
+    "colours.above.togetherClustered": 6.9,
+    "colours.above.hues.length": 14.6,
+    "above.pills": 19.2,
+    "above.gadgets": 26.9,
+    "above.cards": 67.7,
+    "above.banners": 31.5,
+    "above.buttons": 6.9,
+    "above.icons": 24.6,
+    "fonts.distinctAbove": 70.8,
+    "pixels.colourfulPct": 38.5
+   }
+  },
+  {
+   "route": "review-queue",
+   "label": "Review",
+   "noise": 28.7,
+   "pct": {
+    "colours.above.togetherClustered": 6.9,
+    "colours.above.hues.length": 14.6,
+    "above.pills": 62.3,
+    "above.gadgets": 26.9,
+    "above.cards": 23.1,
+    "above.banners": 31.5,
+    "above.buttons": 48.5,
+    "above.icons": 36.2,
+    "fonts.distinctAbove": 17.7,
+    "pixels.colourfulPct": 19.2
+   }
+  },
+  {
+   "route": "event-log",
+   "label": "Event log",
+   "noise": 26.5,
+   "pct": {
+    "colours.above.togetherClustered": 20.8,
+    "colours.above.hues.length": 39.2,
+    "above.pills": 38.5,
+    "above.gadgets": 26.9,
+    "above.cards": 23.1,
+    "above.banners": 31.5,
+    "above.buttons": 6.9,
+    "above.icons": 61.5,
+    "fonts.distinctAbove": 7.7,
+    "pixels.colourfulPct": 8.5
+   }
+  },
+  {
+   "route": "integrations",
+   "label": "Integrations",
+   "noise": 26.4,
+   "pct": {
+    "colours.above.togetherClustered": 20.8,
+    "colours.above.hues.length": 39.2,
+    "above.pills": 11.5,
+    "above.gadgets": 26.9,
+    "above.cards": 23.1,
+    "above.banners": 31.5,
+    "above.buttons": 66.2,
+    "above.icons": 7.7,
+    "fonts.distinctAbove": 0.8,
+    "pixels.colourfulPct": 36.2
+   }
+  },
+  {
+   "route": "permissions",
+   "label": "Roles & permissions",
+   "noise": 25.4,
+   "pct": {
+    "colours.above.togetherClustered": 20.8,
+    "colours.above.hues.length": 14.6,
+    "above.pills": 49.2,
+    "above.gadgets": 26.9,
+    "above.cards": 23.1,
+    "above.banners": 31.5,
+    "above.buttons": 21.5,
+    "above.icons": 4.6,
+    "fonts.distinctAbove": 59.2,
+    "pixels.colourfulPct": 2.3
+   }
+  },
+  {
+   "route": "integration-emass",
+   "label": null,
+   "noise": 24.5,
+   "pct": {
+    "colours.above.togetherClustered": 20.8,
+    "colours.above.hues.length": 14.6,
+    "above.pills": 23.8,
+    "above.gadgets": 26.9,
+    "above.cards": 67.7,
+    "above.banners": 31.5,
+    "above.buttons": 6.9,
+    "above.icons": 1.5,
+    "fonts.distinctAbove": 45.4,
+    "pixels.colourfulPct": 5.4
+   }
+  }
+ ]
+}

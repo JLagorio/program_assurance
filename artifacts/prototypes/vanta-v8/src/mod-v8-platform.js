@@ -100,21 +100,22 @@
 
   // ═════════════ 1. Search everywhere (⌘K): a command palette over the page ═════════════
   // Every nav item, WS-X90's records, people, programs, plans and commands; at most six a group, with "N more" to the register.
-  const NAVL = [[null, [["home", "Home"], ["getting-started", "Getting started"], ["my-work", "My work"], ["review-queue", "Review queue"]]],
-    ["WS-X90", [["overview", "Overview"], ["itcsc", "ITCSC"]]], ["System", [["composition", "Composition"], ["inventory", "Inventory"], ["stigs", "STIG checklists"], ["interconnections", "Interconnections"], ["ppsm", "Ports & protocols"], ["sources", "Evidence sources"]]],
-    ["Compliance", [["baseline", "Baseline"], ["controls", "Controls"], ["ssps", "Plans"], ["requirements", "Requirements"], ["evidence", "Evidence"], ["checks", "Checks"], ["policies", "Policies"]]],
-    ["Assess", [["assessments", "Assessments"], ["cyber-te", "Cyber T&E"], ["ai-drafts", "AI agents"]]], ["Risk", [["findings", "Findings"], ["poam", "POA&M"], ["risks", "Risks"], ["risks-library", "Risk library"], ["threats", "Threats"]]],
-    ["Analysis", [["posture", "Posture"], ["resiliency", "Cyber resiliency"], ["sse", "Security engineering"], ["traceability", "Traceability"], ["inheritance", "Inheritance"]]],
-    ["Authorize", [["authorization", "Authorization"], ["package-room", "Package room"]]], ["Monitor", [["conmon", "Continuous monitoring"], ["schedule", "Schedule"]]],
-    ["Organization", [["portfolio", "Portfolio"], ["products", "Products"], ["components", "Components"], ["suppliers", "Suppliers"], ["people", "People"]]],
+  const NAVL = [[null, [["home", "Home"], ["my-work", "My work"], ["review-queue", "Review queue"], ["portfolio", "Programs"], ["ai-drafts", "AI agents"]]],
+    ["Products", [["products", "Products"], ["components", "Components"], ["suppliers", "Suppliers"]]],
     ["Library", [["frameworks", "Frameworks & overlays"], ["integrations", "Integrations"], ["data-calls", "Data calls"], ["reports", "Reports & exports"]]],
     ["Settings", [["deadlines", "Deadlines"], ["notifications", "Notifications"], ["event-log", "Event log"], ["enclaves", "Enclaves & markings"], ["common-controls", "Common control providers"], ["permissions", "Roles & permissions"]]],
-    ["About", [["study", "Design study"], ["before-after", "Before & after"]]]];
+    ["About", [["study", "Design study"], ["before-after", "Before & after"], ["nav-options", "Navigation options"]]],
+    ["WS-X90", [["overview", "Overview"], ["getting-started", "Getting started"], ["itcsc", "ITCSC"], ["people", "People"]]],
+    ["WS-X90 › System", [["composition", "Composition"], ["inventory", "Inventory"], ["stigs", "STIG checklists"], ["interconnections", "Interconnections"], ["ppsm", "Ports & protocols"], ["sources", "Evidence sources"]]],
+    ["WS-X90 › Compliance", [["baseline", "Baseline"], ["controls", "Controls"], ["ssps", "Plans"], ["requirements", "Requirements"], ["evidence", "Evidence"], ["checks", "Checks"], ["policies", "Policies"]]],
+    ["WS-X90 › Assess", [["assessments", "Assessments"], ["cyber-te", "Cyber T&E"]]], ["WS-X90 › Risk", [["findings", "Findings"], ["poam", "POA&M"], ["risks", "Risks"], ["risks-library", "Risk library"], ["threats", "Threats"]]],
+    ["WS-X90 › Analysis", [["posture", "Posture"], ["resiliency", "Cyber resiliency"], ["sse", "Security engineering"], ["traceability", "Traceability"], ["inheritance", "Inheritance"]]],
+    ["WS-X90 › Authorize", [["authorization", "Authorization"], ["package-room", "Package room"]]], ["WS-X90 › Monitor", [["conmon", "Continuous monitoring"], ["schedule", "Schedule"]]]];
   const NAVICON = { control: "controls", requirement: "requirements", evidence: "evidence", risk: "risks", issue: "findings", poam: "poam", asset: "inventory", campaign: "assessments", person: "people", program: "portfolio", plan: "ssps" };
   // [type, group label, register route for "N more", its label]
   const KG = [["cmd", "Commands"], ["page", "Pages"], ["control", "Controls", "controls", "Controls"], ["requirement", "Requirements", "requirements", "Requirements"], ["evidence", "Evidence", "evidence", "Evidence"],
     ["risk", "Risks", "risks", "Risks"], ["issue", "Operational issues", "findings", "Findings"], ["poam", "POA&M items", "poam", "POA&M"], ["asset", "Assets", "inventory", "Inventory"],
-    ["campaign", "Campaigns", "assessments", "Assessments"], ["person", "People", "people", "People"], ["program", "Programs", "portfolio", "Portfolio"], ["plan", "Plans", "ssps", "Plans"]];
+    ["campaign", "Campaigns", "assessments", "Assessments"], ["person", "People", "people", "People"], ["program", "Programs", "portfolio", "Programs"], ["plan", "Plans", "ssps", "Plans"]];
   const CMDS = [
     ["Create program", "Start the program setup", "plus", () => ({ go: pick("program-new") }), "Program setup"],
     ["Import an ITCSC", "Read a checklist into WS-X90's boundary", "upload", () => ({ go: pick("itcsc-import", "itcsc", "overview") }), "ITCSC import"],
@@ -149,7 +150,7 @@
     data.CAMPAIGNS.forEach(([n, st, k, a, b], i) => add("campaign", "", n, `${k} · ${st} · ${AK.md(a)} – ${AK.md(b)}`, i === 0 ? "Assessment" : k === "Cyber test" ? "Cyber T&E" : "Assessments", { go: i === 0 ? "campaign" : k === "Cyber test" ? "cyber-te" : "assessments" }, null, i === 0 ? "campaign" : null));
     for (const [n, r] of [...PEOPLE, ...MEMBERS.filter((m) => !PEOPLE.some(([p]) => p === m.n)).map((m) => [m.n, m.roles[0] ? `${RW[m.roles[0][0]]} · ${m.roles[0][1]}` : "Workspace member"])])
       add("person", "", n, r, "Person", () => (has("person-" + slug(n)) ? { go: "person-" + slug(n) } : { go: "people", panel: "a-people-person", id: n }));
-    for (const [c, n] of PROGS) add("program", c, n, c === "PRG-1090" ? "Platform IT · NSS · authorized with conditions" : "Program", c === "PRG-1090" ? "Overview" : "Portfolio", c === "PRG-1090" ? { go: "overview" } : { go: "portfolio", panel: "v7o-prog", id: c }, null, c === "PRG-1090" ? "overview" : null);
+    for (const [c, n] of PROGS) add("program", c, n, c === "PRG-1090" ? "Platform IT · NSS · authorized with conditions" : "Program", c === "PRG-1090" ? "Overview" : "Programs", c === "PRG-1090" ? { go: "overview" } : { go: "portfolio", panel: "v7o-prog", id: c }, null, c === "PRG-1090" ? "overview" : null);
     [["SSP", "System security plan", "Revision 3 · draft · 560 controls", "ssp", "SSP editor"], ["CP", "Contingency plan", "CP-2 · WS-X90", "plan-cp", "Plan"], ["IRP", "Incident response plan", "IR-8 · WS-X90", "plan-irp", "Plan"], ["CMP", "Configuration management plan", "CM-9 · WS-X90", "plan-cmp", "Plan"]]
       .forEach(([c, n, s, r, to]) => add("plan", c, n, s, to, () => ({ go: pick(r, "ssps") }), null, r));
     IDX = it; return it;
@@ -227,6 +228,10 @@
       group("Suggested commands", all.filter((x) => x.t === "cmd"), CMDS.length);
       total = kItems.length;
     } else {
+      // v2 F [A19]: a question is answered first from the prototype's data (an Answer row that opens what it counts); one it
+      // cannot answer says AI agents answer questions and opens them (PA.v2wire, mod-zzzz-v2-4wire.js).
+      const ans = PA.v2wire && PA.v2wire.ask ? PA.v2wire.ask(q0) : null;
+      if (ans) { group("Answer", [ans], 1); total += 1; }
       const qn = q0.replace(/[^a-z0-9]/g, ""), groups = [];
       for (const [t, label, reg, regL] of KG) {
         const hits = all.filter((x) => x.t === t).map((x) => [score(x, q0, qn, toks), x]).filter(([s]) => s > 0).sort((a, b) => b[0] - a[0]);
@@ -238,7 +243,7 @@
         const more = g.hits.length > 6 && g.reg ? { t: "more", name: `${fmt(g.hits.length - 6)} more in ${g.regL}`, sub: "", to: g.regL, act: { go: g.reg }, glyph: AK.i("down"), key: "more:" + g.t } : null;
         group(g.label, (g.t === "cmd" ? g.hits : g.hits.slice(0, 6)).map(([, x]) => x), g.hits.length, more);
       }
-      if (!groups.length) html = `<div class="v8w-k-none"><b>No results for “${esc(q0)}”</b><span>Try a control code (AC-2), an element (LRU-013), a person or a page.</span></div>`;
+      if (!groups.length && !ans) html = `<div class="v8w-k-none"><b>No results for “${esc(q0)}”</b><span>Try a control code (AC-2), an element (LRU-013), a person or a page.</span></div>`;
     }
     list.innerHTML = html;
     KP.querySelector(".v8w-k-n").textContent = q0 ? `${fmt(total)} result${total === 1 ? "" : "s"}` : "";
@@ -581,8 +586,9 @@
     sec("Workspace roles", tbl({ cols: ["Role", "What it can do", "Members", "Source"], label: "Workspace roles", panel: "v8w-role", pager: false,
       rows: WROLES.map((r) => ({ id: r.id, cells: [`<b>${esc(r.n)}</b>`, tr(r.does, 400), num(MEMBERS.filter((m) => m.wr === r.id).length), r.real ? `${DB} ${mu("Database")}` : `${mu("Proposed")} ${EX}`] })) }), { count: WROLES.length }),
     sec("RMF roles on WS-X90", tbl({ cols: ["Role", "Holds", "Today", "Period", "At a time"], label: "RMF roles on WS-X90", panel: "v8w-role", pager: false,
-      rows: PROLE.map(([k, l, ab, holds, one]) => { const hs = holders(k); return { id: k, cells: [`<b>${esc(ab === "ISSM" || ab === "ISSO" ? ab : l)}</b>${ab === "ISSM" ? ` ${mu("security manager")}` : ab === "ISSO" ? ` ${mu("security officer")}` : ab ? ` ${mu(esc(ab))}` : ""}`, tr(holds, 250), `<span class="v8w-avrow">${hs.length ? hs.map((n) => AK.owner(n)).join("") : AK.owner(null)}</span>`, mu("Since Nov 17 · open"), one ? `${pill("info", "One")} ${DB}` : mu("Several")] }; }) }), { count: PROLE.length }),
-    sec("What the database enforces", `<div class="v8w-rules">${RULES.map(([r, q]) => `<div class="v8w-rule">${gl("check")}<span><b>${esc(r)}</b>${q ? `<small>Refusal: “${esc(q)}”</small>` : ""}</span>${DB}</div>`).join("")}</div>`, { count: RULES.length }),
+      // v2 (settings budget): "One" is a word beside its DB mark, not a blue pill; the rules below are a plain list.
+      rows: PROLE.map(([k, l, ab, holds, one]) => { const hs = holders(k); return { id: k, cells: [`<b>${esc(ab === "ISSM" || ab === "ISSO" ? ab : l)}</b>${ab === "ISSM" ? ` ${mu("security manager")}` : ab === "ISSO" ? ` ${mu("security officer")}` : ab ? ` ${mu(esc(ab))}` : ""}`, tr(holds, 250), `<span class="v8w-avrow">${hs.length ? hs.map((n) => AK.owner(n)).join("") : AK.owner(null)}</span>`, mu("Since Nov 17 · open"), one ? `One ${DB}` : mu("Several")] }; }) }), { count: PROLE.length }),
+    sec("What the database enforces", `<div class="v8w-rules v2-perm-rules">${RULES.map(([r, q]) => `<div class="v8w-rule"><span><b>${esc(r)}</b>${q ? `<small>Refusal: “${esc(q)}”</small>` : ""}</span>${DB}</div>`).join("")}</div>`, { count: RULES.length }),
     AK.note("The Assessor workspace role is proposed. The other four roles, the RMF roles with today's holders and the rules are the database's."),
   );
   // Permissions: objects by actions, per role. Y/N/C: the database's rule; y/n/c: proposed; "-": doesn't apply.

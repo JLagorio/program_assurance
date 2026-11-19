@@ -1,0 +1,218 @@
+{
+ "home": {
+  "rings": 0,
+  "words": 0
+ },
+ "my-work": {
+  "rings": 1,
+  "words": 5
+ },
+ "review-queue": {
+  "rings": 0,
+  "words": 0
+ },
+ "portfolio": {
+  "rings": 0,
+  "words": 0
+ },
+ "products": {
+  "rings": 3,
+  "words": 0
+ },
+ "components": {
+  "rings": 9,
+  "words": 0
+ },
+ "suppliers": {
+  "rings": 10,
+  "words": 0
+ },
+ "frameworks": {
+  "rings": 3,
+  "words": 0
+ },
+ "integrations": {
+  "rings": 0,
+  "words": 0
+ },
+ "data-calls": {
+  "rings": 3,
+  "words": 0
+ },
+ "reports": {
+  "rings": 1,
+  "words": 0
+ },
+ "ai-drafts": {
+  "rings": 0,
+  "words": 0
+ },
+ "deadlines": {
+  "rings": 0,
+  "words": 0
+ },
+ "notifications": {
+  "rings": 0,
+  "words": 0
+ },
+ "event-log": {
+  "rings": 0,
+  "words": 0
+ },
+ "enclaves": {
+  "rings": 2,
+  "words": 0
+ },
+ "common-controls": {
+  "rings": 0,
+  "words": 0
+ },
+ "permissions": {
+  "rings": 0,
+  "words": 0
+ },
+ "overview": {
+  "rings": 0,
+  "words": 0
+ },
+ "getting-started": {
+  "rings": 0,
+  "words": 0
+ },
+ "itcsc": {
+  "rings": 0,
+  "words": 0
+ },
+ "composition": {
+  "rings": 0,
+  "words": 0
+ },
+ "inventory": {
+  "rings": 0,
+  "words": 0
+ },
+ "stigs": {
+  "rings": 0,
+  "words": 0
+ },
+ "interconnections": {
+  "rings": 4,
+  "words": 0
+ },
+ "ppsm": {
+  "rings": 5,
+  "words": 2
+ },
+ "sources": {
+  "rings": 6,
+  "words": 0
+ },
+ "baseline": {
+  "rings": 0,
+  "words": 4
+ },
+ "controls": {
+  "rings": 3,
+  "words": 10
+ },
+ "ssps": {
+  "rings": 3,
+  "words": 0
+ },
+ "requirements": {
+  "rings": 0,
+  "words": 11
+ },
+ "evidence": {
+  "rings": 0,
+  "words": 0
+ },
+ "checks": {
+  "rings": 1,
+  "words": 3
+ },
+ "policies": {
+  "rings": 11,
+  "words": 8
+ },
+ "assessments": {
+  "rings": 2,
+  "words": 0
+ },
+ "cyber-te": {
+  "rings": 3,
+  "words": 0
+ },
+ "findings": {
+  "rings": 1,
+  "words": 0
+ },
+ "poam": {
+  "rings": 10,
+  "words": 0
+ },
+ "risks": {
+  "rings": 11,
+  "words": 0
+ },
+ "threats": {
+  "rings": 1,
+  "words": 0
+ },
+ "posture": {
+  "rings": 0,
+  "words": 0
+ },
+ "resiliency": {
+  "rings": 0,
+  "words": 0
+ },
+ "sse": {
+  "rings": 5,
+  "words": 2
+ },
+ "traceability": {
+  "rings": 1,
+  "words": 1
+ },
+ "inheritance": {
+  "rings": 1,
+  "words": 0
+ },
+ "authorization": {
+  "rings": 1,
+  "words": 0
+ },
+ "package-room": {
+  "rings": 5,
+  "words": 0
+ },
+ "conmon": {
+  "rings": 14,
+  "words": 0
+ },
+ "schedule": {
+  "rings": 4,
+  "words": 0
+ },
+ "people": {
+  "rings": 4,
+  "words": 0
+ },
+ "campaign": {
+  "rings": 5,
+  "words": 0
+ },
+ "control-si2": {
+  "rings": 2,
+  "words": 1
+ },
+ "component-mc": {
+  "rings": 6,
+  "words": 3
+ },
+ "stigs-mission-computer-rhel9": {
+  "rings": 0,
+  "words": 0
+ }
+}

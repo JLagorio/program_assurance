@@ -1,0 +1,478 @@
+[
+ {
+  "file": "home-v2.png",
+  "route": "home",
+  "landed": "home",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "getting-started-v2.png",
+  "route": "after-getting-started",
+  "landed": "getting-started",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "my-work-v2.png",
+  "route": "my-work",
+  "landed": "my-work",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "review-queue-v2.png",
+  "route": "review-queue",
+  "landed": "review-queue",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "schedule-v2.png",
+  "route": "schedule",
+  "landed": "schedule",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "notifications-v2.png",
+  "route": "notifications",
+  "landed": "notifications",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "reports-v2.png",
+  "route": "reports",
+  "landed": "reports",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "ai-drafts-v2.png",
+  "route": "ai-drafts",
+  "landed": "ai-drafts",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "tests-index-v2.png",
+  "route": "checks",
+  "landed": "checks",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "test-page-v2.png",
+  "route": "checks",
+  "landed": "checks",
+  "opened": false,
+  "errors": []
+ },
+ {
+  "file": "controls-index-v2.png",
+  "route": "controls",
+  "landed": "controls",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "control-record-v2.png",
+  "route": "control-si2",
+  "landed": "control-si2",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "frameworks-v2.png",
+  "route": "frameworks",
+  "landed": "frameworks",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "audits-index-v2.png",
+  "route": "assessments",
+  "landed": "assessments",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "audit-record-v2.png",
+  "route": "campaign",
+  "landed": "campaign",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "evidence-index-v2.png",
+  "route": "evidence",
+  "landed": "evidence",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "evidence-record-v2.png",
+  "route": "evidence",
+  "landed": "evidence",
+  "opened": true,
+  "errors": []
+ },
+ {
+  "file": "policies-index-v2.png",
+  "route": "policies",
+  "landed": "policies",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "policy-record-v2.png",
+  "route": "policies",
+  "landed": "policies",
+  "opened": true,
+  "errors": []
+ },
+ {
+  "file": "policy-editor-v2.png",
+  "route": "policy-editor",
+  "landed": "policy-editor",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "integrations-gallery-v2.png",
+  "route": "integrations",
+  "landed": "integrations",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "integration-drawer-v2.png",
+  "route": "integrations",
+  "landed": "integrations",
+  "opened": true,
+  "errors": []
+ },
+ {
+  "file": "evidence-sources-v2.png",
+  "route": "sources",
+  "landed": "sources",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "people-register-v2.png",
+  "route": "people",
+  "landed": "people",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "person-drawer-v2.png",
+  "route": "people",
+  "landed": "people",
+  "opened": true,
+  "errors": []
+ },
+ {
+  "file": "access-reviews-v2.png",
+  "route": "people-access",
+  "landed": "people-access",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "access-review-v2.png",
+  "route": "people-access",
+  "landed": "people-access",
+  "opened": true,
+  "errors": []
+ },
+ {
+  "file": "inventory-v2.png",
+  "route": "inventory",
+  "landed": "inventory",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "scope-changes-v2.png",
+  "route": "inventory-changes",
+  "landed": "inventory-changes",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "component-record-v2.png",
+  "route": "component-mc",
+  "landed": "component-mc",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "role-task-sets-v2.png",
+  "route": "people-task-sets",
+  "landed": "people-task-sets",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "risk-register-v2.png",
+  "route": "risks",
+  "landed": "risks",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "risk-record-v2.png",
+  "route": "risks",
+  "landed": "risks",
+  "opened": true,
+  "errors": []
+ },
+ {
+  "file": "findings-deadlines-v2.png",
+  "route": "findings",
+  "landed": "findings",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "poam-tracker-v2.png",
+  "route": "poam",
+  "landed": "poam",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "suppliers-index-v2.png",
+  "route": "suppliers",
+  "landed": "suppliers",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "supplier-record-v2.png",
+  "route": "suppliers",
+  "landed": "suppliers",
+  "opened": true,
+  "errors": []
+ },
+ {
+  "file": "package-room-trust-v2.png",
+  "route": "package-room",
+  "landed": "package-room",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "data-calls-questionnaires-v2.png",
+  "route": "data-calls",
+  "landed": "data-calls",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "overview-v2.png",
+  "route": "overview",
+  "landed": "overview",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "composition-v2.png",
+  "route": "composition",
+  "landed": "composition",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "baseline-v2.png",
+  "route": "baseline",
+  "landed": "baseline",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "requirements-v2.png",
+  "route": "requirements",
+  "landed": "requirements",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "ssps-v2.png",
+  "route": "ssps",
+  "landed": "ssps",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "ssp-v2.png",
+  "route": "ssp",
+  "landed": "ssp",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "program-new-v2.png",
+  "route": "program-new",
+  "landed": "program-new",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "itcsc-v2.png",
+  "route": "itcsc",
+  "landed": "itcsc",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "interconnections-v2.png",
+  "route": "interconnections",
+  "landed": "interconnections",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "ppsm-v2.png",
+  "route": "ppsm",
+  "landed": "ppsm",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "stigs-v2.png",
+  "route": "stigs",
+  "landed": "stigs",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "stig-record-v2.png",
+  "route": "stigs-mission-computer-rhel9",
+  "landed": "stigs-mission-computer-rhel9",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "threats-v2.png",
+  "route": "threats",
+  "landed": "threats",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "posture-v2.png",
+  "route": "posture",
+  "landed": "posture",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "resiliency-v2.png",
+  "route": "resiliency",
+  "landed": "resiliency",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "sse-v2.png",
+  "route": "sse",
+  "landed": "sse",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "traceability-v2.png",
+  "route": "traceability",
+  "landed": "traceability",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "inheritance-v2.png",
+  "route": "inheritance",
+  "landed": "inheritance",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "cyber-te-v2.png",
+  "route": "cyber-te",
+  "landed": "cyber-te",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "authorization-v2.png",
+  "route": "authorization",
+  "landed": "authorization",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "conmon-v2.png",
+  "route": "conmon",
+  "landed": "conmon",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "portfolio-v2.png",
+  "route": "portfolio",
+  "landed": "portfolio",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "products-v2.png",
+  "route": "products",
+  "landed": "products",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "components-v2.png",
+  "route": "components",
+  "landed": "components",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "settings-v2.png",
+  "route": "deadlines",
+  "landed": "deadlines",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "event-log-v2.png",
+  "route": "event-log",
+  "landed": "event-log",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "enclaves-v2.png",
+  "route": "enclaves",
+  "landed": "enclaves",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "common-controls-v2.png",
+  "route": "common-controls",
+  "landed": "common-controls",
+  "opened": null,
+  "errors": []
+ },
+ {
+  "file": "permissions-v2.png",
+  "route": "permissions",
+  "landed": "permissions",
+  "opened": null,
+  "errors": []
+ }
+]

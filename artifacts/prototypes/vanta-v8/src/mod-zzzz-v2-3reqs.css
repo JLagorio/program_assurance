@@ -1,0 +1,21 @@
+/* Prototype v2, agent F (v2f-): a requirement's chain, one component of its preview on the Requirements page. */
+.v2f-chain { padding: 6px 14px; }
+.v2f-sts { list-style: none; margin: 0; padding: 0; }
+.v2f-st { position: relative; display: grid; grid-template-columns: 14px minmax(0, 1fr); gap: 10px; padding-block: 8px; }
+.v2f-st::before { content: ""; position: absolute; inset-inline-start: 6px; inset-block: 22px -6px; width: 1px; background: var(--line-strong); }
+.v2f-st:last-child::before { display: none; }
+.v2f-dot { box-sizing: border-box; width: 9px; height: 9px; border-radius: 50%; background: var(--ink-2); margin-block-start: 6px; margin-inline-start: 2px; position: relative; z-index: 1; }
+.v2f-st.gap .v2f-dot { background: var(--canvas, #fff); border: 1.5px solid var(--ink-4); }
+.v2f-sb { min-width: 0; }
+.v2f-sh { display: flex; align-items: baseline; gap: 8px; font-size: 14px; line-height: 20px; }
+.v2f-sh b { font-weight: 600; }
+.v2f-ct { color: var(--ink-3); font-size: 12px; }
+.v2f-li { display: flex; align-items: center; gap: 8px; padding-block: 4px; font-size: 13px; line-height: 18px; min-width: 0; }
+.v2f-li[data-panel] { cursor: pointer; }
+.v2f-li[data-panel]:hover .x { text-decoration: underline; }
+.v2f-li[data-panel]:focus-visible { outline: 2px solid var(--brand, #2f5bea); outline-offset: 1px; border-radius: 4px; }
+.v2f-li .x { flex: 1; min-width: 0; overflow-wrap: anywhere; color: var(--ink); }
+.v2f-li .e { color: var(--ink-3); font-size: 12px; white-space: nowrap; display: inline-flex; gap: 6px; align-items: center; }
+.v2f-ld { flex: none; }
+.v2f-none { margin: 2px 0 0; color: var(--ink-3); font-size: 13px; line-height: 18px; }
+@media (max-width: 600px) { .v2f-li { flex-wrap: wrap; } .v2f-li .e { white-space: normal; flex-wrap: wrap; } }

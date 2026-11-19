@@ -1,0 +1,24 @@
+
+pill:bad: 16 distinct words
+High (4) | Critical (3) | Blocked (2) | N high (1) | Open CVE (1) | Counterfeit alert (1) | Needs answers (1) | MOU · Expired (1) | Not registered (1) | Past cadence (1) | Other than satisfied (1) | Changes requested (1) | Overdue (1) | Sent back (1) | Not met (1) | N past due (1)
+
+pill:none: 36 distinct words
+Planned (6) | In review (4) | In progress (4) | Not started (3) | Cancelled (2) | No evidence (2) | Not assessed (2) | Draft (2) | Low (2) | Ready (2) | On version N (1) | Offer waiting (1) | Due Jan N, N (1) | Due Mar N, N (1) | Due Feb N, N (1) | Due Jun N, N (1) | Reference (1) | Drafting (1) | Off (1) | ISA · Draft (1) | Not required (1) | Pending (1) | Not listed (1) | Temporary (1) | Validating (1) | Queued (1) | No requirement (1) | Review (1) | No document (1) | Active (1) | Proposed (1) | Reassess by Dec N (1) | Not scheduled (1) | N to review (1) | Draft results (1) | IATT (1)
+
+pill:ok: 17 distinct words
+Published (2) | On (2) | Current (2) | Satisfied (2) | In WS-XN's stack (1) | Approved and signed (1) | ISA · Signed (1) | MOA · Signed (1) | Green (1) | Registered (1) | OK (1) | Approved (1) | Decided (1) | Met (1) | Up to date (1) | Published · frozen (1) | Completed (1)
+
+pill:warn: 9 distinct words
+Moderate (4) | N behind (2) | Partially satisfied (2) | Due soon (2) | Due Nov N · in Nd (1) | DMSMS notice (1) | Yellow (1) | Partly met (1) | ATO with conditions (1)
+
+text:amber: 11 distinct words
+DATE · in N days (4) | DATE · in Nd (2) | ATO with conditions (2) | N behind (1) | → N.N.N (1) | → N.N (1) | N (1) | MR (1) | N of N (1) | N waits (1) | Due DATE · in N days (1)
+
+text:blue: 37 distinct words
+Shown in SSP section N (2) | N not in WS-XN (1) | Page (1) | SSP N · suggestions in the SSP editor (1) | Evidence · proposed links (1) | POA&M · N items (1) | STIG checklist · Maintenance Laptop (1) | ITCSC import · WS-XN (1) | Customer A data call · answers (1) | Requirements · drafts (1) | Open findings (1) | Open STIG checklists (1) | Open POA&M (1) | Open program (1) | Controls (1) | Version history (1) | WS-XN Tailored Security Baseline (1) | People (1) | Open (1) | Adopt the N proposed deadlines set by Jo (1) | N subsystems and N elements (1) | N of N AF AO boundaries (1) | SSP N, figure N, drawn from the system t (1) | Open the baseline (1) | Assign an organization (1) | ↑ VNRN (1) | How deadlines are set (1) | Evidence sources (1) | PR (1) | AB (1) | Edit (1) | Schedule (1) | Traceability (1) | Vol. N: cyber resiliency (1) | Open package room (1) | Checks compare the system against its ba (1) | Each run is a task in Schedule (1)
+
+text:green: 4 distinct words
+Import or complete the ITCSC · version N (1) | Catalog and roles (1) | Load NIST SP N-N Rev N.N.N · N,N active  (1) | Record WS-XN's roles · AO R. Calloway, l (1)
+
+text:red: 14 distinct words
+DATE · N days ago (4) | DATE · Nd late (3) | Due DATE · N days ago (2) | WS-XN: N import, failed (1) | · N conflicts (1) | · N conflict (1) | Block N.N is in SSP N since DATE (1) | N interfaces since approval (1) | N added since: Ground support telemetry  (1) | Yes with SIPRNet reachback (1) | WS-XN's system record holds no rationale (1) | N (1) | SECRET (1) | DATE · Nd past cadence (1)

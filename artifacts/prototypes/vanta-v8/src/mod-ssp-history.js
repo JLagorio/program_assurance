@@ -61,6 +61,10 @@
   const UI = { sel: null, compare: false, cmpFrom: "r2", cmpTo: null, named: false, show: true, folds: new Set(), fams: new Set(), det: new Set(), names: new Map(), restoreSrc: new WeakMap(), sheet: false, pop: false, jump: null, hit: -1 };
   const RV = { state: "draft", comment: "", err: false, blocker: false, asDraft: false, at: null, key: null, summary: null };
   const inReview = () => RV.state === "submitted" || RV.state === "approved";
+  // v2 C2 (B5): the review state is written to the shared state, so My work, the Review queue and Authorization read the same
+  // thing this page shows; a reload or another screen's redraw keeps it (PA.v2hubs restores it, PA.v2.reset clears it).
+  const pubRV = () => { const V2 = PA.v2; if (!V2) return; V2.set("ssp.rev3", { state: RV.state, at: RV.at, asDraft: RV.asDraft, comment: RV.comment, key: RV.key, day: (RV.at || D.now()).slice(0, 10), when: RV.at ? U.when(RV.at) : "" }); };
+  PA.sspReview = { restore: (o) => { if (o && o.state) Object.assign(RV, { state: o.state, at: o.at || null, asDraft: !!o.asDraft, comment: o.comment || RV.comment, key: o.key || null }); else Object.assign(RV, { state: "draft", at: null, asDraft: false, key: null }); } };
 
   // ——— The version model: a state is a map of target ("c:CODE" or "s:ID") → value; versions apply effects ———
   const tKind = (t) => t.slice(0, 1), tId = (t) => t.slice(2);
@@ -505,6 +509,8 @@
   }
 
   // ——— ssp-review: submit revision 3 for review ———
+  // v2 C2 (B11): a readiness fix opens the editor at the section or control it names, scrolled to and focused there.
+  const atEditor = (at) => (at ? `data-v2go="ssp" data-v2q="${esc(JSON.stringify({ at }))}"` : "");
   const k7ok = () => !!(D.system.rationale && String(D.system.rationale).trim()) || ((D.sec("s2") || {}).text || []).some((x) => String(x).trim()) || D.session.some((e) => e.at === "s2" && (e.kind === "accept" || e.kind === "edit"));
   const btnize = (html, map) => Object.keys(map).reduce((acc, label) => acc.replace(new RegExp(`<span class="btn sm( ink)?">${label}</span>`), (m, ink) => `<button type="button" class="btn sm${ink || ""}" data-sh-act="${map[label]}">${label}</button>`), html);
   const aid = (who) => `<p class="sh-aid">${EXB} Walkthrough aid: these buttons play ${esc(who)}'s part.</p>`;
@@ -517,7 +523,7 @@
     if (RV.state === "approved") {
       const blocked = RV.asDraft && !k7ok();
       return AK.pendingVersion({ created: `Revision 3 · submitted ${U.when(RV.at)}`, requester: ME, approvers: [{ who: ISSM, state: "approved", when: TODAY_MD }, { who: AO, state: "sent", when: TODAY_MD }] }).replace('<span class="ak-link">View</span>', view)
-        + (blocked ? AK.banner({ tone: "bad", text: `<b>${esc(AO)} can't sign yet.</b> The categorization has no rationale, and eMASS refuses an SSP without one. <button type="button" class="sh-link" data-go="ssp">Fix in the editor</button>` }) : "")
+        + (blocked ? AK.banner({ tone: "bad", text: `<b>${esc(AO)} can't sign yet.</b> The categorization has no rationale, and eMASS refuses an SSP without one. <button type="button" class="sh-link" data-go="ssp" ${atEditor("s2")}>Fix in the editor</button>` }) : "")
         + btnize(AK.awaiting(AO, ["Sign"]), { Sign: "sign" }) + aid(AO);
     }
     if (RV.state === "changes") return AK.reasonCard({ question: "Changes requested", reason: "Draft the categorization rationale in section 2 before this goes to the AO; the rest reads well.", who: `${ISSM}, ISSM`, when: TODAY_MD }) + `<p class="sh-aid">${EXB} The ISSM's decision and its reason are a walkthrough aid.</p>`;
@@ -558,7 +564,7 @@
     const sev = { high: "High", medium: "Medium", low: "Low" };
     const li = (x) => `<li class="${x.blk ? "blk" : x.done ? "done" : ""}">${h.gl(x.blk ? "diamond" : x.done ? "check" : x.k.sev === "low" ? "info" : "clock")}
       <div class="sh-rd-b"><div class="sh-rd-t"><b>${esc(x.title)}</b>${x.blk ? `<span class="sh-rd-tag bad">Blocks submission</span>` : x.done ? `<span class="sh-rd-tag ok">Resolved this session</span>` : `<span class="sh-rd-tag">${sev[x.k.sev] || ""}</span>`}</div><p>${esc(x.blk ? x.k.detail + " eMASS requires one, so this blocks submission." : x.k.detail)}</p></div>
-      ${x.done ? "" : `<button type="button" class="btn sm" data-go="ssp">${esc(x.action)}</button>`}</li>`;
+      ${x.done ? "" : `<button type="button" class="btn sm" data-go="ssp" ${atEditor(x.k.at || x.k.codes[0])}>${esc(x.action)}</button>`}</li>`;
     return AK.card(`<div class="sh-card-h"><h2>Readiness</h2><span class="sh-cnt">${nb ? `<b class="sh-bad">${plural(nb, "item")} blocks submission</b> · ` : ""}${plural(nw, "warning")}</span></div><ul class="sh-rd">${items.map(li).join("")}</ul>`, { cls: RV.blocker && !ok7 ? "sh-rd-card on" : "sh-rd-card" });
   }
   function reviewCommentHtml() {
@@ -582,7 +588,7 @@
     const title = s === "submitted" ? "Revision 3 is with the ISSM" : s === "approved" ? "Revision 3 is with the authorizing official" : "Submit revision 3 for review";
     const started = (D.revisions.find((r) => r.v === 3) || {}).started;
     const actions = locked ? `<button type="button" class="btn sm" data-sh-hist="" data-sh-v="${esc(RV.key || "")}" data-go="ssp-history">${AK.i("history")}Version history</button><button type="button" class="btn sm" data-sh-act="withdraw">Withdraw submission</button>` : `<button type="button" class="btn ink" data-sh-act="submit">${AK.i("send")}Submit for review</button>`;
-    const blocker = RV.blocker && !locked && !k7ok() ? `<div class="sh-blocker" tabindex="-1">${AK.banner({ tone: "bad", text: `<b>The categorization has no rationale.</b> eMASS refuses an SSP without one, so the AO can't sign revision 3 until section 2 has it. Submitting anyway sends the draft to the ISSM only; the AO step stays blocked. <span class="sh-bl-a"><button type="button" class="btn sm" data-sh-act="submit-draft">Submit anyway as a draft for ISSM review</button><button type="button" class="btn sm" data-go="ssp">Fix in the editor</button></span>` })}</div>` : "";
+    const blocker = RV.blocker && !locked && !k7ok() ? `<div class="sh-blocker" tabindex="-1">${AK.banner({ tone: "bad", text: `<b>The categorization has no rationale.</b> eMASS refuses an SSP without one, so the AO can't sign revision 3 until section 2 has it. Submitting anyway sends the draft to the ISSM only; the AO step stays blocked. <span class="sh-bl-a"><button type="button" class="btn sm" data-sh-act="submit-draft">Submit anyway as a draft for ISSM review</button><button type="button" class="btn sm" data-go="ssp" ${atEditor("s2")}>Fix in the editor</button></span>` })}</div>` : "";
     const comment = locked ? AK.card(`<div class="ak-rail-t">Review comment</div>${AK.comment({ who: ME, role: "Security engineer", when: U.when(RV.at), text: esc(RV.comment) })}`) : reviewCommentHtml();
     const note = AK.note("The section bullets of the summary, the approval dates and the ISSM's decisions are invented; the six control changes, the checks, the roles and the revision dates are WS-X90's.");
     return `<div class="sh-rv"><header class="sh-top">${AK.back("Back to editing", "ssp")}<div class="sh-top-t"><h1>${esc(title)}</h1><div class="sh-top-s">${esc(D.doc.title)} · Revision 3 · ${locked ? "In review, locked" : "Draft"}${started ? " · started " + esc(AK.md(started)) : ""}</div></div><div class="sh-acts">${actions}</div></header>
@@ -595,6 +601,7 @@
     RV.state = "submitted"; RV.asDraft = !k7ok(); RV.blocker = false; RV.at = D.now();
     D.log({ kind: "submit", what: RV.asDraft ? "Submitted as a draft for ISSM review" : "Submitted for ISSM review" });
     RV.key = "se" + (D.session.length - 1);
+    pubRV();
     rerender('[data-sh-act="approve"]', false, "top");
     toast(`Submitted for review. ${ISSM} is emailed.`);
   }
@@ -786,19 +793,19 @@
       case "submit": submit(false); break;
       case "submit-draft": submit(true); break;
       case "approve":
-        RV.state = "approved";
+        RV.state = "approved"; pubRV();
         D.log({ who: ISSM, kind: "submit", what: "ISSM approved revision 3" });
         rerender('[data-sh-act="sign"]', false, "top");
         toast(`${ISSM} approved. The request moved to ${AO}, the authorizing official.`);
         break;
       case "changes":
-        RV.state = "changes";
+        RV.state = "changes"; pubRV();
         D.log({ who: ISSM, kind: "submit", what: "ISSM requested changes" });
         rerender('[data-sh-act="submit"]', false, "top");
         toast(`${ISSM} requested changes. Revision 3 is a draft again.`);
         break;
       case "withdraw":
-        RV.state = "draft";
+        RV.state = "draft"; pubRV();
         D.log({ kind: "submit", what: "Withdrew the review request" });
         rerender('[data-sh-act="submit"]', false, "top");
         toast("Submission withdrawn. Revision 3 is a draft again.");

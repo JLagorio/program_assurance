@@ -1,0 +1,14 @@
+SUBMIT EMPTY → dialog closed ; toast: Added, pending review | modal text: 
+DROPZONE: null
+DROP → null 
+SUBMIT → null
+ALL count before/after: 368 368 | hash #evidence
+MAIN: Evidence Add evidence All 368 Owned by me 27 Requires my approval 0 Pending review 88 Needs revision 54 More 1 ⌄ Search evidence Kind ⌄ Status ⌄ Latest version ⌄ Owner ⌄ More filters 1 ⌄ + Add filter Reset view ▥ ⚙ Evidence Kind Owner Row actions Time source comparison test report, LRU-005 60-second cadence with injected 1.5-second offset Test record IS Ingrid Solberg Maintenance session teardown verification test report, LRU-014 and LRU-007 Test record JB Joel Barrantes Pinned toolchain record 
+{"step":1,"action":"go #evidence","why":"","hash":"evidence","h1":"","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":2,"action":"click \"Add evidence\"","why":"","effect":"page changed in place","hash":"evidence","h1":"","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":3,"action":"click \"Upload a file\"","why":"","effect":"dialog: Upload ; page changed in place","hash":"evidence","h1":"","modal":"Upload","panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":4,"action":"click \"Add evidence\"","why":"submit with nothing chosen","effect":"dialog closed ; toast: Added, pending review","hash":"evidence","h1":"","modal":null,"panel":null,"toasts":"Added, pending review","otherDlg":[],"notDrawn":false}
+{"step":5,"action":"click \"Drop a file\"","why":"choose a file","result":"NOT FOUND","hash":"evidence","h1":"","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":6,"action":"click \"Add evidence\"","why":"submit","result":"NOT FOUND","hash":"evidence","h1":"","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":6,"shot":"/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/v2/R/flows2/shots/j4b-03-after-add.png"}
+errors: []

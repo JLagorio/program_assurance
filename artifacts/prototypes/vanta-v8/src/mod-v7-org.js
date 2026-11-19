@@ -63,7 +63,7 @@
   function tbl({ cols, rows, total, panel = "", label = "", cls = "", pager = true, empty = "Nothing matches this view." }) {
     const body = rows.length ? rows.map((r) => {
       const pk = r.panel !== undefined ? r.panel : panel;
-      const attrs = r.go ? ` data-go="${esc(r.go)}"` : pk ? ` data-panel="${esc(pk)}" data-id="${esc(r.id == null ? "" : r.id)}"` : "";
+      const attrs = (r.go ? ` data-go="${esc(r.go)}"` : pk ? ` data-panel="${esc(pk)}" data-id="${esc(r.id == null ? "" : r.id)}"` : "") + (r.prog ? ` data-v2prog="${esc(r.prog)}"` : "");
       return `<tr${r.go || pk ? ' tabindex="0"' : ""}${r.cls ? ` class="${r.cls}"` : ""}${attrs}>${r.raw || r.cells.map((c, i) => `<td${i ? "" : ' class="nm"'}>${c}</td>`).join("")}</tr>`;
     }).join("") : `<tr class="v7o-empty"><td colspan="${cols.length}">${ring(empty)}</td></tr>`;
     const shown = rows.filter((r) => !r.grp).length;
@@ -107,28 +107,40 @@
     : p.libs ? two(num(plural(p.libs.length, "component")), pill("warn", "1 behind")) : mu("Nothing shared");
   const progCell = (p) => `<span class="v7o-inl" title="${esc(p.code)}"><b class="v7o-name v7o-tr" style="max-width:245px">${esc(p.n)}</b>${p.st === "Planned" ? tag("Planned") : ""}</span>`;
   const PF_F = { all: () => true, product: (p) => !!p.vars, late: (p) => days(p.gate[1]) < 0, noown: (p) => !p.own };
+  // v2 C2 (B6): the programs created in this session are listed with the rest (planned, nothing satisfied yet); a row opens the
+  // program's own page and makes it the current program.
+  const madeProgs = () => ((PA.v2hubs && PA.v2hubs.made()) || []).map((d) => ({ code: d.code, n: d.name, bl: BL[d.bl] ? d.bl : null, own: null, sp: d.sponsor || null, st: "Planned", c: [d.total || 0, 0, 0, 0, 0, 0, d.total || 0], d: 0,
+    gate: ["Sign the ITCSC", "2026-12-01", "Not started"], go: "program-start", goL: "Open program", made: true, vars: d.start === "product" ? [[d.systems && d.systems[0] ? d.systems[0].code : d.code, d.product === "X800" ? "X800 Missile" : d.product, 2, 2]] : null }));
+  const allProgs = () => madeProgs().concat(PROGS);
   S.portfolio = () => {
     const f = PF_F[qv("pf", "all")] || PF_F.all;
-    const rows = [];
+    const rows = [], PROGS = allProgs();
     for (const bl of ["AD", "MS", null]) {
       const list = PROGS.filter((p) => p.bl === bl && f(p));
       if (!list.length) continue;
       const head = bl ? `<span class="v7o-grp-n">${esc(BL[bl].n)}</span>${mu(`${plural(PRODUCTS.filter((x) => x.bl === bl).length, "product")} · ${plural(PROGS.filter((p) => p.bl === bl).length, "program")}`)}${AK.owner(BL[bl].own)}`
         : `<span class="v7o-grp-n">No business line</span>${mu(plural(PROGS.filter((p) => !p.bl).length, "program"))}`;
       rows.push({ grp: true, cls: "v7o-grp", panel: bl ? "v7o-bl" : "", id: bl || "", raw: `<td colspan="6"><span class="v7o-grp-in">${head}</span></td>` });
-      for (const p of list) rows.push({ id: p.code, go: p.code === "PRG-1090" ? "overview" : "", cells: [progCell(p), share(p.c[1], p.c[0]), p.d ? `<span class="v7o-delta up">+${p.d} controls</span>` : mu("No change"), AK.owner(p.own), two(AK.due(p.gate[1], { prefix: false }), esc(p.gate[0]), 212), builtCell(p)] });
+      // v2 (A14, N08; ranking 6): the % with N of M and no ring; Next gate one plain date, with a red mark only when it has passed
+      // and the gate's name in its title; the change and "1 behind" are words, not pills.
+      for (const p of list) {
+        const late = days(p.gate[1]) < 0;
+        const gate = `<span class="v2-pf-gate${late ? " late" : ""}" title="${esc(p.gate[0])}${late ? ` · ${-days(p.gate[1])} days past` : ""}">${late ? `${gl("diamond")}<span class="v2-sr">Past due: </span>` : ""}<span class="num">${md(p.gate[1])}</span></span>`;
+        const built = p.vars ? `${num(plural(p.vars.length, "product"))}${p.vars.some((v) => v[2] < v[3]) ? ` ${mu("· 1 behind")}` : ""}` : p.libs ? `${num(plural(p.libs.length, "component"))} ${mu("· 1 behind")}` : mu("Nothing shared");
+        rows.push({ id: p.code, go: p.code === "PRG-1090" ? "overview" : p.made ? "program-start" : "", prog: p.code === "PRG-1090" || p.made ? p.code : "", cells: [progCell(p), `<span class="v2-pf-sat"><b class="num">${pct(p.c[1], p.c[0])}%</b>${mu(`<span class="num">${fmt(p.c[1])} of ${fmt(p.c[0])}</span>`)}</span>`, p.d ? `<span class="num">+${p.d} controls</span>` : mu("No change"), AK.owner(p.own), gate, built] });
+      }
     }
     return h.page(
-      AK.indexHead({ title: "Portfolio", desc: `The workspace's ${PROGS.length} programs by business line, with where each stands today`,
-        actions: `${more("More portfolio actions", [["Create business line", 'data-modal="v7o-new-bl"'], ["Create product", 'data-modal="v7o-new-product"'], ["Export", toast("Portfolio exported (.csv)")]])}${btn("Create program", 'data-go="program-new"', true, false)}` }),
-      chips("pf", [["all", "All", PROGS.length], ["product", "Built from a product", 3], ["late", "Next gate past due", PROGS.filter(PF_F.late).length], ["noown", "No owner", PROGS.filter(PF_F.noown).length]]),
+      AK.indexHead({ title: "Programs",
+        actions: `${more("More portfolio actions", [["Create business line", 'data-modal="v7o-new-bl"'], ["Create product", 'data-modal="v7o-new-product"'], ["Export", toast("Programs exported (.csv)")]])}${btn("Create program", 'data-go="program-new"', true, false)}` }),
+      chips("pf", [["all", "All", PROGS.length], ["product", "Built from a product", PROGS.filter(PF_F.product).length], ["late", "Next gate past due", PROGS.filter(PF_F.late).length], ["noown", "No owner", PROGS.filter(PF_F.noown).length]]),
       filters("Search programs", ["Business line", "Owner", "Status"]),
       tbl({ cols: ["Program", "Controls satisfied", "Since Nov 13", "Owner", "Next gate", "Built from"], rows, total: PROGS.filter(f).length, panel: "v7o-prog", cls: "v7o-tight", label: "Programs" }),
       AK.note("The reminders in a program's panel are proposed. Controls satisfied is each program's Nov 17 snapshot, the change counts from Nov 13 (the first snapshot), Owner is the recorded system owner and Next gate the earliest gate not yet passed."),
     );
   };
   P["v7o-prog"] = (code) => {
-    const p = PROGS.find((x) => x.code === code) || PROGS[3];
+    const p = allProgs().find((x) => x.code === code) || PROGS[3];
     const late = days(p.gate[1]) < 0;
     const parts = statusParts(p.c);
     const built = p.vars ? AK.card(`${ch("Built from", p.vars.length)}${p.vars.map(([sys, prod, v, latest]) => li(gl(v < latest ? "clock" : "check"), `<b>${esc(sys)}</b> · ${esc(prod)} version ${v}`, v < latest ? pill("warn", "1 behind") : pill("ok", "Current"))).join("")}
@@ -212,7 +224,7 @@
     const vars = x.cfgs.filter((c) => c[4]);
     const behind = vars.filter((c) => c[6] < x.v);
     const structure = x.code === "X800" ? AK.card(`${ch("Structure", X800.els.length)}<div class="v7o-els">${X800.els.map(([cd, n, type, parent, lib, libver, cfgs, ctl, sat]) => li(`<span class="ak-code">${esc(cd)}</span>`, `${parent ? "" : "<b>"}${esc(n)}${parent ? "" : "</b>"} ${mu(esc(KINDN[type] || type))}`, cd === "GS-MC" ? pill("warn", "Library v1 · 1 behind") : ctl ? `${sat} of ${ctl} satisfied` : cfgs.length < 3 ? `Configuration ${cfgs.join(", ")}` : "")).join("")}</div>`) : "";
-    return { label: "Product preview", body: pan({ title: x.n, chip: pill("ok", `Version ${x.v} · Published`), actions: btn("Create configuration", toast("Configuration drafted")),
+    return { label: "Product preview", body: pan({ title: x.n, chip: pill("ok", `Version ${x.v} · Published`), actions: btn("Create configuration", toast("Not saved: Create configuration isn't wired in this prototype")),
       facts: [["Business line", esc(BL[x.bl].n)], ["Owner", AK.owner(BL[x.bl].own)], ["Elements", num(x.els)], ["Versions", num(x.vs)]] },
       behind.length ? `<div class="v7o-nudge">${gl("clock")}<span>${behind.map((c) => `${esc(c[5])}'s ${esc(c[4])}`).join(", ")} is on version ${behind[0][6]}. Version ${x.v} keeps what the program changed.</span>${btn("Remind Customer A", toast("Reminder sent to Customer A's ISSO, Nadia Fournier"))}${btn(`Take version ${x.v}`, 'data-modal="v7o-take-product"', true)}</div>` : "",
       AK.card(`${ch("Product assessment", null, pill("ok", "Published"))}${kv([["Assessment", esc(x.a[0])], ["Assessor", AK.owner(x.a[1])], ["Completed", md(x.a[2])], ["In every configuration", `${frac(x.every, x.ctl)}`], ["Differ by configuration", num(x.differs)]])}${x.draft ? li(gl("ring"), `${esc(x.draft)} ${mu("Draft")}`) : ""}`),
@@ -238,7 +250,8 @@
   // COMP: [name, set, version, state, owner, type, products, programs, consumers behind, modified, claimed, determined, satisfied,
   // partially, other than, offers open, open CVEs, to review, business line], from component_rows.
   const COMP_F = { all: () => true, published: (c) => c[3] === "published", draft: (c) => c[3] !== "published", assessed: (c) => c[11] > 0, behind: (c) => c[8] > 0, noown: (c) => !c[4], cve: (c) => c[16] > 0 };
-  const compSat = (c) => (c[11] ? frac(c[12], c[10]) : c[10] ? ring("Not assessed") : mu("No claims"));
+  // v2 F [N08]: N of M alone in the row; the mini bar beside it said the same (23 gadgets on Components in the re-review).
+  const compSat = (c) => (c[11] ? `<span class="num">${fmt(c[12])} of ${fmt(c[10])}</span>` : c[10] ? ring("Not assessed") : mu("No claims"));
   const compUsed = (c) => (c[6] || c[7] ? num(`${c[6] ? plural(c[6], "product") + " · " : ""}${plural(c[7], "program")}`) : mu("Not used"));
   S.components = () => {
     const key = qv("comp", "all");
@@ -464,23 +477,28 @@
       { id: "s:3", cells: [`<span class="v7o-inl">${tr("6 open CAT III rules · RHEL 9 mission computing", 340)}${EX}</span>`, tag("CAT III"), "Oct 13", AK.due("2027-04-11", { prefix: false }), AK.owner(null)] },
     ], total: 3, panel: "v7o-dl-item", cls: "v7o-tight", label: "STIG rules at risk", pager: false }), { count: 3 });
   };
+  // v2 (A7; settings budget): Deadlines reads as settings, not a register. The two summary cards, the counted tabs, the At risk
+  // pills and the Items at risk tables are cut (the counts stay on Findings and POA&M); each group is one setting card of rules:
+  // the deadline, what it applies to, its days, On for one in use (the only pill) or Proposed in grey, and Edit.
+  const DL_GROUPS = [
+    ["Vulnerabilities", "ACAS results and IAVA notices, counted from import or release.", ["Vulnerabilities"], "findings", "Open findings"],
+    ["STIG", "Open rules in STIG checklists, counted from import.", ["STIG"], "stigs", "Open STIG checklists"],
+    ["Findings", "Operational issues, counted from the day each opens. Findings already use these four windows.", ["Findings"], "findings", "Open findings"],
+    ["POA&M, evidence, accounts", "Reminders before a milestone, the renewal period of accepted evidence and the access review cycle.", ["POA&M", "Evidence", "Accounts"], "poam", "Open POA&M"],
+  ];
+  const dlRule = (d) => `<div class="v2-rule" role="button" tabindex="0" data-panel="v7o-dl" data-id="${d[0]}" aria-label="${esc(d[1])}: ${d[4]} days"><span class="x"><b>${esc(d[1])}</b><small>${esc(d[3])} · recommended ${esc(d[5])} days · ${esc(d[6])}</small></span><span class="v2-rule-e"><b class="num v2-rule-v">${d[4]} days${d[0] === "mile" ? " before" : ""}</b>${d[8] === "In use" ? pill("ok", "On") : `<span class="v2-mu">Proposed</span>`}</span></div>`;
   function deadlines(cur) {
     const t = DL_TABS.find((x) => x[0] === cur);
-    const list = DLX.filter((d) => !t[2] || t[2].includes(d[2]));
-    const body = !t[2]
-      ? tbl({ cols: ["Deadline", "Applies to", "Target", "Recommended", "Owner", "At risk", "Status"], rows: list.map(dlRow), total: list.length, panel: "v7o-dl", cls: "v7o-tight", label: "Deadlines", pager: false })
-      : `<div class="v7o-slas">${list.map(slaCard).join("")}</div>${atRisk(t[2][0])}`;
-    const note = { deadlines: "Policy owners are proposed, from each role's duties, and so are the deadlines marked Proposed; the vulnerability and STIG counts at risk are invented, since the imports record totals and not each result's state. Findings already use their four windows.",
-      "deadlines-vuln": "The ACAS counts are the Oct 10 import's; whether each result is still open is not recorded, so their deadline status is invented. CVE-2024-6387 is WS-X90's.",
-      "deadlines-stig": "The split of the 29 open RHEL 9 rules by category, and so its deadline status, is invented; the checklist import is WS-X90's.",
-      "deadlines-findings": "Policy owners are proposed. The 44 open issues and their remediate-by dates are WS-X90's, counted from the day each opened.",
-      "deadlines-other": "The reminder window, the renewal period and the policy owners are proposed; the milestones, the access review task and the 368 artifacts are WS-X90's." }[cur];
-    return h.page(dlHead(), dlCards(), dlTabs(cur), body, AK.note(note));
+    const groups = DL_GROUPS.filter((g) => !t[2] || t[2].some((x) => g[2].includes(x)));
+    const cards = groups.map(([title, line, g, r, l]) => `<div class="ak-card v2-setcard"><div class="v2-setcard-h"><div><b>${esc(title)}</b><p>${esc(line)}</p></div>${lnk(l, `data-go="${r}"`)}</div><div class="v2-rules">${DLX.filter((d) => g.includes(d[2])).map(dlRule).join("")}</div></div>`).join("");
+    return h.page(dlHead(), AK.tabs(DL_TABS.map(([r, l]) => [l, null, r, r === cur]), "Deadline groups"), cards,
+      AK.note("Policy owners are proposed, from each role's duties, and so are the deadlines marked Proposed. The four finding windows are in use."));
   }
   for (const [r] of DL_TABS) S[r] = () => deadlines(r);
   P["v7o-dl"] = (id) => {
     const d = DLX.find((x) => x[0] === id) || DLX[10];
-    return { label: "Deadline preview", body: pan({ title: `${d[1]} deadline`, chip: d[8] === "In use" ? pill("ok", "In use") : pill("none", "Proposed"), actions: btn("Edit", `data-modal="v7o-dl-edit" data-id="${d[0]}"`, true),
+    // v2: the rows of Deadlines open this preview; Disable, which the v1 group cards carried, is its secondary beside Edit.
+    return { label: "Deadline preview", body: pan({ title: `${d[1]} deadline`, chip: d[8] === "In use" ? pill("ok", "In use") : pill("none", "Proposed"), actions: `${btn("Disable", `data-modal="ak-reason" data-id="${esc(`Disable the ${lc(d[1])} deadline|Open items keep their due dates. The reason, your name and the date go in the event log.`)}"`)}${btn("Edit", `data-modal="v7o-dl-edit" data-id="${d[0]}"`, true)}`,
         facts: [["Target", `<b class="num">${d[4]} days</b>`], ["Recommended", `${esc(d[5])} days`], ["Owner", AK.owner(d[6])]] },
       AK.card(kv([["Group", tag(d[2])], ["Applies to", esc(d[3])], ["In use by", esc(d[9])], ["At risk", riskCell(d)]])),
       d[2] === "Findings" ? `<div class="v7o-nudge">${gl("check")}<span>Findings' Remediate by already counts ${d[4]} days from the day an issue opens.</span>${btn("Open findings", 'data-go="findings"')}</div>` : "",
@@ -512,7 +530,8 @@
       AK.indexHead({ title: "Event log", desc: "Who did what to which record, and when, in WS-X90 since Jun 30. Times are UTC; entries never change.", actions: btn("Export CSV", 'data-modal="v7o-export-log"', false, false) }),
       AK.tabs(EV_TABS.map(([r, l, k]) => [l, EVCOUNT[k || "all"], r, r === cur]), "Event types"),
       filters("Search events", ["Who", "Action", "Record", `<span class="flt v7o-date">${AK.i("calendar")}Select date range</span>`]),
-      tbl({ cols: ["When", "Who", "Action", "Record", "Details"], rows: list.map(([e, i]) => ({ id: String(i), cells: [num(utc(e[0])), e[2] === "Daily job" ? sysChip("Daily job") : AK.owner(e[2]), `<span class="v7o-act">${gl(evGlyph(e[1]))}${esc(evType(e[1]))}</span>`, tr(e[3], 280), e[4] ? tr(e[4], 300) : mu("None given")] })), total: EVCOUNT[kind || "all"], panel: "v7o-event", cls: "v7o-tight", label: "Events" }),
+      // v2 (settings budget): the log is a plain list; the action is a word in ink, with no green, amber or red glyph before it.
+      tbl({ cols: ["When", "Who", "Action", "Record", "Details"], rows: list.map(([e, i]) => ({ id: String(i), cells: [num(utc(e[0])), e[2] === "Daily job" ? sysChip("Daily job") : AK.owner(e[2]), `<span class="v7o-act">${esc(evType(e[1]))}</span>`, tr(e[3], 280), e[4] ? tr(e[4], 300) : mu("—")] })), total: EVCOUNT[kind || "all"], panel: "v7o-event", cls: "v7o-tight", label: "Events" }),
       AK.note("The date range filter and the export format are proposed; every row is WS-X90's, read from activity events, evidence reviews, scanner ingestion jobs, package versions, the authorization decision, inheritance acceptances and the daily snapshot."),
     );
   }
@@ -527,12 +546,17 @@
 
   // ═════════════ 7. Enclaves and markings (all Example) ═════════════
   const mark = (e) => `<span class="v7o-mark ${e.banner}">${esc(e.text)}</span>`;
+  // v2 (A7; settings budget): three setting cards of rules. Enclaves: one row each, with its marking, where it runs and what it
+  // holds, and Chat On or Off (the only pills); You are here is a grey word. Markings: each rule On, then the preview of the CUI
+  // banner. Where AI drafting may run: one row a kind of drafting, the enclaves in words, Off as the pill.
+  const setCard = (title, line, body, action = "") => `<div class="ak-card v2-setcard"><div class="v2-setcard-h"><div><b>${esc(title)}</b>${line ? `<p>${esc(line)}</p>` : ""}</div>${action}</div>${body}</div>`;
+  const onOff = (on) => (on ? pill("ok", "On") : pill("none", "Off"));
   S.enclaves = () => h.page(
     AK.indexHead({ title: "Enclaves & markings", desc: "Workspaces separated by classification, and what each one allows", actions: btn("Add enclave", 'data-modal="v7o-enclave-new"', true, false) }),
-    tbl({ cols: ["Enclave", "Runs", "Holds", "AI drafting", "Chat", "Connectors"], rows: EN.map((e) => ({ id: e.id, cells: [`<span class="v7o-inl">${mark(e)}<b class="v7o-name">${esc(e.name)}</b>${e.id === "cui" ? pill("info", "You are here") : ""}</span>`, tr(e.deploy, 160), tr(e.programs, 150), tr(e.ai, 190), e.chat === "On" ? pill("ok", "On") : pill("none", "Off"), tr(e.connect, 170)] })), total: 3, panel: "v7o-enclave", cls: "v7o-tight", label: "Enclaves", pager: false }),
-    AK.section("Markings", `<div class="v7o-grid2">${AK.card(`${ch("CUI marking on every page and export")}<div class="v7o-doc"><div class="v7o-mark wide">CUI</div><div class="pg"><div class="v7o-ind">Controlled by: Program office<br>CUI category: CTI<br>Distribution statement: D<br>POC: Joel Barrantes, ISSM</div><span>(CUI) WS-X90 Sentinel Mission System · System security plan, SSP 3</span><span>(U) Section headings carry their own portion marks.</span></div><div class="v7o-mark wide">CUI</div></div>`)}
-      ${AK.card(`${ch("Marking rules", 6)}${[["check", "Banner at top and bottom of every page"], ["check", "Designation indicator on the first page of an export"], ["check", "Portion marks on exported paragraphs"], ["check", "Distribution statement D on exports"], ["clock", "Export-controlled (ITAR) warning, when set"], ["diamond", "A classified upload is blocked and reported as spillage"]].map(([g, t]) => li(gl(g), esc(t))).join("")}`)}</div>`),
-    AK.section("Where AI drafting may run", tbl({ cols: ["Drafting", "Unclassified", "CUI", "Classified"], rows: [["Data call answers", "ok"], ["Control implementation narratives", "ok"], ["Finding summaries", "ok"], ["Evidence reading", "warn"]].map(([t, b]) => ({ id: t, panel: "", cells: [esc(t), pill("ok", "Hosted model"), b === "ok" ? pill("ok", "In-enclave model") : pill("warn", "In-enclave, ISSM approves"), pill("none", "Off")] })), total: 4, cls: "v7o-tight v7o-static", label: "Where AI drafting may run", pager: false })),
+    setCard("Enclaves", "Where each workspace runs, what it holds and whether chat is allowed in it.", `<div class="v2-rules">${EN.map((e) => `<div class="v2-rule" role="button" tabindex="0" data-panel="v7o-enclave" data-id="${e.id}"><span class="x"><b class="v7o-inl">${mark(e)}${esc(e.name)}${e.id === "cui" ? ' <span class="v2-mu">You are here</span>' : ""}</b><small>${esc(e.deploy)} · holds ${esc(e.programs)} · AI drafting: ${esc(lc(e.ai))}</small></span><span class="v2-rule-e"><span class="v2-mu">Chat</span>${onOff(e.chat === "On")}</span></div>`).join("")}</div>`),
+    setCard("Markings", "What every page and export of the CUI enclave carries.", `<div class="v2-rules">${["Banner at top and bottom of every page", "Designation indicator on the first page of an export", "Portion marks on exported paragraphs", "Distribution statement D on exports", "Export-controlled (ITAR) warning, when set", "A classified upload is blocked and reported as spillage"].map((t) => `<div class="v2-rule"><span class="x"><b>${esc(t)}</b></span>${onOff(true)}</div>`).join("")}</div>
+      <div class="v2-setcard-b"><div class="v7o-doc"><div class="v7o-mark wide">CUI</div><div class="pg"><div class="v7o-ind">Controlled by: Program office<br>CUI category: CTI<br>Distribution statement: D<br>POC: Joel Barrantes, ISSM</div><span>(CUI) WS-X90 Sentinel Mission System · System security plan, SSP 3</span><span>(U) Section headings carry their own portion marks.</span></div><div class="v7o-mark wide">CUI</div></div></div>`),
+    setCard("Where AI drafting may run", "Each kind of drafting, by enclave. Nothing drafted applies without a person.", `<div class="v2-rules">${[["Data call answers", "In-enclave model"], ["Control implementation narratives", "In-enclave model"], ["Finding summaries", "In-enclave model"], ["Evidence reading", "In-enclave model, the ISSM approves each run"]].map(([t, c]) => `<div class="v2-rule"><span class="x"><b>${esc(t)}</b><small>Unclassified: hosted model · CUI: ${esc(lc(c))} · Classified: off</small></span>${onOff(true)}</div>`).join("")}</div>`),
     AK.note("Everything on this screen is a proposal: the three enclaves, their rules and the marking preview. Banner colours follow the DoD marking convention."),
   );
   P["v7o-enclave"] = (id) => {
@@ -547,11 +571,21 @@
   const ctlOf = (code) => (PA.SSP && PA.SSP.ctl(code)) || { t: code, cs: "not_assessed" };
   const satIn = (codes) => codes.filter((c) => ctlOf(c).cs === "satisfied").length;
   const CCP_AUTH = { idp: () => pill("none", "Not authorized"), lab: () => pill("ok", "Authorized"), cssp: () => pill("ok", "Accredited CSSP"), peo: () => pill("part", "With conditions") };
-  S["common-controls"] = () => h.page(
-    AK.indexHead({ title: "Common control providers", desc: "What WS-X90 inherits, and from whom, with each provider's own authorization", actions: btn("Add provider", 'data-modal="v7o-ccp-new"', true, false) }),
-    banner("warn", "<b>Corporate identity provider</b> has no authorization of its own: its AO approval of the RMF strategy has been blocked since Aug 21, 2025.", btn("Open program", 'data-panel="v7o-prog" data-id="PRG-1013"')),
-    filters("Search providers", ["Kind", "Authorization"]),
-    tbl({ cols: ["Provider", "Kind", "Satisfied in WS-X90", "Inherited by", "Authorization"], rows: CCP.map((c) => { const codes = ccpCodes(c); return { id: c.id, cells: [`<span class="v7o-inl"><b class="v7o-name">${esc(c.name)}</b>${c.real ? "" : EX}</span>`, tag(c.kind), frac(satIn(codes), codes.length), c.real ? `<span class="v7o-inl">WS-X90 · 15 controls${mu("since Jun 30")}</span>` : ring("Not offered yet"), CCP_AUTH[c.id]()] }; }), total: 4, panel: "v7o-ccp", cls: "v7o-tight", label: "Providers", pager: false }),
+  // v2 (A7; settings budget): one setting card listing the providers, a row each: its name, kind and what WS-X90 inherits from it
+  // in grey, its controls satisfied as a number (no bar) and its authorization in words. The banner is one grey line in the
+  // identity provider's row, with its Open program link; the filters for four rows are cut.
+  const CCP_WORD = { idp: "Not authorized", lab: "Authorized", cssp: "Accredited CSSP", peo: "Authorized with conditions" };
+  // v2 (H): the workspace's providers include its host systems (PA.v2host, mod-zzzz-v2-8host.js): a row each, with what it offers,
+  // which programs inherit from it and its own authorization; a row opens the provider's preview.
+  const ccpHost = (H) => h.page(
+    AK.indexHead({ title: "Host systems & providers", desc: "Host systems and common control providers, what each offers and which programs inherit from it", actions: btn("Add provider", 'data-modal="v7o-ccp-new"', true, false) }),
+    setCard("Providers", "A host system carries a program and offers it controls; a common control provider offers controls without carrying it. A program inherits the controls it takes, each changeable on its Host & providers page.",
+      `<div class="v2-rules">${H.workspace().map((p) => `<div class="v2-rule" role="button" tabindex="0" data-panel="v2h-prov" data-id="${esc(p.id)}"><span class="x"><b class="v7o-inl">${esc(p.name)}</b><small>${esc(p.kind)} · offers ${p.offered} controls · ${p.takers.length ? esc(p.takers.map((t) => `${t.name}: ${[t.inh ? `${t.inh} inherited` : "", t.hyb ? `${t.hyb} hybrid` : ""].filter(Boolean).join(", ")}`).join("; ")) : "No program inherits from it yet"}</small></span><span class="v2-rule-e"><span class="v2-mu">${esc(p.auth)}</span></span></div>`).join("")}</div>`),
+    AK.note("F-16 Block 70, the C-130J, the Squadron operations facility, the hosting enclave, the CSSP and the PEO are invented, with their authorizations. The Corporate identity provider, its offers and WS-X90's acceptances are real."),
+  );
+  S["common-controls"] = () => PA.v2host && PA.v2host.workspace ? ccpHost(PA.v2host) : h.page(
+    AK.indexHead({ title: "Host systems & providers", desc: "What WS-X90 inherits, and from whom, with each provider's own authorization", actions: btn("Add provider", 'data-modal="v7o-ccp-new"', true, false) }),
+    setCard("Providers", "Each provider's capabilities name the controls they cover and the consumer's duty.", `<div class="v2-rules">${CCP.map((c) => { const codes = ccpCodes(c); return `<div class="v2-rule" role="button" tabindex="0" data-panel="v7o-ccp" data-id="${c.id}"><span class="x"><b class="v7o-inl">${esc(c.name)}${c.real ? "" : EX}</b><small>${esc(c.kind)} · ${c.real ? "WS-X90 inherits 15 controls, since Jun 30" : "Not offered to WS-X90 yet"}${c.id === "idp" ? ` · its AO approval of the RMF strategy has been blocked since Aug 21, 2025 · ${lnk("Open program", 'data-panel="v7o-prog" data-id="PRG-1013"')}` : ""}</small></span><span class="v2-rule-e"><span class="num">${satIn(codes)} of ${codes.length} satisfied</span><span class="v2-mu">${esc(CCP_WORD[c.id])}</span></span></div>`; }).join("")}</div>`),
     AK.note("The hosting enclave, CSSP and PEO rows are invented, with their authorizations; the statuses beside their controls are WS-X90's own today. The Corporate identity provider, its offers and WS-X90's acceptances are real."),
   );
   P["v7o-ccp"] = (id) => {

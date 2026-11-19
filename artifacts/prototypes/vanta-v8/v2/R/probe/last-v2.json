@@ -1,0 +1,49 @@
+{
+ "mywork": {
+  "boxedRows": 0,
+  "pills": [],
+  "redText": [],
+  "assignedToMe": "Assigned to me\n"
+ },
+ "myworkMine": "Urgent\n1, Coming soon\n1",
+ "portfolio": {
+  "subtitle": null,
+  "rings": 0,
+  "nextGate": [],
+  "pills": []
+ },
+ "threatsBars": 0,
+ "poamBars": 0,
+ "suppliersBars": 0,
+ "componentsRings": 47,
+ "queueKinds": {
+  "evToAccept": [
+   "Evidence to accept ",
+   "Evidence to accept ",
+   "Evidence to accept "
+  ],
+  "all": "All 148"
+ },
+ "si2dup": {
+  "partial": 1,
+  "notSet": 0
+ },
+ "wizard": {
+  "whatYoureCreating": false,
+  "steps": [
+   "Step 6"
+  ]
+ },
+ "wizardStart": false,
+ "riskPreview": {
+  "startReassess": 1,
+  "unlabeled": [
+   "<span role=\"menuitem\" tabindex=\"0\" class=\"a-risk-mi\" data-modal=\"a-risk-owner\" data-id=\"A password on its own reaches WS"
+  ]
+ },
+ "personPreviewUnlabeled": [
+  "<span role=\"menuitem\" tabindex=\"0\" class=\"a-people-mi\" data-modal=\"risk-role\" data-id=\"Joel Barrantes\">Change role</span",
+  "<span role=\"menuitem\" tabindex=\"0\" class=\"a-people-mi\" data-modal=\"a-people-remind\" data-id=\"Joel Barrantes\">Send remind",
+  "<span role=\"menuitem\" tabindex=\"0\" class=\"a-people-mi\" data-modal=\"a-people-end\" data-id=\"Joel Barrantes\">End role</span"
+ ]
+}

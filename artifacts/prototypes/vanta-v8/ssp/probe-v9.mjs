@@ -10,7 +10,8 @@ const q = (sel) => p.evaluate((s) => !!document.querySelector(s), sel);
 const click = async (sel) => { await p.click(sel); await p.waitForTimeout(120); };
 const frame = (sel) => `#v9n-box ${sel}`;
 await p.goto(file + "#nav-options"); await p.waitForTimeout(700);
-ok("nav item drawn", await q('#nav a[href="#nav-options"]'));
+// v2 (N, Josef 19 Nov): an area's pages are a side menu beside the rail, as a program's are; no section tab strip.
+ok("About in the rail, Navigation options its menu's item", await q('#rail a.ri.on[href="#study"]') && await q('#nav a.item.on[href="#nav-options"]') && !(await q(".sectabs")));
 ok("page drawn", await q("#v9n-root .v9n-opt"));
 await p.screenshot({ path: `${out}/page-1440.png`, fullPage: true });
 // Where a program page's content starts, unzoomed, in each option (on Risks)
@@ -73,11 +74,44 @@ for (let i = 0; i < 5; i++) {
   if (burger) { ok(`phone ${i + 1}: drawer opens`, await q(frame(".v9n-drw"))); await p.keyboard.press("Escape"); await p.waitForTimeout(100); }
 }
 await click('[data-v9n-scr="desktop"]');
+// The option 3 shell on the whole prototype
+await p.goto("about:blank"); await p.goto(file + "#home"); await p.waitForTimeout(500);
+const at = async (r) => { await p.evaluate((r) => { location.hash = r; }, r); await p.waitForTimeout(250); return p.evaluate(() => { const h = (sel) => { const e = document.querySelector(sel); return e ? e.getAttribute("href") : null; }; const w = (id) => Math.round(document.getElementById(id).getBoundingClientRect().width); return { inprog: document.getElementById("shell").classList.contains("inprog"), rail: document.querySelectorAll("#rail a.ri").length, railOn: h("#rail a.ri.on"), navOn: h("#nav a.item.on"), tabOn: h(".sectabs .sectab.on"), railW: w("rail"), navW: w("nav"), moded: document.getElementById("proto").classList.contains("moded"), full: document.getElementById("proto").classList.contains("fullwin") }; }); };
+let s9 = await at("home"); ok("shell: Home is the rail's, no program menu", !s9.inprog && s9.rail === 9 && s9.railOn === "#home" && s9.railW === 64 && s9.navW === 0, JSON.stringify(s9));
+s9 = await at("overview"); ok("shell: a program page adds its menu beside the rail", s9.inprog && s9.railOn === "#portfolio" && s9.navOn === "#overview" && s9.navW === 240, JSON.stringify(s9));
+s9 = await at("stigs-open"); ok("shell: a program page's tab keeps its item", s9.inprog && s9.navOn === "#stigs", s9.navOn);
+s9 = await at("campaign"); // v2 (A15): in assessment mode the menu shows the campaign's own pages, so the current item is the campaign's.
+ok("shell: a campaign is in the assessment band, its menu the campaign's pages", s9.inprog && /^#(assessments|campaign)/.test(s9.navOn || "") && s9.moded, JSON.stringify(s9));
+s9 = await at("person-joel-barrantes"); ok("shell: a person is the program's People", s9.inprog && s9.navOn === "#people", s9.navOn);
+s9 = await at("integrations"); ok("shell: Library's pages are its side menu", !s9.inprog && s9.railOn === "#frameworks" && s9.navOn === "#integrations" && s9.navW === 240 && !s9.tabOn, JSON.stringify(s9));
+s9 = await at("permissions-matrix"); ok("shell: Settings' pages are its side menu, in groups", s9.railOn === "#deadlines" && s9.navOn === "#permissions" && s9.navW === 240 && !s9.tabOn && await p.evaluate(() => [...document.querySelectorAll("#nav .g")].map((g) => g.textContent.trim()).join("|") === "Workspace|My account"), JSON.stringify(s9));
+s9 = await at("portfolio"); ok("shell: Programs is the register", !s9.inprog && s9.railOn === "#portfolio", JSON.stringify(s9));
+s9 = await at("ssp"); await p.waitForTimeout(500); s9 = await p.evaluate(() => ({ full: document.getElementById("proto").classList.contains("fullwin"), railW: Math.round(document.getElementById("rail").getBoundingClientRect().width) })); ok("shell: full window hides the rail", s9.full && s9.railW === 0, JSON.stringify(s9));
+await at("overview"); await p.click("#swBtn"); await p.waitForTimeout(150);
+ok("shell: the switcher opens in the program's menu", await p.evaluate(() => !document.getElementById("swMenu").hidden && document.querySelectorAll("#swMenu a").length === 6));
+await p.keyboard.press("Escape"); await p.waitForTimeout(120);
+ok("shell: Esc closes it and returns focus", await p.evaluate(() => document.getElementById("swMenu").hidden && document.activeElement && document.activeElement.id === "swBtn"));
 // 390 wide
 await p.setViewportSize({ width: 390, height: 844 }); await p.goto("about:blank"); await p.goto(file + "#nav-options"); await p.waitForTimeout(600);
 const ov = await p.evaluate(() => ({ doc: document.documentElement.scrollWidth > innerWidth, main: (() => { const m = document.getElementById("main"); return m.scrollWidth > m.clientWidth + 2; })(), phone: !!document.querySelector("#v9n-box .v9n-p") }));
 ok("390: no overflow, phone frame by default", !ov.doc && !ov.main && ov.phone, JSON.stringify(ov));
 await p.screenshot({ path: `${out}/page-390.png`, fullPage: true });
+// The option 3 shell on a phone
+const ph = () => p.evaluate(() => ({ bottom: getComputedStyle(document.getElementById("bottom")).display, items: document.querySelectorAll("#bottom > .ri").length, menu: getComputedStyle(document.getElementById("menuBtn")).display, rail: getComputedStyle(document.getElementById("rail")).display }));
+await p.evaluate(() => { location.hash = "home"; }); await p.waitForTimeout(300);
+let pp = await ph(); ok("phone: bottom bar of five, no ☰ outside a program", pp.bottom === "flex" && pp.items === 5 && pp.menu === "none" && pp.rail === "none", JSON.stringify(pp));
+await p.click("#moreBtn"); await p.waitForTimeout(120);
+const moreOpen = await p.evaluate(() => !document.getElementById("moreMenu").hidden);
+await p.click('#moreMenu a[href="#frameworks"]'); await p.waitForTimeout(300);
+ok("phone: More opens Library", moreOpen && (await p.evaluate(() => location.hash)) === "#frameworks");
+await p.click("#menuBtn"); await p.waitForTimeout(150);
+ok("phone: ☰ opens Library's menu", await p.evaluate(() => document.getElementById("shell").classList.contains("navopen") && document.getElementById("nav").getBoundingClientRect().width > 200 && !!document.querySelector('#nav a.item.on[href="#frameworks"]')));
+await p.click("#menuBtn"); await p.waitForTimeout(100);
+await p.evaluate(() => { location.hash = "risks"; }); await p.waitForTimeout(300);
+pp = await ph(); await p.click("#menuBtn"); await p.waitForTimeout(150);
+ok("phone: ☰ opens the program's menu", pp.menu !== "none" && await p.evaluate(() => document.getElementById("shell").classList.contains("navopen") && document.getElementById("nav").getBoundingClientRect().width > 200 && !!document.querySelector('#nav a.item.on[href="#risks"]')), JSON.stringify(pp));
+await p.screenshot({ path: `${out}/phone-shell-risks.png` });
+
 for (const r of res) console.log(r);
 console.log("errors:", errors.length ? [...new Set(errors)].slice(0, 5).join(" | ") : "none");
 await b.close();

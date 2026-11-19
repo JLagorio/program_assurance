@@ -1,0 +1,227 @@
+[
+ {
+  "route": "campaign",
+  "finding": "ranking 1",
+  "text": "Team column cut: every request read Ready in a blue pill."
+ },
+ {
+  "route": "campaign",
+  "finding": "ranking 1",
+  "text": "One status a request (Ready, Flagged, Accepted) in the tracker's words; the determination is plain ink text beside it."
+ },
+ {
+  "route": "campaign",
+  "finding": "ranking 1",
+  "text": "Due dates are toned only when overdue; v1 drew the flagged requests' due dates amber."
+ },
+ {
+  "route": "campaign",
+  "finding": "A15",
+  "text": "The quick views count the same 368 requests as the tracker: All 368, Ready 88, Flagged 54, Accepted 226 (v1: All 14)."
+ },
+ {
+  "route": "campaign",
+  "finding": "B8",
+  "text": "Nothing is ticked when the page opens; the filters show (Control, Owner, Status, Due date) until a row is ticked."
+ },
+ {
+  "route": "campaign",
+  "finding": "ranking 1",
+  "text": "The tracker's Ready segment is grey like its pill, not blue."
+ },
+ {
+  "route": "campaign",
+  "finding": "budget",
+  "text": "Export left the filter row; it stays in the header's ⋯ menu as Export requests."
+ },
+ {
+  "route": "campaign-r2",
+  "finding": "ranking 1",
+  "text": "A request's page: one Status pill and six facts; Team status and Assessor merged, Determination in ink."
+ },
+ {
+  "route": "controls",
+  "finding": "N09",
+  "text": "Assignment donut at 0% cut; No owner 560 is a quick view instead."
+ },
+ {
+  "route": "controls",
+  "finding": "ranking 3",
+  "text": "One summary card, Controls satisfied, without its three mini tiles; drawn as one band."
+ },
+ {
+  "route": "controls",
+  "finding": "N04",
+  "text": "Next step is the words alone: the glyph that repeated the Status pill is gone; no step prints —."
+ },
+ {
+  "route": "controls",
+  "finding": "N13",
+  "text": "Five quick views (All, Needs evidence, Not assessed, Short of satisfied, No owner); No requirement and Inherited are filter values."
+ },
+ {
+  "route": "controls",
+  "finding": "B8",
+  "text": "Nothing is ticked when the page opens; the filters show."
+ },
+ {
+  "route": "controls",
+  "finding": "budget",
+  "text": "Header keeps one primary and one secondary: Export moved into the ⋯ menu."
+ },
+ {
+  "route": "control-si2",
+  "finding": "A6",
+  "text": "Nothing between the facts and the tabs: Where it stands and Next step are the first tab's Details rail."
+ },
+ {
+  "route": "control-si2",
+  "finding": "N15",
+  "text": "One primary on the page (Add evidence); Next step's Open assessment campaign is a secondary."
+ },
+ {
+  "route": "control-si2",
+  "finding": "N15",
+  "text": "The red CVE callout left the Next step card; the operational issue stays on the Findings tab."
+ },
+ {
+  "route": "control-si2",
+  "finding": "N04",
+  "text": "Each fact once: Implementation Partial and the parameter's Not set left the facts row; four facts, one status pill."
+ },
+ {
+  "route": "control-si2",
+  "finding": "N08",
+  "text": "Where it stands is plain numbers: no 0% bar, mini tiles or trace counts that repeated the tabs."
+ },
+ {
+  "route": "checks",
+  "finding": "N04",
+  "text": "Overdue is one mark, the Status pill: due dates are plain days, no red flag, failing counts in ink."
+ },
+ {
+  "route": "checks",
+  "finding": "ranking 5",
+  "text": "No eye icon in every row; the preview moved into each row's ⋯ menu. The category rail keeps its red counts."
+ },
+ {
+  "route": "checks",
+  "finding": "B8",
+  "text": "Nothing is ticked when the page opens; the filters show."
+ },
+ {
+  "route": "policies",
+  "finding": "ranking 4",
+  "text": "Control status is a glyph and an ink word, as Vanta draws it; the version's state is the row's one pill."
+ },
+ {
+  "route": "policies",
+  "finding": "N13",
+  "text": "One toolbar line: four filters and + Add filter; the Require my approval box and Sort by left (v1 wrapped to two lines)."
+ },
+ {
+  "route": "policies",
+  "finding": "N01",
+  "text": "Banner gone: No approver 12 is a quick view, Assign approvers sits in the ⋯ menu and beside the filters on that view."
+ },
+ {
+  "route": "policies",
+  "finding": "N13",
+  "text": "Five counted quick views (v1: six, uncounted); In review and Approved are Latest version filter values."
+ },
+ {
+  "route": "policies",
+  "finding": "N05",
+  "text": "Renew by is a plain day, so a row tones two cells at most; empty Approver prints —, 0 of 23 has no ring."
+ },
+ {
+  "route": "ppsm",
+  "finding": "ranking 8",
+  "text": "Not applicable and Not required are grey words, not blue pills."
+ },
+ {
+  "route": "ppsm",
+  "finding": "A5",
+  "text": "Direction moved to the service's preview so the table fits at 1440 and Owner is no longer cut off."
+ },
+ {
+  "route": "stigs-mission-computer-rhel9",
+  "finding": "N13",
+  "text": "One row of quick views (status); CAT is a filter beside the search instead of a second chip row."
+ },
+ {
+  "route": "stigs-mission-computer-rhel9",
+  "finding": "ranking 9",
+  "text": "Filtered to Open, the table drops its Status column: every row said Open."
+ },
+ {
+  "route": "stigs-mission-computer-rhel9",
+  "finding": "N01",
+  "text": "The blue DISA release banner is one line under the title, with See what changed as a link."
+ },
+ {
+  "route": "control-si2",
+  "finding": "N12",
+  "text": "Seven tabs: History and Comments are one Activity tab, so the strip never folds into More; both addresses still open it."
+ },
+ {
+  "route": "control-si2",
+  "finding": "A5",
+  "text": "The STIG rules and objectives tables keep the full width below the rail, so they fit their frame at 1440."
+ },
+ {
+  "route": "stigs-mission-computer-rhel9",
+  "finding": "A5",
+  "text": "Rule title and finding details are cut shorter, so the rules table fits beside the rail at 1440."
+ },
+ {
+  "route": "stigs-ethernet-switch-ndm",
+  "finding": "N01",
+  "text": "Both banners (newer DISA release, queued checklist file) are plain lines under the title with their actions as links."
+ },
+ {
+  "route": "ssp",
+  "finding": "A16",
+  "text": "Each live table's bar is one grey line under its section title; Open record, History and Detach show on pointing or focus."
+ },
+ {
+  "route": "ssp",
+  "finding": "N14",
+  "text": "Contents drops the ring, live icon and collaborator dots on every row; one amber dot marks a section that needs action."
+ },
+ {
+  "route": "ssp",
+  "finding": "N14",
+  "text": "Counts in Contents are grey; the amber placeholder chips are gone (the count is in the dot's tooltip)."
+ },
+ {
+  "route": "ssp",
+  "finding": "ranking 10",
+  "text": "Collaborator avatars in the header are neutral initials without coloured rings; their colour stays on their cursor."
+ },
+ {
+  "route": "ssp",
+  "finding": "N14",
+  "text": "Revision 3 · Draft · SYS-WSX90 is one grey line beside the title (v1: three chips, Draft in amber)."
+ },
+ {
+  "route": "ssp",
+  "finding": "N05",
+  "text": "Each control's implementation and status are grey words in its meta line, not two toned pills; action chips keep their tone."
+ },
+ {
+  "route": "suppliers",
+  "finding": "A20",
+  "text": "The page's Managed / Found in SBOMs tabs are gone: three rows above the table (area strip, quick views, filters)."
+ },
+ {
+  "route": "suppliers",
+  "finding": "N13",
+  "text": "Found in SBOMs is the last of five quick views; Component sets is a Kind filter value; four filters (Flag is the Flagged view)."
+ },
+ {
+  "route": "suppliers-sbom",
+  "finding": "A20",
+  "text": "The SBOM list shows the same quick views instead of tabs; a view opens Suppliers already filtered."
+ }
+]

@@ -1,0 +1,64 @@
+{
+ "log": [
+  {
+   "step": 1,
+   "action": "go #evidence",
+   "why": "",
+   "hash": "evidence",
+   "h1": "",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 2,
+   "action": "click \"Time source comparison test report\"",
+   "why": "",
+   "effect": "panel: Evidence",
+   "hash": "evidence",
+   "h1": "",
+   "modal": null,
+   "panel": "Evidence",
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 3,
+   "action": "click \"Accept\"",
+   "why": "reviewer accepts",
+   "effect": "dialog: Review evidence",
+   "hash": "evidence",
+   "h1": "",
+   "modal": "Review evidence",
+   "panel": "Evidence",
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 3,
+   "shot": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/flows/shots/j4e-06-accept-dialog.png"
+  },
+  {
+   "step": 4,
+   "action": "click \"Save review\"",
+   "why": "confirm",
+   "effect": "dialog closed ; toast: Review saved",
+   "hash": "evidence",
+   "h1": "",
+   "modal": null,
+   "panel": "Evidence",
+   "toasts": "Review saved",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 4,
+   "shot": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/gap/flows/shots/j4e-07-after-accept.png"
+  }
+ ],
+ "errors": []
+}

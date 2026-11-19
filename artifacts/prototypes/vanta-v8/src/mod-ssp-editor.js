@@ -141,7 +141,7 @@
     return `<header class="se-head">
       <div class="se-head-l">${AK.back("System security plans", "ssps")}
         <div class="se-head-row"><input class="se-title" id="se-title" value="${esc(ST.title)}" aria-label="Document title" spellcheck="false" autocomplete="off">
-          <span class="se-chips">${AK.chip("Revision 3")}${AK.chip("Draft", { tone: "warn" })}${AK.chip(D.system.code)}</span>
+          <span class="se-chips v2l-meta"><span>Revision 3</span><span>Draft</span><span class="v2l-sys">${esc(D.system.code)}</span></span>
           <span class="se-save" id="se-save" role="status" aria-live="polite">${saveHTML()}</span></div></div>
       <div class="se-head-r">
         <div class="se-pres" role="group" aria-label="People in this document">${OTHERS.map((p) => `<button type="button" class="se-pav" data-act="person" data-name="${esc(p.name)}" aria-haspopup="dialog" aria-expanded="false" aria-label="${esc(`${p.name}, ${p.role}: ${presenceLine(p.name)}`)}">${U.av(p.name, 26)}</button>`).join("")}<span class="se-you">+ you</span></div>
@@ -179,10 +179,11 @@
     const N = nums(), rows = [];
     for (const s of ST.secs) {
       if (ST.gaps && !secGap(s)) continue;
-      const live = !ST.detached.has(s.id) && (s.kind === "data" || s.kind === "diagram" || s.kind === "controls");
-      const is11 = s.id === "s11", p = compl(s);
-      rows.push(`<li class="se-oli"><button type="button" class="se-o" data-act="goto" data-at="${s.id}"><span class="ak-donut se-ring" style="--p:${p}" aria-hidden="true"></span><span class="se-o-n">${esc(N[s.id])}</span><span class="se-o-t">${esc(s.t)}</span>${live ? `<span class="se-o-live" title="${s.kind === "diagram" ? "Drawn from records" : "Live data"}">${I(s.kind === "diagram" ? "diagram" : "live")}</span>` : ""}${dots((at) => at === s.id || (is11 && !ST.open11 && !!famOf(at)))}<span class="se-sr">, ${p}% complete</span></button>${is11 ? `<button type="button" class="se-o-x${ST.open11 ? " on" : ""}" data-act="t11" aria-expanded="${ST.open11}" aria-label="${ST.open11 ? "Collapse" : "Expand"} the control families">${I("down")}</button>` : ""}</li>`);
-      if (is11 && ST.open11) rows.push(`<li><ul class="se-ofs">${D.families.map((f, i) => [f, i]).filter(([f]) => !ST.gaps || famGap(f.f)).map(([f, i]) => { const ph = famPh(f.f); return `<li><button type="button" class="se-o se-of" data-act="goto" data-at="fam:${f.f}"><span class="ak-donut se-ring" style="--p:${Math.round(((f.n - ph) / f.n) * 100)}" aria-hidden="true"></span><span class="se-o-n">${N.s11}.${i + 1}</span><span class="se-o-t">${esc(famName(f))}</span>${dots((at) => famOf(at) === f.f)}${ph ? `<span class="se-phb" title="${ph} placeholder narratives"><span class="se-sr">, </span>${ph}<span class="se-sr"> placeholder narratives</span></span>` : ""}<span class="se-o-c num"><span class="se-sr">, </span>${f.n}<span class="se-sr"> controls</span></span></button></li>`; }).join("")}</ul></li>`);
+      // v2: a row marks only a section that needs action (one dot); v1 drew a completion ring, a live-data icon and the
+      // collaborators' coloured dots on every row. Where people are is in the header and the canvas.
+      const is11 = s.id === "s11", p = compl(s), gap = secGap(s);
+      rows.push(`<li class="se-oli"><button type="button" class="se-o" data-act="goto" data-at="${s.id}"><span class="se-o-n">${esc(N[s.id])}</span><span class="se-o-t">${esc(s.t)}</span>${gap ? `<span class="v2l-need" title="Needs action"></span>` : ""}<span class="se-sr">, ${gap ? "needs action" : `${p}% complete`}</span></button>${is11 ? `<button type="button" class="se-o-x${ST.open11 ? " on" : ""}" data-act="t11" aria-expanded="${ST.open11}" aria-label="${ST.open11 ? "Collapse" : "Expand"} the control families">${I("down")}</button>` : ""}</li>`);
+      if (is11 && ST.open11) rows.push(`<li><ul class="se-ofs">${D.families.map((f, i) => [f, i]).filter(([f]) => !ST.gaps || famGap(f.f)).map(([f, i]) => { const ph = famPh(f.f), gap = famGap(f.f); return `<li><button type="button" class="se-o se-of" data-act="goto" data-at="fam:${f.f}"><span class="se-o-n">${N.s11}.${i + 1}</span><span class="se-o-t">${esc(famName(f))}</span>${gap ? `<span class="v2l-need" title="${ph ? `${ph} placeholder narratives` : "Needs action"}"></span><span class="se-sr">, ${ph ? `${ph} placeholder narratives` : "needs action"}</span>` : ""}<span class="se-o-c num"><span class="se-sr">, </span>${f.n}<span class="se-sr"> controls</span></span></button></li>`; }).join("")}</ul></li>`);
     }
     return `<div class="se-out-h"><b>Contents</b><button type="button" class="se-tog" data-act="gaps" aria-pressed="${ST.gaps}">Gaps only</button><button type="button" class="se-ib se-out-x" data-act="contents" aria-label="Close contents">${I("x")}</button></div>
       <ul class="se-ol">${rows.join("")}</ul>
@@ -192,8 +193,11 @@
   // ——— The page ———
   const tbl = (cols, rows, cls = "") => `<div class="sd-tablebox"><table class="sd-table ${cls}"><thead><tr>${cols.map((c) => `<th scope="col">${esc(c)}</th>`).join("")}</tr></thead><tbody>${rows.map((r) => `<tr>${r.join("")}</tr>`).join("")}</tbody></table></div>`;
   const td = (x, cls) => `<td${cls ? ` class="${cls}"` : ""}>${x}</td>`;
+  // v2: the live block's bar is one grey line under the section's title: where the table comes from and when it synced.
+  // Open record, History and Detach stay in the line as quiet text, shown while the block is pointed at or focused (and
+  // always on a touch screen); v1 drew a blue Live tag and three icon buttons above every record table.
   function liveHead(at, src, open, opts = {}) {
-    return `<div class="sd-live-h"><span class="sd-live-tag">${I("live")}Live</span><span>${esc(src)}</span><span class="se-sync" data-sync="${esc(at)}">· ${esc(opts.synced || "synced 2 min ago")}</span><span class="se-lacts">${open ? `<button type="button" class="se-lb" data-go="${open}">${I("open")}${esc(opts.openLabel || "Open record")}</button>` : ""}<button type="button" class="se-lb" data-modal="se-rechist" data-id="${esc(at)}">${I("history")}History</button>${opts.detach === false ? "" : `<button type="button" class="se-lb" data-modal="se-detach" data-id="${esc(at)}">${I("unlink")}Detach</button>`}</span></div>`;
+    return `<div class="sd-live-h v2l-live"><span class="v2l-live-src">Live from ${esc(src)}</span><span class="se-sync" data-sync="${esc(at)}">· ${esc(opts.synced || "synced 2 min ago")}</span><span class="se-lacts">${open ? `<button type="button" class="se-lb" data-go="${open}">${I("open")}${esc(opts.openLabel || "Open record")}</button>` : ""}<button type="button" class="se-lb" data-modal="se-rechist" data-id="${esc(at)}">${I("history")}History</button>${opts.detach === false ? "" : `<button type="button" class="se-lb" data-modal="se-detach" data-id="${esc(at)}">${I("unlink")}Detach</button>`}</span></div>`;
   }
   function wrapLive(at, src, open, inner, opts = {}) {
     if (ST.detached.has(at)) {
@@ -243,7 +247,10 @@
     s9: () => wrapLive("s9", "PPSM records", "inventory", ppsmTable()),
     s10: () => wrapLive("s10", D.system.baseline, "baseline", baselineInner() + `<p><button type="button" class="btn sm" data-go="baseline">${I("open")}Open baseline</button></p>`),
     s11: () => `<p class="sd-p se-lede">Each implementation below is a live block: it reads its control's record, and an edit saves to that record.</p>` + D.families.map((f, i) => famHTML(f, i)).join(""),
-    a1: () => wrapLive("a1", "Common control providers", "common-controls", tbl(["Control", "Title", "Provider", "Inheritance"], INHERIT.map(([code, k]) => [td(codeBtn(code)), td(esc((D.ctl(code) || {}).t || "")), td("Corporate identity provider (PRG-1013)"), td(k)]))),
+    // v2 (H): the controls WS-X90's providers hold, from PA.v2host: the host system first, then each provider in turn.
+    a1: () => wrapLive("a1", "Host system and common control providers", "hosts", PA.v2host
+      ? tbl(["Control", "Title", "Provider", "Responsibility"], PA.v2host.all().filter((r) => r.kind !== "System-specific").sort((a, b) => PA.v2host.providers().findIndex((p) => p.id === a.pid) - PA.v2host.providers().findIndex((p) => p.id === b.pid)).map((r) => [td(codeBtn(r.code)), td(esc((D.ctl(r.code) || {}).t || "")), td(esc(PA.v2host.PROV[r.pid].name)), td(r.kind)]))
+      : tbl(["Control", "Title", "Provider", "Inheritance"], INHERIT.map(([code, k]) => [td(codeBtn(code)), td(esc((D.ctl(code) || {}).t || "")), td("Corporate identity provider (PRG-1013)"), td(k)]))),
     a2: () => wrapLive("a2", "POA&M", "poam", tbl(["POA&M item", "Status", "Answers"], PA.data.POAM.map(([t, s]) => [td(esc(t)), td(h.pill(s === "Completed" ? "ok" : "warn", s)), td(esc(t.replace("Remediate ", "")), "se-mono")]))),
     a3: () => {
       const rows = [...D.session.map((e) => ({ t: e.time, who: [e.who], what: e.what + (e.at ? " · " + where(e.at) : ""), now: 1 })), ...D.versions.map((v) => ({ t: v.at, who: v.who, what: v.name || v.changes.map(([at, w]) => `${where(at)}: ${w.toLowerCase()}`).join("; ") || "No changes", ex: v.ex }))];
@@ -271,7 +278,20 @@
     const N11 = nums().s11, on = ST.rendered.has(f.f);
     return `<div class="se-fam" id="se-f-${f.f}" data-fam="${f.f}"${on ? "" : ' data-lazy="1"'}><h3 class="sd-h2 se-fh" id="se-h-${f.f}"><span class="sd-num">${N11}.${i + 1}</span><span>${esc(famName(f))} (${f.f})</span><span class="se-fct num">· ${f.n}</span></h3>${on ? D.ofFamily(f.f).map(ctlHTML).join("") : `<div class="se-skel" style="height:${f.n * 210}px" role="status" aria-label="${f.n} control implementations load as you scroll"></div>`}</div>`;
   }
+  // v2 (H): a control a provider holds (PA.v2host, mod-zzzz-v2-8host.js). Inherited: the provider's statement stands where the
+  // narrative would, nothing to write; hybrid: the provider's part above WS-X90's own narrative.
+  const rspOf = (at) => (PA.v2host ? PA.v2host.responsibility(at) : null);
+  function inhHTML(c, r) {
+    const at = c.c, st = D.STATUS[c.cs];
+    return `<div class="sd-live se-ctl se-inh" id="se-c-${at.replace(/[()]/g, "-")}" data-at="${esc(at)}">
+      <div class="se-ctl-h"><h4 class="se-ctl-t"><span class="se-code">${esc(at)}</span><span>${esc(c.t)}</span></h4><span class="se-ctl-a" data-ui><button type="button" class="se-ib sm" data-go="controls" aria-label="Open ${esc(at)}'s record" title="Open record">${I("open")}</button></span></div>
+      <div class="se-ctl-m"><span class="se-meta v2l-word">Inherited from ${esc(r.provider)}</span><span class="se-meta v2l-word">${esc(st[0])}</span><span class="se-meta num">Objectives ${c.ob} of ${c.ob} assessed by ${esc(r.provider)}</span></div>
+      <div class="se-n se-provn" role="note" aria-label="${esc(r.provider)}'s implementation of ${esc(at)}">${esc(r.statement || "")}</div>
+      <div class="se-ctl-f" data-ui><span class="se-small">No narrative needed: the plan cites ${esc(r.provider)}'s implementation and authorization.</span><button type="button" class="se-lb" data-modal="v2h-resp" data-id="${esc(at)}">Change responsibility</button></div></div>`;
+  }
   function ctlHTML(c) {
+    const rsp = rspOf(c.c);
+    if (rsp && rsp.kind === "Inherited") return inhHTML(c, rsp);
     const at = c.c, imp = D.IMPL[c.s], st = D.STATUS[c.cs], pend = pendAt(at);
     const full = pend.find((g) => g.kind === "replace" && !g.from), mine = pend.find((g) => g.kind === "edit"), part = pend.filter((g) => g.from);
     const chips = [];
@@ -283,7 +303,8 @@
     const editable = ST.mode !== "view" && !lock;
     return `<div class="sd-live se-ctl" id="se-c-${at.replace(/[()]/g, "-")}" data-at="${esc(at)}">
       <div class="se-ctl-h"><h4 class="se-ctl-t"><span class="se-code">${esc(at)}</span><span>${esc(c.t)}</span></h4><span class="se-ctl-a" data-ui><button type="button" class="se-ib sm" data-go="controls" aria-label="Open ${esc(at)}'s record" title="Open record">${I("open")}</button><button type="button" class="se-ib sm" data-modal="se-rechist" data-id="${esc(at)}" aria-label="${esc(at)} record history" title="Record history">${I("history")}</button></span></div>
-      <div class="se-ctl-m">${h.pill(imp[1], imp[0])}${h.pill(st[1], st[0])}<span class="se-meta num">Objectives ${c.oa} of ${c.ob} assessed</span><span class="se-meta num">${plural(c.r, "requirement")} · ${c.e} with evidence</span>${chips.join("")}</div>
+      <div class="se-ctl-m"><span class="se-meta v2l-word">${esc(imp[0])}</span><span class="se-meta v2l-word">${esc(st[0])}</span>${rsp && rsp.kind === "Hybrid" ? `<span class="se-meta v2l-word">Hybrid with ${esc(rsp.provider)}</span>` : ""}<span class="se-meta num">Objectives ${c.oa} of ${c.ob} assessed</span><span class="se-meta num">${plural(c.r, "requirement")} · ${c.e} with evidence</span>${chips.join("")}</div>
+      ${rsp && rsp.kind === "Hybrid" ? `<p class="se-provp"><b>${esc(rsp.provider)}'s part.</b> ${esc(rsp.statement || "")}${rsp.part ? ` <span class="se-provo">WS-X90's part: ${esc(String(rsp.part).replace(/^WS-X90's duty: /, ""))}</span>` : ""}</p>` : ""}
       <div class="se-n" data-ed="ctl" contenteditable="${editable}" spellcheck="false" role="textbox" aria-multiline="true" aria-label="${esc(at)} implementation narrative">${narrHTML(c, pend, full, mine)}</div>
       <div class="se-ctl-f" data-ui>${lock ? `<span class="se-lock">${I("lock")}${esc(lock)}</span>` : `<span class="se-saving" hidden>${I("pen")}Edits save to ${esc(at)}'s implementation</span>`}${c.ph && !full && !mine ? `<button type="button" class="se-lb ai" data-act="draftwith" data-at="${esc(at)}">${I("sparkle")}Draft with Assist</button>` : ""}</div>
       ${pend.map(barHTML).join("")}</div>`;
@@ -513,6 +534,7 @@
   function answerFor(q) {
     const s = q.toLowerCase(), chips = (list, max = 12) => `<div class="se-codes">${list.slice(0, max).map(codeBtn).join("")}${list.length > max ? `<span class="se-src more">+${list.length - max} more</span>` : ""}</div>`;
     if (/chang|since revision|revision 2/.test(s)) return { html: `<p>Six controls changed since revision 2, published Jul 25, 2026. Priya Raghavan changed all six on Nov 13: status and narrative.</p><ul class="se-al">${D.changed.map((code) => { const c = D.ctl(code); return `<li>${codeBtn(code)}<span>${esc(c.t)}: ${esc(D.IMPL[c.was.s][0])} → ${esc(D.IMPL[c.s][0])}, narrative rewritten</span></li>`; }).join("")}</ul>` };
+    if (/inherit|identity provider|corporate|host|f-16|provider/.test(s) && PA.v2host) { const c = PA.v2host.counts(), ps = PA.v2host.providers(); return { html: `<p>WS-X90 is carried by F-16 Block 70. ${c.inh} controls are inherited whole and need no narrative; ${c.hyb} are hybrid, so WS-X90's narratives cover their own part. ${ps.map((p) => `${esc(p.name)}: ${p.inherited} inherited, ${p.hybrid} hybrid`).join("; ")}.</p>${chips(PA.v2host.all().filter((r) => r.kind === "Inherited").map((r) => r.code))}` }; }
     if (/inherit|identity provider|corporate/.test(s)) return { html: `<p><span class="ex">Example</span> Five identity controls come from the corporate identity provider (PRG-1013). IA-4 and IA-12 are inherited whole; IA-2, IA-5 and IA-8 are shared, so WS-X90's narratives cover their own part.</p>${chips(INHERIT.map((x) => x[0]))}` };
     const lru = q.match(/LRU-?(\d{3})/i);
     if (/mission computer/.test(s) || lru) {
@@ -1162,6 +1184,19 @@
     if (ST.scrollTop) sc.scrollTop = ST.scrollTop;
     simStart(); paintPresence(); markActive(); spy(); layoutMargin();
     setTimeout(layoutMargin, 150); if (document.fonts && document.fonts.ready) document.fonts.ready.then(schedLayout);
+    // v2 C2 (B11): opened from a readiness fix (PA.v2.go("ssp", { at })), the editor goes to the section or control the fix
+    // names and focuses what is edited there, rather than opening at the top.
+    const ask = PA.v2 && PA.v2.take ? PA.v2.take("ssp") : null;
+    if (ask && ask.at) setTimeout(() => focusAt(ask.at), 60);
+  }
+  function focusAt(at) {
+    goTo(at, { block: D.ctl(at) ? "center" : "start" });
+    const el = D.ctl(at) ? inPage(at) : document.getElementById("se-s-" + at);
+    if (!el) return;
+    const t = el.querySelector("[contenteditable='true'], textarea, input:not([type=hidden]), select") || el.querySelector(".sd-h1, .sd-h2, h2, h3") || el;
+    if (!/^(A|BUTTON|INPUT|SELECT|TEXTAREA)$/.test(t.tagName) && !t.isContentEditable && !t.hasAttribute("tabindex")) t.setAttribute("tabindex", "-1");
+    t.focus({ preventScroll: true });
+    el.classList.add("v2c-at");
   }
   function viewHTML() {
     if (NARROW() && !ST.sideTouched) ST.side = "";

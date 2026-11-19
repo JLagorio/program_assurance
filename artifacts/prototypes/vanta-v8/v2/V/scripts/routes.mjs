@@ -1,0 +1,10 @@
+import { createRequire } from "module";
+const require = createRequire("/Users/joseflagorio/Development/program_assurance-ux-proposal/package.json");
+const { chromium } = require("playwright");
+const [, , build] = process.argv;
+const browser = await chromium.launch();
+const page = await browser.newPage();
+await page.goto("file://" + build + "#home");
+const r = await page.evaluate(() => Object.keys(window.PA.S).filter((k) => !k.startsWith("after-")));
+console.log(r.length); console.log(r.join(" "));
+await browser.close();

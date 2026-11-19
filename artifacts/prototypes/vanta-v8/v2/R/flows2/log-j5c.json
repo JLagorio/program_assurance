@@ -1,0 +1,38 @@
+{
+ "log": [
+  {
+   "step": 1,
+   "action": "go #risks",
+   "why": "",
+   "hash": "risks",
+   "h1": "",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 1,
+   "shot": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/v2/R/flows2/shots/j5c-04-risks.png"
+  },
+  {
+   "step": 2,
+   "action": "click \"A password on its own reaches \"",
+   "why": "open the first risk",
+   "effect": "panel: Risk preview",
+   "hash": "risks",
+   "h1": "",
+   "modal": null,
+   "panel": "Risk preview",
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 2,
+   "shot": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/v2/R/flows2/shots/j5c-05-risk-panel.png"
+  }
+ ],
+ "errors": []
+}

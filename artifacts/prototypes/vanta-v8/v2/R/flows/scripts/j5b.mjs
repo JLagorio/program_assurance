@@ -1,0 +1,18 @@
+import { start } from "./walk.mjs";
+const W = await start("j5b");
+await W.go("findings");
+let e = await W.click("Unmet requirement REQ-100", { why: "issue without a POA&M item", wait: 500 });
+console.log("ROW →", e && e.effect, "|", (await W.text("#panel", 1200)).replace(/\s+/g, " ").slice(0, 600));
+e = await W.click("Create POA&M item", { within: "#panel", why: "panel action", wait: 500 });
+console.log("CREATE →", e && e.effect);
+console.log("DIALOG:", (await W.text("#modal", 2500)).replace(/\s+/g, " ").slice(0, 1500));
+console.log("DIALOG CONTROLS:", (await W.see("#modal")).join(" ‖ "));
+await W.shot("02-create-poam-dialog");
+const before = await W.p.evaluate(() => 0);
+e = await W.click("Create POA&M item", { within: "#modal", exact: true, why: "submit", wait: 700 });
+console.log("SUBMIT →", e && e.effect, "| hash", await W.p.evaluate(() => location.hash));
+console.log("PANEL AFTER:", (await W.text("#panel", 1200)).replace(/\s+/g, " ").slice(0, 500));
+await W.go("poam", "check the POA&M register");
+console.log("POAM:", (await W.text("#main", 1500)).replace(/\s+/g, " ").slice(0, 700));
+await W.shot("03-poam");
+await W.done();

@@ -1,0 +1,61 @@
+{
+ "home": {
+  "route": "home",
+  "controls": [
+   {
+    "key": "SPAN|View my work||my-work|||link",
+    "n": 0,
+    "tag": "SPAN",
+    "txt": "View my work",
+    "href": null,
+    "go": "my-work",
+    "modal": null,
+    "panel": null,
+    "attrs": "data-go",
+    "effect": "nav:my-work"
+   },
+   {
+    "key": "SPAN|Open component||components|||button",
+    "n": 0,
+    "tag": "SPAN",
+    "txt": "Open component",
+    "href": null,
+    "go": "components",
+    "modal": null,
+    "panel": null,
+    "attrs": "data-go",
+    "effect": "nav:components"
+   },
+   {
+    "key": "SPAN|Open offer||components|||button",
+    "n": 0,
+    "tag": "SPAN",
+    "txt": "Open offer",
+    "href": null,
+    "go": "components",
+    "modal": null,
+    "panel": null,
+    "attrs": "data-go",
+    "effect": "click-failed",
+    "detail": "TimeoutError: elementHandle.click: Timeout 1500ms exceeded."
+   },
+   {
+    "key": "A|WS-X90 Sentinel Mission System PRG-1090 31% 176 controls satisfied 560|#overview||||",
+    "n": 0,
+    "tag": "A",
+    "txt": "WS-X90 Sentinel Mission System PRG-1090 31% 176 controls satisfied 560",
+    "href": "#overview",
+    "go": null,
+    "modal": null,
+    "panel": null,
+    "attrs": "",
+    "effect": "nav:overview"
+   }
+  ],
+  "errors": [],
+  "hash": "home",
+  "title": "",
+  "text": "Home\nView my work\nMission Computer version 2 is published: 4 consumers are behind and 2 controls wait for review.\nOpen component\nCVE-2024-6387 is open in the Mission Computer's OpenSSH server; WS-X90 offered it on Nov 14 and it waits on Priya Raghavan.\nOpen offer\nControls satisfied, by program\nUpdated now\nWS-X90 Sentinel Mission System\nPRG-1090\n31%\n176 controls satisfied\n560 total\n2 assessments ac",
+  "full": false
+ }
+}

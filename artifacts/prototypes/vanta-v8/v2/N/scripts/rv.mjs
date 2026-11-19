@@ -1,0 +1,11 @@
+import { createRequire } from "node:module"; import path from "node:path";
+const require = createRequire("/Users/joseflagorio/Development/program_assurance-ux-proposal/package.json");
+const { chromium } = require("playwright");
+const [html, r, label] = process.argv.slice(2);
+const b = await chromium.launch(); const p = await b.newPage({ viewport: { width: 1440, height: 900 } });
+await p.goto("file://" + path.resolve(html) + "#" + r); await p.waitForTimeout(600);
+const heads = () => p.evaluate(() => { const t = document.querySelector("#main table"); return t ? [...t.tHead.rows[0].cells].map((c) => c.textContent.trim()).join(" | ") + " :: rows " + t.tBodies[0].rows.length : null; });
+console.log("open:", await heads());
+await p.evaluate((l) => { const q = [...document.querySelectorAll("#main .views .qv")].find((x) => x.textContent.trim().startsWith(l)); const d = q && q.closest("details"); if (d) d.open = true; q.click(); }, label); await p.waitForTimeout(300);
+console.log(label + ":", await heads());
+await b.close();

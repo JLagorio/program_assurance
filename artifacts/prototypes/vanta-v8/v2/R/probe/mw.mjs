@@ -1,0 +1,12 @@
+import { createRequire } from "node:module";
+const require = createRequire("/Users/joseflagorio/Development/program_assurance-ux-proposal/package.json");
+const { chromium } = require("playwright");
+const html = process.argv[2];
+const b = await chromium.launch(); const p = await b.newPage({ viewport: { width: 1440, height: 900 } });
+const errs=[]; p.on("pageerror", e=>errs.push(String(e).slice(0,200)));
+await p.goto("file://" + html + "#my-work"); await p.waitForTimeout(800);
+console.log("MYWORK TEXT:", (await p.evaluate(()=>document.getElementById("main").innerText)).slice(0,2500));
+const links = await p.evaluate(()=>[...document.querySelectorAll("#main a, #main [data-go], #main button")].filter(e=>e.getBoundingClientRect().height>0).map(e=>(e.innerText||"").trim().replace(/\s+/g," ").slice(0,70)+" ⇒ "+(e.getAttribute("href")||e.dataset.go||e.dataset.modal||"")).slice(0,60));
+console.log(links.join("\n"));
+console.log("errors", errs);
+await b.close();

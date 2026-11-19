@@ -501,7 +501,7 @@
     const sat = PFP.reduce((s, c) => s + PFS[c].satisfied, 0), tot = PFP.reduce((s, c) => s + PFS[c].controls, 0);
     const cfgs = SD.pf.flatMap((b) => b.products.flatMap((p) => p.configs));
     return page(
-      header("Portfolio", `<span><b>${SD.pf.length}</b> business lines</span><span><b>${SD.pf.flatMap((b) => b.products).length}</b> products</span><span><b>${cfgs.length}</b> configurations</span><span><b>${SD.noLine.length}</b> programs outside a business line</span>`, `<span class="btn">Create product</span><span class="btn ink">Create business line</span>`),
+      header("Programs", `<span><b>${SD.pf.length}</b> business lines</span><span><b>${SD.pf.flatMap((b) => b.products).length}</b> products</span><span><b>${cfgs.length}</b> configurations</span><span><b>${SD.noLine.length}</b> programs outside a business line</span>`, `<span class="btn">Create product</span><span class="btn ink">Create business line</span>`),
       pair(
         completion({ title: "Controls satisfied in product programs", total: tot, done: sat, unit: "controls satisfied", note: "three programs built from products", minis: PFP.map((c) => [c, PFS[c].satisfied, PFS[c].controls]) }),
         attention([["clock", "Variant behind its product version", 1], ["ring", "Configurations with no program", cfgs.filter((c) => !c.variants).length], ["diamond", "Open CVE in a shared component", SD.cons.cves], ["ring", "Programs outside a business line", SD.noLine.length, true]]),

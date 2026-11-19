@@ -1,0 +1,42 @@
+PASS About in the rail, Navigation options its menu's item
+PASS page drawn
+PASS content start measured · {"0":153,"1":153,"2":153,"3":153,"4":258}
+PASS 1: program nested under Programs
+PASS 1: leaving the program folds it
+PASS 1: choosing a program opens it
+PASS 1: switcher opens
+PASS 1: Esc closes the switcher
+PASS 1: switch back to WS-X90
+PASS 1b: in place pushes Settings below the fold
+PASS 2: program level shows ‹ Workspace
+PASS 2: workspace level keeps the page and offers the program
+PASS 2: back into the program
+PASS 3: rail and program menu
+PASS 3: outside a program only the rail
+PASS 3: a Home card opens the program
+PASS 4: links in the top bar, program sidebar
+PASS 4: elsewhere no sidebar
+PASS 5: Compliance tab shows its pages
+PASS phone 1: drawer opens
+PASS phone 2: drawer opens
+PASS phone 3: drawer opens
+PASS phone 4: drawer opens
+PASS phone 5: drawer opens
+PASS shell: Home is the rail's, no program menu · {"inprog":false,"rail":9,"railOn":"#home","navOn":null,"tabOn":null,"railW":64,"navW":0,"moded":false,"full":false}
+PASS shell: a program page adds its menu beside the rail · {"inprog":true,"rail":9,"railOn":"#portfolio","navOn":"#overview","tabOn":null,"railW":64,"navW":240,"moded":false,"full":false}
+PASS shell: a program page's tab keeps its item · #stigs
+PASS shell: a campaign is in the assessment band, its menu the campaign's pages · {"inprog":true,"rail":9,"railOn":"#portfolio","navOn":"#campaign","tabOn":null,"railW":64,"navW":240,"moded":true,"full":false}
+PASS shell: a person is the program's People · #people
+PASS shell: Library's pages are its side menu · {"inprog":false,"rail":9,"railOn":"#frameworks","navOn":"#integrations","tabOn":null,"railW":64,"navW":240,"moded":false,"full":false}
+PASS shell: Settings' pages are its side menu, in groups · {"inprog":false,"rail":9,"railOn":"#deadlines","navOn":"#permissions","tabOn":null,"railW":64,"navW":240,"moded":false,"full":false}
+PASS shell: Programs is the register · {"inprog":false,"rail":9,"railOn":"#portfolio","navOn":null,"tabOn":null,"railW":64,"navW":0,"moded":false,"full":false}
+PASS shell: full window hides the rail · {"full":true,"railW":0}
+PASS shell: the switcher opens in the program's menu
+PASS shell: Esc closes it and returns focus
+PASS 390: no overflow, phone frame by default · {"doc":false,"main":false,"phone":true}
+PASS phone: bottom bar of five, no ☰ outside a program · {"bottom":"flex","items":5,"menu":"none","rail":"none"}
+PASS phone: More opens Library
+PASS phone: ☰ opens Library's menu
+PASS phone: ☰ opens the program's menu · {"bottom":"flex","items":5,"menu":"grid","rail":"none"}
+errors: none
+exit 0

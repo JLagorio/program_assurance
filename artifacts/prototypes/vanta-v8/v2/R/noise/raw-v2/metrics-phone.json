@@ -1,0 +1,2803 @@
+{
+ "res": {
+  "checks": {
+   "route": "checks",
+   "label": "Checks",
+   "nav": "checks",
+   "title": "Checks",
+   "inprog": true,
+   "full": false,
+   "moded": false,
+   "hash": "#checks",
+   "meta": false,
+   "shot": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/v2/R/noise/raw-v2/shots/m-checks.png",
+   "pixels": {
+    "w": 374,
+    "h": 726,
+    "colourfulPct": 0.4,
+    "strongPct": 0.37,
+    "famPct": {
+     "red": 0.063,
+     "amber": 0.049,
+     "green": 0.245,
+     "teal": 0.003,
+     "blue": 0.037,
+     "violet": 0,
+     "pink": 0
+    },
+    "families": [
+     "red",
+     "green"
+    ]
+   },
+   "marks": {
+    "all": 11,
+    "above": 4
+   },
+   "firstRow": 882,
+   "firstRowPct": 105,
+   "examples": 3,
+   "rect": {
+    "x": 8,
+    "y": 64,
+    "w": 374,
+    "h": 726
+   },
+   "scrollH": 1479,
+   "colours": {
+    "all": {
+     "text": 4,
+     "fill": 6,
+     "border": 1,
+     "svg": 0,
+     "together": 8,
+     "togetherClustered": 6,
+     "hues": [
+      "amber",
+      "blue",
+      "green",
+      "red"
+     ]
+    },
+    "above": {
+     "text": 1,
+     "fill": 3,
+     "border": 1,
+     "svg": 0,
+     "together": 5,
+     "togetherClustered": 5,
+     "hues": [
+      "amber",
+      "blue",
+      "green",
+      "red"
+     ]
+    }
+   },
+   "totals": {
+    "pills": 15,
+    "gadgets": 1,
+    "cards": 2,
+    "cardsNested": 0,
+    "tableFrames": 1,
+    "banners": 0,
+    "buttons": 14,
+    "tabs": 0,
+    "icons": 16,
+    "bigNumbers": 1
+   },
+   "above": {
+    "pills": 5,
+    "gadgets": 1,
+    "cards": 2,
+    "cardsNested": 0,
+    "tableFrames": 1,
+    "banners": 0,
+    "buttons": 7,
+    "tabs": 0,
+    "icons": 7,
+    "bigNumbers": 1
+   },
+   "counts": {
+    "button:outlined/plain": {
+     "all": 12,
+     "above": 5
+    },
+    "button:filled": {
+     "all": 2,
+     "above": 2
+    },
+    "card:top": {
+     "all": 2,
+     "above": 2
+    },
+    "gadget:progress bar": {
+     "all": 1,
+     "above": 1
+    },
+    "icon:glyph": {
+     "all": 10,
+     "above": 3
+    },
+    "icon:symbol": {
+     "all": 4,
+     "above": 4
+    },
+    "pill:chip/filter": {
+     "all": 5,
+     "above": 5
+    },
+    "frame:table": {
+     "all": 1,
+     "above": 1
+    },
+    "pill:status (toned)": {
+     "all": 7,
+     "above": 0
+    },
+    "pill:other (neutral)": {
+     "all": 3,
+     "above": 0
+    },
+    "icon:svg": {
+     "all": 2,
+     "above": 0
+    }
+   },
+   "fonts": {
+    "distinct": 9,
+    "distinctAbove": 8,
+    "list": [
+     "12px/500×31",
+     "14px/500×10",
+     "14px/400×10",
+     "12px/400×6",
+     "12px/600×5",
+     "16px/500×3",
+     "16px/600×2",
+     "22px/600×1",
+     "36px/600×1"
+    ]
+   },
+   "palette": [
+    {
+     "hex": "#d33b39",
+     "fam": "red",
+     "C": 0.189,
+     "uses": 9,
+     "above": 1,
+     "in": "text+fill",
+     "eg": "pill"
+    },
+    {
+     "hex": "#c87600",
+     "fam": "amber",
+     "C": 0.145,
+     "uses": 9,
+     "above": 4,
+     "in": "text+border",
+     "eg": "pill"
+    },
+    {
+     "hex": "#0b9163",
+     "fam": "green",
+     "C": 0.126,
+     "uses": 5,
+     "above": 1,
+     "in": "text+fill",
+     "eg": "pill"
+    },
+    {
+     "hex": "#ffefec",
+     "fam": "red",
+     "C": 0.018,
+     "uses": 4,
+     "above": 0,
+     "in": "fill",
+     "eg": "pill"
+    },
+    {
+     "hex": "#e8f8ef",
+     "fam": "green",
+     "C": 0.021,
+     "uses": 2,
+     "above": 0,
+     "in": "fill",
+     "eg": "pill"
+    },
+    {
+     "hex": "#0067d3",
+     "fam": "blue",
+     "C": 0.185,
+     "uses": 1,
+     "above": 1,
+     "in": "text",
+     "eg": "span"
+    },
+    {
+     "hex": "#ebf6ff",
+     "fam": "blue",
+     "C": 0.017,
+     "uses": 1,
+     "above": 1,
+     "in": "fill",
+     "eg": "a-tests-rail-i"
+    },
+    {
+     "hex": "#fff3df",
+     "fam": "amber",
+     "C": 0.029,
+     "uses": 1,
+     "above": 0,
+     "in": "fill",
+     "eg": "pill"
+    }
+   ],
+   "samples": {
+    "button:outlined/plain": [
+     "btn",
+     "a-tests-rail-i",
+     "a-tests-pick"
+    ],
+    "button:filled": [
+     "btn.ink",
+     "a-tests-rail-i.on"
+    ],
+    "card:top": [
+     "card"
+    ],
+    "gadget:progress bar": [
+     "bar"
+    ],
+    "icon:glyph": [
+     "gl.diamond",
+     "gl.clock",
+     "gl.ring",
+     "gl.check"
+    ],
+    "icon:symbol": [
+     "flt"
+    ],
+    "pill:chip/filter": [
+     "flt",
+     "flt.sub"
+    ],
+    "frame:table": [
+     "frame.a-tests-tight"
+    ],
+    "pill:status (toned)": [
+     "pill.p-bad",
+     "pill.p-warn",
+     "pill.p-ok"
+    ],
+    "pill:other (neutral)": [
+     "ex"
+    ]
+   }
+  },
+  "controls": {
+   "route": "controls",
+   "label": "Controls",
+   "nav": "controls",
+   "title": "Controls",
+   "inprog": true,
+   "full": false,
+   "moded": false,
+   "hash": "#controls",
+   "meta": false,
+   "shot": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/v2/R/noise/raw-v2/shots/m-controls.png",
+   "pixels": {
+    "w": 374,
+    "h": 726,
+    "colourfulPct": 0.76,
+    "strongPct": 0.6,
+    "famPct": {
+     "red": 0,
+     "amber": 0.253,
+     "green": 0.415,
+     "teal": 0.006,
+     "blue": 0.084,
+     "violet": 0,
+     "pink": 0
+    },
+    "families": [
+     "amber",
+     "green",
+     "blue"
+    ]
+   },
+   "marks": {
+    "all": 10,
+    "above": 5
+   },
+   "firstRow": 591,
+   "firstRowPct": 68,
+   "examples": 0,
+   "rect": {
+    "x": 8,
+    "y": 64,
+    "w": 374,
+    "h": 726
+   },
+   "scrollH": 1581,
+   "colours": {
+    "all": {
+     "text": 4,
+     "fill": 7,
+     "border": 1,
+     "svg": 0,
+     "together": 8,
+     "togetherClustered": 6,
+     "hues": [
+      "amber",
+      "blue",
+      "green",
+      "red"
+     ]
+    },
+    "above": {
+     "text": 4,
+     "fill": 7,
+     "border": 1,
+     "svg": 0,
+     "together": 8,
+     "togetherClustered": 6,
+     "hues": [
+      "amber",
+      "blue",
+      "green",
+      "red"
+     ]
+    }
+   },
+   "totals": {
+    "pills": 24,
+    "gadgets": 1,
+    "cards": 1,
+    "cardsNested": 0,
+    "tableFrames": 1,
+    "banners": 0,
+    "buttons": 17,
+    "tabs": 0,
+    "icons": 33,
+    "bigNumbers": 1
+   },
+   "above": {
+    "pills": 15,
+    "gadgets": 1,
+    "cards": 1,
+    "cardsNested": 0,
+    "tableFrames": 1,
+    "banners": 0,
+    "buttons": 8,
+    "tabs": 0,
+    "icons": 15,
+    "bigNumbers": 1
+   },
+   "counts": {
+    "button:outlined/plain": {
+     "all": 16,
+     "above": 7
+    },
+    "icon:svg": {
+     "all": 15,
+     "above": 6
+    },
+    "button:filled": {
+     "all": 1,
+     "above": 1
+    },
+    "card:top": {
+     "all": 1,
+     "above": 1
+    },
+    "gadget:progress bar": {
+     "all": 1,
+     "above": 1
+    },
+    "pill:chip/filter": {
+     "all": 10,
+     "above": 10
+    },
+    "icon:symbol": {
+     "all": 4,
+     "above": 4
+    },
+    "frame:table": {
+     "all": 1,
+     "above": 1
+    },
+    "pill:status (toned)": {
+     "all": 8,
+     "above": 3
+    },
+    "icon:glyph": {
+     "all": 14,
+     "above": 5
+    },
+    "pill:status (neutral)": {
+     "all": 6,
+     "above": 2
+    }
+   },
+   "fonts": {
+    "distinct": 7,
+    "distinctAbove": 7,
+    "list": [
+     "12px/500×45",
+     "14px/500×16",
+     "12px/400×6",
+     "14px/400×2",
+     "22px/600×1",
+     "16px/600×1",
+     "36px/600×1"
+    ]
+   },
+   "palette": [
+    {
+     "hex": "#d33b39",
+     "fam": "red",
+     "C": 0.189,
+     "uses": 8,
+     "above": 2,
+     "in": "text+fill",
+     "eg": "pill"
+    },
+    {
+     "hex": "#c87600",
+     "fam": "amber",
+     "C": 0.145,
+     "uses": 7,
+     "above": 7,
+     "in": "text+fill+border",
+     "eg": "pill"
+    },
+    {
+     "hex": "#0b9163",
+     "fam": "green",
+     "C": 0.126,
+     "uses": 7,
+     "above": 3,
+     "in": "text+fill",
+     "eg": "pill"
+    },
+    {
+     "hex": "#ffefec",
+     "fam": "red",
+     "C": 0.018,
+     "uses": 4,
+     "above": 1,
+     "in": "fill",
+     "eg": "pill"
+    },
+    {
+     "hex": "#fff3df",
+     "fam": "amber",
+     "C": 0.029,
+     "uses": 3,
+     "above": 3,
+     "in": "fill",
+     "eg": "pill"
+    },
+    {
+     "hex": "#e8f8ef",
+     "fam": "green",
+     "C": 0.021,
+     "uses": 3,
+     "above": 1,
+     "in": "fill",
+     "eg": "pill"
+    },
+    {
+     "hex": "#0067d3",
+     "fam": "blue",
+     "C": 0.185,
+     "uses": 2,
+     "above": 2,
+     "in": "text",
+     "eg": "qv"
+    },
+    {
+     "hex": "#ebf6ff",
+     "fam": "blue",
+     "C": 0.017,
+     "uses": 1,
+     "above": 1,
+     "in": "fill",
+     "eg": "qv"
+    }
+   ],
+   "samples": {
+    "button:outlined/plain": [
+     "btn",
+     "a-tests-pick"
+    ],
+    "button:filled": [
+     "btn.ink"
+    ],
+    "card:top": [
+     "card"
+    ],
+    "gadget:progress bar": [
+     "bar"
+    ],
+    "pill:chip/filter": [
+     "qv.on",
+     "qv",
+     "flt",
+     "flt.sub"
+    ],
+    "icon:symbol": [
+     "flt"
+    ],
+    "frame:table": [
+     "frame.a-tests-tight"
+    ],
+    "pill:status (toned)": [
+     "pill.p-warn",
+     "pill.p-ok",
+     "pill.p-bad"
+    ],
+    "icon:glyph": [
+     "gl.part",
+     "gl.check",
+     "gl.ring",
+     "gl.diamond"
+    ],
+    "pill:status (neutral)": [
+     "pill.p-none"
+    ]
+   }
+  },
+  "plan-cp": {
+   "route": "plan-cp",
+   "label": null,
+   "nav": "ssps",
+   "title": "WS-X90 Contingency Plan",
+   "inprog": true,
+   "full": true,
+   "moded": false,
+   "hash": "#plan-cp",
+   "meta": false,
+   "shot": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/v2/R/noise/raw-v2/shots/m-plan-cp.png",
+   "pixels": {
+    "w": 374,
+    "h": 836,
+    "colourfulPct": 0.26,
+    "strongPct": 0.18,
+    "famPct": {
+     "red": 0,
+     "amber": 0,
+     "green": 0,
+     "teal": 0,
+     "blue": 0.257,
+     "violet": 0,
+     "pink": 0
+    },
+    "families": [
+     "blue"
+    ]
+   },
+   "marks": {
+    "all": 17,
+    "above": 2
+   },
+   "firstRow": 1750,
+   "firstRowPct": 208,
+   "examples": 7,
+   "rect": {
+    "x": 8,
+    "y": 8,
+    "w": 374,
+    "h": 836
+   },
+   "scrollH": 844,
+   "colours": {
+    "all": {
+     "text": 2,
+     "fill": 4,
+     "border": 2,
+     "svg": 1,
+     "together": 6,
+     "togetherClustered": 5,
+     "hues": [
+      "amber",
+      "blue"
+     ]
+    },
+    "above": {
+     "text": 1,
+     "fill": 0,
+     "border": 0,
+     "svg": 1,
+     "together": 1,
+     "togetherClustered": 1,
+     "hues": [
+      "blue"
+     ]
+    }
+   },
+   "totals": {
+    "pills": 24,
+    "gadgets": 0,
+    "cards": 3,
+    "cardsNested": 0,
+    "tableFrames": 0,
+    "banners": 2,
+    "buttons": 29,
+    "tabs": 0,
+    "icons": 42,
+    "bigNumbers": 0
+   },
+   "above": {
+    "pills": 3,
+    "gadgets": 0,
+    "cards": 0,
+    "cardsNested": 0,
+    "tableFrames": 0,
+    "banners": 0,
+    "buttons": 13,
+    "tabs": 0,
+    "icons": 13,
+    "bigNumbers": 0
+   },
+   "counts": {
+    "icon:svg": {
+     "all": 40,
+     "above": 13
+    },
+    "button:outlined/plain": {
+     "all": 28,
+     "above": 12
+    },
+    "button:filled": {
+     "all": 1,
+     "above": 1
+    },
+    "pill:other (neutral)": {
+     "all": 9,
+     "above": 1
+    },
+    "pill:tag": {
+     "all": 10,
+     "above": 2
+    },
+    "pill:chip/filter": {
+     "all": 1,
+     "above": 0
+    },
+    "banner (toned)": {
+     "all": 2,
+     "above": 0
+    },
+    "card:top": {
+     "all": 3,
+     "above": 0
+    },
+    "pill:status (toned)": {
+     "all": 1,
+     "above": 0
+    },
+    "icon:glyph": {
+     "all": 2,
+     "above": 0
+    },
+    "pill:other (toned)": {
+     "all": 2,
+     "above": 0
+    },
+    "pill:status (neutral)": {
+     "all": 1,
+     "above": 0
+    }
+   },
+   "fonts": {
+    "distinct": 10,
+    "distinctAbove": 8,
+    "list": [
+     "12px/400×200",
+     "12px/500×41",
+     "14px/400×37",
+     "12px/600×30",
+     "20px/600×16",
+     "14px/500×3",
+     "14px/600×2",
+     "8.8px/600×2",
+     "22px/600×1",
+     "7.2px/600×1"
+    ]
+   },
+   "palette": [
+    {
+     "hex": "#0067d3",
+     "fam": "blue",
+     "C": 0.185,
+     "uses": 44,
+     "above": 4,
+     "in": "text+border+svg",
+     "eg": "sd-live-tag"
+    },
+    {
+     "hex": "#e8f2fb",
+     "fam": "blue",
+     "C": 0.016,
+     "uses": 9,
+     "above": 0,
+     "in": "fill",
+     "eg": "sd-ins"
+    },
+    {
+     "hex": "#c87600",
+     "fam": "amber",
+     "C": 0.145,
+     "uses": 8,
+     "above": 0,
+     "in": "text+border",
+     "eg": "ak-chip"
+    },
+    {
+     "hex": "#fff3df",
+     "fam": "amber",
+     "C": 0.029,
+     "uses": 4,
+     "above": 0,
+     "in": "fill",
+     "eg": "ak-chip"
+    },
+    {
+     "hex": "#ebf6ff",
+     "fam": "blue",
+     "C": 0.017,
+     "uses": 2,
+     "above": 0,
+     "in": "fill",
+     "eg": "se-aib"
+    },
+    {
+     "hex": "#dbeaf9",
+     "fam": "blue",
+     "C": 0.026,
+     "uses": 1,
+     "above": 0,
+     "in": "fill",
+     "eg": "sd-av"
+    }
+   ],
+   "samples": {
+    "button:outlined/plain": [
+     "v8d-swb",
+     "se-pstack",
+     "se-ib.se-morebtn",
+     "se-tbb.se-tbc",
+     "se-tbb",
+     "se-tbb.se-asst",
+     "se-lb",
+     "btn.sm"
+    ],
+    "button:filled": [
+     "btn.ink"
+    ],
+    "pill:other (neutral)": [
+     "ex",
+     "se-src",
+     "ak-av"
+    ],
+    "pill:tag": [
+     "sd-live-tag"
+    ],
+    "pill:chip/filter": [
+     "ak-chip.warn"
+    ],
+    "banner (toned)": [
+     "sd-mark",
+     "sd-ins"
+    ],
+    "card:top": [
+     "se-aib",
+     "sd-p.v8d-ed"
+    ],
+    "pill:status (toned)": [
+     "pill.p-warn"
+    ],
+    "icon:glyph": [
+     "gl.clock",
+     "gl.ring"
+    ],
+    "pill:other (toned)": [
+     "sd-av",
+     "sd-mark"
+    ],
+    "pill:status (neutral)": [
+     "pill.p-none"
+    ]
+   }
+  },
+  "findings": {
+   "route": "findings",
+   "label": "Findings",
+   "nav": "findings",
+   "title": "Findings",
+   "inprog": true,
+   "full": false,
+   "moded": false,
+   "hash": "#findings",
+   "meta": false,
+   "shot": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/v2/R/noise/raw-v2/shots/m-findings.png",
+   "pixels": {
+    "w": 374,
+    "h": 726,
+    "colourfulPct": 1.13,
+    "strongPct": 1.09,
+    "famPct": {
+     "red": 0.454,
+     "amber": 0.632,
+     "green": 0,
+     "teal": 0,
+     "blue": 0.045,
+     "violet": 0,
+     "pink": 0
+    },
+    "families": [
+     "red",
+     "amber"
+    ]
+   },
+   "marks": {
+    "all": 19,
+    "above": 7
+   },
+   "firstRow": 1082,
+   "firstRowPct": 131,
+   "examples": 0,
+   "rect": {
+    "x": 8,
+    "y": 64,
+    "w": 374,
+    "h": 726
+   },
+   "scrollH": 2361,
+   "colours": {
+    "all": {
+     "text": 3,
+     "fill": 5,
+     "border": 1,
+     "svg": 0,
+     "together": 6,
+     "togetherClustered": 5,
+     "hues": [
+      "amber",
+      "blue",
+      "red"
+     ]
+    },
+    "above": {
+     "text": 1,
+     "fill": 3,
+     "border": 1,
+     "svg": 0,
+     "together": 4,
+     "togetherClustered": 4,
+     "hues": [
+      "amber",
+      "blue",
+      "red"
+     ]
+    }
+   },
+   "totals": {
+    "pills": 34,
+    "gadgets": 1,
+    "cards": 2,
+    "cardsNested": 0,
+    "tableFrames": 1,
+    "banners": 0,
+    "buttons": 6,
+    "tabs": 3,
+    "icons": 22,
+    "bigNumbers": 1
+   },
+   "above": {
+    "pills": 4,
+    "gadgets": 1,
+    "cards": 2,
+    "cardsNested": 0,
+    "tableFrames": 0,
+    "banners": 0,
+    "buttons": 6,
+    "tabs": 3,
+    "icons": 5,
+    "bigNumbers": 1
+   },
+   "counts": {
+    "button:outlined/plain": {
+     "all": 5,
+     "above": 5
+    },
+    "icon:svg": {
+     "all": 2,
+     "above": 2
+    },
+    "button:filled": {
+     "all": 1,
+     "above": 1
+    },
+    "tab": {
+     "all": 3,
+     "above": 3
+    },
+    "card:top": {
+     "all": 2,
+     "above": 2
+    },
+    "icon:glyph": {
+     "all": 15,
+     "above": 3
+    },
+    "gadget:tally (stacked bar)": {
+     "all": 1,
+     "above": 1
+    },
+    "pill:chip/filter": {
+     "all": 12,
+     "above": 4
+    },
+    "icon:symbol": {
+     "all": 5,
+     "above": 0
+    },
+    "frame:table": {
+     "all": 1,
+     "above": 0
+    },
+    "pill:status (toned)": {
+     "all": 12,
+     "above": 0
+    },
+    "pill:tag": {
+     "all": 10,
+     "above": 0
+    }
+   },
+   "fonts": {
+    "distinct": 8,
+    "distinctAbove": 8,
+    "list": [
+     "12px/500×46",
+     "14px/400×21",
+     "14px/500×17",
+     "12px/400×10",
+     "16px/500×3",
+     "16px/600×2",
+     "22px/600×1",
+     "36px/600×1"
+    ]
+   },
+   "palette": [
+    {
+     "hex": "#c87600",
+     "fam": "amber",
+     "C": 0.145,
+     "uses": 25,
+     "above": 5,
+     "in": "text+fill+border",
+     "eg": "pill"
+    },
+    {
+     "hex": "#d33b39",
+     "fam": "red",
+     "C": 0.189,
+     "uses": 19,
+     "above": 3,
+     "in": "text+fill",
+     "eg": "pill"
+    },
+    {
+     "hex": "#ffefec",
+     "fam": "red",
+     "C": 0.018,
+     "uses": 8,
+     "above": 0,
+     "in": "fill",
+     "eg": "pill"
+    },
+    {
+     "hex": "#fff3df",
+     "fam": "amber",
+     "C": 0.029,
+     "uses": 4,
+     "above": 0,
+     "in": "fill",
+     "eg": "pill"
+    },
+    {
+     "hex": "#0067d3",
+     "fam": "blue",
+     "C": 0.185,
+     "uses": 3,
+     "above": 3,
+     "in": "text",
+     "eg": "ak-link"
+    },
+    {
+     "hex": "#ebf6ff",
+     "fam": "blue",
+     "C": 0.017,
+     "uses": 1,
+     "above": 1,
+     "in": "fill",
+     "eg": "qv"
+    }
+   ],
+   "samples": {
+    "button:outlined/plain": [
+     "btn",
+     "row.a-risk-srow"
+    ],
+    "button:filled": [
+     "btn.ink"
+    ],
+    "tab": [
+     "ak-tab.on",
+     "ak-tab"
+    ],
+    "card:top": [
+     "card.a-risk-scard"
+    ],
+    "icon:glyph": [
+     "gl.diamond",
+     "gl.clock",
+     "gl.ring"
+    ],
+    "gadget:tally (stacked bar)": [
+     "stack"
+    ],
+    "pill:chip/filter": [
+     "qv.a-risk-qv",
+     "qv.v2-more-s",
+     "flt",
+     "flt.sub"
+    ],
+    "icon:symbol": [
+     "qv.v2-more-s",
+     "flt"
+    ],
+    "frame:table": [
+     "frame.a-risk-tight"
+    ],
+    "pill:status (toned)": [
+     "pill.p-bad",
+     "pill.p-warn"
+    ],
+    "pill:tag": [
+     "tag"
+    ]
+   }
+  },
+  "baseline": {
+   "route": "baseline",
+   "label": "Baseline",
+   "nav": "baseline",
+   "title": "Baseline",
+   "inprog": true,
+   "full": false,
+   "moded": false,
+   "hash": "#baseline",
+   "meta": false,
+   "shot": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/v2/R/noise/raw-v2/shots/m-baseline.png",
+   "pixels": {
+    "w": 374,
+    "h": 726,
+    "colourfulPct": 0.04,
+    "strongPct": 0.03,
+    "famPct": {
+     "red": 0,
+     "amber": 0.041,
+     "green": 0,
+     "teal": 0,
+     "blue": 0,
+     "violet": 0,
+     "pink": 0
+    },
+    "families": []
+   },
+   "marks": {
+    "all": 6,
+    "above": 1
+   },
+   "firstRow": 362,
+   "firstRowPct": 38,
+   "examples": 1,
+   "rect": {
+    "x": 8,
+    "y": 64,
+    "w": 374,
+    "h": 726
+   },
+   "scrollH": 1908,
+   "colours": {
+    "all": {
+     "text": 1,
+     "fill": 5,
+     "border": 1,
+     "svg": 0,
+     "together": 5,
+     "togetherClustered": 5,
+     "hues": [
+      "amber",
+      "blue",
+      "green",
+      "red"
+     ]
+    },
+    "above": {
+     "text": 0,
+     "fill": 0,
+     "border": 1,
+     "svg": 0,
+     "together": 1,
+     "togetherClustered": 1,
+     "hues": [
+      "amber"
+     ]
+    }
+   },
+   "totals": {
+    "pills": 9,
+    "gadgets": 1,
+    "cards": 18,
+    "cardsNested": 0,
+    "tableFrames": 1,
+    "banners": 0,
+    "buttons": 6,
+    "tabs": 2,
+    "icons": 9,
+    "bigNumbers": 0
+   },
+   "above": {
+    "pills": 6,
+    "gadgets": 0,
+    "cards": 0,
+    "cardsNested": 0,
+    "tableFrames": 1,
+    "banners": 0,
+    "buttons": 6,
+    "tabs": 2,
+    "icons": 9,
+    "bigNumbers": 0
+   },
+   "counts": {
+    "button:outlined/plain": {
+     "all": 5,
+     "above": 5
+    },
+    "button:filled": {
+     "all": 1,
+     "above": 1
+    },
+    "icon:glyph": {
+     "all": 1,
+     "above": 1
+    },
+    "tab": {
+     "all": 2,
+     "above": 2
+    },
+    "frame:table": {
+     "all": 1,
+     "above": 1
+    },
+    "pill:tag": {
+     "all": 6,
+     "above": 6
+    },
+    "icon:svg": {
+     "all": 8,
+     "above": 8
+    },
+    "pill:chip/filter": {
+     "all": 2,
+     "above": 0
+    },
+    "gadget:tally (stacked bar)": {
+     "all": 1,
+     "above": 0
+    },
+    "card:top": {
+     "all": 18,
+     "above": 0
+    },
+    "pill:other (neutral)": {
+     "all": 1,
+     "above": 0
+    }
+   },
+   "fonts": {
+    "distinct": 8,
+    "distinctAbove": 7,
+    "list": [
+     "12px/400×27",
+     "14px/600×24",
+     "12px/500×22",
+     "14px/400×20",
+     "16px/600×19",
+     "14px/500×8",
+     "12px/600×6",
+     "22px/600×1"
+    ]
+   },
+   "palette": [
+    {
+     "hex": "#c87600",
+     "fam": "amber",
+     "C": 0.145,
+     "uses": 5,
+     "above": 4,
+     "in": "fill+border",
+     "eg": "i"
+    },
+    {
+     "hex": "#0067d3",
+     "fam": "blue",
+     "C": 0.185,
+     "uses": 2,
+     "above": 0,
+     "in": "text+fill",
+     "eg": "qv"
+    },
+    {
+     "hex": "#ebf6ff",
+     "fam": "blue",
+     "C": 0.017,
+     "uses": 1,
+     "above": 0,
+     "in": "fill",
+     "eg": "qv"
+    },
+    {
+     "hex": "#0b9163",
+     "fam": "green",
+     "C": 0.126,
+     "uses": 1,
+     "above": 0,
+     "in": "fill",
+     "eg": "i"
+    },
+    {
+     "hex": "#d33b39",
+     "fam": "red",
+     "C": 0.189,
+     "uses": 1,
+     "above": 0,
+     "in": "fill",
+     "eg": "i"
+    }
+   ],
+   "samples": {
+    "button:outlined/plain": [
+     "btn",
+     "v7p-own"
+    ],
+    "button:filled": [
+     "btn.ink"
+    ],
+    "icon:glyph": [
+     "gl.clock"
+    ],
+    "tab": [
+     "ak-tab.on",
+     "ak-tab"
+    ],
+    "frame:table": [
+     "frame.v7p-frame"
+    ],
+    "pill:tag": [
+     "tag"
+    ],
+    "pill:chip/filter": [
+     "qv.on",
+     "qv"
+    ],
+    "gadget:tally (stacked bar)": [
+     "stack.v7p-stack"
+    ],
+    "card:top": [
+     "v7p-fam"
+    ],
+    "pill:other (neutral)": [
+     "ex"
+    ]
+   }
+  },
+  "campaign": {
+   "route": "campaign",
+   "label": null,
+   "nav": "assessments",
+   "title": "Expanded Control Set Assessment",
+   "inprog": true,
+   "full": false,
+   "moded": true,
+   "hash": "#campaign",
+   "meta": false,
+   "shot": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/v2/R/noise/raw-v2/shots/m-campaign.png",
+   "pixels": {
+    "w": 374,
+    "h": 726,
+    "colourfulPct": 1.02,
+    "strongPct": 0.99,
+    "famPct": {
+     "red": 0.192,
+     "amber": 0.03,
+     "green": 0.712,
+     "teal": 0.003,
+     "blue": 0.085,
+     "violet": 0,
+     "pink": 0
+    },
+    "families": [
+     "red",
+     "green",
+     "blue"
+    ]
+   },
+   "marks": {
+    "all": 11,
+    "above": 3
+   },
+   "firstRow": 874,
+   "firstRowPct": 104,
+   "examples": 2,
+   "rect": {
+    "x": 8,
+    "y": 64,
+    "w": 374,
+    "h": 726
+   },
+   "scrollH": 2663,
+   "colours": {
+    "all": {
+     "text": 3,
+     "fill": 5,
+     "border": 0,
+     "svg": 0,
+     "together": 6,
+     "togetherClustered": 5,
+     "hues": [
+      "blue",
+      "green",
+      "red"
+     ]
+    },
+    "above": {
+     "text": 1,
+     "fill": 3,
+     "border": 0,
+     "svg": 0,
+     "together": 4,
+     "togetherClustered": 4,
+     "hues": [
+      "blue",
+      "green",
+      "red"
+     ]
+    }
+   },
+   "totals": {
+    "pills": 48,
+    "gadgets": 1,
+    "cards": 1,
+    "cardsNested": 0,
+    "tableFrames": 1,
+    "banners": 0,
+    "buttons": 2,
+    "tabs": 2,
+    "icons": 14,
+    "bigNumbers": 0
+   },
+   "above": {
+    "pills": 13,
+    "gadgets": 1,
+    "cards": 1,
+    "cardsNested": 0,
+    "tableFrames": 1,
+    "banners": 0,
+    "buttons": 2,
+    "tabs": 2,
+    "icons": 6,
+    "bigNumbers": 0
+   },
+   "counts": {
+    "button:outlined/plain": {
+     "all": 1,
+     "above": 1
+    },
+    "icon:svg": {
+     "all": 9,
+     "above": 1
+    },
+    "button:filled": {
+     "all": 1,
+     "above": 1
+    },
+    "pill:chip/filter": {
+     "all": 10,
+     "above": 10
+    },
+    "pill:status (neutral)": {
+     "all": 7,
+     "above": 1
+    },
+    "icon:glyph": {
+     "all": 1,
+     "above": 1
+    },
+    "pill:other (neutral)": {
+     "all": 9,
+     "above": 2
+    },
+    "tab": {
+     "all": 2,
+     "above": 2
+    },
+    "card:top": {
+     "all": 1,
+     "above": 1
+    },
+    "gadget:tally (stacked bar)": {
+     "all": 1,
+     "above": 1
+    },
+    "icon:symbol": {
+     "all": 4,
+     "above": 4
+    },
+    "frame:table": {
+     "all": 1,
+     "above": 1
+    },
+    "pill:tag": {
+     "all": 14,
+     "above": 0
+    },
+    "pill:status (toned)": {
+     "all": 8,
+     "above": 0
+    }
+   },
+   "fonts": {
+    "distinct": 7,
+    "distinctAbove": 7,
+    "list": [
+     "12px/500×66",
+     "12px/400×20",
+     "14px/500×16",
+     "12px/600×14",
+     "14px/400×9",
+     "22px/600×1",
+     "14px/600×1"
+    ]
+   },
+   "palette": [
+    {
+     "hex": "#0b9163",
+     "fam": "green",
+     "C": 0.126,
+     "uses": 5,
+     "above": 1,
+     "in": "text+fill",
+     "eg": "pill"
+    },
+    {
+     "hex": "#d33b39",
+     "fam": "red",
+     "C": 0.189,
+     "uses": 5,
+     "above": 1,
+     "in": "text+fill",
+     "eg": "pill"
+    },
+    {
+     "hex": "#e8f8ef",
+     "fam": "green",
+     "C": 0.021,
+     "uses": 4,
+     "above": 0,
+     "in": "fill",
+     "eg": "pill"
+    },
+    {
+     "hex": "#ffefec",
+     "fam": "red",
+     "C": 0.018,
+     "uses": 4,
+     "above": 0,
+     "in": "fill",
+     "eg": "pill"
+    },
+    {
+     "hex": "#0067d3",
+     "fam": "blue",
+     "C": 0.185,
+     "uses": 2,
+     "above": 2,
+     "in": "text",
+     "eg": "qv"
+    },
+    {
+     "hex": "#ebf6ff",
+     "fam": "blue",
+     "C": 0.017,
+     "uses": 1,
+     "above": 1,
+     "in": "fill",
+     "eg": "qv"
+    }
+   ],
+   "samples": {
+    "button:outlined/plain": [
+     "btn"
+    ],
+    "button:filled": [
+     "btn.sm"
+    ],
+    "pill:chip/filter": [
+     "ak-chip",
+     "qv.on",
+     "qv",
+     "flt",
+     "flt.sub"
+    ],
+    "pill:status (neutral)": [
+     "pill.p-none"
+    ],
+    "icon:glyph": [
+     "gl.ring"
+    ],
+    "pill:other (neutral)": [
+     "ak-av",
+     "ex"
+    ],
+    "tab": [
+     "ak-tab.on",
+     "ak-tab"
+    ],
+    "card:top": [
+     "a-tests-box.a-tests-trk"
+    ],
+    "gadget:tally (stacked bar)": [
+     "stack"
+    ],
+    "icon:symbol": [
+     "flt"
+    ],
+    "frame:table": [
+     "frame.a-tests-tight"
+    ],
+    "pill:tag": [
+     "tag"
+    ],
+    "pill:status (toned)": [
+     "pill.p-ok",
+     "pill.p-bad"
+    ]
+   }
+  },
+  "policies": {
+   "route": "policies",
+   "label": "Policies",
+   "nav": "policies",
+   "title": "Policies",
+   "inprog": true,
+   "full": false,
+   "moded": false,
+   "hash": "#policies",
+   "meta": false,
+   "shot": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/v2/R/noise/raw-v2/shots/m-policies.png",
+   "pixels": {
+    "w": 374,
+    "h": 726,
+    "colourfulPct": 0.38,
+    "strongPct": 0.31,
+    "famPct": {
+     "red": 0.022,
+     "amber": 0.197,
+     "green": 0.089,
+     "teal": 0.015,
+     "blue": 0.06,
+     "violet": 0,
+     "pink": 0
+    },
+    "families": [
+     "amber",
+     "green",
+     "blue"
+    ]
+   },
+   "marks": {
+    "all": 14,
+    "above": 8
+   },
+   "firstRow": 409,
+   "firstRowPct": 44,
+   "examples": 5,
+   "rect": {
+    "x": 8,
+    "y": 64,
+    "w": 374,
+    "h": 726
+   },
+   "scrollH": 1520,
+   "colours": {
+    "all": {
+     "text": 2,
+     "fill": 6,
+     "border": 1,
+     "svg": 0,
+     "together": 7,
+     "togetherClustered": 6,
+     "hues": [
+      "amber",
+      "blue",
+      "green",
+      "red"
+     ]
+    },
+    "above": {
+     "text": 2,
+     "fill": 6,
+     "border": 1,
+     "svg": 0,
+     "together": 7,
+     "togetherClustered": 6,
+     "hues": [
+      "amber",
+      "blue",
+      "green",
+      "red"
+     ]
+    }
+   },
+   "totals": {
+    "pills": 44,
+    "gadgets": 0,
+    "cards": 0,
+    "cardsNested": 0,
+    "tableFrames": 1,
+    "banners": 0,
+    "buttons": 2,
+    "tabs": 0,
+    "icons": 35,
+    "bigNumbers": 0
+   },
+   "above": {
+    "pills": 22,
+    "gadgets": 0,
+    "cards": 0,
+    "cardsNested": 0,
+    "tableFrames": 1,
+    "banners": 0,
+    "buttons": 2,
+    "tabs": 0,
+    "icons": 17,
+    "bigNumbers": 0
+   },
+   "counts": {
+    "button:outlined/plain": {
+     "all": 1,
+     "above": 1
+    },
+    "icon:svg": {
+     "all": 1,
+     "above": 1
+    },
+    "button:filled": {
+     "all": 1,
+     "above": 1
+    },
+    "pill:chip/filter": {
+     "all": 10,
+     "above": 10
+    },
+    "icon:symbol": {
+     "all": 4,
+     "above": 4
+    },
+    "frame:table": {
+     "all": 1,
+     "above": 1
+    },
+    "pill:tag": {
+     "all": 21,
+     "above": 9
+    },
+    "icon:glyph": {
+     "all": 30,
+     "above": 12
+    },
+    "pill:status (neutral)": {
+     "all": 6,
+     "above": 2
+    },
+    "pill:status (toned)": {
+     "all": 3,
+     "above": 1
+    },
+    "pill:other (neutral)": {
+     "all": 4,
+     "above": 0
+    }
+   },
+   "fonts": {
+    "distinct": 5,
+    "distinctAbove": 5,
+    "list": [
+     "12px/500×66",
+     "12px/400×46",
+     "22px/600×1",
+     "14px/500×1",
+     "14px/400×1"
+    ]
+   },
+   "palette": [
+    {
+     "hex": "#c87600",
+     "fam": "amber",
+     "C": 0.145,
+     "uses": 48,
+     "above": 24,
+     "in": "fill+border",
+     "eg": "gl"
+    },
+    {
+     "hex": "#fff3df",
+     "fam": "amber",
+     "C": 0.029,
+     "uses": 16,
+     "above": 8,
+     "in": "fill",
+     "eg": "gl"
+    },
+    {
+     "hex": "#d33b39",
+     "fam": "red",
+     "C": 0.189,
+     "uses": 6,
+     "above": 2,
+     "in": "text+fill",
+     "eg": "pill"
+    },
+    {
+     "hex": "#ffefec",
+     "fam": "red",
+     "C": 0.018,
+     "uses": 3,
+     "above": 1,
+     "in": "fill",
+     "eg": "pill"
+    },
+    {
+     "hex": "#0067d3",
+     "fam": "blue",
+     "C": 0.185,
+     "uses": 2,
+     "above": 2,
+     "in": "text",
+     "eg": "qv"
+    },
+    {
+     "hex": "#0b9163",
+     "fam": "green",
+     "C": 0.126,
+     "uses": 2,
+     "above": 2,
+     "in": "fill",
+     "eg": "gl"
+    },
+    {
+     "hex": "#ebf6ff",
+     "fam": "blue",
+     "C": 0.017,
+     "uses": 1,
+     "above": 1,
+     "in": "fill",
+     "eg": "qv"
+    }
+   ],
+   "samples": {
+    "button:outlined/plain": [
+     "btn.a-docs-mbtn"
+    ],
+    "button:filled": [
+     "btn.ink"
+    ],
+    "pill:chip/filter": [
+     "qv.a-docs-qv",
+     "flt",
+     "flt.sub"
+    ],
+    "icon:symbol": [
+     "flt"
+    ],
+    "frame:table": [
+     "frame.a-docs-tight"
+    ],
+    "pill:tag": [
+     "tag"
+    ],
+    "icon:glyph": [
+     "gl.part",
+     "gl.ring",
+     "gl.check",
+     "gl.diamond"
+    ],
+    "pill:status (neutral)": [
+     "pill.p-none"
+    ],
+    "pill:status (toned)": [
+     "pill.p-bad"
+    ],
+    "pill:other (neutral)": [
+     "ex"
+    ]
+   }
+  },
+  "conmon": {
+   "route": "conmon",
+   "label": "Continuous monitoring",
+   "nav": "conmon",
+   "title": "Continuous monitoring",
+   "inprog": true,
+   "full": false,
+   "moded": false,
+   "hash": "#conmon",
+   "meta": false,
+   "shot": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/v2/R/noise/raw-v2/shots/m-conmon.png",
+   "pixels": {
+    "w": 374,
+    "h": 726,
+    "colourfulPct": 0.12,
+    "strongPct": 0.1,
+    "famPct": {
+     "red": 0.063,
+     "amber": 0,
+     "green": 0,
+     "teal": 0,
+     "blue": 0.061,
+     "violet": 0,
+     "pink": 0
+    },
+    "families": [
+     "red",
+     "blue"
+    ]
+   },
+   "marks": {
+    "all": 5,
+    "above": 2
+   },
+   "firstRow": 670,
+   "firstRowPct": 78,
+   "examples": 1,
+   "rect": {
+    "x": 8,
+    "y": 64,
+    "w": 374,
+    "h": 726
+   },
+   "scrollH": 1559,
+   "colours": {
+    "all": {
+     "text": 1,
+     "fill": 2,
+     "border": 0,
+     "svg": 0,
+     "together": 3,
+     "togetherClustered": 3,
+     "hues": [
+      "blue",
+      "red"
+     ]
+    },
+    "above": {
+     "text": 1,
+     "fill": 2,
+     "border": 0,
+     "svg": 0,
+     "together": 3,
+     "togetherClustered": 3,
+     "hues": [
+      "blue",
+      "red"
+     ]
+    }
+   },
+   "totals": {
+    "pills": 20,
+    "gadgets": 0,
+    "cards": 0,
+    "cardsNested": 0,
+    "tableFrames": 1,
+    "banners": 1,
+    "buttons": 12,
+    "tabs": 2,
+    "icons": 22,
+    "bigNumbers": 0
+   },
+   "above": {
+    "pills": 11,
+    "gadgets": 0,
+    "cards": 0,
+    "cardsNested": 0,
+    "tableFrames": 1,
+    "banners": 1,
+    "buttons": 4,
+    "tabs": 2,
+    "icons": 7,
+    "bigNumbers": 0
+   },
+   "counts": {
+    "button:outlined/plain": {
+     "all": 11,
+     "above": 3
+    },
+    "button:filled": {
+     "all": 1,
+     "above": 1
+    },
+    "banner (neutral)": {
+     "all": 1,
+     "above": 1
+    },
+    "icon:glyph": {
+     "all": 8,
+     "above": 1
+    },
+    "tab": {
+     "all": 2,
+     "above": 2
+    },
+    "pill:chip/filter": {
+     "all": 9,
+     "above": 9
+    },
+    "icon:symbol": {
+     "all": 4,
+     "above": 4
+    },
+    "frame:table": {
+     "all": 1,
+     "above": 1
+    },
+    "pill:tag": {
+     "all": 10,
+     "above": 2
+    },
+    "icon:svg": {
+     "all": 10,
+     "above": 2
+    },
+    "pill:other (neutral)": {
+     "all": 1,
+     "above": 0
+    }
+   },
+   "fonts": {
+    "distinct": 7,
+    "distinctAbove": 7,
+    "list": [
+     "12px/500×43",
+     "14px/500×14",
+     "14px/400×13",
+     "14px/600×11",
+     "12px/600×10",
+     "12px/400×6",
+     "22px/600×1"
+    ]
+   },
+   "palette": [
+    {
+     "hex": "#0067d3",
+     "fam": "blue",
+     "C": 0.185,
+     "uses": 5,
+     "above": 2,
+     "in": "text",
+     "eg": "qv"
+    },
+    {
+     "hex": "#d33b39",
+     "fam": "red",
+     "C": 0.189,
+     "uses": 1,
+     "above": 1,
+     "in": "fill",
+     "eg": "gl"
+    },
+    {
+     "hex": "#ebf6ff",
+     "fam": "blue",
+     "C": 0.017,
+     "uses": 1,
+     "above": 1,
+     "in": "fill",
+     "eg": "qv"
+    }
+   ],
+   "samples": {
+    "button:outlined/plain": [
+     "btn",
+     "v7p-own"
+    ],
+    "button:filled": [
+     "btn.ink"
+    ],
+    "banner (neutral)": [
+     "ak-banner.bad"
+    ],
+    "icon:glyph": [
+     "gl.diamond",
+     "gl.ring"
+    ],
+    "tab": [
+     "ak-tab.on",
+     "ak-tab"
+    ],
+    "pill:chip/filter": [
+     "qv.on",
+     "qv",
+     "flt",
+     "flt.sub"
+    ],
+    "icon:symbol": [
+     "flt"
+    ],
+    "frame:table": [
+     "frame.v7p-frame"
+    ],
+    "pill:tag": [
+     "tag"
+    ],
+    "pill:other (neutral)": [
+     "ex"
+    ]
+   }
+  },
+  "control-si2": {
+   "route": "control-si2",
+   "label": null,
+   "nav": "controls",
+   "title": "SI-2 Flaw Remediation",
+   "inprog": true,
+   "full": false,
+   "moded": false,
+   "hash": "#control-si2",
+   "meta": false,
+   "shot": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/v2/R/noise/raw-v2/shots/m-control-si2.png",
+   "pixels": {
+    "w": 374,
+    "h": 726,
+    "colourfulPct": 0,
+    "strongPct": 0,
+    "famPct": {
+     "red": 0,
+     "amber": 0,
+     "green": 0,
+     "teal": 0,
+     "blue": 0,
+     "violet": 0,
+     "pink": 0
+    },
+    "families": []
+   },
+   "marks": {
+    "all": 27,
+    "above": 0
+   },
+   "firstRow": 1483,
+   "firstRowPct": 182,
+   "examples": 0,
+   "rect": {
+    "x": 8,
+    "y": 64,
+    "w": 374,
+    "h": 726
+   },
+   "scrollH": 3567,
+   "colours": {
+    "all": {
+     "text": 4,
+     "fill": 5,
+     "border": 1,
+     "svg": 0,
+     "together": 7,
+     "togetherClustered": 6,
+     "hues": [
+      "amber",
+      "blue",
+      "green",
+      "red"
+     ]
+    },
+    "above": {
+     "text": 0,
+     "fill": 0,
+     "border": 0,
+     "svg": 0,
+     "together": 0,
+     "togetherClustered": 0,
+     "hues": []
+    }
+   },
+   "totals": {
+    "pills": 27,
+    "gadgets": 0,
+    "cards": 4,
+    "cardsNested": 0,
+    "tableFrames": 2,
+    "banners": 1,
+    "buttons": 5,
+    "tabs": 3,
+    "icons": 25,
+    "bigNumbers": 0
+   },
+   "above": {
+    "pills": 2,
+    "gadgets": 0,
+    "cards": 2,
+    "cardsNested": 0,
+    "tableFrames": 0,
+    "banners": 0,
+    "buttons": 4,
+    "tabs": 3,
+    "icons": 3,
+    "bigNumbers": 0
+   },
+   "counts": {
+    "button:outlined/plain": {
+     "all": 4,
+     "above": 3
+    },
+    "icon:svg": {
+     "all": 2,
+     "above": 2
+    },
+    "button:filled": {
+     "all": 1,
+     "above": 1
+    },
+    "pill:status (neutral)": {
+     "all": 1,
+     "above": 1
+    },
+    "icon:glyph": {
+     "all": 23,
+     "above": 1
+    },
+    "pill:tag": {
+     "all": 1,
+     "above": 1
+    },
+    "tab": {
+     "all": 3,
+     "above": 3
+    },
+    "card:top": {
+     "all": 4,
+     "above": 2
+    },
+    "pill:status (toned)": {
+     "all": 21,
+     "above": 0
+    },
+    "banner (neutral)": {
+     "all": 1,
+     "above": 0
+    },
+    "frame:table": {
+     "all": 2,
+     "above": 0
+    },
+    "pill:other (neutral)": {
+     "all": 1,
+     "above": 0
+    },
+    "pill:other (toned)": {
+     "all": 3,
+     "above": 0
+    }
+   },
+   "fonts": {
+    "distinct": 8,
+    "distinctAbove": 6,
+    "list": [
+     "12px/500×38",
+     "12px/400×30",
+     "14px/400×26",
+     "14px/500×17",
+     "14px/600×6",
+     "16px/600×5",
+     "12px/600×4",
+     "22px/600×1"
+    ]
+   },
+   "palette": [
+    {
+     "hex": "#0b9163",
+     "fam": "green",
+     "C": 0.126,
+     "uses": 40,
+     "above": 0,
+     "in": "text+fill",
+     "eg": "pill"
+    },
+    {
+     "hex": "#e8f8ef",
+     "fam": "green",
+     "C": 0.021,
+     "uses": 20,
+     "above": 0,
+     "in": "fill",
+     "eg": "pill"
+    },
+    {
+     "hex": "#c87600",
+     "fam": "amber",
+     "C": 0.145,
+     "uses": 8,
+     "above": 0,
+     "in": "text+fill+border",
+     "eg": "v8g-cat"
+    },
+    {
+     "hex": "#fff3df",
+     "fam": "amber",
+     "C": 0.029,
+     "uses": 5,
+     "above": 0,
+     "in": "fill",
+     "eg": "pill"
+    },
+    {
+     "hex": "#0067d3",
+     "fam": "blue",
+     "C": 0.185,
+     "uses": 3,
+     "above": 0,
+     "in": "text",
+     "eg": "sp"
+    },
+    {
+     "hex": "#d33b39",
+     "fam": "red",
+     "C": 0.189,
+     "uses": 1,
+     "above": 0,
+     "in": "text",
+     "eg": "v8g-cat"
+    },
+    {
+     "hex": "#ffefec",
+     "fam": "red",
+     "C": 0.018,
+     "uses": 1,
+     "above": 0,
+     "in": "fill",
+     "eg": "v8g-cat"
+    }
+   ],
+   "samples": {
+    "button:outlined/plain": [
+     "btn",
+     "a-tests-pick",
+     "btn.sm"
+    ],
+    "button:filled": [
+     "btn.sm"
+    ],
+    "pill:status (neutral)": [
+     "pill.p-none"
+    ],
+    "icon:glyph": [
+     "gl.ring",
+     "gl.part",
+     "gl.check"
+    ],
+    "pill:tag": [
+     "tag"
+    ],
+    "tab": [
+     "ak-tab.on",
+     "ak-tab"
+    ],
+    "card:top": [
+     "card",
+     "ak-rail-s",
+     "ak-rail-s.v2l-next"
+    ],
+    "pill:status (toned)": [
+     "pill.p-warn",
+     "pill.p-ok"
+    ],
+    "banner (neutral)": [
+     "next.v2-callout"
+    ],
+    "frame:table": [
+     "frame.v8g-frame",
+     "frame.a-tests-tight"
+    ],
+    "pill:other (neutral)": [
+     "v8g-cat.c3"
+    ],
+    "pill:other (toned)": [
+     "v8g-cat.c2",
+     "v8g-cat.c1"
+    ]
+   }
+  },
+  "frameworks-high": {
+   "route": "frameworks-high",
+   "label": null,
+   "nav": "frameworks",
+   "title": "NIST SP 800-53 Rev 5 High baseline",
+   "inprog": false,
+   "full": false,
+   "moded": false,
+   "hash": "#frameworks-high",
+   "meta": false,
+   "shot": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/v2/R/noise/raw-v2/shots/m-frameworks-high.png",
+   "pixels": {
+    "w": 374,
+    "h": 726,
+    "colourfulPct": 0.64,
+    "strongPct": 0.64,
+    "famPct": {
+     "red": 0,
+     "amber": 0,
+     "green": 0.64,
+     "teal": 0.004,
+     "blue": 0,
+     "violet": 0,
+     "pink": 0
+    },
+    "families": [
+     "green"
+    ]
+   },
+   "marks": {
+    "all": 12,
+    "above": 3
+   },
+   "firstRow": 1511,
+   "firstRowPct": 186,
+   "examples": 0,
+   "rect": {
+    "x": 8,
+    "y": 64,
+    "w": 374,
+    "h": 726
+   },
+   "scrollH": 2843,
+   "colours": {
+    "all": {
+     "text": 2,
+     "fill": 5,
+     "border": 1,
+     "svg": 0,
+     "together": 5,
+     "togetherClustered": 5,
+     "hues": [
+      "amber",
+      "blue",
+      "green"
+     ]
+    },
+    "above": {
+     "text": 0,
+     "fill": 1,
+     "border": 0,
+     "svg": 0,
+     "together": 1,
+     "togetherClustered": 1,
+     "hues": [
+      "green"
+     ]
+    }
+   },
+   "totals": {
+    "pills": 20,
+    "gadgets": 6,
+    "cards": 7,
+    "cardsNested": 3,
+    "tableFrames": 2,
+    "banners": 0,
+    "buttons": 2,
+    "tabs": 3,
+    "icons": 22,
+    "bigNumbers": 1
+   },
+   "above": {
+    "pills": 6,
+    "gadgets": 3,
+    "cards": 1,
+    "cardsNested": 3,
+    "tableFrames": 0,
+    "banners": 0,
+    "buttons": 1,
+    "tabs": 3,
+    "icons": 3,
+    "bigNumbers": 1
+   },
+   "counts": {
+    "pill:chip/filter": {
+     "all": 6,
+     "above": 6
+    },
+    "button:outlined/plain": {
+     "all": 2,
+     "above": 1
+    },
+    "icon:svg": {
+     "all": 6,
+     "above": 1
+    },
+    "tab": {
+     "all": 3,
+     "above": 3
+    },
+    "icon:symbol": {
+     "all": 2,
+     "above": 2
+    },
+    "card:top": {
+     "all": 7,
+     "above": 1
+    },
+    "gadget:progress bar": {
+     "all": 6,
+     "above": 3
+    },
+    "card:nested": {
+     "all": 3,
+     "above": 3
+    },
+    "pill:status (neutral)": {
+     "all": 8,
+     "above": 0
+    },
+    "icon:glyph": {
+     "all": 14,
+     "above": 0
+    },
+    "frame:table": {
+     "all": 2,
+     "above": 0
+    },
+    "pill:status (toned)": {
+     "all": 6,
+     "above": 0
+    }
+   },
+   "fonts": {
+    "distinct": 8,
+    "distinctAbove": 7,
+    "list": [
+     "12px/500×28",
+     "14px/400×24",
+     "14px/500×14",
+     "12px/400×11",
+     "16px/600×7",
+     "14px/600×5",
+     "22px/600×1",
+     "36px/600×1"
+    ]
+   },
+   "palette": [
+    {
+     "hex": "#0b9163",
+     "fam": "green",
+     "C": 0.126,
+     "uses": 14,
+     "above": 3,
+     "in": "text+fill",
+     "eg": "pill"
+    },
+    {
+     "hex": "#c87600",
+     "fam": "amber",
+     "C": 0.145,
+     "uses": 7,
+     "above": 0,
+     "in": "text+fill+border",
+     "eg": "pill"
+    },
+    {
+     "hex": "#e8f8ef",
+     "fam": "green",
+     "C": 0.021,
+     "uses": 5,
+     "above": 0,
+     "in": "fill",
+     "eg": "pill"
+    },
+    {
+     "hex": "#fff3df",
+     "fam": "amber",
+     "C": 0.029,
+     "uses": 3,
+     "above": 0,
+     "in": "fill",
+     "eg": "pill"
+    },
+    {
+     "hex": "#0067d3",
+     "fam": "blue",
+     "C": 0.185,
+     "uses": 2,
+     "above": 0,
+     "in": "fill",
+     "eg": "i"
+    }
+   ],
+   "samples": {
+    "pill:chip/filter": [
+     "ak-chip",
+     "flt",
+     "flt.sub"
+    ],
+    "button:outlined/plain": [
+     "btn",
+     "btn.sm"
+    ],
+    "tab": [
+     "ak-tab",
+     "ak-tab.on"
+    ],
+    "icon:symbol": [
+     "flt"
+    ],
+    "card:top": [
+     "card",
+     "card.a-tests-tlcard",
+     "a-tests-famc"
+    ],
+    "gadget:progress bar": [
+     "bar",
+     "tl"
+    ],
+    "card:nested": [
+     "mini"
+    ],
+    "pill:status (neutral)": [
+     "pill.p-none"
+    ],
+    "icon:glyph": [
+     "gl.ring",
+     "gl.part",
+     "gl.check"
+    ],
+    "frame:table": [
+     "a-tests-fam",
+     "frame.a-tests-tight"
+    ],
+    "pill:status (toned)": [
+     "pill.p-warn",
+     "pill.p-ok"
+    ]
+   }
+  }
+ },
+ "errors": [],
+ "nav": [
+  [
+   "home",
+   "Home"
+  ],
+  [
+   "my-work",
+   "My work"
+  ],
+  [
+   "review-queue",
+   "Review"
+  ],
+  [
+   "portfolio",
+   "Programs"
+  ],
+  [
+   "products",
+   "Products"
+  ],
+  [
+   "components",
+   "Components"
+  ],
+  [
+   "suppliers",
+   "Suppliers"
+  ],
+  [
+   "frameworks",
+   "Frameworks & overlays"
+  ],
+  [
+   "integrations",
+   "Integrations"
+  ],
+  [
+   "data-calls",
+   "Data calls"
+  ],
+  [
+   "reports",
+   "Reports & exports"
+  ],
+  [
+   "ai-drafts",
+   "AI agents"
+  ],
+  [
+   "study",
+   "Design study"
+  ],
+  [
+   "before-after",
+   "Before & after"
+  ],
+  [
+   "nav-options",
+   "Navigation options"
+  ],
+  [
+   "deadlines",
+   "Deadlines"
+  ],
+  [
+   "notifications",
+   "Notifications"
+  ],
+  [
+   "event-log",
+   "Event log"
+  ],
+  [
+   "enclaves",
+   "Enclaves & markings"
+  ],
+  [
+   "common-controls",
+   "Common control providers"
+  ],
+  [
+   "permissions",
+   "Roles & permissions"
+  ],
+  [
+   "overview",
+   "Overview"
+  ],
+  [
+   "getting-started",
+   "Getting started"
+  ],
+  [
+   "itcsc",
+   "ITCSC"
+  ],
+  [
+   "composition",
+   "Composition"
+  ],
+  [
+   "inventory",
+   "Inventory"
+  ],
+  [
+   "stigs",
+   "STIG checklists"
+  ],
+  [
+   "interconnections",
+   "Interconnections"
+  ],
+  [
+   "ppsm",
+   "Ports & protocols"
+  ],
+  [
+   "sources",
+   "Evidence sources"
+  ],
+  [
+   "baseline",
+   "Baseline"
+  ],
+  [
+   "controls",
+   "Controls"
+  ],
+  [
+   "ssps",
+   "Plans"
+  ],
+  [
+   "requirements",
+   "Requirements"
+  ],
+  [
+   "evidence",
+   "Evidence"
+  ],
+  [
+   "checks",
+   "Checks"
+  ],
+  [
+   "policies",
+   "Policies"
+  ],
+  [
+   "assessments",
+   "Assessments"
+  ],
+  [
+   "cyber-te",
+   "Cyber T&E"
+  ],
+  [
+   "findings",
+   "Findings"
+  ],
+  [
+   "poam",
+   "POA&M"
+  ],
+  [
+   "risks",
+   "Risks"
+  ],
+  [
+   "threats",
+   "Threats"
+  ],
+  [
+   "posture",
+   "Posture"
+  ],
+  [
+   "resiliency",
+   "Cyber resiliency"
+  ],
+  [
+   "sse",
+   "Security engineering"
+  ],
+  [
+   "traceability",
+   "Traceability"
+  ],
+  [
+   "inheritance",
+   "Inheritance"
+  ],
+  [
+   "authorization",
+   "Authorization"
+  ],
+  [
+   "package-room",
+   "Package room"
+  ],
+  [
+   "conmon",
+   "Continuous monitoring"
+  ],
+  [
+   "schedule",
+   "Schedule"
+  ],
+  [
+   "people",
+   "People"
+  ]
+ ]
+}

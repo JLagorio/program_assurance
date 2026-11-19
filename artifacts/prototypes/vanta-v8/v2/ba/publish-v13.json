@@ -1,0 +1,290 @@
+[
+{
+"path": "ba/access-review-v2.png"
+},
+{
+"path": "ba/access-reviews-v2.png"
+},
+{
+"path": "ba/ai-drafts-v2.png"
+},
+{
+"path": "ba/audit-record-v2.png"
+},
+{
+"path": "ba/audits-index-v2.png"
+},
+{
+"path": "ba/authorization-v2.png"
+},
+{
+"path": "ba/baseline-v2.png"
+},
+{
+"path": "ba/common-controls-v2.png"
+},
+{
+"path": "ba/component-record-v2.png"
+},
+{
+"path": "ba/components-v2.png"
+},
+{
+"path": "ba/composition-v2.png"
+},
+{
+"path": "ba/conmon-v2.png"
+},
+{
+"path": "ba/control-record-v2.png"
+},
+{
+"path": "ba/controls-index-v2.png"
+},
+{
+"path": "ba/cyber-te-v2.png"
+},
+{
+"path": "ba/data-calls-questionnaires-v2.png"
+},
+{
+"path": "ba/enclaves-v2.png"
+},
+{
+"path": "ba/event-log-v2.png"
+},
+{
+"path": "ba/evidence-index-v2.png"
+},
+{
+"path": "ba/evidence-record-v2.png"
+},
+{
+"path": "ba/evidence-sources-v2.png"
+},
+{
+"path": "ba/findings-deadlines-v2.png"
+},
+{
+"path": "ba/frameworks-v2.png"
+},
+{
+"path": "ba/getting-started-v2.png"
+},
+{
+"path": "ba/home-v2.png"
+},
+{
+"path": "ba/inheritance-v2.png"
+},
+{
+"path": "ba/integration-drawer-v2.png"
+},
+{
+"path": "ba/integrations-gallery-v2.png"
+},
+{
+"path": "ba/interconnections-v2.png"
+},
+{
+"path": "ba/inventory-v2.png"
+},
+{
+"path": "ba/itcsc-v2.png"
+},
+{
+"path": "ba/my-work-v2.png"
+},
+{
+"path": "ba/new-add-person-v2.png"
+},
+{
+"path": "ba/new-added-asset-v2.png"
+},
+{
+"path": "ba/new-campaign-conmon-v2.png"
+},
+{
+"path": "ba/new-campaign-controls-v2.png"
+},
+{
+"path": "ba/new-control-ac1-v2.png"
+},
+{
+"path": "ba/new-control-sa24-v2.png"
+},
+{
+"path": "ba/new-onboarding-task-v2.png"
+},
+{
+"path": "ba/new-program-empty-v2.png"
+},
+{
+"path": "ba/new-program-page-v2.png"
+},
+{
+"path": "ba/new-rec-agent-run-v2.png"
+},
+{
+"path": "ba/new-rec-asset-v2.png"
+},
+{
+"path": "ba/new-rec-decision-v2.png"
+},
+{
+"path": "ba/new-rec-element-v2.png"
+},
+{
+"path": "ba/new-rec-gate-v2.png"
+},
+{
+"path": "ba/new-rec-interconnection-v2.png"
+},
+{
+"path": "ba/new-rec-issue-v2.png"
+},
+{
+"path": "ba/new-rec-poam-v2.png"
+},
+{
+"path": "ba/new-rec-product-v2.png"
+},
+{
+"path": "ba/new-rec-requirement-v1.png"
+},
+{
+"path": "ba/new-rec-requirement-v2.png"
+},
+{
+"path": "ba/new-rec-review-v2.png"
+},
+{
+"path": "ba/new-rec-risk-v2.png"
+},
+{
+"path": "ba/new-rec-supplier-v2.png"
+},
+{
+"path": "ba/new-rec-task-v2.png"
+},
+{
+"path": "ba/new-rec-technique-v2.png"
+},
+{
+"path": "ba/new-sctm-analysis-v2.png"
+},
+{
+"path": "ba/new-sctm-requirements-v2.png"
+},
+{
+"path": "ba/new-sctm-v2.png"
+},
+{
+"path": "ba/notifications-v2.png"
+},
+{
+"path": "ba/overview-v2.png"
+},
+{
+"path": "ba/package-room-trust-v2.png"
+},
+{
+"path": "ba/people-register-v2.png"
+},
+{
+"path": "ba/permissions-v2.png"
+},
+{
+"path": "ba/person-drawer-v2.png"
+},
+{
+"path": "ba/poam-tracker-v2.png"
+},
+{
+"path": "ba/policies-index-v2.png"
+},
+{
+"path": "ba/policy-editor-v2.png"
+},
+{
+"path": "ba/policy-record-v2.png"
+},
+{
+"path": "ba/portfolio-v2.png"
+},
+{
+"path": "ba/posture-v2.png"
+},
+{
+"path": "ba/ppsm-v2.png"
+},
+{
+"path": "ba/products-v2.png"
+},
+{
+"path": "ba/program-new-v2.png"
+},
+{
+"path": "ba/reports-v2.png"
+},
+{
+"path": "ba/requirements-v2.png"
+},
+{
+"path": "ba/resiliency-v2.png"
+},
+{
+"path": "ba/review-queue-v2.png"
+},
+{
+"path": "ba/risk-record-v2.png"
+},
+{
+"path": "ba/risk-register-v2.png"
+},
+{
+"path": "ba/role-task-sets-v2.png"
+},
+{
+"path": "ba/schedule-v2.png"
+},
+{
+"path": "ba/scope-changes-v2.png"
+},
+{
+"path": "ba/settings-v2.png"
+},
+{
+"path": "ba/sse-v2.png"
+},
+{
+"path": "ba/ssp-v2.png"
+},
+{
+"path": "ba/ssps-v2.png"
+},
+{
+"path": "ba/stig-record-v2.png"
+},
+{
+"path": "ba/stigs-v2.png"
+},
+{
+"path": "ba/supplier-record-v2.png"
+},
+{
+"path": "ba/suppliers-index-v2.png"
+},
+{
+"path": "ba/test-page-v2.png"
+},
+{
+"path": "ba/tests-index-v2.png"
+},
+{
+"path": "ba/threats-v2.png"
+},
+{
+"path": "ba/traceability-v2.png"
+}
+]

@@ -1,0 +1,125 @@
+{
+ "log": [
+  {
+   "step": 1,
+   "action": "go #program-new",
+   "why": "resume at the wizard",
+   "hash": "program-new",
+   "h1": "Create program",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 2,
+   "action": "click \"From an ITCSC\"",
+   "why": "",
+   "effect": "page changed in place",
+   "hash": "program-new",
+   "h1": "Create program",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 3,
+   "action": "click \"Drop a completed AF ITCSC here\"",
+   "why": "",
+   "effect": "toast: ITCSC reader read 37 of 41 fields from CustomerD_X800-EL_ITCSC.pdf ; page changed in place",
+   "hash": "program-new",
+   "h1": "Create program",
+   "modal": null,
+   "panel": null,
+   "toasts": "ITCSC reader read 37 of 41 fields from CustomerD_X800-EL_ITCSC.pdf",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 4,
+   "action": "click \"Continue\"",
+   "why": "",
+   "effect": "→ #program-new-details",
+   "hash": "program-new-details",
+   "h1": "Create program",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 5,
+   "action": "click \"Continue\"",
+   "why": "",
+   "effect": "→ #program-new-systems",
+   "hash": "program-new-systems",
+   "h1": "Create program",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 6,
+   "action": "click \"Continue\"",
+   "why": "",
+   "effect": "→ #program-new-baseline",
+   "hash": "program-new-baseline",
+   "h1": "Create program",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 7,
+   "action": "click \"Continue\"",
+   "why": "",
+   "effect": "→ #program-new-team",
+   "hash": "program-new-team",
+   "h1": "Create program",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 8,
+   "action": "click \"Continue\"",
+   "why": "",
+   "effect": "→ #program-new-review",
+   "hash": "program-new-review",
+   "h1": "Create program",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 9,
+   "action": "click \"Create program\"",
+   "why": "create",
+   "effect": "→ #program-start ; toast: Program created · PRG-2301",
+   "hash": "program-start",
+   "h1": "X800 Missile · Eject Launch · Customer D",
+   "modal": null,
+   "panel": null,
+   "toasts": "Program created · PRG-2301",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 9,
+   "shot": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/v2/R/flows2/shots/j1b-04-landed.png"
+  }
+ ],
+ "errors": []
+}

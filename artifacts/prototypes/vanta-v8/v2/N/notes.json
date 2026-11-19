@@ -1,0 +1,582 @@
+[
+ {
+  "route": "frameworks",
+  "finding": "Josef 19 Nov",
+  "text": "Library's pages leave the tab strip over the page for a side menu beside the rail, Library at its top, Frameworks & overlays marked."
+ },
+ {
+  "route": "integrations",
+  "finding": "Josef 19 Nov",
+  "text": "Library's pages leave the tab strip over the page for a side menu beside the rail, Library at its top, Integrations marked."
+ },
+ {
+  "route": "data-calls",
+  "finding": "Josef 19 Nov",
+  "text": "Library's pages leave the tab strip over the page for a side menu beside the rail, Library at its top, Data calls marked."
+ },
+ {
+  "route": "reports",
+  "finding": "Josef 19 Nov",
+  "text": "Library's pages leave the tab strip over the page for a side menu beside the rail, Library at its top, Reports & exports marked."
+ },
+ {
+  "route": "products",
+  "finding": "Josef 19 Nov",
+  "text": "Products' pages leave the tab strip over the page for a side menu beside the rail, Products at its top, Products marked."
+ },
+ {
+  "route": "components",
+  "finding": "Josef 19 Nov",
+  "text": "Products' pages leave the tab strip over the page for a side menu beside the rail, Products at its top, Components marked."
+ },
+ {
+  "route": "suppliers",
+  "finding": "Josef 19 Nov",
+  "text": "Products' pages leave the tab strip over the page for a side menu beside the rail, Products at its top, Suppliers marked."
+ },
+ {
+  "route": "study",
+  "finding": "Josef 19 Nov",
+  "text": "About's pages leave the tab strip over the page for a side menu beside the rail, About at its top, Design study marked."
+ },
+ {
+  "route": "before-after",
+  "finding": "Josef 19 Nov",
+  "text": "About's pages leave the tab strip over the page for a side menu beside the rail, About at its top, Before & after marked."
+ },
+ {
+  "route": "nav-options",
+  "finding": "Josef 19 Nov",
+  "text": "About's pages leave the tab strip over the page for a side menu beside the rail, About at its top, Navigation options marked."
+ },
+ {
+  "route": "ai-drafts",
+  "finding": "Josef 19 Nov",
+  "text": "AI agents' three pages move from the page's own tabs into a side menu with their counts; the title now reads Needs approval."
+ },
+ {
+  "route": "ai-drafts-runs",
+  "finding": "Josef 19 Nov",
+  "text": "AI agents' three pages move from the page's own tabs into a side menu with their counts; the title now reads Runs."
+ },
+ {
+  "route": "ai-drafts-agents",
+  "finding": "Josef 19 Nov",
+  "text": "AI agents' three pages move from the page's own tabs into a side menu with their counts; the title now reads Agents."
+ },
+ {
+  "route": "deadlines",
+  "finding": "Josef 19 Nov",
+  "text": "Settings' side menu beside the rail, grouped Workspace and My account, replaces the hidden tab strip and the in-page section list; Deadlines marked."
+ },
+ {
+  "route": "notifications-workspace",
+  "finding": "Josef 19 Nov",
+  "text": "Settings' side menu beside the rail, grouped Workspace and My account, replaces the hidden tab strip and the in-page section list; Notifications marked."
+ },
+ {
+  "route": "permissions",
+  "finding": "Josef 19 Nov",
+  "text": "Settings' side menu beside the rail, grouped Workspace and My account, replaces the hidden tab strip and the in-page section list; Roles & permissions marked."
+ },
+ {
+  "route": "enclaves",
+  "finding": "Josef 19 Nov",
+  "text": "Settings' side menu beside the rail, grouped Workspace and My account, replaces the hidden tab strip and the in-page section list; Enclaves & markings marked."
+ },
+ {
+  "route": "common-controls",
+  "finding": "Josef 19 Nov",
+  "text": "Settings' side menu beside the rail, grouped Workspace and My account, replaces the hidden tab strip and the in-page section list; Common control providers marked."
+ },
+ {
+  "route": "event-log",
+  "finding": "Josef 19 Nov",
+  "text": "Settings' side menu beside the rail, grouped Workspace and My account, replaces the hidden tab strip and the in-page section list; Event log marked."
+ },
+ {
+  "route": "notifications",
+  "finding": "Josef 19 Nov",
+  "text": "Settings' side menu beside the rail, grouped Workspace and My account, replaces the hidden tab strip and the in-page section list; My account's Notifications marked."
+ },
+ {
+  "route": "risks",
+  "finding": "Josef 19 Nov",
+  "text": "On a phone ☰ opens the area's menu as it opens a program's; the bottom bar is unchanged."
+ },
+ {
+  "route": "overview",
+  "finding": "Josef 19 Nov",
+  "text": "The program's menu gains SCTM workbook in the Compliance group, after Requirements."
+ },
+ {
+  "route": "my-work",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges: 1 removed from the page; footnotes they introduced stay as plain grey sentences."
+ },
+ {
+  "route": "portfolio",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges: 1 removed from the page; footnotes they introduced stay as plain grey sentences."
+ },
+ {
+  "route": "portfolio",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges in the previews and dialogs this page opens (4 removed).",
+  "where": "preview: all"
+ },
+ {
+  "route": "suppliers",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges: 3 removed from the page; footnotes they introduced stay as plain grey sentences."
+ },
+ {
+  "route": "integrations",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges: 5 removed from the page; footnotes they introduced stay as plain grey sentences."
+ },
+ {
+  "route": "data-calls",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges: 2 removed from the page; footnotes they introduced stay as plain grey sentences."
+ },
+ {
+  "route": "reports",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges: 7 removed from the page; footnotes they introduced stay as plain grey sentences."
+ },
+ {
+  "route": "ai-drafts",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges: 8 removed from the page; footnotes they introduced stay as plain grey sentences."
+ },
+ {
+  "route": "ai-drafts",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges in the previews and dialogs this page opens (7 removed).",
+  "where": "preview: all"
+ },
+ {
+  "route": "deadlines",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges: 1 removed from the page; footnotes they introduced stay as plain grey sentences."
+ },
+ {
+  "route": "deadlines",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges in the previews and dialogs this page opens (19 removed).",
+  "where": "preview: all"
+ },
+ {
+  "route": "notifications",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges: 4 removed from the page; footnotes they introduced stay as plain grey sentences."
+ },
+ {
+  "route": "notifications-workspace",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges: 3 removed from the page; footnotes they introduced stay as plain grey sentences."
+ },
+ {
+  "route": "event-log",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges: 1 removed from the page; footnotes they introduced stay as plain grey sentences."
+ },
+ {
+  "route": "enclaves",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges: 1 removed from the page; footnotes they introduced stay as plain grey sentences."
+ },
+ {
+  "route": "enclaves",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges in the previews and dialogs this page opens (4 removed).",
+  "where": "preview: all"
+ },
+ {
+  "route": "common-controls",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges: 4 removed from the page; footnotes they introduced stay as plain grey sentences."
+ },
+ {
+  "route": "common-controls",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges in the previews and dialogs this page opens (4 removed).",
+  "where": "preview: all"
+ },
+ {
+  "route": "permissions",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges: 2 removed from the page; footnotes they introduced stay as plain grey sentences."
+ },
+ {
+  "route": "permissions",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges in the previews and dialogs this page opens (27 removed).",
+  "where": "preview: all"
+ },
+ {
+  "route": "overview",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges: 1 removed from the page; footnotes they introduced stay as plain grey sentences."
+ },
+ {
+  "route": "getting-started",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges: 2 removed from the page; footnotes they introduced stay as plain grey sentences."
+ },
+ {
+  "route": "itcsc",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges: 34 removed from the page; footnotes they introduced stay as plain grey sentences."
+ },
+ {
+  "route": "composition",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges: 1 removed from the page; footnotes they introduced stay as plain grey sentences."
+ },
+ {
+  "route": "inventory",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges: 1 removed from the page; footnotes they introduced stay as plain grey sentences."
+ },
+ {
+  "route": "stigs",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges: 1 removed from the page; footnotes they introduced stay as plain grey sentences."
+ },
+ {
+  "route": "interconnections",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges: 2 removed from the page; footnotes they introduced stay as plain grey sentences."
+ },
+ {
+  "route": "ppsm",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges: 3 removed from the page; footnotes they introduced stay as plain grey sentences."
+ },
+ {
+  "route": "ppsm",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges in the previews and dialogs this page opens (3 removed).",
+  "where": "preview: all"
+ },
+ {
+  "route": "sources",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges: 2 removed from the page; footnotes they introduced stay as plain grey sentences."
+ },
+ {
+  "route": "sources",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges in the previews and dialogs this page opens (21 removed).",
+  "where": "preview: all"
+ },
+ {
+  "route": "baseline",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges: 1 removed from the page; footnotes they introduced stay as plain grey sentences."
+ },
+ {
+  "route": "controls",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges in the previews and dialogs this page opens (1 removed).",
+  "where": "preview: all"
+ },
+ {
+  "route": "ssps",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges: 1 removed from the page; footnotes they introduced stay as plain grey sentences."
+ },
+ {
+  "route": "ssps",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges in the previews and dialogs this page opens (4 removed).",
+  "where": "preview: all"
+ },
+ {
+  "route": "requirements",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges: 1 removed from the page; footnotes they introduced stay as plain grey sentences."
+ },
+ {
+  "route": "requirements",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges in the previews and dialogs this page opens (1 removed).",
+  "where": "preview: all"
+ },
+ {
+  "route": "evidence",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges in the previews and dialogs this page opens (12 removed).",
+  "where": "preview: all"
+ },
+ {
+  "route": "checks",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges: 3 removed from the page; footnotes they introduced stay as plain grey sentences."
+ },
+ {
+  "route": "policies",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges: 6 removed from the page; footnotes they introduced stay as plain grey sentences."
+ },
+ {
+  "route": "cyber-te",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges: 4 removed from the page; footnotes they introduced stay as plain grey sentences."
+ },
+ {
+  "route": "cyber-te",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges in the previews and dialogs this page opens (6 removed).",
+  "where": "preview: all"
+ },
+ {
+  "route": "findings",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges in the previews and dialogs this page opens (12 removed).",
+  "where": "preview: all"
+ },
+ {
+  "route": "poam",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges in the previews and dialogs this page opens (14 removed).",
+  "where": "preview: all"
+ },
+ {
+  "route": "risks",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges: 2 removed from the page; footnotes they introduced stay as plain grey sentences."
+ },
+ {
+  "route": "risks",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges in the previews and dialogs this page opens (50 removed).",
+  "where": "preview: all"
+ },
+ {
+  "route": "threats",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges: 2 removed from the page; footnotes they introduced stay as plain grey sentences."
+ },
+ {
+  "route": "threats",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges in the previews and dialogs this page opens (1 removed).",
+  "where": "preview: all"
+ },
+ {
+  "route": "sse",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges: 5 removed from the page; footnotes they introduced stay as plain grey sentences."
+ },
+ {
+  "route": "sse",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges in the previews and dialogs this page opens (5 removed).",
+  "where": "preview: all"
+ },
+ {
+  "route": "authorization",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges: 3 removed from the page; footnotes they introduced stay as plain grey sentences."
+ },
+ {
+  "route": "authorization",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges in the previews and dialogs this page opens (1 removed).",
+  "where": "preview: all"
+ },
+ {
+  "route": "package-room",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges: 5 removed from the page; footnotes they introduced stay as plain grey sentences."
+ },
+ {
+  "route": "conmon",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges: 1 removed from the page; footnotes they introduced stay as plain grey sentences."
+ },
+ {
+  "route": "conmon",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges in the previews and dialogs this page opens (2 removed).",
+  "where": "preview: all"
+ },
+ {
+  "route": "schedule",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges: 5 removed from the page; footnotes they introduced stay as plain grey sentences."
+ },
+ {
+  "route": "people",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges: 1 removed from the page; footnotes they introduced stay as plain grey sentences."
+ },
+ {
+  "route": "ssp",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges: 22 removed from the page; footnotes they introduced stay as plain grey sentences."
+ },
+ {
+  "route": "ssp",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges in the previews and dialogs this page opens (1 removed).",
+  "where": "preview: all"
+ },
+ {
+  "route": "program-new",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges: 1 removed from the page; footnotes they introduced stay as plain grey sentences."
+ },
+ {
+  "route": "program-start",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges: 3 removed from the page; footnotes they introduced stay as plain grey sentences."
+ },
+ {
+  "route": "program-start",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges in the previews and dialogs this page opens (4 removed).",
+  "where": "preview: all"
+ },
+ {
+  "route": "campaign",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges: 2 removed from the page; footnotes they introduced stay as plain grey sentences."
+ },
+ {
+  "route": "control-si2",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges in the previews and dialogs this page opens (2 removed).",
+  "where": "preview: all"
+ },
+ {
+  "route": "component-mc",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges: 3 removed from the page; footnotes they introduced stay as plain grey sentences."
+ },
+ {
+  "route": "component-mc",
+  "finding": "Josef 19 Nov",
+  "text": "No EXAMPLE badges in the previews and dialogs this page opens (3 removed).",
+  "where": "preview: all"
+ },
+ {
+  "route": "integrations",
+  "finding": "Josef 19 Nov",
+  "text": "Connector lines lose their Example marks: 'File · online is Example' reads 'File'; '(SPDX is Example)' goes.",
+  "where": "preview: integration"
+ },
+ {
+  "route": "inventory-changes",
+  "finding": "Josef 19 Nov",
+  "text": "The footnote's last sentence, which only said the rows stay Example, goes; the rest stays a grey sentence."
+ },
+ {
+  "route": "evidence",
+  "finding": "R new",
+  "text": "Status, Latest version and Renew by stay on All 368: a column is cut only when the whole register is on screen."
+ },
+ {
+  "route": "requirements",
+  "finding": "R new",
+  "text": "State stays: a status or state column is never cut."
+ },
+ {
+  "route": "requirements",
+  "finding": "A5",
+  "text": "Owner, Unassigned in every row, is cut: the register's No owner 640 equals All 640."
+ },
+ {
+  "route": "controls",
+  "finding": "A5",
+  "text": "Owner, Unassigned in every row, is cut: No owner 560 equals All 560."
+ },
+ {
+  "route": "risks",
+  "finding": "A5",
+  "text": "Assessment (Reassess by Dec 12 in every row) and Owner (— for all 40) are cut, and stay cut on every quick view."
+ },
+ {
+  "route": "inventory",
+  "finding": "N04",
+  "text": "Owner, Assign owner in every row, is cut: each row opens its asset, where the owner is assigned."
+ },
+ {
+  "route": "findings",
+  "finding": "R new",
+  "text": "Owner stays on All 44: its first twelve issues are unowned but others are owned, so it no longer comes and goes."
+ },
+ {
+  "route": "people",
+  "finding": "A5",
+  "text": "Last reminded, Never for all 11 people, is cut (the whole register is on screen)."
+ },
+ {
+  "route": "composition-list",
+  "finding": "A5",
+  "text": "Owner, empty for every element, is cut."
+ },
+ {
+  "route": "campaign-controls",
+  "finding": "A5",
+  "text": "Owner, empty for every control, is cut."
+ },
+ {
+  "route": "person-priya-raghavan-onboarding",
+  "finding": "R new",
+  "text": "The onboarding list keeps its Status column: a status is never cut."
+ },
+ {
+  "route": "person-r-calloway-onboarding",
+  "finding": "R new",
+  "text": "The onboarding list keeps its Status column: a status is never cut."
+ },
+ {
+  "route": "person-victor-amsel-onboarding",
+  "finding": "R new",
+  "text": "The onboarding list keeps its Status column: a status is never cut."
+ },
+ {
+  "route": "notifications-workspace",
+  "finding": "R new",
+  "text": "Chat, Off for every event, stays: a setting's On or Off is never a constant column."
+ },
+ {
+  "route": "data-calls",
+  "finding": "R new",
+  "text": "Approver stays: the page opens on Open 4, not the whole register, so agreeing rows no longer cut a column."
+ },
+ {
+  "route": "event-log-reviews",
+  "finding": "R new",
+  "text": "Who stays: the log shows one page of 280 entries, so a column that agrees there is kept."
+ },
+ {
+  "route": "findings-assessment",
+  "finding": "R new",
+  "text": "Determination stays: one page of a longer register no longer cuts a column."
+ },
+ {
+  "route": "threats-controls",
+  "finding": "R new",
+  "text": "Baseline stays: one page of a longer register no longer cuts a column."
+ },
+ {
+  "route": "stigs-mission-computer-asd",
+  "finding": "R new",
+  "text": "Finding details stays: the checklist shows one page of its rules, so the column is kept."
+ },
+ {
+  "route": "stigs-network-gateway-rtr",
+  "finding": "R new",
+  "text": "Finding details stays: the checklist shows one page of its rules, so the column is kept."
+ },
+ {
+  "route": "nav-options",
+  "finding": "Josef 19 Nov",
+  "text": "Option 3's wireframe, the one in use, shows Library, Products, AI agents and Settings with their menu beside the rail."
+ }
+]

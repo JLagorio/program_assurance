@@ -1,0 +1,17 @@
+import { start } from "./walk.mjs";
+const W = await start("j2c");
+await W.go("my-work");
+await W.click("Remediate CVE-2024-6387", { why: "top Urgent item", wait: 600 });
+await W.click("Vulnerabilities", { why: "the CVE is not under By issue; find its tab" , wait: 500});
+console.log("VULNS:", (await W.text("#main", 2200)).slice(0, 1600));
+console.log("CONTROLS:", (await W.see()).slice(0, 40).join(" ‖ "));
+const e = await W.click("CVE-2024-6387", { why: "open the CVE", wait: 600 });
+console.log("EFFECT", e && e.effect);
+console.log("PANEL:", (await W.text("#panel", 2000)));
+console.log("PANEL CONTROLS:", (await W.see("panel")).join(" ‖ "));
+await W.shot("03-cve-open");
+await W.p.goBack(); await W.p.waitForTimeout(400);
+console.log("BACK1 →", await W.p.evaluate(() => location.hash));
+await W.p.goBack(); await W.p.waitForTimeout(400);
+console.log("BACK2 →", await W.p.evaluate(() => location.hash));
+await W.done();

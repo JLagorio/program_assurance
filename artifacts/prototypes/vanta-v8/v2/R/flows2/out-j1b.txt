@@ -1,0 +1,168 @@
+REVIEW: What creating writes
+The program PRG-2301 and its 5 roles, held from Dec 1, 2026
+The program profile: High baseline with 2 overlays and 2 tailoring decisions, each with its rationale, published so systems adopt it
+The system X800-EL-CUSD and 0 elements, with 0 library pins
+A draft SSP with 554 planned implementations, one for every selected control
+0 library claims seeded where the control is in the baseline; 0 claims outside it are not
+The ITCSC as the program's record, version 1, approved by its signatures, with 4 draft interconnections from its section 5
+
+One save writes all of it, or none of it.
+
+Walkthrough aid
+Simulate a failed save
+
+Example Nothing is written: the progress and the failed save walk through what the app does when it saves.
+
+Back
+Create program
+LANDED: Programs
+›
+X800 Missile · Eject Launch · Customer D
+X800 Missile · Eject Launch · Customer D
+Example
+
+PRG-2301
+Air Defense
+From an ITCSC
+
+Invite people
+Systems
+1
+Elements
+0
+Controls
+554
+Roles
+5 of 6
+Created
+Just now · Ingrid Solberg
+Starter guide
+Example
+
+10 steps from a new program to its authorization package.
+
+3 of 10 done
+Set up
+The program's ITCSC, its baseline and the people who act for it.
+3 of 3 complete
+ITCSC: approved
+Read from CustomerD_X800-EL_ITCSC.pdf · signed by Sarah Chen (PM) and R. Calloway (AO)
+JB
+Joel Barrantes
+Due Nov 17
+View
+Choose the control baseline
+High baseline · 554 controls · tailored
+IS
+Ingrid Solberg
+Due Nov 17
+View
+Assign roles
+5 of 6 roles · Assessors to name with the assessment plan
+IS
+Ingrid Solberg
+Due Nov 17
+View
+Requirements and evidence
+What the customer asks for, and what shows the program meets it.
+0 of 3 complete
+Import the customer's requirements document
+Customer D's requirements, as CSV, Excel or ReqIF
+NF
+Nadia Fournier
+Due Nov 24 · in 7 days
+Import
+Map requirements to controls
+Each requirement to the controls it meets, across 554 controls
+NF
+Nadia Fournier
+Due Dec 8
+Open requirements
+Connect evidence sources
+ACAS scans, STIG checklists and the product's evidence
+JB
+Joel Barrantes
+Due Dec 1 · in 14 days
+Connect
+Document, assess and authorize
+The SSP and its diagram, the assessment, then the package.
+0 of 4 complete
+Draft the SSP
+554 planned implementations to describe · Assist can draft from the product's narratives
+IS
+Ingrid Solberg
+Due Jan 15, 2027
+Open the SSP
+Upload the architecture diagram
+The boundary and data flows the SSP shows in section 6
+SC
+Sarah Chen
+Due Dec 15
+Upload
+Plan an assessment
+Plan a campaign over the baseline's controls
+DO
+D. Okafor
+Due Feb 1, 2027
+Open assessments
+Submit for authorization
+The package goes to R. Calloway, the authorizing official
+JB
+Joel Barrantes
+Due Aug 31, 2027
+Open authorization
+What the program inherits
+
+Nothing: the program does not start from a product.
+
+Draft SSP
+Revision
+1 · 
+Draft
+Planned
+554 implementations
+Described
+0 of 554
+Open the SSP
+Team
+Authorizing official
+RC
+R. Calloway
+ISSM
+JB
+Joel Barrantes
+ISSO
+NF
+Nadia Fournier
+System owner
+SC
+Sarah Chen
+Lead assessor
+DO
+D. Okafor
+Assessors
+Unassigned
+
+Example The starter guide, its owners and due dates are examples, and so is the program; the inherited, shared and to-assess counts are computed from X800 Missile version 2's published claims and product assessment by the Product delta's rule.
+CONTROLS: span→portfolio: Programs ‖ button⊡pn-invite: Invite people ‖ button: ITCSC: approved: done, mark as not done ‖ button▤pn-itcsc: View ‖ button: Choose the control baseline: done, mark as not done ‖ button▤pn-baseline: View ‖ button: Assign roles: done, mark as not done ‖ button▤pn-roles: View ‖ button: Import the customer's requirements document: mark as done ‖ button⊡pn-reqs: Import ‖ button: Map requirements to controls: mark as done ‖ button→requirements: Open requirements ‖ button: Connect evidence sources: mark as done ‖ button→sources: Connect ‖ button: Draft the SSP: mark as done ‖ button→ssp: Open the SSP ‖ button: Upload the architecture diagram: mark as done ‖ button⊡pn-diagram: Upload ‖ button: Plan an assessment: mark as done ‖ button→assessments: Open assessments ‖ button: Submit for authorization: mark as done ‖ button→authorization: Open authorization ‖ button→ssp: Open the SSP
+PROGRAM MENU: [
+  'X800 Missile · Eject Launch · Customer D PRG-2301',
+  'WS-X90 Sentinel Mission System PRG-1090',
+  'Customer A · X800 Rail Integration PRG-2101',
+  'Customer B · X800 Palletized Integration PRG-2102',
+  'Customer C · G25 Battery Control Fielding PRG-2201',
+  'All programs 10',
+  'Create program New',
+  'Overview'
+]
+{"step":1,"action":"go #program-new","why":"resume at the wizard","hash":"program-new","h1":"Create program","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":2,"action":"click \"From an ITCSC\"","why":"","effect":"page changed in place","hash":"program-new","h1":"Create program","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":3,"action":"click \"Drop a completed AF ITCSC here\"","why":"","effect":"toast: ITCSC reader read 37 of 41 fields from CustomerD_X800-EL_ITCSC.pdf ; page changed in place","hash":"program-new","h1":"Create program","modal":null,"panel":null,"toasts":"ITCSC reader read 37 of 41 fields from CustomerD_X800-EL_ITCSC.pdf","otherDlg":[],"notDrawn":false}
+{"step":4,"action":"click \"Continue\"","why":"","effect":"→ #program-new-details","hash":"program-new-details","h1":"Create program","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":5,"action":"click \"Continue\"","why":"","effect":"→ #program-new-systems","hash":"program-new-systems","h1":"Create program","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":6,"action":"click \"Continue\"","why":"","effect":"→ #program-new-baseline","hash":"program-new-baseline","h1":"Create program","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":7,"action":"click \"Continue\"","why":"","effect":"→ #program-new-team","hash":"program-new-team","h1":"Create program","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":8,"action":"click \"Continue\"","why":"","effect":"→ #program-new-review","hash":"program-new-review","h1":"Create program","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":9,"action":"click \"Create program\"","why":"create","effect":"→ #program-start ; toast: Program created · PRG-2301","hash":"program-start","h1":"X800 Missile · Eject Launch · Customer D","modal":null,"panel":null,"toasts":"Program created · PRG-2301","otherDlg":[],"notDrawn":false}
+{"step":9,"shot":"/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/v2/R/flows2/shots/j1b-04-landed.png"}
+errors: []

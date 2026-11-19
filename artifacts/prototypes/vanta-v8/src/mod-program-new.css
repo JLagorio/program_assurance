@@ -378,3 +378,11 @@ textarea.pn-input { resize: vertical; min-height: 66px; }
   .pn-guide { padding: 14px; }
   .pn-big dd { font-size: 19px; }
 }
+
+/* ——— v2 (L1, A17): the summary column ("What you're creating") is cut; the Review step carries it. Two columns: steps, form. ——— */
+.pn-grid { grid-template-columns: 160px minmax(0, 720px); }
+@media (max-width: 1180px) { .pn-grid { grid-template-columns: 140px minmax(0, 1fr); } }
+@media (max-width: 960px) { .pn-grid { grid-template-columns: minmax(0, 1fr); } }
+/* v2 (L1): the wizard's bar title stays the bar's size whatever page-title rule reaches h1 (the visual layer's type scale scopes
+   core.css's h1 under #proto, which outranks .pn-ht). */
+#proto .pn-head h1.pn-ht { font-size: 16px; line-height: 24px; font-weight: 600; max-width: none; }

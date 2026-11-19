@@ -1,0 +1,13 @@
+import { createRequire } from "node:module"; import path from "node:path";
+const require = createRequire("/Users/joseflagorio/Development/program_assurance-ux-proposal/package.json");
+const { chromium } = require("playwright");
+const b = await chromium.launch(); const ctx = await b.newContext({ viewport: { width: 1440, height: 900 }, permissions: ["clipboard-read", "clipboard-write"] });
+const p = await ctx.newPage(); const errors = []; p.on("pageerror", (e) => errors.push(String(e)));
+await p.goto("file://" + path.resolve(process.argv[2]) + "#sctm"); await p.waitForTimeout(1500);
+await p.click('[data-sx="more"]'); await p.waitForTimeout(200);
+const item = p.getByRole("menuitem", { name: /as CSV/ }); console.log("menu item:", await item.textContent());
+await item.click(); await p.waitForTimeout(500);
+const clip = await p.evaluate(() => navigator.clipboard.readText().catch(() => ""));
+const flash = await p.evaluate(() => document.body.innerText.match(/copied as CSV[^\n]*/)?.[0] || "");
+console.log("clipboard lines:", clip.split("\n").length, "| first:", clip.split("\n")[0].slice(0, 80)); console.log("flash:", flash);
+console.log("errors:", errors.length ? errors.join(" | ") : "none"); await b.close();

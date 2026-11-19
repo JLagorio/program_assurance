@@ -1,0 +1,47 @@
+{
+ "log": [
+  {
+   "step": 1,
+   "action": "go #overview",
+   "why": "",
+   "hash": "overview",
+   "h1": "WS-X90 Sentinel Mission System",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 2,
+   "action": "click \"Plans\"",
+   "why": "program menu Plans",
+   "result": "NOT FOUND",
+   "hash": "overview",
+   "h1": "WS-X90 Sentinel Mission System",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 3,
+   "action": "click \"System security plan\"",
+   "why": "open the SSP row",
+   "effect": "→ #ssp",
+   "hash": "ssp",
+   "h1": "WS-X90 System Security Plan",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 3,
+   "shot": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/v2/R/flows2/shots/j7-01-ssp-editor.png"
+  }
+ ],
+ "errors": []
+}

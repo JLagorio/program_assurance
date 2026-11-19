@@ -722,6 +722,7 @@
   };
   const DONE_ON = ["2026-08-04", "2026-08-11", "2026-08-18", "2026-09-02", "2026-09-15", "2026-10-03"];
   const REM = {};
+  const DONE = {}; // v2 C2 (B13): onboarding tasks completed in this session, name + key → the day
   function onboardingOf(n) {
     const p = PERSON[n], sh = p.role ? p.role[1] : null, accts = accountsOf(n), rows = [];
     accts.filter((a) => ["emass", "jira", "gitlab", "net"].includes(a.id)).forEach((a) => rows.push(ITEMS.dd(a)));
@@ -734,11 +735,12 @@
     const approver = n === "Joel Barrantes" ? "Ray Colston" : "Joel Barrantes";
     return rows.map((r, i) => {
       const o = (OPEN[n] || {})[r.k], owner = r.owner === "self" ? n : r.owner === "approver" || r.owner === "ISSM" ? approver : r.owner;
-      const doneOn = DONE_ON[(i + n.length) % DONE_ON.length];
+      const doneOn = DONE[n + r.k] || DONE_ON[(i + n.length) % DONE_ON.length];
       return Object.assign({}, r, { owner, status: o ? o[0] : "done", due: o ? o[1] : doneOn, reminded: REM[n + r.k] || (o ? o[2] : null), done: o ? null : doneOn, approver });
     });
   }
-  const obPill = (r) => (r.status === "done" ? h.pill("ok", "Complete") : AK.days(r.due) < 0 ? h.pill("bad", "Overdue") : r.status === "progress" ? h.pill("warn", "In progress") : h.pill("none", "Open"));
+  // v2 C2 (N02): a task nobody has started reads To do (grey); Open is red in the one status map, kept for open issues and risks.
+  const obPill = (r) => (r.status === "done" ? h.pill("ok", "Complete") : AK.days(r.due) < 0 ? h.pill("bad", "Overdue") : r.status === "progress" ? h.pill("warn", "In progress") : h.pill("none", "To do"));
   const trainingOf = (n) => {
     const ob = onboardingOf(n), find = (k) => ob.find((r) => r.k === k);
     const rows = [["DoD Cyber Awareness Challenge", "Yearly", find("cyber")], ["Insider threat awareness", "Yearly", { status: "done", done: "2026-09-15", due: "2027-09-15" }]];
@@ -750,6 +752,39 @@
   const nextDue = (n) => { const t = tasksOf(n)[0], o = onboardingOf(n).filter((r) => r.status !== "done").sort((a, b) => a.due.localeCompare(b.due))[0]; const c = [t && t[3], o && o.due].filter(Boolean).sort()[0]; return c || null; };
   // Offboarding (Victor Amsel leaving on Dec 1 is Example), and any offboarding started in this session.
   const OFF = { "Victor Amsel": { date: "2026-12-01", reason: "Moves to another program", by: "Joel Barrantes", at: "2026-11-16T15:58", successor: "Nadia Fournier", owners: { ev: "Nadia Fournier" }, access: {}, equip: {}, debrief: null, closed: null } };
+  // v2 C2 (B5, B13): what these pages change is written to the shared state, so People, the access review and the Schedule read the
+  // same thing: people.off (each offboarding, its new owners), people.open and people.done (onboarding), people.added (people added
+  // with Add person). PA.v8people adds a person and starts their onboarding task set; restore() reads the state back after a reload.
+  const OFF0 = JSON.stringify(OFF), OPEN0 = JSON.stringify(OPEN);
+  const pubPeople = () => { const V2 = PA.v2; if (!V2) return; V2.set("people.off", JSON.parse(JSON.stringify(OFF))); V2.set("people.open", JSON.parse(JSON.stringify(OPEN))); V2.set("people.done", Object.assign({}, DONE)); };
+  const addDaysIso = (iso, k) => { const d = new Date(iso + "T12:00:00"); d.setDate(d.getDate() + k); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
+  const OB_DAYS = { rob: 3, sf312: 5, cyber: 7, cac: 10, bi: 30, 8140: 60, rbt: 30, ao: 14, pa: 14 };
+  function addPerson(a) {
+    if (!a || !a.n) return null;
+    if (!PERSON[a.n]) {
+      const role = a.short ? [a.roleLabel || a.short, a.short] : null;
+      PEOPLE.push([a.n, role, a.acts || "", [], 0, null]);
+      PERSON[a.n] = { n: a.n, slug: slug(a.n), role, acts: a.acts || (role ? role[0] : "Task owner"), other: [], ev: 0, ssp: null, start: a.start || null };
+      if (!OPEN[a.n]) { OPEN[a.n] = {}; onboardingOf(a.n).forEach((r) => { OPEN[a.n][r.k] = ["open", addDaysIso(a.start || "2026-11-17", r.k.startsWith("dd-") ? 7 : OB_DAYS[r.k] || 14), null]; }); }
+    }
+    const p = PERSON[a.n];
+    for (const t of PTABS) { const r = `person-${p.slug}${t === "overview" ? "" : "-" + t}`; if (!S[r]) { if (PA.v2 && PA.v2.screen) PA.v2.screen(r, () => personHTML(a.n, t), "people"); else S[r] = () => personHTML(a.n, t); ROUTE_NAV[r] = "people"; } }
+    return p;
+  }
+  function restorePeople() {
+    const V2 = PA.v2; if (!V2) return;
+    (V2.get("people.added", []) || []).forEach(addPerson);
+    const o = V2.get("people.off"), op = V2.get("people.open"), dn = V2.get("people.done");
+    if (o) { Object.keys(OFF).forEach((k) => delete OFF[k]); Object.assign(OFF, JSON.parse(JSON.stringify(o))); }
+    if (op) { Object.keys(OPEN).forEach((k) => delete OPEN[k]); Object.assign(OPEN, JSON.parse(JSON.stringify(op))); }
+    if (dn) Object.assign(DONE, dn);
+  }
+  function resetPeople() {
+    Object.keys(OFF).forEach((k) => delete OFF[k]); Object.assign(OFF, JSON.parse(OFF0));
+    Object.keys(OPEN).forEach((k) => delete OPEN[k]); Object.assign(OPEN, JSON.parse(OPEN0));
+    Object.keys(DONE).forEach((k) => delete DONE[k]);
+  }
+  PA.v8people = { add: (a) => { const p = addPerson(a); pubPeople(); return p ? `person-${p.slug}-onboarding` : null; }, onboarding: (n) => (PERSON[n] ? onboardingOf(n) : []), restore: restorePeople, reset: resetPeople, slug: (n) => slug(n), has: (n) => !!PERSON[n] };
   function workOf(n) {
     const p = PERSON[n], items = [];
     if (p.ev) items.push({ k: "ev", t: `${p.ev} evidence artifacts`, sub: n === "Victor Amsel" ? VICTOR_EV.slice(0, 2).join(" · ") : "Evidence in WS-X90", go: "evidence" });
@@ -800,13 +835,25 @@
   }
   function onboardingBody(p) {
     const ob = onboardingOf(p.n), late = ob.filter((r) => r.status !== "done" && AK.days(r.due) < 0), done = ob.filter((r) => r.status === "done").length;
-    const rows = ob.map((r) => ({ id: r.k, cells: [`<b class="v8d-b" title="${esc(r.set || "Program access")}">${esc(r.t)}</b>`, AK.owner(r.owner), r.status === "done" ? `<span class="num">${esc(md(r.done))}</span>` : AK.due(r.due, { prefix: false }), obPill(r),
+    const rows = ob.map((r) => ({ id: `${p.n}|${r.k}`, cells: [`<b class="v8d-b" title="${esc(r.set || "Program access")}">${esc(r.t)}</b>`, AK.owner(r.owner), r.status === "done" ? `<span class="num">${esc(md(r.done))}</span>` : AK.due(r.due, { prefix: false }), obPill(r),
       r.status === "done" ? mu("Not needed") : `<span class="v8d-rem">${r.reminded ? `Last reminded on ${esc(r.reminded)}` : "Not reminded yet"}${r.owner === ME ? btn("Done", `data-v8d-act="ob-done" data-who="${esc(p.n)}" data-k="${r.k}" aria-label="Mark ${esc(r.t)} complete"`) : `<button type="button" class="btn sm v8d-ib" data-v8d-act="remind" data-who="${esc(p.n)}" data-k="${r.k}" aria-label="Remind ${esc(r.owner)} about ${esc(r.t)}" title="Remind">${AK.i("mail")}</button>`}</span>`,
       r.status === "done" ? `<span class="v8d-evl" title="${r.k.startsWith("dd-") ? "Approved by " + esc(r.approver) : ""}">${I("link")}${r.k.startsWith("dd-") ? "DD 2875 · signed" : r.k === "bi" ? "Favorable" : r.k === "cyber" ? "Certificate" : r.k === "8140" ? "Certification" : "Signed copy"}</span>` : `<span class="ak-link" role="button" tabindex="0" data-v8d-act="upload" data-who="${esc(p.n)}">${AK.i("upload")}Add evidence</span>`] }));
     return `${late.length ? AK.banner({ tone: "bad", text: `<b>${plural(late.length, "onboarding task")} overdue:</b> ${esc(late.map((r) => r.t).join("; "))}.` }) : ""}
       <div class="v8d-obh"><span>${AK.progress(done, ob.length)}</span><span class="v8d-mu">The union of ${esc(["Program access", ...new Set(ob.map((r) => r.set).filter((s) => s && s !== "Program access"))].join(" and "))}. A DD Form 2875 per system account.</span></div>
-      ${h.table(["Task", "Owner", "Due", "Status", "Reminders", "Evidence"], rows, rows.length, "")}`;
+      ${h.table(["Task", "Owner", "Due", "Status", "Reminders", "Evidence"], rows, rows.length, "v8d-ob")}`;
   }
+  // v2 C2 (B13): each onboarding task opens; an open one can be marked complete, which moves the person's progress and People.
+  P["v8d-ob"] = (id) => {
+    const [n, k] = String(id || "").split("|"), p = PERSON[n];
+    if (!p) return null;
+    const r = onboardingOf(n).find((x) => x.k === k);
+    if (!r) return null;
+    const done = r.status === "done";
+    const act = done ? "" : `<button type="button" class="btn sm ink" data-v8d-act="ob-done" data-who="${esc(n)}" data-k="${esc(k)}" data-v2-wired>Mark complete</button>`;
+    return { label: "Onboarding task preview", body: `<div class="v8d-obp">${AK.recordHead({ title: r.t, chip: obPill(r), actions: act })}
+      ${AK.facts([["Person", AK.owner(n)], ["Owner", AK.owner(r.owner)], [done ? "Completed" : "Due", done ? esc(md(r.done)) : AK.due(r.due)], ["Task set", esc(r.set || "Program access")]])}
+      ${done ? `<p class="v8d-mu v8d-pad">${AK.i("check")} Completed ${esc(md(r.done))}.</p>` : `<p class="v8d-mu v8d-pad">${r.owner === n ? `${esc(n)} completes this one; marking it complete records that it is done.` : `${esc(r.owner)} completes this one for ${esc(n)}.`} ${r.reminded ? `Last reminded on ${esc(r.reminded)}.` : "Not reminded yet."}</p>`}</div>` };
+  };
   function verified(a, n) {
     if (a.pending) return `<span class="v8d-ver">${h.gl("ring")}Waiting for its DD Form 2875</span>`;
     if (a.how === "int") return `<span class="v8d-ver ok">${I("live")}Verified via integration on Nov 12, 14:02</span>`;
@@ -1069,7 +1116,15 @@
     "restore-ok": (b) => { const pl = PLANS[b.dataset.id]; if (!pl) return; const hs = hst(pl.key), idx = hs.sel === "pub" ? pl.versions.length - 1 : hs.sel, from = pl.versions[idx].v; const V = restore(pl, idx); hs.sel = 0; closeModalNow(); rerender(); U.toast(`Version ${from} restored as version ${V.v}`, null); },
     // People
     remind: (b) => { REM[b.dataset.who + b.dataset.k] = "Nov 17"; rerender(); U.toast(`Reminder sent to ${b.dataset.who === ME ? "you" : b.dataset.who}`, null); },
-    "ob-done": (b) => { const o = OPEN[b.dataset.who]; if (o) delete o[b.dataset.k]; rerender(); U.toast("Marked complete", null); },
+    "ob-done": (b) => {
+      const n = b.dataset.who, k = b.dataset.k, o = OPEN[n], r = PERSON[n] && onboardingOf(n).find((x) => x.k === k);
+      if (o) delete o[k];
+      DONE[n + k] = "2026-11-17";
+      pubPeople();
+      if (PA.v2 && PA.v2.redraw) PA.v2.redraw(); else rerender();
+      const ob = PERSON[n] ? onboardingOf(n) : [], dn = ob.filter((x) => x.status === "done").length;
+      U.toast(`${r ? r.t : "Task"} complete · onboarding ${dn} of ${ob.length}`, null);
+    },
     upload: () => U.toast("Evidence attaches from a file or a link to the record", null),
     pick: (b) => { const n = b.dataset.who, k = b.dataset.k; openPop(b, `<div class="se-menu" role="menu" aria-label="New owner">${PEOPLE.map((x) => x[0]).filter((x) => x !== n).map((x) => `<button type="button" class="se-mi" role="menuitem" data-v8d-act="picked" data-who="${esc(n)}" data-k="${esc(k)}" data-to="${esc(x)}">${av(x, 22)}<span class="se-mi-t"><b>${esc(x)}${x === ME ? " (you)" : ""}</b><span>${esc(ROLE[x] || "")}</span></span></button>`).join("")}</div>`); },
     picked: (b) => { const o = OFF[b.dataset.who]; if (!o) return; o.owners[b.dataset.k] = b.dataset.to; closePop(); rerender(`[data-v8d-act="pick"][data-k="${b.dataset.k}"]`); U.toast(`Reassigned to ${b.dataset.to}`, null); },
@@ -1103,7 +1158,7 @@
     if (cmd) { try { document.execCommand(cmd.dataset.v8dCmd); } catch (err) { /* formatting is a courtesy */ } return; }
     const a = t.closest("[data-v8d-act]");
     const pl = curPlan() || (a && a.dataset.plan && PLANS[a.dataset.plan]);
-    if (a && ACT[a.dataset.v8dAct]) { if (a.getAttribute("aria-disabled") === "true" && a.dataset.v8dAct !== "off-close") return; ACT[a.dataset.v8dAct](a, pl || PLANS[a.dataset.id] || PLANS.cp, e); return; }
+    if (a && ACT[a.dataset.v8dAct]) { if (a.getAttribute("aria-disabled") === "true" && a.dataset.v8dAct !== "off-close") return; ACT[a.dataset.v8dAct](a, pl || PLANS[a.dataset.id] || PLANS.cp, e); if (/^(off-|picked|remind)/.test(a.dataset.v8dAct)) pubPeople(); return; }
     if (!pl || !t.closest("#v8d-app")) return;
     const mk = t.closest("[data-v8d-cid]");
     if (mk) { activate(pl, mk.dataset.v8dCid, { doc: false }); return; }

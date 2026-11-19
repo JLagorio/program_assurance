@@ -1,0 +1,280 @@
+{
+ "home": {
+  "text": "Home View my work Create program Mission Computer version 2 is published: 4 consumers are behind, and its CVE-2024-6387 offer waits on Priya Raghavan. Open offer Controls satisfied, by program Updated now WS-X90 Sentinel Mission System PRG-1090 31% 176 of 560 controls satisfied Customer A · X800 Rail Integration PRG-2101 31% 116 of 374 controls satisfied Customer B · X800 Palletized Integration PRG-2102 39% 143 of 370 controls satisfied Customer C · G25 Battery Control Fielding PRG-2201 20% 56 of 287 controls satisfied Other programs 5 Atlas payments platform 0 of 287 controls satisfied Corporate identity provider 0 of 287 controls satisfied Field operations mobile 0 of 287 controls satisfied Legacy billing gateway 0 of 149 controls satisfied Northwind data warehouse 0 of 287 controls satisfied",
+  "nav": [
+   "Getting started220%"
+  ],
+  "rail": [
+   "My work 11",
+   "Review 148"
+  ]
+ },
+ "overview": {
+  "text": "Programs › PRG-1090 WS-X90 Sentinel Mission System ATO with conditions Open package Controls satisfied Controls 31% 176 of 560 controls Satisfied 176 Partially satisfied 34 Other than satisfied 13 Not assessed 90 No evidence 233 No requirement 14 Open work Operational issues 17 past due · 2 critical 44 Open risks 12 critical or high · 40 with no owner 40 POA&M items open 7 of 41 completed 34 Evidence to revise 88 waiting on review 54 Your tasks assigned to you 6 Plans, assessments and setup System security plan Revision 3 · Draft · 74 placeholder narratives · started Nov 13 Version history Assessments The Expanded Control Set Assessment ends Nov 20, in 3 days 4 Set up WS-X90 2 of 10 steps done · next, give records owners Example Details Program PRG-1090 System SYS-WSX90 Type Platform Lifecycle Planned Categorization C High · I High · A Moderate Catalog NIST SP 800-53 Rev 5 (5.2.0) Baseline WS-X90 Tailored Security Baseline · 560 controls Next date Nov 20 · Expanded assessment ends Team People Authorizing official RC R. Calloway ISSM JB Joel Barrantes ISSO PR Priya Raghavan System owner RC Ray Colston Lead assessor (SCA) DO D. Okafor Assessor NF Nadia Fournier Security engineer IS Ingrid Solberg (You)",
+  "nav": [
+   "Getting started 20%",
+   "Evidence368",
+   "Findings44"
+  ],
+  "rail": [
+   "My work 11",
+   "Review 148"
+  ]
+ },
+ "getting-started": {
+  "text": "Getting started Set up the workspace, give records owners, then close WS-X90's gaps. Example 3 of 12 done · 25% 1 Workspace setup 2 Owners 3 WS-X90's gaps Workspace setup Load the catalog and record the roles, then adopt the deadlines and notifications proposed for the workspace. ITCSC The checklist that categorizes WS-X90 and selects its baseline and overlays. 1 of 2 complete Import or complete the ITCSC · version 3, approved Sep 2 Re-approve the ITCSC: 2 external interfaces added since version 3 Open Catalog and roles The controls every baseline reads, and who acts for WS-X90. 2 of 2 complete Load NIST SP 800-53 Rev 5.1.1 · 1,014 active controls Record WS-X90's roles · AO R. Calloway, lead assessor D. Okafor Deadlines How long each kind of finding has before it is late. 0 of 1 complete Adopt the 12 proposed deadlines set by Joel Barrantes, ISSM Go to deadlines Notifications Who hears of what, by email and in the app. 0 of 1 complete Continue to Owners → Example The checklist is an example: its three steps, their order and their wording are invented. Every number in it is already on WS-X90's screens.",
+  "nav": [
+   "Getting started 20%",
+   "Evidence368",
+   "Findings44"
+  ],
+  "rail": [
+   "My work 11",
+   "Review 148"
+  ]
+ },
+ "my-work": {
+  "text": "My work All Assigned to me My teams Needs my approval Type ⌄ Urgent 3 Remediate CVE-2024-6387 on the Mission Computer WSX-409 • High • due Nov 9 • 8 days late IS Resolve 17 operational issues past their remediation date 1 critical • 9 high • 7 moderate No owner Treat 2 critical risks a password alone reaches WS-X90 • unverifiable arm and release records No owner Coming soon 4 Close out the Expanded Control Set Assessment 88 requests ready for the assessor • ends Nov 20 DO Remediate 3 operational issues 1 critical • 2 high • due within two weeks No owner Submit SSP 3 for review Draft Example PR Run the quarterly configuration baseline audit (CM-2, CM-3) WSX-397 • Planned • due Dec 28 IS Unscheduled 2 Give an owner to 40 open risks No owner Revise 54 evidence versions sent back by reviewers No owner WD Waiting on others 2 88 evidence versions wait on a reviewer Pending review NF An offered finding, CVE-2024-6387, waits on Priya Raghavan offered Nov 14 PR",
+  "nav": [],
+  "rail": [
+   "My work 11",
+   "Review 148"
+  ]
+ },
+ "my-work-mine": {
+  "text": "My work All Assigned to me My teams Needs my approval Type ⌄ Urgent 1 Remediate CVE-2024-6387 on the Mission Computer WSX-409 • High • due Nov 9 • 8 days late IS Coming soon 1 Run the quarterly configuration baseline audit (CM-2, CM-3) WSX-397 • Planned • due Dec 28 IS",
+  "nav": [],
+  "rail": [
+   "My work 11",
+   "Review 148"
+  ]
+ },
+ "review-queue": {
+  "text": "Review queue All 148 Waiting on me 0 Search the queue Kind ⌄ Program ⌄ Waiting on ⌄ Waiting longer than ⌄ + Add filter ▥ ⚙ Record Kind Program Waiting on Waiting since Requested by System Requirements Review Gate to decide Legacy billing gateway — Sep 12 · 66d — Critical Design Review Gate to decide Northwind data warehouse — Sep 12 · 66d — Production Readiness Review Gate to decide Atlas payments platform — Sep 12 · 66d — PDR Gate to decide WS-X90 — Sep 12 · 66d — Initial Operational Capability Gate to decide Field operations mobile — Sep 12 · 66d — Customer B security plan approval package · version 1 Package to decide Customer B · X800 Palletized Integration — Nov 3 · 14d JB Joel Barrantes Account-issue gate configuration export, LRU-017 to LRU-013 provisioning rule set Evidence to accept WS-X90 NF Nadia Fournier Nov 13 · 4d WD Wes Duarte Approved portable-storage registry export, LRU-020 revision 11, with mount policy hash Evidence to accept WS-X90 NF Nadia Fournier Nov 13 · 4d JB Joel Barrantes Approved vendor verification key set and release metadata binding, LRU-003 and LRU-020 Evidence to accept WS-X90 NF Nadia Fournier Nov 13 · 4d IS Ingrid Solberg Flight program function list, customer build Evidence to accept Customer A · X800 Rail Integration EV Elena Vasquez Nov 13 · 4d NF Nadia Fournier Pallet sequencing firmware build record, customer aircraft Evidence to accept ",
+  "nav": [],
+  "rail": [
+   "My work 11",
+   "Review 148"
+  ]
+ },
+ "portfolio": {
+  "text": "Programs Create program All 9 Built from a product 3 Next gate past due 6 No owner 4 Search programs Business line ⌄ Owner ⌄ Status ⌄ + Add filter Program Controls satisfied Since Nov 13 Owner Next gate Built from Air Defense 2 products · 2 programs PR Priya Raghavan Customer A · X800 Rail Integration 31% 116 of 374 No change DW Dan Whitfield Nov 23 2 products · 1 behind Customer B · X800 Palletized Integration 39% 143 of 370 No change HL Hana Lindqvist Past due: Nov 16 1 product Mission Systems 2 products · 1 program MR Marcus Ryde Customer C · G25 Battery Control Fielding 20% 56 of 287 No change — Nov 19 2 products No business line 6 programs WS-X90 Sentinel Mission System 31% 176 of 560 +2 controls RC Ray Colston Past due: Oct 1 2 components · 1 behind Legacy billing gateway 0% 0 of 149 No change — Past due: Apr 22, 2025 Nothing shared Field operations mobile Planned 0% 0 of 287 No change PR Priya Raghavan Nov 19 Nothing shared Corporate identity provider 0% 0 of 287 No change — Past due: Aug 21, 2025 Nothing shared Northwind data warehouse 0% 0 of 287 No change MR Marcus Ryde Past due: Dec 12, 2025 Nothing shared Atlas payments platform 0% 0 of 287 No change — Past due: Aug 20 Nothing shared 1–9 of 9 25 per page · ‹ › Example The reminders in a program's panel are proposed. Controls satisfied is each program's Nov 17 snapshot, the change counts from Nov 13 (the first snapsh",
+  "nav": [],
+  "rail": [
+   "My work 11",
+   "Review 148"
+  ]
+ },
+ "controls": {
+  "text": "Controls Open the SSP Map a requirement Controls satisfied 560 total 31% 176 controls satisfied updated now All 560 Needs evidence 233 Not assessed 90 Short of satisfied 47 No owner 560 Search controls Family ⌄ Status ⌄ Determined by ⌄ Owner ⌄ + Add filter ▥ ⚙ Control Owner Status Objectives with evidence Next step Requirement Row actions AC-1 Policy and Procedures Unassigned Partially satisfied 17 of 17 Open assessment findings REQ-436 AC-2 Account Management Unassigned Satisfied 26 of 26 — REQ-001 AC-2(5) Inactivity Logout Unassigned No evidence 0 of 1 Link evidence to REQ-442 REQ-442 AC-2(7) Privileged User Accounts Unassigned Not assessed 4 of 4 Add to assessment campaign REQ-443 AC-11 Device Lock Unassigned Other than satisfied 2 of 2 Open assessment findings REQ-008 AU-7 Audit Record Reduction and Report Generation Unassigned Satisfied 4 of 4 Inherited REQ-353 AU-10 Non-repudiation Unassigned Other than satisfied 1 of 1 Open assessment findings REQ-360 IA-2(2) Multi-factor Authentication to Non-privileged Accounts Unassigned Not assessed 1 of 1 Add to assessment campaign REQ-599 IA-5 Authenticator Management Unassigned Other than satisfied 10 of 10 Open assessment findings REQ-039 RA-5 Vulnerability Monitoring and Scanning Unassigned Satisfied 10 of 10 — REQ-054 SC-5(3) Detection and Monitoring Unassigned Other than satisfied 2 of 2 Open assessment findings REQ-200 SI-2 F",
+  "nav": [
+   "Getting started 20%",
+   "Evidence 368",
+   "Findings44"
+  ],
+  "rail": [
+   "My work 11",
+   "Review 148"
+  ]
+ },
+ "baseline": {
+  "text": "Baseline Gap assessment Edit overlays 2 assessments are active: a change to the stack waits until they close on Nov 20. Stack 6 Parameters 1,048 # Layer Type Owner Added Removed Controls Last changed Apply 0 NIST SP 800-53 Rev 5 High baseline Baseline Reference · NIST +370 −0 370 Sep 16 Root 1 CNSSI 1253 National Security System Allocation v1 Overlay Reference · CNSS +201 −17 554 Nov 10 2 Mission Assurance Overlay v1 Overlay Unassigned +0 −5 549 Nov 10 3 Deployed Platform Overlay v1 Overlay Unassigned +1 −0 550 Nov 10 4 Customer A Tailoring v1 Overlay Unassigned +0 −4 546 Nov 10 5 WS-X90 program tailoring Tailoring Unassigned +14 −0 560 Nov 13 560 controls after WS-X90 program tailoring 18 families Grid List Satisfied 176 Partially satisfied 34 Other than satisfied 13 Not assessed 90 No evidence 233 No requirement 14 AC 52 Access Control AT 12 Awareness and Training AU 35 Audit and Accountability CA 18 Assessment, Authorization, and Monitoring CM 43 Configuration Management CP 27 Contingency Planning IA 36 Identification and Authentication IR 32 Incident Response MA 20 Maintenance MP 10 Media Protection PE 26 Physical and Environmental Protection PL 11 Planning PS 13 Personnel Security RA 15 Risk Assessment SA 68 System and Services Acquisition SC 66 System and Communications Protection SI 54 System and Information Integrity SR 22 Supply Chain Risk Management A switch reads the",
+  "nav": [
+   "Getting started 20%",
+   "Evidence 368",
+   "Findings44"
+  ],
+  "rail": [
+   "My work 11",
+   "Review 148"
+  ]
+ },
+ "evidence": {
+  "text": "Evidence Add evidence All 368 Owned by me 27 Requires my approval 0 Pending review 88 Needs revision 54 More 1 ⌄ Search evidence Kind ⌄ Status ⌄ Latest version ⌄ Owner ⌄ More filters 1 ⌄ + Add filter Reset view ▥ ⚙ Evidence Kind Owner Row actions Time source comparison test report, LRU-005 60-second cadence with injected 1.5-second offset Test record IS Ingrid Solberg Maintenance session teardown verification test report, LRU-014 and LRU-007 Test record JB Joel Barrantes Pinned toolchain record export, LRU-020 build environment for release 4.2 Dataset JB Joel Barrantes Authorized internal-connection register and switch enforcement state, LRU-009 and LRU-020 Dataset PR Priya Raghavan Protected information location map and location-change log, LRU-001 and LRU-015 Document PR Priya Raghavan Destruction certificates for six retired units, LRU-003 / LRU-015 / LRU-019 Document VA Victor Amsel 1–6 of 368 25 per page · ‹ › Rows, counts, owners and the reviewer are WS-X90's. Owned by me counts the 27 artifacts Ingrid Solberg owns; Renew by reads Not set, as our register shows it today.",
+  "nav": [
+   "Getting started 20%",
+   "Evidence 368",
+   "Findings44"
+  ],
+  "rail": [
+   "My work 11",
+   "Review 148"
+  ]
+ },
+ "findings": {
+  "text": "Findings Import scan Create operational issue By issue 44 Vulnerabilities 4 By asset 20 Assessment findings 313 Deactivated History Remediate-by status 44 open Overdue 17 Due within two weeks 3 Due later 24 Deadlines: critical 15 · high 30 · moderate 90 · low 180 days · IAVA and IAVB from the notice Edit Open issues by severity 44 open 44 Critical 2 High 12 Moderate 23 Low 7 All 44 Past due 17 Due soon 3 Critical 2 High 12 More 2 ⌄ Search findings Severity ⌄ Owner ⌄ Remediate by ⌄ Control ⌄ + Add filter Reset ▥ ⚙ Operational issue Severity From finding Opened Remediate by POA&M item Unmet requirement REQ-100 High CM-4 Aug 7 Sep 6 · 72d late Remediate REQ-100 Unmet requirement REQ-008 High AC-11 +1 Aug 10 Sep 9 · 69d late Remediate REQ-008 Unmet requirement REQ-068 High — Aug 13 Sep 12 · 66d late Remediate REQ-068 Session-table occupancy missing from the gateway counter export, leaving low-rate state exhaustion undetectable (SC-5(3)) High SC-5(3) Sep 24 Oct 24 · 24d late Restore state-level visibility and operator attribution at the boundary gateway Mission data sessions over the tactical radio never presented to platform monitoring (SI-4(10)) High SI-4(10) Oct 2 Nov 1 · 16d late Close the mission-link monitoring blind spot and widen the restricted-state trigger Egress denial records attribute maintenance-origin traffic to a device instead of an operator (SC-7(9)) High SC-7(9) O",
+  "nav": [
+   "Getting started 20%",
+   "Evidence368",
+   "Findings 44"
+  ],
+  "rail": [
+   "My work 11",
+   "Review 148"
+  ]
+ },
+ "poam": {
+  "text": "POA&M Export Create POA&M item Items 41 Milestones 123 All 41 In progress 33 Not started 1 Completed 7 Planned date passed 12 More 2 ⌄ Search POA&M items Status ⌄ Owner ⌄ Planned completion ⌄ Source ⌄ + Add filter Reset ▥ ⚙ POA&M item Status Progress Planned Remediate by Source Owner Remediate REQ-100 In progress 0 of 3 Oct 18 · 30d late Sep 6 · 72d late plan +42d Finding CM-4 — Remediate REQ-008 In progress 0 of 3 Oct 6 · 42d late Sep 9 · 69d late plan +27d Finding AC-11 — Remediate REQ-068 In progress 0 of 3 Sep 14 · 64d late Sep 12 · 66d late plan +2d Requirement REQ-068 — Restore state-level visibility and operator attribution at the boundary gateway In progress 2 of 4 Jan 26, 2027 Oct 24 · 24d late plan +94d Finding SC-1 +2 — Close the mission-link monitoring blind spot and widen the restricted-state trigger In progress 1 of 4 Mar 8, 2027 Nov 1 · 16d late plan +127d Finding SI-1 +2 — Remediate REQ-024 In progress 0 of 3 Sep 8 · 70d late Nov 5 · 12d late Finding CM-2 — Remediate REQ-119 In progress 0 of 3 Oct 21 · 27d late Nov 5 · 12d late Requirement REQ-119 — Remediate REQ-062 In progress 0 of 3 Nov 13 · 4d late Nov 5 · 12d late plan +8d Finding SC-28 — Publish the retired key history and reissue the audit direction In progress 1 of 3 Dec 29 Nov 5 · 12d late plan +54d Finding AU-1 +1 — Remediate REQ-083 In progress 0 of 3 Nov 16 · 1d late Nov 7 · 10d late plan +9d Finding",
+  "nav": [
+   "Getting started 20%",
+   "Evidence368",
+   "Findings 44"
+  ],
+  "rail": [
+   "My work 11",
+   "Review 148"
+  ]
+ },
+ "risks": {
+  "text": "Risks Export Create risk Register 40 Snapshots 1 Library 269 All 40 Critical or high 12 No owner 40 Response date passed 6 Awaiting acceptance 0 Search risks Severity ⌄ Likelihood ⌄ Impact ⌄ Assessment ⌄ More filters 3 ⌄ + Add filter Reset ▥ ⚙ Risk Severity ATT&CK techniques Response due Assessment Example Acceptance Owner Row actions A password on its own reaches WS-X90 at the flightline Critical T1078 T1110 Dec 13 Reassess by Dec 12 — — Payload arm and release records become unverifiable as signing keys rotate Critical T1553 T1565 Nov 2 · 15d late Reassess by Dec 12 — — A hand-kept bay list leaves standing physical access to key and recovery material High T1200 T1552 Dec 18 Reassess by Dec 12 — — A partition that has failed its own integrity check keeps flying the mission High T1542 T1601 Jan 4, 2027 Reassess by Dec 12 — — An unsealed service connector leaves a physical route into the maintenance path High T1091 T1200 Dec 8 Reassess by Dec 12 — — Low-rate exhaustion and unattributable egress at the WS-X90 external boundary High T1048 T1499 Nov 22 · in 5d Reassess by Dec 12 — — Risk arising from REQ-008 High — Oct 9 · 39d late Reassess by Dec 12 — — Risk arising from REQ-039 High — Oct 2 · 46d late Reassess by Dec 12 — — Risk arising from REQ-068 High — Oct 12 · 36d late Reassess by Dec 12 — — Risk arising from REQ-100 High — Oct 6 · 42d late Reassess by Dec 12 — — The mission",
+  "nav": [
+   "Getting started 20%",
+   "Evidence368",
+   "Findings 44"
+  ],
+  "rail": [
+   "My work 11",
+   "Review 148"
+  ]
+ },
+ "assessments": {
+  "text": "Assessments Open assessor's view Plan an assessment Active 3 Completed 1 Search campaigns Kind ⌄ Lead assessor ⌄ Assigned to me ⌄ + Add filter ▥ ⚙ WS-X90 Expanded Control Set Assessment Active Control assessment Security assessment plan — expanded control set · version 1 DO NF Lead assessor and assessor Open campaign Timeline Plan published Sep 8, 2026 Window opens Sep 14, 2026 Window closes Nov 20, 2026 · 3 days left Request tracker · 368 Not ready 0 Internal review 0 Ready 88 Flagged 54 Accepted 226 Results Security assessment report — expanded control set, increment 1 Published Nov 12 by D. Okafor · 225 findings Download Interim results — expanded control set, increment 2 Draft · 20 findings, Nov 11–13 · decides nothing until published Publish results WS-X90 continuous monitoring — FY2027 Active Control assessment Continuous monitoring plan — FY2027 · version 1 · Draft DO PR Lead assessor and owner Open campaign Timeline Plan Version 1, a draft Window opens Oct 1, 2026 Window closes Sep 30, 2027 Request tracker No requests yet. The draft plan holds 10 objectives (SI-2) and 14 scheduled tasks; the next is the mission network scan, Nov 15 · 2 days ago. No results yet Results join the card once the assessor records findings WS-X90 cooperative vulnerability identification — FY2027 Planned Cyber test · CVI Jan 11 – Feb 5, 2027 IS Owner Plan an assessment No plan yet Plan an asses",
+  "nav": [
+   "Getting started 20%",
+   "Evidence368",
+   "Findings44"
+  ],
+  "rail": [
+   "My work 11",
+   "Review 148"
+  ]
+ },
+ "authorization": {
+  "text": "WS-X90 › Authorization Authorization ATO with conditions WS-X90 Sentinel Mission System's authorization package. Version 1 holds the decision in force; version 2, the FY2027 annual update, is a draft. Open package room Submit for approval Signed Sep 18, 2026 ATD Sep 17, 2029 Authorizing official RC R. Calloway ISSM JB Joel Barrantes Package version 2 Draft Package Conditions 3 Comments 2 Activity 5 Approval Package version 2 · FY2027 annual update · not submitted yet STEP 1 · ISSM REVIEW JB Joel Barrantes ISSM Not started STEP 2 · AUTHORIZATION DECISION RC R. Calloway Authorizing official · signs Not started Only the AO signs. Version 2 can be submitted once SSP 3 is approved and the expanded control set's increment 2 results are published. Conditions of the decision 3 Close the high-severity remediation items within 90 days 12 high issues open Dec 17 Complete the expanded control set assessment before Milestone C The campaign ends Nov 20 Nov 20 · in 3 days Report the SA-24 design review at the annual authorization review Annual review Sep 18, 2027 Decision in force Decision ATO with conditions Signed by RC R. Calloway Effective Sep 18, 2026 ATD Sep 17, 2029 Term 5% elapsed Residual risk Open risks 40 Critical 2 High 10 Moderate 18 Low 10 Accepted 0 all Mitigate Package room Version 1 published Sep 2 and shared with the program's role holders. Every open is watermarked and logg",
+  "nav": [
+   "Getting started 20%",
+   "Evidence368",
+   "Findings44"
+  ],
+  "rail": [
+   "My work 11",
+   "Review 148"
+  ]
+ },
+ "conmon": {
+  "text": "Continuous monitoring WS-X90 continuous monitoring — FY2027 · Oct 1, 2026 – Sep 30, 2027 · authorized to Sep 17, 2029 Export ConMon report Plan a check 2 checks are overdue. The STIG compliance scan is blocked, due Nov 11, and the ACAS vulnerability scan is still running, due Nov 15. Open checks Recurring checks 10 Reauthorization triggers 6 Control status 5 days All 10 Overdue 2 Due in 14 days 2 Planned 6 Search checks Cadence ⌄ Owner ⌄ Status ⌄ Control ⌄ + Add filter Check Cadence Owner Last run Next due Status Runs ACAS vulnerability scan, mission network RA-5, SI-2 Monthly JB Joel Barrantes Oct 11 Nov 15 · 2 days ago In progress 2 STIG compliance scan CM-6 Monthly JB Joel Barrantes Oct 13 Nov 11 · 6 days ago Blocked 2 POA&M review CA-5 Monthly PR Priya Raghavan Oct 14 Nov 21 · in 4 days Ready 2 Privileged account review AC-2, AC-6 Quarterly VA Victor Amsel Not yet Dec 1 · in 14 days In progress 1 Audit log review sampling AU-6 Quarterly NF Nadia Fournier Not yet Dec 23 Planned 1 Configuration baseline audit CM-2, CM-3 Quarterly IS Ingrid Solberg Not yet Dec 28 Planned 1 Reassessment sample: AC and IA controls CA-2, CA-7 Yearly NF Nadia Fournier Not yet Feb 11, 2027 Planned 1 Incident response tabletop IR-3 Yearly PR Priya Raghavan Not yet Mar 13, 2027 Planned 1 Contingency plan test on a whole article CP-4 Yearly AB Amara Bell Not yet Apr 12, 2027 Planned 1 Cyber resiliency",
+  "nav": [
+   "Getting started 20%",
+   "Evidence368",
+   "Findings44"
+  ],
+  "rail": [
+   "My work 11",
+   "Review 148"
+  ]
+ },
+ "posture": {
+  "text": "Posture WS-X90's elements by control family, counted in assessment objectives Columns: Control families Export CSV Objectives mapped 1,761 Without evidence 633 Open issues 44 Open risks 40 1,761 of the baseline's 1,791 objectives are mapped on an element; 30 are mapped nowhere yet. Map a requirement Objectives mapped by element and control family 27 elements · 18 control families · a cell opens what stands there Heatmap Table Element AC AT AU CA CM CP IA IR MA MP PE PL PS RA SA SC SI SR Total CN-109000 WS-X90 Sentinel Mission System 156 52 79 79 167 88 83 97 78 46 95 86 51 56 214 129 140 65 1,761 CN-109001 Mission Computing Subsystem 75 0 29 26 64 7 37 17 2 8 3 15 5 15 81 39 51 33 507 CN-109101 Mission Computer 72 0 25 26 54 5 16 17 0 2 2 15 0 12 52 21 39 0 358 CN-109102 Secure Boot Controller 2 0 1 0 10 1 1 2 0 0 0 0 0 1 24 5 31 13 91 CN-109103 Cryptographic Services Module 7 0 3 0 3 1 24 13 2 6 3 0 5 2 23 18 12 25 147 CN-109002 Navigation & Timing Subsystem 30 1 3 7 10 1 2 3 1 0 3 0 0 3 15 11 9 19 118 CN-109104 Navigation Processor 0 0 3 0 4 1 2 2 0 0 0 0 0 1 8 10 6 16 53 CN-109105 Timing Receiver 0 0 1 0 3 1 1 1 1 0 2 0 0 2 6 3 5 5 31 CN-109106 Navigation Sensor Interface 0 1 3 7 6 0 1 1 0 0 1 0 0 0 8 5 4 4 41 CN-109003 Communications Subsystem 64 0 4 18 17 5 27 25 17 0 4 18 0 5 31 58 26 4 323 CN-109107 Protected Network Gateway 61 0 3 11 13 5 25 25 16 0 1 18 0 3 30 48 22 0 ",
+  "nav": [
+   "Getting started 20%",
+   "Evidence368",
+   "Findings44"
+  ],
+  "rail": [
+   "My work 11",
+   "Review 148"
+  ]
+ },
+ "traceability": {
+  "text": "Traceability Each requirement's chain: control → requirement → evidence → assessment finding → operational issue → risk → remediation Export Link evidence Table 640 Reaches a risk 52 No evidence 286 Matrix How far each chain reaches 640 requirements, current revisions Chart Table Map a control 640 Every requirement maps one Cite evidence 354 286 cite none Reach an assessment finding 215 48 short of satisfied Reach an operational issue 52 43 still open Reach a risk 52 52 open Reach a POA&M item 52 Each of their issues has one Search requirements Control family ⌄ Evidence ⌄ Determination ⌄ Remediation ⌄ + Add filter ▥ ⚙ Requirement Controls Evidence Findings Issues Risks Remediation REQ-001 AC Enforcement Requirement 001 AC-2 AC-7 1 — — — — REQ-002 AC Verification Requirement 002 AC-3 1 — — — — REQ-003 AC Configuration Requirement 003 AC-4 1 Satisfied — — — REQ-004 AC Monitoring Requirement 004 AC-5 No evidence — — — — REQ-005 AC Enforcement Requirement 005 AC-6 1 Satisfied — — — REQ-006 AC Verification Requirement 006 AC-7 1 Satisfied — — — REQ-007 AC Configuration Requirement 007 AC-8 1 Satisfied — — — REQ-008 AC Monitoring Requirement 008 AC-11 AU-4 No evidence — 1 High 1 High In progress REQ-009 AC Enforcement Requirement 009 AC-12 1 — — — — REQ-010 AC Verification Requirement 010 AC-17 1 Satisfied — — — REQ-011 AU Configuration Requirement 011 AU-2 1 Satisfied — — — REQ-012 ",
+  "nav": [
+   "Getting started 20%",
+   "Evidence368",
+   "Findings44"
+  ],
+  "rail": [
+   "My work 11",
+   "Review 148"
+  ]
+ },
+ "requirements": {
+  "text": "Requirements Import requirements Create requirement Requirements 640 Objectives 1,791 Compliance 14 All 640 Cite no evidence 286 No owner 640 Mapping needs review 1 Search requirements Element ⌄ Control ⌄ Evidence ⌄ Owner ⌄ + Add filter Requirement Owner Controls Objectives Evidence Allocated to REQ-001 AC Enforcement Requirement 001 Unassigned AC-2 AC-7 28 of 28 1 CN-109002 +1 REQ-002 AC Verification Requirement 002 Unassigned AC-3 1 of 1 1 CN-109107 +1 REQ-003 AC Configuration Requirement 003 Unassigned AC-4 1 of 1 1 CN-109113 +2 REQ-004 AC Monitoring Requirement 004 Unassigned AC-5 2 of 2 — CN-109002 +1 REQ-005 AC Enforcement Requirement 005 Unassigned AC-6 1 of 1 1 CN-109101 +1 REQ-006 AC Verification Requirement 006 Unassigned AC-7 2 of 2 1 CN-109101 +2 REQ-007 AC Configuration Requirement 007 Unassigned AC-8 9 of 9 1 CN-109107 REQ-008 AC Monitoring Requirement 008 Unassigned AC-11 AU-4 3 of 3 — CN-109113 +1 REQ-009 AC Enforcement Requirement 009 Unassigned AC-12 1 of 1 1 CN-109101 +2 REQ-010 AC Verification Requirement 010 Unassigned AC-17 4 of 4 1 CN-109119 REQ-011 AU Configuration Requirement 011 Unassigned AU-2 6 of 6 1 CN-109115 +1 REQ-012 AU Monitoring Requirement 012 Unassigned AU-3 6 of 6 — CN-109101 +2 REQ-039 IA Configuration Requirement 039 Unassigned IA-5 10 of 10 1 CN-109101 +2 REQ-054 RA Verification Requirement 054 Unassigned RA-5 10 of 10 1 CN-109113 +2 REQ",
+  "nav": [
+   "Getting started 20%",
+   "Evidence 368",
+   "Findings44"
+  ],
+  "rail": [
+   "My work 11",
+   "Review 148"
+  ]
+ },
+ "ssps": {
+  "text": "Plans New plan Plans 4 Reviews 5 Published 4 Search plans Status ⌄ Owner ⌄ + Add filter ▥ ⚙ Plan Revision Status Owner Editing now Last edit Comments System security plan SSP 3 Draft PR Priya Raghavan PR MR Priya Raghavan, Marcus Ryde 10:42 AM by Priya Raghavan 6 Contingency plan CP 4 Draft AB Amara Bell AB Amara Bell 9:48 AM by Amara Bell 2 Incident response plan IRP 4 Changes requested PR Priya Raghavan PR Priya Raghavan 8:40 AM by Priya Raghavan 2 Configuration management plan CMP 5 Draft IS Ingrid Solberg MR Marcus Ryde 10:05 AM by Ingrid Solberg 2 1–4 of 4 25 per page · ‹ › Example Presence, comments and AI drafts in the CP, IRP and CMP are examples, and so are their versions. The SSP row is the SSP editor's own; the revisions on record are WS-X90's evidence.",
+  "nav": [
+   "Getting started 20%",
+   "Evidence 368",
+   "Findings44"
+  ],
+  "rail": [
+   "My work 11",
+   "Review 148"
+  ]
+ },
+ "schedule": {
+  "text": "Schedule Create task Lifecycle gates PDR Preliminary design review In review Due Oct 10 · 38 days ago 2 of 4 security outcomes met Example NIST SP 800-160 Vol. 1 Decision: step 1 waits on Ray Colston, system owner · requested Oct 10 Example CDR Critical design review Not started Due Oct 1 · 47 days ago 0 of 4 security outcomes met Example NIST SP 800-160 Vol. 1 Tasks All 14 Open 10 Past due 2 Due soon 2 Blocked 1 More 1 ⌄ Search tasks Status ⌄ Owner ⌄ Due ⌄ Source ⌄ + Add filter ▥ ⚙ Task Due Source Owner Status Comments Example Row actions Monthly vulnerability scan — mission network (October) Oct 11 Monthly · RA-5, SI-2 JB Joel Barrantes Completed 0 Monthly STIG compliance scan (October) Oct 13 Monthly · CM-6 JB Joel Barrantes Completed 0 Monthly POA&M review (October) Oct 14 Monthly · CA-5 PR Priya Raghavan Completed 0 Penetration test — maintenance access gateway Oct 18 Custom WD Wes Duarte Cancelled 0 Monthly STIG compliance scan Nov 11 · 6 days ago Monthly · CM-6 JB Joel Barrantes Blocked 2 Monthly vulnerability scan — mission network Nov 15 · 2 days ago Monthly · RA-5, SI-2 JB Joel Barrantes In progress 0 Monthly POA&M review Nov 21 · in 4 days Monthly · CA-5 PR Priya Raghavan Ready 0 Quarterly privileged account review (AC-2, AC-6) Dec 1 · in 14 days Quarterly · AC-2, AC-6 VA Victor Amsel In progress 0 Quarterly audit log review sampling (AU-6) Dec 23 Quarterly · AU-6 NF",
+  "nav": [
+   "Getting started 20%",
+   "Evidence368",
+   "Findings44"
+  ],
+  "rail": [
+   "My work 11",
+   "Review 148"
+  ]
+ },
+ "people": {
+  "text": "People Assign a role Add person WS-X90 has no reminders scheduled. Joel Barrantes has 2 tasks past due. Schedule reminders People 11 Roles 6 DoD 8140 qualifications 7 Privileged access reviews 3 All 11 Past due 1 Due soon 2 No start date 7 Search people Role ⌄ Task status ⌄ Organization ⌄ + Add filter Person Role Task status Next due Since JB Joel Barrantes Information system security manager ISSM 2 past due Due Nov 11 · 6 days ago Monthly STIG compliance scan — PR Priya Raghavan Information system security officer ISSO Due soon Due Nov 21 · in 4 days Monthly POA&M review — VA Victor Amsel No RMF role Due soon Due Dec 1 · in 14 days Quarterly privileged account review (AC-2, AC-6) NF Nadia Fournier Assessor SCA Planned Due Dec 23 Quarterly audit log review sampling (AU-6) — IS Ingrid Solberg No RMF role Planned Due Dec 28 Quarterly configuration baseline audit (CM-2, CM-3) AB Amara Bell No RMF role Planned Due Apr 12, 2027 Contingency plan test on a whole article (CP-4) WD Wes Duarte No RMF role Planned Due Jun 1, 2027 Cyber resiliency exercise — Redundancy and Non-Persistence (SA-24) RC R. Calloway Authorizing official AO No open tasks — — DO D. Okafor Lead assessor SCA No open tasks — — LD Local developer Assessor SCA No open tasks — — RC Ray Colston System owner SO No open tasks — — 1–11 of 11 25 per page · ‹ › Example The banner, the reminders, the selection bar and the Rol",
+  "nav": [
+   "Getting started 20%",
+   "Evidence368",
+   "Findings44"
+  ],
+  "rail": [
+   "My work 11",
+   "Review 148"
+  ]
+ },
+ "checks": {
+  "text": "Checks Run all now Create check Category All 7 Vulnerability 4 Evidence 1 Monitoring 2 Deactivated All deactivated 0 Checks passing 7 total 29% 2 checks OK updated now Needs attention 5 Overdue 4 Due soon 1 No due date 0 Search checks Status ⌄ Control ⌄ Source ⌄ Owner ⌄ + Add filter ▥ ⚙ Check Owner Status Due date Control Failing Row actions Vulnerability scans run at RA-5's frequency JB Joel Barrantes Overdue Nov 15 RA-5 2 IAVA and IAVB patches inside their windows Example Unassigned Overdue Nov 11 SI-2 3 No open STIG CAT I; CAT II inside 30 days Example JB Joel Barrantes Overdue Nov 11 CM-6 2 No known-affected component in use IS Ingrid Solberg Overdue Nov 9 RA-5 SI-2 1 Evidence renewed before it expires Unassigned Due soon Feb 1, 2027 CA-7 54 POA&M reviewed every month PR Priya Raghavan OK Nov 21 CA-5 0 Privileged accounts reviewed each quarter VA Victor Amsel OK Dec 1 AC-2 AC-6 0 1–7 of 7 25 per page · ‹ › Example IAVM notices, STIG checklist counts and their failing items, and the IAVA check's Nov 11 due date are invented: no ACAS or STIG data is loaded. Owners and the other due dates come from the plan's scheduled tasks and the CVE-2024-6387 issue.",
+  "nav": [
+   "Getting started 20%",
+   "Evidence 368",
+   "Findings44"
+  ],
+  "rail": [
+   "My work 11",
+   "Review 148"
+  ]
+ },
+ "package-room": {
+  "text": "Package room Export Preview as recipient Share the package CUI Controlled by: Program Office · Category: CTI · Distribution D Example CUI v1 WS-X90 Sentinel Mission System authorization package Version 1 · ATO with conditions · Sep 18, 2026 Version 2 draft Preview as recipient Open version 2 Share the package Access requests Example 1 › Waiting on you Version 2: items ready to submit 1 of 3 › Waits on SSP 3 approved and increment 2 results published Recipients 7 Access requests 1 Versions 2 Access log 4 Room settings Recipient Role Can open Expires Last opened RC R. Calloway Authorizing official Full package · sign Sep 17, 2027 Not logged yet DO D. Okafor Lead assessor Full package Mar 31, 2027 Not logged yet JB Joel Barrantes ISSM Full package · share Sep 17, 2027 Not logged yet PR Priya Raghavan ISSO Full package · share Sep 17, 2027 Not logged yet RC Ray Colston System owner Read only Sep 17, 2027 Not logged yet Receiving AO's representative Example Reciprocity reviewer SSP, SAR, POA&M · no download Dec 15 Nov 16 CSSP analyst Example Cybersecurity service provider SSP and POA&M Jan 31, 2027 Nov 15 1–7 of 7 25 per page · ‹ › Example The access request, the two non-program recipients, the access log and the CUI banner's wording are invented; the package, its versions and the role holders are WS-X90's.",
+  "nav": [
+   "Getting started 20%",
+   "Evidence368",
+   "Findings44"
+  ],
+  "rail": [
+   "My work 11",
+   "Review 148"
+  ]
+ },
+ "reports": {
+  "text": "Frameworks & overlays Integrations Data calls Reports & exports Reports & exports Generate Search reports Format ⌄ Schedule ⌄ Created by ⌄ + Add filter ▥ ⚙ Report Created by Format From Last run Schedule Row actions System security plan Example PA Program Assurance OSCAL JSON SSP 2 · published Jul 25 Nov 3 On publish Security assessment report Example PA Program Assurance OSCAL JSON Expanded Control Set results · 225 findings Nov 12 When results are published Plan of action and milestones Example PA Program Assurance OSCAL JSON 41 items · 7 completed Nov 1 Monthly · 1st eMASS import package Example PA Program Assurance eMASS XLSX 560 controls · 41 POA&M items Oct 1 Quarterly Security controls traceability matrix Example PA Program Assurance XLSX 560 controls · 640 requirements Nov 16 Weekly · Monday Risk snapshot Example PA Program Assurance PDF, locked 40 open risks Not run On package publish Control status trend Page PA Program Assurance CSV Daily snapshot since Nov 13 · 5 days Nov 17 · 23:55 UTC Daily · 23:55 UTC Authorization package PR Priya Raghavan ZIP Package version 1 · 3 of its parts published Sep 2 On publish 1–8 of 8 25 per page · ‹ › Example The OSCAL, eMASS, SCTM and risk exports, their runs and schedules, and who they are shared with are invented; the daily control status snapshot, package version 1 and what each export reads from are WS-X90's.",
+  "nav": [],
+  "rail": [
+   "My work 11",
+   "Review 148"
+  ]
+ }
+}

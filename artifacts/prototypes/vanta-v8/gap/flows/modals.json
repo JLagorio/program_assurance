@@ -1,0 +1,770 @@
+[
+ {
+  "route": "products",
+  "key": "SPAN|Create product|||v7o-new-product||button",
+  "n": 0,
+  "title": "Create product"
+ },
+ {
+  "route": "products",
+  "key": "SPAN|Review update|||v7o-take-product||button",
+  "n": 0,
+  "title": "Take version 2 of X800 Missile"
+ },
+ {
+  "route": "review-queue",
+  "key": "SPAN|Reassign reviewer|||a-work-owner||button",
+  "n": 0,
+  "title": "Reassign reviewer"
+ },
+ {
+  "route": "suppliers",
+  "key": "BUTTON|Request from a supplier|||a-risk-portal||",
+  "n": 0,
+  "title": "Request from a supplier"
+ },
+ {
+  "route": "components",
+  "key": "SPAN|Create component|||v7o-new-component||button",
+  "n": 0,
+  "title": "Create component"
+ },
+ {
+  "route": "integrations",
+  "key": "BUTTON|Missing a connector? Request one|||a-docs-request||",
+  "n": 0,
+  "title": "Request a connector"
+ },
+ {
+  "route": "reports",
+  "key": "SPAN|Generate|||a-work-generate||button",
+  "n": 0,
+  "title": "Generate report"
+ },
+ {
+  "route": "ai-drafts",
+  "key": "BUTTON|Run an agent|||v8w-run-new||",
+  "n": 0,
+  "title": "Run an agent"
+ },
+ {
+  "route": "ai-drafts",
+  "key": "BUTTON|Reject…|||v8w-reject||",
+  "n": 0,
+  "title": "Reject the run"
+ },
+ {
+  "route": "enclaves",
+  "key": "SPAN|Add enclave|||v7o-enclave-new||button",
+  "n": 0,
+  "title": "Add enclave"
+ },
+ {
+  "route": "notifications",
+  "key": "SPAN|Send a test|||a-work-test||button",
+  "n": 0,
+  "title": "Send a test"
+ },
+ {
+  "route": "common-controls",
+  "key": "SPAN|Add provider|||v7o-ccp-new||button",
+  "n": 0,
+  "title": "Add provider"
+ },
+ {
+  "route": "deadlines",
+  "key": "SPAN|Edit deadlines|||v7o-dl-edit||button",
+  "n": 0,
+  "title": "Edit high finding deadline"
+ },
+ {
+  "route": "permissions",
+  "key": "BUTTON|Invite|||v8w-invite||",
+  "n": 0,
+  "title": "Invite a member"
+ },
+ {
+  "route": "event-log",
+  "key": "SPAN|Export CSV|||v7o-export-log||button",
+  "n": 0,
+  "title": "Export event log"
+ },
+ {
+  "route": "itcsc",
+  "key": "BUTTON|Start version 4|||v8b-itc-new||",
+  "n": 0,
+  "title": "Start version 4"
+ },
+ {
+  "route": "itcsc",
+  "key": "SPAN|JB Joel Barrantes|||v8b-owner||button",
+  "n": 0,
+  "title": "Change owner"
+ },
+ {
+  "route": "stigs",
+  "key": "BUTTON|Import checklist|||v8g-import||",
+  "n": 0,
+  "title": "Import a checklist"
+ },
+ {
+  "route": "interconnections",
+  "key": "BUTTON|Add interconnection|||v8b-ic-new||",
+  "n": 0,
+  "title": "Add interconnection"
+ },
+ {
+  "route": "composition",
+  "key": "BUTTON|Create element|||v7p-el-new||",
+  "n": 0,
+  "title": "Create element"
+ },
+ {
+  "route": "composition",
+  "key": "SPAN|Review version 2|||v7p-take||button",
+  "n": 0,
+  "title": "Take version 2 of Mission Computer"
+ },
+ {
+  "route": "sources",
+  "key": "BUTTON|Retry import|||a-docs-retry||",
+  "n": 0,
+  "title": "Retry import"
+ },
+ {
+  "route": "sources",
+  "key": "BUTTON|Import file|||a-docs-import||",
+  "n": 0,
+  "title": "Add source"
+ },
+ {
+  "route": "ppsm",
+  "key": "BUTTON|Add service|||v8b-pps-new||",
+  "n": 0,
+  "title": "Add service"
+ },
+ {
+  "route": "inventory",
+  "key": "SPAN|Assign owners|||a-people-assign||button",
+  "n": 0,
+  "title": "Assign owner"
+ },
+ {
+  "route": "inventory",
+  "key": "SPAN|Mark not in boundary|||ak-reason||button",
+  "n": 0,
+  "title": "Mark not in boundary"
+ },
+ {
+  "route": "ssps",
+  "key": "BUTTON|New plan|||v8d-newplan||",
+  "n": 0,
+  "title": "New plan"
+ },
+ {
+  "route": "controls",
+  "key": "SPAN|Add to assessment campaign|||a-tests-addcamp||button",
+  "n": 0,
+  "title": "Add to assessment campaign"
+ },
+ {
+  "route": "baseline",
+  "key": "BUTTON|Edit overlays|||v7p-overlays||",
+  "n": 0,
+  "title": "Edit overlays"
+ },
+ {
+  "route": "checks",
+  "key": "SPAN|Deactivate|||a-tests-deactivate||button",
+  "n": 0,
+  "title": "Deactivate 2 checks"
+ },
+ {
+  "route": "requirements",
+  "key": "BUTTON|Import requirements|||v7p-import||",
+  "n": 0,
+  "title": "Import requirements"
+ },
+ {
+  "route": "requirements",
+  "key": "BUTTON|Create requirement|||v7p-req-new||",
+  "n": 0,
+  "title": "Create requirement"
+ },
+ {
+  "route": "assessments",
+  "key": "SPAN|Plan an assessment|||a-tests-plan||button",
+  "n": 0,
+  "title": "Plan an assessment"
+ },
+ {
+  "route": "assessments",
+  "key": "SPAN|Publish results|||a-tests-publish||button",
+  "n": 0,
+  "title": "Publish assessment results"
+ },
+ {
+  "route": "cyber-te",
+  "key": "BUTTON|Plan a cyber test|||v7a-cyber-plan||",
+  "n": 0,
+  "title": "Plan a cyber test"
+ },
+ {
+  "route": "policies",
+  "key": "BUTTON|Create policy|||a-docs-start||",
+  "n": 0,
+  "title": "Start a policy"
+ },
+ {
+  "route": "policies",
+  "key": "BUTTON|Assign approvers|||a-docs-approvers||",
+  "n": 0,
+  "title": "Assign approvers"
+ },
+ {
+  "route": "poam",
+  "key": "BUTTON|Create POA&M item|||a-risk-poam-new||",
+  "n": 0,
+  "title": "Create POA&M item"
+ },
+ {
+  "route": "poam",
+  "key": "SPAN|Change planned date…|||a-risk-ms-move||button",
+  "n": 0,
+  "title": "Change planned date"
+ },
+ {
+  "route": "findings",
+  "key": "SPAN|Deactivate…|||a-risk-deactivate||button",
+  "n": 0,
+  "title": "Deactivate 3 findings"
+ },
+ {
+  "route": "threats",
+  "key": "BUTTON|Link ATT&CK technique|||v7a-att-link||",
+  "n": 0,
+  "title": "Link ATT&CK technique"
+ },
+ {
+  "route": "risks",
+  "key": "BUTTON|Create risk|||a-risk-new-risk||",
+  "n": 0,
+  "title": "Create risk"
+ },
+ {
+  "route": "risks",
+  "key": "SPAN|Request acceptance|||a-risk-accept||button",
+  "n": 0,
+  "title": "Request acceptance"
+ },
+ {
+  "route": "inheritance",
+  "key": "BUTTON|Add common control provider|||v7a-ccp||",
+  "n": 0,
+  "title": "Add common control provider"
+ },
+ {
+  "route": "authorization",
+  "key": "BUTTON|Submit for approval|||v7p-submit||",
+  "n": 0,
+  "title": "Submit package version 2 for approval"
+ },
+ {
+  "route": "sse",
+  "key": "BUTTON|Add security outcomes|||v8g-outcomes||",
+  "n": 0,
+  "title": "Add security outcomes"
+ },
+ {
+  "route": "package-room",
+  "key": "SPAN|Share the package|||a-risk-share||button",
+  "n": 0,
+  "title": "Share the package"
+ },
+ {
+  "route": "traceability",
+  "key": "BUTTON|Link evidence|||v7a-link-ev||",
+  "n": 0,
+  "title": "Link evidence"
+ },
+ {
+  "route": "program-new",
+  "key": "BUTTON|Close: save the draft or leave|||pn-leave||",
+  "n": 0,
+  "title": "Save the draft and leave?"
+ },
+ {
+  "route": "conmon",
+  "key": "BUTTON|Plan a check|||v7p-plan-check||",
+  "n": 0,
+  "title": "Plan a check"
+ },
+ {
+  "route": "schedule",
+  "key": "SPAN|Create task|||a-work-task-new||button",
+  "n": 0,
+  "title": "Create task"
+ },
+ {
+  "route": "schedule",
+  "key": "SPAN|Change due date|||a-work-due||button",
+  "n": 0,
+  "title": "Change due date"
+ },
+ {
+  "route": "people",
+  "key": "SPAN|Assign a role|||risk-role||button",
+  "n": 0,
+  "title": "Assign a role"
+ },
+ {
+  "route": "people",
+  "key": "SPAN|Schedule reminders|||a-people-recurring||button",
+  "n": 0,
+  "title": "Recurring reminders"
+ },
+ {
+  "route": "people",
+  "key": "SPAN|Send reminder|||a-people-remind||button",
+  "n": 0,
+  "title": "Send a reminder"
+ },
+ {
+  "route": "people",
+  "key": "SPAN|Change role|||a-people-change-role||button",
+  "n": 0,
+  "title": "Change role"
+ },
+ {
+  "route": "people",
+  "key": "SPAN|End role|||a-people-end||button",
+  "n": 0,
+  "title": "End 2 roles"
+ },
+ {
+  "route": "program-start",
+  "key": "BUTTON|Invite people|||pn-invite||",
+  "n": 0,
+  "title": "Invite by email"
+ },
+ {
+  "route": "program-start",
+  "key": "BUTTON|Import|||pn-itcsc||",
+  "n": 0,
+  "title": "Import the ITCSC"
+ },
+ {
+  "route": "program-start",
+  "key": "BUTTON|Upload|||pn-diagram||",
+  "n": 0,
+  "title": "Upload the architecture diagram"
+ },
+ {
+  "route": "campaign",
+  "key": "SPAN|Set Ready|||a-tests-ready||button",
+  "n": 0,
+  "title": "Set Ready"
+ },
+ {
+  "route": "control-si2",
+  "key": "SPAN|Add evidence|||a-tests-addev||button",
+  "n": 0,
+  "title": "Add evidence"
+ },
+ {
+  "route": "ssp-review",
+  "key": "BUTTON|Edit summary|||sh-summary||",
+  "n": 0,
+  "title": "Edit summary"
+ },
+ {
+  "route": "ssp-history",
+  "key": "BUTTON|Compare|||sh-compare||",
+  "n": 0,
+  "title": "Compare versions"
+ },
+ {
+  "route": "ssp-history",
+  "key": "BUTTON|Name this version|||sh-name||",
+  "n": 0,
+  "title": "Name this version"
+ },
+ {
+  "route": "ssp-history",
+  "key": "BUTTON|Restore this version|||sh-restore||",
+  "n": 0,
+  "title": "Restore this version?"
+ },
+ {
+  "route": "check-scan",
+  "key": "BUTTON|Create ticket|||v8w-ticket-new||",
+  "n": 0,
+  "title": "Create ticket"
+ },
+ {
+  "route": "component-mc",
+  "key": "SPAN|Send reminder|||v7o-remind||button",
+  "n": 0,
+  "title": "Remind consumers to take version 2"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|Share|||se-share||",
+  "n": 0,
+  "title": "Share the SSP"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|Add section|||se-add||",
+  "n": 0,
+  "title": "Add section"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|History|||se-rechist||",
+  "n": 0,
+  "title": "1 System identification: record history"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|Detach|||se-detach||",
+  "n": 0,
+  "title": "Detach from the record?"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|History|||se-rechist||",
+  "n": 1,
+  "title": "2 Security categorization: record history"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|Replace with an image|||se-upload||",
+  "n": 0,
+  "title": "Replace Figure 1"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|Replace with an image|||se-upload||",
+  "n": 1,
+  "title": "Replace Figure 2"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|AC-1 record history|||se-rechist||",
+  "n": 0,
+  "title": "AC-1 implementation history"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|AC-2 record history|||se-rechist||",
+  "n": 0,
+  "title": "AC-2 implementation history"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|AC-2(1) record history|||se-rechist||",
+  "n": 0,
+  "title": "AC-2(1) implementation history"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|AC-2(2) record history|||se-rechist||",
+  "n": 0,
+  "title": "AC-2(2) implementation history"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|AC-2(3) record history|||se-rechist||",
+  "n": 0,
+  "title": "AC-2(3) implementation history"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|2 values the baseline doesn't set|||se-params||",
+  "n": 0,
+  "title": "Set AC-2(3)'s parameters"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|AC-2(4) record history|||se-rechist||",
+  "n": 0,
+  "title": "AC-2(4) implementation history"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|AC-2(5) record history|||se-rechist||",
+  "n": 0,
+  "title": "AC-2(5) implementation history"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|AC-2(7) record history|||se-rechist||",
+  "n": 0,
+  "title": "AC-2(7) implementation history"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|AC-2(9) record history|||se-rechist||",
+  "n": 0,
+  "title": "AC-2(9) implementation history"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|AC-2(11) record history|||se-rechist||",
+  "n": 0,
+  "title": "AC-2(11) implementation history"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|AC-2(12) record history|||se-rechist||",
+  "n": 0,
+  "title": "AC-2(12) implementation history"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|AC-2(13) record history|||se-rechist||",
+  "n": 0,
+  "title": "AC-2(13) implementation history"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|AC-3 record history|||se-rechist||",
+  "n": 0,
+  "title": "AC-3 implementation history"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|AC-3(4) record history|||se-rechist||",
+  "n": 0,
+  "title": "AC-3(4) implementation history"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|AC-4 record history|||se-rechist||",
+  "n": 0,
+  "title": "AC-4 implementation history"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|AC-4(4) record history|||se-rechist||",
+  "n": 0,
+  "title": "AC-4(4) implementation history"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|AC-4(21) record history|||se-rechist||",
+  "n": 0,
+  "title": "AC-4(21) implementation history"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|AC-5 record history|||se-rechist||",
+  "n": 0,
+  "title": "AC-5 implementation history"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|AC-6 record history|||se-rechist||",
+  "n": 0,
+  "title": "AC-6 implementation history"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|AC-6(1) record history|||se-rechist||",
+  "n": 0,
+  "title": "AC-6(1) implementation history"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|AC-6(2) record history|||se-rechist||",
+  "n": 0,
+  "title": "AC-6(2) implementation history"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|AC-6(3) record history|||se-rechist||",
+  "n": 0,
+  "title": "AC-6(3) implementation history"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|AC-6(5) record history|||se-rechist||",
+  "n": 0,
+  "title": "AC-6(5) implementation history"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|AC-6(7) record history|||se-rechist||",
+  "n": 0,
+  "title": "AC-6(7) implementation history"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|AC-6(8) record history|||se-rechist||",
+  "n": 0,
+  "title": "AC-6(8) implementation history"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|AC-6(9) record history|||se-rechist||",
+  "n": 0,
+  "title": "AC-6(9) implementation history"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|AC-6(10) record history|||se-rechist||",
+  "n": 0,
+  "title": "AC-6(10) implementation history"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|AC-7 record history|||se-rechist||",
+  "n": 0,
+  "title": "AC-7 implementation history"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|AC-8 record history|||se-rechist||",
+  "n": 0,
+  "title": "AC-8 implementation history"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|AC-10 record history|||se-rechist||",
+  "n": 0,
+  "title": "AC-10 implementation history"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|AC-11 record history|||se-rechist||",
+  "n": 0,
+  "title": "AC-11 implementation history"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|AC-11(1) record history|||se-rechist||",
+  "n": 0,
+  "title": "AC-11(1) implementation history"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|AC-12 record history|||se-rechist||",
+  "n": 0,
+  "title": "AC-12 implementation history"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|AC-12(1) record history|||se-rechist||",
+  "n": 0,
+  "title": "AC-12(1) implementation history"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|AC-12(2) record history|||se-rechist||",
+  "n": 0,
+  "title": "AC-12(2) implementation history"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|AC-14 record history|||se-rechist||",
+  "n": 0,
+  "title": "AC-14 implementation history"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|AC-16 record history|||se-rechist||",
+  "n": 0,
+  "title": "AC-16 implementation history"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|AC-16(6) record history|||se-rechist||",
+  "n": 0,
+  "title": "AC-16(6) implementation history"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|AC-16(7) record history|||se-rechist||",
+  "n": 0,
+  "title": "AC-16(7) implementation history"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|AC-17 record history|||se-rechist||",
+  "n": 0,
+  "title": "AC-17 implementation history"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|AC-17(1) record history|||se-rechist||",
+  "n": 0,
+  "title": "AC-17(1) implementation history"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|AC-17(2) record history|||se-rechist||",
+  "n": 0,
+  "title": "AC-17(2) implementation history"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|AC-17(3) record history|||se-rechist||",
+  "n": 0,
+  "title": "AC-17(3) implementation history"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|AC-17(4) record history|||se-rechist||",
+  "n": 0,
+  "title": "AC-17(4) implementation history"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|AC-17(6) record history|||se-rechist||",
+  "n": 0,
+  "title": "AC-17(6) implementation history"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|AC-17(9) record history|||se-rechist||",
+  "n": 0,
+  "title": "AC-17(9) implementation history"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|AC-17(10) record history|||se-rechist||",
+  "n": 0,
+  "title": "AC-17(10) implementation history"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|AC-19 record history|||se-rechist||",
+  "n": 0,
+  "title": "AC-19 implementation history"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|AC-19(5) record history|||se-rechist||",
+  "n": 0,
+  "title": "AC-19(5) implementation history"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|AC-21 record history|||se-rechist||",
+  "n": 0,
+  "title": "AC-21 implementation history"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|AC-22 record history|||se-rechist||",
+  "n": 0,
+  "title": "AC-22 implementation history"
+ },
+ {
+  "route": "ssp",
+  "key": "BUTTON|AC-23 record history|||se-rechist||",
+  "n": 0,
+  "title": "AC-23 implementation history"
+ }
+]

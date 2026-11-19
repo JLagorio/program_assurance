@@ -1,0 +1,1862 @@
+[
+ {
+  "route": "home",
+  "finding": "N01",
+  "text": "The one banner left is a grey callout; its glyph alone carries the tone.",
+  "also": [
+   "A4"
+  ],
+  "count": 1
+ },
+ {
+  "route": "review-queue",
+  "finding": "A3",
+  "text": "Count line under the register's title dropped; counts stay on tabs, chips and quick views.",
+  "count": 1
+ },
+ {
+  "route": "review-queue",
+  "finding": "A18",
+  "text": "The preview's action is an outlined button, not an ink primary; a repeated action is dropped.",
+  "also": [
+   "N15"
+  ],
+  "where": "preview: a-work-rq",
+  "count": 1
+ },
+ {
+  "route": "portfolio",
+  "finding": "N03",
+  "text": "Empty values print a subtle —: 8 dashed rings and words (No owner, Not set, None…) gone.",
+  "also": [
+   "A5"
+  ],
+  "count": 8
+ },
+ {
+  "route": "portfolio",
+  "finding": "A18",
+  "text": "The preview's action is an outlined button, not an ink primary; a repeated action is dropped.",
+  "also": [
+   "N15"
+  ],
+  "where": "preview: v7o-prog",
+  "count": 1
+ },
+ {
+  "route": "products",
+  "finding": "N02",
+  "also": [
+   "N06"
+  ],
+  "text": "One tone per status word: 1 pill retoned (On version 1 grey); blue is never a status.",
+  "count": 1
+ },
+ {
+  "route": "products",
+  "finding": "N01",
+  "text": "The register's notice is one quiet grey line under the title, no tinted box; its action is a link.",
+  "also": [
+   "A4"
+  ],
+  "count": 1
+ },
+ {
+  "route": "products",
+  "finding": "N08",
+  "text": "13 bars, rings or donuts removed from rows; the number beside each stays.",
+  "count": 13
+ },
+ {
+  "route": "products",
+  "finding": "A18",
+  "text": "The preview's action is an outlined button, not an ink primary; a repeated action is dropped.",
+  "also": [
+   "N15"
+  ],
+  "where": "preview: v7o-product",
+  "count": 1
+ },
+ {
+  "route": "products",
+  "finding": "A18",
+  "text": "The preview's action is an outlined button, not an ink primary; a repeated action is dropped.",
+  "also": [
+   "N15"
+  ],
+  "where": "preview: v7o-variant",
+  "count": 1
+ },
+ {
+  "route": "components",
+  "finding": "N02",
+  "also": [
+   "N06"
+  ],
+  "text": "One tone per status word: 1 pill retoned (Offer waiting grey); blue is never a status.",
+  "count": 1
+ },
+ {
+  "route": "components",
+  "finding": "N03",
+  "text": "Empty values print a subtle —: 32 dashed rings and words (No owner, Not set, None…) gone.",
+  "also": [
+   "A5"
+  ],
+  "count": 32
+ },
+ {
+  "route": "components",
+  "finding": "N01",
+  "text": "1 banner removed: a register drops one whose count a quick view or tab already says; elsewhere one stays.",
+  "also": [
+   "A4"
+  ],
+  "count": 1
+ },
+ {
+  "route": "components",
+  "finding": "A3",
+  "text": "Count line under the register's title dropped; counts stay on tabs, chips and quick views.",
+  "count": 1
+ },
+ {
+  "route": "components",
+  "finding": "N08",
+  "text": "2 bars, rings or donuts removed from rows; the number beside each stays.",
+  "count": 2
+ },
+ {
+  "route": "components",
+  "finding": "N13",
+  "text": "Toolbar keeps five quick views and four filters on one line; 2 more fold under a More chip.",
+  "count": 2
+ },
+ {
+  "route": "suppliers",
+  "finding": "N03",
+  "text": "Empty values print a subtle —: 19 dashed rings and words (No owner, Not set, None…) gone.",
+  "also": [
+   "A5"
+  ],
+  "count": 19
+ },
+ {
+  "route": "suppliers",
+  "finding": "N10",
+  "text": "4 inline font sizes snapped to the 12 / 14 / 16 / 20 / 28 scale.",
+  "count": 4
+ },
+ {
+  "route": "suppliers",
+  "finding": "A3",
+  "text": "Count line under the register's title dropped; counts stay on tabs, chips and quick views.",
+  "count": 1
+ },
+ {
+  "route": "suppliers",
+  "finding": "N08",
+  "text": "12 bars, rings or donuts removed from rows; the number beside each stays.",
+  "count": 12
+ },
+ {
+  "route": "suppliers",
+  "finding": "A18",
+  "text": "The preview's action is an outlined button, not an ink primary; a repeated action is dropped.",
+  "also": [
+   "N15"
+  ],
+  "where": "preview: a-risk-sup",
+  "count": 1
+ },
+ {
+  "route": "frameworks",
+  "finding": "A3",
+  "text": "Count line under the register's title dropped; counts stay on tabs, chips and quick views.",
+  "count": 1
+ },
+ {
+  "route": "frameworks",
+  "finding": "N08",
+  "text": "8 bars, rings or donuts removed from rows; the number beside each stays.",
+  "count": 8
+ },
+ {
+  "route": "integrations",
+  "finding": "A3",
+  "text": "Count line under the register's title dropped; counts stay on tabs, chips and quick views.",
+  "count": 1
+ },
+ {
+  "route": "integrations",
+  "finding": "A21",
+  "text": "The repeated \"In the app\" tag is gone from 7 connector cards.",
+  "count": 7
+ },
+ {
+  "route": "integrations",
+  "finding": "A18",
+  "text": "The preview's action is an outlined button, not an ink primary; a repeated action is dropped.",
+  "also": [
+   "N15"
+  ],
+  "where": "preview: a-docs-int",
+  "count": 1
+ },
+ {
+  "route": "data-calls",
+  "finding": "N02",
+  "also": [
+   "N06"
+  ],
+  "text": "One tone per status word: 2 pills retoned (In review grey); blue is never a status.",
+  "count": 2
+ },
+ {
+  "route": "data-calls",
+  "finding": "N03",
+  "text": "Empty values print a subtle —: 8 dashed rings and words (No owner, Not set, None…) gone.",
+  "also": [
+   "A5"
+  ],
+  "count": 8
+ },
+ {
+  "route": "data-calls",
+  "finding": "N10",
+  "text": "3 inline font sizes snapped to the 12 / 14 / 16 / 20 / 28 scale.",
+  "count": 3
+ },
+ {
+  "route": "data-calls",
+  "finding": "N01",
+  "text": "The register's notice is one quiet grey line under the title, no tinted box; its action is a link.",
+  "also": [
+   "A4"
+  ],
+  "count": 1
+ },
+ {
+  "route": "data-calls",
+  "finding": "A3",
+  "text": "Count line under the register's title dropped; counts stay on tabs, chips and quick views.",
+  "count": 1
+ },
+ {
+  "route": "data-calls",
+  "finding": "A5",
+  "text": "1 column that read the same in every row cut, so the table fits its frame.",
+  "also": [
+   "N04"
+  ],
+  "count": 1
+ },
+ {
+  "route": "data-calls",
+  "finding": "N05",
+  "text": "At most two toned cells a row: 1 extra coloured cell set in ink.",
+  "count": 1
+ },
+ {
+  "route": "data-calls",
+  "finding": "N08",
+  "text": "4 bars, rings or donuts removed from rows; the number beside each stays.",
+  "count": 4
+ },
+ {
+  "route": "data-calls",
+  "finding": "N13",
+  "text": "Toolbar keeps five quick views and four filters on one line; 1 more fold under a More chip.",
+  "count": 1
+ },
+ {
+  "route": "reports",
+  "finding": "A3",
+  "text": "Count line under the register's title dropped; counts stay on tabs, chips and quick views.",
+  "count": 1
+ },
+ {
+  "route": "reports",
+  "finding": "A18",
+  "text": "The preview's action is an outlined button, not an ink primary; a repeated action is dropped.",
+  "also": [
+   "N15"
+  ],
+  "where": "preview: a-work-report",
+  "count": 1
+ },
+ {
+  "route": "ai-drafts",
+  "finding": "A3",
+  "text": "Count line under the register's title dropped; counts stay on tabs, chips and quick views.",
+  "count": 1
+ },
+ {
+  "route": "ai-drafts",
+  "finding": "A18",
+  "text": "The preview's action is an outlined button, not an ink primary; a repeated action is dropped.",
+  "also": [
+   "N15"
+  ],
+  "where": "preview: v8w-run",
+  "count": 1
+ },
+ {
+  "route": "deadlines",
+  "finding": "A18",
+  "text": "The preview's action is an outlined button, not an ink primary; a repeated action is dropped.",
+  "also": [
+   "N15"
+  ],
+  "where": "preview: v7o-dl",
+  "count": 1
+ },
+ {
+  "route": "notifications",
+  "finding": "N02",
+  "also": [
+   "N06"
+  ],
+  "text": "One tone per status word: 2 pills retoned (Immediately grey); blue is never a status.",
+  "count": 2
+ },
+ {
+  "route": "enclaves",
+  "finding": "N02",
+  "also": [
+   "N06"
+  ],
+  "text": "One tone per status word: 9 pills retoned (Hosted model grey, In-enclave model grey, In-enclave, ISSM approves grey); blue is never a status.",
+  "count": 9
+ },
+ {
+  "route": "enclaves",
+  "finding": "A18",
+  "text": "The preview's action is an outlined button, not an ink primary; a repeated action is dropped.",
+  "also": [
+   "N15"
+  ],
+  "where": "preview: v7o-enclave",
+  "count": 1
+ },
+ {
+  "route": "common-controls",
+  "finding": "N03",
+  "text": "Empty values print a subtle —: 3 dashed rings and words (No owner, Not set, None…) gone.",
+  "also": [
+   "A5"
+  ],
+  "where": "preview: v7o-prog",
+  "count": 3
+ },
+ {
+  "route": "common-controls",
+  "finding": "A18",
+  "text": "The preview's action is an outlined button, not an ink primary; a repeated action is dropped.",
+  "also": [
+   "N15"
+  ],
+  "where": "preview: v7o-prog",
+  "count": 1
+ },
+ {
+  "route": "permissions",
+  "finding": "N02",
+  "also": [
+   "N06"
+  ],
+  "text": "One tone per status word: 2 pills retoned (One grey); blue is never a status.",
+  "count": 2
+ },
+ {
+  "route": "permissions",
+  "finding": "A5",
+  "text": "1 column that read the same in every row cut, so the table fits its frame.",
+  "also": [
+   "N04"
+  ],
+  "count": 1
+ },
+ {
+  "route": "permissions",
+  "finding": "A18",
+  "text": "The preview's action is an outlined button, not an ink primary; a repeated action is dropped.",
+  "also": [
+   "N15"
+  ],
+  "where": "preview: v8w-role",
+  "count": 1
+ },
+ {
+  "route": "overview",
+  "finding": "N02",
+  "also": [
+   "N06"
+  ],
+  "text": "One tone per status word: 2 pills retoned (Active grey); blue is never a status.",
+  "count": 2
+ },
+ {
+  "route": "getting-started",
+  "finding": "N01",
+  "text": "The one banner left is a grey callout; its glyph alone carries the tone.",
+  "also": [
+   "A4"
+  ],
+  "count": 1
+ },
+ {
+  "route": "itcsc",
+  "finding": "N03",
+  "text": "Empty values print a subtle —: 6 dashed rings and words (No owner, Not set, None…) gone.",
+  "also": [
+   "A5"
+  ],
+  "count": 6
+ },
+ {
+  "route": "itcsc",
+  "finding": "N07",
+  "text": "6 change counts or plain sentences set in ink instead of red or green.",
+  "count": 6
+ },
+ {
+  "route": "itcsc",
+  "finding": "N01",
+  "text": "The one banner left is a grey callout; its glyph alone carries the tone.",
+  "also": [
+   "A4"
+  ],
+  "count": 1
+ },
+ {
+  "route": "composition",
+  "finding": "N01",
+  "text": "The register's notice is one quiet grey line under the title, no tinted box; its action is a link.",
+  "also": [
+   "A4"
+  ],
+  "count": 1
+ },
+ {
+  "route": "composition",
+  "finding": "A3",
+  "text": "Count line under the register's title dropped; counts stay on tabs, chips and quick views.",
+  "count": 1
+ },
+ {
+  "route": "composition",
+  "finding": "N03",
+  "text": "Empty values print a subtle —: 1 dashed ring and words (No owner, Not set, None…) gone.",
+  "also": [
+   "A5"
+  ],
+  "where": "preview: v7p-el",
+  "count": 1
+ },
+ {
+  "route": "inventory",
+  "finding": "N01",
+  "text": "The register's notice is one quiet grey line under the title, no tinted box; its action is a link.",
+  "also": [
+   "A4"
+  ],
+  "count": 1
+ },
+ {
+  "route": "inventory",
+  "finding": "A3",
+  "text": "Count line under the register's title dropped; counts stay on tabs, chips and quick views.",
+  "count": 1
+ },
+ {
+  "route": "inventory",
+  "finding": "N03",
+  "text": "Empty values print a subtle —: 2 dashed rings and words (No owner, Not set, None…) gone.",
+  "also": [
+   "A5"
+  ],
+  "where": "preview: sys-asset",
+  "count": 2
+ },
+ {
+  "route": "stigs",
+  "finding": "N01",
+  "text": "The register's notice is one quiet grey line under the title, no tinted box; its action is a link.",
+  "also": [
+   "A4"
+  ],
+  "count": 1
+ },
+ {
+  "route": "stigs",
+  "finding": "A3",
+  "text": "Count line under the register's title dropped; counts stay on tabs, chips and quick views.",
+  "count": 1
+ },
+ {
+  "route": "stigs",
+  "finding": "N08",
+  "text": "7 bars, rings or donuts removed from rows; the number beside each stays.",
+  "count": 7
+ },
+ {
+  "route": "stigs",
+  "finding": "A18",
+  "text": "The preview's action is an outlined button, not an ink primary; a repeated action is dropped.",
+  "also": [
+   "N15"
+  ],
+  "where": "preview: v8g-ck",
+  "count": 1
+ },
+ {
+  "route": "interconnections",
+  "finding": "N02",
+  "also": [
+   "N06"
+  ],
+  "text": "One tone per status word: 5 pills retoned (ISA · Draft grey, Not assessed grey, Not required grey); blue is never a status.",
+  "count": 5
+ },
+ {
+  "route": "interconnections",
+  "finding": "N03",
+  "text": "Empty values print a subtle —: 1 dashed ring and words (No owner, Not set, None…) gone.",
+  "also": [
+   "A5"
+  ],
+  "count": 1
+ },
+ {
+  "route": "interconnections",
+  "finding": "A3",
+  "text": "Count line under the register's title dropped; counts stay on tabs, chips and quick views.",
+  "count": 1
+ },
+ {
+  "route": "interconnections",
+  "finding": "A18",
+  "text": "The preview's action is an outlined button, not an ink primary; a repeated action is dropped.",
+  "also": [
+   "N15"
+  ],
+  "where": "preview: v8b-ic",
+  "count": 1
+ },
+ {
+  "route": "ppsm",
+  "finding": "N02",
+  "also": [
+   "N06"
+  ],
+  "text": "One tone per status word: 9 pills retoned (Not applicable grey, Not required grey, Pending grey); blue is never a status.",
+  "count": 9
+ },
+ {
+  "route": "ppsm",
+  "finding": "A3",
+  "text": "Count line under the register's title dropped; counts stay on tabs, chips and quick views.",
+  "count": 1
+ },
+ {
+  "route": "sources",
+  "finding": "N02",
+  "also": [
+   "N06"
+  ],
+  "text": "One tone per status word: 1 pill retoned (Validating grey); blue is never a status.",
+  "count": 1
+ },
+ {
+  "route": "sources",
+  "finding": "N03",
+  "text": "Empty values print a subtle —: 2 dashed rings and words (No owner, Not set, None…) gone.",
+  "also": [
+   "A5"
+  ],
+  "count": 2
+ },
+ {
+  "route": "sources",
+  "finding": "N01",
+  "text": "The register's notice is one quiet grey line under the title, no tinted box; its action is a link.",
+  "also": [
+   "A4"
+  ],
+  "count": 1
+ },
+ {
+  "route": "sources",
+  "finding": "A3",
+  "text": "Count line under the register's title dropped; counts stay on tabs, chips and quick views.",
+  "count": 1
+ },
+ {
+  "route": "sources",
+  "finding": "A18",
+  "text": "The preview's action is an outlined button, not an ink primary; a repeated action is dropped.",
+  "also": [
+   "N15"
+  ],
+  "where": "preview: a-docs-src",
+  "count": 1
+ },
+ {
+  "route": "baseline",
+  "finding": "N03",
+  "text": "Empty values print a subtle —: 4 dashed rings and words (No owner, Not set, None…) gone.",
+  "also": [
+   "A5"
+  ],
+  "count": 4
+ },
+ {
+  "route": "baseline",
+  "finding": "A3",
+  "text": "Count line under the register's title dropped; counts stay on tabs, chips and quick views.",
+  "count": 1
+ },
+ {
+  "route": "controls",
+  "finding": "N02",
+  "also": [
+   "N06"
+  ],
+  "text": "One tone per status word: 3 pills retoned (Not assessed grey); blue is never a status.",
+  "count": 3
+ },
+ {
+  "route": "controls",
+  "finding": "N03",
+  "text": "Empty values print a subtle —: 14 dashed rings and words (No owner, Not set, None…) gone.",
+  "also": [
+   "A5"
+  ],
+  "count": 14
+ },
+ {
+  "route": "controls",
+  "finding": "A3",
+  "text": "Count line under the register's title dropped; counts stay on tabs, chips and quick views.",
+  "count": 1
+ },
+ {
+  "route": "ssps",
+  "finding": "A3",
+  "text": "Count line under the register's title dropped; counts stay on tabs, chips and quick views.",
+  "count": 1
+ },
+ {
+  "route": "ssps",
+  "finding": "A5",
+  "text": "1 column that read the same in every row cut, so the table fits its frame.",
+  "also": [
+   "N04"
+  ],
+  "count": 1
+ },
+ {
+  "route": "ssps",
+  "finding": "A18",
+  "text": "The preview's action is an outlined button, not an ink primary; a repeated action is dropped.",
+  "also": [
+   "N15"
+  ],
+  "where": "preview: ssp",
+  "count": 1
+ },
+ {
+  "route": "ssps",
+  "finding": "A18",
+  "text": "The preview's action is an outlined button, not an ink primary; a repeated action is dropped.",
+  "also": [
+   "N15"
+  ],
+  "where": "preview: v8d-plan",
+  "count": 1
+ },
+ {
+  "route": "requirements",
+  "finding": "N02",
+  "also": [
+   "N06"
+  ],
+  "text": "One tone per status word: 1 pill retoned (Review grey); blue is never a status.",
+  "count": 1
+ },
+ {
+  "route": "requirements",
+  "finding": "N03",
+  "text": "Empty values print a subtle —: 31 dashed rings and words (No owner, Not set, None…) gone.",
+  "also": [
+   "A5"
+  ],
+  "count": 31
+ },
+ {
+  "route": "requirements",
+  "finding": "A3",
+  "text": "Count line under the register's title dropped; counts stay on tabs, chips and quick views.",
+  "count": 1
+ },
+ {
+  "route": "requirements",
+  "finding": "A5",
+  "text": "1 column that read the same in every row cut, so the table fits its frame.",
+  "also": [
+   "N04"
+  ],
+  "count": 1
+ },
+ {
+  "route": "requirements",
+  "finding": "N03",
+  "text": "Empty values print a subtle —: 1 dashed ring and words (No owner, Not set, None…) gone.",
+  "also": [
+   "A5"
+  ],
+  "where": "preview: v7p-req",
+  "count": 1
+ },
+ {
+  "route": "requirements",
+  "finding": "A18",
+  "text": "The preview's action is an outlined button, not an ink primary; a repeated action is dropped.",
+  "also": [
+   "N15"
+  ],
+  "where": "preview: v7p-req",
+  "count": 1
+ },
+ {
+  "route": "evidence",
+  "finding": "N02",
+  "also": [
+   "N06"
+  ],
+  "text": "One tone per status word: 6 pills retoned (Pending review grey); blue is never a status.",
+  "count": 6
+ },
+ {
+  "route": "evidence",
+  "finding": "N03",
+  "text": "Empty values print a subtle —: 12 dashed rings and words (No owner, Not set, None…) gone.",
+  "also": [
+   "A5"
+  ],
+  "count": 12
+ },
+ {
+  "route": "evidence",
+  "finding": "N01",
+  "text": "1 banner removed: a register drops one whose count a quick view or tab already says; elsewhere one stays.",
+  "also": [
+   "A4"
+  ],
+  "count": 1
+ },
+ {
+  "route": "evidence",
+  "finding": "A5",
+  "text": "3 columns that read the same in every row cut, so the table fits its frame.",
+  "also": [
+   "N04"
+  ],
+  "count": 3
+ },
+ {
+  "route": "evidence",
+  "finding": "N13",
+  "text": "Toolbar keeps five quick views and four filters on one line; 2 more fold under a More chip.",
+  "count": 2
+ },
+ {
+  "route": "evidence",
+  "finding": "A2",
+  "also": [
+   "B8"
+  ],
+  "text": "Opens with nothing ticked: the filter row shows; the selection bar appears only after the reader ticks a row.",
+  "count": 1
+ },
+ {
+  "route": "evidence",
+  "finding": "A18",
+  "text": "The preview's action is an outlined button, not an ink primary; a repeated action is dropped.",
+  "also": [
+   "N15"
+  ],
+  "where": "preview: a-docs-ev",
+  "count": 1
+ },
+ {
+  "route": "evidence",
+  "finding": "N01",
+  "text": "The one banner left is a grey callout; its glyph alone carries the tone.",
+  "also": [
+   "A4"
+  ],
+  "where": "preview: a-docs-ev",
+  "count": 1
+ },
+ {
+  "route": "checks",
+  "finding": "N03",
+  "text": "Empty values print a subtle —: 2 dashed rings and words (No owner, Not set, None…) gone.",
+  "also": [
+   "A5"
+  ],
+  "count": 2
+ },
+ {
+  "route": "checks",
+  "finding": "A3",
+  "text": "Count line under the register's title dropped; counts stay on tabs, chips and quick views.",
+  "count": 1
+ },
+ {
+  "route": "checks",
+  "finding": "N03",
+  "text": "Empty values print a subtle —: 1 dashed ring and words (No owner, Not set, None…) gone.",
+  "also": [
+   "A5"
+  ],
+  "where": "preview: a-tests-check",
+  "count": 1
+ },
+ {
+  "route": "checks",
+  "finding": "A18",
+  "text": "The preview's action is an outlined button, not an ink primary; a repeated action is dropped.",
+  "also": [
+   "N15"
+  ],
+  "where": "preview: a-tests-check",
+  "count": 1
+ },
+ {
+  "route": "policies",
+  "finding": "N02",
+  "also": [
+   "N06"
+  ],
+  "text": "One tone per status word: 7 pills retoned (In review grey, Not assessed grey); blue is never a status.",
+  "count": 7
+ },
+ {
+  "route": "policies",
+  "finding": "N03",
+  "text": "Empty values print a subtle —: 20 dashed rings and words (No owner, Not set, None…) gone.",
+  "also": [
+   "A5"
+  ],
+  "count": 20
+ },
+ {
+  "route": "policies",
+  "finding": "A3",
+  "text": "Count line under the register's title dropped; counts stay on tabs, chips and quick views.",
+  "count": 1
+ },
+ {
+  "route": "policies",
+  "finding": "N03",
+  "text": "Empty values print a subtle —: 1 dashed ring and words (No owner, Not set, None…) gone.",
+  "also": [
+   "A5"
+  ],
+  "where": "preview: a-docs-pol",
+  "count": 1
+ },
+ {
+  "route": "policies",
+  "finding": "A18",
+  "text": "The preview's action is an outlined button, not an ink primary; a repeated action is dropped.",
+  "also": [
+   "N15"
+  ],
+  "where": "preview: a-docs-pol",
+  "count": 2
+ },
+ {
+  "route": "assessments",
+  "finding": "N02",
+  "also": [
+   "N06"
+  ],
+  "text": "One tone per status word: 2 pills retoned (Active grey); blue is never a status.",
+  "count": 2
+ },
+ {
+  "route": "assessments",
+  "finding": "A3",
+  "text": "Count line under the register's title dropped; counts stay on tabs, chips and quick views.",
+  "count": 1
+ },
+ {
+  "route": "cyber-te",
+  "finding": "N02",
+  "also": [
+   "N06"
+  ],
+  "text": "One tone per status word: 1 pill retoned (Planned grey); blue is never a status.",
+  "count": 1
+ },
+ {
+  "route": "cyber-te",
+  "finding": "N03",
+  "text": "Empty values print a subtle —: 4 dashed rings and words (No owner, Not set, None…) gone.",
+  "also": [
+   "A5"
+  ],
+  "count": 4
+ },
+ {
+  "route": "cyber-te",
+  "finding": "N01",
+  "text": "The register's notice is one quiet grey line under the title, no tinted box; its action is a link.",
+  "also": [
+   "A4"
+  ],
+  "count": 1
+ },
+ {
+  "route": "cyber-te",
+  "finding": "A3",
+  "text": "Count line under the register's title dropped; counts stay on tabs, chips and quick views.",
+  "count": 1
+ },
+ {
+  "route": "cyber-te",
+  "finding": "N03",
+  "text": "Empty values print a subtle —: 2 dashed rings and words (No owner, Not set, None…) gone.",
+  "also": [
+   "A5"
+  ],
+  "where": "preview: v7a-camp",
+  "count": 2
+ },
+ {
+  "route": "cyber-te",
+  "finding": "A18",
+  "text": "The preview's action is an outlined button, not an ink primary; a repeated action is dropped.",
+  "also": [
+   "N15"
+  ],
+  "where": "preview: v7a-camp",
+  "count": 1
+ },
+ {
+  "route": "cyber-te",
+  "finding": "N03",
+  "text": "Empty values print a subtle —: 1 dashed ring and words (No owner, Not set, None…) gone.",
+  "also": [
+   "A5"
+  ],
+  "where": "dialog: v7a-cyber-plan",
+  "count": 1
+ },
+ {
+  "route": "findings",
+  "finding": "N03",
+  "text": "Empty values print a subtle —: 2 dashed rings and words (No owner, Not set, None…) gone.",
+  "also": [
+   "A5"
+  ],
+  "count": 2
+ },
+ {
+  "route": "findings",
+  "finding": "A3",
+  "text": "Count line under the register's title dropped; counts stay on tabs, chips and quick views.",
+  "count": 1
+ },
+ {
+  "route": "findings",
+  "finding": "A5",
+  "text": "1 column that read the same in every row cut, so the table fits its frame.",
+  "also": [
+   "N04"
+  ],
+  "count": 1
+ },
+ {
+  "route": "findings",
+  "finding": "N13",
+  "text": "Toolbar keeps five quick views and four filters on one line; 2 more fold under a More chip.",
+  "count": 2
+ },
+ {
+  "route": "findings",
+  "finding": "A2",
+  "also": [
+   "B8"
+  ],
+  "text": "Opens with nothing ticked: the filter row shows; the selection bar appears only after the reader ticks a row.",
+  "count": 1
+ },
+ {
+  "route": "findings",
+  "finding": "N03",
+  "text": "Empty values print a subtle —: 1 dashed ring and words (No owner, Not set, None…) gone.",
+  "also": [
+   "A5"
+  ],
+  "where": "preview: a-risk-issue",
+  "count": 1
+ },
+ {
+  "route": "findings",
+  "finding": "A18",
+  "text": "The preview's action is an outlined button, not an ink primary; a repeated action is dropped.",
+  "also": [
+   "N15"
+  ],
+  "where": "preview: a-risk-issue",
+  "count": 1
+ },
+ {
+  "route": "poam",
+  "finding": "N02",
+  "also": [
+   "N06"
+  ],
+  "text": "One tone per status word: 13 pills retoned (In progress grey); blue is never a status.",
+  "count": 13
+ },
+ {
+  "route": "poam",
+  "finding": "N10",
+  "text": "1 inline font size snapped to the 12 / 14 / 16 / 20 / 28 scale.",
+  "count": 1
+ },
+ {
+  "route": "poam",
+  "finding": "N07",
+  "text": "11 change counts or plain sentences set in ink instead of red or green.",
+  "count": 11
+ },
+ {
+  "route": "poam",
+  "finding": "A3",
+  "text": "Count line under the register's title dropped; counts stay on tabs, chips and quick views.",
+  "count": 1
+ },
+ {
+  "route": "poam",
+  "finding": "N08",
+  "text": "14 bars, rings or donuts removed from rows; the number beside each stays.",
+  "count": 14
+ },
+ {
+  "route": "poam",
+  "finding": "N13",
+  "text": "Toolbar keeps five quick views and four filters on one line; 2 more fold under a More chip.",
+  "count": 2
+ },
+ {
+  "route": "poam",
+  "finding": "A2",
+  "also": [
+   "B8"
+  ],
+  "text": "Opens with nothing ticked: the filter row shows; the selection bar appears only after the reader ticks a row.",
+  "count": 1
+ },
+ {
+  "route": "poam",
+  "finding": "N03",
+  "text": "Empty values print a subtle —: 1 dashed ring and words (No owner, Not set, None…) gone.",
+  "also": [
+   "A5"
+  ],
+  "where": "preview: a-risk-poam",
+  "count": 1
+ },
+ {
+  "route": "poam",
+  "finding": "A18",
+  "text": "The preview's action is an outlined button, not an ink primary; a repeated action is dropped.",
+  "also": [
+   "N15"
+  ],
+  "where": "preview: a-risk-poam",
+  "count": 1
+ },
+ {
+  "route": "risks",
+  "finding": "N03",
+  "text": "Empty values print a subtle —: 35 dashed rings and words (No owner, Not set, None…) gone.",
+  "also": [
+   "A5"
+  ],
+  "count": 35
+ },
+ {
+  "route": "risks",
+  "finding": "A3",
+  "text": "Count line under the register's title dropped; counts stay on tabs, chips and quick views.",
+  "count": 1
+ },
+ {
+  "route": "risks",
+  "finding": "N13",
+  "text": "Toolbar keeps five quick views and four filters on one line; 3 more fold under a More chip.",
+  "count": 3
+ },
+ {
+  "route": "risks",
+  "finding": "A2",
+  "also": [
+   "B8"
+  ],
+  "text": "Opens with nothing ticked: the filter row shows; the selection bar appears only after the reader ticks a row.",
+  "count": 1
+ },
+ {
+  "route": "risks",
+  "finding": "N03",
+  "text": "Empty values print a subtle —: 2 dashed rings and words (No owner, Not set, None…) gone.",
+  "also": [
+   "A5"
+  ],
+  "where": "preview: a-risk-risk",
+  "count": 2
+ },
+ {
+  "route": "risks",
+  "finding": "A18",
+  "text": "The preview's action is an outlined button, not an ink primary; a repeated action is dropped.",
+  "also": [
+   "N15"
+  ],
+  "where": "preview: a-risk-risk",
+  "count": 2
+ },
+ {
+  "route": "threats",
+  "finding": "N01",
+  "text": "The register's notice is one quiet grey line under the title, no tinted box; its action is a link.",
+  "also": [
+   "A4"
+  ],
+  "count": 1
+ },
+ {
+  "route": "threats",
+  "finding": "A3",
+  "text": "Count line under the register's title dropped; counts stay on tabs, chips and quick views.",
+  "count": 1
+ },
+ {
+  "route": "threats",
+  "finding": "N08",
+  "text": "32 bars, rings or donuts removed from rows; the number beside each stays.",
+  "count": 32
+ },
+ {
+  "route": "threats",
+  "finding": "N03",
+  "text": "Empty values print a subtle —: 5 dashed rings and words (No owner, Not set, None…) gone.",
+  "also": [
+   "A5"
+  ],
+  "where": "preview: v7a-att",
+  "count": 5
+ },
+ {
+  "route": "threats",
+  "finding": "A18",
+  "text": "The preview's action is an outlined button, not an ink primary; a repeated action is dropped.",
+  "also": [
+   "N15"
+  ],
+  "where": "preview: v7a-att",
+  "count": 1
+ },
+ {
+  "route": "posture",
+  "finding": "N01",
+  "text": "The one banner left is a grey callout; its glyph alone carries the tone.",
+  "also": [
+   "A4"
+  ],
+  "count": 1
+ },
+ {
+  "route": "posture",
+  "finding": "N03",
+  "text": "Empty values print a subtle —: 1 dashed ring and words (No owner, Not set, None…) gone.",
+  "also": [
+   "A5"
+  ],
+  "where": "preview: v7a-pcell",
+  "count": 1
+ },
+ {
+  "route": "posture",
+  "finding": "A18",
+  "text": "The preview's action is an outlined button, not an ink primary; a repeated action is dropped.",
+  "also": [
+   "N15"
+  ],
+  "where": "preview: v7a-pcell",
+  "count": 1
+ },
+ {
+  "route": "resiliency",
+  "finding": "N03",
+  "text": "Empty values print a subtle —: 5 dashed rings and words (No owner, Not set, None…) gone.",
+  "also": [
+   "A5"
+  ],
+  "count": 5
+ },
+ {
+  "route": "resiliency",
+  "finding": "N07",
+  "text": "14 change counts or plain sentences set in ink instead of red or green.",
+  "count": 14
+ },
+ {
+  "route": "resiliency",
+  "finding": "N01",
+  "text": "The one banner left is a grey callout; its glyph alone carries the tone.",
+  "also": [
+   "A4"
+  ],
+  "count": 1
+ },
+ {
+  "route": "resiliency",
+  "finding": "N08",
+  "text": "14 bars, rings or donuts removed from rows; the number beside each stays.",
+  "count": 14
+ },
+ {
+  "route": "resiliency",
+  "finding": "N02",
+  "text": "Status pills follow one map: 1 hand-drawn pill retoned (neutral and waiting words grey, never blue or amber).",
+  "also": [
+   "N06"
+  ],
+  "where": "preview: v7a-tech",
+  "count": 1
+ },
+ {
+  "route": "resiliency",
+  "finding": "A18",
+  "text": "The preview's action is an outlined button, not an ink primary; a repeated action is dropped.",
+  "also": [
+   "N15"
+  ],
+  "where": "preview: v7a-tech",
+  "count": 1
+ },
+ {
+  "route": "sse",
+  "finding": "N02",
+  "also": [
+   "N06"
+  ],
+  "text": "One tone per status word: 1 pill retoned (In review grey); blue is never a status.",
+  "count": 1
+ },
+ {
+  "route": "sse",
+  "finding": "N01",
+  "text": "The one banner left is a grey callout; its glyph alone carries the tone.",
+  "also": [
+   "A4"
+  ],
+  "count": 1
+ },
+ {
+  "route": "sse",
+  "finding": "A18",
+  "text": "The preview's action is an outlined button, not an ink primary; a repeated action is dropped.",
+  "also": [
+   "N15"
+  ],
+  "where": "preview: v8g-review",
+  "count": 1
+ },
+ {
+  "route": "traceability",
+  "finding": "N02",
+  "also": [
+   "N06"
+  ],
+  "text": "One tone per status word: 3 pills retoned (In progress grey); blue is never a status.",
+  "count": 3
+ },
+ {
+  "route": "traceability",
+  "finding": "N03",
+  "text": "Empty values print a subtle —: 79 dashed rings and words (No owner, Not set, None…) gone.",
+  "also": [
+   "A5"
+  ],
+  "count": 79
+ },
+ {
+  "route": "traceability",
+  "finding": "N03",
+  "text": "Empty values print a subtle —: 3 dashed rings and words (No owner, Not set, None…) gone.",
+  "also": [
+   "A5"
+  ],
+  "where": "preview: v7a-trace",
+  "count": 3
+ },
+ {
+  "route": "traceability",
+  "finding": "A18",
+  "text": "The preview's action is an outlined button, not an ink primary; a repeated action is dropped.",
+  "also": [
+   "N15"
+  ],
+  "where": "preview: v7a-trace",
+  "count": 2
+ },
+ {
+  "route": "inheritance",
+  "finding": "N02",
+  "also": [
+   "N06"
+  ],
+  "text": "One tone per status word: 1 pill retoned (2 to review grey); blue is never a status.",
+  "count": 1
+ },
+ {
+  "route": "inheritance",
+  "finding": "N03",
+  "text": "Empty values print a subtle —: 4 dashed rings and words (No owner, Not set, None…) gone.",
+  "also": [
+   "A5"
+  ],
+  "count": 4
+ },
+ {
+  "route": "inheritance",
+  "finding": "N01",
+  "text": "The one banner left is a grey callout; its glyph alone carries the tone.",
+  "also": [
+   "A4"
+  ],
+  "count": 1
+ },
+ {
+  "route": "inheritance",
+  "finding": "N08",
+  "text": "2 bars, rings or donuts removed from rows; the number beside each stays.",
+  "count": 2
+ },
+ {
+  "route": "inheritance",
+  "finding": "N03",
+  "text": "Empty values print a subtle —: 1 dashed ring and words (No owner, Not set, None…) gone.",
+  "also": [
+   "A5"
+  ],
+  "where": "preview: v7a-src",
+  "count": 1
+ },
+ {
+  "route": "inheritance",
+  "finding": "A18",
+  "text": "The preview's action is an outlined button, not an ink primary; a repeated action is dropped.",
+  "also": [
+   "N15"
+  ],
+  "where": "preview: v7a-src",
+  "count": 1
+ },
+ {
+  "route": "authorization",
+  "finding": "N02",
+  "also": [
+   "N06"
+  ],
+  "text": "One tone per status word: 7 pills retoned (ATO with conditions amber, Current green, Draft grey); blue is never a status.",
+  "count": 7
+ },
+ {
+  "route": "authorization",
+  "finding": "N03",
+  "text": "Empty values print a subtle —: 2 dashed rings and words (No owner, Not set, None…) gone.",
+  "also": [
+   "A5"
+  ],
+  "count": 2
+ },
+ {
+  "route": "package-room",
+  "finding": "N10",
+  "text": "5 inline font sizes snapped to the 12 / 14 / 16 / 20 / 28 scale.",
+  "count": 5
+ },
+ {
+  "route": "package-room",
+  "finding": "A3",
+  "text": "Count line under the register's title dropped; counts stay on tabs, chips and quick views.",
+  "count": 1
+ },
+ {
+  "route": "conmon",
+  "finding": "N02",
+  "also": [
+   "N06"
+  ],
+  "text": "One tone per status word: 3 pills retoned (In progress grey, Ready grey); blue is never a status.",
+  "count": 3
+ },
+ {
+  "route": "conmon",
+  "finding": "N01",
+  "text": "The one banner left is a grey callout; its glyph alone carries the tone.",
+  "also": [
+   "A4"
+  ],
+  "count": 1
+ },
+ {
+  "route": "conmon",
+  "finding": "A18",
+  "text": "The preview's action is an outlined button, not an ink primary; a repeated action is dropped.",
+  "also": [
+   "N15"
+  ],
+  "where": "preview: v7p-check",
+  "count": 1
+ },
+ {
+  "route": "schedule",
+  "finding": "N02",
+  "also": [
+   "N06"
+  ],
+  "text": "One tone per status word: 4 pills retoned (In progress grey, In review grey, Ready grey); blue is never a status.",
+  "count": 4
+ },
+ {
+  "route": "schedule",
+  "finding": "A3",
+  "text": "Count line under the register's title dropped; counts stay on tabs, chips and quick views.",
+  "count": 1
+ },
+ {
+  "route": "schedule",
+  "finding": "N13",
+  "text": "Toolbar keeps five quick views and four filters on one line; 1 more fold under a More chip.",
+  "count": 1
+ },
+ {
+  "route": "schedule",
+  "finding": "A2",
+  "also": [
+   "B8"
+  ],
+  "text": "Opens with nothing ticked: the filter row shows; the selection bar appears only after the reader ticks a row.",
+  "count": 1
+ },
+ {
+  "route": "schedule",
+  "finding": "A18",
+  "text": "The preview's action is an outlined button, not an ink primary; a repeated action is dropped.",
+  "also": [
+   "N15"
+  ],
+  "where": "preview: a-work-gate",
+  "count": 1
+ },
+ {
+  "route": "people",
+  "finding": "N03",
+  "text": "Empty values print a subtle —: 11 dashed rings and words (No owner, Not set, None…) gone.",
+  "also": [
+   "A5"
+  ],
+  "count": 11
+ },
+ {
+  "route": "people",
+  "finding": "N01",
+  "text": "The register's notice is one quiet grey line under the title, no tinted box; its action is a link.",
+  "also": [
+   "A4"
+  ],
+  "count": 1
+ },
+ {
+  "route": "people",
+  "finding": "A3",
+  "text": "Count line under the register's title dropped; counts stay on tabs, chips and quick views.",
+  "count": 1
+ },
+ {
+  "route": "people",
+  "finding": "A5",
+  "text": "1 column that read the same in every row cut, so the table fits its frame.",
+  "also": [
+   "N04"
+  ],
+  "count": 1
+ },
+ {
+  "route": "people",
+  "finding": "A18",
+  "text": "The preview's action is an outlined button, not an ink primary; a repeated action is dropped.",
+  "also": [
+   "N15"
+  ],
+  "where": "preview: a-people-person",
+  "count": 1
+ },
+ {
+  "route": "campaign",
+  "finding": "N02",
+  "also": [
+   "N06"
+  ],
+  "text": "One tone per status word: 15 pills retoned (Active grey, Ready grey); blue is never a status.",
+  "count": 15
+ },
+ {
+  "route": "campaign",
+  "finding": "N03",
+  "text": "Empty values print a subtle —: 16 dashed rings and words (No owner, Not set, None…) gone.",
+  "also": [
+   "A5"
+  ],
+  "count": 16
+ },
+ {
+  "route": "campaign",
+  "finding": "N12",
+  "text": "The section's tab strip no longer stacks above the record's own tabs.",
+  "count": 1
+ },
+ {
+  "route": "stigs-mission-computer-rhel9",
+  "finding": "N12",
+  "text": "The section's tab strip no longer stacks above the record's own tabs.",
+  "count": 1
+ },
+ {
+  "route": "stigs-mission-computer-rhel9",
+  "finding": "A18",
+  "text": "The preview's action is an outlined button, not an ink primary; a repeated action is dropped.",
+  "also": [
+   "N15"
+  ],
+  "where": "preview: v8g-bench",
+  "count": 1
+ },
+ {
+  "route": "stigs-mission-computer-rhel9",
+  "finding": "A18",
+  "text": "The preview's action is an outlined button, not an ink primary; a repeated action is dropped.",
+  "also": [
+   "N15"
+  ],
+  "where": "preview: v8g-rule",
+  "count": 2
+ },
+ {
+  "route": "frameworks-high",
+  "finding": "N02",
+  "also": [
+   "N06"
+  ],
+  "text": "One tone per status word: 3 pills retoned (Active grey); blue is never a status.",
+  "count": 3
+ },
+ {
+  "route": "frameworks-high",
+  "finding": "N03",
+  "text": "Empty values print a subtle —: 20 dashed rings and words (No owner, Not set, None…) gone.",
+  "also": [
+   "A5"
+  ],
+  "count": 20
+ },
+ {
+  "route": "frameworks-high",
+  "finding": "N12",
+  "text": "The section's tab strip no longer stacks above the record's own tabs.",
+  "count": 1
+ },
+ {
+  "route": "data-calls-fisma",
+  "finding": "N02",
+  "also": [
+   "N06"
+  ],
+  "text": "One tone per status word: 6 pills retoned (In review grey, Matches a source green, Needs a date grey); blue is never a status.",
+  "count": 6
+ },
+ {
+  "route": "data-calls-fisma",
+  "finding": "N03",
+  "text": "Empty values print a subtle —: 8 dashed rings and words (No owner, Not set, None…) gone.",
+  "also": [
+   "A5"
+  ],
+  "count": 8
+ },
+ {
+  "route": "data-calls-fisma",
+  "finding": "N12",
+  "text": "The section's tab strip no longer stacks above the record's own tabs.",
+  "count": 1
+ },
+ {
+  "route": "component-mc",
+  "finding": "N02",
+  "also": [
+   "N06"
+  ],
+  "text": "One tone per status word: 4 pills retoned (Not assessed grey, To review grey); blue is never a status.",
+  "count": 4
+ },
+ {
+  "route": "component-mc",
+  "finding": "N01",
+  "text": "The one banner left is a grey callout; its glyph alone carries the tone.",
+  "also": [
+   "A4"
+  ],
+  "count": 1
+ },
+ {
+  "route": "component-mc",
+  "finding": "N12",
+  "text": "The section's tab strip no longer stacks above the record's own tabs.",
+  "count": 1
+ },
+ {
+  "route": "component-mc",
+  "finding": "N12",
+  "text": "Tab strip keeps seven slots: 3 tabs fold under More.",
+  "also": [
+   "N18"
+  ],
+  "count": 3
+ },
+ {
+  "route": "component-mc",
+  "finding": "A18",
+  "text": "The preview's action is an outlined button, not an ink primary; a repeated action is dropped.",
+  "also": [
+   "N15"
+  ],
+  "where": "preview: v7o-offer",
+  "count": 1
+ },
+ {
+  "route": "component-mc",
+  "finding": "N01",
+  "text": "The one banner left is a grey callout; its glyph alone carries the tone.",
+  "also": [
+   "A4"
+  ],
+  "where": "preview: v7o-offer",
+  "count": 1
+ },
+ {
+  "route": "policy-page-ac-1",
+  "finding": "N03",
+  "text": "Empty values print a subtle —: 1 dashed ring and words (No owner, Not set, None…) gone.",
+  "also": [
+   "A5"
+  ],
+  "count": 1
+ },
+ {
+  "route": "policy-page-ac-1",
+  "finding": "N12",
+  "text": "The section's tab strip no longer stacks above the record's own tabs.",
+  "count": 1
+ },
+ {
+  "route": "control-si2",
+  "finding": "N02",
+  "also": [
+   "N06"
+  ],
+  "text": "One tone per status word: 11 pills retoned (Not assessed grey); blue is never a status.",
+  "count": 11
+ },
+ {
+  "route": "control-si2",
+  "finding": "N03",
+  "text": "Empty values print a subtle —: 2 dashed rings and words (No owner, Not set, None…) gone.",
+  "also": [
+   "A5"
+  ],
+  "count": 2
+ },
+ {
+  "route": "control-si2",
+  "finding": "N01",
+  "text": "The one banner left is a grey callout; its glyph alone carries the tone.",
+  "also": [
+   "A4"
+  ],
+  "count": 1
+ },
+ {
+  "route": "control-si2",
+  "finding": "N12",
+  "text": "The section's tab strip no longer stacks above the record's own tabs.",
+  "count": 1
+ },
+ {
+  "route": "evidence-page-e1",
+  "finding": "N02",
+  "also": [
+   "N06"
+  ],
+  "text": "One tone per status word: 2 pills retoned (Pending review grey); blue is never a status.",
+  "count": 2
+ },
+ {
+  "route": "evidence-page-e1",
+  "finding": "N01",
+  "text": "The one banner left is a grey callout; its glyph alone carries the tone.",
+  "also": [
+   "A4"
+  ],
+  "count": 1
+ },
+ {
+  "route": "evidence-page-e1",
+  "finding": "N12",
+  "text": "The section's tab strip no longer stacks above the record's own tabs.",
+  "count": 1
+ },
+ {
+  "route": "check-scan",
+  "finding": "N02",
+  "also": [
+   "N06"
+  ],
+  "text": "One tone per status word: 1 pill retoned (In progress grey); blue is never a status.",
+  "count": 1
+ },
+ {
+  "route": "check-scan",
+  "finding": "N03",
+  "text": "Empty values print a subtle —: 1 dashed ring and words (No owner, Not set, None…) gone.",
+  "also": [
+   "A5"
+  ],
+  "count": 1
+ },
+ {
+  "route": "check-scan",
+  "finding": "N12",
+  "text": "The section's tab strip no longer stacks above the record's own tabs.",
+  "count": 1
+ },
+ {
+  "route": "check-scan",
+  "finding": "A18",
+  "text": "The preview's action is an outlined button, not an ink primary; a repeated action is dropped.",
+  "also": [
+   "N15"
+  ],
+  "where": "preview: a-tests-fix",
+  "count": 1
+ },
+ {
+  "route": "person-joel-barrantes",
+  "finding": "N03",
+  "text": "Empty values print a subtle —: 4 dashed rings and words (No owner, Not set, None…) gone.",
+  "also": [
+   "A5"
+  ],
+  "count": 4
+ },
+ {
+  "route": "person-joel-barrantes",
+  "finding": "N12",
+  "text": "The section's tab strip no longer stacks above the record's own tabs.",
+  "count": 1
+ },
+ {
+  "route": "integration-emass",
+  "finding": "N02",
+  "also": [
+   "N06"
+  ],
+  "text": "One tone per status word: 1 pill retoned (Works from a file grey); blue is never a status.",
+  "count": 1
+ },
+ {
+  "route": "integration-emass",
+  "finding": "N12",
+  "text": "The section's tab strip no longer stacks above the record's own tabs.",
+  "count": 1
+ },
+ {
+  "route": "ssp",
+  "finding": "N02",
+  "also": [
+   "N06"
+  ],
+  "text": "One tone per status word: 12 pills retoned (In progress grey, Not assessed grey); blue is never a status.",
+  "count": 12
+ },
+ {
+  "route": "plan-cp",
+  "finding": "N03",
+  "text": "Empty values print a subtle —: 2 dashed rings and words (No owner, Not set, None…) gone.",
+  "also": [
+   "A5"
+  ],
+  "count": 2
+ },
+ {
+  "route": "overview",
+  "finding": "A8",
+  "text": "The rail marks the current place ink on grey, like the program menu; the program switcher is a neutral bordered button."
+ },
+ {
+  "route": "overview",
+  "finding": "A9",
+  "text": "Program menu children are text without icons; every group but the current page's is folded, and any can be opened."
+ },
+ {
+  "route": "portfolio",
+  "finding": "N17",
+  "text": "Avatars are initials on grey (1,142 blue avatars in v1 across 22 pages); blue stays for links and selection."
+ },
+ {
+  "route": "itcsc",
+  "finding": "N06",
+  "text": "EXAMPLE is a grey outlined tag (34 on this page, 973 across v1), and a small grey dot inside column headers."
+ },
+ {
+  "route": "controls",
+  "finding": "N10",
+  "text": "One type scale: 12 secondary, 14 body, 16 card and section titles, 22 page titles; no half pixels, nothing grows; tables no longer fall back to 16px."
+ },
+ {
+  "route": "component-mc",
+  "finding": "N18",
+  "text": "No section label before the section's tabs; the rail already names the section."
+ },
+ {
+  "route": "evidence",
+  "finding": "A5",
+  "text": "Tables fit their frame at 1440: headers may wrap, and a table still too wide lets its cells wrap (A5's seven tables now fit)."
+ },
+ {
+  "route": "controls",
+  "finding": "N02",
+  "text": "One tone per status word everywhere (241 words, status-map.json): Not assessed, In progress, Draft, Ready and Planned are grey; blue is never a status."
+ }
+]

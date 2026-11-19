@@ -1,0 +1,71 @@
+C2 walk · 2026-11-19T16:43:40.217Z · /private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/v2-S.html
+64 passed, 0 failed
+
+=== 1440px ===
+PASS  1440 My work has no sideways scroll
+PASS  1440 CVE row lands on Vulnerabilities with the CVE kept  · findings-vulns · 1 rows
+PASS  1440 …and its operational issue's preview open
+PASS  1440 Past-due row opens Findings on Past due  · Past due 17
+PASS  1440 …and the row's count is the list's count  · 17 · 1Resolve 17 operational issues past their remediation date1 
+PASS  1440 Critical risks row keeps exactly the 2 critical risks  · 2
+PASS  1440 Due-soon row opens Findings on Due soon 3
+PASS  1440 Audit row opens the Schedule with that task's preview
+PASS  1440 No-owner row opens Risks on No owner
+PASS  1440 Revise row opens Evidence on Needs revision 54
+PASS  1440 Waiting row opens Evidence on Pending review 88
+PASS  1440 Offer row opens the offer
+PASS  1440 Home has no sideways scroll
+PASS  1440 Home's Open offer opens the offer
+PASS  1440 Home's Customer A card opens Programs with its preview
+PASS  Readiness fix opens the editor at section 2, focused  · {"focus":true,"top":20}
+PASS  SSP 3 is submitted
+PASS  My work says SSP 3 waits on the ISSM, under Waiting on others
+PASS  Review queue lists SSP 3 as SSP to approve
+PASS  The rail's Review count is the queue's total (149 with SSP 3)  · Review149
+PASS  Kind filter keeps one kind, and the pager counts it (96)  · 1–5 of 9625 per page · ‹ ›
+PASS  Authorization reads SSP revision 3 In review
+PASS  People: after Reassign all, Nadia Fournier holds the quarterly review
+PASS  People: Victor Amsel has no open tasks
+PASS  Access review: the reviewer is Nadia Fournier
+PASS  Add person names the missing field and stays open
+PASS  Add person opens the onboarding task set (9 tasks to do)  · 9
+PASS  An onboarding task opens its preview
+PASS  Mark complete moves the progress to 1 of 9
+PASS  People lists Maya Chen with her onboarding
+PASS  Complete review says what is still owed  · Still owed: 2 accounts without an owner · 7 accounts not decided · 1 revoked account without a note or task
+PASS  Keep moves the decided count  · 11 → 12
+PASS  With nothing owed, Complete review completes it
+PASS  The Schedule's quarterly review task is completed with it
+PASS  Import scan says plainly it is not wired
+PASS  Add asset adds the asset, kept and previewed
+PASS  …and the Assets tab counts 21
+PASS  After Create program the switcher names the new program  · PRG-2301Customer D · X800 Eject Launch Integration
+PASS  …its menu carries no WS-X90 badge  · Getting started20%
+PASS  Its starter guide's Open requirements opens its own requirements
+PASS  Programs lists it
+PASS  Home lists it
+PASS  The switcher lists it beside WS-X90
+PASS  Choosing WS-X90 makes it current again
+PASS  A My work row still lands on WS-X90's records after visiting the new program
+PASS  In assessment mode the menu holds the campaign's pages  · ‹ WS-X90Expanded Control Set AssessmentAssessment · ends Nov 20Requests368Findings245ControlsAll assessments
+PASS  …and its Controls page stays in the mode
+PASS  1440 no page errors
+
+=== 390px ===
+PASS  390 My work has no sideways scroll
+PASS  390 CVE row lands on Vulnerabilities with the CVE kept  · findings-vulns · 1 rows
+PASS  390 …and its operational issue's preview open
+PASS  390 Past-due row opens Findings on Past due  · Past due 17
+PASS  390 …and the row's count is the list's count  · 17 · 1Resolve 17 operational issues past their remediation date1 
+PASS  390 Critical risks row keeps exactly the 2 critical risks  · 2
+PASS  390 Due-soon row opens Findings on Due soon 3
+PASS  390 Audit row opens the Schedule with that task's preview
+PASS  390 No-owner row opens Risks on No owner
+PASS  390 Revise row opens Evidence on Needs revision 54
+PASS  390 Waiting row opens Evidence on Pending review 88
+PASS  390 Offer row opens the offer
+PASS  390 Home has no sideways scroll
+PASS  390 Home's Open offer opens the offer
+PASS  390 Home's Customer A card opens Programs with its preview
+PASS  390 no page errors
+exit 0

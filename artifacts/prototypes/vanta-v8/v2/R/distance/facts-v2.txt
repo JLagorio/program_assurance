@@ -1,0 +1,4 @@
+2 pages with a facts line; 2 with numbers
+before-after       # 68 screens 184 changes in v1 181 changes in v2 1,645 of Vanta's own screens looked at
+nav-options        # 5 wireframes Only the navigation is drawn Colour marks the program's menu
+nav buttons: ["WS-X90Sentinel Mission System▾","System›","Compliance›","Assess›","Risk›","Analysis›","Authorize›","Monitor›"]

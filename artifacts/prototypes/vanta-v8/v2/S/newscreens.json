@@ -1,0 +1,5 @@
+[
+  {"id": "sctm", "title": "SCTM workbook", "route": "sctm", "v1": "No SCTM; the Traceability page was a register"},
+  {"id": "sctm-analysis", "title": "SCTM workbook · Analysis", "route": "sctm-analysis", "v1": "No analysis sheet; coverage by family was counted on the Posture page, with no formulas"},
+  {"id": "sctm-requirements", "title": "SCTM workbook · Requirements", "route": "sctm-requirements", "v1": "Requirements were a register only; a requirement's chain sat on its own page"}
+]

@@ -1,0 +1,1553 @@
+// SCTM workbook (agent S, prototype v2, sx-): WS-X90's security controls traceability matrix as a full-window spreadsheet. Route: sctm.
+// One row a control of the baseline; its columns walk the chain: implementation (status, narrative, responsible element), the
+// requirements that map it, the elements they are allocated to, evidence, the determination, the operational issues, POA&M items
+// and risks that follow. More sheets as tabs: Controls, Requirements, Evidence, Findings, Risks, and Analysis (live formulas).
+// Built on the repo's own spreadsheet core (packages/spreadsheet-core, bundled in mod-zzzz-v2-7sctm-engine.js as window.PA_SHEET):
+// the workbook model, typed edits and their validation, find, undo and IronCalc 0.8.4 formulas. The grid is drawn here in the
+// prototype's style (rows are virtualised; header row and first column frozen).
+// Data, read at every open: PA.SSP (controls, narratives, elements), PA.v2.chain (each control's standing as the session's walks
+// leave it, and the records they made) and PA.SCTMD (mod-zzzz-v2-7sctm-data.js: requirements, issues, POA&M items, risks,
+// assessment findings and evidence other modules hold). Edits are staged until Review changes applies them through PA.v2.state
+// (sctm.ctl.<code> {s, n}, sctm.req.<code> {t, st}) and PA.SSP, so the SSP editor, the requirement preview and the Requirements
+// register read them. A record in a cell is a [data-panel] button: the core opens its preview in the side panel.
+(function () {
+  const PA = window.PA, V = PA && PA.v2;
+  if (!PA || !V || !PA.SSP || !PA.SCTMD) return;
+  const { S, P, M, h, ROUTE_NAV } = PA;
+  const { esc, fmt } = h;
+  const SSP = PA.SSP, X = PA.SCTMD, ENG = window.PA_SHEET || null;
+  const ROUTE = "sctm", ME = "Ingrid Solberg", TODAY_ISO = "2026-11-17";
+  PA.fullWindow(ROUTE);
+  ROUTE_NAV[ROUTE] = "sctm";
+  if (PA.own) PA.own([ROUTE]);
+  const CH = () => V.chain || null;
+  const $ = (s, el = document) => el.querySelector(s);
+  const app = () => document.getElementById("sx-app");
+
+  // ════════════════ Words and small helpers ════════════════
+  const collator = new Intl.Collator("en", { numeric: true, sensitivity: "base" });
+  const cmpText = (a, b) => collator.compare(a, b);
+  const md = (iso) => (iso ? new Date(String(iso).slice(0, 10) + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "");
+  const cap = (s) => (s ? s[0].toUpperCase() + s.slice(1) : "");
+  const plural = (n, one, many) => `${fmt(n)} ${n === 1 ? one : many || one + "s"}`;
+  const uniq = (a) => [...new Set(a.filter((x) => x != null && x !== ""))];
+  const rid = (s) => String(s).replace(/[^\w-]/g, "_").slice(0, 150); // spreadsheet-core row identities: letters, digits, _ and -
+  const colName = (i) => { let s = ""; i += 1; while (i > 0) { const m = (i - 1) % 26; s = String.fromCharCode(65 + m) + s; i = Math.floor((i - 1) / 26); } return s; };
+  const IMPL = { implemented: "Implemented", partial: "Partially implemented", planned: "Planned", not_implemented: "Not implemented" };
+  const IMPL_KEY = Object.fromEntries(Object.entries(IMPL).map(([k, v]) => [v, k]));
+  const CS = { satisfied: "Satisfied", partially_satisfied: "Partially satisfied", other_than_satisfied: "Other than satisfied", not_assessed: "Not assessed", no_evidence: "No evidence", no_requirement: "No requirement" };
+  const DETS = new Set(["satisfied", "partially_satisfied", "other_than_satisfied"]);
+  const EVST = { accepted: "Accepted", pending: "Pending review", needs_revision: "Needs revision" };
+  const EVRANK = { needs_revision: 3, pending: 2, accepted: 1 };
+  const POST = { in_progress: "In progress", completed: "Completed", open: "Not started", planned: "Planned" };
+  const RES = { init: "SAR · initial authorization", inc1: "Expanded set, increment 1", inc2: "Increment 2" };
+  const IMG = {
+    back: "M10 3.5 5.5 8 10 12.5", x: "M4 4l8 8M12 4l-8 8", undo: "M6 4 3 7l3 3M3 7h7a3 3 0 0 1 0 6H8", redo: "M10 4l3 3-3 3M13 7H6a3 3 0 0 0 0 6h2",
+    up: "M8 12.5v-9M4.5 7 8 3.5 11.5 7", down: "M8 3.5v9M4.5 9 8 12.5 11.5 9", filter: "M2.5 3.5h11l-4.2 5v4l-2.6 1.2V8.5z", clear: "M2.5 3.5h11l-4.2 5v4l-2.6 1.2V8.5zM11 11l3 3M14 11l-3 3",
+    find: "M7 2.5a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9zM10.3 10.3l3.2 3.2", freeze: "M2.5 2.5h11v11h-11zM6 2.5v11M2.5 6h11", copy: "M5.5 5.5h7v8h-7zM3.5 10.5v-8h7",
+    dots: "M3.5 8h.01M8 8h.01M12.5 8h.01", chev: "M4.5 6.5 8 10l3.5-3.5", fx: "M9.5 3.5c-1.6 0-2 1-2.3 2.6l-1 5.4c-.3 1.4-.8 2-2.2 2M5 7h4.5M10 8.5l3 4M13 8.5l-3 4",
+    left: "M10 3.5 5.5 8 10 12.5", right: "M6 3.5 10.5 8 6 12.5", fit: "M2.5 8h11M5 5.5 2.5 8 5 10.5M11 5.5 13.5 8 11 10.5",
+    pen: "M3 13l1-3.5 6.5-6.5 2.5 2.5L6.5 12z",
+  };
+  const I = (k, cls = "") => `<svg class="sx-i ${cls}" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${IMG[k] || ""}"/></svg>`;
+  // One tone per status word: the core's pill decides the tone from the word.
+  const pillOf = (word) => (word ? h.pill("none", word) : DASH);
+  const DASH = '<span class="sx-dash" aria-label="None">—</span>';
+
+  // ════════════════ Records, joined by code, title and id ════════════════
+  function records() {
+    const ch = CH();
+    const els = new Map(SSP.elements.map(([code, name, type, parent, lru]) => [code, { code, name, type, parent, lru }]));
+    const byLru = new Map(SSP.elements.filter((e) => e[4]).map((e) => [e[4], e[0]]));
+    const reqs = new Map(Object.entries(X.reqs).map(([code, r]) => [code, { code, t: r.t || "", st: r.st || "", ctl: r.ctl.slice(), els: r.els.slice(), ev: r.ev.slice(), from: r.from, elFrom: r.elFrom || null }]));
+    const reqOf = (code, t) => { let r = reqs.get(code); if (!r) { r = { code, t: t || "", st: "", ctl: [], els: [], ev: [], from: [] }; reqs.set(code, r); } return r; };
+    for (const [code, list] of Object.entries(SSP.requirements || {})) for (const [rq, t, ev] of list) { const r = reqOf(rq, t); if (!r.ctl.includes(code)) r.ctl.push(code); if (ev && !r.ev.includes(ev)) r.ev.push(ev); }
+    // Applied requirement edits read back over the snapshot (they live in PA.v2.state).
+    for (const r of reqs.values()) { const a = V.get("sctm.req." + r.code, null); if (a) { if (a.t != null) r.t = a.t; if (a.st != null) r.st = a.st; } }
+    const walked = ch ? ch.touched() : [];
+    const views = new Map();
+    const view = (code) => { if (!views.has(code)) views.set(code, ch ? ch.view(code) : fallbackView(code)); return views.get(code); };
+    const walkEv = []; // evidence a walk linked: [code, req, evId, title]
+    for (const code of walked) { const v = view(code); if (v.s.req) { const r = reqOf(v.s.req, v.s.reqTitle || ""); if (!r.ctl.includes(code)) r.ctl.push(code); r.walk = true; if (v.s.ev) { if (v.s.evTitle && !r.ev.includes(v.s.evTitle)) r.ev.push(v.s.evTitle); walkEv.push([code, v.s.req, v.s.ev, v.s.evTitle || ""]); } } }
+    // Controls mapped and evidence linked from the Requirements page (agent F's reqx.map and reqx.ev).
+    for (const x of V.get("reqx.map", null) || []) if (x && x.req && x.ctl) { const r = reqOf(x.req, PA.v2reqs && PA.v2reqs.title ? PA.v2reqs.title(x.req) : ""); if (!r.ctl.includes(x.ctl)) r.ctl.push(x.ctl); }
+    for (const x of V.get("reqx.ev", null) || []) if (x && x.req && x.title) { const r = reqOf(x.req, ""); if (!r.ev.includes(x.title)) r.ev.push(x.title); if (x.ev) walkEv.push([null, x.req, x.ev, x.title]); }
+    const reqsByCtl = new Map();
+    for (const r of reqs.values()) for (const c of r.ctl) { if (!reqsByCtl.has(c)) reqsByCtl.set(c, []); reqsByCtl.get(c).push(r.code); }
+    for (const l of reqsByCtl.values()) l.sort(cmpText);
+    // Operational issues: WS-X90's, then the ones published results opened in this session.
+    const chIss = ch ? ch.issues() : [], chPoam = ch ? ch.poams() : [], chRisk = ch ? ch.risks() : [], chAf = ch ? ch.afs() : [];
+    const iss = [
+      ...chIss.map((i) => ({ id: i.id, sev: i.sev, opened: i.opened, title: i.title, ctls: [i.ctl], req: (view(i.ctl).s || {}).req || null, chain: true })),
+      ...X.iss.map((i) => ({ id: i.id, sev: i.sev, opened: i.opened, title: i.title, ctls: uniq([...i.from.map((f) => f[0]), ...(i.req && reqs.get(i.req) ? reqs.get(i.req).ctl : [])]), req: i.req, owner: i.owner })),
+    ];
+    const poams = [
+      ...chPoam.map((p) => ({ id: p.id, title: p.title, status: "open", owner: p.owner || null, planned: p.planned || null, issues: [p.issue], ms: 0, done: 0, chain: true })),
+      ...X.poam.map((p) => ({ ...p })),
+    ];
+    const risks = [
+      ...chRisk.map((r) => ({ id: r.id, title: r.title, sev: r.sev, lik: r.lik, imp: r.imp, owner: r.owner || null, due: null, tech: [], reqs: [], iss: [r.issue].filter(Boolean), poam: r.poam || null, chain: true })),
+      ...X.risks.map((r) => ({ ...r })),
+    ];
+    const afs = [
+      ...chAf.map((x) => ({ id: `${x.code}|${x.res}`, code: x.code, title: x.title, det: x.det, res: x.res, resLabel: x.resLabel, date: x.date, chain: true })),
+      ...X.af.map((x) => ({ ...x })),
+    ];
+    const issById = new Map(iss.map((i) => [i.id, i]));
+    const issByCtl = new Map();
+    for (const i of iss) for (const c of i.ctls) { if (!issByCtl.has(c)) issByCtl.set(c, []); issByCtl.get(c).push(i.id); }
+    const poamByIss = new Map();
+    for (const p of poams) for (const id of p.issues) { if (!poamByIss.has(id)) poamByIss.set(id, []); poamByIss.get(id).push(p.id); }
+    const riskByIss = new Map(), riskByReq = new Map();
+    for (const r of risks) { for (const id of r.iss) { if (!riskByIss.has(id)) riskByIss.set(id, []); riskByIss.get(id).push(r.id); } for (const q of r.reqs) { if (!riskByReq.has(q)) riskByReq.set(q, []); riskByReq.get(q).push(r.id); } }
+    const afByCtl = new Map();
+    for (const x of afs) { if (!afByCtl.has(x.code)) afByCtl.set(x.code, []); afByCtl.get(x.code).push(x); }
+    // Evidence: the Evidence register's artifacts, the ones a walk linked, then what requirements cite by title.
+    const i2 = ch && ch.inc2 ? ch.inc2() : null;
+    const ev = X.ev.map((e) => ({ id: e.id, title: e.title, kind: e.kind, owner: e.owner, collected: e.collected, state: e.state, reqs: e.req ? [e.req] : [], reviewed: e.reviewed, rec: true }));
+    const evTitles = new Set(ev.map((e) => e.title));
+    for (const [, rq, evId, title] of walkEv) {
+      const m = /^ev-(\d+)$/.exec(evId), base = m ? ev[+m[1]] : null;
+      if (base) { if (!base.reqs.includes(rq)) base.reqs.push(rq); base.walk = true; continue; }
+      if (title && !evTitles.has(title)) { evTitles.add(title); ev.push({ id: evId, title, kind: "Document", owner: ME, collected: TODAY_ISO, state: "pending", reqs: [rq], reviewed: null, rec: false, walk: true }); }
+    }
+    for (const r of reqs.values()) for (const t of r.ev) {
+      if (!t) continue;
+      const hit = ev.find((e) => e.title === t);
+      if (hit) { if (!hit.reqs.includes(r.code)) hit.reqs.push(r.code); continue; }
+      evTitles.add(t); ev.push({ id: "cite:" + t, title: t, kind: "Cited by a requirement", owner: null, collected: null, state: "accepted", reqs: [r.code], reviewed: null, rec: false, cited: true });
+    }
+    const evByReq = new Map();
+    for (const e of ev) for (const q of e.reqs) { if (!evByReq.has(q)) evByReq.set(q, []); evByReq.get(q).push(e); }
+    return { ch, els, byLru, reqs, reqsByCtl, view, iss, issById, issByCtl, poams, poamByIss, risks, riskByIss, riskByReq, afs, afByCtl, ev, evByReq, i2 };
+  }
+  function fallbackView(code) { const b = SSP.ctl(code) || {}; return { code, title: b.t, fam: b.f, status: b.cs || "no_requirement", reqs: b.r || 0, evs: b.e || 0, ob: b.ob || 0, om: b.om || 0, oe: b.oe || 0, oa: b.oa || 0, s: {}, det: null, db: b.db ? "Program assessment" : null, step: null, issue: null, poam: null, risk: null, camp: null }; }
+
+  // ════════════════ The sheets ════════════════
+  // A column: { id, name, kind: rec | recs | text | long | num | date | status | select, w, edit?, options?, field? }.
+  // A row: { id, recId, v: { col: input }, recs: { col: [{ p: preview kind, id, label, title }] }, ctls: [codes] }.
+  const recCtl = (code) => ({ p: "a-tests-control", id: code, label: code, title: `${code} ${(SSP.ctl(code) || {}).t || ""}`.trim() });
+  const recReq = (R, code) => ({ p: "v7p-req", id: code, label: code, title: `${code} ${(R.reqs.get(code) || {}).t || ""}`.trim() });
+  const recEl = (R, code) => { const e = R.els.get(code); return { p: "v7p-el", id: code, label: e ? e.name : code, title: e ? `${e.name} · ${code}${e.lru ? " · " + e.lru : ""}` : code }; };
+  const recIss = (i) => ({ p: "a-risk-issue", id: i.id, label: i.title, title: i.title });
+  const recPoam = (p) => ({ p: "a-risk-poam", id: `${p.id}|overview`, label: p.title, title: p.title });
+  const recRisk = (r) => ({ p: "a-risk-risk", id: `${r.id}|overview`, label: r.title, title: r.title });
+  const recEv = (e) => (e.rec ? { p: "a-docs-ev", id: `${e.id}|evidence`, label: e.title, title: e.title } : null);
+  const SEVR = { critical: 4, high: 3, moderate: 2, low: 1 };
+  const bySev = (a, b) => (SEVR[b.sev] || 0) - (SEVR[a.sev] || 0) || cmpText(a.title, b.title);
+  function chainOf(R, code, reqCodes) {
+    const issIds = uniq([...(R.issByCtl.get(code) || []), ...R.iss.filter((i) => i.req && reqCodes.includes(i.req)).map((i) => i.id)]);
+    const iss = issIds.map((id) => R.issById.get(id)).filter(Boolean).sort(bySev);
+    const poamIds = uniq(iss.flatMap((i) => R.poamByIss.get(i.id) || []));
+    const poams = poamIds.map((id) => R.poams.find((p) => p.id === id)).filter(Boolean);
+    const riskIds = uniq([...iss.flatMap((i) => R.riskByIss.get(i.id) || []), ...reqCodes.flatMap((q) => R.riskByReq.get(q) || []), ...R.risks.filter((r) => r.poam && poamIds.includes(r.poam)).map((r) => r.id)]);
+    const risks = riskIds.map((id) => R.risks.find((r) => r.id === id)).filter(Boolean).sort(bySev);
+    return { iss, poams, risks };
+  }
+  function latestDet(R, code, v) {
+    if (v.det) return { det: v.det, date: v.s && v.s.pubAt ? v.s.pubAt : TODAY_ISO, res: "Published today" };
+    const list = (R.afByCtl.get(code) || []).filter((x) => x.res !== "inc2" || R.i2).sort((a, b) => String(b.date).localeCompare(String(a.date)));
+    if (list[0] && DETS.has(list[0].det)) return { det: list[0].det, date: list[0].date, res: RES[list[0].res] || list[0].resLabel || "" };
+    const b = SSP.ctl(code) || {};
+    if (DETS.has(b.cs)) return { det: b.cs, date: list[0] ? list[0].date : null, res: "" };
+    return null;
+  }
+  function evStateOf(R, reqCodes, v) {
+    let best = null;
+    for (const q of reqCodes) for (const e of R.evByReq.get(q) || []) if (!best || (EVRANK[e.state] || 0) > (EVRANK[best] || 0)) best = e.state;
+    if (best) return EVST[best];
+    return v.evs > 0 ? EVST.accepted : "";
+  }
+  const respOf = (R, narrative) => { const m = String(narrative || "").match(/LRU-\d{3}/); return m && R.byLru.get(m[0]) ? R.byLru.get(m[0]) : null; };
+
+  function sheetsOf(R) {
+    const ctls = SSP.controls;
+    // ——— SCTM ———
+    const sctmCols = [
+      { id: "ctl", name: "Control", kind: "rec", w: 104 },
+      { id: "title", name: "Title", kind: "text", w: 220 },
+      { id: "fam", name: "Family", kind: "text", w: 96 },
+      { id: "impl", name: "Implementation", kind: "select", options: Object.values(IMPL), edit: true, field: "impl", w: 196 },
+      { id: "narr", name: "Narrative", kind: "long", edit: true, field: "narr", w: 320 },
+      { id: "resp", name: "Responsible element", kind: "recs", w: 200 },
+      { id: "reqn", name: "Requirements", kind: "num", w: 140 },
+      { id: "reqs", name: "Mapped by", kind: "recs", w: 170 },
+      { id: "alloc", name: "Allocated to", kind: "recs", w: 230 },
+      { id: "evn", name: "With evidence", kind: "num", w: 140 },
+      { id: "evst", name: "Evidence state", kind: "status", quietOk: true, w: 150 },
+      { id: "cs", name: "Control status", kind: "status", w: 176 },
+      { id: "det", name: "Assessment results", kind: "text", w: 210 },
+      { id: "detd", name: "Determined", kind: "date", w: 132 },
+      { id: "iss", name: "Operational issues", kind: "recs", w: 250 },
+      { id: "poam", name: "POA&M items", kind: "recs", w: 220 },
+      { id: "risk", name: "Risks", kind: "recs", w: 250 },
+      { id: "next", name: "Next step", kind: "text", w: 220 },
+    ];
+    const sctmRows = ctls.map((c) => {
+      const v = R.view(c.c), reqCodes = R.reqsByCtl.get(c.c) || [];
+      const ch = chainOf(R, c.c, reqCodes), d = latestDet(R, c.c, v);
+      const alloc = uniq(reqCodes.flatMap((q) => (R.reqs.get(q) || {}).els || [])).sort(cmpText);
+      const resp = respOf(R, c.n);
+      const recs = { ctl: [recCtl(c.c)], resp: resp ? [recEl(R, resp)] : [], reqs: reqCodes.map((q) => recReq(R, q)), alloc: alloc.map((e) => recEl(R, e)), iss: ch.iss.map(recIss), poam: ch.poams.map(recPoam), risk: ch.risks.map(recRisk) };
+      const lab = (k) => recs[k].map((r) => r.label).join("; ");
+      return { id: "c-" + rid(c.c), recId: c.c, ctls: [c.c], recs, v: {
+        ctl: c.c, title: c.t, fam: c.f, impl: IMPL[c.s] || "", narr: c.n || "", resp: lab("resp"), reqn: String(v.reqs || 0), reqs: recs.reqs.map((r) => r.label).join(", "),
+        alloc: lab("alloc"), evn: String(v.evs || 0), evst: evStateOf(R, reqCodes, v), cs: CS[v.status] || "", det: d ? d.res || "" : "", detd: d && d.date ? String(d.date).slice(0, 10) : "",
+        iss: lab("iss"), poam: lab("poam"), risk: lab("risk"), next: v.step ? v.step.label : "" } };
+    });
+    // ——— Controls ———
+    const ctlCols = [
+      { id: "ctl", name: "Control", kind: "rec", w: 104 }, { id: "title", name: "Title", kind: "text", w: 240 }, { id: "fam", name: "Family", kind: "text", w: 96 },
+      { id: "impl", name: "Implementation", kind: "select", options: Object.values(IMPL), edit: true, field: "impl", w: 196 }, { id: "cs", name: "Control status", kind: "status", w: 176 },
+      { id: "ob", name: "Objectives", kind: "num", w: 124 }, { id: "om", name: "Mapped", kind: "num", w: 108 }, { id: "oe", name: "With evidence", kind: "num", w: 140 }, { id: "oa", name: "Assessed", kind: "num", w: 116 },
+      { id: "r", name: "Requirements", kind: "num", w: 140 }, { id: "e", name: "Requirements with evidence", kind: "num", w: 220 }, { id: "db", name: "Determined by", kind: "text", w: 170 },
+      { id: "up", name: "Updated", kind: "date", w: 128 }, { id: "rv", name: "Revision", kind: "num", w: 116 },
+    ];
+    const ctlRows = ctls.map((c) => { const v = R.view(c.c); return { id: "k-" + rid(c.c), recId: c.c, ctls: [c.c], recs: { ctl: [recCtl(c.c)] }, v: {
+      ctl: c.c, title: c.t, fam: c.f, impl: IMPL[c.s] || "", cs: CS[v.status] || "", ob: String(v.ob || 0), om: String(v.om || 0), oe: String(v.oe || 0), oa: String(v.oa || 0),
+      r: String(v.reqs || 0), e: String(v.evs || 0), db: v.db || "", up: c.up || "", rv: String(c.rv || 1) } }; });
+    // ——— Requirements ———
+    const reqCols = [
+      { id: "req", name: "Requirement", kind: "rec", w: 128 }, { id: "t", name: "Title", kind: "text", edit: true, field: "t", w: 300 }, { id: "st", name: "Statement", kind: "long", edit: true, field: "st", w: 340 },
+      { id: "ctl", name: "Controls", kind: "recs", w: 170 }, { id: "alloc", name: "Allocated to", kind: "recs", w: 240 }, { id: "evn", name: "Evidence", kind: "num", w: 116 },
+      { id: "ev", name: "Evidence cited", kind: "long", w: 280 }, { id: "iss", name: "Operational issues", kind: "recs", w: 250 }, { id: "poam", name: "POA&M items", kind: "recs", w: 220 }, { id: "risk", name: "Risks", kind: "recs", w: 250 },
+    ];
+    const reqRows = [...R.reqs.values()].sort((a, b) => cmpText(a.code, b.code)).map((r) => {
+      const iss = R.iss.filter((i) => i.req === r.code).sort(bySev);
+      const poams = uniq(iss.flatMap((i) => R.poamByIss.get(i.id) || [])).map((id) => R.poams.find((p) => p.id === id)).filter(Boolean);
+      const risks = uniq([...(R.riskByReq.get(r.code) || []), ...iss.flatMap((i) => R.riskByIss.get(i.id) || [])]).map((id) => R.risks.find((x) => x.id === id)).filter(Boolean).sort(bySev);
+      const evs = R.evByReq.get(r.code) || [];
+      const recs = { req: [recReq(R, r.code)], ctl: r.ctl.slice().sort(cmpText).map(recCtl), alloc: r.els.map((e) => recEl(R, e)), iss: iss.map(recIss), poam: poams.map(recPoam), risk: risks.map(recRisk) };
+      const lab = (k) => recs[k].map((x) => x.label).join("; ");
+      return { id: "q-" + rid(r.code), recId: r.code, ctls: r.ctl.slice(), recs, v: { req: r.code, t: r.t || "", st: r.st || "", ctl: recs.ctl.map((x) => x.label).join(", "), alloc: lab("alloc"), evn: String(evs.length), ev: evs.map((e) => e.title).join("; "), iss: lab("iss"), poam: lab("poam"), risk: lab("risk") } };
+    });
+    // ——— Evidence ———
+    const evCols = [
+      { id: "ev", name: "Evidence", kind: "rec", w: 340 }, { id: "kind", name: "Kind", kind: "text", w: 170 }, { id: "req", name: "Requirement", kind: "recs", w: 140 }, { id: "ctl", name: "Controls", kind: "recs", w: 160 },
+      { id: "state", name: "State", kind: "status", w: 150 }, { id: "owner", name: "Owner", kind: "text", w: 150 }, { id: "coll", name: "Collected", kind: "date", w: 120 }, { id: "rev", name: "Reviewed", kind: "date", w: 120 },
+    ];
+    const evRows = R.ev.map((e, i) => {
+      const ctlsOf = uniq(e.reqs.flatMap((q) => (R.reqs.get(q) || {}).ctl || [])).sort(cmpText);
+      const own = recEv(e);
+      const recs = { ev: own ? [own] : [], req: e.reqs.map((q) => recReq(R, q)), ctl: ctlsOf.map(recCtl) };
+      return { id: "e-" + i, recId: e.id, ctls: ctlsOf, recs, v: { ev: e.title, kind: e.kind || "", req: e.reqs.join(", "), ctl: ctlsOf.join(", "), state: EVST[e.state] || "", owner: e.owner || "", coll: e.collected || "", rev: e.reviewed || "" } };
+    });
+    // ——— Findings: operational issues, then assessment findings ———
+    const fCols = [
+      { id: "f", name: "Finding", kind: "rec", w: 340 }, { id: "kind", name: "Kind", kind: "text", w: 150 }, { id: "sev", name: "Severity or determination", kind: "status", w: 200 },
+      { id: "ctl", name: "Controls", kind: "recs", w: 150 }, { id: "req", name: "Requirement", kind: "recs", w: 120 }, { id: "res", name: "Results", kind: "text", w: 210 },
+      { id: "date", name: "Opened or determined", kind: "date", w: 170 }, { id: "due", name: "Remediate by", kind: "date", w: 130 }, { id: "poam", name: "POA&M item", kind: "recs", w: 220 }, { id: "risk", name: "Risk", kind: "recs", w: 250 },
+    ];
+    const isoOf = (d) => (d instanceof Date && !isNaN(d) ? `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}` : "");
+    const fRows = [
+      ...R.iss.map((i) => {
+        const poams = (R.poamByIss.get(i.id) || []).map((id) => R.poams.find((p) => p.id === id)).filter(Boolean);
+        const risks = (R.riskByIss.get(i.id) || []).map((id) => R.risks.find((x) => x.id === id)).filter(Boolean);
+        const recs = { f: [recIss(i)], ctl: i.ctls.slice().sort(cmpText).map(recCtl), req: i.req ? [recReq(R, i.req)] : [], poam: poams.map(recPoam), risk: risks.map(recRisk) };
+        const due = h.dueOf ? isoOf(h.dueOf(i.opened, i.sev)) : "";
+        return { id: "i-" + rid(i.id), recId: i.id, ctls: i.ctls.slice(), recs, v: { f: i.title, kind: "Operational issue", sev: cap(i.sev), ctl: recs.ctl.map((x) => x.label).join(", "), req: i.req || "", res: "", date: i.opened || "", due, poam: poams.map((p) => p.title).join("; "), risk: risks.map((x) => x.title).join("; ") } };
+      }),
+      ...R.afs.map((x, k) => {
+        const draft = x.res === "inc2" && !R.i2;
+        const own = { p: "a-tests-control", id: x.code, label: `${x.code} ${x.title}`, title: `${x.code} ${x.title}: open the control's preview` };
+        return { id: "af-" + k, recId: x.id, ctls: [x.code], recs: { f: [own], ctl: [recCtl(x.code)] }, v: { f: `${x.code} ${x.title}`, kind: "Assessment finding", sev: CS[x.det] || cap(x.det), ctl: x.code, req: "", res: `${RES[x.res] || x.resLabel || ""}${draft ? " (draft)" : ""}`, date: x.date || "", due: "", poam: "", risk: "" } };
+      }),
+    ];
+    // ——— Risks ———
+    const rCols = [
+      { id: "risk", name: "Risk", kind: "rec", w: 340 }, { id: "sev", name: "Severity", kind: "status", w: 120 }, { id: "lik", name: "Likelihood", kind: "text", w: 124 }, { id: "imp", name: "Impact", kind: "text", w: 108 },
+      { id: "owner", name: "Owner", kind: "text", w: 140 }, { id: "iss", name: "Operational issues", kind: "recs", w: 250 }, { id: "poam", name: "POA&M items", kind: "recs", w: 220 },
+      { id: "req", name: "Requirements", kind: "recs", w: 140 }, { id: "ctl", name: "Controls", kind: "recs", w: 160 }, { id: "tech", name: "ATT&CK techniques", kind: "text", w: 160 },
+      { id: "due", name: "Response due", kind: "date", w: 130 }, { id: "acc", name: "Acceptance", kind: "status", w: 150 },
+    ];
+    const ch = R.ch;
+    const rRows = R.risks.map((r) => {
+      const iss = r.iss.map((id) => R.issById.get(id)).filter(Boolean);
+      const poams = uniq([...iss.flatMap((i) => R.poamByIss.get(i.id) || []), r.poam].filter(Boolean)).map((id) => R.poams.find((p) => p.id === id)).filter(Boolean);
+      const reqCodes = uniq([...r.reqs, ...iss.map((i) => i.req)]).sort(cmpText);
+      const ctlsOf = uniq([...iss.flatMap((i) => i.ctls), ...reqCodes.flatMap((q) => (R.reqs.get(q) || {}).ctl || [])]).sort(cmpText);
+      const recs = { risk: [recRisk(r)], iss: iss.map(recIss), poam: poams.map(recPoam), req: reqCodes.map((q) => recReq(R, q)), ctl: ctlsOf.map(recCtl) };
+      const acc = ch && ch.accWords ? ch.accWords(ch.acc(r.id)) : "";
+      return { id: "r-" + rid(r.id), recId: r.id, ctls: ctlsOf, recs, v: { risk: r.title, sev: cap(r.sev), lik: cap(r.lik), imp: cap(r.imp), owner: r.owner || "", iss: iss.map((i) => i.title).join("; "), poam: poams.map((p) => p.title).join("; "), req: reqCodes.join(", "), ctl: ctlsOf.join(", "), tech: (r.tech || []).join(", "), due: r.due || "", acc: acc || "" } };
+    });
+    const nCodes = new Set([...R.reqsByCtl.keys()]).size;
+    return [
+      { id: "sctm", name: "SCTM", cols: sctmCols, rows: sctmRows, frozen: 1, note: `One row a control of WS-X90's baseline (${fmt(sctmRows.length)}), read from the SSP revision 3 draft and the assessment chain as this session leaves them. The snapshot names the requirements of ${fmt(nCodes)} controls; for the others Requirements is the count WS-X90's records give, and evidence a requirement cites without a record in the Evidence register reads Accepted, as the control preview reads it.` },
+      { id: "controls", name: "Controls", cols: ctlCols, rows: ctlRows, frozen: 1, note: "Each control's standing as the control status counts it: objectives mapped, with evidence and assessed, on every system that selects it. Implementation is the field the SCTM edits." },
+      { id: "reqs", name: "Requirements", cols: reqCols, rows: reqRows, frozen: 1, note: `The ${fmt(reqRows.length)} requirements whose controls this prototype's snapshot names, of the ${fmt(X.trTot ? X.trTot.all : 640)} WS-X90 holds. Allocations come from the Requirements register, else from where the posture places a requirement that owes evidence.` },
+      { id: "ev", name: "Evidence", cols: evCols, rows: evRows, frozen: 1, note: "The Evidence register's artifacts with their latest review, then evidence the requirements cite by title. A cited title with no artifact record opens nothing of its own; its requirement does." },
+      { id: "findings", name: "Findings", cols: fCols, rows: fRows, frozen: 1, note: "WS-X90's open operational issues and a sample of its assessment findings (68 of 313 determinations), with what this session's walks added. An assessment finding opens its control's preview." },
+      { id: "risks", name: "Risks", cols: rCols, rows: rRows, frozen: 1, note: "WS-X90's risks with the operational issues they rest on, the POA&M items that answer those issues, and the requirements and controls behind them." },
+    ];
+  }
+
+  // ════════════════ The Analysis sheet: live formulas over the others ════════════════
+  const AN_COLS = ["A", "B", "C", "D", "E", "F", "G", "H", "I"].map((id, i) => ({ id, name: id, kind: "formula", w: [230, 96, 104, 120, 104, 150, 120, 118, 120][i], edit: true }));
+  const AN_ROWS = 60;
+  function analysisCells(sheets, withMine = true) {
+    const L = (sid, col) => { const sh = sheets.find((s) => s.id === sid); const i = sh.cols.findIndex((c) => c.id === col); return colName(i); };
+    const sc = (col) => `SCTM!${L("sctm", col)}:${L("sctm", col)}`;
+    const cells = {}, put = (r, c, input, style) => { (cells["a" + r] ||= {})[c] = style ? { input, style } : { input }; };
+    put(1, "A", "Coverage by family", { bold: true });
+    ["Family", "Controls", "Mapped", "With evidence", "Satisfied", "Short of satisfied", "Not assessed", "Satisfied %", "With a risk"].forEach((t, i) => put(2, AN_COLS[i].id, t, { bold: true }));
+    const fams = SSP.families;
+    fams.forEach((f, k) => {
+      const r = 3 + k;
+      put(r, "A", f.f);
+      put(r, "B", `=COUNTIF(${sc("fam")},A${r})`);
+      put(r, "C", `=COUNTIFS(${sc("fam")},A${r},${sc("reqn")},">0")`);
+      put(r, "D", `=COUNTIFS(${sc("fam")},A${r},${sc("evn")},">0")`);
+      put(r, "E", `=COUNTIFS(${sc("fam")},A${r},${sc("cs")},"Satisfied")`);
+      put(r, "F", `=COUNTIFS(${sc("fam")},A${r},${sc("cs")},"Partially satisfied")+COUNTIFS(${sc("fam")},A${r},${sc("cs")},"Other than satisfied")`);
+      put(r, "G", `=COUNTIFS(${sc("fam")},A${r},${sc("cs")},"Not assessed")`);
+      put(r, "H", `=IFERROR(E${r}/B${r},0)`, { format: "percent", decimals: 0 });
+      put(r, "I", `=COUNTIFS(${sc("fam")},A${r},${sc("risk")},"<>")`);
+    });
+    const last = 2 + fams.length, tot = last + 1;
+    put(tot, "A", "All families", { bold: true });
+    ["B", "C", "D", "E", "F", "G", "I"].forEach((c) => put(tot, c, `=SUM(${c}3:${c}${last})`, { bold: true }));
+    put(tot, "H", `=IFERROR(E${tot}/B${tot},0)`, { format: "percent", decimals: 0, bold: true });
+    let r = tot + 2;
+    put(r++, "A", "Chain gaps", { bold: true });
+    put(r - 1, "B", "Count", { bold: true });
+    const gap = (label, f) => { put(r, "A", label); put(r, "B", f); r++; };
+    gap("Controls with no requirement", `=COUNTIF(${sc("cs")},"No requirement")`);
+    gap("Controls with no evidence", `=COUNTIF(${sc("cs")},"No evidence")`);
+    gap("Controls not assessed", `=COUNTIF(${sc("cs")},"Not assessed")`);
+    gap("Controls short of satisfied", `=COUNTIF(${sc("cs")},"Partially satisfied")+COUNTIF(${sc("cs")},"Other than satisfied")`);
+    gap("Implementation planned or not implemented", `=COUNTIF(${sc("impl")},"Planned")+COUNTIF(${sc("impl")},"Not implemented")`);
+    gap("Requirements citing no evidence", `=COUNTIF(Requirements!${L("reqs", "evn")}:${L("reqs", "evn")},0)`);
+    gap("Evidence needing revision", `=COUNTIF(Evidence!${L("ev", "state")}:${L("ev", "state")},"Needs revision")`);
+    gap("Evidence pending review", `=COUNTIF(Evidence!${L("ev", "state")}:${L("ev", "state")},"Pending review")`);
+    gap("Open operational issues", `=COUNTIF(Findings!${L("findings", "kind")}:${L("findings", "kind")},"Operational issue")`);
+    gap("Controls with a POA&M item", `=COUNTIF(${sc("poam")},"<>")`);
+    gap("Critical or high risks", `=COUNTIF(Risks!${L("risks", "sev")}:${L("risks", "sev")},"Critical")+COUNTIF(Risks!${L("risks", "sev")}:${L("risks", "sev")},"High")`);
+    r++;
+    put(r, "A", "Your analysis", { bold: true });
+    put(r, "B", "Type a formula in any empty cell below, such as =COUNTIF(SCTM!D:D,\"Planned\")");
+    // The reader's own cells (kept for the session).
+    const mine = withMine ? V.get("sctm.analysis", null) || {} : {};
+    for (const [rid, cols] of Object.entries(mine)) for (const [cid, input] of Object.entries(cols)) { if (input === "") { if (cells[rid]) delete cells[rid][cid]; } else (cells[rid] ||= {})[cid] = { ...((cells[rid] || {})[cid] || {}), input }; }
+    return cells;
+  }
+
+  // ════════════════ The workbook (spreadsheet-core) ════════════════
+  const ST = { built: false, R: null, sheets: [], base: null, hist: null, calc: null, session: null, engine: "pending", sid: "sctm", view: {}, staged: new Map(), from: "overview", find: { open: false, q: "", all: false, hits: [], i: -1, hidden: 0 }, msg: "" };
+  for (const s of V.get("sctm.staged", null) || []) if (s && s.key) ST.staged.set(s.key, s);
+  function coreSheet(sh) {
+    const columns = sh.cols.map((c) => { const col = { id: c.id, name: c.name, type: c.kind === "num" ? "number" : c.kind === "select" ? "select" : "text", readonly: !c.edit, width: c.w }; if (c.kind === "select") col.options = c.options.slice(); return col; });
+    const cells = {};
+    for (const r of sh.rows) { const row = {}; for (const c of sh.cols) { const v = r.v[c.id]; if (v != null && v !== "") row[c.id] = c.edit ? { input: String(v), binding: { recordId: r.recId, fieldId: c.id } } : { input: String(v) }; } if (Object.keys(row).length) cells[r.id] = row; }
+    return { id: sh.id, name: sh.name, mode: "records", rows: sh.rows.map((r) => ({ id: r.id, recordId: String(r.recId) })), columns, cells, frozenRows: 0, frozenColumns: sh.frozen || 0 };
+  }
+  function build() {
+    const R = records();
+    const sheets = sheetsOf(R);
+    const an = { id: "analysis", name: "Analysis", cols: AN_COLS, rows: Array.from({ length: AN_ROWS }, (_, i) => ({ id: "a" + (i + 1), recId: null, recs: {}, v: {}, ctls: [] })), frozen: 1, freeform: true,
+      note: `Formulas over the other sheets, calculated by ${ENG ? "IronCalc 0.8.4 through the repo's spreadsheet core" : "the workbook"}; they follow every staged edit. Your own formulas stay for this session.` };
+    sheets.push(an);
+    const core = sheets.map((sh) => (sh.freeform ? { id: sh.id, name: sh.name, mode: "freeform", rows: sh.rows.map((r) => ({ id: r.id })), columns: sh.cols.map((c) => ({ id: c.id, name: c.name, width: c.w })), cells: analysisCells(sheets), frozenRows: 0, frozenColumns: 1 } : coreSheet(sh)));
+    const wb = ENG.createWorkbook("WS-X90 SCTM", core);
+    ST.R = R; ST.sheets = sheets; ST.base = wb; ST.hist = ENG.createHistory(wb, 60);
+    // Re-apply what the reader staged before the workbook was read again (another screen may have changed the records since).
+    if (ST.staged.size) {
+      let next = wb, kept = 0;
+      for (const [, s] of ST.staged) {
+        const sh = sheets.find((x) => x.id === s.sid); if (!sh) continue;
+        const row = sh.rows.find((x) => String(x.recId) === String(s.code)); if (!row) continue; s.rowId = row.id;
+        const now = cellIn(next, s.sid, s.rowId, s.colId);
+        if (now === s.to) continue;
+        try { next = ENG.applyOperation(next, { type: "edit", sheetId: s.sid, edits: [{ rowId: s.rowId, columnId: s.colId, value: s.to }] }); kept++; } catch (e) { /* no longer valid: dropped */ }
+      }
+      if (kept) ST.hist.replace(next);
+    }
+    for (const sh of sheets) if (!ST.view[sh.id]) ST.view[sh.id] = { sort: null, filters: {}, widths: {}, frozen: sh.frozen ? 1 : 0, top: 0, left: 0, a: { r: 0, c: 0 }, f: { r: 0, c: 0 } };
+    ST.built = true; ST.orderKey = {};
+    ST.staged = staged();
+    ST.calc = null; ST.calcRev = -1;
+    calculate();
+  }
+  const wb = () => ST.hist.current;
+  const sheetOf = (sid) => ST.sheets.find((s) => s.id === sid);
+  const cur = () => sheetOf(ST.sid);
+  function cellIn(w, sid, rowId, colId) { const s = w.sheets.find((x) => x.id === sid); const c = s && s.cells[rowId] && s.cells[rowId][colId]; return c ? c.input : ""; }
+  const input = (sid, rowId, colId) => cellIn(wb(), sid, rowId, colId);
+  const baseInput = (sid, rowId, colId) => cellIn(ST.base, sid, rowId, colId);
+  const styleOf = (sid, rowId, colId) => { const s = wb().sheets.find((x) => x.id === sid); const c = s && s.cells[rowId] && s.cells[rowId][colId]; return (c && c.style) || null; };
+
+  // ——— Calculation: IronCalc when the page can run WebAssembly, else the prototype's small evaluator ———
+  function calculate() {
+    const w = wb();
+    if (ST.engine === "ironcalc") {
+      try { if (!ST.session) ST.session = ENG.createCalculationSession(); ST.calc = ST.session.calculate(w); ST.calcRev = w.revision; return; } catch (e) { console.warn("SCTM calculation:", e); ST.session = null; }
+    }
+    if (ST.engine === "pending") { ST.calc = null; return; }
+    ST.calc = miniCalc(w); ST.calcRev = w.revision;
+  }
+  function startEngine() {
+    if (!ENG) { ST.engine = "mini"; return; }
+    ENG.init().then((ok) => { ST.engine = ok ? "ironcalc" : "mini"; if (!ST.built) return; calculate(); if (app()) { if (ST.sid === "analysis") drawBody(); drawStatus(); syncFormula(); } });
+  }
+  const shown = (sid, rowId, colId) => {
+    const raw = input(sid, rowId, colId);
+    if (sid !== "analysis" || !raw.startsWith("=")) return { text: raw, type: raw === "" ? "blank" : /^[+-]?\d+(\.\d+)?$/.test(raw) ? "number" : "text" };
+    const r = ST.calc && ST.calc.sheets.analysis && ST.calc.sheets.analysis[rowId] && ST.calc.sheets.analysis[rowId][colId];
+    if (!r) return { text: ST.engine === "pending" ? "…" : "", type: "pending" };
+    return { text: r.display, type: r.type, error: r.error };
+  };
+  // A small evaluator for the formulas the Analysis sheet uses (COUNTIF, COUNTIFS, SUM, IFERROR, arithmetic and comparisons),
+  // so the sheet still answers where the page cannot start WebAssembly. Anything else reads #NAME?.
+  function miniCalc(w) {
+    const sheets = {}, byName = new Map(w.sheets.map((s) => [s.name.toLowerCase(), s]));
+    const grid = (s) => { if (s._g) return s._g; const g = s.rows.map((row) => s.columns.map((col) => { const c = s.cells[row.id] && s.cells[row.id][col.id]; return c ? c.input : ""; })); Object.defineProperty(s, "_g", { value: g, enumerable: false }); return g; };
+    const an = w.sheets.find((s) => s.id === "analysis");
+    const memo = new Map(), busy = new Set();
+    const colIdx = (l) => l.toUpperCase().split("").reduce((n, ch) => n * 26 + ch.charCodeAt(0) - 64, 0) - 1;
+    const lit = (v) => { if (v === "") return ""; const n = Number(v); return v.trim() !== "" && Number.isFinite(n) && /^[+-]?(\d+\.?\d*|\.\d+)(e[+-]?\d+)?$/i.test(v.trim()) ? n : v; };
+    function valueAt(s, r, c) {
+      if (s === an) { const key = r + ":" + c; if (memo.has(key)) return memo.get(key); const row = an.rows[r], col = an.columns[c]; const cell = row && col && an.cells[row.id] && an.cells[row.id][col.id]; if (!cell || !cell.input) return ""; if (!cell.input.startsWith("=")) return lit(cell.input); if (busy.has(key)) return { err: "#CIRC!" }; busy.add(key); let v; try { v = evalF(cell.input.slice(1)); } catch (e) { v = { err: e.message && e.message.startsWith("#") ? e.message : "#ERROR!" }; } busy.delete(key); memo.set(key, v); return v; }
+      const g = grid(s); const raw = g[r] && g[r][c] != null ? g[r][c] : ""; const col = s.columns[c]; return col && col.type === "number" ? lit(raw) : raw;
+    }
+    function evalF(src) {
+      let i = 0; const ws = () => { while (src[i] === " ") i++; };
+      const peek = () => { ws(); return src[i]; };
+      function ref() { ws(); const m = /^(?:'([^']+)'|([A-Za-z][A-Za-z0-9 _]*?))!/.exec(src.slice(i)); let s = an; if (m) { s = byName.get((m[1] || m[2]).toLowerCase()); if (!s) throw new Error("#REF!"); i += m[0].length; } const r = /^\$?([A-Za-z]{1,3})\$?(\d+)?(?::\$?([A-Za-z]{1,3})\$?(\d+)?)?/.exec(src.slice(i)); if (!r || (!r[2] && !r[3])) throw new Error("#NAME?"); i += r[0].length; const c1 = colIdx(r[1]), c2 = r[3] ? colIdx(r[3]) : c1; const r1 = r[2] ? +r[2] - 1 : 0, r2 = r[4] ? +r[4] - 1 : r[3] && !r[4] && !r[2] ? s.rows.length - 1 : r[2] ? +r[2] - 1 : s.rows.length - 1; if (!r[3] && r[2]) return valueAt(s, r1, c1); const out = []; for (let rr = Math.min(r1, r2); rr <= Math.min(Math.max(r1, r2), s.rows.length - 1); rr++) for (let cc = Math.min(c1, c2); cc <= Math.max(c1, c2); cc++) out.push(valueAt(s, rr, cc)); return { range: out }; }
+      function prim() {
+        const ch = peek();
+        if (ch === "(") { i++; const v = cmpE(); if (peek() !== ")") throw new Error("#ERROR!"); i++; return v; }
+        if (ch === '"') { i++; let s = ""; while (i < src.length) { if (src[i] === '"') { if (src[i + 1] === '"') { s += '"'; i += 2; continue; } i++; break; } s += src[i++]; } return s; }
+        if (ch === "-") { i++; return -num(prim()); }
+        if (ch === "+") { i++; return num(prim()); }
+        const n = /^\d+(\.\d+)?(e[+-]?\d+)?/i.exec(src.slice(i)); if (n) { i += n[0].length; return Number(n[0]); }
+        const f = /^([A-Za-z][A-Za-z0-9.]*)\s*\(/.exec(src.slice(i)); if (f) { i += f[0].length; const args = []; if (peek() !== ")") { for (;;) { args.push(cmpE()); if (peek() === ",") { i++; continue; } break; } } if (peek() !== ")") throw new Error("#ERROR!"); i++; return fn(f[1].toUpperCase(), args); }
+        const b = /^(TRUE|FALSE)\b/i.exec(src.slice(i)); if (b) { i += b[0].length; return b[1].toUpperCase() === "TRUE"; }
+        return ref();
+      }
+      const num = (v) => { if (v && v.err) throw new Error(v.err); if (v && v.range) v = v.range[0]; if (typeof v === "number") return v; if (typeof v === "boolean") return v ? 1 : 0; if (v === "") return 0; const n = Number(v); if (!Number.isFinite(n)) throw new Error("#VALUE!"); return n; };
+      const one = (v) => { if (v && v.err) throw new Error(v.err); return v && v.range ? v.range[0] : v; };
+      function mul() { let v = prim(); for (;;) { const c = peek(); if (c === "*" || c === "/") { i++; const r = prim(); if (c === "*") v = num(v) * num(r); else { const d = num(r); if (!d) throw new Error("#DIV/0!"); v = num(v) / d; } } else return v; } }
+      function add() { let v = mul(); for (;;) { const c = peek(); if (c === "+" || c === "-") { i++; const r = mul(); v = c === "+" ? num(v) + num(r) : num(v) - num(r); } else if (c === "&") { i++; v = String(one(v)) + String(one(mul())); } else return v; } }
+      function cmpE() { let v = add(); ws(); const m = /^(<>|<=|>=|=|<|>)/.exec(src.slice(i)); if (m) { i += m[0].length; const r = add(); v = compare(one(v), one(r), m[0]); } return v; }
+      const compare = (a, b, op) => { const x = typeof a === "number" && typeof b === "number" ? a - b : String(a).toLowerCase() < String(b).toLowerCase() ? -1 : String(a).toLowerCase() > String(b).toLowerCase() ? 1 : 0; return { "=": x === 0, "<>": x !== 0, "<": x < 0, ">": x > 0, "<=": x <= 0, ">=": x >= 0 }[op]; };
+      const crit = (c) => { c = one(c); if (typeof c === "number") return (v) => v === c || (typeof v === "string" && v !== "" && Number(v) === c); const m = /^(<>|<=|>=|=|<|>)?(.*)$/.exec(String(c)); const op = m[1] || "="; const t = m[2]; const n = t !== "" && Number.isFinite(Number(t)) ? Number(t) : null; if (n !== null && op !== "=" && op !== "<>") return (v) => typeof v === "number" && compare(v, n, op); if (op === "<>" && t === "") return (v) => v !== "" && v != null; if (op === "=" && t === "") return (v) => v === "" || v == null; const re = /[*?]/.test(t) ? new RegExp("^" + t.replace(/[.+^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*").replace(/\?/g, ".") + "$", "i") : null; return (v) => { const s = typeof v === "number" ? String(v) : String(v || ""); const hit = re ? re.test(s) : n !== null ? Number(s) === n && s !== "" : s.toLowerCase() === t.toLowerCase(); return op === "<>" ? !hit : hit; }; };
+      const flat = (args) => args.flatMap((a) => (a && a.range ? a.range : [a]));
+      function fn(name, a) {
+        switch (name) {
+          case "SUM": return flat(a).reduce((s, v) => s + (typeof v === "number" ? v : 0), 0);
+          case "COUNT": return flat(a).filter((v) => typeof v === "number").length;
+          case "COUNTA": return flat(a).filter((v) => v !== "" && v != null).length;
+          case "COUNTBLANK": return flat(a).filter((v) => v === "" || v == null).length;
+          case "AVERAGE": { const n = flat(a).filter((v) => typeof v === "number"); if (!n.length) throw new Error("#DIV/0!"); return n.reduce((s, v) => s + v, 0) / n.length; }
+          case "MIN": { const n = flat(a).filter((v) => typeof v === "number"); return n.length ? Math.min(...n) : 0; }
+          case "MAX": { const n = flat(a).filter((v) => typeof v === "number"); return n.length ? Math.max(...n) : 0; }
+          case "COUNTIF": { const t = crit(a[1]); return (a[0].range || []).filter(t).length; }
+          case "COUNTIFS": { const ranges = [], tests = []; for (let k = 0; k < a.length; k += 2) { ranges.push(a[k].range || []); tests.push(crit(a[k + 1])); } let n = 0; for (let k = 0; k < ranges[0].length; k++) if (ranges.every((rg, j) => tests[j](rg[k]))) n++; return n; }
+          case "SUMIF": { const t = crit(a[1]); const sr = (a[2] || a[0]).range || []; return (a[0].range || []).reduce((s, v, k) => s + (t(v) && typeof sr[k] === "number" ? sr[k] : 0), 0); }
+          case "IF": return one(a[0]) ? (a[1] === undefined ? true : a[1]) : (a[2] === undefined ? false : a[2]);
+          case "IFERROR": return a[0] && a[0].err ? a[1] : a[0];
+          case "ROUND": { const p = Math.pow(10, num(a[1] || 0)); return Math.round(num(a[0]) * p) / p; }
+          case "CONCAT": return flat(a).map((v) => String(v == null ? "" : v)).join("");
+          case "LEN": return String(one(a[0]) || "").length;
+          case "AND": return flat(a).every((v) => !!v);
+          case "OR": return flat(a).some((v) => !!v);
+          case "NOT": return !one(a[0]);
+          default: throw new Error("#NAME?");
+        }
+      }
+      const v = cmpE(); if (i < src.length && src.slice(i).trim()) throw new Error("#ERROR!"); return v;
+    }
+    const out = {};
+    for (const s of w.sheets) out[s.id] = {};
+    an.rows.forEach((row, r) => an.columns.forEach((col, c) => {
+      const cell = an.cells[row.id] && an.cells[row.id][col.id]; if (!cell || !cell.input || !cell.input.startsWith("=")) return;
+      let v; try { v = valueAt(an, r, c); } catch (e) { v = { err: "#ERROR!" }; }
+      if (v && v.range) v = v.range[0];
+      const st = cell.style || {};
+      const res = v && v.err ? { type: "error", value: v.err, display: v.err } : typeof v === "number" ? { type: "number", value: v, display: st.format === "percent" ? `${(v * 100).toFixed(st.decimals != null ? st.decimals : 1)}%` : String(Number(v.toPrecision(15))) } : typeof v === "boolean" ? { type: "boolean", value: v, display: v ? "TRUE" : "FALSE" } : { type: v === "" ? "blank" : "text", value: v, display: String(v) };
+      (out.analysis[row.id] ||= {})[col.id] = res;
+    }));
+    return { revision: w.revision, engine: "prototype", sheets: out, warnings: [] };
+  }
+
+  // ════════════════ What is staged ════════════════
+  function staged() {
+    const out = new Map();
+    for (const sh of ST.sheets) {
+      if (sh.freeform) continue;
+      const eds = sh.cols.filter((c) => c.edit);
+      if (!eds.length) continue;
+      for (const r of sh.rows) for (const c of eds) {
+        const now = input(sh.id, r.id, c.id), was = baseInput(sh.id, r.id, c.id);
+        if (now === was) continue;
+        const kind = sh.id === "reqs" ? "req" : "ctl";
+        const key = `${kind}:${r.recId}:${c.field}`;
+        if (!out.has(key)) out.set(key, { key, kind, code: r.recId, field: c.field, label: c.name, from: was, to: now, sid: sh.id, rowId: r.id, colId: c.id });
+      }
+    }
+    return out;
+  }
+  const changeCount = () => ST.staged.size;
+
+  // ════════════════ View: order, filters, sort ════════════════
+  const vs = () => ST.view[ST.sid];
+  const widthOf = (sh, c) => (ST.view[sh.id].widths[c.id] || c.w);
+  function valuesOf(sh, row, col) {
+    const v = sh.freeform ? shown(sh.id, row.id, col.id).text : input(sh.id, row.id, col.id);
+    if (col.kind === "recs" && row.recs && row.recs[col.id] && row.recs[col.id].length) return row.recs[col.id].map((r) => r.label);
+    if (col.kind === "recs" && v) return v.split(/;\s*|,\s*/).filter(Boolean);
+    return [v];
+  }
+  function order(sid) {
+    const sh = sheetOf(sid), v = ST.view[sid];
+    const key = `${wb().revision}|${JSON.stringify(v.sort)}|${JSON.stringify(Object.entries(v.filters).map(([k, s]) => [k, [...s].sort()]))}|${ST.calcRev}`;
+    if (ST.orderKey[sid] && ST.orderKey[sid].key === key) return ST.orderKey[sid].list;
+    let list = sh.rows.map((_, i) => i);
+    const fs = Object.entries(v.filters).filter(([, s]) => s && s.size);
+    if (fs.length) list = list.filter((i) => fs.every(([cid, set]) => { const col = sh.cols.find((c) => c.id === cid); if (!col) return true; const vals = valuesOf(sh, sh.rows[i], col); return vals.some((x) => set.has(x === "" ? "\u0000" : x)); }));
+    if (v.sort) {
+      const col = sh.cols.find((c) => c.id === v.sort.c);
+      if (col) {
+        const keyOf = (i) => { const t = sh.freeform ? shown(sid, sh.rows[i].id, col.id) : { text: input(sid, sh.rows[i].id, col.id) }; return t.text; };
+        const num = col.kind === "num" || sh.freeform;
+        list = list.map((i) => [i, keyOf(i)]).sort((a, b) => {
+          const x = a[1], y = b[1];
+          if (x === "" && y !== "") return 1; if (y === "" && x !== "") return -1;
+          let d = 0;
+          if (num && x !== "" && y !== "" && Number.isFinite(Number(x)) && Number.isFinite(Number(y))) d = Number(x) - Number(y);
+          else d = cmpText(x, y);
+          return d * v.sort.dir || a[0] - b[0];
+        }).map((p) => p[0]);
+      }
+    }
+    ST.orderKey[sid] = { key, list };
+    return list;
+  }
+  const filtered = (sid) => Object.values(ST.view[sid].filters).some((s) => s && s.size);
+
+  // ════════════════ Layout ════════════════
+  const ROW_H = 32, HEAD_H = 36, BUF = 16;
+  let RH_W = 52;
+  const narrow = () => matchMedia("(max-width: 860px)").matches;
+  function colStyle() {
+    const sh = cur(), v = vs();
+    let css = "", left = RH_W;
+    sh.cols.forEach((c, i) => {
+      const w = widthOf(sh, c);
+      css += `#sx-app .sxc-${i}{width:${w}px;min-width:${w}px;max-width:${w}px}`;
+      if (i < v.frozen) { css += `#sx-app .sxf-${i}{position:sticky;inset-inline-start:${left}px;z-index:2}`; left += w; }
+    });
+    const total = RH_W + sh.cols.reduce((s, c) => s + widthOf(sh, c), 0);
+    css += `#sx-app .sx-grid{width:${total}px}#sx-app .sx-rh,#sx-app .sx-corner{width:${RH_W}px;min-width:${RH_W}px}`;
+    let el = document.getElementById("sx-cols"); if (!el) { el = document.createElement("style"); el.id = "sx-cols"; document.head.appendChild(el); }
+    el.textContent = css;
+  }
+  const frozenW = () => { const sh = cur(), v = vs(); let w = RH_W; for (let i = 0; i < v.frozen; i++) w += widthOf(sh, sh.cols[i]); return w; };
+  const colLeft = (ci) => { const sh = cur(); let x = RH_W; for (let i = 0; i < ci; i++) x += widthOf(sh, sh.cols[i]); return x; };
+
+  // ════════════════ Drawing ════════════════
+  function headHTML() {
+    const n = changeCount();
+    const save = n ? `<span class="sx-save is-staged" id="sx-save" role="status"><i aria-hidden="true"></i><span class="sx-save-t">${plural(n, "change")} staged, not applied</span><span class="sx-save-s num">${n}</span></span>` : `<span class="sx-save is-ok" id="sx-save" role="status"><i aria-hidden="true"></i><span class="sx-save-t">No changes staged</span></span>`;
+    return `<header class="sx-head">
+      <div class="sx-head-l"><a class="sx-back" href="#${esc(ST.from)}" data-sx="close">${I("back")}<span>WS-X90</span></a>
+        <div class="sx-head-row"><h1 class="sx-title">SCTM workbook</h1><span class="sx-meta"><span>Snapshot Nov 17, 2026</span><span>SSP revision 3 draft</span></span>${save}</div></div>
+      <div class="sx-head-r">
+        <button type="button" class="sx-ib" data-sx="find" aria-label="Find" title="Find (Ctrl+F)">${I("find")}</button>
+        <button type="button" class="sx-ib" data-sx="more" aria-haspopup="menu" aria-expanded="false" aria-label="More workbook actions">${I("dots")}</button>
+        ${n ? `<button type="button" class="btn ink sx-review" data-modal="sctm-review" data-id="all"><span class="sx-l">Review changes</span><span class="sx-s">Review</span><span class="sx-n num">${n}</span></button>` : `<button type="button" class="btn ink sx-review" aria-disabled="true" title="Nothing is staged: edit an Implementation, Narrative or requirement cell first"><span class="sx-l">Review changes</span><span class="sx-s">Review</span></button>`}
+        <button type="button" class="sx-ib sx-close" data-sx="close" aria-label="Close the workbook">${I("x")}</button>
+      </div></header>`;
+  }
+  function toolbarHTML() {
+    const sh = cur(), v = vs(), col = sh.cols[v.a.c] || sh.cols[0];
+    const b = (act, label, icon, extra = "", text = "") => `<button type="button" class="sx-tbb" data-sx="${act}" aria-label="${esc(label)}" title="${esc(label)}" ${extra}>${I(icon)}${text ? `<span>${esc(text)}</span>` : ""}</button>`;
+    const views = sh.id === "sctm" ? `<span class="sx-sep"></span><label class="sx-viewsel"><span>Filter view</span><select data-sx-chg="view" aria-label="Filter view">${SCTM_VIEWS.map(([k, l]) => `<option value="${k}"${ST.sctmView === k ? " selected" : ""}>${esc(l)}</option>`).join("")}</select></label>` : "";
+    return `<div class="sx-tb" role="toolbar" aria-label="Workbook tools">
+      ${b("undo", "Undo", "undo", ST.hist.canUndo ? "" : 'aria-disabled="true"')}${b("redo", "Redo", "redo", ST.hist.canRedo ? "" : 'aria-disabled="true"')}<span class="sx-sep"></span>
+      ${b("sort-asc", `Sort ${col.name} A to Z`, "up", "", "Sort A–Z")}${b("sort-desc", `Sort ${col.name} Z to A`, "down", "", "Z–A")}
+      ${sh.freeform ? b("filter", "Filters are for the record sheets", "filter", 'aria-disabled="true"', "Filter") : b("filter", `Filter ${col.name}`, "filter", 'aria-haspopup="dialog"', "Filter")}${b("clear", "Clear every filter", "clear", filtered(sh.id) ? "" : 'aria-disabled="true"', "Clear filters")}<span class="sx-sep"></span>
+      ${b("freeze", v.frozen ? "Unfreeze the first column" : "Freeze the first column", "freeze", `aria-pressed="${!!v.frozen}"`, "Freeze")}${b("fit", `Fit ${col.name} to its contents`, "fit", "", "Fit")}${b("copy", "Copy the selection", "copy", "", "Copy")}
+      ${views}
+    </div>`;
+  }
+  const SCTM_VIEWS = [["all", "All controls"], ["action", "Needs action"], ["noreq", "No requirement"], ["noev", "No evidence"], ["short", "Short of satisfied"], ["risk", "With a risk"], ["planned", "Planned or not implemented"]];
+  function formulaHTML() {
+    return `<div class="sx-fb"><label class="sx-sr" for="sx-name">Name box: the selected cell, or type a cell address or a record code to go there</label><input class="sx-name" id="sx-name" spellcheck="false" autocomplete="off">
+      <span class="sx-fx" aria-hidden="true">${I("fx")}</span><label class="sx-sr" for="sx-formula">Formula bar</label><input class="sx-formula" id="sx-formula" spellcheck="false" autocomplete="off"><span class="sx-fbnote" id="sx-fbnote"></span></div>`;
+  }
+  function findHTML() {
+    const f = ST.find;
+    return `<div class="sx-find" id="sx-find" role="search"${f.open ? "" : " hidden"}><label class="sx-sr" for="sx-findq">Find in the workbook</label>${I("find", "sx-find-i")}<input id="sx-findq" class="sx-findq" placeholder="Find" value="${esc(f.q)}" spellcheck="false" autocomplete="off">
+      <span class="sx-findn num" id="sx-findn" role="status" aria-live="polite"></span>
+      <button type="button" class="sx-ib sm" data-sx="find-prev" aria-label="Previous match">${I("up")}</button><button type="button" class="sx-ib sm" data-sx="find-next" aria-label="Next match">${I("down")}</button>
+      <label class="sx-findall"><input type="checkbox" id="sx-findall"${f.all ? " checked" : ""}> All sheets</label>
+      <button type="button" class="sx-ib sm" data-sx="find-close" aria-label="Close find">${I("x")}</button></div>`;
+  }
+  function tabsHTML() {
+    return `<div class="sx-tabs"><div class="sx-tabscroll"><div class="sx-tablist" role="tablist" aria-label="Sheets">${ST.sheets.map((s) => `<button type="button" role="tab" class="sx-tab${s.id === ST.sid ? " on" : ""}" id="sx-tab-${s.id}" aria-selected="${s.id === ST.sid}" aria-controls="sx-grid" tabindex="${s.id === ST.sid ? 0 : -1}" data-sx-tab="${s.id}">${esc(s.name)}${s.freeform ? "" : `<span class="num">${fmt(s.rows.length)}</span>`}</button>`).join("")}</div></div>
+      <div class="sx-status" id="sx-status" role="status" aria-live="polite"></div></div>`;
+  }
+  function shellHTML() {
+    return `${headHTML()}${toolbarHTML()}${formulaHTML()}${findHTML()}
+      <div class="sx-frame" id="sx-frame"><div class="sx-scroll" id="sx-scroll"><div class="sx-grid" id="sx-grid" role="grid" tabindex="0"></div><div class="sx-ed" id="sx-ed" hidden></div></div></div>
+      <p class="sx-note" id="sx-note" data-sx="note" title="What this sheet reads"></p>${tabsHTML()}
+      <div class="sx-menu" id="sx-menu" role="menu" hidden></div><div class="sx-pop" id="sx-pop" hidden></div>`;
+  }
+  function cellHTML(sh, row, col, ci, ri) {
+    if (sh.freeform) {
+      const t = shown(sh.id, row.id, col.id), st = styleOf(sh.id, row.id, col.id) || {};
+      const cls = `${t.type === "number" ? " sx-num" : ""}${t.type === "error" ? " sx-errv" : ""}${st.bold ? " sx-b" : ""}${input(sh.id, row.id, col.id).startsWith("=") ? " sx-f" : ""}`;
+      return [cls, t.text === "" ? "" : esc(t.text)];
+    }
+    const raw = input(sh.id, row.id, col.id);
+    const recs = row.recs && row.recs[col.id];
+    switch (col.kind) {
+      case "rec": case "recs":
+        if (recs && recs.length) return [" sx-recs", recs.map((r) => `<button type="button" class="sx-rec" tabindex="-1" data-panel="${esc(r.p)}" data-id="${esc(r.id)}" title="${esc(r.title)}">${esc(r.label)}</button>`).join('<span class="sx-sep2">, </span>')];
+        return ["", raw ? esc(raw) : col.kind === "rec" ? "" : DASH];
+      case "status": case "select":
+        // A column whose usual word is fine (evidence Accepted) prints it plain, so colour stays on what needs action.
+        if (col.quietOk && raw && h.pill.toneOf && h.pill.toneOf("none", raw) === "ok") return ["", esc(raw)];
+        return [" sx-pillc", raw ? pillOf(raw) : DASH];
+      case "num": return [" sx-num", raw === "" ? DASH : `<span class="${raw === "0" ? "sx-mu" : ""}">${fmt(Number(raw))}</span>`];
+      case "date": return [" sx-num", raw ? esc(md(raw)) : DASH];
+      default: return ["", raw ? esc(raw) : DASH];
+    }
+  }
+  function drawGrid() {
+    const g = document.getElementById("sx-grid"); if (!g) return;
+    const sh = cur(), v = vs();
+    RH_W = sh.freeform ? 44 : narrow() ? 44 : 52;
+    colStyle();
+    const list = order(sh.id);
+    g.setAttribute("aria-label", `${sh.name} sheet`);
+    g.setAttribute("aria-rowcount", String(list.length + 1));
+    g.setAttribute("aria-colcount", String(sh.cols.length + 1));
+    g.setAttribute("aria-multiselectable", "true");
+    g.dataset.sheet = sh.id;
+    const head = sh.cols.map((c, i) => {
+      const so = v.sort && v.sort.c === c.id ? (v.sort.dir > 0 ? "ascending" : "descending") : "none";
+      const fl = v.filters[c.id] && v.filters[c.id].size;
+      return `<div class="sx-h sxc-${i}${i < v.frozen ? ` sxf-${i}` : ""}" role="columnheader" aria-colindex="${i + 2}" aria-sort="${so}" data-c="${i}" id="sx-h-${i}">${sh.freeform ? `<span class="sx-hn">${colName(i)}</span>` : `<span class="sx-hl" aria-hidden="true">${colName(i)}</span><span class="sx-hn">${esc(c.name)}</span>`}${so !== "none" ? `<span class="sx-hs" aria-hidden="true">${so === "ascending" ? "↑" : "↓"}</span>` : ""}${c.edit && !sh.freeform ? `<span class="sx-he" title="You can edit this column">${I("pen")}<span class="sx-sr">, editable</span></span>` : ""}<button type="button" class="sx-hm${fl ? " on" : ""}" data-sx-hm="${i}" tabindex="-1" aria-label="${esc(c.name)} column menu${fl ? ", filtered" : ""}" aria-haspopup="menu">${I(fl ? "filter" : "chev")}</button><span class="sx-rsz" data-sx-rsz="${i}" aria-hidden="true"></span></div>`;
+    }).join("");
+    g.innerHTML = `<div class="sx-hrow" role="row" aria-rowindex="1"><div class="sx-corner" role="columnheader" aria-colindex="1" data-sx="all" title="Select every cell"><span class="sx-sr">Row</span></div>${head}</div><div class="sx-body" id="sx-body" role="rowgroup"></div>`;
+    ST.win = null;
+    drawBody(true);
+    const note = document.getElementById("sx-note"); if (note) note.textContent = sh.note || "";
+  }
+  function drawBody(force) {
+    const body = document.getElementById("sx-body"), sc = document.getElementById("sx-scroll"); if (!body || !sc) return;
+    const sh = cur(), v = vs(), list = order(sh.id);
+    const viewH = sc.clientHeight || 600;
+    const first = Math.max(0, Math.floor((sc.scrollTop - 0) / ROW_H) - BUF);
+    const last = Math.min(list.length, Math.ceil((sc.scrollTop + viewH) / ROW_H) + BUF);
+    if (!force && ST.win && ST.win[0] <= first && ST.win[1] >= last && ST.win[2] === list && ST.win[3] === wb().revision && ST.win[4] === ST.calcRev) { paint(); return; }
+    const a = Math.max(0, first - BUF), b = Math.min(list.length, last + BUF);
+    const hadFocus = body.contains(document.activeElement);
+    let html = `<div class="sx-pad" style="height:${a * ROW_H}px" aria-hidden="true"></div>`;
+    for (let vr = a; vr < b; vr++) {
+      const ri = list[vr], row = sh.rows[ri];
+      let cells = "";
+      sh.cols.forEach((c, ci) => {
+        const [cls, inner] = cellHTML(sh, row, c, ci, ri);
+        const chg = c.edit && !sh.freeform && input(sh.id, row.id, c.id) !== baseInput(sh.id, row.id, c.id);
+        cells += `<div class="sx-c sxc-${ci}${ci < v.frozen ? ` sxf-${ci}` : ""}${cls}${chg ? " sx-chg" : ""}${c.edit ? " sx-ed-ok" : ""}" role="gridcell" id="sx-${sh.id}-${ri}-${ci}" aria-colindex="${ci + 2}" data-c="${ci}"${chg ? ' aria-description="Staged change, not applied"' : ""}>${inner}</div>`;
+      });
+      html += `<div class="sx-row" role="row" aria-rowindex="${vr + 2}" data-vr="${vr}"><div class="sx-rh" role="rowheader" data-vr="${vr}">${ri + 1}</div>${cells}</div>`;
+    }
+    html += `<div class="sx-pad" style="height:${(list.length - b) * ROW_H}px" aria-hidden="true"></div>`;
+    if (!list.length) html = `<div class="sx-empty" role="row"><div role="gridcell">${filtered(sh.id) ? `No row matches the filters. <button type="button" class="sx-link" data-sx="clear">Clear filters</button>` : "This sheet has no rows."}</div></div>`;
+    body.innerHTML = html;
+    ST.win = [a, b, list, wb().revision, ST.calcRev];
+    paint();
+    if (hadFocus) { const g = document.getElementById("sx-grid"); if (g) g.focus({ preventScroll: true }); }
+  }
+  const rect = () => { const v = vs(); return { r1: Math.min(v.a.r, v.f.r), r2: Math.max(v.a.r, v.f.r), c1: Math.min(v.a.c, v.f.c), c2: Math.max(v.a.c, v.f.c) }; };
+  function paint() {
+    const body = document.getElementById("sx-body"), g = document.getElementById("sx-grid"); if (!body || !g) return;
+    const sh = cur(), v = vs(), q = rect(), hits = new Set(ST.find.open ? ST.find.hits.filter((x) => x.sid === sh.id).map((x) => x.rowId + "|" + x.colId) : []);
+    const list = order(sh.id);
+    for (const row of body.children) {
+      const vr = row.dataset.vr == null ? -1 : +row.dataset.vr; if (vr < 0) continue;
+      const inR = vr >= q.r1 && vr <= q.r2;
+      const rowId = sh.rows[list[vr]] ? sh.rows[list[vr]].id : "";
+      const rh = row.firstElementChild;
+      rh.classList.toggle("sx-hsel", inR && q.c1 === 0 && q.c2 === sh.cols.length - 1);
+      for (let k = 1; k < row.children.length; k++) {
+        const cell = row.children[k], ci = k - 1;
+        const sel = inR && ci >= q.c1 && ci <= q.c2;
+        const act = vr === v.a.r && ci === v.a.c;
+        cell.classList.toggle("sx-sel", sel && !(q.r1 === q.r2 && q.c1 === q.c2));
+        cell.classList.toggle("sx-act", act);
+        cell.setAttribute("aria-selected", sel ? "true" : "false");
+        cell.classList.toggle("sx-hit", hits.size > 0 && hits.has(rowId + "|" + sh.cols[ci].id));
+      }
+    }
+    g.querySelectorAll(".sx-h").forEach((hc) => { const ci = +hc.dataset.c; hc.classList.toggle("sx-hsel", ci >= q.c1 && ci <= q.c2 && q.r1 === 0 && q.r2 === list.length - 1 && list.length > 0); hc.classList.toggle("sx-hact", ci === v.a.c); });
+    const act = document.getElementById(`sx-${sh.id}-${list[v.a.r]}-${v.a.c}`);
+    if (act) g.setAttribute("aria-activedescendant", act.id); else g.removeAttribute("aria-activedescendant");
+    syncFormula(); drawStatus();
+  }
+  function drawStatus() {
+    const el = document.getElementById("sx-status"); if (!el) return;
+    const sh = cur(), list = order(sh.id), q = rect(), parts = [];
+    if (!sh.freeform) parts.push(filtered(sh.id) ? `Showing <b class="num">${fmt(list.length)}</b> of <span class="num">${fmt(sh.rows.length)}</span> rows` : `<span class="num">${fmt(sh.rows.length)}</span> rows`);
+    const cells = (q.r2 - q.r1 + 1) * (q.c2 - q.c1 + 1);
+    if (cells > 1 && list.length) {
+      let n = 0, sum = 0, filled = 0;
+      if (cells <= 20000) for (let vr = q.r1; vr <= q.r2; vr++) { const row = sh.rows[list[vr]]; if (!row) continue; for (let ci = q.c1; ci <= q.c2; ci++) { const col = sh.cols[ci]; const t = sh.freeform ? shown(sh.id, row.id, col.id) : { text: input(sh.id, row.id, col.id), type: col.kind === "num" ? "number" : "text" }; if (t.text !== "") filled++; if ((t.type === "number" || col.kind === "num") && t.text !== "" && Number.isFinite(Number(t.text))) { n++; sum += Number(t.text); } } }
+      parts.push(`Count <b class="num">${fmt(filled)}</b>`);
+      if (n) parts.push(`Sum <b class="num">${fmt(Math.round(sum * 100) / 100)}</b>`);
+    }
+    if (ST.msg) parts.push(`<span class="sx-msg">${esc(ST.msg)}</span>`);
+    parts.push(`<span class="sx-eng">${ST.engine === "ironcalc" ? "Formulas: IronCalc 0.8.4" : ST.engine === "pending" ? "Starting IronCalc…" : "Formulas: the prototype's evaluator (WebAssembly is off here)"}</span>`);
+    el.innerHTML = parts.join('<span class="sx-dot" aria-hidden="true">·</span>');
+  }
+  const activeCell = () => { const sh = cur(), v = vs(), list = order(sh.id); const ri = list[v.a.r]; const row = ri == null ? null : sh.rows[ri]; return row ? { sh, row, ri, col: sh.cols[v.a.c], ci: v.a.c, vr: v.a.r } : null; };
+  const addr = (ci, ri) => `${colName(ci)}${ri + 1}`;
+  function syncFormula() {
+    const nm = document.getElementById("sx-name"), fx = document.getElementById("sx-formula"), note = document.getElementById("sx-fbnote"); if (!nm || !fx) return;
+    const a = activeCell(), q = rect(), sh = cur(), list = order(sh.id);
+    if (document.activeElement !== nm) nm.value = !a ? "" : q.r1 === q.r2 && q.c1 === q.c2 ? addr(a.ci, a.ri) : `${addr(q.c1, list[q.r1])}:${addr(q.c2, list[q.r2])}`;
+    if (document.activeElement === fx || ST.editing) return;
+    if (!a) { fx.value = ""; fx.readOnly = true; if (note) note.textContent = ""; return; }
+    const raw = input(sh.id, a.row.id, a.col.id);
+    fx.value = raw;
+    const can = !!a.col.edit;
+    fx.readOnly = !can;
+    fx.setAttribute("aria-label", `${a.col.name}, ${addr(a.ci, a.ri)}${can ? "" : ", read only"}`);
+    if (note) note.textContent = can ? (sh.freeform ? "" : "Staged until you review it") : sh.freeform ? "" : "Read only: derived from WS-X90's records";
+  }
+
+  // ════════════════ Selection and movement ════════════════
+  function select(r, c, extend, mode) {
+    const sh = cur(), v = vs(), list = order(sh.id);
+    if (!list.length) return;
+    r = Math.max(0, Math.min(list.length - 1, r)); c = Math.max(0, Math.min(sh.cols.length - 1, c));
+    if (mode === "row") { v.a = { r, c: 0 }; v.f = { r, c: sh.cols.length - 1 }; }
+    else if (mode === "col") { v.a = { r: 0, c }; v.f = { r: list.length - 1, c }; }
+    else if (extend) v.f = { r, c };
+    else { v.a = { r, c }; v.f = { r, c }; }
+    ST.msg = "";
+    reveal(mode === "col" ? null : extend ? v.f.r : v.a.r, extend ? v.f.c : v.a.c);
+    paint();
+    refreshToolbar();
+  }
+  function extendTo(r, c) { const v = vs(), sh = cur(), list = order(sh.id); v.f = { r: Math.max(0, Math.min(list.length - 1, r)), c: Math.max(0, Math.min(sh.cols.length - 1, c)) }; reveal(v.f.r, v.f.c); paint(); }
+  function reveal(vr, ci) {
+    const sc = document.getElementById("sx-scroll"); if (!sc) return;
+    if (vr != null) {
+      const top = vr * ROW_H, bot = top + ROW_H, view = sc.clientHeight - HEAD_H;
+      if (top < sc.scrollTop) sc.scrollTop = top;
+      else if (bot > sc.scrollTop + view) sc.scrollTop = bot - view;
+    }
+    if (ci != null && ci >= vs().frozen) {
+      const left = colLeft(ci), w = widthOf(cur(), cur().cols[ci]), fz = frozenW();
+      if (left - fz < sc.scrollLeft) sc.scrollLeft = left - fz;
+      else if (left + w > sc.scrollLeft + sc.clientWidth) sc.scrollLeft = left + w - sc.clientWidth;
+    }
+    drawBody();
+  }
+  const pageRows = () => { const sc = document.getElementById("sx-scroll"); return Math.max(1, Math.floor(((sc ? sc.clientHeight : 600) - HEAD_H) / ROW_H) - 1); };
+  function refreshToolbar() { const tb = $("#sx-app .sx-tb"); if (tb) { const html = toolbarHTML(); const t = document.createElement("div"); t.innerHTML = html; const focused = document.activeElement && tb.contains(document.activeElement) ? document.activeElement.dataset.sx : null; tb.replaceWith(t.firstElementChild); if (focused) { const b = $(`#sx-app .sx-tb [data-sx="${focused}"]`); if (b) b.focus(); } } }
+  function refreshHead() { const hd = $("#sx-app .sx-head"); if (!hd) return; const focused = document.activeElement && hd.contains(document.activeElement) ? (document.activeElement.dataset.sx || (document.activeElement.classList.contains("sx-review") ? "review" : null)) : null; const t = document.createElement("div"); t.innerHTML = headHTML(); hd.replaceWith(t.firstElementChild); if (focused) { const b = focused === "review" ? $("#sx-app .sx-review") : $(`#sx-app .sx-head [data-sx="${focused}"]`); if (b) b.focus(); } }
+
+  // ════════════════ Editing ════════════════
+  const grid = () => document.getElementById("sx-grid");
+  function startEdit(seed) {
+    const a = activeCell(); if (!a) return;
+    if (!a.col.edit) { flash(a.sh.freeform ? "" : `${a.col.name} is read only here: it is derived from WS-X90's records.`); return; }
+    const cellEl = document.getElementById(`sx-${a.sh.id}-${a.ri}-${a.ci}`); if (!cellEl) return;
+    const ed = document.getElementById("sx-ed"), frame = document.getElementById("sx-scroll");
+    const raw = input(a.sh.id, a.row.id, a.col.id);
+    ST.editing = { sid: a.sh.id, rowId: a.row.id, colId: a.col.id, ci: a.ci, ri: a.ri, vr: a.vr, kind: a.col.kind, orig: raw };
+    if (a.col.kind === "select") return openChoice(a, cellEl);
+    const long = a.col.kind === "long";
+    ed.hidden = false;
+    ed.innerHTML = `<label class="sx-sr" for="sx-edi">${esc(a.col.name)}, ${addr(a.ci, a.ri)}</label><textarea id="sx-edi" class="sx-edi${long ? " long" : ""}" spellcheck="${long}" rows="${long ? 6 : 1}"></textarea>${a.sh.freeform ? '<div class="sx-sugg" id="sx-sugg" role="listbox" aria-label="Formula suggestions" hidden></div>' : ""}<div class="sx-edhint">${long ? "Enter keeps the text · Shift+Enter starts a new line · Esc cancels" : a.sh.freeform ? "Enter keeps the formula · Esc cancels" : "Enter keeps it · Esc cancels"}</div>`;
+    const ta = ed.querySelector("textarea");
+    ta.value = seed != null ? seed : raw;
+    placeEditor();
+    ta.focus();
+    const n = ta.value.length; ta.setSelectionRange(n, n);
+    const fx = document.getElementById("sx-formula"); if (fx) fx.value = ta.value;
+    ta.addEventListener("input", () => { if (fx) fx.value = ta.value; if (long || a.sh.freeform) autosize(ta); suggest(ta); });
+    ta.addEventListener("keydown", (e) => {
+      const sg = document.getElementById("sx-sugg");
+      if (sg && !sg.hidden && (e.key === "ArrowDown" || e.key === "ArrowUp" || e.key === "Tab" || (e.key === "Enter" && sg.querySelector(".on")))) {
+        const items = [...sg.querySelectorAll("[role=option]")]; let k = items.findIndex((x) => x.classList.contains("on"));
+        if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); k = (k + (e.key === "ArrowDown" ? 1 : items.length - 1) + (k < 0 && e.key === "ArrowDown" ? 0 : 0)) % items.length; items.forEach((x, j) => x.classList.toggle("on", j === k)); return; }
+        if (k >= 0) { e.preventDefault(); insertSuggestion(ta, items[k]); return; }
+      }
+      if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); cancelEdit(); return; }
+      if (e.key === "Enter" && !e.shiftKey && !e.altKey) { e.preventDefault(); commitEdit(ta.value, 1, 0); return; }
+      if (e.key === "Tab") { e.preventDefault(); commitEdit(ta.value, 0, e.shiftKey ? -1 : 1); }
+    });
+    ta.addEventListener("blur", () => { setTimeout(() => { if (ST.editing && ST.editing.rowId === a.row.id && ST.editing.colId === a.col.id && document.activeElement !== ta && !(document.getElementById("sx-sugg") || { contains: () => false }).contains(document.activeElement)) commitEdit(ta.value, 0, 0, true); }, 120); });
+    if (long || a.sh.freeform) autosize(ta);
+  }
+  function autosize(ta) { ta.style.height = "auto"; ta.style.height = Math.min(Math.max(ta.scrollHeight, ROW_H), 260) + "px"; }
+  function placeEditor() {
+    const e = ST.editing; if (!e) return;
+    const ed = document.getElementById("sx-ed"), sc = document.getElementById("sx-scroll"); if (!ed || ed.hidden || !sc) return;
+    const sh = cur(), col = sh.cols[e.ci], w = widthOf(sh, col);
+    const fz = e.ci < vs().frozen;
+    const left = fz ? colLeft(e.ci) + sc.scrollLeft : colLeft(e.ci);
+    const top = HEAD_H + e.vr * ROW_H;
+    const long = col.kind === "long";
+    const width = Math.min(long ? Math.max(w, 460) : Math.max(w, sh.freeform ? 320 : w), sc.clientWidth - 8);
+    const x = Math.max(sc.scrollLeft + 2, Math.min(left, sc.scrollLeft + sc.clientWidth - width - 4));
+    ed.style.left = x + "px"; ed.style.top = top + "px"; ed.style.width = width + "px";
+  }
+  function cancelEdit() { const e = ST.editing; ST.editing = null; closeEditorUI(); syncFormula(); const g = grid(); if (g) g.focus({ preventScroll: true }); if (e) paint(); }
+  function closeEditorUI() { const ed = document.getElementById("sx-ed"); if (ed) { ed.hidden = true; ed.innerHTML = ""; } closePop(); }
+  function commitEdit(value, dr, dc, blur) {
+    const e = ST.editing; if (!e) return;
+    ST.editing = null;
+    closeEditorUI();
+    if (value !== e.orig) setCell(e.sid, e.rowId, e.colId, value);
+    if (!blur) { const g = grid(); if (g) g.focus({ preventScroll: true }); if (dr || dc) select(vs().a.r + dr, vs().a.c + dc); else paint(); }
+    else paint();
+  }
+  function setCell(sid, rowId, colId, value) {
+    const sh = sheetOf(sid), col = sh.cols.find((c) => c.id === colId);
+    let next;
+    try {
+      next = ENG.applyOperation(wb(), { type: "edit", sheetId: sid, edits: [{ rowId, columnId: colId, value }] });
+      // Implementation is one field shown on two sheets: an edit on either changes both, in one undo step.
+      if (col.field === "impl") { const row = sh.rows.find((r) => r.id === rowId); const other = sid === "sctm" ? "controls" : "sctm"; const osh = sheetOf(other); const orow = osh && osh.rows.find((r) => r.recId === row.recId); if (orow) next = ENG.applyOperation(next, { type: "edit", sheetId: other, edits: [{ rowId: orow.id, columnId: "impl", value }] }); }
+    } catch (err) { flash(err.message || "That value does not fit this column."); return false; }
+    ST.hist.replace(next);
+    if (sid === "analysis") { const mine = Object.assign({}, V.get("sctm.analysis", null) || {}); mine[rowId] = Object.assign({}, mine[rowId] || {}, { [colId]: value }); V.set("sctm.analysis", mine); }
+    afterChange(sid === "analysis" ? "" : `${col.name} of ${sh.rows.find((r) => r.id === rowId).recId} staged.`);
+    return true;
+  }
+  // Staged edits are kept for the tab's session too, so a reload or a visit elsewhere keeps the draft (sctm.staged).
+  const persistStaged = () => V.set("sctm.staged", ST.staged.size ? [...ST.staged.values()].map(({ key, kind, code, field, label, from, to, sid, colId }) => ({ key, kind, code, field, label, from, to, sid, colId })) : null);
+  function afterChange(msg) {
+    ST.staged = staged();
+    persistStaged();
+    calculate();
+    ST.orderKey = {};
+    ST.msg = msg || "";
+    refreshHead(); refreshToolbar();
+    drawBody(true);
+  }
+  function flash(t) { ST.msg = t; drawStatus(); if (t) announce(t); }
+  function announce(t) { let el = document.getElementById("sx-live"); if (!el) { el = document.createElement("div"); el.id = "sx-live"; el.className = "sx-sr"; el.setAttribute("aria-live", "assertive"); (app() || document.body).appendChild(el); } el.textContent = ""; setTimeout(() => { el.textContent = t; }, 30); }
+  // Formula suggestions (spreadsheet-core's catalogue) while a formula is typed in the Analysis sheet.
+  function suggest(ta) {
+    const sg = document.getElementById("sx-sugg"); if (!sg || !ENG) return;
+    const list = ta.value.startsWith("=") ? ENG.formulaSuggestions(ta.value, ta.selectionStart) : [];
+    if (!list.length) { sg.hidden = true; sg.innerHTML = ""; return; }
+    sg.hidden = false;
+    sg.innerHTML = list.slice(0, 6).map((s, k) => `<div role="option" class="sx-sg${k === 0 ? " on" : ""}" data-from="${s.from}" data-to="${s.to}" data-insert="${esc(s.insert)}" aria-selected="${k === 0}"><b>${esc(s.name)}</b><span>${esc(s.signature)}</span></div>`).join("");
+    sg.querySelectorAll("[role=option]").forEach((o) => o.addEventListener("mousedown", (e) => { e.preventDefault(); insertSuggestion(ta, o); }));
+  }
+  function insertSuggestion(ta, o) { const from = +o.dataset.from, to = +o.dataset.to, ins = o.dataset.insert; ta.value = ta.value.slice(0, from) + ins + ta.value.slice(to); const p = from + ins.length; ta.setSelectionRange(p, p); ta.focus(); const sg = document.getElementById("sx-sugg"); if (sg) { sg.hidden = true; sg.innerHTML = ""; } const fx = document.getElementById("sx-formula"); if (fx) fx.value = ta.value; }
+  // A choice: the column's options in a list under the cell.
+  function openChoice(a, cellEl) {
+    const raw = input(a.sh.id, a.row.id, a.col.id);
+    const opts = a.col.options;
+    const pop = document.getElementById("sx-pop");
+    pop.innerHTML = `<div class="sx-choice" role="listbox" id="sx-choice" tabindex="-1" aria-label="${esc(a.col.name)} for ${esc(a.row.recId)}">${opts.map((o, k) => `<div role="option" id="sx-opt-${k}" class="sx-opt${o === raw ? " on" : ""}" aria-selected="${o === raw}" data-v="${esc(o)}">${pillOf(o)}</div>`).join("")}</div>`;
+    pop.hidden = false; pop.dataset.kind = "choice"; pop._at = Date.now();
+    placePop(cellEl.getBoundingClientRect(), 220);
+    const lb = pop.querySelector("[role=listbox]");
+    let k = Math.max(0, opts.indexOf(raw));
+    const mark = () => { lb.querySelectorAll("[role=option]").forEach((o, j) => o.classList.toggle("hl", j === k)); lb.setAttribute("aria-activedescendant", "sx-opt-" + k); };
+    mark(); lb.focus();
+    lb.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); k = (k + (e.key === "ArrowDown" ? 1 : opts.length - 1)) % opts.length; mark(); }
+      else if (e.key === "Home" || e.key === "End") { e.preventDefault(); k = e.key === "Home" ? 0 : opts.length - 1; mark(); }
+      else if (e.key === "Enter" || e.key === " " || e.key === "Tab") { e.preventDefault(); commitEdit(opts[k], e.key === "Tab" ? 0 : 1, e.key === "Tab" ? (e.shiftKey ? -1 : 1) : 0); }
+      else if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); cancelEdit(); }
+      else if (/^[a-z]$/i.test(e.key)) { const j = opts.findIndex((o) => o.toLowerCase().startsWith(e.key.toLowerCase())); if (j >= 0) { k = j; mark(); } }
+    });
+    lb.addEventListener("click", (e) => { const o = e.target.closest("[role=option]"); if (o) commitEdit(o.dataset.v, 0, 0); });
+  }
+  function placePop(r, w) {
+    const pop = document.getElementById("sx-pop"); const vw = innerWidth, vh = innerHeight;
+    pop.style.width = Math.min(w, vw - 16) + "px";
+    const ph = pop.offsetHeight || 200;
+    let left = Math.min(Math.max(8, r.left), vw - Math.min(w, vw - 16) - 8), top = r.bottom + 4;
+    if (top + ph > vh - 8) top = Math.max(8, r.top - ph - 4);
+    pop.style.left = left + "px"; pop.style.top = top + "px";
+  }
+  function closePop() { const pop = document.getElementById("sx-pop"); if (pop && !pop.hidden) { pop.hidden = true; pop.innerHTML = ""; delete pop.dataset.kind; } }
+
+  // ════════════════ Sort, filter, freeze, fit, copy ════════════════
+  function sortBy(ci, dir) {
+    const sh = cur(), v = vs(), col = sh.cols[ci]; if (!col) return;
+    v.sort = { c: col.id, dir }; ST.orderKey = {};
+    const keep = activeCell();
+    drawGrid();
+    if (keep) { const list = order(sh.id); const vr = list.indexOf(keep.ri); select(vr < 0 ? 0 : vr, ci); }
+    flash(`Sorted by ${col.name}, ${dir > 0 ? "A to Z" : "Z to A"}. Row numbers keep their places.`);
+    refreshToolbar();
+  }
+  function setFilter(ci, set) {
+    const sh = cur(), v = vs(), col = sh.cols[ci];
+    if (set && set.size) v.filters[col.id] = set; else delete v.filters[col.id];
+    if (sh.id === "sctm") ST.sctmView = "custom";
+    ST.orderKey = {}; v.a = { r: 0, c: ci }; v.f = { r: 0, c: ci };
+    const sc = document.getElementById("sx-scroll"); if (sc) sc.scrollTop = 0;
+    drawGrid(); refreshToolbar();
+    const n = order(sh.id).length;
+    flash(set && set.size ? `${col.name} filtered: ${plural(n, "row")} shown.` : `${col.name} filter cleared.`);
+  }
+  function clearFilters() { const v = vs(); v.filters = {}; if (ST.sid === "sctm") ST.sctmView = "all"; ST.orderKey = {}; drawGrid(); refreshToolbar(); flash("Every filter cleared."); }
+  function applyView(k) {
+    const sh = sheetOf("sctm"), v = ST.view.sctm;
+    const want = { all: {}, action: { next: null }, noreq: { cs: ["No requirement"] }, noev: { cs: ["No evidence"] }, short: { cs: ["Partially satisfied", "Other than satisfied"] }, risk: { risk: null }, planned: { impl: ["Planned", "Not implemented"] } }[k] || {};
+    v.filters = {};
+    for (const [cid, vals] of Object.entries(want)) {
+      const col = sh.cols.find((c) => c.id === cid);
+      if (vals) v.filters[cid] = new Set(vals);
+      else { const all = new Set(); for (const row of sh.rows) for (const x of valuesOf(sh, row, col)) if (x !== "") all.add(x); v.filters[cid] = all; }
+    }
+    ST.sctmView = k; ST.orderKey = {}; v.a = { r: 0, c: 0 }; v.f = { r: 0, c: 0 };
+    const sc = document.getElementById("sx-scroll"); if (sc) sc.scrollTop = 0;
+    drawGrid(); refreshToolbar();
+    flash(`${SCTM_VIEWS.find((x) => x[0] === k)[1]}: ${plural(order("sctm").length, "control")}.`);
+  }
+  function openFilter(ci, anchor) {
+    const sh = cur(), v = vs(), col = sh.cols[ci];
+    const counts = new Map();
+    for (const row of sh.rows) for (const x of valuesOf(sh, row, col)) { const k = x === "" ? "\u0000" : x; counts.set(k, (counts.get(k) || 0) + 1); }
+    const vals = [...counts.keys()].sort((a, b) => (a === "\u0000") - (b === "\u0000") || (col.kind === "num" ? Number(a) - Number(b) : cmpText(a, b)));
+    const on = v.filters[col.id] ? new Set(v.filters[col.id]) : new Set(vals);
+    const label = (x) => (x === "\u0000" ? "(Blank)" : col.kind === "date" ? md(x) : x);
+    const pop = document.getElementById("sx-pop");
+    const draw = (q) => {
+      const show = vals.filter((x) => !q || label(x).toLowerCase().includes(q.toLowerCase())).slice(0, 300);
+      return show.map((x, k) => `<label class="sx-fv"><input type="checkbox" data-v="${esc(x)}"${on.has(x) ? " checked" : ""}><span class="sx-fvt">${esc(label(x))}</span><span class="num sx-mu">${fmt(counts.get(x))}</span></label>`).join("") + (vals.length > show.length && !q ? `<p class="sx-mu sx-fmore">Type to find the other ${fmt(vals.length - show.length)} values.</p>` : "");
+    };
+    pop.innerHTML = `<div class="sx-filter" role="dialog" aria-label="Filter ${esc(col.name)}"><div class="sx-fh"><b>Filter ${esc(col.name)}</b><span class="sx-mu num">${fmt(vals.length)} values</span></div>
+      <label class="sx-sr" for="sx-fq">Find a value</label><input id="sx-fq" class="sx-fq" placeholder="Find a value" autocomplete="off">
+      <div class="sx-fbar"><button type="button" class="sx-link" data-f="all">Select all</button><button type="button" class="sx-link" data-f="none">Clear</button></div>
+      <div class="sx-flist" id="sx-flist">${draw("")}</div>
+      <div class="sx-ff"><button type="button" class="btn sm" data-f="cancel">Cancel</button><button type="button" class="btn sm ink" data-f="apply">Apply</button></div></div>`;
+    pop.hidden = false; pop.dataset.kind = "filter";
+    placePop(anchor.getBoundingClientRect(), 300);
+    const q = pop.querySelector("#sx-fq"), listEl = pop.querySelector("#sx-flist");
+    q.focus();
+    q.addEventListener("input", () => { listEl.innerHTML = draw(q.value); });
+    pop.querySelector(".sx-filter").addEventListener("change", (e) => { const cb = e.target.closest("input[type=checkbox]"); if (!cb) return; cb.checked ? on.add(cb.dataset.v) : on.delete(cb.dataset.v); });
+    pop.querySelector(".sx-filter").addEventListener("click", (e) => {
+      const b = e.target.closest("[data-f]"); if (!b) return;
+      const f = b.dataset.f;
+      if (f === "all") { vals.forEach((x) => on.add(x)); listEl.innerHTML = draw(q.value); }
+      else if (f === "none") { on.clear(); listEl.innerHTML = draw(q.value); }
+      else if (f === "cancel") { closePop(); anchorFocus(anchor); }
+      else if (f === "apply") { closePop(); setFilter(ci, on.size === vals.length ? null : new Set(on)); anchorFocus(anchor); }
+    });
+    pop.querySelector(".sx-filter").addEventListener("keydown", (e) => { if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); closePop(); anchorFocus(anchor); } if (e.key === "Enter" && e.target === q) { e.preventDefault(); closePop(); setFilter(ci, on.size === vals.length ? null : new Set(on)); anchorFocus(anchor); } });
+  }
+  const anchorFocus = (el) => { const g = grid(); if (g) g.focus({ preventScroll: true }); };
+  function fitColumn(ci) {
+    const sh = cur(), col = sh.cols[ci], list = order(sh.id);
+    const cvs = fitColumn.c || (fitColumn.c = document.createElement("canvas")); const ctx = cvs.getContext("2d");
+    ctx.font = "13px " + getComputedStyle(document.body).fontFamily;
+    let w = ctx.measureText(col.name).width + 64;
+    for (const ri of list.slice(0, 800)) { const row = sh.rows[ri]; const t = sh.freeform ? shown(sh.id, row.id, col.id).text : input(sh.id, row.id, col.id); w = Math.max(w, ctx.measureText(t).width + (col.kind === "status" || col.kind === "select" ? 46 : 24)); }
+    vs().widths[col.id] = Math.round(Math.min(Math.max(w, 60), 560));
+    colStyle(); placeEditor();
+    flash(`${col.name} fitted to ${vs().widths[col.id]} px.`);
+  }
+  function toggleFreeze() { const v = vs(); v.frozen = v.frozen ? 0 : 1; drawGrid(); refreshToolbar(); flash(v.frozen ? "First column frozen." : "First column scrolls with the sheet."); }
+  async function copySelection() {
+    const sh = cur(), list = order(sh.id), q = rect(), lines = [];
+    for (let vr = q.r1; vr <= q.r2; vr++) { const row = sh.rows[list[vr]]; if (!row) continue; const cells = []; for (let ci = q.c1; ci <= q.c2; ci++) { const col = sh.cols[ci]; const t = sh.freeform ? shown(sh.id, row.id, col.id).text : input(sh.id, row.id, col.id); cells.push(/[\t\n"]/.test(t) ? `"${t.replace(/"/g, '""')}"` : t); } lines.push(cells.join("\t")); }
+    const text = lines.join("\n");
+    let ok = false;
+    try { if (navigator.clipboard && navigator.clipboard.writeText) { await navigator.clipboard.writeText(text); ok = true; } } catch (e) { ok = false; }
+    if (!ok) { const ta = document.createElement("textarea"); ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0"; document.body.appendChild(ta); ta.select(); try { ok = document.execCommand("copy"); } catch (e) { ok = false; } ta.remove(); const g = grid(); if (g) g.focus({ preventScroll: true }); }
+    flash(ok ? `Copied ${plural(q.r2 - q.r1 + 1, "row")} × ${plural(q.c2 - q.c1 + 1, "column")}.` : "The browser kept the clipboard closed.");
+  }
+  function exportCsv() {
+    const sh = cur(), list = order(sh.id);
+    const q = (t) => (/[",\n]/.test(t) ? `"${t.replace(/"/g, '""')}"` : t);
+    const rows = [sh.cols.map((c) => q(c.name)).join(","), ...list.map((ri) => sh.cols.map((c) => q(sh.freeform ? shown(sh.id, sh.rows[ri].id, c.id).text : input(sh.id, sh.rows[ri].id, c.id))).join(","))];
+    const blob = new Blob([rows.join("\n")], { type: "text/csv" });
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `WS-X90 SCTM - ${sh.name}.csv`; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 400);
+    flash(`${sh.name} exported as CSV: ${plural(list.length, "row")}.`);
+  }
+
+  // ════════════════ Find (spreadsheet-core's findCells) ════════════════
+  function runFind() {
+    const f = ST.find, q = f.q.trim();
+    f.hits = []; f.hidden = 0; f.i = -1;
+    if (!q) { paint(); drawFindCount(); return; }
+    const ids = f.all ? ST.sheets.map((s) => s.id) : [ST.sid];
+    let found = [];
+    try { found = ENG.findCells(wb(), { query: q, sheetIds: ids, includeHidden: true, limit: 2000 }).matches; } catch (e) { found = []; }
+    // Formula results in the Analysis sheet: their displayed values.
+    if (ids.includes("analysis") && ST.calc) for (const [rowId, cols] of Object.entries(ST.calc.sheets.analysis || {})) for (const [colId, r] of Object.entries(cols)) if (String(r.display).toLowerCase().includes(q.toLowerCase()) && !found.some((m) => m.sheetId === "analysis" && m.rowId === rowId && m.columnId === colId)) found.push({ sheetId: "analysis", rowId, columnId: colId });
+    for (const m of found) {
+      const sh = sheetOf(m.sheetId); if (!sh) continue;
+      const ri = sh.rows.findIndex((r) => r.id === m.rowId), ci = sh.cols.findIndex((c) => c.id === m.columnId);
+      const vr = order(sh.id).indexOf(ri);
+      if (vr < 0) { f.hidden++; continue; }
+      f.hits.push({ sid: sh.id, rowId: m.rowId, colId: m.columnId, vr, ci, si: ST.sheets.indexOf(sh) });
+    }
+    f.hits.sort((a, b) => a.si - b.si || a.vr - b.vr || a.ci - b.ci);
+    paint(); drawFindCount();
+  }
+  function drawFindCount() { const el = document.getElementById("sx-findn"); if (!el) return; const f = ST.find; el.textContent = !f.q.trim() ? "" : f.hits.length ? `${f.i < 0 ? "" : f.i + 1 + " of "}${fmt(f.hits.length)}${f.i < 0 ? (f.hits.length === 1 ? " match" : " matches") : ""}${f.hidden ? ` · ${fmt(f.hidden)} hidden by filters` : ""}` : `No match${f.hidden ? ` · ${fmt(f.hidden)} hidden by filters` : ""}`; }
+  function findStep(d) {
+    const f = ST.find; if (!f.hits.length) { runFind(); if (!f.hits.length) return; }
+    f.i = (f.i + d + f.hits.length) % f.hits.length;
+    const m = f.hits[f.i];
+    if (m.sid !== ST.sid) switchSheet(m.sid, true);
+    select(m.vr, m.ci);
+    drawFindCount();
+  }
+  function openFind() { ST.find.open = true; const el = document.getElementById("sx-find"); if (el) el.hidden = false; const q = document.getElementById("sx-findq"); if (q) { q.focus(); q.select(); } if (ST.find.q) runFind(); }
+  function closeFind() { ST.find.open = false; const el = document.getElementById("sx-find"); if (el) el.hidden = true; paint(); const g = grid(); if (g) g.focus({ preventScroll: true }); }
+
+  // ════════════════ Menus ════════════════
+  let menuOpener = null;
+  function openMenu(items, at, opener) {
+    const m = document.getElementById("sx-menu"); if (!m) return;
+    closePop();
+    menuOpener = opener || null;
+    m.innerHTML = items.map((it, k) => it === "-" ? '<div class="sx-msep" role="separator"></div>' : it.head ? `<div class="sx-mhead" role="presentation">${esc(it.head)}</div>` : `<button type="button" role="menuitem" class="sx-mi" tabindex="-1" data-k="${k}"${it.disabled ? ' aria-disabled="true"' : ""}>${esc(it.label)}${it.hint ? `<span class="sx-mu">${esc(it.hint)}</span>` : ""}</button>`).join("");
+    m.hidden = false;
+    m._items = items; m._at = Date.now();
+    const vw = innerWidth, vh = innerHeight, w = Math.min(300, vw - 16);
+    m.style.width = w + "px";
+    const mh = m.offsetHeight;
+    m.style.left = Math.min(Math.max(8, at.x), vw - w - 8) + "px";
+    m.style.top = (at.y + mh > vh - 8 ? Math.max(8, at.y - mh) : at.y) + "px";
+    const first = m.querySelector(".sx-mi:not([aria-disabled])"); if (first) first.focus();
+    if (opener && opener.setAttribute && opener.hasAttribute("aria-haspopup")) opener.setAttribute("aria-expanded", "true");
+  }
+  function closeMenu(focusBack) {
+    const m = document.getElementById("sx-menu"); if (!m || m.hidden) return;
+    m.hidden = true; m.innerHTML = "";
+    if (menuOpener && menuOpener.setAttribute && menuOpener.hasAttribute("aria-expanded")) menuOpener.setAttribute("aria-expanded", "false");
+    if (focusBack) { if (menuOpener && document.contains(menuOpener) && menuOpener.focus) menuOpener.focus(); else { const g = grid(); if (g) g.focus({ preventScroll: true }); } }
+    menuOpener = null;
+  }
+  // A record opens through the core: a [data-panel] element in #main, clicked.
+  function openPreview(kind, id) {
+    const g = grid(); if (!g) return;
+    const chip = [...g.querySelectorAll(".sx-rec")].find((x) => x.dataset.panel === kind && x.dataset.id === String(id));
+    if (chip) { chip.click(); return; }
+    let b = document.getElementById("sx-proxy");
+    if (!b) { b = document.createElement("button"); b.type = "button"; b.id = "sx-proxy"; b.className = "sx-sr"; b.tabIndex = -1; g.appendChild(b); }
+    b.dataset.panel = kind; b.dataset.id = id; b.textContent = "Preview";
+    b.click();
+  }
+  const ctlPage = (code) => { const ch = CH(); return ch && ch.ctlRoute ? ch.ctlRoute(code) : "controls"; };
+  function cellMenu(at, opener) {
+    const a = activeCell(); if (!a) return;
+    const recs = (a.row.recs && a.row.recs[a.col.id]) || [];
+    const own = a.row.recs && (a.row.recs[a.sh.cols[0].id] || [])[0];
+    const items = [];
+    recs.slice(0, 6).forEach((r) => items.push({ label: `Open ${r.label.length > 46 ? r.label.slice(0, 45) + "…" : r.label}`, hint: "Preview", run: () => openPreview(r.p, r.id) }));
+    if (items.length) items.push("-");
+    if (a.col.edit) items.push({ label: "Edit cell", hint: "F2", run: () => startEdit() });
+    items.push({ label: "Copy", hint: "Ctrl+C", run: copySelection });
+    if (!a.sh.freeform) {
+      items.push("-", { label: `Sort ${a.col.name} A to Z`, run: () => sortBy(a.ci, 1) }, { label: `Sort ${a.col.name} Z to A`, run: () => sortBy(a.ci, -1) });
+      const val = valuesOf(a.sh, a.row, a.col)[0];
+      if (val) items.push({ label: `Show only ${val.length > 30 ? val.slice(0, 29) + "…" : val}`, run: () => setFilter(a.ci, new Set([val])) });
+      rowItems(items, a, own);
+    }
+    openMenu(items, at, opener);
+  }
+  function rowItems(items, a, own) {
+    const ctls = (a.row.ctls || []).slice(0, 3);
+    items.push("-");
+    if (own && own.p !== "a-tests-control") items.push({ label: `Open this ${a.sh.id === "reqs" ? "requirement" : a.sh.id === "ev" ? "evidence" : a.sh.id === "risks" ? "risk" : "finding"}`, hint: "Preview", run: () => openPreview(own.p, own.id) });
+    ctls.forEach((c) => items.push({ label: `Open ${c} control preview`, run: () => openPreview("a-tests-control", c) }));
+    if (ctls[0]) items.push({ label: `Open ${ctls[0]} control page`, run: () => { location.hash = ctlPage(ctls[0]); } });
+  }
+  function rowMenu(vr, at, opener) {
+    const sh = cur(), list = order(sh.id); const row = sh.rows[list[vr]]; if (!row) return;
+    select(vr, 0, false, "row");
+    const own = row.recs && (row.recs[sh.cols[0].id] || [])[0];
+    const items = [{ label: `Select row ${list[vr] + 1}`, run: () => select(vr, 0, false, "row") }, { label: "Copy row", run: copySelection }];
+    if (!sh.freeform) rowItems(items, { sh, row, ri: list[vr] }, own);
+    openMenu(items, at, opener);
+  }
+  function colMenu(ci, at, opener) {
+    const sh = cur(), col = sh.cols[ci], v = vs();
+    const items = [{ head: col.name }];
+    if (!sh.freeform) items.push({ label: "Sort A to Z", run: () => sortBy(ci, 1) }, { label: "Sort Z to A", run: () => sortBy(ci, -1) });
+    if (v.sort) items.push({ label: "Back to row order", run: () => { v.sort = null; ST.orderKey = {}; drawGrid(); flash("Rows back in their own order."); } });
+    if (!sh.freeform) { items.push({ label: "Filter…", run: () => { const hc = document.getElementById("sx-h-" + ci); openFilter(ci, hc || grid()); } }); if (v.filters[col.id]) items.push({ label: "Clear this filter", run: () => setFilter(ci, null) }); }
+    const freezeItem = ci > 0 && ci < 5 && v.frozen !== ci + 1 ? { label: `Freeze up to ${col.name}`, run: () => { v.frozen = ci + 1; drawGrid(); refreshToolbar(); flash(`Columns A to ${colName(ci)} stay in view.`); } } : { label: v.frozen ? "Unfreeze columns" : "Freeze the first column", run: toggleFreeze };
+    items.push("-", { label: "Fit to contents", run: () => fitColumn(ci) }, { label: "Reset width", run: () => { delete v.widths[col.id]; colStyle(); } }, freezeItem, "-", { label: "Select column", run: () => select(0, ci, false, "col") }, { label: "Copy column", run: () => { select(0, ci, false, "col"); copySelection(); } });
+    openMenu(items, at, opener);
+  }
+  function openModal(key) {
+    const main = document.getElementById("main"); if (!main) return;
+    let b = document.getElementById("sx-mproxy");
+    if (!b) { b = document.createElement("button"); b.type = "button"; b.id = "sx-mproxy"; b.className = "sx-sr"; b.tabIndex = -1; (app() || main).appendChild(b); }
+    b.dataset.modal = key; b.dataset.id = ""; b.textContent = "Open"; b.click();
+  }
+  M["sctm-keys"] = () => {
+    const K = [["Move", "Arrow keys · Tab and Shift+Tab along a row · Page Up and Page Down"], ["Jump to an edge", "Ctrl+arrow · Ctrl+Home · Ctrl+End"], ["Select a range", "Shift+arrow · Shift+click · drag"], ["Select a row or a column", "Shift+Space · Ctrl+Space · its header"], ["Select everything", "Ctrl+A · the corner"],
+      ["Edit a cell", "F2 · Enter · start typing (Implementation, Narrative, a requirement's Title or Statement, any Analysis cell)"], ["Keep or cancel an edit", "Enter · Tab · Esc"], ["Open a record in a cell", "Enter, or click its link"], ["Cell menu", "Shift+F10 · right-click · long-press"], ["Column menu", "Alt+Down · the header's arrow"],
+      ["Undo and redo", "Ctrl+Z · Ctrl+Y"], ["Copy and paste", "Ctrl+C · Ctrl+V into editable cells"], ["Find", "Ctrl+F, then Enter and Shift+Enter"], ["Next or previous sheet", "Ctrl+Page Down · Ctrl+Page Up"], ["Go to a cell or a record", "Type B12, Analysis!B5 or AC-2 in the name box"]];
+    return { title: "Keyboard shortcuts", body: `<dl class="sx-keys">${K.map(([a, b]) => `<div><dt>${esc(a)}</dt><dd>${esc(b)}</dd></div>`).join("")}</dl>`, footer: '<button type="button" class="btn" data-close-modal data-v2-wired>Close</button>' };
+  };
+  function moreMenu(opener) {
+    const r = opener.getBoundingClientRect();
+    const n = changeCount();
+    openMenu([
+      { label: `Export ${cur().name} as CSV`, run: exportCsv },
+      { label: "Copy the whole sheet", run: () => { const list = order(ST.sid); vs().a = { r: 0, c: 0 }; vs().f = { r: list.length - 1, c: cur().cols.length - 1 }; paint(); copySelection(); } },
+      { label: "Reset this sheet's view", hint: "Sort, filters, widths", run: () => { const v = vs(); v.sort = null; v.filters = {}; v.widths = {}; if (ST.sid === "sctm") ST.sctmView = "all"; ST.orderKey = {}; drawGrid(); refreshToolbar(); flash("The sheet's view is back to its first state."); } },
+      "-",
+      { label: `Discard staged changes`, disabled: !n, run: () => { if (!n) return; ST.hist.replace(ST.base); ST.staged = new Map(); afterChange(`${plural(n, "staged change")} discarded.`); } },
+      { label: "Open the SSP editor", run: () => { location.hash = "ssp"; } },
+      { label: "Keyboard shortcuts", run: () => openModal("sctm-keys") },
+    ], { x: r.right - 300, y: r.bottom + 4 }, opener);
+  }
+
+  // ════════════════ Sheets ════════════════
+  function switchSheet(sid, quiet) {
+    if (!sheetOf(sid) || sid === ST.sid) { if (!quiet) { const t = document.getElementById("sx-tab-" + sid); if (t) t.focus(); } return; }
+    if (ST.editing) commitEdit(($("#sx-edi") || {}).value || ST.editing.orig, 0, 0, true);
+    const sc = document.getElementById("sx-scroll");
+    if (sc) { vs().top = sc.scrollTop; vs().left = sc.scrollLeft; }
+    ST.sid = sid;
+    // The address names the sheet (a reload or a shared link opens it), without the core drawing the route again.
+    try { const want = routeOf(sid); if (V.cur() !== want) history.replaceState(null, "", "#" + want); } catch (e) { /* the address stays */ }
+    document.querySelectorAll("#sx-app .sx-tab").forEach((t) => { const on = t.dataset.sxTab === sid; t.classList.toggle("on", on); t.setAttribute("aria-selected", String(on)); t.tabIndex = on ? 0 : -1; });
+    const t = document.getElementById("sx-tab-" + sid); if (t) t.scrollIntoView({ block: "nearest", inline: "nearest" });
+    refreshToolbar();
+    drawGrid();
+    if (sc) { sc.scrollTop = vs().top || 0; sc.scrollLeft = vs().left || 0; drawBody(true); }
+    if (ST.find.open && ST.find.q) runFind();
+  }
+
+  // ════════════════ Events ════════════════
+  function geom(clientX, clientY) {
+    const sc = document.getElementById("sx-scroll"); if (!sc) return null;
+    const r = sc.getBoundingClientRect(), sh = cur(), list = order(sh.id);
+    const y = clientY - r.top - HEAD_H + sc.scrollTop;
+    const vr = Math.max(0, Math.min(list.length - 1, Math.floor(y / ROW_H)));
+    const xv = clientX - r.left;
+    const fz = frozenW();
+    const x = xv < fz ? xv : xv + sc.scrollLeft;
+    let acc = RH_W, ci = 0;
+    for (let i = 0; i < sh.cols.length; i++) { const w = widthOf(sh, sh.cols[i]); if (x < acc + w) { ci = i; break; } acc += w; ci = i; }
+    return { vr, ci: Math.max(0, ci) };
+  }
+  let drag = null, press = null;
+  function onPointerDown(e) {
+    const t = e.target;
+    if (t.closest(".sx-rsz")) return startResize(e, +t.closest(".sx-rsz").dataset.sxRsz);
+    if (e.button !== 0 && e.pointerType === "mouse") return;
+    const hm = t.closest("[data-sx-hm]"); if (hm) return;
+    if (!t.closest("#sx-grid")) return;
+    // The grid keeps keyboard focus itself: a mouse press never hands focus to a cell the next draw may replace.
+    if (e.pointerType === "mouse" && !t.closest(".sx-rec")) e.preventDefault();
+    if (ST.editing && !t.closest("#sx-ed")) { const ta = $("#sx-edi"); commitEdit(ta ? ta.value : ST.editing.orig, 0, 0, true); }
+    const corner = t.closest(".sx-corner");
+    if (corner) { const list = order(ST.sid); vs().a = { r: 0, c: 0 }; vs().f = { r: list.length - 1, c: cur().cols.length - 1 }; paint(); grid().focus({ preventScroll: true }); return; }
+    const hc = t.closest(".sx-h");
+    if (hc) { const ci = +hc.dataset.c; if (e.shiftKey) { const v = vs(); v.f = { r: order(ST.sid).length - 1, c: ci }; v.a = { r: 0, c: v.a.c }; paint(); } else select(0, ci, false, "col"); grid().focus({ preventScroll: true }); return; }
+    const rh = t.closest(".sx-rh");
+    if (rh) { const vr = +rh.dataset.vr; if (e.shiftKey) { const v = vs(); v.f = { r: vr, c: cur().cols.length - 1 }; v.a = { r: v.a.r, c: 0 }; paint(); } else select(vr, 0, false, "row"); grid().focus({ preventScroll: true }); if (e.pointerType !== "mouse") longPress(e, () => rowMenu(vr, { x: e.clientX, y: e.clientY }, rh)); return; }
+    const cell = t.closest(".sx-c"); if (!cell) return;
+    const g = geom(e.clientX, e.clientY); if (!g) return;
+    const vr = +cell.parentElement.dataset.vr, ci = +cell.dataset.c;
+    if (e.shiftKey) extendTo(vr, ci); else { const v = vs(); v.a = { r: vr, c: ci }; v.f = { r: vr, c: ci }; ST.msg = ""; paint(); refreshToolbar(); }
+    if (!t.closest(".sx-rec")) grid().focus({ preventScroll: true });
+    if (e.pointerType === "mouse" && !t.closest(".sx-rec")) { drag = { id: e.pointerId }; }
+    else if (e.pointerType !== "mouse") longPress(e, () => cellMenu({ x: e.clientX, y: e.clientY }, cell));
+  }
+  function longPress(e, fn) {
+    clearTimeout(press && press.t);
+    press = { x: e.clientX, y: e.clientY, t: setTimeout(() => { press = null; fn(); }, 550) };
+  }
+  function onPointerMove(e) {
+    if (press && Math.hypot(e.clientX - press.x, e.clientY - press.y) > 8) { clearTimeout(press.t); press = null; }
+    if (!drag || e.pointerId !== drag.id) return;
+    const sc = document.getElementById("sx-scroll"); const r = sc.getBoundingClientRect();
+    if (e.clientY > r.bottom - 16) sc.scrollTop += ROW_H; else if (e.clientY < r.top + HEAD_H + 8) sc.scrollTop -= ROW_H;
+    if (e.clientX > r.right - 16) sc.scrollLeft += 40; else if (e.clientX < r.left + frozenW() + 8 && sc.scrollLeft > 0) sc.scrollLeft -= 40;
+    const g = geom(e.clientX, e.clientY); if (!g) return;
+    const v = vs(); if (v.f.r !== g.vr || v.f.c !== g.ci) { v.f = { r: g.vr, c: g.ci }; drawBody(); paint(); }
+  }
+  function onPointerUp() { drag = null; if (press) { clearTimeout(press.t); press = null; } }
+  function startResize(e, ci) {
+    e.preventDefault(); e.stopPropagation();
+    const sh = cur(), col = sh.cols[ci], x0 = e.clientX, w0 = widthOf(sh, col), rtl = getComputedStyle(document.documentElement).direction === "rtl";
+    const move = (ev) => { vs().widths[col.id] = Math.max(48, Math.min(720, Math.round(w0 + (rtl ? x0 - ev.clientX : ev.clientX - x0)))); colStyle(); placeEditor(); };
+    const up = () => { document.removeEventListener("pointermove", move); document.removeEventListener("pointerup", up); flash(`${col.name} is ${vs().widths[col.id] || w0} px wide.`); };
+    document.addEventListener("pointermove", move); document.addEventListener("pointerup", up);
+  }
+  function onGridKey(e) {
+    if (ST.editing) return;
+    const sh = cur(), v = vs(), list = order(sh.id), mod = e.ctrlKey || e.metaKey;
+    const k = e.key;
+    const move = (dr, dc) => { e.preventDefault(); if (e.shiftKey) extendTo(v.f.r + dr, v.f.c + dc); else select(v.a.r + dr, v.a.c + dc); };
+    // Alt+Down opens the active column's menu (sort, filter, fit), as a spreadsheet's filter button does.
+    if (k === "ArrowDown" && e.altKey) { e.preventDefault(); const hc = document.getElementById("sx-h-" + v.a.c); const r = hc ? hc.getBoundingClientRect() : { left: 80, bottom: 80 }; return colMenu(v.a.c, { x: r.left, y: r.bottom + 4 }, grid()); }
+    if (k === "ArrowDown") return mod ? (e.preventDefault(), e.shiftKey ? extendTo(list.length - 1, v.f.c) : select(list.length - 1, v.a.c)) : move(1, 0);
+    if (k === "ArrowUp") return mod ? (e.preventDefault(), e.shiftKey ? extendTo(0, v.f.c) : select(0, v.a.c)) : move(-1, 0);
+    if (k === "ArrowRight") return mod ? (e.preventDefault(), e.shiftKey ? extendTo(v.f.r, sh.cols.length - 1) : select(v.a.r, sh.cols.length - 1)) : move(0, 1);
+    if (k === "ArrowLeft") return mod ? (e.preventDefault(), e.shiftKey ? extendTo(v.f.r, 0) : select(v.a.r, 0)) : move(0, -1);
+    if (k === "Home") { e.preventDefault(); return mod ? select(0, 0) : select(v.a.r, 0); }
+    if (k === "End") { e.preventDefault(); return mod ? select(list.length - 1, sh.cols.length - 1) : select(v.a.r, sh.cols.length - 1); }
+    if (k === "PageDown" && !mod) return move(pageRows(), 0);
+    if (k === "PageUp" && !mod) return move(-pageRows(), 0);
+    if ((k === "PageDown" || k === "PageUp") && mod) { e.preventDefault(); const i = ST.sheets.findIndex((s) => s.id === ST.sid); const n = ST.sheets[(i + (k === "PageDown" ? 1 : ST.sheets.length - 1)) % ST.sheets.length]; switchSheet(n.id, true); grid().focus({ preventScroll: true }); return; }
+    // Tab moves along the row; at the row's end it leaves the grid, so the keyboard never stays trapped in it.
+    if (k === "Tab") { const to = v.a.c + (e.shiftKey ? -1 : 1); if (to < 0 || to >= sh.cols.length) return; e.preventDefault(); return select(v.a.r, to); }
+    if (k === "Enter") {
+      e.preventDefault();
+      const a = activeCell(); if (!a) return;
+      if (e.shiftKey) return select(v.a.r - 1, v.a.c);
+      if (a.col.edit) return startEdit();
+      const recs = (a.row.recs && a.row.recs[a.col.id]) || [];
+      if (recs.length === 1) return openPreview(recs[0].p, recs[0].id);
+      if (recs.length > 1) { const el = document.getElementById(`sx-${a.sh.id}-${a.ri}-${a.ci}`); const r = el ? el.getBoundingClientRect() : { left: 100, bottom: 100 }; return cellMenu({ x: r.left, y: r.bottom }, el || grid()); }
+      return select(v.a.r + 1, v.a.c);
+    }
+    if (k === "F2") { e.preventDefault(); return startEdit(); }
+    if (k === "Escape") { if (v.a.r !== v.f.r || v.a.c !== v.f.c) { e.preventDefault(); v.f = { ...v.a }; paint(); } return; }
+    if ((k === "ContextMenu") || (k === "F10" && e.shiftKey)) { e.preventDefault(); const a = activeCell(); const el = a && document.getElementById(`sx-${a.sh.id}-${a.ri}-${a.ci}`); const r = el ? el.getBoundingClientRect() : { left: 80, bottom: 80 }; return cellMenu({ x: r.left + 12, y: r.bottom }, el || grid()); }
+    if (k === " " && e.shiftKey) { e.preventDefault(); return select(v.a.r, 0, false, "row"); }
+    if (k === " " && mod) { e.preventDefault(); return select(0, v.a.c, false, "col"); }
+    if (mod && (k === "a" || k === "A")) { e.preventDefault(); v.a = { r: 0, c: 0 }; v.f = { r: list.length - 1, c: sh.cols.length - 1 }; return paint(); }
+    if (mod && (k === "c" || k === "C")) { e.preventDefault(); return copySelection(); }
+    if (mod && (k === "z" || k === "Z")) { e.preventDefault(); return e.shiftKey ? redo() : undo(); }
+    if (mod && (k === "y" || k === "Y")) { e.preventDefault(); return redo(); }
+    if (k === "Delete" || k === "Backspace") { const a = activeCell(); if (a && a.col.edit) { e.preventDefault(); if (a.col.kind === "select") return flash(`${a.col.name} needs one of its choices.`); setCell(a.sh.id, a.row.id, a.col.id, ""); } return; }
+    if (k.length === 1 && !mod && !e.altKey) { const a = activeCell(); if (a && a.col.edit) { e.preventDefault(); if (a.col.kind === "select") return startEdit(); return startEdit(k); } if (a && k !== " ") { e.preventDefault(); return startEdit(); } }
+  }
+  // Paste: tab-separated text (spreadsheet-core's parseDelimited) lands from the active cell on, in the order the sheet shows;
+  // only cells a reader may edit take a value, in one atomic edit that spreadsheet-core validates (a choice, a record field).
+  function onPaste(e) {
+    if (ST.editing || !ENG) return;
+    const text = e.clipboardData && e.clipboardData.getData("text/plain"); if (!text) return;
+    e.preventDefault();
+    const a = activeCell(); if (!a) return;
+    const grid2 = ENG.parseDelimited(text.replace(/\r\n?/g, "\n").replace(/\n$/, ""), "\t");
+    const sh = a.sh, list = order(sh.id), edits = [], mirror = [];
+    let skipped = 0;
+    grid2.forEach((cells, dr) => cells.forEach((val, dc) => {
+      const ri = list[a.vr + dr], col = sh.cols[a.ci + dc];
+      if (ri == null || !col || !col.edit) { skipped++; return; }
+      const row = sh.rows[ri];
+      edits.push({ rowId: row.id, columnId: col.id, value: val });
+      if (col.field === "impl") mirror.push([row.recId, val]);
+    }));
+    if (!edits.length) return flash(`Nothing pasted: ${a.col.name} is read only here.`);
+    let next;
+    try {
+      next = ENG.applyOperation(wb(), { type: "edit", sheetId: sh.id, edits });
+      if (mirror.length) { const other = sh.id === "sctm" ? "controls" : "sctm", osh = sheetOf(other); const oe = mirror.map(([rec, val]) => { const r = osh.rows.find((x) => x.recId === rec); return r ? { rowId: r.id, columnId: "impl", value: val } : null; }).filter(Boolean); if (oe.length) next = ENG.applyOperation(next, { type: "edit", sheetId: other, edits: oe }); }
+    } catch (err) { return flash(`Nothing pasted: ${err.message}`); }
+    ST.hist.replace(next);
+    if (sh.freeform) syncAnalysisState();
+    afterChange(`Pasted ${plural(edits.length, "cell")}${skipped ? `; ${plural(skipped, "read-only cell")} left as ${skipped === 1 ? "it was" : "they were"}` : ""}.`);
+  }
+  function undo() { if (!ST.hist.canUndo) return flash("Nothing to undo."); ST.hist.undo(); syncAnalysisState(); afterChange("Undone."); }
+  function redo() { if (!ST.hist.canRedo) return flash("Nothing to redo."); ST.hist.redo(); syncAnalysisState(); afterChange("Redone."); }
+  function syncAnalysisState() {
+    const an = wb().sheets.find((s) => s.id === "analysis"), base = ST.base.sheets.find((s) => s.id === "analysis"), mine = {};
+    const seed = analysisCellsBase();
+    for (const row of an.rows) for (const col of an.columns) { const now = (an.cells[row.id] && an.cells[row.id][col.id] || {}).input || ""; const was = (seed[row.id] && seed[row.id][col.id] || {}).input || ""; if (now !== was) (mine[row.id] ||= {})[col.id] = now; }
+    void base;
+    V.set("sctm.analysis", Object.keys(mine).length ? mine : null);
+  }
+  const analysisCellsBase = () => analysisCells(ST.sheets, false);
+
+  function onAppClick(e) {
+    const t = e.target;
+    const act = t.closest("[data-sx]");
+    const tab = t.closest("[data-sx-tab]");
+    if (tab) { switchSheet(tab.dataset.sxTab); return; }
+    const hm = t.closest("[data-sx-hm]");
+    if (hm) { e.preventDefault(); const ci = +hm.dataset.sxHm; const r = hm.getBoundingClientRect(); const v = vs(); v.a = { r: v.a.r, c: ci }; v.f = { ...v.a }; paint(); colMenu(ci, { x: r.left - 200, y: r.bottom + 4 }, hm); return; }
+    const mi = t.closest(".sx-mi");
+    if (mi) { const m = document.getElementById("sx-menu"); const it = m && m._items && m._items[+mi.dataset.k]; if (!it || it.disabled) return; closeMenu(false); const g = grid(); if (g) g.focus({ preventScroll: true }); it.run(); return; }
+    if (!act) return;
+    const a = act.dataset.sx;
+    if (act.getAttribute("aria-disabled") === "true") return;
+    const sh = cur(), v = vs();
+    switch (a) {
+      case "close": e.preventDefault(); leave(); break;
+      case "find": openFind(); break;
+      case "find-close": closeFind(); break;
+      case "find-next": findStep(1); break;
+      case "find-prev": findStep(-1); break;
+      case "more": moreMenu(act); break;
+      case "undo": undo(); break;
+      case "redo": redo(); break;
+      case "sort-asc": sortBy(v.a.c, 1); break;
+      case "sort-desc": sortBy(v.a.c, -1); break;
+      case "filter": if (!sh.freeform) openFilter(v.a.c, document.getElementById("sx-h-" + v.a.c) || act); else flash("Filters are for the record sheets."); break;
+      case "clear": clearFilters(); break;
+      case "freeze": toggleFreeze(); break;
+      case "fit": fitColumn(v.a.c); break;
+      case "copy": copySelection(); break;
+      case "note": act.classList.toggle("open"); break;
+      case "all": break;
+    }
+  }
+  function leave() { const to = ST.from && S[ST.from] && !isOurs(ST.from) ? ST.from : "overview"; location.hash = to; }
+  function onContext(e) {
+    const t = e.target; if (!t.closest || !t.closest("#sx-grid")) return;
+    e.preventDefault();
+    const hc = t.closest(".sx-h"); if (hc) { const ci = +hc.dataset.c; select(vs().a.r, ci); return colMenu(ci, { x: e.clientX, y: e.clientY }, hc); }
+    const rh = t.closest(".sx-rh"); if (rh) return rowMenu(+rh.dataset.vr, { x: e.clientX, y: e.clientY }, rh);
+    const cell = t.closest(".sx-c"); if (!cell) return;
+    const vr = +cell.parentElement.dataset.vr, ci = +cell.dataset.c, q = rect();
+    if (!(vr >= q.r1 && vr <= q.r2 && ci >= q.c1 && ci <= q.c2)) { const v = vs(); v.a = { r: vr, c: ci }; v.f = { r: vr, c: ci }; paint(); }
+    else { const v = vs(); v.a = { r: vr, c: ci }; paint(); }
+    cellMenu({ x: e.clientX, y: e.clientY }, cell);
+  }
+  function onMenuKey(e) {
+    const m = document.getElementById("sx-menu"); if (!m || m.hidden || !m.contains(e.target)) return;
+    const items = [...m.querySelectorAll(".sx-mi:not([aria-disabled])")], i = items.indexOf(document.activeElement);
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); items[(i + (e.key === "ArrowDown" ? 1 : items.length - 1)) % items.length].focus(); }
+    else if (e.key === "Home" || e.key === "End") { e.preventDefault(); items[e.key === "Home" ? 0 : items.length - 1].focus(); }
+    else if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); closeMenu(true); }
+    else if (e.key === "Tab") { e.preventDefault(); closeMenu(true); }
+  }
+
+  // ════════════════ Review and apply ════════════════
+  M["sctm-review"] = () => {
+    const list = [...staged().values()];
+    if (!list.length) return { title: "Review changes", body: '<p class="sx-rv-none">Nothing is staged. Edit an Implementation, Narrative, requirement Title or Statement cell, then review it here.</p>', footer: '<button type="button" class="btn" data-close-modal>Close</button>' };
+    const byRec = new Map();
+    for (const c of list) { const k = c.kind + ":" + c.code; if (!byRec.has(k)) byRec.set(k, []); byRec.get(k).push(c); }
+    const diff = (a, b) => (SSP.ui && SSP.ui.diff ? SSP.ui.diff(a, b) : `<del>${esc(a)}</del> <ins>${esc(b)}</ins>`);
+    const conflict = (c) => {
+      if (c.kind === "ctl") { const now = SSP.ctl(c.code); if (!now) return null; const v = c.field === "impl" ? IMPL[now.s] : now.n; return v !== c.from ? "Changed elsewhere since the workbook read it; applying replaces that." : null; }
+      return null;
+    };
+    const body = `<p class="sx-rv-lead">${plural(list.length, "change")} to ${plural(byRec.size, "record")}. Applying writes them to WS-X90's records in this session: the SSP editor, the requirement preview and the Requirements register read them.</p>
+      <div class="sx-rv">${[...byRec.entries()].map(([k, cs]) => { const [kind, code] = [k.split(":")[0], k.slice(k.indexOf(":") + 1)]; const title = kind === "ctl" ? `${code} ${(SSP.ctl(code) || {}).t || ""}` : `${code} ${(ST.R.reqs.get(code) || {}).t || ""}`;
+        return `<section class="sx-rv-rec"><h5>${esc(title)}</h5>${cs.map((c) => { const w = conflict(c); return `<div class="sx-rv-f"><span class="sx-rv-k">${esc(c.label)}</span>${c.field === "impl" ? `<span class="sx-rv-v">${pillOf(c.from)}<span aria-hidden="true">→</span><span class="sx-sr">changes to</span>${pillOf(c.to)}</span>` : `<p class="sx-rv-d">${diff(c.from, c.to)}</p>`}${w ? `<p class="sx-rv-w">${esc(w)}</p>` : ""}</div>`; }).join("")}</section>`; }).join("")}</div>`;
+    return { title: "Review changes", body, footer: `<button type="button" class="btn" data-close-modal>Keep editing</button><button type="button" class="btn ink" data-v2-wired data-sctm-apply>Apply ${plural(list.length, "change")}</button>` };
+  };
+  function applyAll() {
+    const list = [...staged().values()];
+    if (!list.length) return;
+    const ctl = {}, req = {};
+    for (const c of list) {
+      if (c.kind === "ctl") (ctl[c.code] ||= {})[c.field] = c.to;
+      else (req[c.code] ||= {})[c.field] = c.to;
+    }
+    for (const [code, f] of Object.entries(ctl)) {
+      const rec = SSP.ctl(code); if (!rec) continue;
+      remember(code, rec);
+      const keep = Object.assign({}, V.get("sctm.ctl." + code, null) || {});
+      if (f.impl != null && IMPL_KEY[f.impl]) { rec.s = IMPL_KEY[f.impl]; keep.s = rec.s; }
+      if (f.narr != null) { rec.n = f.narr; rec.ph = 0; keep.n = rec.n; }
+      rec.rv = (rec.rv || 1) + 1; rec.up = TODAY_ISO;
+      V.set("sctm.ctl." + code, keep);
+      if (SSP.log) SSP.log({ who: ME, what: `changed ${code}'s ${[f.impl != null ? "implementation status" : "", f.narr != null ? "narrative" : ""].filter(Boolean).join(" and ")} in the SCTM workbook`, at: code, kind: "edit" });
+    }
+    for (const [code, f] of Object.entries(req)) {
+      const keep = Object.assign({}, V.get("sctm.req." + code, null) || {});
+      if (f.t != null) keep.t = f.t; if (f.st != null) keep.st = f.st;
+      V.set("sctm.req." + code, keep);
+    }
+    const log = (V.get("sctm.log", null) || []).concat(list.map((c) => ({ code: c.code, field: c.label, from: c.from.slice(0, 200), to: c.to.slice(0, 200), at: SSP.now ? SSP.now() : TODAY_ISO })));
+    V.set("sctm.log", log.slice(-100));
+    ST.staged = new Map(); persistStaged();
+    const keepView = ST.sid;
+    build(); ST.sid = keepView;
+    if (app()) { refreshHead(); refreshToolbar(); drawGrid(); }
+    const firstCtl = Object.keys(ctl)[0];
+    V.toast(`${plural(list.length, "change")} applied to WS-X90's records.`, firstCtl ? { label: "Open the SSP editor", route: "ssp" } : { label: "Open Requirements", route: "requirements" });
+  }
+  document.addEventListener("click", (e) => {
+    const b = e.target && e.target.closest ? e.target.closest("[data-sctm-apply]") : null; if (!b) return;
+    e.preventDefault();
+    applyAll();
+    const md = document.getElementById("modal"); const x = md && md.querySelector("[data-close-modal]"); if (x) x.click();
+  });
+
+  // ════════════════ What applied changes change elsewhere ════════════════
+  // The originals of every record the workbook changed, so a reset of the session's data puts them back.
+  const ORIG = new Map();
+  function remember(code, rec) { if (!ORIG.has(code)) ORIG.set(code, { s: rec.s, n: rec.n, rv: rec.rv, up: rec.up, ph: rec.ph }); }
+  function reapply() {
+    const all = V.get("sctm.ctl", null) || {};
+    for (const [code, f] of Object.entries(all)) { const rec = SSP.ctl(code); if (!rec || !f) continue; remember(code, rec); if (f.s && rec.s !== f.s) rec.s = f.s; if (f.n != null && rec.n !== f.n) { rec.n = f.n; rec.ph = 0; } }
+  }
+  reapply();
+  V.on((path) => {
+    if (path === "*") { for (const [code, o] of ORIG) { const rec = SSP.ctl(code); if (rec) Object.assign(rec, o); } ORIG.clear(); ST.staged = new Map(); if (ST.built) { build(); if (app()) { refreshHead(); refreshToolbar(); drawGrid(); } } return; }
+    if (app() && ST.built && /^chain\./.test(String(path))) { ST.needsBuild = true; }
+  });
+  // A requirement's edited title and statement in its preview and in the Requirements register (escaped original → edited).
+  const REQ_ORIG = new Map(Object.entries(X.reqs).map(([code, r]) => [code, { t: r.t || "", st: r.st || "" }]));
+  function reqSwap(html) {
+    if (typeof html !== "string") return html;
+    const all = V.get("sctm.req", null); if (!all) return html;
+    for (const [code, f] of Object.entries(all)) {
+      const o = REQ_ORIG.get(code); if (!o || !f) continue;
+      if (f.st != null && o.st && f.st !== o.st) html = html.split(esc(o.st)).join(esc(f.st));
+      if (f.t != null && o.t && f.t !== o.t) html = html.split(esc(o.t)).join(esc(f.t));
+    }
+    return html;
+  }
+  // The requirement preview knows the Requirements register's sample; for any other requirement it would show the first row. Where
+  // its answer does not name the requirement asked for, the snapshot draws that requirement in the same shape: its statement,
+  // then its chain, each record opening its own preview.
+  function snapReqPreview(code) {
+    const R = ST.R || records();
+    const r = R.reqs.get(code); if (!r) return null;
+    const li = (p, id, label, end) => `<li class="sx-pv-li">${p ? `<button type="button" class="sx-pv-a" data-panel="${esc(p)}" data-id="${esc(id)}">${esc(label)}</button>` : `<span>${esc(label)}</span>`}${end ? `<span class="sx-pv-e">${end}</span>` : ""}</li>`;
+    const stage = (title, items, empty) => `<li class="sx-pv-st"><div class="sx-pv-sh"><b>${esc(title)}</b><span class="num">${fmt(items.length)}</span></div>${items.length ? `<ul>${items.join("")}</ul>` : `<p class="sx-pv-none">${esc(empty)}</p>`}</li>`;
+    const iss = R.iss.filter((i) => i.req === code).sort(bySev);
+    const poams = uniq(iss.flatMap((i) => R.poamByIss.get(i.id) || [])).map((id) => R.poams.find((p) => p.id === id)).filter(Boolean);
+    const risks = uniq([...(R.riskByReq.get(code) || []), ...iss.flatMap((i) => R.riskByIss.get(i.id) || [])]).map((id) => R.risks.find((x) => x.id === id)).filter(Boolean).sort(bySev);
+    const evs = R.evByReq.get(code) || [];
+    const ctls = r.ctl.slice().sort(cmpText).map((c) => { const v = R.view(c); return li("a-tests-control", c, `${c} ${(SSP.ctl(c) || {}).t || ""}`, CS[v.status] ? esc(CS[v.status]) : ""); });
+    const els = r.els.map((e) => { const el = R.els.get(e); return li("v7p-el", e, el ? el.name : e, esc(e)); });
+    const evL = evs.map((e) => li(e.rec ? "a-docs-ev" : "", e.rec ? `${e.id}|evidence` : "", e.title, esc(EVST[e.state] || "")));
+    const issL = iss.map((i) => li("a-risk-issue", i.id, i.title, h.sevPill ? h.sevPill(i.sev) : esc(cap(i.sev))));
+    const rL = risks.map((x) => li("a-risk-risk", `${x.id}|overview`, x.title, h.sevPill ? h.sevPill(x.sev) : esc(cap(x.sev))));
+    const pL = poams.map((p) => li("a-risk-poam", `${p.id}|overview`, p.title, esc(POST[p.status] || cap(p.status || ""))));
+    const AK = PA.AK;
+    const sec = (t, b) => (AK ? AK.section(t, b) : `<section><h3>${esc(t)}</h3>${b}</section>`);
+    const head = AK ? AK.recordHead({ title: `${code} ${r.t || ""}`.trim() }) : `<h2>${esc(code)} ${esc(r.t || "")}</h2>`;
+    const body = `<div class="v7p-pan sx-pv">${head}${sec("Statement", r.st ? `<p class="v7p-prose">${esc(r.st)}</p>` : `<p class="sx-pv-none">Its statement is not in this prototype's snapshot; WS-X90's traceability names it by its title.</p>`)}${sec("Chain", `<div class="ak-card sx-pv-chain"><ol>${stage("Controls mapped", ctls, "No control mapped in the snapshot.")}${stage("Allocated to", els, "Its allocation is not in the snapshot.")}${stage("Evidence", evL, "Cites no evidence, so the controls it maps stay at No evidence.")}${stage("Operational issues", issL, "No operational issue names it.")}${stage("Risks", rL, "No risk rests on it.")}${stage("Remediation", pL, "Nothing to remediate.")}</ol></div>`)}</div>`;
+    return { label: "Requirement preview", body: PA.canon ? PA.canon.rewrite(body) : body };
+  }
+  if (P["v7p-req"]) { const f = P["v7p-req"]; P["v7p-req"] = (id) => { const code = String(id || "").split("|")[0]; let o = f(id); if (code && /^REQ-\d+$/.test(code) && (!o || !o.body || !o.body.includes(code))) { const s = snapReqPreview(code); if (s) o = s; } if (o && o.body) o.body = reqSwap(o.body); return o; }; }
+  // The workbook's way in from the Requirements and Controls registers: an item in the header's More menu.
+  const DOTS = `<svg class="ak-i" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8h.01M8 8h.01M12.5 8h.01"/></svg>`;
+  function addWayIn(html) {
+    if (typeof html !== "string" || html.includes('data-go="sctm"')) return html;
+    const item = `<span role="menuitem" tabindex="0" class="a-tests-mi" data-go="sctm">Open the SCTM workbook</span>`;
+    if (/<div class="a-tests-menu" role="menu">/.test(html)) return html.replace(/<div class="a-tests-menu" role="menu">/, `$&${item}`);
+    return html.replace(/<div class="btns">/, `<div class="btns"><details class="a-tests-more sx-wayin"><summary class="btn" aria-label="More requirement actions" title="More requirement actions">${DOTS}</summary><div class="a-tests-menu" role="menu">${item}</div></details>`);
+  }
+  for (const r of ["requirements", "controls"]) if (S[r]) { const f = S[r]; S[r] = () => { let html = f(); html = addWayIn(html); return r === "requirements" ? reqSwap(html) : html; }; }
+
+  // ════════════════ Mount ════════════════
+  let observer = null, listeners = false;
+  function mount() {
+    const el = app(); if (!el || el.dataset.mounted) return;
+    el.dataset.mounted = "1";
+    if (!ENG) { el.innerHTML = `<div class="sx-fail"><h1>SCTM workbook</h1><p>The workbook's engine did not load in this page, so the sheets cannot open.</p><a class="btn" href="#overview">Back to WS-X90</a></div>`; return; }
+    ST.needsBuild = false;
+    if (ST.engine === "pending" && !ST.starting) { ST.starting = true; startEngine(); }
+    build();
+    el.innerHTML = shellHTML();
+    drawGrid();
+    const sc = document.getElementById("sx-scroll");
+    if (sc) { sc.scrollTop = vs().top || 0; sc.scrollLeft = vs().left || 0; drawBody(true); sc.addEventListener("scroll", onScroll, { passive: true }); }
+    el.addEventListener("pointerdown", onPointerDown);
+    el.addEventListener("click", onAppClick);
+    el.addEventListener("contextmenu", onContext);
+    el.addEventListener("paste", (e) => { if (e.target.closest && e.target.closest("#sx-grid") && !e.target.closest("#sx-ed")) onPaste(e); });
+    el.addEventListener("dblclick", (e) => { const c = e.target.closest && e.target.closest(".sx-c"); if (c && !e.target.closest(".sx-rec")) startEdit(); const h2 = e.target.closest && e.target.closest(".sx-rsz"); if (h2) fitColumn(+h2.dataset.sxRsz); });
+    el.addEventListener("change", (e) => { const s = e.target.closest("[data-sx-chg=view]"); if (s) applyView(s.value); const fa = e.target.closest("#sx-findall"); if (fa) { ST.find.all = fa.checked; runFind(); } });
+    el.addEventListener("keydown", onMenuKey, true);
+    const g = grid(); g.addEventListener("keydown", onGridKey);
+    const nm = document.getElementById("sx-name"), fx = document.getElementById("sx-formula"), fq = document.getElementById("sx-findq");
+    nm.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); goTo(nm.value.trim()); } else if (e.key === "Escape") { e.preventDefault(); syncFormula(); g.focus({ preventScroll: true }); } });
+    nm.addEventListener("focus", () => nm.select());
+    fx.addEventListener("keydown", (e) => {
+      const a = activeCell(); if (!a) return;
+      if (e.key === "Escape") { e.preventDefault(); fx.blur(); syncFormula(); g.focus({ preventScroll: true }); return; }
+      if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); if (!a.col.edit) return flash(`${a.col.name} is read only here.`); const val = fx.value; fx.blur(); if (val !== input(a.sh.id, a.row.id, a.col.id)) setCell(a.sh.id, a.row.id, a.col.id, val); g.focus({ preventScroll: true }); select(vs().a.r + 1, vs().a.c); }
+    });
+    fx.addEventListener("blur", () => setTimeout(syncFormula, 0));
+    fq.addEventListener("input", () => { ST.find.q = fq.value; runFind(); });
+    fq.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); findStep(e.shiftKey ? -1 : 1); } else if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); closeFind(); } });
+    el.querySelector(".sx-tablist").addEventListener("keydown", (e) => {
+      const tabs = [...el.querySelectorAll(".sx-tab")], i = tabs.indexOf(document.activeElement); if (i < 0) return;
+      let j = -1;
+      if (e.key === "ArrowRight") j = (i + 1) % tabs.length; else if (e.key === "ArrowLeft") j = (i + tabs.length - 1) % tabs.length; else if (e.key === "Home") j = 0; else if (e.key === "End") j = tabs.length - 1;
+      if (j >= 0) { e.preventDefault(); tabs[j].focus(); switchSheet(tabs[j].dataset.sxTab, true); tabs[j].focus(); }
+    });
+    if (!listeners) {
+      listeners = true;
+      document.addEventListener("pointermove", (e) => { if (app()) onPointerMove(e); });
+      document.addEventListener("pointerup", () => { if (app()) onPointerUp(); });
+      document.addEventListener("pointerdown", (e) => {
+        if (!app()) return;
+        const m = document.getElementById("sx-menu"); if (m && !m.hidden && !m.contains(e.target)) closeMenu(false);
+        const pop = document.getElementById("sx-pop"); if (pop && !pop.hidden && !pop.contains(e.target) && !(e.target.closest && e.target.closest("#sx-ed"))) { if (pop.dataset.kind === "choice" && ST.editing) cancelEdit(); else closePop(); }
+      }, true);
+      document.addEventListener("keydown", (e) => {
+        if (!app()) return;
+        const inApp = app().contains(e.target) || e.target === document.body;
+        if ((e.ctrlKey || e.metaKey) && (e.key === "f" || e.key === "F") && inApp) { e.preventDefault(); openFind(); }
+        if (e.key === "Escape" && inApp) { const pop = document.getElementById("sx-pop"); if (pop && !pop.hidden) { e.preventDefault(); if (ST.editing) cancelEdit(); else { closePop(); const g2 = grid(); if (g2) g2.focus({ preventScroll: true }); } } }
+      });
+      window.addEventListener("resize", () => { if (!app()) return; closeMenu(false); placeEditor(); colStyle(); drawBody(true); });
+    }
+    observer = new MutationObserver(() => { const p = document.getElementById("panel"); const a2 = app(); if (a2) a2.classList.toggle("sx-pan", !!p && !p.hidden); });
+    const p = document.getElementById("panel"); if (p) observer.observe(p, { attributes: true, attributeFilter: ["hidden"] });
+    // A question from elsewhere (PA.v2.go("sctm", q)): q.view, a filter view of the SCTM; q.open { kind, id }, the row holding
+    // that record, selected, with its preview open; q.focus "find", the find bar.
+    const q = V.take(V.cur());
+    if (q && q.view && ST.sid === "sctm") applyView(q.view);
+    if (q && q.open) {
+      const want = (r) => (r.recs && Object.values(r.recs).some((l) => l.some((x) => x.p === q.open.kind && String(x.id).split("|")[0] === String(q.open.id).split("|")[0])));
+      for (const sid of [ST.sid, "sctm", "reqs", "findings", "risks", "ev"]) {
+        const sh = sheetOf(sid); if (!sh || sh.freeform) continue;
+        const ri = sh.rows.findIndex(want); if (ri < 0) continue;
+        if (sid !== ST.sid) switchSheet(sid, true);
+        const vr = order(sid).indexOf(ri); if (vr >= 0) { const ci = Math.max(0, sh.cols.findIndex((c) => (sh.rows[ri].recs[c.id] || []).some((x) => x.p === q.open.kind))); select(vr, ci); setTimeout(() => openPreview(q.open.kind, (sh.rows[ri].recs[sh.cols[ci].id] || []).find((x) => x.p === q.open.kind).id), 0); }
+        break;
+      }
+    }
+    if (q && q.focus === "find") openFind();
+    paint();
+    if (!narrow()) g.focus({ preventScroll: true });
+  }
+  function goTo(t) {
+    if (!t) return;
+    const g = grid();
+    const m = /^(?:([A-Za-z][A-Za-z ]*)!)?([A-Za-z]{1,3})(\d+)$/.exec(t);
+    if (m) {
+      if (m[1]) { const sh = ST.sheets.find((s) => s.name.toLowerCase() === m[1].toLowerCase()); if (sh) switchSheet(sh.id, true); }
+      const ci = m[2].toUpperCase().split("").reduce((n, ch) => n * 26 + ch.charCodeAt(0) - 64, 0) - 1, ri = +m[3] - 1;
+      const vr = order(ST.sid).indexOf(ri);
+      if (vr < 0 || ci >= cur().cols.length) return flash(`${t.toUpperCase()} is outside this sheet or hidden by a filter.`);
+      g.focus({ preventScroll: true }); return select(vr, ci);
+    }
+    // A record code: the row that names it, on this sheet or the SCTM.
+    for (const sid of [ST.sid, "sctm", "reqs"]) {
+      const sh = sheetOf(sid); if (!sh || sh.freeform) continue;
+      const ri = sh.rows.findIndex((r) => String(r.recId).toLowerCase() === t.toLowerCase());
+      if (ri >= 0) { if (sid !== ST.sid) switchSheet(sid, true); const vr = order(sid).indexOf(ri); if (vr < 0) return flash(`${t} is hidden by a filter.`); g.focus({ preventScroll: true }); return select(vr, 0); }
+    }
+    flash(`No cell or record called ${t}.`);
+  }
+  let raf = 0;
+  function onScroll() {
+    // A menu or a choice opened a moment ago stays: the scroll that follows an open is the grid revealing its cell.
+    const m = document.getElementById("sx-menu"), pop = document.getElementById("sx-pop");
+    if (m && !m.hidden && Date.now() - (m._at || 0) > 350) closeMenu(false);
+    if (pop && !pop.hidden && pop.dataset.kind === "choice" && ST.editing && Date.now() - (pop._at || 0) > 350) cancelEdit();
+    if (raf) return; raf = requestAnimationFrame(() => { raf = 0; drawBody(); placeEditor(); });
+  }
+
+  // ════════════════ The route ════════════════
+  const skeleton = () => `<div class="sx-app" id="sx-app" aria-label="SCTM workbook"><div class="sx-loading" role="status">Opening the SCTM workbook…</div></div>`;
+  // sctm opens the SCTM sheet; sctm-<sheet> opens the workbook on that sheet (and the address follows the sheet shown).
+  const SHEET_ROUTES = { controls: "controls", requirements: "reqs", evidence: "ev", findings: "findings", risks: "risks", analysis: "analysis" };
+  const routeOf = (sid) => { const k = Object.keys(SHEET_ROUTES).find((x) => SHEET_ROUTES[x] === sid); return k ? `${ROUTE}-${k}` : ROUTE; };
+  const isOurs = (r) => r === ROUTE || (r.startsWith(ROUTE + "-") && !!SHEET_ROUTES[r.slice(ROUTE.length + 1)]);
+  V.screen(ROUTE, () => { ST.sid = "sctm"; queueMicrotask(mount); setTimeout(mount, 0); return skeleton(); }, "sctm");
+  for (const [k, sid] of Object.entries(SHEET_ROUTES)) V.screen(`${ROUTE}-${k}`, () => { ST.sid = sid; queueMicrotask(mount); setTimeout(mount, 0); return skeleton(); }, "sctm");
+  window.addEventListener("hashchange", (e) => {
+    const to = V.cur(), from = (e.oldURL || "").split("#")[1] || "";
+    if (isOurs(to) && from && !isOurs(from)) ST.from = from;
+    const proto = document.getElementById("proto"); if (proto) proto.classList.toggle("sx-on", isOurs(to));
+    if (isOurs(from) && !isOurs(to)) { const sc = document.getElementById("sx-scroll"); if (sc && ST.built) { vs().top = sc.scrollTop; vs().left = sc.scrollLeft; } if (observer) { observer.disconnect(); observer = null; } ST.editing = null; const s = document.getElementById("sx-cols"); if (s) s.textContent = ""; }
+  });
+  { const proto = document.getElementById("proto"); if (proto && isOurs(V.cur())) proto.classList.add("sx-on"); }
+  PA.sctm = { state: ST, staged: () => [...staged().values()], apply: applyAll, build, sheets: () => ST.sheets.map((s) => s.id), select: (sid, vr, ci) => { switchSheet(sid, true); select(vr, ci); } };
+})();

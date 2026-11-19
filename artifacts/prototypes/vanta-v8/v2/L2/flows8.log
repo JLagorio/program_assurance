@@ -1,0 +1,26 @@
+PASS ⌘K opens search
+PASS Search finds AC-2 · 7 mentions
+PASS Enter opens the result · controls
+PASS Esc closes search
+PASS The search box opens search
+PASS AI agents: needs approval
+PASS Roles & permissions
+PASS Risks has a Library tab
+PASS Risk library draws techniques
+PASS A check shows tickets
+PASS Plans lists the four plans
+PASS Contingency plan opens full window
+PASS Contingency plan history
+PASS Person page overview
+PASS Person page-onboarding
+PASS Person page-access
+PASS Person page-training
+PASS Person page-offboarding
+PASS ITCSC record
+PASS ITCSC import
+PASS Interconnections register · 9 rows
+PASS Ports & protocols register · 12 rows
+PASS Create program offers an ITCSC start
+FAIL STIG checklists
+PASS Security engineering
+errors: none

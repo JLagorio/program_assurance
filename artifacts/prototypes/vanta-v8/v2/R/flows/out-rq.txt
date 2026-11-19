@@ -1,0 +1,10 @@
+ACCEPT → null | waiting undefined → undefined | first row same: true | panel: Review preview ↗ ✕ System Requirements Review Request decision Kind Gates to decide Program Legacy billing gateway Waiting since Sep 12, 2026 · 66 days Gate due Due Apr 22, 2025 · 574 days ago Approval No approver named yet. Request decision names th
+MAP CONTROL → dialog: Map control | Map control ✕ Requirement REQ-001 System SYS-WSX90 · WS-X90 Sentinel Mission System Control SI-4(13) Analyze Traffic and Event Patterns From SYS-WSX90's control baseline: 560 controls. Objectives Whole control Chosen objectives: SI-04(13)(a)[02], (b)[02], (c)[02] A heading covers the objectives unde
+PRIMARY: Map control closer=true
+{"step":1,"action":"go #review-queue","why":"","hash":"review-queue","h1":"","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":2,"action":"click \"Accept evidence\"","why":"","result":"NOT FOUND","hash":"review-queue","h1":"","modal":null,"panel":"Review preview","toasts":"","otherDlg":[],"notDrawn":false}
+{"step":2,"shot":"/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/v2/R/flows/shots/rq-after-accept.png"}
+{"step":3,"action":"go #requirements","why":"","hash":"requirements","h1":"Requirements","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":4,"action":"click \"REQ-001\"","why":"","effect":"panel: Requirement preview","hash":"requirements","h1":"Requirements","modal":null,"panel":"Requirement preview","toasts":"","otherDlg":[],"notDrawn":false}
+{"step":5,"action":"click \"Map control\"","why":"","effect":"dialog: Map control","hash":"requirements","h1":"Requirements","modal":"Map control","panel":"Requirement preview","toasts":"","otherDlg":[],"notDrawn":false}
+errors: []

@@ -1,0 +1,5 @@
+/* Version 7: the numbered callouts belonged to the Before & after comparison, not to the screens. */
+.ak-co { display: none !important; }
+/* The inbox bell reads on the dark assessment band, as the switcher and the search do. */
+#proto.moded .top .a-work-bell { color: #fff; }
+#proto.moded .top .a-work-bell:hover { background: rgb(255 255 255 / 0.12); }

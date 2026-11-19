@@ -1,0 +1,1636 @@
+[
+ {
+  "route": "suppliers",
+  "title": "Request from a supplier",
+  "how": "key",
+  "presses": 1,
+  "primary": "Send request",
+  "required": false,
+  "result": "says not wired",
+  "toast": "Not saved: Request from a supplier isn't wired in this prototype",
+  "trail": [
+   {
+    "label": "Send request",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Not saved: Request from a supplier isn't wired in this prototype"
+   }
+  ]
+ },
+ {
+  "route": "products",
+  "title": "Take version 2 of X800 Missile",
+  "how": "key",
+  "presses": 1,
+  "primary": "Take version 2",
+  "required": false,
+  "result": "says not wired",
+  "toast": "Not saved: Take version 2 of X800 Missile isn't wired in this prototype",
+  "trail": [
+   {
+    "label": "Take version 2",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Not saved: Take version 2 of X800 Missile isn't wired in this prototype"
+   }
+  ]
+ },
+ {
+  "route": "review-queue",
+  "title": "Reassign reviewer",
+  "how": "after ticking a row: key",
+  "presses": 1,
+  "primary": "Reassign reviewer",
+  "required": false,
+  "result": "says not wired",
+  "toast": "Not saved: Reassign reviewer isn't wired in this prototype",
+  "trail": [
+   {
+    "label": "Reassign reviewer",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Not saved: Reassign reviewer isn't wired in this prototype"
+   }
+  ]
+ },
+ {
+  "route": "products",
+  "title": "Create product",
+  "how": "key",
+  "presses": 2,
+  "primary": "Create product",
+  "required": true,
+  "result": "says not wired",
+  "toast": "Not saved: Create product isn't wired in this prototype",
+  "trail": [
+   {
+    "label": "Create product",
+    "disabled": false,
+    "open": true,
+    "title": "Create product",
+    "errs": "Name is required. | Code is required.",
+    "toasts": ""
+   },
+   {
+    "label": "Create product",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Not saved: Create product isn't wired in this prototype"
+   }
+  ]
+ },
+ {
+  "route": "integrations",
+  "title": "Request a connector",
+  "how": "key",
+  "presses": 1,
+  "primary": "Send request",
+  "required": false,
+  "result": "says not wired",
+  "toast": "Not saved: Request a connector isn't wired in this prototype",
+  "trail": [
+   {
+    "label": "Send request",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Not saved: Request a connector isn't wired in this prototype"
+   }
+  ]
+ },
+ {
+  "route": "reports",
+  "title": "Generate report",
+  "how": "key",
+  "presses": 1,
+  "primary": "Generate",
+  "required": false,
+  "result": "says not wired",
+  "toast": "Not saved: Generate report isn't wired in this prototype",
+  "trail": [
+   {
+    "label": "Generate",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Not saved: Generate report isn't wired in this prototype"
+   }
+  ]
+ },
+ {
+  "route": "ai-drafts",
+  "title": "Run an agent",
+  "how": "key",
+  "presses": 1,
+  "primary": "Start run",
+  "required": false,
+  "result": "says not wired",
+  "toast": "Not saved: Run an agent isn't wired in this prototype",
+  "trail": [
+   {
+    "label": "Start run",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Not saved: Run an agent isn't wired in this prototype"
+   }
+  ]
+ },
+ {
+  "route": "components",
+  "title": "Create component",
+  "how": "key",
+  "presses": 2,
+  "primary": "Create component",
+  "required": true,
+  "result": "says not wired",
+  "toast": "Not saved: Create component isn't wired in this prototype",
+  "trail": [
+   {
+    "label": "Create component",
+    "disabled": false,
+    "open": true,
+    "title": "Create component",
+    "errs": "Name is required.",
+    "toasts": ""
+   },
+   {
+    "label": "Create component",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Not saved: Create component isn't wired in this prototype"
+   }
+  ]
+ },
+ {
+  "route": "enclaves",
+  "title": "Add enclave",
+  "how": "key",
+  "presses": 1,
+  "primary": "Add enclave",
+  "required": false,
+  "result": "says not wired",
+  "toast": "Not saved: Add enclave isn't wired in this prototype",
+  "trail": [
+   {
+    "label": "Add enclave",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Not saved: Add enclave isn't wired in this prototype"
+   }
+  ]
+ },
+ {
+  "route": "common-controls",
+  "title": "Add provider",
+  "how": "key",
+  "presses": 1,
+  "primary": "Ask for an offer",
+  "required": false,
+  "result": "says not wired",
+  "toast": "Not saved: Add provider isn't wired in this prototype",
+  "trail": [
+   {
+    "label": "Ask for an offer",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Not saved: Add provider isn't wired in this prototype"
+   }
+  ]
+ },
+ {
+  "route": "notifications",
+  "title": "Send a test",
+  "how": "key",
+  "presses": 1,
+  "primary": "Send test",
+  "required": false,
+  "result": "says not wired",
+  "toast": "Not saved: Send a test isn't wired in this prototype",
+  "trail": [
+   {
+    "label": "Send test",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Not saved: Send a test isn't wired in this prototype"
+   }
+  ]
+ },
+ {
+  "route": "ai-drafts",
+  "title": "Reject the run",
+  "how": "key",
+  "presses": 2,
+  "primary": "Reject run",
+  "required": true,
+  "result": "changes state, toast",
+  "toast": "Narrative drafter's run rejected: nothing it proposed is applied",
+  "trail": [
+   {
+    "label": "Reject run",
+    "disabled": false,
+    "open": true,
+    "title": "Reject the run",
+    "errs": "Reason is required. | Say why you reject it: the reason is required.",
+    "toasts": ""
+   },
+   {
+    "label": "Reject run",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Narrative drafter's run rejected: nothing it proposed is applied"
+   }
+  ]
+ },
+ {
+  "route": "event-log",
+  "title": "Export event log",
+  "how": "key",
+  "presses": 1,
+  "primary": "Export",
+  "required": false,
+  "result": "says not wired",
+  "toast": "Not saved: Export event log isn't wired in this prototype",
+  "trail": [
+   {
+    "label": "Export",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Not saved: Export event log isn't wired in this prototype"
+   }
+  ]
+ },
+ {
+  "route": "itcsc",
+  "title": "Start version 4",
+  "how": "key",
+  "presses": 1,
+  "primary": "Start version 4",
+  "required": false,
+  "result": "changes state, toast",
+  "toast": "Version 4 started from version 3 · version 3 stays approved",
+  "trail": [
+   {
+    "label": "Start version 4",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Version 4 started from version 3 · version 3 stays approved"
+   }
+  ]
+ },
+ {
+  "route": "deadlines",
+  "title": "Edit high finding deadline",
+  "how": "key",
+  "presses": 2,
+  "primary": "Save deadline",
+  "required": true,
+  "result": "says not wired",
+  "toast": "Not saved: Edit high finding deadline isn't wired in this prototype",
+  "trail": [
+   {
+    "label": "Save deadline",
+    "disabled": false,
+    "open": true,
+    "title": "Edit high finding deadline",
+    "errs": "Days is required.",
+    "toasts": ""
+   },
+   {
+    "label": "Save deadline",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Not saved: Edit high finding deadline isn't wired in this prototype"
+   }
+  ]
+ },
+ {
+  "route": "permissions",
+  "title": "Invite a member",
+  "how": "key",
+  "presses": 2,
+  "primary": "Send invitation",
+  "required": true,
+  "result": "changes state, toast",
+  "toast": "Invitation sent to Reviewer test value as editor View changes",
+  "trail": [
+   {
+    "label": "Send invitation",
+    "disabled": false,
+    "open": true,
+    "title": "Invite a member",
+    "errs": "Email is required. | Reason is required. | Give an email address and a reason.",
+    "toasts": ""
+   },
+   {
+    "label": "Send invitation",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Invitation sent to Reviewer test value as editor View changes"
+   }
+  ]
+ },
+ {
+  "route": "itcsc",
+  "title": "Change owner",
+  "how": "key",
+  "result": "no primary",
+  "body": "Change owner ✕ Search people IS Ingrid Solberg (You) Security engineer PR Priya Raghavan ISSO JB Joel Barrantes ISSM RC Ray Colston System owner MR Marcus Ryde Component owner DO D. Okafor Lead assessor (SCA) NF Nadia Fournier Assessor RC R. Calloway Authorizing official Unassign owner Cancel"
+ },
+ {
+  "route": "stigs",
+  "title": "Import a checklist",
+  "how": "key",
+  "presses": 1,
+  "primary": "Preview changes",
+  "required": true,
+  "result": "dialog changes in place",
+  "toast": "",
+  "trail": [
+   {
+    "label": "Preview changes",
+    "disabled": false,
+    "open": true,
+    "title": "Import a checklist",
+    "errs": "",
+    "toasts": ""
+   }
+  ]
+ },
+ {
+  "route": "composition",
+  "title": "Take version 2 of Mission Computer",
+  "how": "key",
+  "presses": 1,
+  "primary": "Take version 2",
+  "required": false,
+  "result": "says not wired",
+  "toast": "Not saved: Take version 2 of Mission Computer isn't wired in this prototype",
+  "trail": [
+   {
+    "label": "Take version 2",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Not saved: Take version 2 of Mission Computer isn't wired in this prototype"
+   }
+  ]
+ },
+ {
+  "route": "interconnections",
+  "title": "Add interconnection",
+  "how": "key",
+  "presses": 2,
+  "primary": "Add interconnection",
+  "required": true,
+  "result": "says not wired",
+  "toast": "Not saved: Add interconnection isn't wired in this prototype",
+  "trail": [
+   {
+    "label": "Add interconnection",
+    "disabled": false,
+    "open": true,
+    "title": "Add interconnection",
+    "errs": "Connection is required. | Connected system is required.",
+    "toasts": ""
+   },
+   {
+    "label": "Add interconnection",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Not saved: Add interconnection isn't wired in this prototype"
+   }
+  ]
+ },
+ {
+  "route": "sources",
+  "title": "Retry import",
+  "how": "key",
+  "presses": 1,
+  "primary": "Retry import",
+  "required": false,
+  "result": "says not wired",
+  "toast": "Not saved: Retry import isn't wired in this prototype",
+  "trail": [
+   {
+    "label": "Retry import",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Not saved: Retry import isn't wired in this prototype"
+   }
+  ]
+ },
+ {
+  "route": "composition",
+  "title": "Create element",
+  "how": "key",
+  "presses": 2,
+  "primary": "Create element",
+  "required": true,
+  "result": "says not wired",
+  "toast": "Not saved: Create element isn't wired in this prototype",
+  "trail": [
+   {
+    "label": "Create element",
+    "disabled": false,
+    "open": true,
+    "title": "Create element",
+    "errs": "Name is required.",
+    "toasts": ""
+   },
+   {
+    "label": "Create element",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Not saved: Create element isn't wired in this prototype"
+   }
+  ]
+ },
+ {
+  "route": "sources",
+  "title": "Add source",
+  "how": "key",
+  "presses": 1,
+  "primary": "Next",
+  "required": false,
+  "result": "dialog changes in place",
+  "toast": "",
+  "trail": [
+   {
+    "label": "Next",
+    "disabled": false,
+    "open": true,
+    "title": "Add source",
+    "errs": "",
+    "toasts": ""
+   }
+  ]
+ },
+ {
+  "route": "inventory",
+  "title": "Assign owner",
+  "how": "key",
+  "presses": 1,
+  "primary": "Assign owner",
+  "required": false,
+  "result": "says not wired",
+  "toast": "Not saved: Assign owner isn't wired in this prototype",
+  "trail": [
+   {
+    "label": "Assign owner",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Not saved: Assign owner isn't wired in this prototype"
+   }
+  ]
+ },
+ {
+  "route": "ppsm",
+  "title": "Add service",
+  "how": "key",
+  "presses": 2,
+  "primary": "Add service",
+  "required": true,
+  "result": "says not wired",
+  "toast": "Not saved: Add service isn't wired in this prototype",
+  "trail": [
+   {
+    "label": "Add service",
+    "disabled": false,
+    "open": true,
+    "title": "Add service",
+    "errs": "Port is required. | Protocol is required. | Service is required.",
+    "toasts": ""
+   },
+   {
+    "label": "Add service",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Not saved: Add service isn't wired in this prototype"
+   }
+  ]
+ },
+ {
+  "route": "ssps",
+  "title": "New plan",
+  "how": "key",
+  "presses": 1,
+  "primary": "Create draft",
+  "required": false,
+  "result": "says not wired",
+  "toast": "Not saved: New plan isn't wired in this prototype",
+  "trail": [
+   {
+    "label": "Create draft",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Not saved: New plan isn't wired in this prototype"
+   }
+  ]
+ },
+ {
+  "route": "controls",
+  "title": "Add to assessment campaign",
+  "how": "after ticking a row: key",
+  "presses": 1,
+  "primary": "Add to assessment campaign",
+  "required": false,
+  "result": "says not wired",
+  "toast": "Not saved: Add to assessment campaign isn't wired in this prototype",
+  "trail": [
+   {
+    "label": "Add to assessment campaign",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Not saved: Add to assessment campaign isn't wired in this prototype"
+   }
+  ]
+ },
+ {
+  "route": "baseline",
+  "title": "Edit overlays",
+  "how": "key",
+  "presses": 1,
+  "primary": "Edit overlays",
+  "required": false,
+  "result": "says not wired",
+  "toast": "Not saved: Edit overlays isn't wired in this prototype",
+  "trail": [
+   {
+    "label": "Edit overlays",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Not saved: Edit overlays isn't wired in this prototype"
+   }
+  ]
+ },
+ {
+  "route": "inventory",
+  "title": "Mark not in boundary",
+  "how": "data-modal",
+  "presses": 2,
+  "primary": "Save",
+  "required": true,
+  "result": "says not wired",
+  "toast": "Not saved: Mark not in boundary isn't wired in this prototype",
+  "trail": [
+   {
+    "label": "Save",
+    "disabled": false,
+    "open": true,
+    "title": "Mark not in boundary",
+    "errs": "Reason is required.",
+    "toasts": ""
+   },
+   {
+    "label": "Save",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Not saved: Mark not in boundary isn't wired in this prototype"
+   }
+  ]
+ },
+ {
+  "route": "requirements",
+  "title": "Import requirements",
+  "how": "key",
+  "presses": 1,
+  "primary": "Import requirements",
+  "required": false,
+  "result": "says not wired",
+  "toast": "Not saved: Import requirements isn't wired in this prototype",
+  "trail": [
+   {
+    "label": "Import requirements",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Not saved: Import requirements isn't wired in this prototype"
+   }
+  ]
+ },
+ {
+  "route": "assessments",
+  "title": "Plan an assessment",
+  "how": "key",
+  "presses": 1,
+  "primary": "Plan an assessment",
+  "required": false,
+  "result": "says not wired",
+  "toast": "Not saved: Plan an assessment isn't wired in this prototype",
+  "trail": [
+   {
+    "label": "Plan an assessment",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Not saved: Plan an assessment isn't wired in this prototype"
+   }
+  ]
+ },
+ {
+  "route": "requirements",
+  "title": "Create requirement",
+  "how": "key",
+  "presses": 2,
+  "primary": "Create requirement",
+  "required": true,
+  "result": "says not wired",
+  "toast": "Not saved: Create requirement isn't wired in this prototype",
+  "trail": [
+   {
+    "label": "Create requirement",
+    "disabled": false,
+    "open": true,
+    "title": "Create requirement",
+    "errs": "Title is required. | Statement is required.",
+    "toasts": ""
+   },
+   {
+    "label": "Create requirement",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Not saved: Create requirement isn't wired in this prototype"
+   }
+  ]
+ },
+ {
+  "route": "checks",
+  "title": "Deactivate 2 checks",
+  "how": "data-modal",
+  "presses": 2,
+  "primary": "Deactivate",
+  "required": true,
+  "result": "changes state, no toast",
+  "toast": "",
+  "trail": [
+   {
+    "label": "Deactivate",
+    "disabled": false,
+    "open": true,
+    "title": "Deactivate check",
+    "errs": "Reason for deactivation is required.",
+    "toasts": ""
+   },
+   {
+    "label": "Deactivate",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": ""
+   }
+  ]
+ },
+ {
+  "route": "assessments",
+  "title": "Publish assessment results",
+  "how": "key",
+  "presses": 1,
+  "primary": "Publish assessment results",
+  "required": true,
+  "result": "changes state, toast",
+  "toast": "Increment 2 published: 20 determinations now decide WS-X90's control statuses Open Controls",
+  "trail": [
+   {
+    "label": "Publish assessment results",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Increment 2 published: 20 determinations now decide WS-X90's control statuses Open Controls"
+   }
+  ]
+ },
+ {
+  "route": "policies",
+  "title": "Assign approvers",
+  "result": "opener not found"
+ },
+ {
+  "route": "policies",
+  "title": "Start a policy",
+  "how": "key",
+  "presses": 1,
+  "primary": "Continue",
+  "required": false,
+  "result": "navigates to policy-editor",
+  "toast": "",
+  "trail": [
+   {
+    "label": "Continue",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": ""
+   }
+  ]
+ },
+ {
+  "route": "cyber-te",
+  "title": "Plan a cyber test",
+  "how": "key",
+  "presses": 2,
+  "primary": "Plan cyber test",
+  "required": true,
+  "result": "says not wired",
+  "toast": "Not saved: Plan a cyber test isn't wired in this prototype",
+  "trail": [
+   {
+    "label": "Plan cyber test",
+    "disabled": false,
+    "open": true,
+    "title": "Plan a cyber test",
+    "errs": "Phase is required. | Title is required.",
+    "toasts": ""
+   },
+   {
+    "label": "Plan cyber test",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Not saved: Plan a cyber test isn't wired in this prototype"
+   }
+  ]
+ },
+ {
+  "route": "poam",
+  "title": "Create POA&M item",
+  "how": "key",
+  "presses": 2,
+  "primary": "Create POA&M item",
+  "required": true,
+  "result": "says not wired",
+  "toast": "Not saved: Create POA&M item isn't wired in this prototype",
+  "trail": [
+   {
+    "label": "Create POA&M item",
+    "disabled": false,
+    "open": true,
+    "title": "Create POA&M item",
+    "errs": "Title is required.",
+    "toasts": ""
+   },
+   {
+    "label": "Create POA&M item",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Not saved: Create POA&M item isn't wired in this prototype"
+   }
+  ]
+ },
+ {
+  "route": "poam",
+  "title": "Change planned date",
+  "how": "after ticking a row: key",
+  "presses": 2,
+  "primary": "Change planned date",
+  "required": true,
+  "result": "says not wired",
+  "toast": "Not saved: Change planned date isn't wired in this prototype",
+  "trail": [
+   {
+    "label": "Change planned date",
+    "disabled": false,
+    "open": true,
+    "title": "Change planned date",
+    "errs": "Reason for the change is required.",
+    "toasts": ""
+   },
+   {
+    "label": "Change planned date",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Not saved: Change planned date isn't wired in this prototype"
+   }
+  ]
+ },
+ {
+  "route": "findings",
+  "title": "Deactivate 3 findings",
+  "how": "after ticking a row: key",
+  "presses": 2,
+  "primary": "Deactivate",
+  "required": true,
+  "result": "says not wired",
+  "toast": "Not saved: Deactivate finding isn't wired in this prototype",
+  "trail": [
+   {
+    "label": "Deactivate",
+    "disabled": false,
+    "open": true,
+    "title": "Deactivate finding",
+    "errs": "Justification is required.",
+    "toasts": ""
+   },
+   {
+    "label": "Deactivate",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Not saved: Deactivate finding isn't wired in this prototype"
+   }
+  ]
+ },
+ {
+  "route": "threats",
+  "title": "Link ATT&CK technique",
+  "how": "key",
+  "presses": 2,
+  "primary": "Link technique",
+  "required": true,
+  "result": "says not wired",
+  "toast": "Not saved: Link ATT&CK technique isn't wired in this prototype",
+  "trail": [
+   {
+    "label": "Link technique",
+    "disabled": false,
+    "open": true,
+    "title": "Link ATT&CK technique",
+    "errs": "Risk is required. | Technique is required.",
+    "toasts": ""
+   },
+   {
+    "label": "Link technique",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Not saved: Link ATT&CK technique isn't wired in this prototype"
+   }
+  ]
+ },
+ {
+  "route": "risks",
+  "title": "Create risk",
+  "how": "key",
+  "presses": 2,
+  "primary": "Create risk",
+  "required": true,
+  "result": "says not wired",
+  "toast": "Not saved: Create risk isn't wired in this prototype",
+  "trail": [
+   {
+    "label": "Create risk",
+    "disabled": false,
+    "open": true,
+    "title": "Create risk",
+    "errs": "Title is required.",
+    "toasts": ""
+   },
+   {
+    "label": "Create risk",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Not saved: Create risk isn't wired in this prototype"
+   }
+  ]
+ },
+ {
+  "route": "risks",
+  "title": "Request acceptance",
+  "how": "after ticking a row: key",
+  "presses": 2,
+  "primary": "Send to Priya Raghavan",
+  "required": true,
+  "result": "says not wired",
+  "toast": "Not saved: Request acceptance isn't wired in this prototype",
+  "trail": [
+   {
+    "label": "Send to Priya Raghavan",
+    "disabled": false,
+    "open": true,
+    "title": "Request acceptance",
+    "errs": "Residual risk statement is required.",
+    "toasts": ""
+   },
+   {
+    "label": "Send to Priya Raghavan",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Not saved: Request acceptance isn't wired in this prototype"
+   }
+  ]
+ },
+ {
+  "route": "inheritance",
+  "title": "Add common control provider",
+  "how": "key",
+  "presses": 2,
+  "primary": "Add provider",
+  "required": true,
+  "result": "says not wired",
+  "toast": "Not saved: Add common control provider isn't wired in this prototype",
+  "trail": [
+   {
+    "label": "Add provider",
+    "disabled": false,
+    "open": true,
+    "title": "Add common control provider",
+    "errs": "Provider is required.",
+    "toasts": ""
+   },
+   {
+    "label": "Add provider",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Not saved: Add common control provider isn't wired in this prototype"
+   }
+  ]
+ },
+ {
+  "route": "sse",
+  "title": "Add security outcomes",
+  "how": "key",
+  "presses": 1,
+  "primary": "Add outcomes",
+  "required": true,
+  "result": "dialog stays, nothing changes",
+  "toast": "Choose at least one outcome",
+  "trail": [
+   {
+    "label": "Add outcomes",
+    "disabled": false,
+    "open": true,
+    "title": "Add security outcomes",
+    "errs": "",
+    "toasts": "Choose at least one outcome"
+   }
+  ]
+ },
+ {
+  "route": "authorization",
+  "title": "Submit package version 2 for approval",
+  "how": "key",
+  "presses": 1,
+  "primary": "Submit",
+  "required": false,
+  "result": "dialog stays, nothing changes (primary disabled)",
+  "toast": "",
+  "trail": [
+   {
+    "label": "Submit",
+    "disabled": true,
+    "open": true,
+    "title": "Submit package version 2 for approval",
+    "errs": "",
+    "toasts": ""
+   }
+  ]
+ },
+ {
+  "route": "package-room",
+  "title": "Share the package",
+  "how": "key",
+  "presses": 1,
+  "primary": "Share",
+  "required": false,
+  "result": "says not wired",
+  "toast": "Not saved: Share the package isn't wired in this prototype",
+  "trail": [
+   {
+    "label": "Share",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Not saved: Share the package isn't wired in this prototype"
+   }
+  ]
+ },
+ {
+  "route": "program-new",
+  "title": "Save the draft and leave?",
+  "how": "key",
+  "presses": 1,
+  "primary": "Save draft",
+  "required": false,
+  "result": "navigates to home",
+  "toast": "Draft saved · Customer D · X800 Eject Launch Integration",
+  "trail": [
+   {
+    "label": "Save draft",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Draft saved · Customer D · X800 Eject Launch Integration"
+   }
+  ]
+ },
+ {
+  "route": "traceability",
+  "title": "Link evidence",
+  "how": "key",
+  "presses": 2,
+  "primary": "Link evidence",
+  "required": true,
+  "result": "says not wired",
+  "toast": "Not saved: Link evidence isn't wired in this prototype",
+  "trail": [
+   {
+    "label": "Link evidence",
+    "disabled": false,
+    "open": true,
+    "title": "Link evidence",
+    "errs": "Requirement is required. | Evidence is required.",
+    "toasts": ""
+   },
+   {
+    "label": "Link evidence",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Not saved: Link evidence isn't wired in this prototype"
+   }
+  ]
+ },
+ {
+  "route": "conmon",
+  "title": "Plan a check",
+  "how": "key",
+  "presses": 2,
+  "primary": "Plan check",
+  "required": true,
+  "result": "says not wired",
+  "toast": "Not saved: Plan a check isn't wired in this prototype",
+  "trail": [
+   {
+    "label": "Plan check",
+    "disabled": false,
+    "open": true,
+    "title": "Plan a check",
+    "errs": "Check is required.",
+    "toasts": ""
+   },
+   {
+    "label": "Plan check",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Not saved: Plan a check isn't wired in this prototype"
+   }
+  ]
+ },
+ {
+  "route": "schedule",
+  "title": "Create task",
+  "how": "key",
+  "presses": 2,
+  "primary": "Create task",
+  "required": true,
+  "result": "says not wired",
+  "toast": "Not saved: Create task isn't wired in this prototype",
+  "trail": [
+   {
+    "label": "Create task",
+    "disabled": false,
+    "open": true,
+    "title": "Create task",
+    "errs": "Title is required.",
+    "toasts": ""
+   },
+   {
+    "label": "Create task",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Not saved: Create task isn't wired in this prototype"
+   }
+  ]
+ },
+ {
+  "route": "people",
+  "title": "Assign a role",
+  "how": "key",
+  "presses": 1,
+  "primary": "Assign role",
+  "required": false,
+  "result": "says not wired",
+  "toast": "Not saved: Assign a role isn't wired in this prototype",
+  "trail": [
+   {
+    "label": "Assign role",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Not saved: Assign a role isn't wired in this prototype"
+   }
+  ]
+ },
+ {
+  "route": "schedule",
+  "title": "Change due date",
+  "how": "after ticking a row: key",
+  "presses": 2,
+  "primary": "Change due date",
+  "required": true,
+  "result": "says not wired",
+  "toast": "Not saved: Change due date isn't wired in this prototype",
+  "trail": [
+   {
+    "label": "Change due date",
+    "disabled": false,
+    "open": true,
+    "title": "Change due date",
+    "errs": "Due date is required. | Reason is required.",
+    "toasts": ""
+   },
+   {
+    "label": "Change due date",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Not saved: Change due date isn't wired in this prototype"
+   }
+  ]
+ },
+ {
+  "route": "people",
+  "title": "Recurring reminders",
+  "how": "key",
+  "presses": 1,
+  "primary": "Schedule reminders",
+  "required": false,
+  "result": "says not wired",
+  "toast": "Not saved: Recurring reminders isn't wired in this prototype",
+  "trail": [
+   {
+    "label": "Schedule reminders",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Not saved: Recurring reminders isn't wired in this prototype"
+   }
+  ]
+ },
+ {
+  "route": "people",
+  "title": "Change role",
+  "how": "after ticking a row: key",
+  "presses": 2,
+  "primary": "Change role",
+  "required": true,
+  "result": "says not wired",
+  "toast": "Not saved: Change role isn't wired in this prototype",
+  "trail": [
+   {
+    "label": "Change role",
+    "disabled": false,
+    "open": true,
+    "title": "Change role",
+    "errs": "Role is required.",
+    "toasts": ""
+   },
+   {
+    "label": "Change role",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Not saved: Change role isn't wired in this prototype"
+   }
+  ]
+ },
+ {
+  "route": "people",
+  "title": "Send a reminder",
+  "how": "data-modal",
+  "presses": 1,
+  "primary": "Send reminder",
+  "required": false,
+  "result": "says not wired",
+  "toast": "Not saved: Send a reminder isn't wired in this prototype",
+  "trail": [
+   {
+    "label": "Send reminder",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Not saved: Send a reminder isn't wired in this prototype"
+   }
+  ]
+ },
+ {
+  "route": "program-start",
+  "title": "Invite by email",
+  "how": "key",
+  "presses": 2,
+  "primary": "Send invitation",
+  "required": true,
+  "result": "closes, toast only",
+  "toast": "Invitation sent to new.person@example.test · Assessors",
+  "trail": [
+   {
+    "label": "Send invitation",
+    "disabled": false,
+    "open": true,
+    "title": "Invite by email",
+    "errs": "Email is required.",
+    "toasts": ""
+   },
+   {
+    "label": "Send invitation",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Invitation sent to new.person@example.test · Assessors"
+   }
+  ]
+ },
+ {
+  "route": "people",
+  "title": "End 2 roles",
+  "how": "after ticking a row: key",
+  "presses": 2,
+  "primary": "End role",
+  "required": true,
+  "result": "says not wired",
+  "toast": "Not saved: End Joel Barrantes's period as information system security manager isn't wired in this prototype",
+  "trail": [
+   {
+    "label": "End role",
+    "disabled": false,
+    "open": true,
+    "title": "End Joel Barrantes's period as information system security manager",
+    "errs": "Successor as ISSM is required.",
+    "toasts": ""
+   },
+   {
+    "label": "End role",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Not saved: End Joel Barrantes's period as information system security manager isn't wired in this prototype"
+   }
+  ]
+ },
+ {
+  "route": "program-start",
+  "title": "Import the ITCSC",
+  "how": "key",
+  "result": "no primary",
+  "body": "Import the ITCSC ✕ A completed AF ITCSC, PDF or Word. The ITCSC reader reads it into the program's ITCSC record, where the PM and the AO sign it. Example Drop a file here or choose one Cancel"
+ },
+ {
+  "route": "program-start",
+  "title": "Upload the architecture diagram",
+  "how": "key",
+  "result": "no primary",
+  "body": "Upload the architecture diagram ✕ The boundary and data flow diagram, as SVG, PNG or PDF. The SSP's section 6 shows it. Example Drop a file here or choose one Cancel"
+ },
+ {
+  "route": "control-si2",
+  "title": "Add evidence",
+  "how": "key",
+  "presses": 1,
+  "primary": "Add evidence",
+  "required": false,
+  "result": "says not wired",
+  "toast": "Not saved: Add evidence isn't wired in this prototype",
+  "trail": [
+   {
+    "label": "Add evidence",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Not saved: Add evidence isn't wired in this prototype"
+   }
+  ]
+ },
+ {
+  "route": "campaign",
+  "title": "Set Ready",
+  "how": "after ticking a row: key",
+  "presses": 1,
+  "primary": "Set Ready",
+  "required": false,
+  "result": "changes state, toast",
+  "toast": "1 request back with the assessor as Ready",
+  "trail": [
+   {
+    "label": "Set Ready",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "1 request back with the assessor as Ready"
+   }
+  ]
+ },
+ {
+  "route": "ssp-review",
+  "title": "Edit summary",
+  "how": "key",
+  "presses": 1,
+  "primary": "Save summary",
+  "required": false,
+  "result": "changes state, toast",
+  "toast": "Summary saved. It goes to the ISSM with the submission.",
+  "trail": [
+   {
+    "label": "Save summary",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Summary saved. It goes to the ISSM with the submission."
+   }
+  ]
+ },
+ {
+  "route": "ssp-history",
+  "title": "Compare versions",
+  "how": "key",
+  "presses": 1,
+  "primary": "Compare",
+  "required": false,
+  "result": "changes state, no toast",
+  "toast": "",
+  "trail": [
+   {
+    "label": "Compare",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": ""
+   }
+  ]
+ },
+ {
+  "route": "ssp-history",
+  "title": "Name this version",
+  "how": "key",
+  "presses": 1,
+  "primary": "Save name",
+  "required": false,
+  "result": "dialog changes in place",
+  "toast": "",
+  "trail": [
+   {
+    "label": "Save name",
+    "disabled": false,
+    "open": true,
+    "title": "Name this version",
+    "errs": "",
+    "toasts": ""
+   }
+  ]
+ },
+ {
+  "route": "ssp-history",
+  "title": "Restore this version?",
+  "how": "key",
+  "presses": 1,
+  "primary": "Restore",
+  "required": false,
+  "result": "changes state, toast",
+  "toast": "Restored as a new version. Every version stays in the history.",
+  "trail": [
+   {
+    "label": "Restore",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Restored as a new version. Every version stays in the history."
+   }
+  ]
+ },
+ {
+  "route": "check-scan",
+  "title": "Create ticket",
+  "how": "key",
+  "presses": 1,
+  "primary": "Create ticket",
+  "required": true,
+  "result": "changes state, toast",
+  "toast": "WSX-419 created in Jira · status syncs both ways",
+  "trail": [
+   {
+    "label": "Create ticket",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "WSX-419 created in Jira · status syncs both ways"
+   }
+  ]
+ },
+ {
+  "route": "component-mc",
+  "title": "Remind consumers to take version 2",
+  "how": "key",
+  "presses": 1,
+  "primary": "Send reminders",
+  "required": false,
+  "result": "says not wired",
+  "toast": "Not saved: Remind consumers to take version 2 isn't wired in this prototype",
+  "trail": [
+   {
+    "label": "Send reminders",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Not saved: Remind consumers to take version 2 isn't wired in this prototype"
+   }
+  ]
+ },
+ {
+  "route": "ssp",
+  "title": "Share the SSP",
+  "how": "key",
+  "presses": 1,
+  "primary": "Done",
+  "required": false,
+  "result": "says not wired",
+  "toast": "Not saved: Share the SSP isn't wired in this prototype",
+  "trail": [
+   {
+    "label": "Done",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Not saved: Share the SSP isn't wired in this prototype"
+   }
+  ]
+ },
+ {
+  "route": "ssp",
+  "title": "Add section",
+  "how": "key",
+  "presses": 1,
+  "primary": "Add section",
+  "required": false,
+  "result": "changes state, toast",
+  "toast": "Added 14 New section",
+  "trail": [
+   {
+    "label": "Add section",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Added 14 New section"
+   }
+  ]
+ },
+ {
+  "route": "ssp",
+  "title": "Detach from the record?",
+  "how": "key",
+  "presses": 1,
+  "primary": "Detach section 1",
+  "required": false,
+  "result": "changes state, toast",
+  "toast": "1 System identification is detached: its values stay as text",
+  "trail": [
+   {
+    "label": "Detach section 1",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "1 System identification is detached: its values stay as text"
+   }
+  ]
+ },
+ {
+  "route": "ssp",
+  "title": "Replace Figure 1",
+  "how": "key",
+  "presses": 1,
+  "primary": "Choose a file",
+  "required": false,
+  "result": "says not wired",
+  "toast": "Not saved: Replace Figure 1 isn't wired in this prototype",
+  "trail": [
+   {
+    "label": "Choose a file",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Not saved: Replace Figure 1 isn't wired in this prototype"
+   }
+  ]
+ },
+ {
+  "route": "ssp",
+  "title": "Replace Figure 2",
+  "how": "key",
+  "presses": 1,
+  "primary": "Choose a file",
+  "required": false,
+  "result": "says not wired",
+  "toast": "Not saved: Replace Figure 2 isn't wired in this prototype",
+  "trail": [
+   {
+    "label": "Choose a file",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Not saved: Replace Figure 2 isn't wired in this prototype"
+   }
+  ]
+ },
+ {
+  "route": "ssp",
+  "title": "Set AC-2(3)'s parameters",
+  "how": "key",
+  "presses": 1,
+  "primary": "Set parameters",
+  "required": true,
+  "result": "changes state, toast",
+  "toast": "Set in WS-X90's program tailoring: 72 hours and 90 days",
+  "trail": [
+   {
+    "label": "Set parameters",
+    "disabled": false,
+    "open": false,
+    "title": "",
+    "errs": "",
+    "toasts": "Set in WS-X90's program tailoring: 72 hours and 90 days"
+   }
+  ]
+ }
+]

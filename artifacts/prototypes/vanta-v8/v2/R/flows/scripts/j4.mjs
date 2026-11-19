@@ -1,0 +1,12 @@
+import { start } from "./walk.mjs";
+const W = await start("j4");
+await W.go("evidence", "Evidence register");
+await W.shot("01-evidence");
+let e = await W.click("Add evidence", { within: "#main", why: "primary", wait: 400 });
+console.log("E1", e && e.effect);
+e = await W.click("Upload a file", { why: "menu item", wait: 500 });
+console.log("E2", e && e.effect);
+console.log("DIALOG:", (await W.text("#modal", 2500)).replace(/\s+/g, " ").slice(0, 1500));
+console.log("DIALOG CONTROLS:", (await W.see("#modal")).join(" ‖ "));
+await W.shot("02-upload-dialog");
+await W.done();

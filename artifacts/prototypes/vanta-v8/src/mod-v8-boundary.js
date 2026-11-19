@@ -117,6 +117,7 @@
       src: [["SSP 3 §5", "Identity services come from the corporate identity provider outside it."]], comments: [] },
   ];
   const ICBY = Object.fromEntries(IC.map((x) => [x.id, x]));
+  PA.v8bIC = IC; // v2 (H): the Boundary page draws these outside the bubble, each opening its preview
   const AGR = { Signed: "ok", Draft: "warn", Expired: "bad", "Not required": "info" };
   const agrPill = (a) => pill(AGR[a.st], a.kind ? `${a.kind} · ${a.st}` : a.st);
   // An expiry: red once past, amber inside 90 days, the age or the time left beside the day.
@@ -627,8 +628,12 @@
     const head = AK.indexHead({ title: "Ports, protocols and services", desc: `${plural(PPS.length, "service")} WS-X90 uses · each against the DoD PPSM Category Assurance List (CAL), DoDI 8551.01 · ${lnk("SSP 3 §9 lists 4", go("ssp"))}`,
       actions: `${btn("Export", tst("Exported 12 services as the PPSM registry's CSV"), false, false)}${btn(`${AK.i("plus")}Add service`, 'data-modal="v8b-pps-new"', true, false)}` });
     const tabs = AK.tabs(PS_T.map(([l, k, r]) => [l, PPS.filter(psIn[k]).length, r, k === tab]), "Ports, protocols and services");
-    const rows = list.map((x) => ({ id: x.id, cls: x.off ? "v8b-off" : "", cells: [`<b class="num">${esc(x.port)}</b>`, esc(x.proto), clip(esc(x.svc), 150, x.svc), esc(x.dir), esc(x.bnd), clip(x.ic ? esc(ICBY[x.ic].name) : `${esc(elShort(x.el))}`, 140, x.ic ? `${ICBY[x.ic].name} · ${elShort(x.el)}` : elShort(x.el)), pill(CAL[x.cal], x.cal), pill(REG[x.reg], x.reg), face(ownerOf("pps:" + x.id, x.owner))] }));
-    const table = tbl({ cols: ["Port", "Protocol", "Service", "Direction", "Boundary", "Used by", `CAL ${EX}`, `Registry ${EX}`, "Owner"], rows, panel: "v8b-pps", label: "Ports, protocols and services", cls: "v8b-dense" });
+    // v2: Not applicable and Not required are plain grey words, not blue pills: a row tones its CAL assessment and its
+    // registry state only where they say something (Green, Yellow, Registered, Pending, Not registered). Direction folds
+    // into the service's preview, so the nine columns fit the frame at 1440 and Owner is no longer cut off.
+    const quiet = (t) => `<span class="v8b-mu">${esc(t)}</span>`;
+    const rows = list.map((x) => ({ id: x.id, cls: x.off ? "v8b-off" : "", cells: [`<b class="num">${esc(x.port)}</b>`, esc(x.proto), clip(esc(x.svc), 170, x.svc), esc(x.bnd), clip(x.ic ? esc(ICBY[x.ic].name) : `${esc(elShort(x.el))}`, 150, x.ic ? `${ICBY[x.ic].name} · ${elShort(x.el)}` : elShort(x.el)), x.cal === "Not applicable" ? quiet("Not applicable") : pill(CAL[x.cal], x.cal), x.reg === "Not required" ? quiet("Not required") : pill(REG[x.reg], x.reg), face(ownerOf("pps:" + x.id, x.owner))] }));
+    const table = tbl({ cols: ["Port", "Protocol", "Service", "Boundary", "Used by", `CAL ${EX}`, `Registry ${EX}`, "Owner"], rows, panel: "v8b-pps", label: "Ports, protocols and services", cls: "v8b-dense" });
     return h.page(head, tabs, filters("Search services", ["Boundary", "CAL assessment", "Registry", "Owner"]), table,
       AK.note("Ports 443, 22, 6514 and the link protocol are SSP 3 section 9's; the firmware path, the two vendor diagnostic services and the paper registration come from SC-7(8), CM-7(1) and CM-7(3). Ports 2001, 2002 and 50100, the CAL assessments, the registry states and the owners are examples."));
   }

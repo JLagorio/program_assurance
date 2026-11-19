@@ -1,0 +1,86 @@
+{
+  'opener not found': 10,
+  'NOT SAVED toast': 39,
+  'closes, page changes, toast': 7,
+  'no primary': 3,
+  'stays open': 5,
+  'dialog did not open': 3,
+  'closes, page changes': 4,
+  'navigates to policy-editor': 1,
+  'stays (primary disabled)': 1,
+  'navigates to home': 1
+}
+review-queue     Reassign reviewer                      req=-        → opener not found
+suppliers        Request from a supplier                req=0        → NOT SAVED toast
+products         Take version 2 of X800 Missile         req=0        → NOT SAVED toast
+products         Create product                         req=2 BLOCKS → NOT SAVED toast
+components       Create component                       req=2 BLOCKS → NOT SAVED toast
+integrations     Request a connector                    req=0        → NOT SAVED toast
+reports          Generate report                        req=0        → NOT SAVED toast
+ai-drafts        Run an agent                           req=0        → NOT SAVED toast
+ai-drafts        Reject the run                         req=1 BLOCKS → closes, page changes, toast
+enclaves         Add enclave                            req=0        → NOT SAVED toast
+notifications    Send a test                            req=0        → NOT SAVED toast
+common-controls  Add provider                           req=0        → NOT SAVED toast
+deadlines        Edit high finding deadline             req=1 BLOCKS → NOT SAVED toast
+event-log        Export event log                       req=0        → NOT SAVED toast
+itcsc            Start version 4                        req=0        → closes, page changes, toast
+permissions      Invite a member                        req=2 BLOCKS → closes, page changes, toast
+itcsc            Change owner                           req=-        → no primary
+stigs            Import a checklist                     req=3 BLOCKS → stays open
+interconnections Add interconnection                    req=2 BLOCKS → NOT SAVED toast
+composition      Create element                         req=1 BLOCKS → NOT SAVED toast
+composition      Take version 2 of Mission Computer     req=0        → NOT SAVED toast
+sources          Retry import                           req=0        → NOT SAVED toast
+sources          Add source                             req=0        → stays open
+inventory        Assign owner                           req=0        → NOT SAVED toast
+ppsm             Add service                            req=3 BLOCKS → NOT SAVED toast
+controls         Add to assessment campaign             req=-        → opener not found
+ssps             New plan                               req=0        → NOT SAVED toast
+baseline         Edit overlays                          req=0        → NOT SAVED toast
+inventory        Mark not in boundary                   req=-        → dialog did not open
+requirements     Import requirements                    req=0        → NOT SAVED toast
+checks           Deactivate 2 checks                    req=-        → dialog did not open
+requirements     Create requirement                     req=2 BLOCKS → NOT SAVED toast
+assessments      Plan an assessment                     req=0        → NOT SAVED toast
+policies         Assign approvers                       req=-        → opener not found
+assessments      Publish assessment results             req=1 noblock → closes, page changes
+cyber-te         Plan a cyber test                      req=2 BLOCKS → NOT SAVED toast
+policies         Start a policy                         req=0        → navigates to policy-editor
+poam             Change planned date                    req=-        → opener not found
+findings         Deactivate 3 findings                  req=-        → opener not found
+poam             Create POA&M item                      req=1 BLOCKS → NOT SAVED toast
+risks            Request acceptance                     req=-        → opener not found
+threats          Link ATT&CK technique                  req=2 BLOCKS → NOT SAVED toast
+risks            Create risk                            req=1 BLOCKS → NOT SAVED toast
+inheritance      Add common control provider            req=1 BLOCKS → NOT SAVED toast
+package-room     Share the package                      req=0        → NOT SAVED toast
+sse              Add security outcomes                  req=1 BLOCKS → stays open
+authorization    Submit package version 2 for approval  req=0        → stays (primary disabled)
+traceability     Link evidence                          req=2 BLOCKS → NOT SAVED toast
+program-new      Save the draft and leave?              req=0        → navigates to home
+schedule         Change due date                        req=-        → opener not found
+conmon           Plan a check                           req=1 BLOCKS → NOT SAVED toast
+schedule         Create task                            req=1 BLOCKS → NOT SAVED toast
+people           Assign a role                          req=0        → NOT SAVED toast
+people           Recurring reminders                    req=0        → NOT SAVED toast
+people           Change role                            req=-        → opener not found
+people           End 2 roles                            req=-        → opener not found
+program-start    Import the ITCSC                       req=-        → no primary
+program-start    Upload the architecture diagram        req=-        → no primary
+people           Send a reminder                        req=-        → dialog did not open
+campaign         Set Ready                              req=-        → opener not found
+program-start    Invite by email                        req=1 BLOCKS → stays open
+control-si2      Add evidence                           req=0        → NOT SAVED toast
+ssp-review       Edit summary                           req=0        → closes, page changes, toast
+ssp-history      Compare versions                       req=0        → closes, page changes
+ssp-history      Name this version                      req=0        → stays open
+ssp-history      Restore this version?                  req=0        → closes, page changes, toast
+component-mc     Remind consumers to take version 2     req=0        → NOT SAVED toast
+check-scan       Create ticket                          req=1 noblock → closes, page changes
+ssp              Share the SSP                          req=0        → NOT SAVED toast
+ssp              Add section                            req=0        → closes, page changes, toast
+ssp              Detach from the record?                req=0        → closes, page changes, toast
+ssp              Replace Figure 1                       req=0        → NOT SAVED toast
+ssp              Replace Figure 2                       req=0        → NOT SAVED toast
+ssp              Set AC-2(3)'s parameters               req=1 noblock → closes, page changes

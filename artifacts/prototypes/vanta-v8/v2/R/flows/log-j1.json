@@ -1,0 +1,179 @@
+{
+ "log": [
+  {
+   "step": 1,
+   "action": "go #home",
+   "why": "a new engineer starts on Home",
+   "hash": "home",
+   "h1": "",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 1,
+   "shot": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/v2/R/flows/shots/j1-01-home-no-create.png"
+  },
+  {
+   "step": 1,
+   "note": "Home has no Create program; its footnote says Create program sits in the program switcher's menu, which only exists on a program page"
+  },
+  {
+   "step": 2,
+   "action": "click \"Programs\"",
+   "why": "look for a create on the Programs register",
+   "effect": "→ #portfolio",
+   "hash": "portfolio",
+   "h1": "Programs",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 3,
+   "action": "click \"Create program\"",
+   "why": "Programs register primary",
+   "effect": "→ #program-new",
+   "hash": "program-new",
+   "h1": "Create program",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 4,
+   "action": "click \"From an ITCSC\"",
+   "why": "job: categorize from the ITCSC",
+   "effect": "page changed in place",
+   "hash": "program-new",
+   "h1": "Create program",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 5,
+   "action": "click \"Drop a completed AF ITCSC here\"",
+   "why": "choose the example ITCSC file",
+   "effect": "toast: ITCSC reader read 37 of 41 fields from CustomerD_X800-EL_ITCSC.pdf ; page changed in place",
+   "hash": "program-new",
+   "h1": "Create program",
+   "modal": null,
+   "panel": null,
+   "toasts": "ITCSC reader read 37 of 41 fields from CustomerD_X800-EL_ITCSC.pdf",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 5,
+   "shot": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/v2/R/flows/shots/j1-02-start-itcsc-read.png"
+  },
+  {
+   "step": 6,
+   "action": "click \"Continue\"",
+   "why": "next step",
+   "effect": "→ #program-new-details",
+   "hash": "program-new-details",
+   "h1": "Create program",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 6,
+   "shot": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/v2/R/flows/shots/j1-03-program-new-details.png"
+  },
+  {
+   "step": 7,
+   "action": "click \"Continue\"",
+   "why": "next step",
+   "effect": "→ #program-new-systems",
+   "hash": "program-new-systems",
+   "h1": "Create program",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 7,
+   "shot": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/v2/R/flows/shots/j1-03-program-new-systems.png"
+  },
+  {
+   "step": 8,
+   "action": "click \"Continue\"",
+   "why": "next step",
+   "effect": "→ #program-new-baseline",
+   "hash": "program-new-baseline",
+   "h1": "Create program",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 8,
+   "shot": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/v2/R/flows/shots/j1-03-program-new-baseline.png"
+  },
+  {
+   "step": 9,
+   "action": "click \"Continue\"",
+   "why": "next step",
+   "effect": "→ #program-new-team",
+   "hash": "program-new-team",
+   "h1": "Create program",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 9,
+   "shot": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/v2/R/flows/shots/j1-03-program-new-team.png"
+  },
+  {
+   "step": 10,
+   "action": "click \"Continue\"",
+   "why": "next step",
+   "effect": "→ #program-new-review",
+   "hash": "program-new-review",
+   "h1": "Create program",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 10,
+   "shot": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/v2/R/flows/shots/j1-03-program-new-review.png"
+  },
+  {
+   "step": 11,
+   "action": "click \"Continue\"",
+   "why": "next step",
+   "result": "NOT FOUND",
+   "hash": "program-new-review",
+   "h1": "Create program",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  }
+ ],
+ "errors": []
+}

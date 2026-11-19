@@ -8,7 +8,7 @@ const b = await chromium.launch(); const p = await b.newPage({ viewport: { width
 await p.route("**/*", (r) => (/fonts\.(googleapis|gstatic)\.com/.test(r.request().url()) ? r.abort() : r.continue()));
 await p.goto(file + "#home"); await p.waitForTimeout(500);
 for (let i = 0; i < 12; i++) { const g = await p.$('#nav [data-group][aria-expanded="false"]'); if (!g) break; await g.click(); await p.waitForTimeout(50); }
-const nav = await p.evaluate(() => [...document.querySelectorAll("#nav a.item")].map((a) => [a.getAttribute("href").slice(1), a.textContent.trim()]));
+const nav = await p.evaluate(() => (PA.navItems ? PA.navItems() : [...document.querySelectorAll("#nav a.item")].map((a) => [a.getAttribute("href").slice(1), a.textContent.trim()])));
 const shots = [];
 for (const [r, label] of nav) {
   await p.goto(file + "#" + r); await p.waitForTimeout(350);

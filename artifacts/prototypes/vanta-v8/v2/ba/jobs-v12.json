@@ -1,0 +1,707 @@
+[
+{
+"file": "home-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "home"
+},
+{
+"file": "getting-started-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "after-getting-started"
+},
+{
+"file": "my-work-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "my-work"
+},
+{
+"file": "review-queue-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "review-queue"
+},
+{
+"file": "schedule-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "schedule"
+},
+{
+"file": "notifications-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "notifications"
+},
+{
+"file": "reports-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "reports"
+},
+{
+"file": "ai-drafts-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "ai-drafts"
+},
+{
+"file": "tests-index-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "checks"
+},
+{
+"file": "test-page-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": null,
+"steps": [
+{
+"go": "checks",
+"wait": 600
+},
+{
+"jsclick": "#main [data-panel=\"a-tests-check\"]"
+}
+],
+"expect": "checks"
+},
+{
+"file": "controls-index-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "controls"
+},
+{
+"file": "control-record-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "control-si2"
+},
+{
+"file": "frameworks-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "frameworks"
+},
+{
+"file": "audits-index-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "assessments"
+},
+{
+"file": "audit-record-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "campaign"
+},
+{
+"file": "evidence-index-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "evidence"
+},
+{
+"file": "evidence-record-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "evidence",
+"panel": "first"
+},
+{
+"file": "policies-index-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "policies"
+},
+{
+"file": "policy-record-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "policies",
+"panel": "first"
+},
+{
+"file": "policy-editor-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "policy-editor"
+},
+{
+"file": "integrations-gallery-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "integrations"
+},
+{
+"file": "integration-drawer-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "integrations",
+"panel": "first"
+},
+{
+"file": "evidence-sources-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "sources"
+},
+{
+"file": "people-register-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "people"
+},
+{
+"file": "person-drawer-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "people",
+"panel": "first"
+},
+{
+"file": "access-reviews-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "people-access"
+},
+{
+"file": "access-review-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "people-access",
+"panel": "first"
+},
+{
+"file": "inventory-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "inventory"
+},
+{
+"file": "scope-changes-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "inventory-changes"
+},
+{
+"file": "component-record-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "component-mc"
+},
+{
+"file": "role-task-sets-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "people-task-sets"
+},
+{
+"file": "risk-register-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "risks"
+},
+{
+"file": "risk-record-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "risks",
+"panel": "first"
+},
+{
+"file": "findings-deadlines-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "findings"
+},
+{
+"file": "poam-tracker-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "poam"
+},
+{
+"file": "suppliers-index-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "suppliers"
+},
+{
+"file": "supplier-record-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "suppliers",
+"panel": "first"
+},
+{
+"file": "package-room-trust-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "package-room"
+},
+{
+"file": "data-calls-questionnaires-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "data-calls"
+},
+{
+"file": "overview-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "overview"
+},
+{
+"file": "composition-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "composition"
+},
+{
+"file": "baseline-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "baseline"
+},
+{
+"file": "requirements-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "requirements"
+},
+{
+"file": "ssps-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "ssps"
+},
+{
+"file": "ssp-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "ssp"
+},
+{
+"file": "program-new-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "program-new"
+},
+{
+"file": "itcsc-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "itcsc"
+},
+{
+"file": "interconnections-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "interconnections"
+},
+{
+"file": "ppsm-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "ppsm"
+},
+{
+"file": "stigs-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "stigs"
+},
+{
+"file": "stig-record-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "stigs-mission-computer-rhel9"
+},
+{
+"file": "threats-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "threats"
+},
+{
+"file": "posture-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "posture"
+},
+{
+"file": "resiliency-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "resiliency"
+},
+{
+"file": "sse-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "sse"
+},
+{
+"file": "traceability-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "traceability"
+},
+{
+"file": "inheritance-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "inheritance"
+},
+{
+"file": "cyber-te-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "cyber-te"
+},
+{
+"file": "authorization-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "authorization"
+},
+{
+"file": "conmon-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "conmon"
+},
+{
+"file": "portfolio-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "portfolio"
+},
+{
+"file": "products-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "products"
+},
+{
+"file": "components-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "components"
+},
+{
+"file": "settings-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "deadlines"
+},
+{
+"file": "event-log-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "event-log"
+},
+{
+"file": "enclaves-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "enclaves"
+},
+{
+"file": "common-controls-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "common-controls"
+},
+{
+"file": "permissions-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "permissions"
+},
+{
+"file": "new-control-sa24-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "rec--a-tests-control--SA-24"
+},
+{
+"file": "new-control-sa24-v1.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype-v1.html",
+"route": "controls",
+"click": "#main [data-panel=\"a-tests-control\"][data-id=\"SA-24\"]"
+},
+{
+"file": "new-control-ac1-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "rec--a-tests-control--AC-1"
+},
+{
+"file": "new-control-ac1-v1.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype-v1.html",
+"route": "controls",
+"click": "#main [data-panel=\"a-tests-control\"][data-id=\"AC-1\"]"
+},
+{
+"file": "new-campaign-conmon-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "campaign-conmon"
+},
+{
+"file": "new-campaign-conmon-v1.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype-v1.html",
+"route": "assessments"
+},
+{
+"file": "new-rec-risk-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "rec--a-risk-risk--0a21dc94%7Coverview"
+},
+{
+"file": "new-rec-risk-v1.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype-v1.html",
+"route": "risks",
+"click": "#main [data-panel=\"a-risk-risk\"][data-id=\"0a21dc94|overview\"]"
+},
+{
+"file": "new-rec-issue-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "rec--a-risk-issue--85973641"
+},
+{
+"file": "new-rec-issue-v1.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype-v1.html",
+"route": "findings",
+"click": "#main [data-panel=\"a-risk-issue\"][data-id=\"85973641\"]"
+},
+{
+"file": "new-rec-poam-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "rec--a-risk-poam--4be4ddde%7Coverview"
+},
+{
+"file": "new-rec-poam-v1.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype-v1.html",
+"route": "poam",
+"click": "#main [data-panel=\"a-risk-poam\"][data-id=\"4be4ddde|overview\"]"
+},
+{
+"file": "new-rec-requirement-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "requirements",
+"click": "#main [data-panel=\"v7p-req\"][data-id=\"REQ-200\"]"
+},
+{
+"file": "new-rec-requirement-v1.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype-v1.html",
+"route": "requirements",
+"click": "#main [data-panel=\"v7p-req\"][data-id=\"REQ-200\"]"
+},
+{
+"file": "new-rec-decision-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "rec--v7p-decision--v2"
+},
+{
+"file": "new-rec-decision-v1.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype-v1.html",
+"route": "authorization",
+"click": "#main [data-panel=\"v7p-decision\"][data-id=\"v2\"]"
+},
+{
+"file": "new-rec-supplier-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "rec--a-risk-sup--x800%7Coverview"
+},
+{
+"file": "new-rec-supplier-v1.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype-v1.html",
+"route": "suppliers",
+"click": "#main [data-panel=\"a-risk-sup\"][data-id=\"x800|overview\"]"
+},
+{
+"file": "new-rec-review-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "rec--a-work-rq--evidence%3Ae1"
+},
+{
+"file": "new-rec-review-v1.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype-v1.html",
+"route": "review-queue",
+"click": "#main [data-panel=\"a-work-rq\"][data-id=\"evidence:e1\"]"
+},
+{
+"file": "new-rec-task-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "rec--a-work-task--t1"
+},
+{
+"file": "new-rec-task-v1.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype-v1.html",
+"route": "schedule",
+"click": "#main [data-panel=\"a-work-task\"][data-id=\"t1\"]"
+},
+{
+"file": "new-rec-gate-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "rec--a-work-gate--pdr"
+},
+{
+"file": "new-rec-gate-v1.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype-v1.html",
+"route": "schedule",
+"click": "#main [data-panel=\"a-work-gate\"][data-id=\"pdr\"]"
+},
+{
+"file": "new-rec-asset-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "rec--sys-asset--AST-109001"
+},
+{
+"file": "new-rec-asset-v1.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype-v1.html",
+"route": "inventory",
+"click": "#main [data-panel=\"sys-asset\"][data-id=\"AST-109001\"]"
+},
+{
+"file": "new-rec-element-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "rec--v7p-el--CN-109000"
+},
+{
+"file": "new-rec-element-v1.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype-v1.html",
+"route": "composition",
+"click": "#main [data-panel=\"v7p-el\"][data-id=\"CN-109000\"]"
+},
+{
+"file": "new-rec-interconnection-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "rec--v8b-ic--IC-101"
+},
+{
+"file": "new-rec-interconnection-v1.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype-v1.html",
+"route": "interconnections",
+"click": "#main [data-panel=\"v8b-ic\"][data-id=\"IC-101\"]"
+},
+{
+"file": "new-rec-technique-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "rec--v7a-att--T1078"
+},
+{
+"file": "new-rec-technique-v1.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype-v1.html",
+"route": "threats",
+"click": "#main [data-panel=\"v7a-att\"][data-id=\"T1078\"]"
+},
+{
+"file": "new-rec-agent-run-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "rec--v8w-run--w1"
+},
+{
+"file": "new-rec-agent-run-v1.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype-v1.html",
+"route": "ai-drafts",
+"click": "#main [data-panel=\"v8w-run\"][data-id=\"w1\"]"
+},
+{
+"file": "new-rec-product-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "rec--v7o-product--X800"
+},
+{
+"file": "new-rec-product-v1.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype-v1.html",
+"route": "products",
+"click": "#main [data-panel=\"v7o-product\"][data-id=\"X800\"]"
+},
+{
+"file": "new-program-page-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": null,
+"steps": [
+{
+"go": "program-new",
+"wait": 800
+},
+{
+"repeat": "[data-pn=\"next\"]",
+"untilHash": "program-new-review",
+"max": 8,
+"wait": 450
+},
+{
+"click": "[data-pn=\"create\"]",
+"wait": 3800
+}
+],
+"page": "prog"
+},
+{
+"file": "new-program-page-v1.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype-v1.html",
+"route": null,
+"steps": [
+{
+"go": "program-new",
+"wait": 800
+},
+{
+"repeat": "[data-pn=\"next\"]",
+"untilHash": "program-new-review",
+"max": 8,
+"wait": 450
+},
+{
+"click": "[data-pn=\"create\"]",
+"wait": 3800
+}
+],
+"page": "prog"
+},
+{
+"file": "new-program-empty-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": null,
+"steps": [
+{
+"click": "#main .pn-trow [data-go=\"requirements\"]",
+"wait": 600
+}
+],
+"page": "prog"
+},
+{
+"file": "new-program-empty-v1.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype-v1.html",
+"route": null,
+"steps": [
+{
+"click": "#main [data-go=\"requirements\"]",
+"wait": 600
+}
+],
+"page": "prog"
+},
+{
+"file": "new-onboarding-task-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "person-local-developer-onboarding",
+"click": "#main [data-panel=\"v8d-ob\"]"
+},
+{
+"file": "new-onboarding-task-v1.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype-v1.html",
+"route": "person-local-developer-onboarding"
+},
+{
+"file": "new-add-person-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "people",
+"click": "#main [data-modal=\"v2c-add-person\"]"
+},
+{
+"file": "new-add-person-v1.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype-v1.html",
+"route": "people"
+},
+{
+"file": "new-campaign-controls-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "campaign-controls"
+},
+{
+"file": "new-campaign-controls-v1.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype-v1.html",
+"route": "campaign"
+},
+{
+"file": "new-added-asset-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": null,
+"steps": [
+{
+"go": "inventory"
+},
+{
+"click": "#main [data-modal=\"v2c-add-asset\"]"
+},
+{
+"fill": [
+"#v2c-a-name",
+"Ground Test Set"
+]
+},
+{
+"fill": [
+"#v2c-a-lru",
+"LRU-021"
+]
+},
+{
+"click": "#modal [data-v2c-act=\"add-asset\"]",
+"wait": 800
+}
+],
+"page": "asset"
+},
+{
+"file": "new-added-asset-v1.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype-v1.html",
+"route": "inventory"
+},
+{
+"file": "new-sctm-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "sctm"
+},
+{
+"file": "new-sctm-analysis-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "sctm-analysis"
+},
+{
+"file": "new-sctm-requirements-v2.png",
+"html": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+"route": "sctm-requirements"
+}
+]

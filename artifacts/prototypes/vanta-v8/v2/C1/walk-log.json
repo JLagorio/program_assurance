@@ -1,0 +1,352 @@
+{
+ "width": 1440,
+ "build": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/prototype.html",
+ "results": [
+  {
+   "name": "Controls: SA-24 reads No requirement, next Map a requirement",
+   "pass": true,
+   "extra": " SA-24 Design For Cyber Resiliency No requirement 0 of 10 Map a requirement — "
+  },
+  {
+   "name": "Controls: quick views count the baseline",
+   "pass": true,
+   "extra": "All 560 | Needs evidence 233 | Not assessed 90 | Short of satisfied 47 | No owner 560"
+  },
+  {
+   "name": "Header Map a requirement opens its dialog with a Control choice",
+   "pass": true,
+   "extra": ""
+  },
+  {
+   "name": "Empty required fields block the primary and are named",
+   "pass": true,
+   "extra": "Control is required. Requirement is required."
+  },
+  {
+   "name": "SA-24 preview lists Requirements, Evidence, Findings and risks, each with its add",
+   "pass": true,
+   "extra": "Control preview ↗ ✕ SA-24 Design For Cyber Resiliency Map a requirement Status No requirement Objectives 0 of 10 mapped · 0 with evidence · 0 assessed Determined by — Campaign — Requirements 0 + Map a"
+  },
+  {
+   "name": "Map a requirement closes and says what changed",
+   "pass": true,
+   "extra": "REQ-641 maps SA-24: 10 of 10 objectives mapped Open SA-24"
+  },
+  {
+   "name": "Controls: SA-24 reads No evidence, next Link evidence to REQ-641",
+   "pass": true,
+   "extra": " SA-24 Design For Cyber Resiliency No evidence 0 of 10 Link evidence to REQ-641 REQ-641 "
+  },
+  {
+   "name": "Controls: Needs evidence counts it",
+   "pass": true,
+   "extra": "All 560 | Needs evidence 234 | Not assessed 90 | Short of satisfied 47 | No owner 560"
+  },
+  {
+   "name": "Link evidence: SA-24 reads Not assessed, next Add to assessment campaign",
+   "pass": true,
+   "extra": " SA-24 Design For Cyber Resiliency Not assessed 10 of 10 Add to assessment campaign REQ-641 "
+  },
+  {
+   "name": "Controls: Not assessed 91",
+   "pass": true,
+   "extra": "All 560 | Needs evidence 233 | Not assessed 91 | Short of satisfied 47 | No owner 560"
+  },
+  {
+   "name": "Preview's primary is the next step: Add to assessment campaign",
+   "pass": true,
+   "extra": ""
+  },
+  {
+   "name": "Add to assessment campaign wants a campaign",
+   "pass": true,
+   "extra": ""
+  },
+  {
+   "name": "Added: the toast names the campaign",
+   "pass": true,
+   "extra": "10 objectives of SA-24 added to WS-X90 continuous monitoring — FY2027 Open campaign"
+  },
+  {
+   "name": "Controls: SA-24's next step is in the campaign",
+   "pass": true,
+   "extra": " SA-24 Design For Cyber Resiliency Not assessed 10 of 10 Set Ready in the campaign REQ-641 "
+  },
+  {
+   "name": "Assessments: the continuous monitoring card counts its request",
+   "pass": true,
+   "extra": ""
+  },
+  {
+   "name": "Open campaign opens the continuous monitoring campaign",
+   "pass": true,
+   "extra": "#campaign-conmon"
+  },
+  {
+   "name": "Set Ready: the request reads Ready",
+   "pass": true,
+   "extra": ""
+  },
+  {
+   "name": "A determination short of satisfied needs its rationale",
+   "pass": true,
+   "extra": ""
+  },
+  {
+   "name": "Determination recorded in the draft",
+   "pass": true,
+   "extra": ""
+  },
+  {
+   "name": "A draft decides nothing: SA-24 still Not assessed, next Publish",
+   "pass": true,
+   "extra": " SA-24 Design For Cyber Resiliency Not assessed 10 of 10 Publish assessment results REQ-641 "
+  },
+  {
+   "name": "Publish: an operational issue opened",
+   "pass": true,
+   "extra": "Continuous monitoring FY2027 results — first set published: 1 determination, 1 operational issue opened Open the issue"
+  },
+  {
+   "name": "Controls: SA-24 Other than satisfied, next Create POA&M item",
+   "pass": true,
+   "extra": " SA-24 Design For Cyber Resiliency Other than satisfied 10 of 10 Create POA&M item REQ-641 "
+  },
+  {
+   "name": "Controls: Short of satisfied 48 and Not assessed 90",
+   "pass": true,
+   "extra": "All 560 | Needs evidence 233 | Not assessed 90 | Short of satisfied 48 | No owner 560"
+  },
+  {
+   "name": "Findings: By issue 45, the SA-24 issue listed first",
+   "pass": true,
+   "extra": "Findings Import scan Create operational issue By issue 45 Vulnerabilities 4 By asset 20 Assessment findings 314 Deactivated History Remediate-by status 45 open "
+  },
+  {
+   "name": "Findings › Assessment findings: 314 with SA-24's",
+   "pass": true,
+   "extra": ""
+  },
+  {
+   "name": "Overview: Operational issues 45",
+   "pass": true,
+   "extra": "Operational issues 17 past due · 2 critical · 1 opened today 45"
+  },
+  {
+   "name": "Issue preview offers Create POA&M item",
+   "pass": true,
+   "extra": ""
+  },
+  {
+   "name": "Create POA&M item: Title is required",
+   "pass": true,
+   "extra": ""
+  },
+  {
+   "name": "POA&M item created, toast links to it",
+   "pass": true,
+   "extra": "POA&M item created: Complete the SA-24 design review for the remaining techniques Open POA&M item"
+  },
+  {
+   "name": "Issue preview now offers Open POA&M item instead of Create",
+   "pass": true,
+   "extra": "Operational issue preview ↗ ✕ SA-24 Design For Cyber Resiliency judged other than satisfied (Continuous monitoring FY2027) Deactivate… Open POA&M item Severity High Opened Nov 17, 2026 Remediate by Dec 17 Edit deadline O"
+  },
+  {
+   "name": "POA&M: Items 42 with the new item",
+   "pass": true,
+   "extra": ""
+  },
+  {
+   "name": "POA&M preview shows the risk it carries (none yet) with Create risk",
+   "pass": true,
+   "extra": "POA&M item preview ↗ ✕ Complete the SA-24 design review for the remaining techniques Change planned date… Add milestone Status Not started Planned Dec 17 Remediate by Dec 17 Owner PR Priya Raghavan Overview Milestones 0 Activity Comments 0 Tickets 0 Create ticket No tickets yet. A ticket made here c"
+  },
+  {
+   "name": "Risk created",
+   "pass": true,
+   "extra": "Risk created: A compromised element takes down the mission because two resiliency techniques are not designed in Open risk"
+  },
+  {
+   "name": "Risks: Register 41 with the new risk",
+   "pass": true,
+   "extra": ""
+  },
+  {
+   "name": "POA&M preview names its risk",
+   "pass": true,
+   "extra": ""
+  },
+  {
+   "name": "Request acceptance: Why accept it is required",
+   "pass": true,
+   "extra": ""
+  },
+  {
+   "name": "Acceptance requested: step 1 waits on the ISSO",
+   "pass": true,
+   "extra": "Acceptance requested: step 1 waits on Priya Raghavan Open Authorization"
+  },
+  {
+   "name": "Risks: Awaiting acceptance 1",
+   "pass": true,
+   "extra": "All 41 | Critical or high 13 | No owner 41 | Response date passed 6 | Awaiting acceptance 1"
+  },
+  {
+   "name": "Authorization lists the acceptance at step 1",
+   "pass": true,
+   "extra": ""
+  },
+  {
+   "name": "Two approvals later the acceptance waits on the AO",
+   "pass": true,
+   "extra": "Step 3 of 3 "
+  },
+  {
+   "name": "The last step is the authorizing official's decision",
+   "pass": true,
+   "extra": ""
+  },
+  {
+   "name": "The AO accepted: Authorization says so",
+   "pass": true,
+   "extra": "Accepted by R"
+  },
+  {
+   "name": "Residual risk: Open risks 41, Accepted 1",
+   "pass": true,
+   "extra": ""
+  },
+  {
+   "name": "Risks: the risk reads Accepted",
+   "pass": true,
+   "extra": ""
+  },
+  {
+   "name": "Overview: Open risks 41 · 1 accepted",
+   "pass": true,
+   "extra": "Open risks 13 critical or high · 41 with no owner · 1 accepted 41"
+  },
+  {
+   "name": "SA-24's preview lists its requirement, evidence, finding, issue, POA&M item and risk",
+   "pass": true,
+   "extra": "Control preview ↗ ✕ SA-24 Design For Cyber Resiliency Open assessment findings Status Other than satisfied Objectives 10 of 10 mapped · 10 with evidence · 10 assessed Determined by Program assessment Campaign Continuous monitoring FY2027 Requirements 1 REQ-641 Mission functions continue through the "
+  },
+  {
+   "name": "Increment 2 published from the campaign",
+   "pass": true,
+   "extra": "Increment 2 published: 20 determinations now decide WS-X90's control statuses Open Controls"
+  },
+  {
+   "name": "Submit waits on SSP 3's approval (C2's state), saying so",
+   "pass": true,
+   "extra": ""
+  },
+  {
+   "name": "Package version 2 submitted",
+   "pass": true,
+   "extra": "Package version 2 submitted: Joel Barrantes reviews first"
+  },
+  {
+   "name": "The AO signed version 2",
+   "pass": true,
+   "extra": "R. Calloway signed ATO with conditions on package version 2"
+  },
+  {
+   "name": "Unwired Create operational issue: Title blocks the primary",
+   "pass": true,
+   "extra": ""
+  },
+  {
+   "name": "…then closes with Not saved",
+   "pass": true,
+   "extra": "Not saved: Create operational issue isn't wired in this prototype"
+  },
+  {
+   "name": "SI-2's Open assessment campaign opens the campaign it names",
+   "pass": true,
+   "extra": ""
+  },
+  {
+   "name": "↗ on AC-1's preview opens AC-1's page, in SI-2's shape",
+   "pass": true,
+   "extra": "#rec--a-tests-control--AC-1"
+  },
+  {
+   "name": "The control page's tabs are pages: Requirements lists REQ-436",
+   "pass": true,
+   "extra": ""
+  },
+  {
+   "name": "↗ on a risk opens its page with a Details rail",
+   "pass": true,
+   "extra": "#rec--a-risk-risk--0a21dc94%7Coverview"
+  },
+  {
+   "name": "↗ on evidence still opens its own page (kept)",
+   "pass": true,
+   "extra": "#evidence-page-e1"
+  },
+  {
+   "name": "Checks: All counts the checks it lists (7)",
+   "pass": true,
+   "extra": ""
+  },
+  {
+   "name": "Run all now runs the checks and says what they found",
+   "pass": true,
+   "extra": "7 checks ran: 5 still need attention"
+  },
+  {
+   "name": "A check's Ran says when it ran",
+   "pass": true,
+   "extra": ""
+  },
+  {
+   "name": "Frameworks: Create overlay opens its dialog",
+   "pass": true,
+   "extra": ""
+  },
+  {
+   "name": "…its Name blocks the primary",
+   "pass": true,
+   "extra": ""
+  },
+  {
+   "name": "…then says it is not wired",
+   "pass": true,
+   "extra": "Not saved: Create overlay isn't wired in this prototype"
+  },
+  {
+   "name": "A toast-only Export outside a dialog says it is not wired",
+   "pass": true,
+   "extra": "Not saved: Export isn't wired in this prototype"
+  },
+  {
+   "name": "Findings: Vulnerabilities and Open CVEs count the 4 listed",
+   "pass": true,
+   "extra": ""
+  },
+  {
+   "name": "Assessments: the head counts what the tabs hold",
+   "pass": true,
+   "extra": ""
+  },
+  {
+   "name": "PA.v2.go(campaign, Ready) chooses the Ready quick view and keeps its rows",
+   "pass": true,
+   "extra": ""
+  },
+  {
+   "name": "Flagged keeps only flagged requests",
+   "pass": true,
+   "extra": ""
+  },
+  {
+   "name": "Authorization reads SSP 3 In review from C2's state, one copy",
+   "pass": true,
+   "extra": ""
+  }
+ ],
+ "errors": []
+}

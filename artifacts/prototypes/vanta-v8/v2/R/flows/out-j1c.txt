@@ -1,0 +1,51 @@
+LANDED STATE {"hash":"#program-start","inprog":true,"sw":"PRG-2301\nX800 Missile · Eject Launch · Customer D\n▾","navOn":"Overview","railOn":"#portfolio"}
+STEP-BTN Invite people | dialog: Invite by email | {"hash":"#program-start","sw":"PRG-2301 X800 Missile · Eject Launch · Customer D ▾","txt":"Programs › X800 Missile · Eject Launch · Customer D X800 Missile · Eject Launch · Customer D Example PRG-2301 Air Defense From an ITCSC Invite people Systems "}
+STEP-BTN View | panel: ITCSC preview | {"hash":"#program-start","sw":"PRG-2301 X800 Missile · Eject Launch · Customer D ▾","txt":"Programs › X800 Missile · Eject Launch · Customer D X800 Missile · Eject Launch · Customer D Example PRG-2301 Air Defense From an ITCSC Invite people Systems "}
+STEP-BTN Import | dialog: Import requirements | {"hash":"#program-start","sw":"PRG-2301 X800 Missile · Eject Launch · Customer D ▾","txt":"Programs › X800 Missile · Eject Launch · Customer D X800 Missile · Eject Launch · Customer D Example PRG-2301 Air Defense From an ITCSC Invite people Systems "}
+STEP-BTN Open requirements | → #requirements ; dialog closed | {"hash":"#requirements","sw":"PRG-2301 X800 Missile · Eject Launch · Customer D ▾","txt":"Programs › X800 Missile · Eject Launch · Customer D Requirements No requirements yet Import the customer's requirements document, then map each requirement to "}
+STEP-BTN Connect | → #sources | {"hash":"#sources","sw":"PRG-2301 X800 Missile · Eject Launch · Customer D ▾","txt":"Programs › X800 Missile · Eject Launch · Customer D Evidence sources No evidence source connected Connect ACAS, the STIG checklists or the product's evidence, "}
+STEP-BTN Open the SSP | → #ssp | {"hash":"#ssp","sw":"PRG-2301X800 Missile · Eject Launch · Customer D▾","txt":"Back to X800 Missile · Eject Launch · Customer D Programs › X800 Missile · Eject Launch · Customer D System security plan SSP revision 1 is a draft with nothing"}
+STEP-BTN Upload | dialog: Upload the architecture diagram | {"hash":"#program-start","sw":"PRG-2301 X800 Missile · Eject Launch · Customer D ▾","txt":"Programs › X800 Missile · Eject Launch · Customer D X800 Missile · Eject Launch · Customer D Example PRG-2301 Air Defense From an ITCSC Invite people Systems "}
+STEP-BTN Open assessments | → #assessments ; dialog closed | {"hash":"#assessments","sw":"PRG-2301 X800 Missile · Eject Launch · Customer D ▾","txt":"Programs › X800 Missile · Eject Launch · Customer D Assessments No assessment campaign Plan one once the SSP is published; the starter guide's Plan an assessme"}
+TAIL: on 2's published claims and product assessment by the Product delta's rule.
+PORTFOLIO has PRG-2301: true | All count: 10
+HOME has new program: true
+SWITCHER LIST: [
+  'X800 Missile · Eject Launch · Customer D PRG-2301',
+  'WS-X90 Sentinel Mission System PRG-1090',
+  'Customer A · X800 Rail Integration PRG-2101',
+  'Customer B · X800 Palletized Integration PRG-2102',
+  'Customer C · G25 Battery Control Fielding PRG-2201',
+  'All programs 10',
+  'Create program New'
+]
+{"step":1,"action":"go #program-new","why":"","hash":"program-new","h1":"Create program","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":2,"action":"click \"From an ITCSC\"","why":"","effect":"page changed in place","hash":"program-new","h1":"Create program","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":3,"action":"click \"Drop a completed AF ITCSC here\"","why":"","effect":"toast: ITCSC reader read 37 of 41 fields from CustomerD_X800-EL_ITCSC.pdf ; page changed in place","hash":"program-new","h1":"Create program","modal":null,"panel":null,"toasts":"ITCSC reader read 37 of 41 fields from CustomerD_X800-EL_ITCSC.pdf","otherDlg":[],"notDrawn":false}
+{"step":4,"action":"click \"Continue\"","why":"","effect":"→ #program-new-details","hash":"program-new-details","h1":"Create program","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":5,"action":"click \"Continue\"","why":"","effect":"→ #program-new-systems","hash":"program-new-systems","h1":"Create program","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":6,"action":"click \"Continue\"","why":"","effect":"→ #program-new-baseline","hash":"program-new-baseline","h1":"Create program","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":7,"action":"click \"Continue\"","why":"","effect":"→ #program-new-team","hash":"program-new-team","h1":"Create program","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":8,"action":"click \"Continue\"","why":"","effect":"→ #program-new-review","hash":"program-new-review","h1":"Create program","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":9,"action":"click \"Create program\"","why":"","effect":"→ #program-start ; toast: Program created · PRG-2301","hash":"program-start","h1":"X800 Missile · Eject Launch · Customer D","modal":null,"panel":null,"toasts":"Program created · PRG-2301","otherDlg":[],"notDrawn":false}
+{"step":9,"shot":"/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/v2/R/flows/shots/j1c-04-getting-started-new.png"}
+{"step":10,"action":"go #program-start","why":"","hash":"program-start","h1":"X800 Missile · Eject Launch · Customer D","modal":null,"panel":null,"toasts":"Program created · PRG-2301","otherDlg":[],"notDrawn":false}
+{"step":11,"action":"click \"Invite people\"","why":"starter guide step","effect":"dialog: Invite by email","hash":"program-start","h1":"X800 Missile · Eject Launch · Customer D","modal":"Invite by email","panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":12,"action":"go #program-start","why":"","hash":"program-start","h1":"X800 Missile · Eject Launch · Customer D","modal":"Invite by email","panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":13,"action":"click \"View\"","why":"starter guide step","effect":"panel: ITCSC preview","hash":"program-start","h1":"X800 Missile · Eject Launch · Customer D","modal":"Invite by email","panel":"ITCSC preview","toasts":"","otherDlg":[],"notDrawn":false}
+{"step":14,"action":"go #program-start","why":"","hash":"program-start","h1":"X800 Missile · Eject Launch · Customer D","modal":"Invite by email","panel":"ITCSC preview","toasts":"","otherDlg":[],"notDrawn":false}
+{"step":15,"action":"click \"Import\"","why":"starter guide step","effect":"dialog: Import requirements","hash":"program-start","h1":"X800 Missile · Eject Launch · Customer D","modal":"Import requirements","panel":"ITCSC preview","toasts":"","otherDlg":[],"notDrawn":false}
+{"step":16,"action":"go #program-start","why":"","hash":"program-start","h1":"X800 Missile · Eject Launch · Customer D","modal":"Import requirements","panel":"ITCSC preview","toasts":"","otherDlg":[],"notDrawn":false}
+{"step":17,"action":"click \"Open requirements\"","why":"starter guide step","effect":"→ #requirements ; dialog closed","hash":"requirements","h1":"","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":18,"action":"go #program-start","why":"","hash":"program-start","h1":"X800 Missile · Eject Launch · Customer D","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":19,"action":"click \"Connect\"","why":"starter guide step","effect":"→ #sources","hash":"sources","h1":"","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":20,"action":"go #program-start","why":"","hash":"program-start","h1":"X800 Missile · Eject Launch · Customer D","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":21,"action":"click \"Open the SSP\"","why":"starter guide step","effect":"→ #ssp","hash":"ssp","h1":"","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":22,"action":"go #program-start","why":"","hash":"program-start","h1":"X800 Missile · Eject Launch · Customer D","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":23,"action":"click \"Upload\"","why":"starter guide step","effect":"dialog: Upload the architecture diagram","hash":"program-start","h1":"X800 Missile · Eject Launch · Customer D","modal":"Upload the architecture diagram","panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":24,"action":"go #program-start","why":"","hash":"program-start","h1":"X800 Missile · Eject Launch · Customer D","modal":"Upload the architecture diagram","panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":25,"action":"click \"Open assessments\"","why":"starter guide step","effect":"→ #assessments ; dialog closed","hash":"assessments","h1":"","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":26,"action":"go #program-start","why":"","hash":"program-start","h1":"X800 Missile · Eject Launch · Customer D","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":27,"action":"go #portfolio","why":"","hash":"portfolio","h1":"Programs","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+{"step":28,"action":"go #home","why":"","hash":"home","h1":"","modal":null,"panel":null,"toasts":"","otherDlg":[],"notDrawn":false}
+errors: []

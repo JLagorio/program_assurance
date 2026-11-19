@@ -1,0 +1,38 @@
+{
+ "log": [
+  {
+   "step": 1,
+   "action": "go #findings-vulns",
+   "why": "",
+   "hash": "findings-vulns",
+   "h1": "",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 1,
+   "shot": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/v2/R/flows/shots/j2d-04-vulns-before.png"
+  },
+  {
+   "step": 2,
+   "action": "click \"Signal handler race\"",
+   "why": "click the CVE's title",
+   "effect": "panel: Operational issue preview",
+   "hash": "findings-vulns",
+   "h1": "",
+   "modal": null,
+   "panel": "Operational issue preview",
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  },
+  {
+   "step": 2,
+   "shot": "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/v2/R/flows/shots/j2d-04-vulns-after-click.png"
+  }
+ ],
+ "errors": []
+}

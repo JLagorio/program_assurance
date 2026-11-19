@@ -1,0 +1,143 @@
+[
+ {
+  "route": "controls",
+  "table": 0,
+  "kept_now": [],
+  "cut_now": [
+   "Owner"
+  ]
+ },
+ {
+  "route": "requirements",
+  "table": 0,
+  "kept_now": [
+   "State"
+  ],
+  "cut_now": [
+   "Owner"
+  ]
+ },
+ {
+  "route": "evidence",
+  "table": 0,
+  "kept_now": [
+   "Status",
+   "Latest version",
+   "Renew by"
+  ],
+  "cut_now": []
+ },
+ {
+  "route": "findings",
+  "table": 0,
+  "kept_now": [
+   "Owner"
+  ],
+  "cut_now": []
+ },
+ {
+  "route": "risks",
+  "table": 0,
+  "kept_now": [],
+  "cut_now": [
+   "Assessment",
+   "Owner"
+  ]
+ },
+ {
+  "route": "inventory",
+  "table": 0,
+  "kept_now": [],
+  "cut_now": [
+   "Owner"
+  ]
+ },
+ {
+  "route": "data-calls",
+  "table": 0,
+  "kept_now": [
+   "Approver"
+  ],
+  "cut_now": []
+ },
+ {
+  "route": "event-log-reviews",
+  "table": 0,
+  "kept_now": [
+   "Who"
+  ],
+  "cut_now": []
+ },
+ {
+  "route": "findings-assessment",
+  "table": 0,
+  "kept_now": [
+   "Determination"
+  ],
+  "cut_now": []
+ },
+ {
+  "route": "composition-list",
+  "table": 0,
+  "kept_now": [],
+  "cut_now": [
+   "Owner"
+  ]
+ },
+ {
+  "route": "threats-controls",
+  "table": 0,
+  "kept_now": [
+   "Baseline"
+  ],
+  "cut_now": []
+ },
+ {
+  "route": "stigs-mission-computer-asd",
+  "table": 0,
+  "kept_now": [
+   "Finding details"
+  ],
+  "cut_now": []
+ },
+ {
+  "route": "stigs-network-gateway-rtr",
+  "table": 0,
+  "kept_now": [
+   "Finding details"
+  ],
+  "cut_now": []
+ },
+ {
+  "route": "person-priya-raghavan-onboarding",
+  "table": 0,
+  "kept_now": [
+   "Status"
+  ],
+  "cut_now": []
+ },
+ {
+  "route": "person-r-calloway-onboarding",
+  "table": 0,
+  "kept_now": [
+   "Status"
+  ],
+  "cut_now": []
+ },
+ {
+  "route": "person-victor-amsel-onboarding",
+  "table": 0,
+  "kept_now": [
+   "Status"
+  ],
+  "cut_now": []
+ },
+ {
+  "route": "campaign-controls",
+  "table": 0,
+  "kept_now": [],
+  "cut_now": [
+   "Owner"
+  ]
+ }
+]

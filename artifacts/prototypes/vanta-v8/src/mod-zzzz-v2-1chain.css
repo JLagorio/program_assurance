@@ -1,0 +1,53 @@
+/* Prototype v2, agent C1 (v2k-): the chain's dialogs, real fields, the guard's messages, the control preview's linked records, campaign pages. */
+.v2k-in, .v2k-sel { width: 100%; min-width: 0; box-sizing: border-box; font: inherit; font-size: 14px; line-height: 20px; color: var(--ink); background: var(--canvas, #fff); border: 1px solid var(--line-strong, #c9c9d1); border-radius: 8px; padding: 8px 12px; }
+.v2k-in::placeholder { color: var(--ink-4); }
+textarea.v2k-in { min-height: 76px; resize: vertical; }
+.v2k-in:focus, .v2k-sel:focus { outline: 2px solid var(--brand, #2f5bea); outline-offset: 1px; border-color: transparent; }
+.v2k-in[aria-invalid="true"], .v2k-sel[aria-invalid="true"] { border-color: var(--bad); }
+.v2k-err { font-size: 12px; line-height: 16px; color: var(--bad); }
+.ak-field.v2k-f { margin-block-end: 2px; }
+.dlg-b .ak-field + .ak-field, .dlg-b .ak-field + .v2k-row2, .dlg-b .v2k-row2 + .ak-field, .dlg-b .ak-desc + .ak-field { margin-block-start: 12px; }
+.v2k-row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.v2k-row2 .ak-field + .ak-field { margin-block-start: 0; }
+@media (max-width: 560px) { .v2k-row2 { grid-template-columns: 1fr; } }
+.v2k-ro { font-size: 14px; line-height: 20px; color: var(--ink); }
+.v2k-mu, .v2k-sub { color: var(--ink-3); font-size: 12px; line-height: 16px; }
+.v2k-sub { display: block; }
+.v2k-radios { display: grid; gap: 8px; }
+.v2k-radio { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; cursor: pointer; font-size: 14px; line-height: 20px; }
+.v2k-radio input { margin-block-start: 3px; accent-color: var(--ink); }
+.v2k-radio b { font-weight: 500; display: block; }
+.v2k-radio small { display: block; color: var(--ink-3); font-size: 12px; line-height: 16px; }
+.v2k-radio:has(input:checked) { border-color: var(--ink); }
+.v2k-radio.off { cursor: not-allowed; color: var(--ink-4); }
+.v2k-steps { list-style: none; margin: 10px 0 4px; padding: 0; display: grid; gap: 8px; }
+.v2k-steps li { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+.v2k-n { width: 20px; height: 20px; border-radius: 50%; border: 1px solid var(--line-strong); display: inline-grid; place-items: center; font-size: 12px; color: var(--ink-3); flex: none; }
+.v2k-checklist { display: grid; gap: 2px; margin-block: 8px 4px; }
+.v2k-chk { display: flex; gap: 10px; align-items: flex-start; padding: 8px 4px; border-radius: 6px; font-size: 14px; line-height: 20px; }
+.v2k-chk[data-v2k-go] { cursor: pointer; }
+.v2k-chk[data-v2k-go]:hover b { text-decoration: underline; }
+.v2k-chk .x { display: grid; }
+.v2k-why { margin-inline-end: auto; }
+.v2k-file { cursor: pointer; position: relative; }
+.v2k-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.v2k-file:focus-within { outline: 2px solid var(--brand, #2f5bea); outline-offset: 1px; }
+/* The control preview's linked records, each card with its add [A18] */
+.v2k-pan .ak-rh { margin-block-end: 8px; }
+.v2k-kv { margin-block: 4px 12px; }
+.v2k-lk { margin-block-start: 10px; padding: 12px 14px; }
+.v2k-lkh { display: flex; align-items: baseline; gap: 8px; margin-block-end: 6px; font-size: 14px; }
+.v2k-lkh b { font-weight: 600; }
+.v2k-push { margin-inline-start: auto; }
+.v2k-add { font-size: 13px; white-space: nowrap; }
+.v2k-li { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-block-start: 1px solid var(--line); font-size: 13px; line-height: 18px; min-width: 0; }
+.v2k-lkh + .v2k-li { border-block-start: 0; }
+.v2k-li[data-panel], .v2k-li[data-v2k-go] { cursor: pointer; }
+.v2k-li[data-panel]:hover .x, .v2k-li[data-v2k-go]:hover .x { text-decoration: underline; }
+.v2k-li .x { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.v2k-li .e { color: var(--ink-3); font-size: 12px; white-space: nowrap; }
+.v2k-none { margin: 0; color: var(--ink-3); font-size: 13px; line-height: 18px; }
+/* Campaign pages */
+.v2k-act { text-align: end; white-space: nowrap; }
+.v2k-res { padding: 4px 14px; }
+.v2k-res .v2k-li { border: 0; }

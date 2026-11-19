@@ -1,0 +1,13 @@
+import { start } from "./walk.mjs";
+const W = await start("j7d");
+await W.go("ssp-review");
+const ta = await W.p.evaluate(() => [...document.querySelectorAll("#main textarea, #main [contenteditable=true], #main input[type=text]")].map((x, i) => { x.setAttribute("data-ta", i); return i + ":" + (x.getAttribute("aria-label") || x.placeholder || x.className); }));
+console.log("FIELDS:", ta);
+await W.p.fill('[data-ta="0"]', "AC-2(1) narrative now names the 30-day account review.").catch(e => console.log("fill fail", String(e).slice(0, 80)));
+const t0 = await W.text("#main", 9000);
+let e = await W.click("Submit for review", { within: "#main", exact: true, wait: 900 });
+const t1 = await W.text("#main", 9000);
+const s0 = new Set(t0.split("\n")); console.log("SUBMIT →", e && e.effect, "| NEW LINES:", t1.split("\n").filter(l => !s0.has(l)).slice(0, 20));
+await W.shot("07-submitted", false);
+console.log("HEAD:", t1.replace(/\s+/g, " ").slice(0, 400));
+await W.done();

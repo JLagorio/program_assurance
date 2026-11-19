@@ -1,0 +1,2011 @@
+{
+ "routes": 498,
+ "errors": [
+  "console: Failed to load resource: net::ERR_FILE_NOT_FOUND",
+  "console: Failed to load resource: net::ERR_FILE_NOT_FOUND",
+  "console: Failed to load resource: net::ERR_FILE_NOT_FOUND",
+  "console: Failed to load resource: net::ERR_FILE_NOT_FOUND",
+  "console: Failed to load resource: net::ERR_FILE_NOT_FOUND",
+  "console: Failed to load resource: net::ERR_FILE_NOT_FOUND",
+  "console: Failed to load resource: net::ERR_FILE_NOT_FOUND",
+  "console: Failed to load resource: net::ERR_FILE_NOT_FOUND",
+  "console: Failed to load resource: net::ERR_FILE_NOT_FOUND",
+  "console: Failed to load resource: net::ERR_FILE_NOT_FOUND",
+  "console: Failed to load resource: net::ERR_FILE_NOT_FOUND",
+  "console: Failed to load resource: net::ERR_FILE_NOT_FOUND",
+  "console: Failed to load resource: net::ERR_FILE_NOT_FOUND",
+  "console: Failed to load resource: net::ERR_FILE_NOT_FOUND",
+  "console: Failed to load resource: net::ERR_FILE_NOT_FOUND"
+ ],
+ "slow": [],
+ "overflow": [],
+ "median": 0.5,
+ "max": 5.1,
+ "previewsCalled": 1542,
+ "dialogsCalled": 417,
+ "fails": [],
+ "snapped": 764,
+ "stats": {
+  "home": {
+   "banner-grey": 2
+  },
+  "overview": {
+   "status": 2
+  },
+  "baseline": {
+   "empty": 8,
+   "facts": 2
+  },
+  "controls": {
+   "empty": 28,
+   "facts": 2
+  },
+  "requirements": {
+   "empty": 62,
+   "facts": 2,
+   "columns": 2
+  },
+  "evidence": {
+   "empty": 36,
+   "banner": 3,
+   "columns": 9,
+   "toolbar": 5,
+   "preticked": 1
+  },
+  "assessments": {
+   "facts": 3
+  },
+  "campaign": {
+   "example": 2,
+   "empty": 32,
+   "tabs-strip": 2
+  },
+  "findings": {
+   "empty": 6,
+   "facts": 3,
+   "columns": 3,
+   "toolbar": 6,
+   "preticked": 1
+  },
+  "poam": {
+   "type": 3,
+   "ink": 33,
+   "facts": 3,
+   "gadgets": 42,
+   "toolbar": 6,
+   "preticked": 1
+  },
+  "risks": {
+   "example": 5,
+   "empty": 175,
+   "facts": 5,
+   "toolbar": 12,
+   "preticked": 1
+  },
+  "inventory": {
+   "banner-line": 2,
+   "facts": 2
+  },
+  "sources": {
+   "example": 2,
+   "empty": 4,
+   "banner-line": 2,
+   "facts": 2
+  },
+  "authorization": {
+   "status": 2,
+   "empty": 4
+  },
+  "components": {
+   "empty": 64,
+   "banner": 2,
+   "facts": 2,
+   "gadgets": 4,
+   "toolbar": 4
+  },
+  "baseline-params": {
+   "empty": 24,
+   "banner-line": 2,
+   "facts": 2
+  },
+  "control-si2": {
+   "empty": 4,
+   "banner-grey": 2,
+   "tabs-strip": 2
+  },
+  "control-si2-requirements": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "control-si2-evidence": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "control-si2-assessment": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "control-si2-findings": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "requirements-objectives": {
+   "facts": 2
+  },
+  "requirements-compliance": {
+   "empty": 8,
+   "facts": 2,
+   "toolbar": 2
+  },
+  "checks": {
+   "empty": 4,
+   "facts": 2
+  },
+  "policies": {
+   "example": 2,
+   "empty": 40,
+   "facts": 2
+  },
+  "assessments-completed": {
+   "facts": 3
+  },
+  "campaign-findings": {
+   "columns": 2,
+   "gadgets": 38,
+   "tabs-strip": 2
+  },
+  "cyber-te": {
+   "empty": 8,
+   "banner-line": 2,
+   "facts": 2
+  },
+  "ai-drafts": {
+   "facts": 2
+  },
+  "frameworks": {
+   "facts": 2,
+   "gadgets": 16
+  },
+  "frameworks-overlays": {
+   "facts": 2,
+   "toned": 16
+  },
+  "frameworks-gap": {
+   "empty": 96,
+   "facts": 2,
+   "columns": 4
+  },
+  "sources-errors": {
+   "example": 2,
+   "banner-line": 2,
+   "facts": 2
+  },
+  "integrations": {
+   "facts": 2,
+   "in-the-app": 14
+  },
+  "data-calls": {
+   "example": 2,
+   "empty": 16,
+   "type": 6,
+   "banner-line": 2,
+   "facts": 2,
+   "columns": 2,
+   "toned": 2,
+   "gadgets": 8,
+   "toolbar": 2
+  },
+  "reports": {
+   "facts": 2
+  },
+  "event-log-reviews": {
+   "columns": 2
+  },
+  "event-log-imports": {
+   "columns": 2
+  },
+  "event-log-system": {
+   "columns": 4
+  },
+  "component-mc": {
+   "banner-grey": 2,
+   "tabs-strip": 2,
+   "tabs": 6
+  },
+  "component-mc-assessment": {
+   "toolbar": 2,
+   "tabs-strip": 2,
+   "tabs": 6
+  },
+  "component-mc-where": {
+   "banner-grey": 2,
+   "columns": 2,
+   "tabs-strip": 2,
+   "tabs": 6
+  },
+  "component-mc-findings": {
+   "tabs-strip": 2,
+   "tabs": 6
+  },
+  "component-mc-sbom": {
+   "empty": 28,
+   "tabs-strip": 2,
+   "tabs": 6
+  },
+  "component-mc-sbom-v1": {
+   "empty": 26,
+   "tabs-strip": 2,
+   "tabs": 6
+  },
+  "component-mc-versions": {
+   "empty": 2,
+   "banner-grey": 2,
+   "tabs-strip": 2,
+   "tabs": 6
+  },
+  "program-new": {
+   "status": 4
+  },
+  "program-new-systems": {
+   "status": 28
+  },
+  "program-new-baseline": {
+   "status": 4
+  },
+  "program-new-team": {
+   "empty": 2
+  },
+  "program-start": {
+   "empty": 2
+  },
+  "findings-vulns": {
+   "facts": 3,
+   "preticked": 1
+  },
+  "findings-assets": {
+   "empty": 56,
+   "facts": 2,
+   "gadgets": 4
+  },
+  "findings-assessment": {
+   "facts": 2,
+   "columns": 2
+  },
+  "findings-deactivated": {
+   "empty": 3,
+   "type": 12,
+   "facts": 3,
+   "preticked": 1
+  },
+  "poam-milestones": {
+   "type": 4,
+   "facts": 2
+  },
+  "risks-snapshots": {
+   "type": 4,
+   "facts": 2
+  },
+  "package-room": {
+   "type": 10,
+   "facts": 2
+  },
+  "suppliers": {
+   "empty": 38,
+   "type": 8,
+   "facts": 2,
+   "gadgets": 24
+  },
+  "people": {
+   "empty": 22,
+   "banner-line": 2,
+   "facts": 2,
+   "columns": 2
+  },
+  "people-8140": {
+   "banner-line": 2,
+   "facts": 2,
+   "gadgets": 14
+  },
+  "people-access": {
+   "facts": 2
+  },
+  "review-queue": {
+   "facts": 2
+  },
+  "schedule": {
+   "example": 3,
+   "facts": 3,
+   "toolbar": 3,
+   "preticked": 1
+  },
+  "conmon": {
+   "banner-grey": 2
+  },
+  "ssp-review": {
+   "status": 2
+  },
+  "ssps": {
+   "facts": 2,
+   "columns": 2
+  },
+  "ssps-drafts": {
+   "facts": 2,
+   "columns": 2
+  },
+  "ssps-review": {
+   "empty": 8,
+   "facts": 2
+  },
+  "ssps-published": {
+   "facts": 2
+  },
+  "composition": {
+   "banner-line": 2,
+   "facts": 2
+  },
+  "composition-list": {
+   "empty": 54,
+   "banner-line": 2,
+   "facts": 2
+  },
+  "composition-config": {
+   "banner-line": 2,
+   "facts": 2
+  },
+  "inventory-scans": {
+   "example": 2,
+   "banner-line": 2,
+   "facts": 2
+  },
+  "inventory-changes": {
+   "facts": 2
+  },
+  "inheritance": {
+   "empty": 8,
+   "banner-grey": 2,
+   "gadgets": 4
+  },
+  "inheritance-controls": {
+   "banner-grey": 2
+  },
+  "inheritance-sources": {
+   "empty": 8,
+   "banner-grey": 2
+  },
+  "posture": {
+   "banner-grey": 2
+  },
+  "posture-unevidenced": {
+   "banner-grey": 2
+  },
+  "posture-issues": {
+   "banner-grey": 2
+  },
+  "posture-risks": {
+   "banner-grey": 2
+  },
+  "resiliency": {
+   "status": 18,
+   "empty": 10,
+   "ink": 28,
+   "banner-grey": 2,
+   "gadgets": 28
+  },
+  "resiliency-approaches": {
+   "banner-grey": 2,
+   "gadgets": 50
+  },
+  "threats": {
+   "banner-line": 2,
+   "facts": 2,
+   "gadgets": 64
+  },
+  "threats-controls": {
+   "banner-line": 2,
+   "facts": 2,
+   "columns": 2
+  },
+  "traceability": {
+   "empty": 158
+  },
+  "traceability-risk": {
+   "empty": 14,
+   "banner-grey": 2,
+   "toned": 24
+  },
+  "traceability-noev": {
+   "empty": 164,
+   "banner-grey": 2
+  },
+  "products": {
+   "banner-line": 2,
+   "gadgets": 26
+  },
+  "products-delta": {
+   "banner-line": 2
+  },
+  "portfolio": {
+   "empty": 16
+  },
+  "cyber-te-events": {
+   "banner-line": 2,
+   "facts": 2
+  },
+  "cyber-te-findings": {
+   "empty": 12,
+   "banner-line": 2,
+   "facts": 2
+  },
+  "component-mc-tasks": {
+   "tabs-strip": 2,
+   "tabs": 6
+  },
+  "component-mc-activity": {
+   "tabs-strip": 2,
+   "tabs": 6
+  },
+  "component-mc-comments": {
+   "tabs-strip": 2,
+   "tabs": 6
+  },
+  "itcsc": {
+   "example": 2,
+   "empty": 12,
+   "ink": 12,
+   "banner-grey": 2
+  },
+  "itcsc-summary": {
+   "empty": 6,
+   "banner-grey": 2
+  },
+  "itcsc-approval": {
+   "banner-grey": 2
+  },
+  "itcsc-history": {
+   "banner-grey": 2
+  },
+  "itcsc-comments": {
+   "banner-grey": 2
+  },
+  "itcsc-activity": {
+   "banner-grey": 2
+  },
+  "itcsc-import-review": {
+   "status": 2,
+   "empty": 2,
+   "banner-grey": 2
+  },
+  "interconnections": {
+   "example": 2,
+   "empty": 2,
+   "facts": 2
+  },
+  "interconnections-expiring": {
+   "example": 2,
+   "facts": 2
+  },
+  "interconnections-no-agreement": {
+   "example": 2,
+   "facts": 2
+  },
+  "interconnections-expired": {
+   "example": 2,
+   "facts": 2
+  },
+  "ppsm": {
+   "example": 4,
+   "facts": 2
+  },
+  "ppsm-dod": {
+   "example": 4,
+   "facts": 2
+  },
+  "ppsm-unregistered": {
+   "example": 4,
+   "facts": 2
+  },
+  "ppsm-conditional": {
+   "example": 4,
+   "facts": 2,
+   "columns": 2
+  },
+  "stigs": {
+   "banner-line": 2,
+   "facts": 2,
+   "gadgets": 14
+  },
+  "stigs-mission-computer-rhel9": {
+   "tabs-strip": 2
+  },
+  "stigs-mission-computer-rhel9-comments": {
+   "tabs-strip": 2
+  },
+  "stigs-mission-computer-rhel9-activity": {
+   "tabs-strip": 2
+  },
+  "stigs-mission-computer-asd": {
+   "columns": 2,
+   "tabs-strip": 2
+  },
+  "stigs-mission-computer-asd-comments": {
+   "tabs-strip": 2
+  },
+  "stigs-mission-computer-asd-activity": {
+   "tabs-strip": 2
+  },
+  "stigs-ethernet-switch-ndm": {
+   "tabs-strip": 2
+  },
+  "stigs-ethernet-switch-ndm-comments": {
+   "tabs-strip": 2
+  },
+  "stigs-ethernet-switch-ndm-activity": {
+   "tabs-strip": 2
+  },
+  "stigs-ethernet-switch-l2s": {
+   "tabs-strip": 2
+  },
+  "stigs-ethernet-switch-l2s-comments": {
+   "tabs-strip": 2
+  },
+  "stigs-ethernet-switch-l2s-activity": {
+   "tabs-strip": 2
+  },
+  "stigs-network-gateway-ndm": {
+   "tabs-strip": 2
+  },
+  "stigs-network-gateway-ndm-comments": {
+   "tabs-strip": 2
+  },
+  "stigs-network-gateway-ndm-activity": {
+   "tabs-strip": 2
+  },
+  "stigs-network-gateway-rtr": {
+   "columns": 2,
+   "tabs-strip": 2
+  },
+  "stigs-network-gateway-rtr-comments": {
+   "tabs-strip": 2
+  },
+  "stigs-network-gateway-rtr-activity": {
+   "tabs-strip": 2
+  },
+  "stigs-maintenance-laptop-win11": {
+   "tabs-strip": 2
+  },
+  "stigs-maintenance-laptop-win11-comments": {
+   "tabs-strip": 2
+  },
+  "stigs-maintenance-laptop-win11-activity": {
+   "tabs-strip": 2
+  },
+  "stigs-open": {
+   "banner": 2,
+   "facts": 2
+  },
+  "stigs-benchmarks": {
+   "banner-line": 2,
+   "facts": 2
+  },
+  "stigs-imports": {
+   "banner-line": 2,
+   "facts": 2
+  },
+  "sse": {
+   "banner-grey": 2
+  },
+  "sse-processes": {
+   "toolbar": 2
+  },
+  "sse-csa": {
+   "banner-grey": 2
+  },
+  "plan-cp": {
+   "status": 2,
+   "empty": 4
+  },
+  "plan-cp-history": {
+   "status": 2
+  },
+  "plan-irp": {
+   "empty": 2
+  },
+  "plan-irp-history": {
+   "status": 4
+  },
+  "plan-cmp": {
+   "status": 2,
+   "empty": 6
+  },
+  "plan-cmp-history": {
+   "status": 2
+  },
+  "person-joel-barrantes": {
+   "empty": 8,
+   "tabs-strip": 2
+  },
+  "person-joel-barrantes-onboarding": {
+   "tabs-strip": 2
+  },
+  "person-joel-barrantes-access": {
+   "tabs-strip": 2
+  },
+  "person-joel-barrantes-training": {
+   "tabs-strip": 2
+  },
+  "person-joel-barrantes-offboarding": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "person-joel-barrantes-comments": {
+   "tabs-strip": 2
+  },
+  "person-joel-barrantes-activity": {
+   "tabs-strip": 2
+  },
+  "person-priya-raghavan": {
+   "empty": 6,
+   "tabs-strip": 2
+  },
+  "person-priya-raghavan-onboarding": {
+   "columns": 4,
+   "tabs-strip": 2
+  },
+  "person-priya-raghavan-access": {
+   "tabs-strip": 2
+  },
+  "person-priya-raghavan-training": {
+   "tabs-strip": 2
+  },
+  "person-priya-raghavan-offboarding": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "person-priya-raghavan-comments": {
+   "tabs-strip": 2
+  },
+  "person-priya-raghavan-activity": {
+   "tabs-strip": 2
+  },
+  "person-ray-colston": {
+   "empty": 8,
+   "tabs-strip": 2
+  },
+  "person-ray-colston-onboarding": {
+   "tabs-strip": 2
+  },
+  "person-ray-colston-access": {
+   "tabs-strip": 2
+  },
+  "person-ray-colston-training": {
+   "tabs-strip": 2
+  },
+  "person-ray-colston-offboarding": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "person-ray-colston-comments": {
+   "tabs-strip": 2
+  },
+  "person-ray-colston-activity": {
+   "tabs-strip": 2
+  },
+  "person-r-calloway": {
+   "empty": 10,
+   "tabs-strip": 2
+  },
+  "person-r-calloway-onboarding": {
+   "empty": 2,
+   "columns": 4,
+   "tabs-strip": 2
+  },
+  "person-r-calloway-access": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "person-r-calloway-training": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "person-r-calloway-offboarding": {
+   "empty": 4,
+   "tabs-strip": 2
+  },
+  "person-r-calloway-comments": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "person-r-calloway-activity": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "person-d-okafor": {
+   "empty": 8,
+   "tabs-strip": 2
+  },
+  "person-d-okafor-onboarding": {
+   "tabs-strip": 2
+  },
+  "person-d-okafor-access": {
+   "tabs-strip": 2
+  },
+  "person-d-okafor-training": {
+   "tabs-strip": 2
+  },
+  "person-d-okafor-offboarding": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "person-d-okafor-comments": {
+   "tabs-strip": 2
+  },
+  "person-d-okafor-activity": {
+   "tabs-strip": 2
+  },
+  "person-nadia-fournier": {
+   "empty": 6,
+   "tabs-strip": 2
+  },
+  "person-nadia-fournier-onboarding": {
+   "tabs-strip": 2
+  },
+  "person-nadia-fournier-access": {
+   "tabs-strip": 2
+  },
+  "person-nadia-fournier-training": {
+   "tabs-strip": 2
+  },
+  "person-nadia-fournier-offboarding": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "person-nadia-fournier-comments": {
+   "tabs-strip": 2
+  },
+  "person-nadia-fournier-activity": {
+   "tabs-strip": 2
+  },
+  "person-local-developer": {
+   "empty": 6,
+   "tabs-strip": 2
+  },
+  "person-local-developer-onboarding": {
+   "banner-grey": 2,
+   "tabs-strip": 2
+  },
+  "person-local-developer-access": {
+   "tabs-strip": 2
+  },
+  "person-local-developer-training": {
+   "tabs-strip": 2
+  },
+  "person-local-developer-offboarding": {
+   "empty": 4,
+   "tabs-strip": 2
+  },
+  "person-local-developer-comments": {
+   "tabs-strip": 2
+  },
+  "person-local-developer-activity": {
+   "tabs-strip": 2
+  },
+  "person-ingrid-solberg": {
+   "empty": 6,
+   "tabs-strip": 2
+  },
+  "person-ingrid-solberg-onboarding": {
+   "tabs-strip": 2
+  },
+  "person-ingrid-solberg-access": {
+   "tabs-strip": 2
+  },
+  "person-ingrid-solberg-training": {
+   "tabs-strip": 2
+  },
+  "person-ingrid-solberg-offboarding": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "person-ingrid-solberg-comments": {
+   "tabs-strip": 2
+  },
+  "person-ingrid-solberg-activity": {
+   "tabs-strip": 2
+  },
+  "person-amara-bell": {
+   "empty": 10,
+   "tabs-strip": 2
+  },
+  "person-amara-bell-onboarding": {
+   "banner-grey": 2,
+   "tabs-strip": 2
+  },
+  "person-amara-bell-access": {
+   "tabs-strip": 2
+  },
+  "person-amara-bell-training": {
+   "tabs-strip": 2
+  },
+  "person-amara-bell-offboarding": {
+   "empty": 4,
+   "tabs-strip": 2
+  },
+  "person-amara-bell-comments": {
+   "tabs-strip": 2
+  },
+  "person-amara-bell-activity": {
+   "tabs-strip": 2
+  },
+  "person-victor-amsel": {
+   "empty": 8,
+   "tabs-strip": 2
+  },
+  "person-victor-amsel-onboarding": {
+   "columns": 4,
+   "tabs-strip": 2
+  },
+  "person-victor-amsel-access": {
+   "tabs-strip": 2
+  },
+  "person-victor-amsel-training": {
+   "tabs-strip": 2
+  },
+  "person-victor-amsel-offboarding": {
+   "tabs-strip": 2
+  },
+  "person-victor-amsel-comments": {
+   "tabs-strip": 2
+  },
+  "person-victor-amsel-activity": {
+   "tabs-strip": 2
+  },
+  "person-wes-duarte": {
+   "empty": 8,
+   "tabs-strip": 2
+  },
+  "person-wes-duarte-onboarding": {
+   "tabs-strip": 2
+  },
+  "person-wes-duarte-access": {
+   "tabs-strip": 2
+  },
+  "person-wes-duarte-training": {
+   "tabs-strip": 2
+  },
+  "person-wes-duarte-offboarding": {
+   "empty": 4,
+   "tabs-strip": 2
+  },
+  "person-wes-duarte-comments": {
+   "tabs-strip": 2
+  },
+  "person-wes-duarte-activity": {
+   "tabs-strip": 2
+  },
+  "ai-drafts-runs": {
+   "facts": 2
+  },
+  "ai-drafts-agents": {
+   "facts": 2
+  },
+  "permissions": {
+   "columns": 2
+  },
+  "permissions-matrix": {
+   "toned": 48
+  },
+  "risks-library": {
+   "empty": 28
+  },
+  "evidence-page-e1": {
+   "banner-grey": 2,
+   "tabs-strip": 2
+  },
+  "evidence-page-e2": {
+   "banner-grey": 2,
+   "tabs-strip": 2
+  },
+  "evidence-page-e3": {
+   "banner-grey": 2,
+   "tabs-strip": 2
+  },
+  "evidence-page-e4": {
+   "banner-grey": 2,
+   "tabs-strip": 2
+  },
+  "evidence-page-e5": {
+   "banner-grey": 2,
+   "tabs-strip": 2
+  },
+  "evidence-page-e6": {
+   "banner-grey": 2,
+   "tabs-strip": 2
+  },
+  "evidence-page-m1": {
+   "banner-grey": 2,
+   "tabs-strip": 2
+  },
+  "evidence-page-m2": {
+   "banner-grey": 2,
+   "tabs-strip": 2
+  },
+  "evidence-page-m3": {
+   "banner-grey": 2,
+   "tabs-strip": 2
+  },
+  "evidence-page-m4": {
+   "banner-grey": 2,
+   "tabs-strip": 2
+  },
+  "evidence-page-m5": {
+   "banner-grey": 2,
+   "tabs-strip": 2
+  },
+  "evidence-page-b1": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "evidence-page-b2": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "evidence-page-b3": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "evidence-page-b4": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "evidence-page-b5": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "evidence-page-b6": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "evidence-page-a1": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "evidence-page-a2": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "evidence-page-a3": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "evidence-page-a4": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "evidence-page-a5": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "evidence-page-a6": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "policy-page-ac-1": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "policy-page-at-1": {
+   "empty": 6,
+   "tabs-strip": 2
+  },
+  "policy-page-au-1": {
+   "empty": 4,
+   "tabs-strip": 2
+  },
+  "policy-page-ca-1": {
+   "empty": 4,
+   "tabs-strip": 2
+  },
+  "policy-page-cm-1": {
+   "empty": 4,
+   "tabs-strip": 2
+  },
+  "policy-page-cp-1": {
+   "empty": 4,
+   "tabs-strip": 2
+  },
+  "policy-page-ia-1": {
+   "empty": 4,
+   "tabs-strip": 2
+  },
+  "policy-page-ir-1": {
+   "empty": 4,
+   "tabs-strip": 2
+  },
+  "policy-page-ma-1": {
+   "empty": 6,
+   "tabs-strip": 2
+  },
+  "policy-page-mp-1": {
+   "empty": 2,
+   "banner-grey": 2,
+   "tabs-strip": 2
+  },
+  "policy-page-pe-1": {
+   "empty": 6,
+   "tabs-strip": 2
+  },
+  "policy-page-pl-1": {
+   "empty": 6,
+   "tabs-strip": 2
+  },
+  "policy-page-ps-1": {
+   "empty": 4,
+   "tabs-strip": 2
+  },
+  "policy-page-ra-1": {
+   "empty": 6,
+   "tabs-strip": 2
+  },
+  "policy-page-sa-1": {
+   "empty": 4,
+   "tabs-strip": 2
+  },
+  "policy-page-sc-1": {
+   "empty": 4,
+   "tabs-strip": 2
+  },
+  "policy-page-si-1": {
+   "empty": 4,
+   "tabs-strip": 2
+  },
+  "policy-page-sr-1": {
+   "empty": 6,
+   "tabs-strip": 2
+  },
+  "policy-editor": {
+   "status": 6
+  },
+  "policy-editor-2": {
+   "status": 6
+  },
+  "policy-editor-3": {
+   "status": 6
+  },
+  "policy-editor-4": {
+   "status": 6
+  },
+  "policy-editor-review": {
+   "status": 6
+  },
+  "integration-emass": {
+   "tabs-strip": 2
+  },
+  "integration-acas": {
+   "tabs-strip": 2,
+   "in-the-app": 4
+  },
+  "integration-stig": {
+   "tabs-strip": 2,
+   "in-the-app": 4
+  },
+  "integration-scap": {
+   "tabs-strip": 2,
+   "in-the-app": 4
+  },
+  "integration-sbom": {
+   "tabs-strip": 2,
+   "in-the-app": 4
+  },
+  "integration-sarif": {
+   "tabs-strip": 2,
+   "in-the-app": 4
+  },
+  "integration-doors": {
+   "tabs-strip": 2,
+   "in-the-app": 4
+  },
+  "integration-oscal": {
+   "tabs-strip": 2,
+   "in-the-app": 4
+  },
+  "integration-jira": {
+   "tabs-strip": 2
+  },
+  "integration-snow": {
+   "tabs-strip": 2
+  },
+  "integration-splunk": {
+   "tabs-strip": 2
+  },
+  "integration-connect-emass-1": {
+   "tabs-strip": 2
+  },
+  "integration-connect-emass-2": {
+   "tabs-strip": 2
+  },
+  "integration-connect-emass-3": {
+   "tabs-strip": 2
+  },
+  "integration-connect-emass-4": {
+   "tabs-strip": 2
+  },
+  "integration-connect-emass-5": {
+   "tabs-strip": 2
+  },
+  "integration-connect-emass-6": {
+   "tabs-strip": 2
+  },
+  "integration-connect-acas-1": {
+   "tabs-strip": 2
+  },
+  "integration-connect-acas-2": {
+   "tabs-strip": 2
+  },
+  "integration-connect-acas-3": {
+   "tabs-strip": 2
+  },
+  "integration-connect-acas-4": {
+   "tabs-strip": 2
+  },
+  "integration-connect-acas-5": {
+   "tabs-strip": 2
+  },
+  "integration-connect-acas-6": {
+   "tabs-strip": 2
+  },
+  "integration-connect-jira-1": {
+   "tabs-strip": 2
+  },
+  "integration-connect-jira-2": {
+   "tabs-strip": 2
+  },
+  "integration-connect-jira-3": {
+   "tabs-strip": 2
+  },
+  "integration-connect-jira-4": {
+   "tabs-strip": 2
+  },
+  "integration-connect-jira-5": {
+   "tabs-strip": 2
+  },
+  "integration-connect-jira-6": {
+   "tabs-strip": 2
+  },
+  "integration-connect-snow-1": {
+   "tabs-strip": 2
+  },
+  "integration-connect-snow-2": {
+   "tabs-strip": 2
+  },
+  "integration-connect-snow-3": {
+   "tabs-strip": 2
+  },
+  "integration-connect-snow-4": {
+   "tabs-strip": 2
+  },
+  "integration-connect-snow-5": {
+   "tabs-strip": 2
+  },
+  "integration-connect-snow-6": {
+   "tabs-strip": 2
+  },
+  "integration-connect-splunk-1": {
+   "tabs-strip": 2
+  },
+  "integration-connect-splunk-2": {
+   "tabs-strip": 2
+  },
+  "integration-connect-splunk-3": {
+   "tabs-strip": 2
+  },
+  "integration-connect-splunk-4": {
+   "tabs-strip": 2
+  },
+  "integration-connect-splunk-5": {
+   "tabs-strip": 2
+  },
+  "integration-connect-splunk-6": {
+   "tabs-strip": 2
+  },
+  "people-task-sets-holders": {
+   "empty": 4,
+   "gadgets": 4
+  },
+  "people-roles": {
+   "empty": 8,
+   "facts": 2
+  },
+  "findings-history": {
+   "example": 2,
+   "facts": 2
+  },
+  "suppliers-sbom": {
+   "facts": 2
+  },
+  "package-room-requests": {
+   "facts": 3,
+   "preticked": 1
+  },
+  "package-room-versions": {
+   "facts": 2
+  },
+  "package-room-log": {
+   "facts": 2
+  },
+  "package-room-settings": {
+   "facts": 2
+  },
+  "data-calls-fisma": {
+   "empty": 16,
+   "tabs-strip": 2
+  },
+  "data-calls-fisma-comments": {
+   "empty": 4,
+   "tabs-strip": 2
+  },
+  "data-calls-ready": {
+   "empty": 16,
+   "tabs-strip": 2
+  },
+  "data-calls-ready-comments": {
+   "empty": 4,
+   "tabs-strip": 2
+  },
+  "data-calls-scrm": {
+   "empty": 16,
+   "tabs-strip": 2
+  },
+  "data-calls-scrm-comments": {
+   "empty": 4,
+   "tabs-strip": 2
+  },
+  "data-calls-cusa": {
+   "empty": 20,
+   "tabs-strip": 2
+  },
+  "data-calls-cusa-comments": {
+   "empty": 8,
+   "tabs-strip": 2
+  },
+  "data-calls-fy26": {
+   "empty": 12,
+   "tabs-strip": 2
+  },
+  "data-calls-fy26-comments": {
+   "tabs-strip": 2
+  },
+  "data-calls-kb": {
+   "example": 2,
+   "type": 8,
+   "tabs-strip": 2
+  },
+  "control-si2-checks": {
+   "empty": 6,
+   "tabs-strip": 2
+  },
+  "control-si2-history": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "control-si2-comments": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "assessments-assessor": {
+   "facts": 2,
+   "gadgets": 2
+  },
+  "check-scan": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "check-scan-history": {
+   "empty": 4,
+   "tabs-strip": 2
+  },
+  "check-scan-tasks": {
+   "tabs-strip": 2
+  },
+  "check-scan-controls": {
+   "tabs-strip": 2
+  },
+  "check-scan-comments": {
+   "tabs-strip": 2
+  },
+  "check-iava": {
+   "empty": 6,
+   "tabs-strip": 2
+  },
+  "check-iava-history": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "check-iava-tasks": {
+   "empty": 4,
+   "tabs-strip": 2
+  },
+  "check-iava-controls": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "check-iava-comments": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "check-stig": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "check-stig-history": {
+   "empty": 4,
+   "tabs-strip": 2
+  },
+  "check-stig-tasks": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "check-stig-controls": {
+   "tabs-strip": 2
+  },
+  "check-stig-comments": {
+   "tabs-strip": 2
+  },
+  "check-sbom": {
+   "tabs-strip": 2
+  },
+  "check-sbom-history": {
+   "tabs-strip": 2
+  },
+  "check-sbom-tasks": {
+   "tabs-strip": 2
+  },
+  "check-sbom-controls": {
+   "tabs-strip": 2
+  },
+  "check-sbom-comments": {
+   "tabs-strip": 2
+  },
+  "check-expiring": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "check-expiring-history": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "check-expiring-tasks": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "check-expiring-controls": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "check-expiring-comments": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "check-poam-review": {
+   "tabs-strip": 2
+  },
+  "check-poam-review-history": {
+   "empty": 4,
+   "tabs-strip": 2
+  },
+  "check-poam-review-tasks": {
+   "tabs-strip": 2
+  },
+  "check-poam-review-controls": {
+   "tabs-strip": 2
+  },
+  "check-poam-review-comments": {
+   "tabs-strip": 2
+  },
+  "check-priv-review": {
+   "tabs-strip": 2
+  },
+  "check-priv-review-history": {
+   "tabs-strip": 2
+  },
+  "check-priv-review-tasks": {
+   "tabs-strip": 2
+  },
+  "check-priv-review-controls": {
+   "tabs-strip": 2
+  },
+  "check-priv-review-comments": {
+   "tabs-strip": 2
+  },
+  "frameworks-high": {
+   "status": 2,
+   "empty": 40,
+   "tabs-strip": 2
+  },
+  "frameworks-high-overview": {
+   "status": 2,
+   "tabs-strip": 2
+  },
+  "frameworks-high-gap": {
+   "status": 2,
+   "columns": 2,
+   "tabs-strip": 2
+  },
+  "frameworks-moderate": {
+   "tabs-strip": 2
+  },
+  "frameworks-moderate-overview": {
+   "tabs-strip": 2
+  },
+  "frameworks-moderate-gap": {
+   "columns": 2,
+   "tabs-strip": 2
+  },
+  "frameworks-low": {
+   "tabs-strip": 2
+  },
+  "frameworks-low-overview": {
+   "tabs-strip": 2
+  },
+  "frameworks-low-gap": {
+   "tabs-strip": 2
+  },
+  "frameworks-privacy": {
+   "tabs-strip": 2
+  },
+  "frameworks-privacy-overview": {
+   "tabs-strip": 2
+  },
+  "frameworks-privacy-gap": {
+   "tabs-strip": 2
+  },
+  "campaign-r1": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "campaign-r1-objectives": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "campaign-r1-activity": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "campaign-r1-comments": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "campaign-r1-internal": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "campaign-r2": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "campaign-r2-objectives": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "campaign-r2-activity": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "campaign-r2-comments": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "campaign-r2-internal": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "campaign-r3": {
+   "tabs-strip": 2
+  },
+  "campaign-r3-objectives": {
+   "tabs-strip": 2
+  },
+  "campaign-r3-activity": {
+   "tabs-strip": 2
+  },
+  "campaign-r3-comments": {
+   "tabs-strip": 2
+  },
+  "campaign-r3-internal": {
+   "tabs-strip": 2
+  },
+  "campaign-r4": {
+   "tabs-strip": 2
+  },
+  "campaign-r4-objectives": {
+   "tabs-strip": 2
+  },
+  "campaign-r4-activity": {
+   "tabs-strip": 2
+  },
+  "campaign-r4-comments": {
+   "tabs-strip": 2
+  },
+  "campaign-r4-internal": {
+   "tabs-strip": 2
+  },
+  "campaign-r5": {
+   "tabs-strip": 2
+  },
+  "campaign-r5-objectives": {
+   "tabs-strip": 2
+  },
+  "campaign-r5-activity": {
+   "tabs-strip": 2
+  },
+  "campaign-r5-comments": {
+   "tabs-strip": 2
+  },
+  "campaign-r5-internal": {
+   "tabs-strip": 2
+  },
+  "campaign-r6": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "campaign-r6-objectives": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "campaign-r6-activity": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "campaign-r6-comments": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "campaign-r6-internal": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "campaign-r7": {
+   "tabs-strip": 2
+  },
+  "campaign-r7-objectives": {
+   "tabs-strip": 2
+  },
+  "campaign-r7-activity": {
+   "tabs-strip": 2
+  },
+  "campaign-r7-comments": {
+   "tabs-strip": 2
+  },
+  "campaign-r7-internal": {
+   "tabs-strip": 2
+  },
+  "campaign-r8": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "campaign-r8-objectives": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "campaign-r8-activity": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "campaign-r8-comments": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "campaign-r8-internal": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "campaign-r9": {
+   "tabs-strip": 2
+  },
+  "campaign-r9-objectives": {
+   "tabs-strip": 2
+  },
+  "campaign-r9-activity": {
+   "tabs-strip": 2
+  },
+  "campaign-r9-comments": {
+   "tabs-strip": 2
+  },
+  "campaign-r9-internal": {
+   "tabs-strip": 2
+  },
+  "campaign-r10": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "campaign-r10-objectives": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "campaign-r10-activity": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "campaign-r10-comments": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "campaign-r10-internal": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "campaign-r11": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "campaign-r11-objectives": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "campaign-r11-activity": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "campaign-r11-comments": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "campaign-r11-internal": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "campaign-r12": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "campaign-r12-objectives": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "campaign-r12-activity": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "campaign-r12-comments": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "campaign-r12-internal": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "campaign-r13": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "campaign-r13-objectives": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "campaign-r13-activity": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "campaign-r13-comments": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "campaign-r13-internal": {
+   "empty": 2,
+   "tabs-strip": 2
+  },
+  "campaign-r14": {
+   "tabs-strip": 2
+  },
+  "campaign-r14-objectives": {
+   "tabs-strip": 2
+  },
+  "campaign-r14-activity": {
+   "tabs-strip": 2
+  },
+  "campaign-r14-comments": {
+   "tabs-strip": 2
+  },
+  "campaign-r14-internal": {
+   "tabs-strip": 2
+  },
+  "getting-started": {
+   "banner-grey": 2
+  },
+  "getting-started-owners": {
+   "banner-grey": 2
+  },
+  "getting-started-gaps": {
+   "banner-grey": 2
+  },
+  "review-queue-mine": {
+   "facts": 2
+  },
+  "reports-trend": {
+   "status": 2,
+   "ink": 2,
+   "facts": 2
+  },
+  "campaign-conmon": {
+   "tabs-strip": 2
+  },
+  "assessments-plans": {
+   "type": 4,
+   "facts": 1
+  },
+  "assessments-results": {
+   "type": 2,
+   "facts": 1
+  },
+  "campaign-conmon · preview: v7p-layer": {
+   "empty": 4
+  },
+  "campaign-conmon · preview: v7p-req": {
+   "empty": 25,
+   "panel-primary": 31,
+   "banner-grey": 6
+  },
+  "campaign-conmon · preview: a-docs-ev": {
+   "panel-primary": 6,
+   "banner-grey": 6
+  },
+  "campaign-conmon · preview: a-risk-issue": {
+   "empty": 12,
+   "panel-primary": 13
+  },
+  "campaign-conmon · preview: a-risk-poam": {
+   "empty": 25,
+   "panel-primary": 38
+  },
+  "campaign-conmon · preview: a-risk-risk": {
+   "empty": 50,
+   "panel-primary": 50
+  },
+  "campaign-conmon · preview: sys-asset": {
+   "empty": 40
+  },
+  "campaign-conmon · preview: a-docs-src": {
+   "panel-primary": 8,
+   "empty": 1,
+   "banner-grey": 1
+  },
+  "campaign-conmon · preview: v7o-comp": {
+   "panel-primary": 23
+  },
+  "campaign-conmon · preview: v7p-param": {
+   "panel-primary": 17,
+   "empty": 12,
+   "banner-grey": 6
+  },
+  "campaign-conmon · preview: v8g-rule": {
+   "panel-primary": 142
+  },
+  "campaign-conmon · preview: v7p-obj": {
+   "panel-primary": 14
+  },
+  "campaign-conmon · preview: v7p-creq": {
+   "panel-primary": 14,
+   "empty": 3
+  },
+  "campaign-conmon · preview: a-tests-check": {
+   "empty": 4,
+   "panel-primary": 5
+  },
+  "campaign-conmon · preview: a-docs-pol": {
+   "empty": 40,
+   "panel-primary": 29,
+   "banner-grey": 1
+  },
+  "campaign-conmon · preview: control": {
+   "panel-primary": 1,
+   "banner": 1,
+   "banner-grey": 1
+  },
+  "campaign-conmon · preview: cmp-results": {
+   "type": 2,
+   "panel-primary": 1
+  },
+  "campaign-conmon · preview: v7a-phase": {
+   "panel-primary": 3
+  },
+  "campaign-conmon · preview: v7a-camp": {
+   "empty": 14,
+   "panel-primary": 1
+  },
+  "campaign-conmon · preview: v8w-run": {
+   "panel-primary": 7
+  },
+  "campaign-conmon · preview: v7a-gapc": {
+   "empty": 48,
+   "panel-primary": 24
+  },
+  "campaign-conmon · preview: a-docs-int": {
+   "panel-primary": 10
+  },
+  "campaign-conmon · preview: a-work-report": {
+   "panel-primary": 7
+  },
+  "campaign-conmon · preview: v7o-dl": {
+   "panel-primary": 16
+  },
+  "campaign-conmon · preview: v7o-enclave": {
+   "panel-primary": 3
+  },
+  "campaign-conmon · preview: v7o-ccp": {
+   "panel-primary": 3
+  },
+  "campaign-conmon · preview: v7o-prog": {
+   "empty": 13,
+   "panel-primary": 2
+  },
+  "campaign-conmon · preview: v7o-offer": {
+   "panel-primary": 1,
+   "banner-grey": 1
+  },
+  "campaign-conmon · preview: v7o-consumer": {
+   "panel-primary": 3
+  },
+  "campaign-conmon · preview: v7o-mcctl": {
+   "panel-primary": 1
+  },
+  "campaign-conmon · preview: v7o-cve": {
+   "panel-primary": 1
+  },
+  "campaign-conmon · preview: v7o-pkg": {
+   "empty": 4
+  },
+  "campaign-conmon · preview: pn-roles": {
+   "empty": 2
+  },
+  "campaign-conmon · preview: a-risk-sup": {
+   "panel-primary": 12,
+   "empty": 18
+  },
+  "campaign-conmon · preview: a-people-person": {
+   "panel-primary": 11
+  },
+  "campaign-conmon · preview: v7o-q8140": {
+   "panel-primary": 7
+  },
+  "campaign-conmon · preview: a-people-par": {
+   "empty": 4,
+   "panel-primary": 3
+  },
+  "campaign-conmon · preview: a-work-rq": {
+   "panel-primary": 21
+  },
+  "campaign-conmon · preview: a-work-gate": {
+   "panel-primary": 2
+  },
+  "campaign-conmon · preview: a-work-task": {
+   "panel-primary": 10
+  },
+  "campaign-conmon · preview: v7p-check": {
+   "panel-primary": 10
+  },
+  "campaign-conmon · preview: ssp": {
+   "panel-primary": 1
+  },
+  "campaign-conmon · preview: v8d-plan": {
+   "panel-primary": 3
+  },
+  "campaign-conmon · preview: v7p-el": {
+   "empty": 35,
+   "banner-grey": 1
+  },
+  "campaign-conmon · preview: v7p-host": {
+   "panel-primary": 5
+  },
+  "campaign-conmon · preview: a-people-chg": {
+   "panel-primary": 10,
+   "empty": 1
+  },
+  "campaign-conmon · preview: v7a-src": {
+   "empty": 6,
+   "panel-primary": 1
+  },
+  "campaign-conmon · preview: v7a-inh-ctl": {
+   "status": 2
+  },
+  "campaign-conmon · preview: v7a-pel": {
+   "empty": 8
+  },
+  "campaign-conmon · preview: v7a-pcell": {
+   "empty": 836,
+   "panel-primary": 319
+  },
+  "campaign-conmon · preview: v7a-tech": {
+   "status": 9,
+   "panel-primary": 2
+  },
+  "campaign-conmon · preview: v7a-app": {
+   "panel-primary": 8
+  },
+  "campaign-conmon · preview: v7a-att": {
+   "empty": 43,
+   "panel-primary": 32
+  },
+  "campaign-conmon · preview: v7a-cctl": {
+   "empty": 25,
+   "panel-primary": 25
+  },
+  "campaign-conmon · preview: v7a-trace": {
+   "empty": 186,
+   "panel-primary": 91,
+   "status": 25
+  },
+  "campaign-conmon · preview: v7o-product": {
+   "panel-primary": 1
+  },
+  "campaign-conmon · preview: v7o-variant": {
+   "panel-primary": 5
+  },
+  "campaign-conmon · preview: v7a-cyf": {
+   "empty": 6,
+   "panel-primary": 3
+  },
+  "campaign-conmon · preview: v8b-itv": {
+   "panel-primary": 1
+  },
+  "campaign-conmon · preview: v8b-ic": {
+   "panel-primary": 6,
+   "banner-grey": 2,
+   "empty": 1
+  },
+  "campaign-conmon · preview: v8b-pps": {
+   "panel-primary": 6,
+   "banner-grey": 2
+  },
+  "campaign-conmon · preview: v8g-ck": {
+   "panel-primary": 7
+  },
+  "campaign-conmon · preview: v8g-bench": {
+   "panel-primary": 2
+  },
+  "campaign-conmon · preview: v8g-imp": {
+   "panel-primary": 1
+  },
+  "campaign-conmon · preview: v8g-review": {
+   "panel-primary": 5,
+   "empty": 1
+  },
+  "campaign-conmon · preview: v8g-proc": {
+   "panel-primary": 30
+  },
+  "campaign-conmon · preview: v8g-csa": {
+   "status": 22
+  },
+  "campaign-conmon · preview: v8w-agent": {
+   "panel-primary": 8
+  },
+  "campaign-conmon · preview: v8w-role": {
+   "panel-primary": 10
+  },
+  "campaign-conmon · preview: v8w-member": {
+   "panel-primary": 16,
+   "empty": 2
+  },
+  "campaign-conmon · preview: v8w-scn": {
+   "empty": 14,
+   "panel-primary": 22
+  },
+  "campaign-conmon · preview: a-people-role": {
+   "empty": 4,
+   "panel-primary": 4
+  },
+  "campaign-conmon · preview: a-tests-fix": {
+   "panel-primary": 5
+  },
+  "campaign-conmon · dialog: v7a-cyber-plan": {
+   "empty": 1
+  },
+  "campaign-conmon · dialog: pn-tailor": {
+   "status": 2
+  },
+  "campaign-conmon · dialog: a-tests-poam": {
+   "empty": 4
+  },
+  "campaign-conmon · dialog: a-tests-task": {
+   "empty": 2
+  }
+ }
+}

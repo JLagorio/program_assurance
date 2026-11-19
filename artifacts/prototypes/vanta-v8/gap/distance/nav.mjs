@@ -1,0 +1,16 @@
+import { createRequire } from "node:module"; import path from "node:path";
+const require = createRequire("/Users/joseflagorio/Development/program_assurance-ux-proposal/package.json");
+const { chromium } = require("playwright");
+const html = process.argv[2];
+const b = await chromium.launch(); const p = await b.newPage({ viewport: { width: 1440, height: 900 } });
+const errors = []; p.on("pageerror", (e) => errors.push(String(e)));
+await p.goto("file://" + path.resolve(html) + "#home"); await p.waitForTimeout(700);
+const items = await p.evaluate(() => window.PA.navItems().map(([r,l]) => [r, l, window.PA.navKey ? window.PA.navKey(r) : null]));
+console.log(JSON.stringify(items, null, 0));
+const rail = await p.evaluate(() => [...document.querySelectorAll('#rail a.ri')].map(a => [a.getAttribute('href'), a.getAttribute('aria-label') || a.title || a.textContent.trim()]));
+console.log("RAIL", JSON.stringify(rail));
+await p.evaluate(() => { location.hash = 'overview'; }); await p.waitForTimeout(500);
+const nav = await p.evaluate(() => [...document.querySelectorAll('#nav a.item, #nav .grp, #nav h3, #nav .sect')].map(a => [a.tagName, a.getAttribute('href'), a.textContent.trim().replace(/\s+/g,' ')]));
+console.log("PROGNAV", JSON.stringify(nav));
+console.log("ERR", errors.join("\n"));
+await b.close();

@@ -1,0 +1,11 @@
+import { createRequire } from "node:module"; import path from "node:path";
+const require = createRequire("/Users/joseflagorio/Development/program_assurance-ux-proposal/package.json");
+const { chromium } = require("playwright");
+const file = "file://" + path.resolve(process.argv[2]);
+const b = await chromium.launch(); const p = await b.newPage({ viewport: { width: 1440, height: 900 } });
+const errors = []; p.on("pageerror", (e) => errors.push(String(e)));
+await p.goto(file + "#assessments"); await p.waitForTimeout(500);
+await p.evaluate(() => window.PA.v2.go("campaign", { filter: { qv: "Ready" } })); await p.waitForTimeout(900);
+console.log(await p.evaluate(() => ({ hash: location.hash, qv: [...document.querySelectorAll("#main .qv")].map((e) => e.className + ":" + e.textContent.trim()), rows: [...document.querySelectorAll("#main tbody tr")].map((tr) => tr.innerText.replace(/\s+/g, " ").slice(-40)) })));
+console.log(errors);
+await b.close();

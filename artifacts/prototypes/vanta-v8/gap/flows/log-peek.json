@@ -1,0 +1,17 @@
+{
+ "log": [
+  {
+   "step": 1,
+   "action": "go #evidence",
+   "why": "",
+   "hash": "evidence",
+   "h1": "",
+   "modal": null,
+   "panel": null,
+   "toasts": "",
+   "otherDlg": [],
+   "notDrawn": false
+  }
+ ],
+ "errors": []
+}

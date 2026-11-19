@@ -1,0 +1,12 @@
+import { createRequire } from "module";
+const require = createRequire("/Users/joseflagorio/Development/program_assurance-ux-proposal/package.json");
+const { chromium } = require("playwright");
+const b = await chromium.launch(); const p = await b.newPage({ viewport: { width: 1440, height: 900 } });
+await p.goto("file://" + process.argv[2] + "#checks", { waitUntil: "domcontentloaded" }); await p.waitForTimeout(600);
+const el = await p.$('#main [data-panel="a-tests-check"]');
+console.log(await el.evaluate((e) => { const r = e.getBoundingClientRect(); return { r: [r.x, r.y, r.width, r.height], parent: e.parentElement.className, menu: !!e.closest("[role=menu], .menu, .ak-menu"), hiddenAnc: !!e.closest("[hidden]") }; }));
+const more = await p.$('#main tbody tr button, #main tbody tr [data-admenu], #main tbody tr .ak-more');
+console.log("more:", more ? await more.evaluate((e) => e.outerHTML.slice(0, 200)) : null);
+await el.click({ force: true }).catch((e) => console.log("click err", String(e).slice(0, 100))); await p.waitForTimeout(400);
+console.log(await p.evaluate(() => ({ hash: location.hash, panel: !document.getElementById("panel").hidden, label: (document.querySelector("#panel .bar-top span") || {}).textContent })));
+await b.close();

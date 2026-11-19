@@ -1,0 +1,17 @@
+/* Prototype v2, agent F (v2f-): the re-review's fixes. */
+/* A filter a question applied (Risks' Severity: Critical), removable as a chip. */
+.flt.a-risk-flt-on { font: inherit; color: var(--ink); background: var(--canvas, #fff); border: 1px solid var(--ink); border-radius: 999px; padding: 4px 10px; cursor: pointer; display: inline-flex; gap: 6px; align-items: center; }
+.flt.a-risk-flt-on:focus-visible { outline: 2px solid var(--brand, #2f5bea); outline-offset: 1px; }
+/* Type budget [N10]: 8 size/weight pairs or fewer above the fold. */
+/* Contingency plan (and the other plan editors): avatar initials at 12px, not 0.4 of each avatar's size (10.4, 11.2 and 8.8px), and the
+   bar's title in the editor's 14px/600, as the SSP editor's toolbar; the document's own title stays the large one. */
+#main .sd-av { font-size: 12px; }
+#main .se-title.v8d-title { font-size: 14px; line-height: 20px; }
+/* Checks: Needs attention's counts in the card title's 16px/600, not a 16px/500 of their own. */
+#main .card:has(.a-tests-tt) .row b { font-weight: 600; }
+/* Overview: the completion card's "N of M controls" in the page's 12px grey, not a 14px/400 used nowhere else above the fold. */
+#main .v7p-bigrow .v7p-mu { font-size: 12px; }
+/* Add security outcomes: one checkbox an outcome, in the radio rows' look. */
+.v2f-checks { display: grid; gap: 8px; }
+.v2f-checks .v2k-radio input { margin-block-start: 3px; accent-color: var(--ink); }
+.v2f-checks .v2k-radio:has(input:checked) { border-color: var(--ink); }

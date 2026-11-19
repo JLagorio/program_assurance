@@ -1,0 +1,731 @@
+[
+ {
+  "route": "review-queue",
+  "title": "Reassign reviewer",
+  "result": "opener not found"
+ },
+ {
+  "route": "suppliers",
+  "title": "Request from a supplier",
+  "primary": "Send request",
+  "wired": false,
+  "req": 0,
+  "blocked": null,
+  "result": "NOT SAVED toast",
+  "errors": []
+ },
+ {
+  "route": "products",
+  "title": "Take version 2 of X800 Missile",
+  "primary": "Take version 2",
+  "wired": false,
+  "req": 0,
+  "blocked": null,
+  "result": "NOT SAVED toast",
+  "errors": []
+ },
+ {
+  "route": "products",
+  "title": "Create product",
+  "primary": "Create product",
+  "wired": false,
+  "req": 2,
+  "blocked": {
+   "open": true,
+   "errs": "Name is required. Code is required."
+  },
+  "result": "NOT SAVED toast",
+  "errors": []
+ },
+ {
+  "route": "components",
+  "title": "Create component",
+  "primary": "Create component",
+  "wired": false,
+  "req": 2,
+  "blocked": {
+   "open": true,
+   "errs": "Name is required."
+  },
+  "result": "NOT SAVED toast",
+  "errors": []
+ },
+ {
+  "route": "integrations",
+  "title": "Request a connector",
+  "primary": "Send request",
+  "wired": false,
+  "req": 0,
+  "blocked": null,
+  "result": "NOT SAVED toast",
+  "errors": []
+ },
+ {
+  "route": "reports",
+  "title": "Generate report",
+  "primary": "Generate",
+  "wired": false,
+  "req": 0,
+  "blocked": null,
+  "result": "NOT SAVED toast",
+  "errors": []
+ },
+ {
+  "route": "ai-drafts",
+  "title": "Run an agent",
+  "primary": "Start run",
+  "wired": false,
+  "req": 0,
+  "blocked": null,
+  "result": "NOT SAVED toast",
+  "errors": []
+ },
+ {
+  "route": "ai-drafts",
+  "title": "Reject the run",
+  "primary": "Reject run",
+  "wired": false,
+  "req": 1,
+  "blocked": {
+   "open": true,
+   "errs": "Reason is required."
+  },
+  "result": "closes, page changes, toast",
+  "errors": []
+ },
+ {
+  "route": "enclaves",
+  "title": "Add enclave",
+  "primary": "Add enclave",
+  "wired": false,
+  "req": 0,
+  "blocked": null,
+  "result": "NOT SAVED toast",
+  "errors": []
+ },
+ {
+  "route": "notifications",
+  "title": "Send a test",
+  "primary": "Send test",
+  "wired": false,
+  "req": 0,
+  "blocked": null,
+  "result": "NOT SAVED toast",
+  "errors": []
+ },
+ {
+  "route": "common-controls",
+  "title": "Add provider",
+  "primary": "Ask for an offer",
+  "wired": false,
+  "req": 0,
+  "blocked": null,
+  "result": "NOT SAVED toast",
+  "errors": []
+ },
+ {
+  "route": "deadlines",
+  "title": "Edit high finding deadline",
+  "primary": "Save deadline",
+  "wired": false,
+  "req": 1,
+  "blocked": {
+   "open": true,
+   "errs": "Days is required."
+  },
+  "result": "NOT SAVED toast",
+  "errors": []
+ },
+ {
+  "route": "event-log",
+  "title": "Export event log",
+  "primary": "Export",
+  "wired": false,
+  "req": 0,
+  "blocked": null,
+  "result": "NOT SAVED toast",
+  "errors": []
+ },
+ {
+  "route": "itcsc",
+  "title": "Start version 4",
+  "primary": "Start version 4",
+  "wired": false,
+  "req": 0,
+  "blocked": null,
+  "result": "closes, page changes, toast",
+  "errors": []
+ },
+ {
+  "route": "permissions",
+  "title": "Invite a member",
+  "primary": "Send invitation",
+  "wired": false,
+  "req": 2,
+  "blocked": {
+   "open": true,
+   "errs": "Email is required. Reason is required."
+  },
+  "result": "closes, page changes, toast",
+  "errors": []
+ },
+ {
+  "route": "itcsc",
+  "title": "Change owner",
+  "result": "no primary"
+ },
+ {
+  "route": "stigs",
+  "title": "Import a checklist",
+  "primary": "Preview changes",
+  "wired": false,
+  "req": 3,
+  "blocked": {
+   "open": true,
+   "errs": ""
+  },
+  "result": "stays open",
+  "errors": []
+ },
+ {
+  "route": "interconnections",
+  "title": "Add interconnection",
+  "primary": "Add interconnection",
+  "wired": false,
+  "req": 2,
+  "blocked": {
+   "open": true,
+   "errs": "Connection is required. Connected system is required."
+  },
+  "result": "NOT SAVED toast",
+  "errors": []
+ },
+ {
+  "route": "composition",
+  "title": "Create element",
+  "primary": "Create element",
+  "wired": false,
+  "req": 1,
+  "blocked": {
+   "open": true,
+   "errs": "Name is required."
+  },
+  "result": "NOT SAVED toast",
+  "errors": []
+ },
+ {
+  "route": "composition",
+  "title": "Take version 2 of Mission Computer",
+  "primary": "Take version 2",
+  "wired": false,
+  "req": 0,
+  "blocked": null,
+  "result": "NOT SAVED toast",
+  "errors": []
+ },
+ {
+  "route": "sources",
+  "title": "Retry import",
+  "primary": "Retry import",
+  "wired": false,
+  "req": 0,
+  "blocked": null,
+  "result": "NOT SAVED toast",
+  "errors": []
+ },
+ {
+  "route": "sources",
+  "title": "Add source",
+  "primary": "Next",
+  "wired": false,
+  "req": 0,
+  "blocked": null,
+  "result": "stays open",
+  "errors": []
+ },
+ {
+  "route": "inventory",
+  "title": "Assign owner",
+  "primary": "Assign owner",
+  "wired": false,
+  "req": 0,
+  "blocked": null,
+  "result": "NOT SAVED toast",
+  "errors": []
+ },
+ {
+  "route": "ppsm",
+  "title": "Add service",
+  "primary": "Add service",
+  "wired": false,
+  "req": 3,
+  "blocked": {
+   "open": true,
+   "errs": "Port is required. Protocol is required. Service is required."
+  },
+  "result": "NOT SAVED toast",
+  "errors": []
+ },
+ {
+  "route": "controls",
+  "title": "Add to assessment campaign",
+  "result": "opener not found"
+ },
+ {
+  "route": "ssps",
+  "title": "New plan",
+  "primary": "Create draft",
+  "wired": false,
+  "req": 0,
+  "blocked": null,
+  "result": "NOT SAVED toast",
+  "errors": []
+ },
+ {
+  "route": "baseline",
+  "title": "Edit overlays",
+  "primary": "Edit overlays",
+  "wired": false,
+  "req": 0,
+  "blocked": null,
+  "result": "NOT SAVED toast",
+  "errors": []
+ },
+ {
+  "route": "inventory",
+  "title": "Mark not in boundary",
+  "result": "dialog did not open"
+ },
+ {
+  "route": "requirements",
+  "title": "Import requirements",
+  "primary": "Import requirements",
+  "wired": false,
+  "req": 0,
+  "blocked": null,
+  "result": "NOT SAVED toast",
+  "errors": []
+ },
+ {
+  "route": "checks",
+  "title": "Deactivate 2 checks",
+  "result": "dialog did not open"
+ },
+ {
+  "route": "requirements",
+  "title": "Create requirement",
+  "primary": "Create requirement",
+  "wired": false,
+  "req": 2,
+  "blocked": {
+   "open": true,
+   "errs": "Title is required. Statement is required."
+  },
+  "result": "NOT SAVED toast",
+  "errors": []
+ },
+ {
+  "route": "assessments",
+  "title": "Plan an assessment",
+  "primary": "Plan an assessment",
+  "wired": false,
+  "req": 0,
+  "blocked": null,
+  "result": "NOT SAVED toast",
+  "errors": []
+ },
+ {
+  "route": "policies",
+  "title": "Assign approvers",
+  "result": "opener not found"
+ },
+ {
+  "route": "assessments",
+  "title": "Publish assessment results",
+  "primary": "Publish assessment results",
+  "wired": true,
+  "req": 1,
+  "blocked": {
+   "open": false,
+   "errs": ""
+  },
+  "result": "closes, page changes",
+  "errors": []
+ },
+ {
+  "route": "cyber-te",
+  "title": "Plan a cyber test",
+  "primary": "Plan cyber test",
+  "wired": false,
+  "req": 2,
+  "blocked": {
+   "open": true,
+   "errs": "Phase is required. Title is required."
+  },
+  "result": "NOT SAVED toast",
+  "errors": []
+ },
+ {
+  "route": "policies",
+  "title": "Start a policy",
+  "primary": "Continue",
+  "wired": false,
+  "req": 0,
+  "blocked": null,
+  "result": "navigates to policy-editor",
+  "errors": []
+ },
+ {
+  "route": "poam",
+  "title": "Change planned date",
+  "result": "opener not found"
+ },
+ {
+  "route": "findings",
+  "title": "Deactivate 3 findings",
+  "result": "opener not found"
+ },
+ {
+  "route": "poam",
+  "title": "Create POA&M item",
+  "primary": "Create POA&M item",
+  "wired": false,
+  "req": 1,
+  "blocked": {
+   "open": true,
+   "errs": "Title is required."
+  },
+  "result": "NOT SAVED toast",
+  "errors": []
+ },
+ {
+  "route": "risks",
+  "title": "Request acceptance",
+  "result": "opener not found"
+ },
+ {
+  "route": "threats",
+  "title": "Link ATT&CK technique",
+  "primary": "Link technique",
+  "wired": false,
+  "req": 2,
+  "blocked": {
+   "open": true,
+   "errs": "Risk is required. Technique is required."
+  },
+  "result": "NOT SAVED toast",
+  "errors": []
+ },
+ {
+  "route": "risks",
+  "title": "Create risk",
+  "primary": "Create risk",
+  "wired": false,
+  "req": 1,
+  "blocked": {
+   "open": true,
+   "errs": "Title is required."
+  },
+  "result": "NOT SAVED toast",
+  "errors": []
+ },
+ {
+  "route": "inheritance",
+  "title": "Add common control provider",
+  "primary": "Add provider",
+  "wired": false,
+  "req": 1,
+  "blocked": {
+   "open": true,
+   "errs": "Provider is required."
+  },
+  "result": "NOT SAVED toast",
+  "errors": []
+ },
+ {
+  "route": "package-room",
+  "title": "Share the package",
+  "primary": "Share",
+  "wired": false,
+  "req": 0,
+  "blocked": null,
+  "result": "NOT SAVED toast",
+  "errors": []
+ },
+ {
+  "route": "sse",
+  "title": "Add security outcomes",
+  "primary": "Add outcomes",
+  "wired": false,
+  "req": 1,
+  "blocked": {
+   "open": true,
+   "errs": ""
+  },
+  "result": "stays open",
+  "errors": []
+ },
+ {
+  "route": "authorization",
+  "title": "Submit package version 2 for approval",
+  "primary": "Submit",
+  "wired": true,
+  "req": 0,
+  "blocked": null,
+  "result": "stays (primary disabled)",
+  "errors": []
+ },
+ {
+  "route": "traceability",
+  "title": "Link evidence",
+  "primary": "Link evidence",
+  "wired": false,
+  "req": 2,
+  "blocked": {
+   "open": true,
+   "errs": "Requirement is required. Evidence is required."
+  },
+  "result": "NOT SAVED toast",
+  "errors": []
+ },
+ {
+  "route": "program-new",
+  "title": "Save the draft and leave?",
+  "primary": "Save draft",
+  "wired": false,
+  "req": 0,
+  "blocked": null,
+  "result": "navigates to home",
+  "errors": []
+ },
+ {
+  "route": "schedule",
+  "title": "Change due date",
+  "result": "opener not found"
+ },
+ {
+  "route": "conmon",
+  "title": "Plan a check",
+  "primary": "Plan check",
+  "wired": false,
+  "req": 1,
+  "blocked": {
+   "open": true,
+   "errs": "Check is required."
+  },
+  "result": "NOT SAVED toast",
+  "errors": []
+ },
+ {
+  "route": "schedule",
+  "title": "Create task",
+  "primary": "Create task",
+  "wired": false,
+  "req": 1,
+  "blocked": {
+   "open": true,
+   "errs": "Title is required."
+  },
+  "result": "NOT SAVED toast",
+  "errors": []
+ },
+ {
+  "route": "people",
+  "title": "Assign a role",
+  "primary": "Assign role",
+  "wired": false,
+  "req": 0,
+  "blocked": null,
+  "result": "NOT SAVED toast",
+  "errors": []
+ },
+ {
+  "route": "people",
+  "title": "Recurring reminders",
+  "primary": "Schedule reminders",
+  "wired": false,
+  "req": 0,
+  "blocked": null,
+  "result": "NOT SAVED toast",
+  "errors": []
+ },
+ {
+  "route": "people",
+  "title": "Change role",
+  "result": "opener not found"
+ },
+ {
+  "route": "people",
+  "title": "End 2 roles",
+  "result": "opener not found"
+ },
+ {
+  "route": "program-start",
+  "title": "Import the ITCSC",
+  "result": "no primary"
+ },
+ {
+  "route": "program-start",
+  "title": "Upload the architecture diagram",
+  "result": "no primary"
+ },
+ {
+  "route": "people",
+  "title": "Send a reminder",
+  "result": "dialog did not open"
+ },
+ {
+  "route": "campaign",
+  "title": "Set Ready",
+  "result": "opener not found"
+ },
+ {
+  "route": "program-start",
+  "title": "Invite by email",
+  "primary": "Send invitation",
+  "wired": false,
+  "req": 1,
+  "blocked": {
+   "open": true,
+   "errs": "Email is required."
+  },
+  "result": "stays open",
+  "errors": []
+ },
+ {
+  "route": "control-si2",
+  "title": "Add evidence",
+  "primary": "Add evidence",
+  "wired": false,
+  "req": 0,
+  "blocked": null,
+  "result": "NOT SAVED toast",
+  "errors": []
+ },
+ {
+  "route": "ssp-review",
+  "title": "Edit summary",
+  "primary": "Save summary",
+  "wired": false,
+  "req": 0,
+  "blocked": null,
+  "result": "closes, page changes, toast",
+  "errors": []
+ },
+ {
+  "route": "ssp-history",
+  "title": "Compare versions",
+  "primary": "Compare",
+  "wired": false,
+  "req": 0,
+  "blocked": null,
+  "result": "closes, page changes",
+  "errors": []
+ },
+ {
+  "route": "ssp-history",
+  "title": "Name this version",
+  "primary": "Save name",
+  "wired": false,
+  "req": 0,
+  "blocked": null,
+  "result": "stays open",
+  "errors": []
+ },
+ {
+  "route": "ssp-history",
+  "title": "Restore this version?",
+  "primary": "Restore",
+  "wired": false,
+  "req": 0,
+  "blocked": null,
+  "result": "closes, page changes, toast",
+  "errors": []
+ },
+ {
+  "route": "component-mc",
+  "title": "Remind consumers to take version 2",
+  "primary": "Send reminders",
+  "wired": false,
+  "req": 0,
+  "blocked": null,
+  "result": "NOT SAVED toast",
+  "errors": []
+ },
+ {
+  "route": "check-scan",
+  "title": "Create ticket",
+  "primary": "Create ticket",
+  "wired": false,
+  "req": 1,
+  "blocked": {
+   "open": false,
+   "errs": ""
+  },
+  "result": "closes, page changes",
+  "errors": []
+ },
+ {
+  "route": "ssp",
+  "title": "Share the SSP",
+  "primary": "Done",
+  "wired": false,
+  "req": 0,
+  "blocked": null,
+  "result": "NOT SAVED toast",
+  "errors": []
+ },
+ {
+  "route": "ssp",
+  "title": "Add section",
+  "primary": "Add section",
+  "wired": false,
+  "req": 0,
+  "blocked": null,
+  "result": "closes, page changes, toast",
+  "errors": []
+ },
+ {
+  "route": "ssp",
+  "title": "Detach from the record?",
+  "primary": "Detach section 1",
+  "wired": false,
+  "req": 0,
+  "blocked": null,
+  "result": "closes, page changes, toast",
+  "errors": []
+ },
+ {
+  "route": "ssp",
+  "title": "Replace Figure 1",
+  "primary": "Choose a file",
+  "wired": false,
+  "req": 0,
+  "blocked": null,
+  "result": "NOT SAVED toast",
+  "errors": []
+ },
+ {
+  "route": "ssp",
+  "title": "Replace Figure 2",
+  "primary": "Choose a file",
+  "wired": false,
+  "req": 0,
+  "blocked": null,
+  "result": "NOT SAVED toast",
+  "errors": []
+ },
+ {
+  "route": "ssp",
+  "title": "Set AC-2(3)'s parameters",
+  "primary": "Set parameters",
+  "wired": false,
+  "req": 1,
+  "blocked": {
+   "open": false,
+   "errs": ""
+  },
+  "result": "closes, page changes",
+  "errors": []
+ }
+]

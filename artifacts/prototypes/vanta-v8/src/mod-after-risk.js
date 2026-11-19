@@ -62,6 +62,43 @@
   const AF = AF_RAW.map(([code, title, det, res, date]) => ({ id: `${code}|${res}`, code, title, det, res, date }));
   const DET = { satisfied: ["ok", "Satisfied"], partially_satisfied: ["part", "Partially satisfied"], other_than_satisfied: ["bad", "Other than satisfied"], not_assessed: ["info", "Not assessed"] };
   const RES = { init: "SAR · initial authorization", inc1: "SAR · expanded set, increment 1", inc2: "Interim results, increment 2" };
+
+  // ——— v2 (C1): the assurance chain (mod-zzzz-v2-1chain.js) ———
+  // The operational issues its published results opened, the POA&M items and risks a reader created, and the assessment
+  // findings its walks recorded join these lists at draw time (sync), ahead of WS-X90's own; every count below is read from
+  // the lists, so a count and the rows it opens agree [B7]. A risk shows on the issue and the item it rests on [B12].
+  const CH = () => window.PA.v2 && window.PA.v2.chain;
+  const ISS0 = ISS.slice(), POAM0 = POAM.slice(), RISKS0 = RISKS.slice(), AF0 = AF.slice();
+  const shapeIss = ({ id, sev, opened, owner = "", poam = "", title, from = [] }) => { const due = dueOf(opened, sev); const left = diffDays(due); return { id, sev, opened, owner, poam, title, due, left, late: left < 0, soon: left >= 0 && left <= 14, from, chain: true }; };
+  function sync() {
+    const ch = CH();
+    const cPoam = ch ? ch.poams() : [];
+    const cIss = ch ? ch.issues().map((i) => shapeIss({ id: i.id, sev: i.sev, opened: i.opened, title: i.title, from: [[i.ctl, ch.view(i.ctl).det || "other_than_satisfied"]] })) : [];
+    // v2 (F): an item the POA&M register's own Create made may answer several issues (also: the rest of the issues chosen).
+    const answers = (x, i) => x.issue === i.id || (x.also || []).includes(i.id);
+    ISS0.forEach((i) => { if (i._poam0 === undefined) i._poam0 = i.poam; const p = cPoam.find((x) => answers(x, i)); i.poam = p ? p.title : i._poam0; });
+    cIss.forEach((i) => { const p = cPoam.find((x) => answers(x, i)); i.poam = p ? p.title : ""; });
+    ISS.splice(0, ISS.length, ...cIss, ...ISS0);
+    byDue.splice(0, byDue.length, ...cIss, ...ISS0.slice().sort((a, b) => a.due - b.due)); // what a reader just opened is listed first
+    const items = cPoam.map((p) => { const its = ISS.filter((i) => answers(p, i)); const deadline = its.length ? new Date(Math.min(...its.map((i) => i.due))) : null; return { id: p.id, title: p.title, status: "open", owner: p.owner, planned: p.planned, ms: [], issues: its, plan: p.plan, deadline, fromF: its.some((i) => i.from.length), reached: 0, lateVs: deadline && p.planned ? diffDays(D(p.planned)) - diffDays(deadline) : 0, chain: true, created: p.created }; });
+    POAM.splice(0, POAM.length, ...items, ...POAM0);
+    const cRisk = ch ? ch.risks().map((r) => ({ id: r.id, title: r.title, sev: r.sev, lik: r.lik, imp: r.imp, owner: r.owner, threat: r.threat || "", due: "", tech: [], chain: true, issue: r.issue, poam: r.poam, created: r.created })) : [];
+    RISKS.splice(0, RISKS.length, ...cRisk, ...RISKS0);
+    const cAF = ch ? ch.afs().map((x) => ({ id: `${x.code}|${x.res}`, code: x.code, title: x.title, det: x.det, res: x.res, resLabel: x.resLabel, date: x.date, chain: true })) : [];
+    AF.splice(0, AF.length, ...cAF, ...AF0);
+  }
+  const accOf = (r) => (CH() ? CH().acc(r.id) : null);
+  const accPillOf = (r) => (CH() ? CH().accPill(accOf(r)) : pill("none", "Not requested"));
+  // The risk an issue or an item rests on: one the chain created on it, else WS-X90's "Risk arising from REQ-…" for an unmet requirement.
+  const riskOfIssue = (i) => { if (!i) return null; const c = RISKS.find((r) => r.chain && r.issue === i.id); if (c) return c; const m = i.title.match(/^Unmet requirement (REQ-\d+)/); return m ? RISKS.find((r) => r.title === `Risk arising from ${m[1]}`) || null : null; };
+  const riskOfPoam = (p) => { if (!p) return null; const c = RISKS.find((r) => r.chain && r.poam === p.id); if (c) return c; for (const i of p.issues) { const r = riskOfIssue(i); if (r) return r; } const m = p.title.match(/^Remediate (REQ-\d+)/); return m ? RISKS.find((r) => r.title === `Risk arising from ${m[1]}`) || null : null; };
+  const issueOfRisk = (r) => (r.chain ? ISS.find((i) => i.id === r.issue) : (() => { const m = r.title.match(/^Risk arising from (REQ-\d+)/); return m ? ISS.find((i) => i.title === `Unmet requirement ${m[1]}`) : null; })());
+  // v2 (F): byTitle finds a record a chain names by its title (a traceability chain cuts long titles), all() the lists as drawn.
+  const findTitle = (L, t) => { const k = String(t || "").replace(/…$/, "").trim(); return L.find((x) => x.title === k) || (k.length > 30 ? L.find((x) => x.title.startsWith(k)) : null) || null; };
+  window.PA.riskLookup = { issue: (id) => (sync(), ISS.find((i) => i.id === id) || null), risk: (id) => (sync(), RISKS.find((r) => r.id === id) || null), poam: (id) => (sync(), POAM.find((p) => p.id === id) || null),
+    byTitle: (kind, t) => { sync(); return findTitle(kind === "issue" ? ISS : kind === "risk" ? RISKS : POAM, t); }, all: () => (sync(), { ISS, RISKS, POAM }) };
+  const sevCounts = (list) => ({ critical: list.filter((x) => x.sev === "critical").length, high: list.filter((x) => x.sev === "high").length, moderate: list.filter((x) => x.sev === "moderate").length, low: list.filter((x) => x.sev === "low").length });
+  const afDelta = (det) => AF.filter((x) => x.chain && x.det === det).length;
   // The first risk's rationale and description, from risk_revisions.
   const RATIONALE = "Moderate likelihood: it needs the laptop in hand, but the flightline is where it is used most and watched least. High impact: one secret stands between an outsider and privileged maintenance on a platform categorized high for confidentiality.";
   // WS-X90's nine closed operational issues (operational_issues, status closed). closed_at is empty for all nine, so the closing days are Example.
@@ -124,7 +161,7 @@
     ["Nov 12, 11:05", "R. Calloway", "Opened the SSP (version 1)", "Watermarked view"],
   ];
   const DOCS_V1 = [["System security plan", "SSP 2 · published Jul 25"], ["Security assessment plan", "Initial authorization"], ["Security assessment report", "68 determinations · Aug 28"], ["Annual incident response capability test report", "Evidence"], ["Independent penetration test report, external boundary and technician session path", "Evidence"], ["Contingency planning policy and recovery procedure set, revision 3.1", "Evidence"]];
-  const CONDITIONS = [["Close the high-severity remediation items within 90 days", "2026-12-17"], ["Complete the expanded control set assessment before Milestone C", "2026-11-20"], ["Report the SA-24 design review at the annual authorization review", "2027-09-18"]];
+  const CONDITIONS = [["Close the high-severity remediation items within 90 days", "2026-12-17"], ["Complete the expanded control set assessment", "2026-11-20"], ["Report the SA-24 design review at the annual authorization review", "2027-09-18"]];
   const DC = [
     { id: "fisma", name: "FY2027 FISMA annual data call", from: "DoD CIO via the PEO", due: "2026-12-11", q: 48, drafted: 41, conflicts: 2, review: ["warn", "In review"], owner: "Joel Barrantes", approver: null, comments: 1 },
     { id: "ready", name: "Cyber readiness data call — Q1 FY2027", from: "Component cyber command", due: "2026-11-24", q: 22, drafted: 22, conflicts: 1, review: ["warn", "In review"], owner: "Priya Raghavan", approver: null, comments: 0 },
@@ -144,6 +181,7 @@
   // ——— State: chosen rows and quick views, kept while the prototype is open ———
   const SEL = {};
   const QS = {};
+  const SEVF = {}; // v2 F [B2]: a Severity filter a question applied (My work's Treat 2 critical risks), shown as a removable chip
   const sel = (key, defaults = []) => SEL[key] || (SEL[key] = new Set(defaults));
   const redraw = (focus) => {
     const r = (location.hash || "#home").slice(1);
@@ -156,6 +194,8 @@
     if (el) el.focus();
   };
   const act = (e) => {
+    const sc = e.target.closest("[data-arsevclr]");
+    if (sc) { e.stopPropagation(); e.preventDefault(); delete SEVF[sc.dataset.arsevclr]; redraw(".a-risk-tools .in"); return true; }
     const c = e.target.closest("[data-arsel]");
     if (c) {
       e.stopPropagation(); e.preventDefault();
@@ -169,6 +209,9 @@
     if (d) { e.stopPropagation(); e.preventDefault(); SEL[d.dataset.ardesel] = new Set(); redraw(`[data-arsel="${d.dataset.ardesel}"][data-arid="*"]`); return true; }
     const q = e.target.closest("[data-arq]");
     if (q) { e.stopPropagation(); e.preventDefault(); QS[q.dataset.arq] = q.dataset.arv; redraw(`[data-arq="${q.dataset.arq}"][data-arv="${q.dataset.arv}"]`); return true; }
+    // v2: a quick view that lives on another screen (Suppliers' Found in SBOMs and back): set the view, then open it.
+    const qg = e.target.closest("[data-arqgo]");
+    if (qg) { e.stopPropagation(); e.preventDefault(); const [k, v, r] = qg.dataset.arqgo.split("|"); QS[k] = v; location.hash = r; return true; }
     return false;
   };
   document.addEventListener("click", act, true);
@@ -220,7 +263,8 @@
   const sevCard = ({ title, c = "", counts, note = "" }) => {
     const total = counts.critical + counts.high + counts.moderate + counts.low;
     const parts = [["critical", "Critical", "var(--bad)", ""], ["high", "High", "var(--bad)", "opacity:.6;"], ["moderate", "Moderate", "var(--warn)", ""], ["low", "Low", "var(--ink-4)", ""]];
-    return `<div class="card a-risk-scard">${cardT(title, c, `${total} open`)}<div class="big num">${total}</div><div class="stack">${parts.filter(([k]) => counts[k]).map(([k, , col, o]) => `<i style="flex:${counts[k]};background:${col};${o}"></i>`).join("")}</div><div class="legend">${parts.map(([k, l, col, o]) => `<span style="--c:${o ? "color-mix(in srgb, var(--bad) 60%, var(--canvas))" : col}">${l} ${counts[k]}</span>`).join("")}</div>${note}</div>`;
+    // v2 F [A3]: the card's title says the total once ("44 open"); the big figure under it said it again.
+    return `<div class="card a-risk-scard">${cardT(title, c, `${total} open`)}<div class="stack">${parts.filter(([k]) => counts[k]).map(([k, , col, o]) => `<i style="flex:${counts[k]};background:${col};${o}"></i>`).join("")}</div><div class="legend">${parts.map(([k, l, col, o]) => `<span style="--c:${o ? "color-mix(in srgb, var(--bad) 60%, var(--canvas))" : col}">${l} ${counts[k]}</span>`).join("")}</div>${note}</div>`;
   };
   const deadlineFoot = (c) => `<div class="a-risk-cfoot">${AK.i("clock")}<span class="a-risk-cft">Deadlines: critical 15 · high 30 · moderate 90 · low 180 days · IAVA and IAVB from the notice</span><span class="ak-link" ${go("deadlines")}>Edit</span>${c}</div>`;
   const grid2 = (a, b) => `<div class="grid2 a-risk-cards">${a}${b}</div>`;
@@ -237,35 +281,41 @@
 
   // ═════════════ 1. Risks register ═════════════
   const pastResp = RISKS.filter((r) => r.due && D(r.due) < TODAY).length;
-  const riskHead = (c) => h.header("Risks", `<span>WS-X90 risk register</span><span>Open <b>40</b></span><span>Last decision snapshot <b>Sep 18</b></span>`,
-    `${more("More risk register actions", [["Take snapshot", 'data-modal="a-risk-snap-new"'], ["Generate risk report", ""], ["Export all risks (.csv)", ""], ["View archived risks", ""]])}${c}<button type="button" class="btn">Export ▾</button><button type="button" class="btn ink" data-modal="a-risk-new-risk">Create risk</button>`);
+  const riskHead = (c) => h.header("Risks", `<span>WS-X90 risk register</span><span>Open <b>${RISKS.length}</b></span><span>Last decision snapshot <b>Sep 18</b></span>`,
+    `${more("More risk register actions", [["Take snapshot", 'data-modal="a-risk-snap-new"'], ["Generate risk report", 'data-modal="v2k-export" data-id="the risk report"']])}${c}<button type="button" class="btn" data-modal="v2k-export" data-id="risks">Export</button><button type="button" class="btn ink" data-modal="a-risk-new-risk">Create risk</button>`);
+  const awaiting = (r) => { const a = accOf(r); return !!a && a.state === "requested"; };
   const reassessCell = () => `<span class="a-risk-hc" tabindex="0">${pill("none", "Reassess by Dec 12")}<span class="a-risk-hcard" role="tooltip"><b>Reassessment</b><span>Start date November 12, 2026</span><span>Due by December 12, 2026</span><span>Due in 25 days · recurs every 3 months</span></span></span>`;
   // Severity keeps likelihood × impact one hover away, so the register keeps its Assessment and Acceptance columns in the frame.
   const sevLI = (r) => `<span class="a-risk-sev" title="${esc(cap(r.lik))} likelihood × ${esc(r.imp)} impact">${sevPill(r.sev)}</span>`;
   function riskRegister(key, withCo) {
-    const v = QS[key] || "all";
-    const f = { all: () => true, high: (r) => r.sev === "critical" || r.sev === "high", noowner: (r) => !r.owner, pastresp: (r) => r.due && D(r.due) < TODAY, awaiting: () => false }[v] || (() => true);
-    const list = RISKS.filter(f);
+    sync();
+    // v2 F [B2]: a question asking for one severity ({ filter: { sev } }, PA.v2.go) is taken here and applied as the Severity filter.
+    const V2 = window.PA.v2, q = V2 && key === "risks" && !(window.PA.v2hubs && window.PA.v2hubs.drawing()) ? V2.peek("risks") : null;
+    if (q && q.filter && q.filter.sev) { V2.take("risks"); QS[key] = "all"; SEVF[key] = q.filter.sev; }
+    const v = QS[key] || "all", sevF = SEVF[key] || null;
+    const f = { all: () => true, high: (r) => r.sev === "critical" || r.sev === "high", noowner: (r) => !r.owner, pastresp: (r) => r.due && D(r.due) < TODAY, awaiting }[v] || (() => true);
+    const list = RISKS.filter(f).filter((r) => !sevF || r.sev === sevF);
     const shown = list.slice(0, 25);
     const s = sel(key, withCo ? [RISKS[0].id, RISKS[1].id] : []);
     const c = (n) => (withCo ? co(n) : "");
     const n = s.size;
     return h.page(
       riskHead(c(4)),
-      tabs([["Register", 40, null, true], ["Snapshots", 1, "after-risk-register-snapshots"]], {}, "", "Risk register"),
-      qv(key, [["all", "All", 40], ["high", "Critical or high", 12], ["noowner", "No owner", 40], ["pastresp", "Response date passed", pastResp], ["awaiting", "Awaiting acceptance", 0]], c(1)),
-      toolbar(key, "Search risks", ["Severity", "Likelihood", "Impact", "Assessment", "Acceptance", "ATT&CK technique", "Owner"], ["Assign owner", "Request acceptance", "Start reassessment", "Export"],
-        { co: c(3), attrs: { "Assign owner": `data-modal="a-risk-owner" data-id="${n} risk${n === 1 ? "" : "s"}"`, "Request acceptance": `data-modal="a-risk-accept" data-id="${n} risks"` } }),
+      tabs([["Register", RISKS.length, null, true], ["Snapshots", 1, "after-risk-register-snapshots"]], {}, "", "Risk register"),
+      qv(key, [["all", "All", RISKS.length], ["high", "Critical or high", RISKS.filter((r) => r.sev === "critical" || r.sev === "high").length], ["noowner", "No owner", RISKS.filter((r) => !r.owner).length], ["pastresp", "Response date passed", pastResp], ["awaiting", "Awaiting acceptance", RISKS.filter(awaiting).length]], c(1)),
+      toolbar(key, "Search risks", ["Severity", "Likelihood", "Impact", "Assessment", "Acceptance", "ATT&CK technique", "Owner"], ["Assign owner", "Request acceptance", "Start reassessment"],
+        { co: c(3), attrs: { "Assign owner": `data-modal="a-risk-owner" data-id="${n} risk${n === 1 ? "" : "s"}"`, "Request acceptance": `data-modal="a-risk-accept" data-id="${n} risks"` } })
+        .replace('<span class="flt">Severity ⌄</span>', sevF ? `<button type="button" class="flt a-risk-flt-on" data-arsevclr="${esc(key)}" aria-label="Remove the filter Severity: ${esc(cap(sevF))}">Severity: ${esc(cap(sevF))} <span aria-hidden="true">✕</span></button>` : '<span class="flt">Severity ⌄</span>'),
       tbl({
         cols: [cbAll(key, shown.map((r) => r.id), "Select every risk on this page"), "Risk", `<span title="Severity, from likelihood × impact">Severity</span>`, "ATT&amp;CK techniques", "Response due", `Assessment ${EX}`, `Acceptance${c(2)}`, "Owner", `<span class="a-risk-sr">Row actions</span>`],
         rows: shown.map((r, i) => ({ id: `${r.id}|overview`, sel: s.has(r.id), cells: [
           cb(key, r.id, s.has(r.id), `Select ${r.title}`), tr(r.title, 236), sevLI(r),
-          r.tech.length ? r.tech.map((t) => tag(t[0])).join(" ") : ring("None"), r.due ? dueC(D(r.due)) : ring("Not set"), reassessCell(),
-          pill("none", "Not requested"), who(r.owner || null), `<span class="a-risk-dots" aria-hidden="true">${AK.i("dots")}</span>`,
+          r.tech.length ? r.tech.map((t) => tag(t[0])).join(" ") : ring("None"), r.due ? dueC(D(r.due)) : ring("Not set"), r.chain ? mu("Assessed today") : reassessCell(),
+          accPillOf(r), who(r.owner || null), `<span class="a-risk-dots" aria-hidden="true">${AK.i("dots")}</span>`,
         ] })),
         total: list.length, panel: "a-risk-risk", nm: 1, cls: "a-risk-tight",
       }),
-      AK.note("The 3-month reassessment cadence, counted from the Sep 12 assessment, is invented. Acceptance is Not requested on all 40 risks today, and every response is Mitigate."),
+      AK.note("The 3-month reassessment cadence, counted from the Sep 12 assessment, is invented. Every response of WS-X90's own 40 risks is Mitigate, and none had asked for acceptance."),
     );
   }
   S["after-risk-register"] = () => riskRegister("risks", true);
@@ -303,26 +353,34 @@
     <dl class="ak-kv"><dt>Last assessed</dt><dd>Sep 12, 2026</dd><dt>Likelihood</dt><dd>${esc(cap(r.lik))}</dd><dt>Impact</dt><dd>${esc(cap(r.imp))}</dd><dt>Reassess</dt><dd>Nov 12 – Dec 12, 2026 · every 3 months ${EX}</dd></dl>
     ${open ? `<div class="a-risk-rf">${[["Likelihood", cap(r.lik)], ["Impact", cap(r.imp)], ["Response", "Mitigate"]].map(([k, v]) => `<div class="a-risk-rfr"><span class="k">${k}</span><span class="ak-chg-v">${esc(v)}</span>${AK.i("down", "a-risk-rt")}${select(v)}</div>`).join("")}
       ${AK.reviewComment({ label: "Review comment", help: "Required when the likelihood, the impact or the response changes. It stays in History and in the next snapshot.", primary: "Submit to Priya Raghavan" })}</div>` : ""}`, { cls: "a-risk-acard" });
+  // v2 (C1) [B1 B7]: the acceptance reads what was asked and decided (v1 drew step 1 as sent while the facts said Not requested).
   const acceptance = (r) => {
-    let html = AK.approval({
-      title: "Acceptance, in order", sub: "Not requested yet. Request acceptance sends it to step 1.", co: co(3),
-      steps: [
-        { label: "Step 1 · ISSO", approvers: [{ who: "Priya Raghavan", state: "sent", when: "Nov 17 · waiting 0 days" }] },
-        { label: "Step 2 · ISSM", approvers: [{ who: "Joel Barrantes", state: "waiting" }] },
-        { label: "Step 3 · Authorizing official", approvers: [{ who: "R. Calloway", state: "waiting" }] },
-      ],
-      decision: "Record decision",
-      note: `${EX} Step 1 as it reads once sent; Record decision shows to whoever holds the current step. From the program's role holders: an acceptance expires after 12 months, or with the ATO on Sep 17, 2029, whichever comes first.`,
+    const a = accOf(r);
+    const STEP = [["Step 1 · ISSO", "Priya Raghavan"], ["Step 2 · ISSM", "Joel Barrantes"], ["Step 3 · Authorizing official", "R. Calloway"]];
+    const when = (k) => { const e = a && (a.log || []).find((x, i) => i === k + 1); return e ? dd(e[2]) : a ? dd(a.log[0][2]) : ""; };
+    const stateOf = (k) => (!a ? "waiting" : a.state === "accepted" ? "approved" : k + 1 < a.step ? "approved" : k + 1 === a.step ? (a.state === "returned" ? "changes" : "sent") : "waiting");
+    const html = AK.approval({
+      title: "Acceptance, in order", co: co(3),
+      sub: !a ? "Not requested yet. Request acceptance sends it to step 1." : a.state === "accepted" ? `Accepted by R. Calloway on ${dd(a.at)}, until ${dd(a.until)}` : a.state === "returned" ? "Sent back to the risk's owner" : `Step ${a.step} of 3 waits on ${STEP[a.step - 1][1]}`,
+      steps: STEP.map(([label, w], k) => ({ label, approvers: [{ who: w, state: stateOf(k), when: when(k) }] })),
+      decision: a && a.state === "requested" ? "Record decision" : null,
+      note: a ? `Reason given: ${esc(a.reason || "")}` : "Record decision shows to whoever holds the current step. An acceptance expires after 12 months, or with the ATO on Sep 17, 2029, whichever comes first.",
     });
-    html = html.replace('<span class="t">Not started</span>', '<span class="t">After step 1</span>').replace('<span class="t">Not started</span>', '<span class="t">Signs last</span>');
-    return html.replace('<span class="btn sm ink">Record decision</span>', `<span class="btn sm ink" role="button" tabindex="0" data-modal="a-risk-decision" data-id="${esc(r.title)}">Record decision</span>`);
+    return html.replace(/<span class="btn sm" aria-label="More">[\s\S]*?<\/span>(?=<\/div>)/, "").replace('<span class="btn sm ink">Record decision</span>', `<span class="btn sm ink" role="button" tabindex="0" data-modal="v2k-decide" data-id="${esc(r.id)}">Record decision</span>`);
+  };
+  // v2 (C1) [B12]: what the risk rests on, each a link to its preview.
+  const restsOn = (r) => {
+    const i = issueOfRisk(r), p = r.chain ? POAM.find((x) => x.id === r.poam) : i ? POAM.find((x) => x.title === i.poam) : null;
+    if (!i && !p) return "";
+    return AK.card(`${sectH("Rests on", (i ? 1 : 0) + (p ? 1 : 0))}${i ? li(gl(i.sev === "critical" || i.sev === "high" ? "diamond" : "clock"), `<span class="a-risk-lk" data-panel="a-risk-issue" data-id="${esc(i.id)}" role="link" tabindex="0">${esc(i.title)}</span>`, "Operational issue") : ""}${p ? li(gl("clock"), `<span class="a-risk-lk" data-panel="a-risk-poam" data-id="${esc(p.id)}|overview" role="link" tabindex="0">${esc(p.title)}</span>`, "POA&amp;M item") : ""}`);
   };
   const riskOverview = (r, open) => `
-    ${assessCard(r, open)}
-    ${AK.card(`${sectH("Threat")}<p class="a-risk-p">${esc(r.threat)}</p>`)}
-    ${AK.card(`${sectH("ATT&CK techniques", r.tech.length)}${r.tech.length ? r.tech.map(([c, t]) => li(gl("info"), `<span class="ak-code">${esc(c)}</span> ${esc(t)}`, "Enterprise")).join("") : ring("None linked")}`)}
+    ${r.chain ? "" : assessCard(r, open)}
+    ${restsOn(r)}
+    ${r.threat ? AK.card(`${sectH("Threat")}<p class="a-risk-p">${esc(r.threat)}</p>`) : ""}
+    ${r.chain ? "" : AK.card(`${sectH("ATT&CK techniques", r.tech.length)}${r.tech.length ? r.tech.map(([c, t]) => li(gl("info"), `<span class="ak-code">${esc(c)}</span> ${esc(t)}`, "Enterprise")).join("") : ring("None linked")}`)}
     ${acceptance(r)}
-    ${AK.note("The 3-month reassessment cadence and the acceptance request date are invented.")}`;
+    ${r.chain ? "" : AK.note("The 3-month reassessment cadence is invented.")}`;
   const riskTreatment = (r, ctl) => {
     const inB = ctl.filter((c) => c.inBase).length;
     const first = r.id === RISK1;
@@ -333,7 +391,7 @@
       ${AK.card(`${sectH("POA&M items", 0, btn(`${AK.i("link")}Link POA&amp;M item`))}${ring("No POA&M item answers this risk yet")}${first ? `<div class="a-risk-sugg"><span class="a-risk-mu">Suggested ${EX}</span><b>${esc(pm.title)}</b><span class="a-risk-mu">${pm.reached} of ${pm.ms.length} milestones · planned ${dd(pm.planned)}</span>${btn("Link")}</div>` : ""}`)}
       ${first ? AK.note("The suggestion is invented: that item answers the IA-2(2) issue this risk rests on.") : ""}`;
   };
-  const riskHistory = (r) => `
+  const riskHistory = (r) => r.chain ? AK.activity([{ who: ME, what: `created the risk, resting on <b>${esc((issueOfRisk(r) || {}).title || "its issue")}</b>`, when: dd(r.created) }, ...((accOf(r) || {}).log || []).map(([w, what, at]) => ({ who: w, what: esc(what), when: dd(at) }))]) : `
     ${AK.card(`${sectH("Assessed", null, mu("Sep 12, 2026"))}${AK.facts([["Severity", sevPill(r.sev)], ["Likelihood × impact", `${esc(cap(r.lik))} × ${esc(cap(r.imp))}`], ["Response", "Mitigate"]])}${r.id === RISK1 ? `<p class="a-risk-p">${esc(RATIONALE)}</p>` : ""}`)}
     ${AK.card(`${sectH("Locked in the Package version 1 snapshot", null, mu("Sep 18, 2026"))}${AK.facts([["Decision", tag("ATO with conditions")], ["Locked by", AK.owner("R. Calloway")]])}`)}
     <p class="a-risk-mu">Each reassessment, acceptance step and owner change joins this list, with who and when.</p>`;
@@ -341,12 +399,16 @@
     ? `${AK.comments({ you: ME, placeholder: "Comment, or mention someone with @", items: [{ who: "Priya Raghavan", role: "ISSO", when: "Nov 14, 10:12", text: `${AK.mention("Joel Barrantes")} IA-2(2) on the Maintenance Laptop is still in draft results; hold acceptance until D. Okafor publishes increment 2. ${EX}` }] })}${AK.note("The comment is invented.")}`
     : AK.comments({ you: ME, placeholder: "Comment, or mention someone with @", items: [] });
   P["a-risk-risk"] = (id) => {
+    sync();
     const [rid, tab0] = String(id || "").split("|");
     const r = riskById(rid);
     const tab = tab0 || "overview";
     const ctl = counterOf(r);
-    const head = AK.recordHead({ title: r.title, actions: `${btn("Start reassessment", `data-panel="a-risk-risk" data-id="${r.id}|reassess"`)}${btn("Request acceptance", `data-modal="a-risk-accept" data-id="${esc(r.title)}"`, true)}${more("More risk actions", [["Assign owner", `data-modal="a-risk-owner" data-id="${esc(r.title)}"`], ["Link ATT&CK technique", ""], ["Open full record", ""], ["Archive risk", ""]])}` });
-    const facts = `<div class="a-risk-facts">${AK.facts([["Severity", sevPill(r.sev)], ["Acceptance", pill("none", "Not requested")], ["Owner", ownerBtn(r.owner || null, r.title)], ["Response", `Mitigate · ${r.due ? AK.due(r.due) : "no due date"}`]])}${co(5)}</div>`;
+    // v2 (C1) [B1 B17]: Request acceptance and Record decision are wired; menu items that opened nothing are cut.
+    const a = accOf(r);
+    const accBtn = !a || a.state === "returned" ? btn("Request acceptance", `data-modal="v2k-accept" data-id="${esc(r.id)}"`, true) : a.state === "requested" ? btn("Record decision", `data-modal="v2k-decide" data-id="${esc(r.id)}"`, true) : "";
+    const head = AK.recordHead({ title: r.title, actions: `${r.chain ? "" : btn("Start reassessment", `data-panel="a-risk-risk" data-id="${r.id}|reassess"`)}${accBtn}${more("More risk actions", [["Assign owner", `data-modal="a-risk-owner" data-id="${esc(r.title)}"`]])}` });
+    const facts = `<div class="a-risk-facts">${AK.facts([["Severity", sevPill(r.sev)], ["Acceptance", accPillOf(r)], ["Owner", ownerBtn(r.owner || null, r.title)], ["Response", r.chain ? "Accept, if the AO agrees" : `Mitigate · ${r.due ? AK.due(r.due) : "no due date"}`]])}${co(5)}</div>`;
     const strip = ptabs("a-risk-risk", r.id, [["overview", "Overview"], ["treatment", "Treatment", ctl.length], ["history", "History", 2], ["comments", "Comments", r.id === RISK1 ? 1 : 0]], tab === "reassess" ? "overview" : tab, { Treatment: 6, History: 4, Comments: 1 });
     const body = tab === "treatment" ? riskTreatment(r, ctl) : tab === "history" ? riskHistory(r) : tab === "comments" ? riskComments(r) : riskOverview(r, tab === "reassess");
     return { label: "Risk preview", body: `<div class="a-risk-pan">${head}${facts}${strip}${body}</div>` };
@@ -354,17 +416,20 @@
   S["after-risk-record"] = () => riskRegister("risks-record", false);
 
   // ═════════════ 3. Findings and their deadlines ═════════════
-  const findHead = () => h.header("Findings", `<span>WS-X90 · SYS-WSX90</span><span>Open issues <b>44</b></span><span>Open CVEs <b>1</b></span><span>Determinations <b>313</b></span>`,
-    `<button type="button" class="btn">Import scan</button>${more("More findings actions", [["Deadlines", go("deadlines")], ["Export", ""]])}<button type="button" class="btn ink">Create operational issue</button>`);
-  const FT = [["issue", "By issue", 44, "after-findings-deadlines"], ["vulns", "Vulnerabilities", 1, "after-findings-deadlines-vulns"], ["assets", "By asset", 20, "after-findings-deadlines-assets"], ["assessment", "Assessment findings", 313, "after-findings-deadlines-assessment"], ["deact", "Deactivated", null, "after-findings-deadlines-deactivated"], ["history", "History", null, "after-findings-deadlines-history"]];
-  const findTabs = (cur) => tabs(FT.map(([k, l, n, r]) => [l, n, k === cur ? null : r, k === cur]), cur === "deact" || cur === "history" ? {} : { Deactivated: 2, History: 5 }, "", "Findings");
+  // v2 (C1) [B7 B9]: the head counts the lists; Import scan and Create operational issue open their dialogs.
+  const findHead = () => { sync(); return h.header("Findings", `<span>WS-X90 · SYS-WSX90</span><span>Open issues <b>${ISS.length}</b></span><span>Open CVEs <b>${VULNS.length}</b></span><span>Determinations <b>${313 + AF.filter((x) => x.chain).length}</b></span>`,
+    `<button type="button" class="btn" data-modal="v2k-import-scan">Import scan</button>${more("More findings actions", [["Deadlines", go("deadlines")], ["Export", 'data-modal="v2k-export" data-id="findings"']])}<button type="button" class="btn ink" data-modal="v2k-create-issue">Create operational issue</button>`); };
+  // v2 (C1) [B7]: each tab counts the rows it lists (v1: Vulnerabilities 1 and Open CVEs 1 over a list of 4 open).
+  const FT = () => [["issue", "By issue", ISS.length, "after-findings-deadlines"], ["vulns", "Vulnerabilities", VULNS.length, "after-findings-deadlines-vulns"], ["assets", "By asset", 20, "after-findings-deadlines-assets"], ["assessment", "Assessment findings", 313 + AF.filter((x) => x.chain).length, "after-findings-deadlines-assessment"], ["deact", "Deactivated", null, "after-findings-deadlines-deactivated"], ["history", "History", null, "after-findings-deadlines-history"]];
+  const findTabs = (cur) => { sync(); return tabs(FT().map(([k, l, n, r]) => [l, n, k === cur ? null : r, k === cur]), cur === "deact" || cur === "history" ? {} : { Deactivated: 2, History: 5 }, "", "Findings"); };
   const issueActions = ["Assign owner", "Create POA&M item", "Deactivate…"];
   const issueBar = (key, search, list, ids) => toolbar(key, search, list, issueActions, { co: co(3), after: { "Deactivate…": co(4) },
-    attrs: { "Deactivate…": `data-modal="a-risk-deactivate" data-id="${esc(ids.join(","))}"`, "Assign owner": `data-modal="a-risk-owner" data-id="${ids.length} finding${ids.length === 1 ? "" : "s"}"`, "Create POA&M item": `data-modal="a-risk-poam-new" data-id="${ids.length}"` } });
+    attrs: { "Deactivate…": `data-modal="a-risk-deactivate" data-id="${esc(ids.join(","))}"`, "Assign owner": `data-modal="a-risk-owner" data-id="${ids.length} finding${ids.length === 1 ? "" : "s"}"`, "Create POA&M item": `data-modal="a-risk-poam-new" data-id="${esc(ids.join(","))}"` } });
   S["after-findings-deadlines"] = () => {
+    sync();
     const key = "iss";
     const v = QS[key] || "all";
-    const late = ISS.filter((i) => i.late).length, soon = ISS.filter((i) => i.soon).length;
+    const late = ISS.filter((i) => i.late).length, soon = ISS.filter((i) => i.soon).length, sc = sevCounts(ISS);
     const f = { all: () => true, late: (i) => i.late, soon: (i) => i.soon, later: (i) => !i.late && !i.soon, critical: (i) => i.sev === "critical", high: (i) => i.sev === "high", fromf: (i) => i.from.length, noowner: (i) => !i.owner }[v] || (() => true);
     const list = byDue.filter(f);
     const shown = list.slice(0, 12);
@@ -373,10 +438,10 @@
       findHead(),
       findTabs("issue"),
       grid2(
-        statusCard({ title: "Remediate-by status", c: co(1), right: "44 open", rows: [["diamond", "Overdue", late, [key, "late"]], ["clock", "Due within two weeks", soon, [key, "soon"]], ["ring", "Due later", ISS.length - late - soon, [key, "later"]]], foot: deadlineFoot(co(6)) }),
-        sevCard({ title: "Open issues by severity", counts: { critical: 2, high: 12, moderate: 23, low: 7 } }),
+        statusCard({ title: "Remediate-by status", c: co(1), right: `${ISS.length} open`, rows: [["diamond", "Overdue", late, [key, "late"]], ["clock", "Due within two weeks", soon, [key, "soon"]], ["ring", "Due later", ISS.length - late - soon, [key, "later"]]], foot: deadlineFoot(co(6)) }),
+        sevCard({ title: "Open issues by severity", counts: sc }),
       ),
-      qv(key, [["all", "All", 44], ["late", "Past due", late], ["soon", "Due soon", soon], ["critical", "Critical", 2], ["high", "High", 12], ["fromf", "From assessment findings", 40], ["noowner", "No owner", 43]]),
+      qv(key, [["all", "All", ISS.length], ["late", "Past due", late], ["soon", "Due soon", soon], ["critical", "Critical", sc.critical], ["high", "High", sc.high], ["fromf", "From assessment findings", ISS.filter((i) => i.from.length).length], ["noowner", "No owner", ISS.filter((i) => !i.owner).length]]),
       issueBar(key, "Search findings", ["Severity", "Owner", "Remediate by", "Control"], [...s]),
       tbl({
         cols: [cbAll(key, shown.map((i) => i.id), "Select every issue on this page"), "Operational issue", "Severity", "From finding", "Opened", "Remediate by", "POA&M item", "Owner"],
@@ -387,14 +452,20 @@
       plain("Remediate by counts from the day an issue opens. From finding is the published determination the issue rests on."),
     );
   };
+  // v2 (C1) [B12 B17]: an issue with a POA&M item offers Open POA&M item, not Create; the preview shows the risk it carries.
   P["a-risk-issue"] = (id) => {
+    sync();
     const i = ISS.find((x) => x.id === id) || byDue[0];
     const p = POAM.find((x) => x.title === i.poam);
+    const r = riskOfIssue(i);
+    const ctl = CH() && i.chain ? i.from[0][0] : null;
+    const primary = p ? btn("Open POA&amp;M item", `data-panel="a-risk-poam" data-id="${p.id}|overview"`, true) : btn("Create POA&amp;M item", `data-modal="v2k-poam" data-id="${esc(i.id)}"`, true);
     return { label: "Operational issue preview", body: `<div class="a-risk-pan">
-      ${AK.recordHead({ title: i.title, actions: `${btn("Deactivate…", `data-modal="a-risk-deactivate" data-id="${i.id}"`)}${btn("Create POA&amp;M item", `data-modal="a-risk-poam-new" data-id="1"`, true)}` })}
-      ${AK.facts([["Severity", sevPill(i.sev)], ["Status", pill("none", "Open")], ["Opened", dfull(i.opened)], ["Remediate by", `${dueC(i.due)} <span class="ak-link" ${go("deadlines")}>Edit deadline</span>`], ["Owner", ownerBtn(i.owner || null, i.title)]])}
-      ${AK.card(`${sectH("Assessment findings", i.from.length)}${i.from.length ? i.from.map(([c, d]) => li(gl(DET[d][0] === "bad" ? "diamond" : DET[d][0] === "ok" ? "check" : "part"), `<span class="ak-code">${esc(c)}</span> ${esc(DET[d][1])}`)).join("") : mu("Raised from an SBOM import or an unmet requirement, not an assessment.")}`)}
-      ${AK.card(`${sectH("POA&M item", p ? 1 : 0)}${p ? `<span class="a-risk-lk" data-panel="a-risk-poam" data-id="${p.id}|overview" role="link" tabindex="0">${esc(p.title)}</span><div class="a-risk-prog">${bar(p.ms.length ? pct(p.reached, p.ms.length) : 0)}<span class="num">${p.reached} of ${p.ms.length} milestones · planned ${p.planned ? dd(p.planned) : "not set"}</span></div>` : ring("No POA&M item yet")}`)}</div>` };
+      ${AK.recordHead({ title: i.title, actions: `${btn("Deactivate…", `data-modal="a-risk-deactivate" data-id="${i.id}"`)}${primary}` })}
+      ${AK.facts([["Severity", sevPill(i.sev)], ["Opened", dfull(i.opened)], ["Remediate by", `${dueC(i.due)} <span class="ak-link" ${go("deadlines")}>Edit deadline</span>`], ["Owner", ownerBtn(i.owner || null, i.title)]])}
+      ${AK.card(`${sectH("Assessment findings", i.from.length)}${i.from.length ? i.from.map(([c, d]) => li(gl(DET[d][0] === "bad" ? "diamond" : DET[d][0] === "ok" ? "check" : "part"), `<span class="ak-code">${esc(c)}</span> ${esc(DET[d][1])}`, ctl ? `<span class="ak-link" data-v2k-go="${esc(CH().ctlRoute(ctl))}" role="link" tabindex="0">Open ${esc(ctl)}</span>` : "")).join("") : mu("Raised from an SBOM import or an unmet requirement, not an assessment.")}`)}
+      ${AK.card(`${sectH("POA&M item", p ? 1 : 0)}${p ? `<span class="a-risk-lk" data-panel="a-risk-poam" data-id="${p.id}|overview" role="link" tabindex="0">${esc(p.title)}</span><div class="a-risk-prog">${bar(p.ms.length ? pct(p.reached, p.ms.length) : 0)}<span class="num">${p.reached} of ${p.ms.length} milestones · planned ${p.planned ? dd(p.planned) : "not set"}</span></div>` : ring("No POA&M item yet")}`)}
+      ${AK.card(`${sectH("Risk", r ? 1 : 0, !r && p ? btn("Create risk", `data-modal="v2k-risk" data-id="${esc(i.id)}"`) : "")}${r ? li(sevPill(r.sev), `<span class="a-risk-lk" data-panel="a-risk-risk" data-id="${esc(r.id)}|overview" role="link" tabindex="0">${esc(r.title)}</span>`, CH() ? esc(CH().accWords(accOf(r))) : "") : ring(p ? "No risk rests on this issue yet" : "A risk rests on the issue once its POA&M item exists")}`)}</div>` };
   };
   S["after-findings-deadlines-vulns"] = () => {
     const key = "vul";
@@ -437,20 +508,24 @@
     );
   };
   S["after-findings-deadlines-assessment"] = () => {
+    sync();
     const shown = AF.slice(0, 14);
+    // v2 (C1): results the chain published add their determinations here; a published increment 2 reads Published; each row opens its control.
+    const i2 = CH() && CH().inc2(), extra = AF.filter((x) => x.chain);
+    const resRows = CH() ? CH().camps().map((k) => [k, CH().results(k.id)]).filter(([, r]) => r).map(([k, r]) => ["check", r.title, r.n, null, `Published ${dd(r.at)}`]) : [];
     return h.page(
       findHead(), findTabs("assessment"),
       grid2(
-        statusCard({ title: "Determinations", c: co(1), right: "313", rows: [["check", "Satisfied", 187], ["part", "Partially satisfied", 38], ["diamond", "Other than satisfied", 14], ["info", "Not assessed", 74]] }),
-        statusCard({ title: "Results", rows: [["check", "SAR · initial authorization", 68, null, "Published Aug 28"], ["check", "Expanded set, increment 1", 225, null, "Published Nov 12"], ["ring", "Increment 2", 20, null, "Draft"]] }),
+        statusCard({ title: "Determinations", c: co(1), right: String(313 + extra.length), rows: [["check", "Satisfied", 187 + afDelta("satisfied")], ["part", "Partially satisfied", 38 + afDelta("partially_satisfied")], ["diamond", "Other than satisfied", 14 + afDelta("other_than_satisfied")], ["info", "Not assessed", 74]] }),
+        statusCard({ title: "Results", rows: [["check", "SAR · initial authorization", 68, null, "Published Aug 28"], ["check", "Expanded set, increment 1", 225, null, "Published Nov 12"], [i2 ? "check" : "ring", "Increment 2", 20, null, i2 ? `Published ${dd(i2.at)}` : "Draft"], ...resRows] }),
       ),
       filters("Search assessment findings", ["Determination", "Results", "Control family", "Assessor"]),
       tbl({
         cols: ["Control", "Assessment finding", "Determination", "Results", "Determined"],
-        rows: shown.map((x) => ({ id: x.id, panel: "", cells: [tag(x.code), tr(x.title, 340), pill(DET[x.det][0], DET[x.det][1]), `${esc(RES[x.res])}${x.res === "inc2" ? ` ${pill("none", "Draft")}` : ""}`, num(dd(x.date))] })),
-        total: 313,
+        rows: shown.map((x) => ({ id: x.id, panel: "a-tests-control", cells: [tag(x.code), tr(x.title, 340), pill(DET[x.det][0], DET[x.det][1]), `${esc(RES[x.res] || x.resLabel || "")}${x.res === "inc2" && !i2 ? ` ${pill("none", "Draft")}` : ""}`, num(dd(x.date))] })),
+        total: 313 + extra.length,
       }),
-      plain("313 determinations by Nadia Fournier across the initial authorization SAR (68), the expanded set's increment 1 (225) and its draft increment 2 (20), worst first."),
+      plain(`${313 + extra.length} determinations across the initial authorization SAR (68), the expanded set's increment 1 (225), its increment 2 (20, ${i2 ? "published" : "a draft"})${extra.length ? ` and ${extra.length} published here today` : ""}, worst first.`),
     );
   };
   S["after-findings-deadlines-deactivated"] = () => {
@@ -503,7 +578,7 @@
   };
 
   // ═════════════ 4. POA&M items and milestones ═════════════
-  const poamHead = () => h.header("POA&M", `<span>WS-X90 Sentinel Mission System — POA&amp;M</span><span>Items <b>41</b></span><span>Milestones <b>${MILESTONES.length}</b></span>`, `<button type="button" class="btn">Export ▾</button><button type="button" class="btn ink" data-modal="a-risk-poam-new" data-id="">Create POA&amp;M item</button>`);
+  const poamHead = () => { sync(); return h.header("POA&M", `<span>WS-X90 Sentinel Mission System — POA&amp;M</span><span>Items <b>${POAM.length}</b></span><span>Milestones <b>${MILESTONES.length}</b></span>`, `<button type="button" class="btn" data-modal="v2k-export" data-id="the POA&amp;M">Export</button><button type="button" class="btn ink" data-modal="a-risk-poam-new" data-id="">Create POA&amp;M item</button>`); };
   const srcOf = (p) => {
     const f = p.issues.find((i) => i.from.length);
     if (f) return `Finding ${tag(f.from[0][0])}${p.issues.length > 1 ? ` ${mu(`+${p.issues.length - 1}`)}` : ""}`;
@@ -513,24 +588,28 @@
     if (cve) return `Vulnerability ${tag(cve.title.split(" ")[0])}`;
     return "Operational issue";
   };
-  const progress = (p) => (p.ms.length ? `<span class="a-risk-prog slim">${bar(pct(p.reached, p.ms.length))}<span class="num">${p.reached} of ${p.ms.length}</span></span>` : mu("—"));
+  // v2 F [N08]: milestones reached as the number alone; the bar beside it said the same.
+  const progress = (p) => (p.ms.length ? `<span class="num">${p.reached} of ${p.ms.length}</span>` : mu("—"));
   const plannedC = (status, iso) => (iso ? (status === "completed" ? num(dd(iso)) : dueC(D(iso))) : ring("Not set"));
   const POAM_COMMENTS = { def9d690: 1 };
-  const poamTabs = (cur) => tabs([["Items", 41, cur === "items" ? null : "after-poam-tracker", cur === "items"], ["Milestones", MILESTONES.length, cur === "ms" ? null : "after-poam-tracker-milestones", cur === "ms"]], {}, "", "POA&M");
+  const poamTabs = (cur) => tabs([["Items", POAM.length, cur === "items" ? null : "after-poam-tracker", cur === "items"], ["Milestones", MILESTONES.length, cur === "ms" ? null : "after-poam-tracker-milestones", cur === "ms"]], {}, "", "POA&M");
   S["after-poam-tracker"] = () => {
+    sync();
     const key = "poam";
     const v = QS[key] || "all";
     const pastPlan = POAM.filter((p) => p.status !== "completed" && p.planned && D(p.planned) < TODAY).length;
     const lateVs = POAM.filter((p) => p.lateVs > 0).length;
     const f = { all: () => true, in_progress: (p) => p.status === "in_progress", open: (p) => p.status === "open", completed: (p) => p.status === "completed", pastplan: (p) => p.status !== "completed" && p.planned && D(p.planned) < TODAY, latevs: (p) => p.lateVs > 0, noowner: (p) => !p.owner }[v] || (() => true);
-    const list = POAM.filter(f).sort((a, b) => (a.status === "completed") - (b.status === "completed") || (a.deadline || Infinity) - (b.deadline || Infinity));
+    // v2 (C1): an item a reader just created is listed first; the quick views count the list.
+    const list = POAM.filter(f).sort((a, b) => (b.chain ? 1 : 0) - (a.chain ? 1 : 0) || (a.status === "completed") - (b.status === "completed") || (a.deadline || Infinity) - (b.deadline || Infinity));
+    const byStatus = (st2) => POAM.filter((p) => p.status === st2).length;
     const shown = list.slice(0, 14);
     const s = sel(key, shown.slice(0, 2).map((p) => p.id));
     const n = s.size;
     return h.page(
       poamHead(),
       poamTabs("items"),
-      qv(key, [["all", "All", 41], ["in_progress", "In progress", 33], ["open", "Not started", 1], ["completed", "Completed", 7], ["pastplan", "Planned date passed", pastPlan], ["latevs", "Later than remediate-by", lateVs], ["noowner", "No owner", POAM.filter((p) => !p.owner).length]], co(1)),
+      qv(key, [["all", "All", POAM.length], ["in_progress", "In progress", byStatus("in_progress")], ["open", "Not started", byStatus("open")], ["completed", "Completed", byStatus("completed")], ["pastplan", "Planned date passed", pastPlan], ["latevs", "Later than remediate-by", lateVs], ["noowner", "No owner", POAM.filter((p) => !p.owner).length]], co(1)),
       toolbar(key, "Search POA&M items", ["Status", "Owner", "Planned completion", "Source"], ["Assign owner", "Change planned date…"],
         { co: co(2), attrs: { "Assign owner": `data-modal="a-risk-owner" data-id="${n} POA&amp;M item${n === 1 ? "" : "s"}"`, "Change planned date…": `data-modal="a-risk-ms-move" data-id="${n} POA&amp;M item${n === 1 ? "" : "s"}"` } }),
       tbl({
@@ -542,7 +621,7 @@
           srcOf(p), who(p.owner || null)] })),
         total: list.length, panel: "a-risk-poam", nm: 1, cls: "a-risk-tight a-risk-tighter",
       }),
-      plain("Remediate by is the earliest deadline among the open issues an item answers. Source is where the item came from: an assessment finding with its control, an unmet requirement, a vulnerability or a risk; no risk links an item yet."),
+      plain("Remediate by is the earliest deadline among the open issues an item answers. Source is where the item came from: an assessment finding with its control, an unmet requirement or a vulnerability."),
     );
   };
   S["after-poam-tracker-milestones"] = () => {
@@ -569,10 +648,14 @@
     );
   };
   P["a-risk-poam"] = (id) => {
+    sync();
     const [pid, tab0] = String(id || "").split("|");
     const p = poamById(pid);
     const tab = tab0 || "overview";
     const cmts = POAM_COMMENTS[p.id] || 0;
+    // v2 (C1) [B12]: the item shows the risk it carries, or creates it from the issue it answers.
+    const rk = riskOfPoam(p);
+    const riskCard = AK.card(`${sectH("Risk it carries", rk ? 1 : 0, !rk && p.issues.length ? btn("Create risk", `data-modal="v2k-risk" data-id="${esc(p.issues[0].id)}"`) : "")}${rk ? li(sevPill(rk.sev), `<span class="a-risk-lk" data-panel="a-risk-risk" data-id="${esc(rk.id)}|overview" role="link" tabindex="0">${esc(rk.title)}</span>`, CH() ? esc(CH().accWords(accOf(rk))) : "") : ring("No risk rests on it yet")}`);
     const head = AK.recordHead({ title: p.title, actions: `${btn("Change planned date…", `data-modal="a-risk-ms-move" data-id="${esc(p.title)}"`)}${btn(`${AK.i("plus")}Add milestone`, `data-modal="a-risk-ms-new" data-id="${p.id}"`, true)}` });
     const facts = AK.facts([["Status", pstat(p.status)], ["Planned", plannedC(p.status, p.planned)], ["Remediate by", p.deadline ? dueC(p.deadline) : mu("No open issue")], ["Owner", ownerBtn(p.owner || null, p.title)]]);
     const strip = ptabs("a-risk-poam", p.id, [["overview", "Overview"], ["milestones", "Milestones", p.ms.length], ["activity", "Activity"], ["comments", "Comments", cmts]], tab, {}, co(4));
@@ -585,28 +668,33 @@
     else if (tab === "comments") body = cmts
       ? `${AK.comments({ you: ME, placeholder: "Comment, or mention someone with @", items: [{ who: "Ingrid Solberg", when: "Nov 16, 16:40", text: `LoginGraceTime 0 is staged on the maintenance image; ${AK.mention("Priya Raghavan")} can Mission Computer version 2 land before Dec 1? ${EX}` }] })}${AK.note("The comment is invented.")}`
       : AK.comments({ you: ME, placeholder: "Comment, or mention someone with @", items: [] });
-    else body = `${AK.card(`${sectH("Progress")}<div class="a-risk-prog wide">${bar(p.ms.length ? pct(p.reached, p.ms.length) : 0)}<span class="num">${p.reached} of ${p.ms.length} milestones</span></div>${p.lateVs > 0 ? `<div class="a-risk-warn">${gl("clock")}<span>The plan ends ${p.lateVs} days after the remediate-by date. Move a milestone or record why.</span></div>` : ""}`)}
-      ${AK.card(`${sectH("Answers", p.issues.length)}${p.issues.length ? p.issues.map((i) => li(gl(i.sev === "critical" || i.sev === "high" ? "diamond" : "clock"), esc(i.title), dueC(i.due))).join("") : mu("Its issues are closed.")}`)}
-      ${p.plan ? AK.card(`${sectH("Remediation plan")}<p class="a-risk-p">${esc(p.plan)}</p>`) : ""}`;
+    else body = `${p.ms.length || p.lateVs > 0 ? AK.card(`${sectH("Progress")}<div class="a-risk-prog wide">${bar(p.ms.length ? pct(p.reached, p.ms.length) : 0)}<span class="num">${p.reached} of ${p.ms.length} milestones</span></div>${p.lateVs > 0 ? `<div class="a-risk-warn">${gl("clock")}<span>The plan ends ${p.lateVs} days after the remediate-by date. Move a milestone or record why.</span></div>` : ""}`) : ""}
+      ${AK.card(`${sectH("Answers", p.issues.length)}${p.issues.length ? p.issues.map((i) => li(gl(i.sev === "critical" || i.sev === "high" ? "diamond" : "clock"), `<span class="a-risk-lk" data-panel="a-risk-issue" data-id="${esc(i.id)}" role="link" tabindex="0">${esc(i.title)}</span>`, dueC(i.due))).join("") : mu("Its issues are closed.")}`)}
+      ${riskCard}
+      ${p.plan && !p.chain ? AK.card(`${sectH("Remediation plan")}<p class="a-risk-p">${esc(p.plan)}</p>`) : p.plan ? `<p class="a-risk-p">${esc(p.plan)}</p>` : ""}`;
     return { label: "POA&M item preview", body: `<div class="a-risk-pan">${head}${facts}${strip}${body}</div>` };
   };
 
   // ═════════════ 5. Suppliers ═════════════
   const reviewPill = (iso) => { const d = diffDays(D(iso)); return d < 0 ? pill("bad", "Overdue") : d <= 14 ? pill("warn", `Due ${dd(iso)} · in ${d}d`) : pill("none", `Due ${dd(iso)}`); };
-  const supHead = () => h.header("Suppliers", `<span>Supply chain risk management · SR family</span><span>Component sets <b>4</b></span><span>Organizations <b>6</b></span><span>SBOM upstreams <b>1</b></span>`, `<button type="button" class="btn">Import SBOM</button><button type="button" class="btn ink" data-modal="a-risk-portal" data-id="">Request from a supplier</button>`);
+  const supHead = () => h.header("Suppliers", `<span>Supply chain risk management · SR family</span><span>Component sets <b>4</b></span><span>Organizations <b>6</b></span><span>SBOM upstreams <b>1</b></span>`, `<button type="button" class="btn" data-modal="v2k-import" data-id="SBOM">Import SBOM</button><button type="button" class="btn ink" data-modal="a-risk-portal" data-id="">Request from a supplier</button>`);
   const supTabs = (cur, c) => tabs([["Managed", SUPPLIERS.length, cur === "m" ? null : "after-suppliers-index", cur === "m"], ["Found in SBOMs", 1, cur === "s" ? null : "after-suppliers-index-sbom", cur === "s"]], {}, c, "Suppliers");
+  // v2: the Products area strip already splits the area, so the page drops its own Managed / Found in SBOMs tabs: Found in
+  // SBOMs is the last of five quick views (it opens its own list), and Component sets is a value of the Kind filter. Above
+  // the table: the area strip, the quick views and the filters.
+  const SUPQ = () => [["all", "All", SUPPLIERS.length], ["t1", "Tier 1", SUPPLIERS.filter((s) => s.tier === 1).length], ["flag", "Flagged", SUPPLIERS.filter((s) => s.flags.length).length], ["noowner", "No owner", SUPPLIERS.filter((s) => !s.owner).length]];
+  const sbomChip = (on) => `<button type="button" class="qv a-risk-qv${on ? " on" : ""}" aria-pressed="${on}"${on ? "" : ' data-go="after-suppliers-index-sbom"'}>Found in SBOMs <span class="num">1</span></button>`;
   function supplierRegister(key, withCo) {
     const v = QS[key] || "all";
     const c = (n) => (withCo ? co(n) : "");
     const list = SUPPLIERS.filter((s) => v === "all" || (v === "t1" ? s.tier === 1 : v === "flag" ? s.flags.length : v === "sets" ? s.kind === "Component set" : v === "noowner" ? !s.owner : true));
     return h.page(
       supHead(),
-      supTabs("m", c(3)),
-      qv(key, [["all", "All", SUPPLIERS.length], ["t1", "Tier 1", SUPPLIERS.filter((s) => s.tier === 1).length], ["flag", "Flagged", SUPPLIERS.filter((s) => s.flags.length).length], ["sets", "Component sets", 4], ["noowner", "No owner", SUPPLIERS.filter((s) => !s.owner).length]], c(1)),
-      filters("Search suppliers", ["Tier", "Kind", "Review", "Flag", "Owner"]),
+      qv(key, SUPQ(), sbomChip(false)),
+      filters("Search suppliers", ["Tier", "Kind", "Review", "Owner"]),
       tbl({
         cols: ["Supplier", "Kind", "Tier", "Review", `Evidence${c(2)}`, "Flags", "Owner", "Business line"],
-        rows: list.map((s) => ({ id: `${s.id}|overview`, cells: [`${tr(s.n, s.ex ? 150 : 205)}${s.ex ? ` ${EX}` : ""}`, esc(s.kind), `<span class="a-risk-tier" title="${esc(TIERS[s.tier][1])} review; asks ${esc(TIERS[s.tier][2].join(", "))}">${tag(TIERS[s.tier][0])}</span>`, reviewPill(s.next), AK.progress(s.got, TIERS[s.tier][2].length, "received"), s.flags.length ? s.flags.map(([k, l]) => pill(k, l)).join(" ") : ring("None"), who(s.owner || null), s.line ? esc(s.line) : ring("Not set")] })),
+        rows: list.map((s) => ({ id: `${s.id}|overview`, cells: [`${tr(s.n, s.ex ? 150 : 205)}${s.ex ? ` ${EX}` : ""}`, esc(s.kind), `<span class="a-risk-tier" title="${esc(TIERS[s.tier][1])} review; asks ${esc(TIERS[s.tier][2].join(", "))}">${tag(TIERS[s.tier][0])}</span>`, reviewPill(s.next), `<span class="num">${s.got} of ${TIERS[s.tier][2].length} received</span>` /* v2 F [N08]: the number without the ring beside it */, s.flags.length ? s.flags.map(([k, l]) => pill(k, l)).join(" ") : ring("None"), who(s.owner || null), s.line ? esc(s.line) : ring("Not set")] })),
         total: list.length, panel: "a-risk-sup", cls: "a-risk-tight a-risk-tighter",
       }),
       AK.note("Aldergrove and Kestrel, their counterfeit and DMSMS flags, the tiers and the review dates are invented; the component sets, their owners and business lines, and the six organizations are the workspace's."),
@@ -616,7 +704,7 @@
   S["after-supplier-record"] = () => supplierRegister("sup-record", false);
   S["after-suppliers-index-sbom"] = () => h.page(
     supHead(),
-    supTabs("s", co(3)),
+    `<div class="views a-risk-views" role="group" aria-label="Quick views">${SUPQ().map(([v, l, n]) => `<button type="button" class="qv a-risk-qv" aria-pressed="false" data-arqgo="sup|${v}|suppliers">${esc(l)} <span class="num">${fmt(n)}</span></button>`).join("")}${sbomChip(true)}</div>`,
     plain("Suppliers read from an SBOM wait here until someone moves them to managed or ignores them with a reason."),
     tbl({
       cols: ["Supplier", "Found in", "Component", "Flags", `<span class="a-risk-sr">Actions</span>`],
@@ -680,16 +768,18 @@
   // ═════════════ 7. Package room ═════════════
   const PR = "after-package-room-trust";
   const pkgHead = () => h.header("Package room", `<span>WS-X90 Sentinel Mission System authorization package</span><span>Version 1 <b>published</b></span><span>Version 2 <b>draft</b></span>`,
-    `<button type="button" class="btn">Export ▾</button><span class="btn" ${go(PR + "-preview")}>Preview as recipient</span><span class="btn ink" role="button" tabindex="0" data-modal="a-risk-share" data-id="">Share the package</span>`);
+    `<button type="button" class="btn" data-modal="v2k-export" data-id="the package">Export</button><span class="btn" ${go(PR + "-preview")}>Preview as recipient</span><span class="btn ink" role="button" tabindex="0" data-modal="a-risk-share" data-id="">Share the package</span>`);
+  // v2 (C1) [B7]: version 2's readiness is counted from what it waits on: the POA&M, SSP 3's approval and increment 2's publication.
+  const v2Ready = () => { const ch = CH(); const ssp = ch ? ch.ssp3() === "approved" : false, i2 = ch ? !!ch.inc2() : false; return { n: 1 + (ssp ? 1 : 0) + (i2 ? 1 : 0), line: [["POA&M current", true], ["SSP 3 approved", ssp], ["increment 2 results published", i2]].filter(([, ok]) => !ok).map(([t]) => t) }; };
   const cui = `<div class="a-risk-cui"><b>CUI</b><span>Controlled by: Program Office · Category: CTI · Distribution D</span>${EX}</div>`;
   const pkgCards = (c) => `<div class="a-risk-pkgrow">
     <div class="card a-risk-pkg"><div class="a-risk-thumb" aria-hidden="true"><b>CUI</b><i></i><i></i><i class="s"></i><i></i><span>v1</span></div>
       <div class="a-risk-pkgb"><div class="a-risk-pkgt"><b>WS-X90 Sentinel Mission System authorization package</b>${c(1)}</div>
         <span class="a-risk-mu">Version 1 · ATO with conditions · Sep 18, 2026</span>
         <div>${AK.chip("Version 2 draft", { icon: "pen" })}</div>
-        <div class="btns">${btn("Preview as recipient", go(PR + "-preview"))}${c(4)}${btn("Edit version 2")}${btn("Share the package", 'data-modal="a-risk-share" data-id=""', true)}</div></div></div>
+        <div class="btns">${btn("Preview as recipient", go(PR + "-preview"))}${c(4)}${btn("Open version 2", go(PR + "-versions"))}${btn("Share the package", 'data-modal="a-risk-share" data-id=""', true)}</div></div></div>
     <div class="card a-risk-count" ${go(PR + "-requests")}><div class="a-risk-cl">Access requests ${EX}</div><div class="a-risk-cv"><b class="num">1</b><span aria-hidden="true">›</span></div><span class="a-risk-mu">Waiting on you</span></div>
-    <div class="card a-risk-count" ${go(PR + "-versions")}><div class="a-risk-cl">Version 2 ready to submit</div><div class="a-risk-cv"><b class="num">1 of 3</b><span aria-hidden="true">›</span></div><span class="a-risk-mu">POA&amp;M current; SSP 3 and the increment 2 results are still drafts</span></div></div>`;
+    <div class="card a-risk-count" ${go("authorization")}><div class="a-risk-cl">Version 2: items ready to submit</div><div class="a-risk-cv"><b class="num">${v2Ready().n} of 3</b><span aria-hidden="true">›</span></div><span class="a-risk-mu">${v2Ready().line.length ? `Waits on ${esc(v2Ready().line.join(" and "))}` : "Ready: submit it from Authorization"}</span></div></div>`;
   const pkgTabs = (cur, withCo) => tabs([["Recipients", 7, "", "rec"], ["Access requests", 1, "-requests", "req"], ["Versions", 2, "-versions", "ver"], ["Access log", 4, "-log", "log"], ["Room settings", null, "-settings", "set"]].map(([l, n, r, k]) => [l, n, k === cur ? null : PR + r, k === cur]),
     withCo ? { "Access requests": 2, "Room settings": 5 } : {}, withCo ? co(3) : "", "Package room");
   const pkgPage = (cur, body, note) => h.page(pkgHead(), cui, pkgCards(cur === "rec" ? co : () => ""), pkgTabs(cur, cur === "rec"), ...body, note || "");
@@ -752,7 +842,7 @@
 
   // ═════════════ 8. Data calls ═════════════
   const DCR = "after-data-calls-questionnaires";
-  const dcHead = () => h.header("Data calls", `<span>FISMA and readiness data calls and customer questionnaires, answered from what the program already holds</span>`, `<span class="btn" ${go(DCR + "-kb")}>Knowledge base</span><button type="button" class="btn ink">Import data call</button>`);
+  const dcHead = () => h.header("Data calls", `<span>FISMA and readiness data calls and customer questionnaires, answered from what the program already holds</span>`, `<span class="btn" ${go(DCR + "-kb")}>Knowledge base</span><button type="button" class="btn ink" data-modal="v2k-import" data-id="data call">Import data call</button>`);
   const dcTabs = (cur) => tabs([["Data calls", 5, cur === "dc" ? null : DCR, cur === "dc"], ["Knowledge base", 6, cur === "kb" ? null : DCR + "-kb", cur === "kb"]], cur === "dc" ? { "Knowledge base": 4 } : {}, "", "Data calls");
   const dcDue = (d) => (d.review[1] === "Sent" ? mu(dd(d.due)) : dueC(D(d.due)));
   S[DCR] = () => {
@@ -763,7 +853,7 @@
     return h.page(
       dcHead(),
       dcTabs("dc"),
-      AK.banner({ tone: "warn", text: "<b>6 drafted answers</b> conflict with a source.", action: "Review conflicts", co: co(1) }),
+      AK.banner({ tone: "warn", text: "<b>6 drafted answers</b> conflict with a source.", action: "Review conflicts", co: co(1) }).replace('<span class="btn sm">Review conflicts</span>', `<span class="btn sm" role="button" tabindex="0" data-arq="${key}" data-arv="conf">Review conflicts</span>`),
       qv(key, [["open", "Open", 4], ["month", "Due this month", 2], ["conf", "Conflicts", 3], ["sent", "Sent", 1], ["all", "All", 5]]),
       filters("Search data calls", ["From", "Review", "Owner", "Approver", "Due"], { reset: false }),
       tbl({

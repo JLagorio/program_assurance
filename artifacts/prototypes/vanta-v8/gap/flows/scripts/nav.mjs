@@ -1,0 +1,16 @@
+import { createRequire } from "node:module"; import path from "node:path";
+const require = createRequire("/Users/joseflagorio/Development/program_assurance-ux-proposal/package.json");
+const { chromium } = require("playwright");
+const file = "file://" + path.resolve(process.argv[2]);
+const b = await chromium.launch(); const p = await b.newPage({ viewport: { width: 1440, height: 900 } });
+const errors = []; p.on("pageerror", (e) => errors.push(String(e)));
+await p.goto(file + "#home"); await p.waitForTimeout(600);
+const items = await p.evaluate(() => window.PA.navItems());
+console.log(JSON.stringify(items));
+const rail = await p.evaluate(() => [...document.querySelectorAll("#rail a.ri")].map(a => [a.getAttribute("href"), a.innerText.trim() || a.getAttribute("aria-label") || a.title]));
+console.log("RAIL", JSON.stringify(rail));
+await p.evaluate(() => { location.hash = "overview"; }); await p.waitForTimeout(500);
+const nav = await p.evaluate(() => [...document.querySelectorAll("#nav a")].map(a => [a.getAttribute("href"), a.innerText.trim().replace(/\s+/g," ")]));
+console.log("PROGNAV", JSON.stringify(nav));
+console.log("errors:", errors.length ? [...new Set(errors)].slice(0, 5).join(" | ") : "none");
+await b.close();
