@@ -1,0 +1,46 @@
+[
+ {
+  "to": "kit",
+  "ask": "A row that goes somewhere cannot hold a button or a menu of its own: both fire. This lane wraps them in .k3d-rowact and stops the click in capture; K.table could take row.actions."
+ },
+ {
+  "to": "kit",
+  "ask": "K.btn with primary draws as a plain button inside a preview (v2's layer demotes it): Accept in the artifact's preview. Lane C saw the same."
+ },
+ {
+  "to": "kit / v2 fit layer",
+  "ask": "#proto:not(.v2meta) .frame.v2-fit td * forces white-space: normal: one-line cells need !important here (th.nw, td.nw, owners). Lane E saw the same."
+ },
+ {
+  "to": "kit",
+  "ask": "K.head with a long title pushes the actions under the title (the artifact's page): a max width or two-line clamp for the title would keep the primary top right."
+ },
+ {
+  "to": "lane S",
+  "ask": "Publish fact('items', componentCode) (software, firmware, hardware): the SSP's section 8 reads PA.v3s.itemsOf and kit data sys.items directly. Keep sys.alloc / sys.unalloc as [component, requirement] pairs: this lane reads and writes them."
+ },
+ {
+  "to": "lane C",
+  "ask": "Keep ctl.reqs { control: [{ id, title }] }, ctl.unmap { control: [id] } and ctl.impl { 'control@component': { status, text } }: this lane reads and writes the first two and prints the third in section 11."
+ },
+ {
+  "to": "lane X",
+  "ask": "Expose the plan templates (NEWPLANS: key, route, title, standard) as data: New document names the three keys itself."
+ },
+ {
+  "to": "v2 data",
+  "ask": "Expose as data what this lane reads by parsing the old pages: the plans (mod-v8-plans.js PLANS), the policies (mod-after-docs.js), the ITCSC's facts, the customer's requirements document (mod-v7-program.js CREQ), the STIG checklists (mod-v8-dod.js)."
+ },
+ {
+  "to": "workbook (PA.sctm)",
+  "ask": "Expose records() without building the workbook, and read ctl.reqs / ctl.unmap, sys.alloc and req.evl so its Requirements and Evidence sheets follow what is mapped, allocated and linked today."
+ },
+ {
+  "to": "SSP editor (v2)",
+  "ask": "Expose goTo(at) and refreshCtl(code): this lane jumps by clicking a hidden data-act=jump button and rewrites a control's narrative node when its record changed elsewhere."
+ },
+ {
+  "to": "lead",
+  "ask": "The Overview's Evidence waiting on review was found by its words in the walk; if lane O renames the row, the walk's step 0 falls back to setting evd.view itself."
+ }
+]

@@ -1,0 +1,23 @@
+import { createRequire } from "module";
+const require = createRequire("/Users/joseflagorio/Development/program_assurance-ux-proposal/package.json");
+const { chromium } = require("playwright");
+const [build] = process.argv.slice(2);
+const b = await chromium.launch(); const p = await b.newPage({ viewport: { width: 1440, height: 900 } });
+const errs = []; p.on("pageerror", (e) => errs.push(e.message));
+await p.goto("file://" + build + "#overview"); await p.waitForTimeout(700);
+await p.evaluate(() => { sessionStorage.clear(); PA.v2.reset(); PA.v3.set(true); }); await p.waitForTimeout(400);
+const go = async (r) => { await p.evaluate((r) => { location.hash = r; }, r); await p.waitForTimeout(700); };
+const rows = () => p.evaluate(() => [...document.querySelectorAll("#main tbody tr")].map((r) => r.innerText.replace(/\s+/g, " ").slice(0, 110)));
+await go("authorization-decisions"); console.log(await rows());
+await p.click('#main .k3-table tr:has-text("flight test instrumentation") button:has-text("Record decision")'); await p.waitForTimeout(400);
+console.log("form:", await p.evaluate(() => ({ title: document.querySelector("#modal h4").innerText, type: document.querySelector("#k3f-type").value, scope: document.querySelector("#k3f-scope").value })));
+await p.click("#modal [data-k3-submit]"); await p.waitForTimeout(600);
+console.log(await rows());
+console.log("fact:", JSON.stringify(await p.evaluate(() => PA.v3.fact("authorizations", PA.v3.WSX).filter((a) => a.inc === 2).map((a) => [a.id, a.type, a.decided]))), "gate:", JSON.stringify(await p.evaluate(() => { const g = PA.v3.fact("gate", "iatt-2"); return g && [g.status, g.decided, g.decision]; })));
+await go("overview"); console.log("overview next gate:", (await p.evaluate(() => (document.querySelector("#main .k3o-gate") || document.querySelector("#main")).innerText.replace(/\s+/g, " "))).slice(0, 260));
+// the CVE path as the walk does it
+await go("findings-vulns"); await go("component--CN-109101"); await p.click('#main .k3-next button:has-text("Take version 2")'); await p.waitForTimeout(400);
+await p.fill("#v3w-take-note", "Checked."); await p.click("#modal [data-v3w-take]"); await p.waitForTimeout(700);
+await go("findings-vulns"); await go("component--CN-109101--findings");
+console.log("S tab:", JSON.stringify(await p.evaluate(() => { const t = document.getElementById("main").innerText; const i = t.indexOf("CVE-2024-6387"); return i < 0 ? null : t.slice(Math.max(0, i - 160), i + 120).replace(/\s+/g, " "); })));
+console.log("errors", JSON.stringify(errs).slice(0, 300)); await b.close();

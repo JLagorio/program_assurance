@@ -1,0 +1,17 @@
+import { createRequire } from "module";
+const require = createRequire("/Users/joseflagorio/Development/program_assurance-ux-proposal/package.json");
+const { chromium } = require("playwright");
+const [build] = process.argv.slice(2);
+const b = await chromium.launch(); const p = await b.newPage({ viewport: { width: 1440, height: 900 } });
+const errs = []; p.on("pageerror", (e) => errs.push(e.message));
+await p.goto("file://" + build + "#overview"); await p.waitForTimeout(700);
+await p.evaluate(() => { sessionStorage.clear(); PA.v2.reset(); PA.v3.set(true); }); await p.waitForTimeout(400);
+const go = async (r) => { await p.evaluate((r) => { location.hash = r; }, r); await p.waitForTimeout(700); };
+const st = async (tag) => console.log(tag, JSON.stringify(await p.evaluate(() => ({ on: PA.v3.fact("findingsOn", "CN-109101").filter((f) => /CVE-2024-6387/.test(JSON.stringify(f))).length, fixed: PA.v3.fact("cveFixed", "CVE-2024-6387", "CN-109101"), tabHas: /CVE-2024-6387/.test(document.getElementById("main").innerText), rows: [...document.querySelectorAll("#main tbody tr")].filter((r) => /CVE-2024-6387/.test(r.innerText)).map((r) => r.innerText.replace(/\s+/g, " ").slice(0, 140)) }))));
+await go("component--CN-109101--findings"); await st("before");
+await go("component--CN-109101"); await p.click('#main .k3-next button:has-text("Take version 2")'); await p.waitForTimeout(400);
+console.log("modal:", (await p.evaluate(() => document.getElementById("modal").innerText.replace(/\s+/g, " "))).slice(0, 200));
+console.log("btns:", await p.evaluate(() => [...document.querySelectorAll("#modal button")].map((b) => b.innerText.trim()).join(" / "))); await p.fill("#v3w-take-note", "Checked the image hash and the SBOM."); await p.click("#modal [data-v3w-take]"); await p.waitForTimeout(700);
+await go("component--CN-109101--findings"); await st("after take");
+await go("findings-vulns"); console.log("vulns chips:", await p.evaluate(() => [...document.querySelectorAll("#main .k3-chips button, #main .k3-chips a")].map((e) => e.innerText.replace(/\s+/g, " ")).join(" | ")));
+console.log("errors", JSON.stringify(errs).slice(0, 300)); await b.close();

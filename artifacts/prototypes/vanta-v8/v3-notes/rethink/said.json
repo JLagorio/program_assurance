@@ -1,0 +1,83 @@
+[
+ {
+  "id": "system",
+  "lanes": [
+   "S"
+  ],
+  "see": {
+   "route": "system"
+  },
+  "seeLabel": "Open System",
+  "quote": "we have boundary, interconnections, ports & protocols, composition, host & providers all kind of saying and doing similar things … when I view an element, which should be called component, and I want to add software or firmware, I can't … I add controls here. I add requirements here.",
+  "title": "One System page, and a component you work on",
+  "text": "Five menu pages are one. A component has its own page with tabs for its software and firmware, connections, controls, requirements and findings, and each tab has its own Add. The host system and the providers are components outside the boundary. The word is component everywhere."
+ },
+ {
+  "id": "controls",
+  "lanes": [
+   "C"
+  ],
+  "see": {
+   "route": "controls"
+  },
+  "seeLabel": "Open Controls",
+  "quote": "baseline makes sense but I hate the pill layout of all these controls. there has to be a more VANTA way to present this data. if I'm at the baseline and I click a family it takes me to the controls page … controls + baseline are one and the same.",
+  "title": "Controls and the baseline are one page",
+  "text": "Families are one dropdown beside the search, and it filters in place. The baseline's layers are one card, and each line filters to what that layer added or removed. Controls are rows, never tiles. A row opens the control's own page, where its implementation, requirements, evidence, responsibility and parameter values are worked; the eye on the row previews it over the list."
+ },
+ {
+  "id": "lifecycle",
+  "lanes": [
+   "O"
+  ],
+  "see": {
+   "route": "overview"
+  },
+  "seeLabel": "Open the Overview",
+  "quote": "a good example is the lifecycle stages. why do we have a tab? if the stages show on the overview and clicking them takes you to the lifecycle tab that's stupid and pointless.",
+  "title": "No Lifecycle page",
+  "text": "The Overview is the program's record. Its strip opens a phase's steps in place. The next gate lists what is not ready as a number, with one button that opens exactly those records and a bar that brings you back. A gate has its own page, and its decision belongs to whoever holds the role."
+ },
+ {
+  "id": "ssp",
+  "lanes": [
+   "D"
+  ],
+  "see": {
+   "route": "documents"
+  },
+  "seeLabel": "Open Documents",
+  "quote": "I can't edit the SSP or the workbook is gone.",
+  "title": "The SSP is two clicks from typing; the workbook is Controls' second view",
+  "text": "Documents lists the SSP, the plans, the policies and the ITCSC, and a row opens its editor at once. Links that name an SSP section land on that section. The workbook opens from the view switch on Controls and returns the same way."
+ },
+ {
+  "id": "everywhere",
+  "lanes": [
+   "E"
+  ],
+  "see": {
+   "route": "findings"
+  },
+  "seeLabel": "Open Findings",
+  "quote": "there are too many tabs doing similar things instead of starting with higher level records and then diving into record details to do things with those … these issues are everywhere.",
+  "title": "Ten records instead of 27 pages",
+  "text": "The program's menu lists its records: Overview, System, Controls, Requirements, Evidence, Documents, Assessments, Findings, Risks, Authorization. Everything else is a tab, a filter, a view or a section of one of them. A row opens the thing you work on, a count opens exactly what it counts, and nothing says Open in another page."
+ },
+ {
+  "id": "shape",
+  "title": "One sidebar, tabs across the page, and a row that opens its page",
+  "quote": "lets actually move to navigation 2 instead of 3. also I dont like these vertical tabs I think we can use horizontal. also the preview should be an on hover eye icon on table rows and clicking the row takes you to the show page",
+  "text": "Navigation is option 2: one sidebar with two levels. Inside a program it is the program's ten places, with Workspace on top to go back up; Library, Products, AI agents and Settings open the same way. A record's kinds run across the page as tabs, or as one dropdown beside the search when there are many (control families, the system's subsystems). Clicking a row goes to the record's own page; an eye at the end of its name, shown on hover, opens the preview, and the preview's arrow goes to the page.",
+  "see": {
+   "route": "findings"
+  },
+  "lanes": [
+   "E",
+   "C",
+   "S",
+   "D",
+   "O"
+  ]
+ }
+]

@@ -139,7 +139,7 @@
     ["products", "Products", null, [["products", "Products"], ["components", "Components"], ["suppliers", "Suppliers"]]],
     ["frameworks", "Library", null, [["frameworks", "Frameworks & overlays"], ["integrations", "Integrations"], ["data-calls", "Data calls"], ["reports", "Reports & exports"]]],
     ["ai-drafts", "AI agents", null, [["ai-drafts", "Needs approval"], ["ai-drafts-runs", "Runs"], ["ai-drafts-agents", "Agents"]]],
-    ["study", "About", null, [["study", "Design study"], ["before-after", "Before & after"], ["nav-options", "Navigation options"]], true],
+    ["study", "About", null, [["walkthrough", "Walkthrough findings"], ["study", "Design study"], ["before-after", "Before & after"], ["nav-options", "Navigation options"]], true],
     ["deadlines", "Settings", null, [["deadlines", "Deadlines"], ["notifications-workspace", "Workspace notifications"], ["permissions", "Roles & permissions"], ["enclaves", "Enclaves & markings"], ["common-controls", "Host systems & providers"], ["event-log", "Event log"], ["notifications", "Notifications"]]],
   ];
   const RAIL_ICON = { study: "about", deadlines: "settings" };
@@ -163,16 +163,30 @@
   // Every page the navigation names, for labels and for routes with no screen yet.
   const NAV = [[null, [["home", "Home"], ["my-work", "My work"], ["review-queue", "Review queue"], ["portfolio", "Programs"], ["ai-drafts", "AI agents"]]], ...RAIL.filter((r) => r[3]).map((r) => [r[1], r[3]]), ...PROGRAM];
   const CLOSED = new Set(["Monitor", "Analysis"]);
-  const ICONS = {"lifecycle": "M1.5 8h9M3.5 6v4M7 6v4M12.5 5.5L15 8l-2.5 2.5L10 8z", "boundary": "M3 2.5h10a1.5 1.5 0 0 1 1.5 1.5v8a1.5 1.5 0 0 1-1.5 1.5H3A1.5 1.5 0 0 1 1.5 12V4A1.5 1.5 0 0 1 3 2.5zM5 6h3v4H5z", "hosts": "M1.5 12h13M3 12V9.5h10V12M6 9.5V5.5h4v4", "sctm": "M2.5 3h11v10h-11zM2.5 6.5h11M2.5 10h11M6.5 3v10","settings":"M8 5.6a2.4 2.4 0 1 0 0 4.8 2.4 2.4 0 0 0 0-4.8zM6.9 1.8h2.2l.3 1.7 1.3.6 1.4-1 1.6 1.6-1 1.4.6 1.3 1.7.3v2.2l-1.7.3-.6 1.3 1 1.4-1.6 1.6-1.4-1-1.3.6-.3 1.7H6.9l-.3-1.7-1.3-.6-1.4 1-1.6-1.6 1-1.4-.6-1.3-1.7-.3V6.9l1.7-.3.6-1.3-1-1.4 1.6-1.6 1.4 1 1.3-.6z", "about": "M8 2a6 6 0 1 0 0 12A6 6 0 0 0 8 2zM8 7.3v3.9M8 4.9h.01", "more": "M3 8a1 1 0 1 0 2 0 1 1 0 0 0-2 0zM7 8a1 1 0 1 0 2 0 1 1 0 0 0-2 0zM11 8a1 1 0 1 0 2 0 1 1 0 0 0-2 0z", "nav-options": "M2.5 3h11v10h-11zM6.5 3v10M9 6h2.5M9 8.5h2.5", "itcsc": "M4 2.5h8v11H4zM6 5.5h4M6 8h4M6 10.5h2", "stigs": "M8 2l5 2v4c0 3-2.2 5.2-5 6-2.8-.8-5-3-5-6V4zM5.8 8l1.6 1.6 3.1-3.1", "interconnections": "M6.5 9.5l3-3M5.2 7.3 4 8.5a2.1 2.1 0 0 0 3 3l1.2-1.2M10.8 8.7 12 7.5a2.1 2.1 0 0 0-3-3L7.8 5.7", "ppsm": "M2.5 5h11v6h-11zM5 8h0M8 8h0M11 8h0", "sse": "M8 5.6a2.4 2.4 0 1 1 0 4.8 2.4 2.4 0 0 1 0-4.8zM8 1.8v2M8 12.2v2M1.8 8h2M12.2 8h2M3.6 3.6 5 5M11 11l1.4 1.4M3.6 12.4 5 11M11 5l1.4-1.4", "permissions": "M4 7.5h8v6H4zM5.7 7.5V5.6a2.3 2.3 0 0 1 4.6 0v1.9", "home": "M3 7.5 8 3l5 4.5V13H3z", "my-work": "M2.5 9.5h3l1 2h3l1-2h3M3 4h10l1 5.5V13H2V9.5z", "components": "M8 2l5.5 3v6L8 14l-5.5-3V5zM8 8l5.5-3M8 8 2.5 5M8 8v6", "overview": "M3 3h4v4H3zM9 3h4v4H9zM3 9h4v4H3zM9 9h4v4H9z", "baseline": "M8 2.5l5.5 3L8 8.5 2.5 5.5zM2.5 8.5 8 11.5l5.5-3M2.5 11 8 14l5.5-3", "controls": "M8 2l5 2v4c0 3-2.2 5-5 6-2.8-1-5-3-5-6V4z", "ssps": "M4 2h5.5L12 4.5V14H4zM9.5 2v2.5H12M6 8h4M6 10.5h2.5", "getting-started": "M8 2.5a5.5 5.5 0 1 0 5.5 5.5M8 2.5V8h5.5", "requirements": "M5.5 4h8M5.5 8h8M5.5 12h8M2.5 4h.01M2.5 8h.01M2.5 12h.01", "evidence": "M4 2h5.5L12 4.5V14H4zM9.5 2v2.5H12", "assessments": "M5 3H3.5v11h9V3H11M6 2h4v2H6z", "findings": "M7 12A5 5 0 1 0 7 2a5 5 0 0 0 0 10zM14 14l-3.5-3.5", "poam": "M3.5 14V2.5h8l-1.5 3 1.5 3h-8", "risks": "M8 2.5l6 11H2zM8 6.5v3M8 11.5h.01", "inventory": "M2.5 3h11v4h-11zM2.5 9h11v4h-11zM5 5h.01M5 11h.01", "sources": "M6 2v3M10 2v3M4.5 5h7v3a3.5 3.5 0 0 1-7 0zM8 11.5V14", "authorization": "M6 2.5h4l-.5 5h-3zM3 10h10v2.5H3zM4 14h8", "study": "M3 3h4a1 1 0 0 1 1 1v9a1 1 0 0 0-1-1H3zM13 3H9a1 1 0 0 0-1 1v9a1 1 0 0 1 1-1h4z", "before-after": "M2.5 3.5h5v9h-5zM8.5 3.5h5v9h-5zM10 6.5l1.5 1.5L10 9.5", "review-queue": "M3 3h10v10H3zM6 8l1.5 1.5L10.5 6", "composition": "M8 2v4M8 6H4v3M8 6h4v3M4 9v1.5M12 9v1.5M2.5 10.5h3v3h-3zM10.5 10.5h3v3h-3zM6.5 2h3v.01", "checks": "M3 8.5l3 3 7-7", "policies": "M4 2h8v12H4zM6 5h4M6 8h4M6 11h2", "cyber-te": "M8 2.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11zM8 5.5v5M5.5 8h5", "ai-drafts": "M8 2l1.3 3.2L12.5 6.5 9.3 7.8 8 11 6.7 7.8 3.5 6.5l3.2-1.3zM12.5 11l.6 1.4 1.4.6-1.4.6-.6 1.4-.6-1.4-1.4-.6 1.4-.6z", "threats": "M8 2a6 6 0 1 0 0 12A6 6 0 0 0 8 2zM8 5a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM8 8h.01", "posture": "M2.5 2.5h3v3h-3zM6.5 2.5h3v3h-3zM10.5 2.5h3v3h-3zM2.5 6.5h3v3h-3zM6.5 6.5h3v3h-3zM2.5 10.5h3v3h-3z", "resiliency": "M8 2l5 2v4c0 3-2.2 5-5 6-2.8-1-5-3-5-6V4zM5.5 8l1.8 1.8L10.5 6.5", "traceability": "M3 4h3v3H3zM10 9h3v3h-3zM6 5.5h2a1 1 0 0 1 1 1v3a1 1 0 0 0 1 1", "inheritance": "M8 2.5v3M8 5.5 4 9M8 5.5l4 3.5M2.5 9h3v3h-3zM10.5 9h3v3h-3zM6.5 1h3v2.5h-3z", "package-room": "M3 6l5-3.5L13 6v7.5H3zM6.5 13.5V9.5h3v4", "conmon": "M2 8h3l1.5-4 3 8L11 8h3", "schedule": "M3 3.5h10v10H3zM3 6.5h10M6 2v3M10 2v3", "portfolio": "M8 2.5v3M3.5 8.5v-3h9v3M2 8.5h3v3H2zM6.5 8.5h3v3h-3zM11 8.5h3v3h-3z", "products": "M8 2l5.5 3v6L8 14l-5.5-3V5z", "suppliers": "M2 12.5h12M3.5 12.5V6l3 2V6l3 2V6l3 2v4.5", "people": "M6 7a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zM2 13.5c0-2.2 1.8-4 4-4s4 1.8 4 4M11 4.5a2 2 0 0 1 0 4M12.5 13.5c0-1.5-.6-2.7-1.5-3.4", "frameworks": "M3 3h4a1 1 0 0 1 1 1v9a1 1 0 0 0-1-1H3zM13 3H9a1 1 0 0 0-1 1v9a1 1 0 0 1 1-1h4z", "integrations": "M6 2v3M10 2v3M4.5 5h7v3a3.5 3.5 0 0 1-7 0zM8 11.5V14", "data-calls": "M3 3h10v7H7l-3 3v-3H3z", "reports": "M4 14V8M8 14V3M12 14v-4", "deadlines": "M8 2.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11zM8 5v3l2 1.5", "notifications": "M4 11V7a4 4 0 0 1 8 0v4l1 1.5H3zM6.5 14h3", "event-log": "M3 3h10M3 6.5h10M3 10h6M3 13.5h8", "enclaves": "M4 7V5a4 4 0 0 1 8 0v2M3 7h10v7H3zM8 10v1.5", "common-controls": "M8 2l5 2v4c0 3-2.2 5-5 6-2.8-1-5-3-5-6V4zM8 5v6M5.5 8h5"};
+  const ICONS = {"lifecycle": "M1.5 8h9M3.5 6v4M7 6v4M12.5 5.5L15 8l-2.5 2.5L10 8z", "boundary": "M3 2.5h10a1.5 1.5 0 0 1 1.5 1.5v8a1.5 1.5 0 0 1-1.5 1.5H3A1.5 1.5 0 0 1 1.5 12V4A1.5 1.5 0 0 1 3 2.5zM5 6h3v4H5z", "hosts": "M1.5 12h13M3 12V9.5h10V12M6 9.5V5.5h4v4", "sctm": "M2.5 3h11v10h-11zM2.5 6.5h11M2.5 10h11M6.5 3v10","settings":"M8 5.6a2.4 2.4 0 1 0 0 4.8 2.4 2.4 0 0 0 0-4.8zM6.9 1.8h2.2l.3 1.7 1.3.6 1.4-1 1.6 1.6-1 1.4.6 1.3 1.7.3v2.2l-1.7.3-.6 1.3 1 1.4-1.6 1.6-1.4-1-1.3.6-.3 1.7H6.9l-.3-1.7-1.3-.6-1.4 1-1.6-1.6 1-1.4-.6-1.3-1.7-.3V6.9l1.7-.3.6-1.3-1-1.4 1.6-1.6 1.4 1 1.3-.6z", "about": "M8 2a6 6 0 1 0 0 12A6 6 0 0 0 8 2zM8 7.3v3.9M8 4.9h.01", "more": "M3 8a1 1 0 1 0 2 0 1 1 0 0 0-2 0zM7 8a1 1 0 1 0 2 0 1 1 0 0 0-2 0zM11 8a1 1 0 1 0 2 0 1 1 0 0 0-2 0z", "nav-options": "M2.5 3h11v10h-11zM6.5 3v10M9 6h2.5M9 8.5h2.5", "itcsc": "M4 2.5h8v11H4zM6 5.5h4M6 8h4M6 10.5h2", "stigs": "M8 2l5 2v4c0 3-2.2 5.2-5 6-2.8-.8-5-3-5-6V4zM5.8 8l1.6 1.6 3.1-3.1", "interconnections": "M6.5 9.5l3-3M5.2 7.3 4 8.5a2.1 2.1 0 0 0 3 3l1.2-1.2M10.8 8.7 12 7.5a2.1 2.1 0 0 0-3-3L7.8 5.7", "ppsm": "M2.5 5h11v6h-11zM5 8h0M8 8h0M11 8h0", "sse": "M8 5.6a2.4 2.4 0 1 1 0 4.8 2.4 2.4 0 0 1 0-4.8zM8 1.8v2M8 12.2v2M1.8 8h2M12.2 8h2M3.6 3.6 5 5M11 11l1.4 1.4M3.6 12.4 5 11M11 5l1.4-1.4", "permissions": "M4 7.5h8v6H4zM5.7 7.5V5.6a2.3 2.3 0 0 1 4.6 0v1.9", "home": "M3 7.5 8 3l5 4.5V13H3z", "my-work": "M2.5 9.5h3l1 2h3l1-2h3M3 4h10l1 5.5V13H2V9.5z", "components": "M8 2l5.5 3v6L8 14l-5.5-3V5zM8 8l5.5-3M8 8 2.5 5M8 8v6", "overview": "M3 3h4v4H3zM9 3h4v4H9zM3 9h4v4H3zM9 9h4v4H9z", "baseline": "M8 2.5l5.5 3L8 8.5 2.5 5.5zM2.5 8.5 8 11.5l5.5-3M2.5 11 8 14l5.5-3", "controls": "M8 2l5 2v4c0 3-2.2 5-5 6-2.8-1-5-3-5-6V4z", "ssps": "M4 2h5.5L12 4.5V14H4zM9.5 2v2.5H12M6 8h4M6 10.5h2.5", "getting-started": "M8 2.5a5.5 5.5 0 1 0 5.5 5.5M8 2.5V8h5.5", "requirements": "M5.5 4h8M5.5 8h8M5.5 12h8M2.5 4h.01M2.5 8h.01M2.5 12h.01", "evidence": "M4 2h5.5L12 4.5V14H4zM9.5 2v2.5H12", "assessments": "M5 3H3.5v11h9V3H11M6 2h4v2H6z", "findings": "M7 12A5 5 0 1 0 7 2a5 5 0 0 0 0 10zM14 14l-3.5-3.5", "poam": "M3.5 14V2.5h8l-1.5 3 1.5 3h-8", "risks": "M8 2.5l6 11H2zM8 6.5v3M8 11.5h.01", "inventory": "M2.5 3h11v4h-11zM2.5 9h11v4h-11zM5 5h.01M5 11h.01", "sources": "M6 2v3M10 2v3M4.5 5h7v3a3.5 3.5 0 0 1-7 0zM8 11.5V14", "authorization": "M6 2.5h4l-.5 5h-3zM3 10h10v2.5H3zM4 14h8", "study": "M3 3h4a1 1 0 0 1 1 1v9a1 1 0 0 0-1-1H3zM13 3H9a1 1 0 0 0-1 1v9a1 1 0 0 1 1-1h4z", "before-after": "M2.5 3.5h5v9h-5zM8.5 3.5h5v9h-5zM10 6.5l1.5 1.5L10 9.5", "walkthrough": "M5 3H3.5v11h9V3H11M6 2h4v2H6zM5.5 9l1.8 1.8L10.5 7.5", "review-queue": "M3 3h10v10H3zM6 8l1.5 1.5L10.5 6", "composition": "M8 2v4M8 6H4v3M8 6h4v3M4 9v1.5M12 9v1.5M2.5 10.5h3v3h-3zM10.5 10.5h3v3h-3zM6.5 2h3v.01", "checks": "M3 8.5l3 3 7-7", "policies": "M4 2h8v12H4zM6 5h4M6 8h4M6 11h2", "cyber-te": "M8 2.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11zM8 5.5v5M5.5 8h5", "ai-drafts": "M8 2l1.3 3.2L12.5 6.5 9.3 7.8 8 11 6.7 7.8 3.5 6.5l3.2-1.3zM12.5 11l.6 1.4 1.4.6-1.4.6-.6 1.4-.6-1.4-1.4-.6 1.4-.6z", "threats": "M8 2a6 6 0 1 0 0 12A6 6 0 0 0 8 2zM8 5a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM8 8h.01", "posture": "M2.5 2.5h3v3h-3zM6.5 2.5h3v3h-3zM10.5 2.5h3v3h-3zM2.5 6.5h3v3h-3zM6.5 6.5h3v3h-3zM2.5 10.5h3v3h-3z", "resiliency": "M8 2l5 2v4c0 3-2.2 5-5 6-2.8-1-5-3-5-6V4zM5.5 8l1.8 1.8L10.5 6.5", "traceability": "M3 4h3v3H3zM10 9h3v3h-3zM6 5.5h2a1 1 0 0 1 1 1v3a1 1 0 0 0 1 1", "inheritance": "M8 2.5v3M8 5.5 4 9M8 5.5l4 3.5M2.5 9h3v3h-3zM10.5 9h3v3h-3zM6.5 1h3v2.5h-3z", "package-room": "M3 6l5-3.5L13 6v7.5H3zM6.5 13.5V9.5h3v4", "conmon": "M2 8h3l1.5-4 3 8L11 8h3", "schedule": "M3 3.5h10v10H3zM3 6.5h10M6 2v3M10 2v3", "portfolio": "M8 2.5v3M3.5 8.5v-3h9v3M2 8.5h3v3H2zM6.5 8.5h3v3h-3zM11 8.5h3v3h-3z", "products": "M8 2l5.5 3v6L8 14l-5.5-3V5z", "suppliers": "M2 12.5h12M3.5 12.5V6l3 2V6l3 2V6l3 2v4.5", "people": "M6 7a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zM2 13.5c0-2.2 1.8-4 4-4s4 1.8 4 4M11 4.5a2 2 0 0 1 0 4M12.5 13.5c0-1.5-.6-2.7-1.5-3.4", "frameworks": "M3 3h4a1 1 0 0 1 1 1v9a1 1 0 0 0-1-1H3zM13 3H9a1 1 0 0 0-1 1v9a1 1 0 0 1 1-1h4z", "integrations": "M6 2v3M10 2v3M4.5 5h7v3a3.5 3.5 0 0 1-7 0zM8 11.5V14", "data-calls": "M3 3h10v7H7l-3 3v-3H3z", "reports": "M4 14V8M8 14V3M12 14v-4", "deadlines": "M8 2.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11zM8 5v3l2 1.5", "notifications": "M4 11V7a4 4 0 0 1 8 0v4l1 1.5H3zM6.5 14h3", "event-log": "M3 3h10M3 6.5h10M3 10h6M3 13.5h8", "enclaves": "M4 7V5a4 4 0 0 1 8 0v2M3 7h10v7H3zM8 10v1.5", "common-controls": "M8 2l5 2v4c0 3-2.2 5-5 6-2.8-1-5-3-5-6V4zM8 5v6M5.5 8h5"};
   const icon = (k) => `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${ICONS[k] || 'M6 8h4'}"/></svg>`;
   const ROUTE_NAV = { campaign: "assessments", "ssp-history": "ssps", "ssp-review": "ssps" };
   ["program-new", "program-new-details", "program-new-systems", "program-new-baseline", "program-new-team", "program-new-review"].forEach((r) => { ROUTE_NAV[r] = "portfolio"; });
   const PKEYS = new Set(PROGRAM.flatMap(([, items]) => items.map(([k]) => k)));
   const WHOME = new Map(); // a workspace page → the rail destination it belongs to
   RAIL.forEach(([k, , , pages]) => { WHOME.set(k, k); (pages || []).forEach(([t]) => WHOME.set(t, k)); });
-  const KEYS = [...PKEYS, ...WHOME.keys()].sort((a, b) => b.length - a.length);
+  let KEYS = [...PKEYS, ...WHOME.keys()].sort((a, b) => b.length - a.length);
+  // V3 (mod-zzzz-v3-0core.js): pages a V3 lane adds to the program (Activity) or to a workspace area; inert while nobody calls it.
+  const navRegister = ({ program = [], workspace = {} } = {}) => {
+    program.forEach((k) => PKEYS.add(k));
+    Object.entries(workspace).forEach(([area, keys]) => keys.forEach((k) => WHOME.set(k, area)));
+    KEYS = [...PKEYS, ...WHOME.keys()].sort((a, b) => b.length - a.length);
+  };
+  // While V3 is on, its program menu, rail and area groups stand in for v2's (each hook absent or V3 off: v2's own).
+  const v3on = () => !!(window.PA && window.PA.v3 && window.PA.v3.on());
+  const progMenu = () => (v3on() && window.PA.v3.menu ? window.PA.v3.menu : PROGRAM);
+  const railNow = () => (v3on() && window.PA.v3.rail ? window.PA.v3.rail(RAIL) : RAIL);
+  const areaGroupsNow = () => (v3on() && window.PA.v3.areaGroups ? window.PA.v3.areaGroups(AREA_GROUPS) : AREA_GROUPS);
+  const V3CLOSED = new Set();
   // The nav item a route belongs to: one a module named for it, its own, or the longest item it starts with (stigs-open is STIG checklists).
-  const navKey = (r) => ROUTE_NAV[r] || (PKEYS.has(r) || WHOME.has(r) ? r : KEYS.find((k) => r.startsWith(k + "-")) || r);
+  const navKey0 = (r) => ROUTE_NAV[r] || (PKEYS.has(r) || WHOME.has(r) ? r : KEYS.find((k) => r.startsWith(k + "-")) || r);
+  // V3: a page folded into another record marks that record's menu entry (V3 off: the key as it is).
+  const navKey = (r) => { const k = navKey0(r), V = window.PA && window.PA.v3; return V && V.navOf && V.on() ? V.navOf(r, k) : k; };
   // v2 C2 (B7): a badge is a function read when the menu is drawn: the count the page it opens shows (its All view), the queue's
   // own total, My work's rows, the starter guide's share done; a created program's pages show their own (no WS-X90 badge).
   const badge = {
@@ -196,10 +210,10 @@
   const areaOf = (route) => {
     const current = navKey(route);
     if (PKEYS.has(current)) return null;
-    const r = RAIL.find(([k]) => k === WHOME.get(current));
+    const r = railNow().find(([k]) => k === WHOME.get(current));
     return r && r[3] && r[3].length > 1 ? r : null;
   };
-  const areaMenu = (r) => AREA_GROUPS[r[0]] || [[null, r[3]]];
+  const areaMenu = (r) => areaGroupsNow()[r[0]] || [[null, r[3]]];
   // The item a route marks: the one named for the route itself (notifications-workspace), else its nav item (deadlines-vuln is Deadlines).
   const areaItem = (route, r) => { const its = areaMenu(r).flatMap(([, x]) => x); return ((its.find(([k]) => k === route) || its.find(([k]) => k === navKey(route))) || [null])[0]; };
   // Counts a page's own tab strip carried before the visual layer folded the strip into the menu (route → count text).
@@ -215,21 +229,23 @@
     proto.classList.toggle("inprog", inProg); shell.classList.toggle("inprog", inProg);
     proto.classList.toggle("inarea", !!area); shell.classList.toggle("inarea", !!area);
     const railItem = ([k, l, c, , end]) => `<a class="ri${k === home ? " on" : ""}${end ? " ri-end" : ""}" href="#${k}"${k === home && !inProg ? ' aria-current="page"' : ""}>${icon(RAIL_ICON[k] || k)}<span class="ri-l">${esc(l)}</span>${c != null ? `<span class="ri-b num">${navCount(c)}</span>` : ""}</a>`;
-    document.getElementById("rail").innerHTML = RAIL.map(railItem).join("");
+    const RAILN = railNow(), PROG = progMenu(), closed = v3on() ? V3CLOSED : CLOSED;
+    document.getElementById("rail").innerHTML = RAILN.map(railItem).join("");
     const nav = document.getElementById("nav"), mb = document.getElementById("menuBtn");
-    nav.innerHTML = inProg ? programHead() + PROGRAM.map(([g, items], gi) => {
+    nav.innerHTML = inProg ? programHead() + PROG.map(([g, items], gi) => {
       const holds = items.some(([k]) => k === current);
-      const open = !g || holds || !CLOSED.has(g);
+      const open = !g || holds || !closed.has(g);
       const head = g ? `<button type="button" class="g gbtn" data-group="${esc(g)}" aria-expanded="${open}">${esc(g)}<span aria-hidden="true">${open ? "⌄" : "›"}</span></button>` : gi ? '<div class="pn-sep" aria-hidden="true"></div>' : "";
       return head + (open ? items.map(([k, l, c]) => `<a class="item${k === current ? " on" : ""}" href="#${k}"${k === current ? ' aria-current="page"' : ""}>${icon(k)}${esc(l)}${c ? `<span class="c num">${navCount(c)}</span>` : ""}</a>`).join("") : "");
     }).join("") : area ? areaNav(route, area) : "";
     nav.setAttribute("aria-label", area ? area[1] : "WS-X90");
     if (mb) mb.setAttribute("aria-label", area ? `Open the ${area[1]} menu` : "Open the program's menu");
     // A phone: four destinations and More along the bottom; ☰ opens the program's menu, or the area's.
-    const more = RAIL.slice(4), moreOn = more.some(([k]) => k === home);
-    document.getElementById("bottom").innerHTML = RAIL.slice(0, 4).map(railItem).join("")
+    const more = RAILN.slice(4), moreOn = more.some(([k]) => k === home);
+    document.getElementById("bottom").innerHTML = RAILN.slice(0, 4).map(railItem).join("")
       + `<button type="button" class="ri${moreOn ? " on" : ""}" id="moreBtn" aria-expanded="false" aria-controls="moreMenu">${icon("more")}<span class="ri-l">More</span></button>`
       + `<div class="pt-more" id="moreMenu" hidden>${more.map(([k, l]) => `<a href="#${k}"${k === home ? ' aria-current="page"' : ""}>${icon(RAIL_ICON[k] || k)}${esc(l)}</a>`).join("")}</div>`;
+    if (window.PA && window.PA.v3) window.PA.v3._afterNav(route);
   }
   // The area a route belongs to, for the visual layer: its name, its pages and the one the route marks; and a page's count for the menu.
   const area = (route) => { const r = areaOf(route); return r ? { key: r[0], label: r[1], items: areaMenu(r).flatMap(([, x]) => x), current: areaItem(route, r) } : null; };
@@ -475,7 +491,12 @@
   }
   const label = (key) => { for (const [, items] of NAV) for (const [k, l] of items) if (k === key) return l; return key; };
   function route() {
-    const r = (location.hash || "#home").slice(1);
+    const r0 = (location.hash || "#home").slice(1);
+    // V3: the address of a page V3 merged into another opens that one (V3 off: the address as it is).
+    const r = window.PA && window.PA.v3 ? window.PA.v3.redirectOf(r0) : r0;
+    if (r !== r0) history.replaceState(null, "", "#" + r);
+    // V3: a record page reached by its address is registered as it is asked for (V3 off: nothing happens).
+    if (!S[r] && window.PA && window.PA.v3 && window.PA.v3.lazy) window.PA.v3.lazy(r);
     const key = S[r] ? r : NAV.some(([, items]) => items.some(([k]) => k === r)) ? r : "home";
     closePanel(); closeModal();
     proto.classList.toggle("moded", MODED.has(key));
@@ -486,6 +507,8 @@
     main.scrollTop = 0;
   }
   function trigger(e) {
+    // V3: a control inside a row acts alone; the row neither opens nor goes anywhere (V3 off: no guard, nothing changes).
+    if (window.PA && window.PA.v3 && window.PA.v3.rowGuard && window.PA.v3.rowGuard(e)) return false;
     const m = e.target.closest("[data-modal]");
     if (m) { e.preventDefault(); openModal(m.dataset.modal, m.dataset.id, m); return true; }
     const t = e.target.closest("[data-panel]");
@@ -502,7 +525,7 @@
   modal.addEventListener("click", (e) => { if (e.target === modal || e.target.closest("[data-close-modal]")) closeModal(); else trigger(e); });
   document.getElementById("nav").addEventListener("click", (e) => {
     const g = e.target.closest("[data-group]"); if (!g) return;
-    const name = g.dataset.group; CLOSED.has(name) ? CLOSED.delete(name) : CLOSED.add(name);
+    const name = g.dataset.group, cl = v3on() ? V3CLOSED : CLOSED; cl.has(name) ? cl.delete(name) : cl.add(name);
     drawNav((location.hash || "#home").slice(1));
     const again = document.querySelector(`[data-group="${CSS.escape(name)}"]`); if (again) again.focus();
   });
@@ -537,8 +560,8 @@
   menuBtn.addEventListener("click", () => { menuBtn.setAttribute("aria-expanded", String(shell.classList.toggle("navopen"))); });
   window.addEventListener("hashchange", () => menuBtn.setAttribute("aria-expanded", "false"));
   // Every page the navigation reaches, rail pages and the program's: [route, label].
-  const navItems = () => [...RAIL.flatMap(([k, l, , pages]) => pages || [[k, l]]), ...PROGRAM.flatMap(([, items]) => items.map(([k, l]) => [k, l]))];
-  window.PA = { S, P, M, MODED, ROUTE_NAV, navKey, navItems, area, areaCount, icons: ICONS, data: { TODAY, PROGRAMS, OTHER, CONTROLS, REQS, EVIDENCE, SLA, ISSUES, RISKS, POAM, ASSETS, CAMPAIGNS },
+  const navItems = () => [...railNow().flatMap(([k, l, , pages]) => pages || [[k, l]]), ...progMenu().flatMap(([, items]) => items.map(([k, l]) => [k, l]))];
+  window.PA = { S, P, M, MODED, ROUTE_NAV, navKey, navItems, navRegister, area, areaCount, icons: ICONS, data: { TODAY, PROGRAMS, OTHER, CONTROLS, REQS, EVIDENCE, SLA, ISSUES, RISKS, POAM, ASSETS, CAMPAIGNS },
     h: { esc, fmt, pct, day, gl, pill, tag, who, bar, header, completion, attention, tools, views, table, page, pair, lane, sevPill, dueOf, dueCell, icon },
     start() { window.addEventListener("hashchange", route); route(); } };
 })();

@@ -200,6 +200,8 @@
   // The created program's page belongs to it: opening it makes the program current. A campaign in assessment mode is WS-X90's.
   window.addEventListener("hashchange", () => {
     const r = (location.hash || "").slice(1);
+    // V3 (mod-zzzz-v3-0core.js): switching V3 never changes the current program, and V3's own rule decides links (inert while off).
+    const V3 = PA.v3; if (V3 && (V3.toggling || (V3.on() && V3.keepProgram && V3.keepProgram(r)))) return;
     if (r === "program-start") { const d = made()[0]; if (d && !madeOne(get("prog.cur"))) setCur(d.code); }
     else if (PA.MODED && PA.MODED.has(r) && cur() !== WSX) setCur(WSX);
     else if (cur() !== WSX && progKey(r) && Date.now() - NAVAT > 1500) setCur(WSX);

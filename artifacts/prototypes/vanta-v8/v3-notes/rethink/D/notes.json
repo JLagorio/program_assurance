@@ -1,0 +1,407 @@
+{
+ "lane": "D",
+ "module": [
+  "proto/mod-zzzz-v3-8d-docs.js",
+  "proto/mod-zzzz-v3-8d-docs.css"
+ ],
+ "build": "proto/out/v3r2-D.html (the whole prototype, every module in name order)",
+ "pages": [
+  {
+   "route": "documents",
+   "what": "Every document in one list: tabs by kind, chips by state, one needs-attention card; a row opens its editor."
+  },
+  {
+   "route": "document--<id>",
+   "what": "A blank plan or policy created here: written in place, submitted for review, deleted."
+  },
+  {
+   "route": "requirements",
+   "what": "The register: tabs by source (engineering, the customer's document), chips by what a requirement lacks, 50 a page."
+  },
+  {
+   "route": "requirement--<code>",
+   "what": "The requirement's page (kit, from k3d-req): statement edited in place; Controls, Components, Evidence each with its Add and undo."
+  },
+  {
+   "route": "evidence",
+   "what": "The register: kinds as a switch (STIG checklists among them), chips by review state, Sources as its second tab."
+  },
+  {
+   "route": "artifact--<id>",
+   "what": "The artifact's page (kit, from k3d-ev): Accept or Request changes in the header, Cited by, the controls it supports, versions."
+  },
+  {
+   "route": "evidence-sources",
+   "what": "The nine sources (lane W's rows and panel) under Evidence's title and tabs, in the kit's table."
+  },
+  {
+   "route": "ssp--<at>",
+   "what": "Opens the SSP editor at a section, a control, a component's row, a connection or the first placeholder narrative."
+  },
+  {
+   "route": "panel k3d-req / k3d-ev",
+   "what": "The same two records as previews: the eye on a row, and every old v7p-req, a-docs-ev and v3x-ev opener."
+  }
+ ],
+ "folded": [
+  {
+   "old": "ssps, ssps-drafts",
+   "now": "documents",
+   "how": "rail",
+   "kept": "The SSP and the three plans as rows: revision, state, owner, editing now, last edit; New plan inside New document.",
+   "dropped": "The Comments column; the two-drafts block (the SSP's row says which revision is the draft, its More reaches revision 2.1)."
+  },
+  {
+   "old": "ssps-review, ssps-published",
+   "now": "documents",
+   "how": "view",
+   "kept": "Open on the In review and Approved chips.",
+   "dropped": "The Reviews and Published tables: a document's state is its chip, its published revisions its own Version history."
+  },
+  {
+   "old": "policies",
+   "now": "documents",
+   "how": "rail",
+   "kept": "The 18 -1 policies with revision, state, owner and renew-by; a row opens the policy's page; Start the document.",
+   "dropped": "Control status, Approver and Acknowledged columns (on the policy's page); the three owned plans, now the plans' own rows."
+  },
+  {
+   "old": "itcsc",
+   "now": "itcsc",
+   "how": "rail",
+   "kept": "The ITCSC's own page, reached from Documents › Categorization; the menu marks Documents.",
+   "dropped": "Nothing."
+  },
+  {
+   "old": "stigs",
+   "now": "evidence",
+   "how": "rail",
+   "kept": "The seven checklists (source, last import, open by CAT, not reviewed, compliance); a row opens the checklist's page; Import.",
+   "dropped": "The register's Open rules, Benchmarks and Imports tabs: reached from Evidence's More while on STIG checklists."
+  },
+  {
+   "old": "sources",
+   "now": "evidence-sources",
+   "how": "tab",
+   "kept": "Lane W's nine sources, their panel and Add source.",
+   "dropped": "The old page's own header and quick views."
+  },
+  {
+   "old": "traceability, requirements-chain",
+   "now": "requirements",
+   "how": "section",
+   "kept": "The chain is the requirement's own page: controls, components, evidence, then findings and risks when it has any.",
+   "dropped": "The chain's stage columns and the traceability matrix: the chips (no control, no evidence, not allocated) say the gaps."
+  },
+  {
+   "old": "requirements-compliance",
+   "now": "requirements",
+   "how": "rail",
+   "kept": "CUSA-SSRD's 14 requirements with the program's answer, met by, components, verification, controls; answer chips.",
+   "dropped": "Its Met by, Elements and Verification filters; a row still opens v2's read-only preview."
+  },
+  {
+   "old": "requirements-objectives",
+   "now": "requirements",
+   "how": "gone",
+   "kept": "Nothing here: objectives are counted on the control (lane C).",
+   "dropped": "The 1,791-objective table."
+  },
+  {
+   "old": "rec--v7p-req--<id>",
+   "now": "requirements",
+   "how": "panel",
+   "kept": "Opens Requirements, then that requirement's page.",
+   "dropped": "Nothing."
+  }
+ ],
+ "inplace": [
+  {
+   "on": "Documents",
+   "can": "open any document's editor from its row; reach Version history, Submit for review and Export from the row's More",
+   "how": "row",
+   "shows": [
+    "the editor",
+    "the row's state"
+   ]
+  },
+  {
+   "on": "Documents",
+   "can": "create a document: a plan from lane X's templates, or a blank plan or policy written here",
+   "how": "form",
+   "shows": [
+    "Documents list and tab counts",
+    "its own page"
+   ]
+  },
+  {
+   "on": "SSP editor",
+   "can": "Edit source on a generated section, a component's row, a connection's row or a control: opens that record with the bar back to the section",
+   "how": "return bar",
+   "shows": [
+    "the record's page",
+    "the section, on return"
+   ]
+  },
+  {
+   "on": "SSP editor",
+   "can": "write a control's narrative",
+   "how": "in place",
+   "shows": [
+    "PA.SSP (the control's page and panel, the workbook's Narrative)",
+    "the placeholder count on Documents and the Overview"
+   ]
+  },
+  {
+   "on": "Requirements",
+   "can": "create a requirement with its type, the control it maps and the components it is allocated to",
+   "how": "form",
+   "shows": [
+    "register and tab counts",
+    "the component's Requirements tab",
+    "the control's Requirements",
+    "fact(createdRequirements)",
+    "fact(requirements)"
+   ]
+  },
+  {
+   "on": "requirement",
+   "can": "edit the statement where it is read; edit title and statement; assign an owner; delete one created today",
+   "how": "in place / form",
+   "shows": [
+    "the register's row",
+    "fact(requirement)"
+   ]
+  },
+  {
+   "on": "requirement",
+   "can": "map controls from the whole baseline, unmap one",
+   "how": "pick / confirm",
+   "shows": [
+    "the register's Controls and State",
+    "the control's Requirements (ctl.reqs, ctl.unmap, the chain)",
+    "fact(requirementsOfControl)",
+    "the control's status when it had no requirement"
+   ]
+  },
+  {
+   "on": "requirement",
+   "can": "allocate to components, remove an allocation",
+   "how": "pick / confirm",
+   "shows": [
+    "the register's Components and Not allocated chip",
+    "the component's Requirements tab (sys.alloc, sys.unalloc)",
+    "fact(requirementsOfComponent)"
+   ]
+  },
+  {
+   "on": "requirement",
+   "can": "link evidence found by search among all artifacts, add a new artifact from the picker's first line, unlink",
+   "how": "pick / form / confirm",
+   "shows": [
+    "the register's Evidence and State",
+    "the artifact's Cited by",
+    "the control's Evidence (req.evl)",
+    "the control's status past No evidence"
+   ]
+  },
+  {
+   "on": "artifact",
+   "can": "accept its review, request changes, reopen it, add a version, set its renewal date",
+   "how": "button / form",
+   "shows": [
+    "Evidence's chips",
+    "fact(evidence) and the Overview's count",
+    "the citing requirement's State"
+   ]
+  },
+  {
+   "on": "artifact",
+   "can": "link it to requirements, unlink one",
+   "how": "pick / confirm",
+   "shows": [
+    "the requirement's Evidence",
+    "the register's Cited by"
+   ]
+  },
+  {
+   "on": "Evidence",
+   "can": "add evidence (kind, file name, collected, renew by, the requirement that cites it)",
+   "how": "form",
+   "shows": [
+    "register and kind counts",
+    "Waiting on review",
+    "Expiring",
+    "the requirement"
+   ]
+  }
+ ],
+ "walks": [
+  {
+   "id": "D-w1",
+   "title": "Edit the SSP from Documents",
+   "steps": [
+    {
+     "route": "overview",
+     "do": "In the program menu, click Documents.",
+     "see": "One list of 30 documents under tabs: All, Plans, Policies, Categorization, Agreements. One needs-attention card.",
+     "was": "Plans, Policies and the ITCSC were three pages under two menu groups."
+    },
+    {
+     "route": "documents",
+     "do": "Click the System security plan row.",
+     "see": "The editor opens at once. Its way back, top left, says Documents.",
+     "was": "A side preview opened; the editor was one more click behind its arrow."
+    },
+    {
+     "route": "ssp",
+     "do": "Click in AC-1's narrative, type a sentence, click outside it.",
+     "see": "Saved to AC-1's implementation: the control's page reads the same text.",
+     "was": "The same editor, six clicks from the menu."
+    },
+    {
+     "route": "ssp--s8",
+     "do": "In section 8, click Mission Computer.",
+     "see": "Mission Computer's Software & firmware, with a bar at the foot: Back to SSP section 8.",
+     "was": "Open record went to the read-only Inventory, with no way back."
+    },
+    {
+     "route": "component--CN-109101--software",
+     "do": "Click Add item, add a firmware, then click Back to SSP section 8.",
+     "see": "Section 8, at Mission Computer's row, now prints the firmware you added.",
+     "was": "Firmware could not be added, and section 8 was a fixed table."
+    },
+    {
+     "route": "documents",
+     "do": "Go back to Documents. On the card, click Placeholder narratives.",
+     "see": "The editor opens on the first placeholder narrative, the cursor in it.",
+     "was": "Every link to the SSP landed at its top."
+    },
+    {
+     "route": "documents",
+     "do": "Click New document, keep A blank plan, type a title, Create document.",
+     "see": "The new plan opens as a draft to write in, and is listed on Documents.",
+     "was": "New plan offered three templates on the Plans page."
+    }
+   ]
+  },
+  {
+   "id": "D-w2",
+   "title": "A requirement, from creation to evidence",
+   "steps": [
+    {
+     "route": "requirements",
+     "do": "Click Create requirement. Give a title and a statement, type AC-2 under Maps control, tick Mission Computer, create.",
+     "see": "The new requirement's own page: AC-2 under Controls, Mission Computer under Components.",
+     "was": "The dialog closed with a message; nothing was created."
+    },
+    {
+     "route": "requirement--REQ-644",
+     "do": "Click in the statement, add a sentence, click outside it.",
+     "see": "The line under it says it is saved to the requirement.",
+     "was": "A requirement's statement could not be edited from its preview."
+    },
+    {
+     "route": "requirement--REQ-644",
+     "do": "Under Components click Allocate, search Secure Boot, tick it, allocate.",
+     "see": "Components 2. Secure Boot Controller's Requirements tab lists it too.",
+     "was": "A requirement could not be allocated to a component."
+    },
+    {
+     "route": "requirement--REQ-644",
+     "do": "Under Evidence click Link evidence, search Destruction, tick it, link.",
+     "see": "Evidence 1. The picker searched all 368 artifacts.",
+     "was": "Link evidence offered six artifacts in a drop-down."
+    },
+    {
+     "route": "requirement--REQ-644",
+     "do": "Link evidence again; click Add evidence at the top; give it a title; add.",
+     "see": "A new artifact, waiting on review, linked here and listed on Evidence.",
+     "was": "There was no way to add an artifact while linking."
+    },
+    {
+     "route": "requirements",
+     "do": "Go back by the breadcrumb. Point at the first row and click its eye.",
+     "see": "The row shows AC-2, two components, two artifacts; the eye previews it beside the list.",
+     "was": "The preview was the only view of a requirement."
+    },
+    {
+     "route": "evidence",
+     "do": "Open Evidence. Click Waiting on review, click a row's eye, then Accept.",
+     "see": "The chip counts one less; a requirement that stood on it alone reads Supported.",
+     "was": "The register listed 6 of 368; a review was a dialog elsewhere."
+    },
+    {
+     "route": "controls",
+     "do": "Open Controls and open AC-2.",
+     "see": "The requirement you created is under its Requirements.",
+     "was": "Each page kept its own list of requirements."
+    }
+   ]
+  }
+ ],
+ "shots": [
+  {
+   "id": "D-s1",
+   "title": "Documents, one list",
+   "caption": "Plans, policies, the ITCSC and the agreements in one list under tabs; a row opens its editor.",
+   "was": "v3r/D/shots/D-s1-was.png",
+   "now": "v3r/D/shots/D-s1-now.png"
+  },
+  {
+   "id": "D-s2",
+   "title": "The SSP, opened at a place",
+   "caption": "The SSP's row opens the editor; links land on a section, a control or a component's row; generated sections offer Edit source.",
+   "was": "v3r/D/shots/D-s2-was.png",
+   "now": "v3r/D/shots/D-s2-now.png"
+  },
+  {
+   "id": "D-s3",
+   "title": "A requirement's page",
+   "caption": "The statement edited in place; controls, components and evidence each with their own Add and undo.",
+   "was": "v3r/D/shots/D-s3-was.png",
+   "now": "v3r/D/shots/D-s3-now.png"
+  },
+  {
+   "id": "D-s4",
+   "title": "Link evidence, all of it",
+   "caption": "The picker searches all 368 artifacts; its first line adds a new one and links it.",
+   "was": "v3r/D/shots/D-s4-was.png",
+   "now": "v3r/D/shots/D-s4-now.png"
+  },
+  {
+   "id": "D-s5",
+   "title": "Evidence and its review",
+   "caption": "All 368 artifacts by kind and review state; the eye previews one, where Accept is done.",
+   "was": "v3r/D/shots/D-s5-was.png",
+   "now": "v3r/D/shots/D-s5-now.png"
+  }
+ ],
+ "checks": {
+  "walk": "v3r/D/walk.mjs on out/v3r2-D.html: 148 of 148 (v3r/D/walk.out), routes at 1440 and 390 included",
+  "offcheck": "863 screens, 366 previews, 241 dialogs, 61 menu pages; differences 0; page errors 0 (v3r/D/offcheck.txt)",
+  "earlier": "Before pass 2: 123 of 123 on the lane build (kit, shell, C, O, D) and 132 of 132 with S; those builds (v3r-D, v3r-D-all) are older than the kit and are not kept current."
+ },
+ "open": [
+  "The base registers (640 requirements, 368 artifacts) are the workbook's records, read by calling PA.sctm.build() (about 80 ms) on the first draw and after anything the chain changed.",
+  "17 requirements read No control mapped and 598 Not allocated: that is the snapshot (it holds components for 42 requirements), now visible as chips.",
+  "The three plans v2 listed among the policies (IR-8, CP-2, CM-9) are folded into their plan rows, so Policies counts 18, not 21.",
+  "STIG checklists (7) sit in the kinds switch beside All evidence 368 but are not part of the 368: fact(evidence) is unchanged.",
+  "The customer's document rows open v2's read-only preview (v7p-creq): its answers are not editable here.",
+  "Policies, the three plans' editors, the ITCSC and a checklist's page are v2's pages in v2's look; only their way back was renamed.",
+  "A primary button in a preview draws as a plain button (v2's layer); on the record's page it is the primary.",
+  "Unmapping a control the snapshot mapped is kept in ctl.unmap: the workbook and v2's own pages do not follow. Evidence linked here (req.evl) is not in the workbook either.",
+  "SSP: sections 5, 6, 7 and 9 are fixed tables; only section 8 gains rows and software lines from System, section 10 one line from Controls, section 11 the per-component text. AC-2's narrative is locked by v2's scripted AI draft until it is accepted or rejected.",
+  "SSP narratives are kept in PA.SSP in memory, as the editor always did: a reload of the file forgets them (requirements, evidence and documents made here survive it).",
+  "New document's templates are lane X's three; their keys are written in this module. A blank document has no version history.",
+  "fact(requirements).total is now the highest requirement number in use (count is the rows), so the lanes number the next requirement without colliding.",
+  "Renew by is not in the snapshot: Expiring shows only after a date is set here.",
+  "A created program: the three registers draw lane P's records in the kit's table with lane P's own dialogs and previews; the requirement's page is WS-X90 only.",
+  "After Create requirement the reader lands on the new requirement's page (not the register); a link sent with PA.v2.go('requirements', { open }) lands there too.",
+  "Not walked at 390 beyond the route checks: the flows were driven at 1440.",
+  "Found by the re-walk, not fixed: the plan editor and the workbook take the whole window and the program menu is gone; the way out is the small Documents or Controls link at the top left.",
+  "Found by the re-walk, not fixed: the Evidence page has two strips above its list (Evidence and Sources, then six kinds) and a row of state chips under them.",
+  "Found by the re-walk, not fixed: a requirement created on a component reads \"Created today on the Requirements register\" and its number can skip (REQ-644 after 640); Link evidence's button reads \"Link 1 artifact\".",
+  "Found by the re-walk, not fixed: document rows have a three-dot menu and no eye; they open their editor, and no preview exists for a document."
+ ]
+}

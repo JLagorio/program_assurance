@@ -19,7 +19,7 @@
   const PCLS = { ok: "p-ok", bad: "p-bad", warn: "p-warn", none: "p-none" };
 
   // ——— Page types (the noise review's: register, record, overview, home, inbox, editor, settings) ———
-  const META = /^(before-after|nav-options|study)/;
+  const META = /^(before-after|nav-options|study|walkthrough)/;
   const SSP = /^ssp($|-)/;
   const EDITOR = /^(ssp($|-)|plan-|policy-editor|program-new|program-start)/;
   const RECORD = /^(campaign|control-|component-mc|person-|check-|evidence-page-|policy-page-|integration-|stigs-(mission|ethernet|network|maintenance)|data-calls-(fisma|ready|scrm|cusa|fy26|kb)|frameworks-(high|moderate|low|privacy))/;

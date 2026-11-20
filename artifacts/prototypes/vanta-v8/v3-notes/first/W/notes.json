@@ -1,0 +1,43 @@
+{ "findings": [
+  { "id": "C04", "status": "fixed", "text": "Overview's Your tasks counts My work's Assigned to me rows for WS-X90 (4) and opens that view, which lists the same 4.", "see": { "route": "overview", "prog": "wsx" } },
+  { "id": "C14", "status": "fixed", "text": "My work is the one inbox: Assigned to me, Needs my approval (7 AI agent runs, the package access request), Waiting on others. AI agents' Needs approval and Review's Waiting on me send there; the bell holds mentions.", "see": { "route": "my-work-approval", "prog": "wsx" } },
+  { "id": "C15", "status": "fixed", "text": "The Review queue lists every row it counts, 25 a page with working arrows (32 rows, 2 pages); the count and the rail badge are the rows listed, WS-X90's pending evidence records included.", "see": { "route": "review-queue", "prog": "wsx" } },
+  { "id": "C10", "status": "fixed", "text": "One list of imports: Evidence › Sources shows the switch imported Aug 18 with a Nov 13 import queued; Integrations counts 6 STIG checklists in use; the checks' footnote reads the same list.", "see": { "route": "evidence-sources", "prog": "wsx" } },
+  { "id": "C11", "status": "fixed", "text": "Continuous monitoring's Checks tab holds each recurring check once, with one cadence and one state (3 overdue); Schedule is its Runs tab; sources read their cadence from their check.", "see": { "route": "conmon", "prog": "wsx" } },
+  { "id": "C12", "status": "fixed", "text": "One Take version 2 dialog, from Host & providers; it moves Components (3 behind), Composition and its Assets, the supplier, the CVE's POA&M item (1 of 3) and the SBOM check.", "see": { "route": "hosts", "prog": "wsx", "modal": "v3w-take" } },
+  { "id": "C16", "status": "fixed", "text": "Inheritance folds into Host & providers: providers, then library components; one inherited count (52), one Add provider. Boundary and Authorization list an added provider; Settings keeps the catalog.", "see": { "route": "hosts", "prog": "wsx" } },
+  { "id": "C17", "status": "fixed", "text": "Evidence sources is Evidence's Sources tab; Import file adds a file to that source's imports. Integrations lists connectors, with no tabs into a program's sources.", "see": { "route": "evidence-sources", "prog": "wsx", "open": { "kind": "v3w-source", "id": "acas" } } },
+  { "id": "C23", "status": "partly", "text": "The Corporate identity provider is flagged Not authorized on Host & providers, linked to its program row, and in each control preview that leans on it.", "why": "The Controls register's first pages show no provider column for those controls, so the flag lives in the preview and on Host & providers.", "see": { "route": "hosts", "prog": "wsx" } },
+  { "id": "C24", "status": "fixed", "text": "Workspace setup is a Settings page done once; Deadlines gains Adopt proposed, which turns the 12 proposed deadlines on and ticks the step.", "see": { "route": "workspace-setup", "prog": "wsx" } }
+],
+  "extra": [
+    { "id": "W-x1", "text": "Continuous monitoring's significant-change trigger names Increment 2's own IATT (due May 18, 2027) and ATO instead of SSP 3, as lane G asked.", "see": { "route": "conmon", "prog": "wsx" } },
+    { "id": "W-x2", "text": "Settings' Host systems & providers becomes the Provider catalog, its button Add to catalog, so the three add-provider dialogs read as two different acts.", "see": { "route": "common-controls", "prog": "wsx" } },
+    { "id": "W-x3", "text": "Inventory is Composition's Assets tab: inventory addresses open it, and Composition's Elements and Assets share one tab strip.", "see": { "route": "composition-assets", "prog": "wsx" } },
+    { "id": "W-x4", "text": "The sources register gains the ASD and Evaluate-STIG checklists' sources and the failed container scan, so every import belongs to a source it lists.", "see": { "route": "evidence-sources", "prog": "wsx" } }
+  ],
+  "walks": [
+    { "id": "W-w1", "title": "One inbox and one home for each thing", "findings": ["C04", "C14", "C12", "C11", "C10", "C17"], "prog": "wsx", "steps": [
+      { "route": "overview", "do": "Read the Your tasks line, then follow it.", "see": "Your tasks 4 opens My work › Assigned to me, which lists the same 4.", "v2": "Said 6 and opened All, which listed 13." },
+      { "route": "my-work-approval", "do": "Read Needs my approval; open the Evidence mapper run and choose Approve all.", "see": "7 AI agent runs and the package access request; the approved run leaves the list.", "v2": "Said nothing waits on your approval." },
+      { "route": "review-queue", "do": "Page through the queue with › and ‹.", "see": "32 rows counted, 32 listed, 25 a page; Waiting on me opens My work's Needs my approval.", "v2": "Counted 148, listed 21, no pages." },
+      { "route": "hosts", "do": "Choose Take version 2 on Mission Computer, write a review comment, take it.", "see": "One dialog listing what moves; afterwards version 2, AC-17(2) and SC-23 to review.", "v2": "Three entry points; Take version 2 said Not saved." },
+      { "route": "composition-assets", "do": "Look at AST-109001, then open POA&M and find the CVE's item.", "see": "AST-109001 runs Mission Computer version 2; the POA&M item is In progress, 1 of 3.", "v2": "Version 1 in use; the item Not started." },
+      { "route": "conmon", "do": "Read the Checks tab and open the ACAS scan check.", "see": "12 checks, one cadence and state each; 2 overdue now the SBOM check passes.", "v2": "Checks and ConMon disagreed: Overdue 4 against 2." },
+      { "route": "evidence-sources", "do": "Find the internal Ethernet switch; open ACAS and choose Import file.", "see": "Switch imported Aug 18, Nov 13 import queued; the file joins ACAS's imports.", "v2": "Switch never imported; Import file opened a 6-step wizard." },
+      { "route": "integrations", "do": "Read the STIG Viewer and ACAS cards.", "see": "6 checklists in use, and ACAS counts the import just made.", "v2": "2 checklists; tabs jumped into the program." }
+    ] },
+    { "id": "W-w2", "title": "Providers, setup and deadlines", "findings": ["C16", "C23", "C24"], "prog": "wsx", "steps": [
+      { "route": "inheritance", "do": "Open Inheritance.", "see": "It opens Host & providers: providers, library components, Inherited 52.", "v2": "Inheritance counted 130 from 5 sources." },
+      { "route": "hosts", "do": "Read the flag under Providers and follow Open its program.", "see": "The Corporate identity provider is Not authorized; its program row is PRG-1013.", "v2": "Not authorized, never connected to anything." },
+      { "route": "hosts", "do": "Choose Add provider and add the Integration laboratory hosting enclave.", "see": "It joins the providers.", "v2": "It reached Overview but not Boundary." },
+      { "route": "boundary", "do": "Read What it covers.", "see": "The added enclave is listed with its controls.", "v2": "Still 17 rows." },
+      { "route": "workspace-setup", "do": "Read the steps, then open Deadlines and choose Adopt proposed.", "see": "2 of 4 done; after adopting, no deadline reads Proposed and 3 of 4 are done.", "v2": "Deadlines had no adopt action." }
+    ] }
+  ],
+  "shots": [
+    { "id": "W-s1", "title": "My work, the one inbox", "findings": ["C14", "C04"], "caption": "Needs my approval lists the AI agent runs and the package access request; the views count what they list.", "v2": "v3/W/shots/W-s1-v2.png", "v3": "v3/W/shots/W-s1-v3.png" },
+    { "id": "W-s2", "title": "Host & providers with inheritance", "findings": ["C16", "C23", "C12"], "caption": "Providers, the unauthorized one flagged, then library components with the one Take version 2.", "v2": "v3/W/shots/W-s2-v2.png", "v3": "v3/W/shots/W-s2-v3.png" },
+    { "id": "W-s3", "title": "Continuous monitoring's checks", "findings": ["C11"], "caption": "Each recurring check once, one cadence and one state; Runs is the Schedule.", "v2": "v3/W/shots/W-s3-v2.png", "v3": "v3/W/shots/W-s3-v3.png" },
+    { "id": "W-s4", "title": "Evidence's Sources tab", "findings": ["C17", "C10"], "caption": "The program's sources, each reading its cadence from its check and its imports from one list.", "v2": "v3/W/shots/W-s4-v2.png", "v3": "v3/W/shots/W-s4-v3.png" }
+  ] }

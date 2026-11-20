@@ -1,0 +1,55 @@
+{
+ "lane": "O",
+ "asks": [
+  {
+   "of": "shell (mod-zzzz-v3-8a-shell.js)",
+   "what": "With a return bar open, going to the full-window workbook (sctm) freezes the page: the shell's place() and the workbook's own redraw answer each other. Reproduce: K.task.start({ from: { label: 'PDR', route: 'overview' }, steps: [{ label: 'x' }] }); PA.v2.go('sctm', { view: 'noreq' }).",
+   "worked around": "Lane O never sends a task to sctm (it opens lane C's Controls on { chip: 'noreq' }, or its own stand-in list k3o-noreq when lane C is not in the build)."
+  },
+  {
+   "of": "kit",
+   "what": "No part for a phase strip (phases with their steps as marks, one open), nor for a checklist row (state, name, a number and words, one button). Written as .k3o-strip and .k3o-dl in lane O's CSS with the kit's look.",
+   "worked around": "own CSS"
+  },
+  {
+   "of": "kit",
+   "what": "K.completion's card has no go of its own: only its minis link.",
+   "worked around": "the two minis open Controls"
+  },
+  {
+   "of": "lane G (mod-zzzz-v3-3gates.js)",
+   "what": "A gate's deliverables, criteria and deciding chain are not published as data (fact('gate') gives counts only). Lane O reads them by parsing lane G's gate page (PA.S['lifecycle-<id>']) at draw time. A fact gateDetail(id) → { deliverables, criteria, chain, requested } would remove the parse.",
+   "worked around": "the parse, guarded: when it fails the gate shows lane G's counts and no rows"
+  },
+  {
+   "of": "lane P (mod-zzzz-v3-2program.js)",
+   "what": "V3.S(ROUTES, …) wraps every page whose address starts with 'overview' (and the others it lists), also pages registered later, and draws lane P's Overview there while a created program is current.",
+   "worked around": "Lane O re-wraps overview-team and overview-activity on each hashchange so its tabs stay on top (onTop)."
+  },
+  {
+   "of": "lane P / lane G",
+   "what": "A created program's due days differ between lane P's schedule (fact('lifeDue'): ASR Dec 1) and the line lane P draws under the program switcher from lane G's track (ASR Dec 17). Lane O's Overview reads lifeDue; the line under the switcher for a created program is not lane O's.",
+   "worked around": "none"
+  },
+  {
+   "of": "kit CSS",
+   "what": ".k3-rec .k3-aside { grid-template-columns: minmax(0, 1fr) 320px } (line 254) outranks the narrow rule at line 212, so every record page drawn by recPage keeps two columns at 390 and the side cards cover the body. Add the same rule under @media (max-width: 1080px) for .k3-rec .k3-aside.",
+   "worked around": "Lane O's CSS does it for a gate's page only (.k3-rec:has(#k3o-crit))."
+  },
+  {
+   "of": "kit",
+   "what": "recPage gives every record page the class k3-rec only: a lane cannot scope CSS to its own record page. Add the kind as a class (k3-rec k3o-gate).",
+   "worked around": ":has(#k3o-crit) in lane O's CSS."
+  },
+  {
+   "of": "core vocabulary (core.js toneOf)",
+   "what": "'Ready' is a neutral word in the pill vocabulary, so K.status('Ready', 'ok') draws the same grey ring as 'Not ready'.",
+   "worked around": "The gate's Deliverables table draws its own state mark (.k3o-rs) beside the word."
+  },
+  {
+   "of": "shell / kit CSS (the return bar)",
+   "what": "With a label as long as '14 controls with no requirement' the floating bar's close ✕ wraps onto a second line (see shots/O-s4-now.png). Keep the bar on one line (nowrap, or a wider max-width).",
+   "worked around": "none"
+  }
+ ]
+}

@@ -1,0 +1,302 @@
+{
+ "findings": [
+  {
+   "id": "B03",
+   "status": "fixed",
+   "text": "Baseline's status key and its List read one store, each control's live status; publishing results moves them with Overview and Controls.",
+   "see": {
+    "route": "baseline",
+    "prog": "wsx"
+   }
+  },
+  {
+   "id": "B04",
+   "status": "fixed",
+   "text": "Posture's band counts open operational issues and risks from the live Findings and Risks registers; a published result or a new risk moves it.",
+   "see": {
+    "route": "posture",
+    "prog": "wsx"
+   }
+  },
+  {
+   "id": "C02",
+   "status": "fixed",
+   "text": "One setup checklist, each step read from its record: Overview's card says 2 of 7 and opens the checklist; Getting started folds into Overview.",
+   "see": {
+    "route": "overview",
+    "prog": "wsx",
+    "open": {
+     "kind": "v3f-setup",
+     "id": "PRG-1090"
+    }
+   }
+  },
+  {
+   "id": "C03",
+   "status": "fixed",
+   "text": "Every snapshot is taken one way, inherited controls included: rows, preview and page agree, today's is the live count, and Programs' trend reads the rows.",
+   "see": {
+    "route": "activity",
+    "prog": "wsx"
+   }
+  },
+  {
+   "id": "C06",
+   "status": "partly",
+   "text": "SCTM sheet tabs name the subsets they hold: Requirements behind 92 controls, Evidence they cite, Operational issues and assessment findings.",
+   "why": "The sheets come from a frozen snapshot; rebuilding them from full registers or splitting Findings needs the workbook's builder.",
+   "see": {
+    "route": "sctm",
+    "prog": "wsx"
+   }
+  },
+  {
+   "id": "C07",
+   "status": "fixed",
+   "text": "Mapping a requirement moves Baseline, Cyber resiliency's SA-24 line, Posture's objectives and Requirements, which all read the chain's one control store.",
+   "see": {
+    "route": "controls",
+    "prog": "wsx",
+    "modal": "v2k-map"
+   }
+  },
+  {
+   "id": "C08",
+   "status": "fixed",
+   "text": "Accepting evidence moves Overview's tile, the assessor's request tracker, My work's assessor item and the Event log, which records each review.",
+   "see": {
+    "route": "evidence",
+    "prog": "wsx"
+   }
+  },
+  {
+   "id": "C09",
+   "status": "fixed",
+   "text": "A person's records are counted from the registers' owner fields; the heading's total is the sum of the tiles, open tasks included.",
+   "see": {
+    "route": "person-joel-barrantes",
+    "prog": "wsx"
+   }
+  },
+  {
+   "id": "C18",
+   "status": "fixed",
+   "text": "Map a requirement offers only register requirements; approving the Requirement drafter's run adds REQ-641\u2013643 to Requirements and its chain view at once.",
+   "see": {
+    "route": "ai-drafts",
+    "prog": "wsx"
+   }
+  },
+  {
+   "id": "C19",
+   "status": "fixed",
+   "text": "One people-and-roles record for WS-X90, gate deciders included, read by People, Overview's Team, ITCSC \u00a711, person pages' SSP access and Permissions.",
+   "see": {
+    "route": "people",
+    "prog": "wsx"
+   }
+  },
+  {
+   "id": "C20",
+   "status": "fixed",
+   "text": "A control's preview and page name the assessment finding behind its status and its campaign; AU-7's component inheritance shows under Responsibility.",
+   "see": {
+    "route": "controls",
+    "prog": "wsx",
+    "open": {
+     "kind": "a-tests-control",
+     "id": "AC-1"
+    }
+   }
+  },
+  {
+   "id": "C22",
+   "status": "fixed",
+   "text": "WS-X90's tailoring is F-16 SPO Tailoring on Baseline and ITCSC \u00a76; Cyber T&E cites that tailoring, since WS-X90 holds no customer requirements document.",
+   "see": {
+    "route": "baseline",
+    "prog": "wsx"
+   }
+  },
+  {
+   "id": "C26",
+   "status": "partly",
+   "text": "Findings states its open-issue count once: the cards' and All's repeats are gone.",
+   "why": "Authorization's ATO date and SSE's due date are lane G's pages; the facts they need are published.",
+   "see": {
+    "route": "findings",
+    "prog": "wsx"
+   }
+  },
+  {
+   "id": "C27",
+   "status": "fixed",
+   "text": "Counts agree or say what they count: Enterprise techniques on Cyber T&E, the STIG run's checklists, CN-109000's 43 of 44, the chain view's requirements.",
+   "see": {
+    "route": "requirements-chain",
+    "prog": "wsx"
+   }
+  },
+  {
+   "id": "C28",
+   "status": "fixed",
+   "text": "The program menu's Activity is WS-X90's event log; Settings' Event log spans every program with a program filter and a Program column.",
+   "see": {
+    "route": "event-log",
+    "prog": "wsx"
+   }
+  }
+ ],
+ "extra": [
+  {
+   "id": "F-x1",
+   "text": "Increment 2 is counted control by control: AU-6(3) and AU-12(1) move from Partially satisfied to Satisfied, so Partially satisfied reads 37, not v2's 39.",
+   "see": {
+    "route": "controls",
+    "prog": "wsx"
+   }
+  },
+  {
+   "id": "F-x2",
+   "text": "Traceability is Requirements' Chain tab; every traceability address opens it, and its tiles say they count requirements.",
+   "see": {
+    "route": "requirements-chain",
+    "prog": "wsx"
+   }
+  },
+  {
+   "id": "F-x3",
+   "text": "Role holders v2 had no record of (Marcus Ryde, Lena Marsh, R. Feldman) open their own preview instead of R. Calloway's.",
+   "see": {
+    "route": "people",
+    "prog": "wsx",
+    "open": {
+     "kind": "a-people-person",
+     "id": "Marcus Ryde"
+    }
+   }
+  }
+ ],
+ "walks": [
+  {
+   "id": "F-w1",
+   "title": "One action, every page follows",
+   "findings": [
+    "C18",
+    "C07",
+    "B03",
+    "C08",
+    "C03",
+    "B04",
+    "C09"
+   ],
+   "prog": "wsx",
+   "steps": [
+    {
+     "route": "ai-drafts",
+     "do": "Press Approve all on the Requirement drafter's run.",
+     "see": "The run leaves Needs approval.",
+     "v2": "Toast only; the drafts never reached Requirements."
+    },
+    {
+     "route": "requirements",
+     "do": "Read the register's count and first rows.",
+     "see": "Requirements 643; REQ-641, REQ-642 and REQ-643 lead the list.",
+     "v2": "Requirements 640, no REQ-641."
+    },
+    {
+     "route": "controls",
+     "do": "Map a requirement: Control SA-24, Requirement REQ-641, then Map a requirement.",
+     "see": "The toast says REQ-641 maps SA-24.",
+     "v2": "REQ-641 offered before anyone approved it."
+    },
+    {
+     "route": "baseline",
+     "do": "Read the status key under the stack.",
+     "see": "No requirement 13, as on Overview.",
+     "v2": "Baseline stayed at No requirement 14."
+    },
+    {
+     "route": "posture",
+     "do": "Read the band and the line under it.",
+     "see": "Objectives mapped 1,771; 20 mapped nowhere.",
+     "v2": "1,761 and 30, unchanged."
+    },
+    {
+     "route": "evidence-page-e1",
+     "do": "Review evidence \u203a Accept \u203a Save review.",
+     "see": "Accepted toast.",
+     "v2": "Same toast."
+    },
+    {
+     "route": "overview",
+     "do": "Read Evidence to revise in Open work.",
+     "see": "87 waiting on review; the tracker on Assessments reads Ready 87, Accepted 227.",
+     "v2": "88 waiting; tracker 88 and 226."
+    },
+    {
+     "route": "campaign",
+     "do": "Publish results, then Publish assessment results.",
+     "see": "Increment 2 published.",
+     "v2": "Same."
+    },
+    {
+     "route": "baseline",
+     "do": "Read the key again.",
+     "see": "Satisfied 240, Not assessed 70, as Overview and Controls.",
+     "v2": "Key stuck at Satisfied 227."
+    },
+    {
+     "route": "activity",
+     "do": "Read the newest rows and today's snapshot.",
+     "see": "The mapping, the review and the publication; today's snapshot 240 of 560.",
+     "v2": "No Activity page; the log missed every action."
+    }
+   ]
+  }
+ ],
+ "shots": [
+  {
+   "id": "F-s1",
+   "title": "Baseline's key after publishing",
+   "findings": [
+    "B03",
+    "C07"
+   ],
+   "caption": "After mapping SA-24 and publishing increment 2: V3's key reads 240 satisfied and 13 with no requirement, as Overview does; v2's stays at 227 and 14.",
+   "v2": "v3/F/shots/F-s1-v2.png",
+   "v3": "v3/F/shots/F-s1-v3.png"
+  },
+  {
+   "id": "F-s2",
+   "title": "Posture's band follows the registers",
+   "findings": [
+    "B04",
+    "C07"
+   ],
+   "caption": "After a mapping and a new risk: V3's band reads 1,771 objectives mapped and 41 open risks; v2's keeps 1,761 and 40.",
+   "v2": "v3/F/shots/F-s2-v2.png",
+   "v3": "v3/F/shots/F-s2-v3.png"
+  },
+  {
+   "id": "F-s3",
+   "title": "A person's records add up",
+   "findings": [
+    "C09"
+   ],
+   "caption": "Joel Barrantes owns the new risk: V3 counts it and totals the tiles, open tasks matching the list below; v2 shows Risks 0 and no total.",
+   "v2": "v3/F/shots/F-s3-v2.png",
+   "v3": "v3/F/shots/F-s3-v3.png"
+  },
+  {
+   "id": "F-s4",
+   "title": "SCTM sheets name their subsets",
+   "findings": [
+    "C06"
+   ],
+   "caption": "V3's tabs say Requirements behind 92 controls and Operational issues and assessment findings; v2's read Requirements 117 beside a 640 register.",
+   "v2": "v3/F/shots/F-s4-v2.png",
+   "v3": "v3/F/shots/F-s4-v3.png"
+  }
+ ]
+}

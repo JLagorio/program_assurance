@@ -1,0 +1,357 @@
+{
+ "pages": [
+  {
+   "route": "controls",
+   "what": "The list and the baseline in one: Completion and Baseline cards, chips, one filter row (search, families dropdown, five filters), 50 rows a page; a row goes to the control's page, its eye previews it."
+  },
+  {
+   "route": "control--<code>",
+   "what": "The control's page: one primary (its next step), Status, Implementation by component, Requirements, Evidence, Objectives, Findings and risks; Details and the provider at the side; its place in the filtered list with Previous and Next."
+  },
+  {
+   "route": "control--<code>@<component>",
+   "what": "A control on a component: crumbs System › subsystem › component › control, the sidebar on System, that component's implementation first and whole, primary Write or Edit implementation."
+  },
+  {
+   "route": "controls-coverage",
+   "what": "Coverage, the list's second view: components by control family in objectives mapped; a cell opens what stands there."
+  },
+  {
+   "route": "sctm",
+   "what": "The workbook, unchanged inside; it carries the List · Workbook switch; a row's control previews over it, and ↗ keeps Back to the workbook."
+  },
+  {
+   "route": "panel k3c-control",
+   "what": "The same record as a preview (a row's eye): every section and action of the page in 520px."
+  }
+ ],
+ "folded": [
+  {
+   "old": "baseline",
+   "now": "controls",
+   "how": "section",
+   "kept": "The six layers in order with what each added and removed, each a filter; Edit baseline with switches, Add overlay, What changes.",
+   "dropped": "The stack table's Owner and Last changed columns, the status strip and the 18 family tiles: the rail and the Completion card say them."
+  },
+  {
+   "old": "baseline-params",
+   "now": "controls",
+   "how": "panel",
+   "kept": "The 17 listed parameters, on their controls: values print in the statement and are set there with a rationale. The address opens the nine controls that have them.",
+   "dropped": "The 1,048-row register and its Read by a check column: only 17 rows ever existed."
+  },
+  {
+   "old": "rec--v7p-layer--<key>",
+   "now": "controls",
+   "how": "view",
+   "kept": "A layer's added and removed controls, as rows: the Baseline card's line filters to them.",
+   "dropped": "The layer's own page and its Already selected list; its address is not redirected (records layer)."
+  },
+  {
+   "old": "resiliency, resiliency-approaches",
+   "now": "controls",
+   "how": "view",
+   "kept": "The 14 techniques as the Technique filter; the address opens the controls that support any (Table E-1, lane X's reading).",
+   "dropped": "The goals, objectives and approaches ladder, Replay layers and the per-technique preview with counts by layer."
+  },
+  {
+   "old": "posture, posture-unevidenced, posture-issues, posture-risks",
+   "now": "controls-coverage",
+   "how": "view",
+   "kept": "The matrix of components by family in objectives mapped, heatmap or table, each cell opening its preview.",
+   "dropped": "The band of four numbers and its three other readings; lane X's columns by resiliency technique. Needs evidence is a chip; issues and risks are Findings and Risks."
+  },
+  {
+   "old": "a-tests-control (the control preview)",
+   "now": "k3c-control",
+   "how": "panel",
+   "kept": "Status, responsibility with the provider's statement and the not authorized word (lane W), the finding and campaign behind the status and Determined by (lane F), the next step.",
+   "dropped": "Nothing a person used; its Change and Map a requirement dialogs are the panel's own now."
+  },
+  {
+   "old": "rec--a-tests-control--<code>, control-si2…, after-control-record",
+   "now": "control--<code>",
+   "how": "panel",
+   "kept": "Implementation, requirements, evidence, objectives one by one, findings: all on the control's one page.",
+   "dropped": "SI-2's hand-made tabs (Checks, History, Comments) and its STIG rules table."
+  }
+ ],
+ "inplace": [
+  {
+   "on": "Controls",
+   "can": "add controls from the catalog with a rationale (or by code)",
+   "how": "pick",
+   "shows": [
+    "Baseline card total and Program tailoring line",
+    "Completion card",
+    "fact(controls)",
+    "fact(baseline)",
+    "Source = Program tailoring"
+   ]
+  },
+  {
+   "on": "Controls",
+   "can": "switch an overlay off or add a published one, reading What changes first",
+   "how": "dialog",
+   "shows": [
+    "layer lines",
+    "totals",
+    "the list",
+    "fact(baseline)",
+    "fact(controls)",
+    "fact(status) of returned controls"
+   ]
+  },
+  {
+   "on": "control page and its preview",
+   "can": "remove from the baseline with a rationale; restore from Tailored out",
+   "how": "form",
+   "shows": [
+    "Tailored out in the rail",
+    "totals",
+    "fact(control).inBaseline"
+   ]
+  },
+  {
+   "on": "control page and its preview",
+   "can": "write a component's implementation and status; write the system's own",
+   "how": "form",
+   "shows": [
+    "fact(impl)",
+    "the list's grey line",
+    "PA.SSP narrative: SSP section 11 and the workbook's Narrative cell"
+   ]
+  },
+  {
+   "on": "control page and its preview",
+   "can": "add a component that carries it, remove one",
+   "how": "pick",
+   "shows": [
+    "Implementation card",
+    "Components column",
+    "lane S's place()/unplace() when in the build"
+   ]
+  },
+  {
+   "on": "control page and its preview",
+   "can": "add requirements (or Create requirement), unmap one",
+   "how": "pick",
+   "shows": [
+    "status ladder",
+    "chips",
+    "PA.v2.chain (Requirements, Overview)",
+    "fact(status)",
+    "fact(madeRequirements)"
+   ]
+  },
+  {
+   "on": "control page and its preview",
+   "can": "add an evidence artifact onto one of its requirements, remove it",
+   "how": "pick",
+   "shows": [
+    "status ladder",
+    "Evidence ring",
+    "next step"
+   ]
+  },
+  {
+   "on": "control page and its preview",
+   "can": "change responsibility: This system, Hybrid, Inherited from the provider",
+   "how": "form",
+   "shows": [
+    "Host & providers (host.resp)",
+    "Inherited chip",
+    "status reads the provider's",
+    "fact(controls).inherited"
+   ]
+  },
+  {
+   "on": "control page and its preview",
+   "can": "assign an owner",
+   "how": "form",
+   "shows": [
+    "Owner column and filter",
+    "fact(control).owner"
+   ]
+  },
+  {
+   "on": "control page and its preview",
+   "can": "set a parameter's value in the statement",
+   "how": "form",
+   "shows": [
+    "the statement, at once and after a redraw"
+   ]
+  },
+  {
+   "on": "workbook",
+   "can": "preview a row's control over the grid; its ↗ goes to the control's page with Back to the workbook",
+   "how": "panel",
+   "shows": [
+    "return bar"
+   ]
+  },
+  {
+   "on": "control page",
+   "can": "work through a filtered list: the page says 3 of 14 and offers Previous and Next; once the work takes it out of the filter it says so and offers the next",
+   "how": "view",
+   "shows": [
+    "the list's filter and count on return by the breadcrumb"
+   ]
+  }
+ ],
+ "walks": [
+  {
+   "id": "C-w1",
+   "title": "Baseline and controls are one page",
+   "steps": [
+    {
+     "route": "controls",
+     "do": "Open Controls from the sidebar.",
+     "see": "Completion 41% and a Baseline card: six layers, 370 to 560; one filter row; 50 of 560 rows.",
+     "was": "Controls drew 17 of 560; the layers were on a separate Baseline page."
+    },
+    {
+     "route": "controls",
+     "do": "Choose AC · Access Control in the families dropdown, then the chip Needs evidence.",
+     "see": "The same page, 52 then 15 rows; search, pager and Clear filters work.",
+     "was": "A family tile opened Controls with nothing selected; search and pager were dead."
+    },
+    {
+     "route": "controls",
+     "do": "Clear filters; on the Baseline card choose the line CNSSI 1253.",
+     "see": "The 200 controls it added still in the baseline, then the 16 it removed, each with Restore.",
+     "was": "A layer was a page of code pills."
+    },
+    {
+     "route": "controls",
+     "do": "Add control, From the catalog; search SC-7(20), tick it; write a rationale; Add 1 control.",
+     "see": "561 on both cards; Program tailoring reads +15; SC-7(20) is listed, Source Program tailoring.",
+     "was": "The tailoring layer was read-only."
+    },
+    {
+     "route": "controls",
+     "do": "Edit baseline; switch Mission Assurance Overlay off; read What changes; Apply to the baseline.",
+     "see": "561 now, 566 after, AC-18 and its four enhancements return; the line reads Not applied.",
+     "was": "Edit overlays opened with an overlay nobody added and saved nothing."
+    },
+    {
+     "route": "control--AC-22",
+     "do": "Search AC-22, choose its row; on its page More, Remove from the baseline, with a rationale.",
+     "see": "The page says Tailored out with Restore to the baseline; back on Controls one fewer, AC-22 under Tailored out.",
+     "was": "No remove anywhere."
+    }
+   ]
+  },
+  {
+   "id": "C-w2",
+   "title": "Work a control on its page",
+   "steps": [
+    {
+     "route": "control--AC-2",
+     "do": "On Controls search AC-2 and choose its row.",
+     "see": "Its page: Status, then Implementation with one row a component, Requirements, Evidence, 26 Objectives; one primary.",
+     "was": "A preview with no implementation; the page behind it was read-only."
+    },
+    {
+     "route": "control--AC-2",
+     "do": "Choose the Mission Computer row; set Implemented; write how it implements AC-2; Save.",
+     "see": "The text and status on the row; kept after a reload.",
+     "was": "One narrative for the whole system, editable only in the SSP after accepting an AI draft."
+    },
+    {
+     "route": "control--AC-2@CN-109101",
+     "do": "System, Mission Computer, Controls; choose AC-2's row.",
+     "see": "System › Mission Computing Subsystem › Mission Computer › AC-2; Mission Computer's implementation first; Edit implementation.",
+     "was": "The component page said Open in Controls, which opened the whole register."
+    },
+    {
+     "route": "control--SA-24",
+     "do": "On Controls open SA-24; press Add requirement, then Create requirement; fill and create.",
+     "see": "A new requirement maps it; No requirement becomes No evidence; the primary becomes Add evidence.",
+     "was": "Map a requirement was a dialog offering three fixed requirements."
+    },
+    {
+     "route": "control--SA-24",
+     "do": "Press Add evidence; choose an artifact; Add evidence.",
+     "see": "Not assessed; the primary becomes the assessment step.",
+     "was": "Link evidence offered six fixed artifacts."
+    },
+    {
+     "route": "controls",
+     "do": "Choose the chip No requirement, then the first row; on its page press Next.",
+     "see": "1 of 14 in Controls: No requirement, then the next control's page; the breadcrumb returns to the same list.",
+     "was": "Each control was a preview over a 17-row list."
+    },
+    {
+     "route": "control--AC-11",
+     "do": "Open AC-11; choose the placeholder in its statement; set 15 minutes.",
+     "see": "The statement prints 15 minutes of inactivity.",
+     "was": "Parameters were a separate tab of Baseline."
+    },
+    {
+     "route": "sctm",
+     "do": "On Controls choose Workbook beside the title; edit a Narrative cell; Review changes; Apply; choose List.",
+     "see": "One click each way; the list's row reads the text applied in the workbook.",
+     "was": "The workbook was a secondary button, with no switch back."
+    }
+   ]
+  }
+ ],
+ "shots": [
+  {
+   "id": "C-s1",
+   "title": "Baseline and Controls are one page",
+   "caption": "The stack table and 18 family tiles become one Baseline card on Controls; a family is a rail filter.",
+   "was": "v3r/C/shots/C-s1-was.png",
+   "now": "v3r/C/shots/C-s1-now.png"
+  },
+  {
+   "id": "C-s2",
+   "title": "All 560, filtered in place",
+   "caption": "17 sample rows with dead search and pager become the whole baseline: a families dropdown, chips, filters, 50 a page.",
+   "was": "v3r/C/shots/C-s2-was.png",
+   "now": "v3r/C/shots/C-s2-now.png"
+  },
+  {
+   "id": "C-s3",
+   "title": "The control's page is where the work is",
+   "caption": "The read-only preview becomes a page: AC-2 on Mission Computer, its implementation written, crumbs back to the component.",
+   "was": "v3r/C/shots/C-s3-was.png",
+   "now": "v3r/C/shots/C-s3-now.png"
+  },
+  {
+   "id": "C-s4",
+   "title": "Tailoring works, and says what changes",
+   "caption": "A read-only layer of code pills becomes Edit baseline: a switch a layer and What changes before Apply.",
+   "was": "v3r/C/shots/C-s4-was.png",
+   "now": "v3r/C/shots/C-s4-now.png"
+  },
+  {
+   "id": "C-s5",
+   "title": "The workbook is Controls' second view",
+   "caption": "The workbook carries the List · Workbook switch and says it holds the same 560 controls.",
+   "was": "v3r/C/shots/C-s5-was.png",
+   "now": "v3r/C/shots/C-s5-now.png"
+  }
+ ],
+ "open": [
+  "The view switch sits beside the title, not at the filter row's end.",
+  "Under 1680px the provider under Responsibility and the owner's name are hidden (avatar only); under 1400px the Components column too.",
+  "Components and Implementation are one table (one row a component, with Add component and Remove); its count is its rows, the system's own row included.",
+  "A row's grey line is the SSP's implementation narrative ('Implementation not written' for the 74 placeholders): the prototype holds no catalog statement text.",
+  "The statement prints only for the nine controls whose parameters v2 listed; their sentences are abridged catalog text authored in this module. Where one exists it leads the page, before Status.",
+  "Add control lists 144 catalog controls with a reason to be there; any other joins by code. The catalog's 1,014 titles are private to the wizard.",
+  "A control tailored in today is in the list, the cards and the facts, not in PA.SSP.controls: the SSP and the workbook keep 560 rows, and the workbook says so.",
+  "Edit baseline applies at once and says the open assessments keep their baseline; nothing is held as a draft.",
+  "Evidence rows go to artifact--<id> only where lane D holds an artifact of that title; the register's unnamed 'Evidence for REQ-…' rows stay still (no page, no eye).",
+  "Findings and risks has no Add of its own: a finding comes from an assessment (the next step), a risk from a finding (lane E).",
+  "A control on a component marks System in the sidebar and its crumbs lead to the component's Controls tab; without lane S it falls back to Controls.",
+  "The page's place in the list follows whatever the list was last filtered or searched by, including a search left in the box.",
+  "In the workbook only Implementation and Narrative take edits (its module is not this lane's); the walk edits a cell at 1440 only. The grid does not redraw after a preview edit until the workbook is reopened.",
+  "Objectives read Judged for every objective once the control's count says all are judged; lane F's per-objective records are used only for a control judged in part.",
+  "Another program: a created program draws its own baseline with Add control and Remove a control; its rows open lane P's preview, with no control page. The created-program steps of the walk run at 1440 only.",
+  "If a program was created earlier in the session and the page is reloaded before Controls was ever opened, the reference baseline's membership may not be readable (not seen in the walk).",
+  "Found by the re-walk, not fixed: the Controls list keeps its search and filters when you leave and come back, so it can open on a narrowed list (\"All 0\") without saying why; after Add control it stays narrowed to Program tailoring.",
+  "Found by the re-walk, not fixed: in the workbook a record's code opens the side panel, not the record's page; the page is a second click."
+ ]
+}

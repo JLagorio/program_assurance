@@ -1,0 +1,46 @@
+[
+ {
+  "to": "kit",
+  "ask": "K.completion's main number is a link now; the Baseline card's total is still this lane's own markup (no kit part for a list of layers)."
+ },
+ {
+  "to": "kit",
+  "ask": "A native select sizes to its widest option: this lane sets field-sizing: content on its filter row so seven controls fit one line; the kit's .k3-flt select could carry it for every list."
+ },
+ {
+  "to": "kit",
+  "ask": "K.recRoute encodes '@' (control--AC-2%40CN-109101): fine, but a lane comparing addresses must decode first."
+ },
+ {
+  "to": "v2 data",
+  "ask": "Expose the baseline's decisions: PA.v7p.baseline = { HIGH, LAYERS (with dec), CUSA, PARAMS }. This lane still reads each layer from its v2 preview, the reference baseline and titles from the wizard's preview, the parameters from the Parameters page's rows."
+ },
+ {
+  "to": "v2 data",
+  "ask": "Expose the catalog (mod-program-new.js TITLE: 1,014 codes and titles) and statement text if any is added."
+ },
+ {
+  "to": "lane D",
+  "ask": "Give the register's unnamed evidence ('Evidence for REQ-001', counted in a control's e) an artifact id, or a fact artifactOfRequirement(req), so a control's evidence rows can all go to artifact--<id>."
+ },
+ {
+  "to": "lane D",
+  "ask": "SSP section 11 should print fact('impl', control, component) under the system's narrative, and section 10 fact('baseline')."
+ },
+ {
+  "to": "lane S",
+  "ask": "The component's Controls tab opens control--<control>@<component>; this lane's crumbs return to component--<code>--controls. To send a person to Controls on a component: K.set('ctl.view', { comp }) and go to 'controls'."
+ },
+ {
+  "to": "lane E",
+  "ask": "A fact to record a finding or raise a risk on a control (addFinding(control), raiseRisk(control)) would give Findings and risks its own Add on the control's page."
+ },
+ {
+  "to": "workbook",
+  "ask": "Rows come from PA.SSP.controls; to hold a control tailored in today it would read fact('baseline'). Responsibility and Owner cells could stage edits to host.resp.<code> and K 'ctl.own'."
+ },
+ {
+  "to": "lane E",
+  "ask": "Done on this side: the list, the cards and the control's page read fact('status') through the registry at draw time, and fact('controls') is summed from it, so a wrapper registered after lane C is seen; no need to change PA.v3f.INC2 from outside. (Call the fact you wrapped for every code you do not decide.)"
+ }
+]

@@ -104,7 +104,7 @@
     ["Products", [["products", "Products"], ["components", "Components"], ["suppliers", "Suppliers"]]],
     ["Library", [["frameworks", "Frameworks & overlays"], ["integrations", "Integrations"], ["data-calls", "Data calls"], ["reports", "Reports & exports"]]],
     ["Settings", [["deadlines", "Deadlines"], ["notifications", "Notifications"], ["event-log", "Event log"], ["enclaves", "Enclaves & markings"], ["common-controls", "Common control providers"], ["permissions", "Roles & permissions"]]],
-    ["About", [["study", "Design study"], ["before-after", "Before & after"], ["nav-options", "Navigation options"]]],
+    ["About", [["walkthrough", "Walkthrough findings"], ["study", "Design study"], ["before-after", "Before & after"], ["nav-options", "Navigation options"]]],
     ["WS-X90", [["overview", "Overview"], ["getting-started", "Getting started"], ["itcsc", "ITCSC"], ["people", "People"]]],
     ["WS-X90 › System", [["composition", "Composition"], ["inventory", "Inventory"], ["stigs", "STIG checklists"], ["interconnections", "Interconnections"], ["ppsm", "Ports & protocols"], ["sources", "Evidence sources"]]],
     ["WS-X90 › Compliance", [["baseline", "Baseline"], ["controls", "Controls"], ["ssps", "Plans"], ["requirements", "Requirements"], ["evidence", "Evidence"], ["checks", "Checks"], ["policies", "Policies"]]],

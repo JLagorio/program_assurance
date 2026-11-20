@@ -1,0 +1,121 @@
+[
+  {
+    "job": 7,
+    "severity": "wrong or misleading",
+    "what": "The boundary description is kept twice: saving it on the System page says \"Description saved here and in section 5 of the SSP\" but the plan's section 5 keeps its old paragraph, and a sentence typed into section 5 never reaches the System page.",
+    "where": "#system-boundary, #ssp",
+    "repro": "System > Boundary > Edit description > change the text > Save description > Documents > System security plan > Contents: Authorization boundary (old text). Reverse: type a sentence into section 5, then System > Boundary."
+  },
+  {
+    "job": 4,
+    "severity": "wrong or misleading",
+    "what": "A component's Controls tab marks a control's implementation \"Written\" while that control's page for the same component says \"Nothing is written yet for how Mission Computer implements AC-2(7)\"; the component's \"Implementation written 60/74\" counts these.",
+    "where": "#component--CN-109101--controls, #control--AC-2(7)@CN-109101 (also PE-13 on CN-109113)",
+    "repro": "System > Mission Computer > Controls > row AC-2(7) reads Written > click the row > the page says nothing is written yet."
+  },
+  {
+    "job": 10,
+    "severity": "wrong or misleading",
+    "what": "A control already in the active assessment's plan says Campaign \"—\" and offers \"Add to assessment campaign\" as its main button; after one of its objectives is judged in draft it reads \"0 of 4 judged\" beside \"Determination: Other than satisfied, Nov 17\" and still offers to add it to a campaign.",
+    "where": "#control--AC-2(7), #assessment--exp",
+    "repro": "Controls > search AC-2(7) > row (Campaign —). Then Assessments > Expanded control set assessment > Objectives > Judge on AC-02(07)(a) > Other than satisfied > Record determination > Its finding > AC-2(7)."
+  },
+  {
+    "job": 7,
+    "severity": "wrong or misleading",
+    "what": "The word \"element\" is still printed: the plan says \"27 elements\", \"20 elements\", \"the twenty elements they hold\" and \"two element descriptions\", and the workbook has a column headed \"Responsible element\" (the System page's copy of the same boundary sentence says \"components\").",
+    "where": "#ssp, #sctm",
+    "repro": "Documents > System security plan > Contents: Authorization boundary. Controls > Workbook > column F."
+  },
+  {
+    "job": 10,
+    "severity": "rough",
+    "what": "The gate's decision form offers Pass and Pass with actions and then refuses both while any deliverable is not ready (\"PDR cannot pass while Requirements, Connections and Boundary are not ready\"), even with an action written for the open deliverable, so the only decision that can be recorded now is Not passed.",
+    "where": "#gate--pdr-2",
+    "repro": "Overview > PDR row > Record as Marcus Ryde > Pass with actions > rationale and an action > Record decision."
+  },
+  {
+    "job": 7,
+    "severity": "rough",
+    "what": "The plan editor and the workbook take the whole window and the program menu disappears; the only way out is a small \"Documents\" or \"Controls\" link at the top left.",
+    "where": "#ssp, #sctm",
+    "repro": "Documents > System security plan; Controls > Workbook."
+  },
+  {
+    "job": 8,
+    "severity": "rough",
+    "what": "A record's page opened from the workbook has no link back to the workbook (its trail reads Controls > AC-2); only the browser's Back returns, and the side panel is closed when you get there.",
+    "where": "#sctm > #control--AC-2",
+    "repro": "Controls > Workbook > click code AC-2 > arrow at the top of the side panel > look for a way back."
+  },
+  {
+    "job": 8,
+    "severity": "rough",
+    "what": "In the workbook a record's code opens the side panel, not the record's page, so the page is two clicks away, unlike every other list.",
+    "where": "#sctm",
+    "repro": "Controls > Workbook > click AC-2, Mission Computer or REQ-001 in a row."
+  },
+  {
+    "job": 7,
+    "severity": "rough",
+    "what": "In the plan AC-2's narrative cannot be typed into until an AI draft is accepted or rejected, and each block's \"Edit source\" icon leaves the plan for another page.",
+    "where": "#ssp",
+    "repro": "Controls > AC-2 > Open the SSP at AC-2 (lands on AC-2 after a long scroll) > try to type in its text; click the Edit source icon."
+  },
+  {
+    "job": 6,
+    "severity": "rough",
+    "what": "After a control is added from the catalog the Controls list is narrowed to Program tailoring without saying so (its first chip reads \"All 15\"), and a search typed in Controls is still applied when you come back from the menu, so the list can open on \"All 0\".",
+    "where": "#controls",
+    "repro": "Controls > Add control > From the catalog > tick AC-18 > rationale > Add 1 control. Or: search AU-5(1), open it, remove it from the baseline, click Controls in the menu."
+  },
+  {
+    "job": 5,
+    "severity": "rough",
+    "what": "A requirement created on Mission Computer says \"Created today on the Requirements register\", is numbered REQ-644 while the register's count goes from 640 to 641, and the Link evidence dialog's button reads \"Link 1 artifact\".",
+    "where": "#component--CN-109101--requirements, #requirement--REQ-644",
+    "repro": "System > Mission Computer > Requirements > Add requirement > Create requirement > fill > Create requirement > open the new row > Link evidence > tick one."
+  },
+  {
+    "job": 1,
+    "severity": "rough",
+    "what": "The \"Back to PDR\" bar and the confirmation messages float over the foot of the page and cover what is under them (the bar covered an Add finding link; a message stayed up for roughly eight seconds and across two page changes).",
+    "where": "#control--AC-4(21), #ssp",
+    "repro": "Overview > Open 14 controls > AC-4(21): the bar sits over Findings and risks. System > Boundary > Edit description > Save, then go to Documents > System security plan: the message is still showing."
+  },
+  {
+    "job": 5,
+    "severity": "rough",
+    "what": "At phone width (390 wide) the requirement page's Controls table squeezes a control's name to about four letters a line, the workbook's header controls overlap (Workbook under Review), and every table scrolls sideways inside its own frame; no page scrolled sideways as a whole.",
+    "where": "#requirement--REQ-001, #sctm, list pages at 390x844",
+    "repro": "Open the page in a 390x844 window."
+  },
+  {
+    "job": 5,
+    "severity": "rough",
+    "what": "The Evidence page stacks two strips of tabs (Evidence / Sources, then six kinds of evidence) above a row of state chips.",
+    "where": "#evidence",
+    "repro": "Evidence in the menu."
+  },
+  {
+    "job": 10,
+    "severity": "rough",
+    "what": "The signed-in engineer picks which assessor a determination is \"Recorded as\"; the finding then reads \"recorded as Nadia Fournier by Ingrid Solberg\".",
+    "where": "#assessment--exp--objectives",
+    "repro": "Assessments > Expanded control set assessment > Objectives > Judge on any objective > Recorded as."
+  },
+  {
+    "job": 2,
+    "severity": "rough",
+    "what": "The Software & firmware tab lists a Hardware row (the unit itself) and its form, titled \"Add software or firmware\", offers Hardware as a kind.",
+    "where": "#component--CN-109101--software",
+    "repro": "System > Mission Computer > Software & firmware > Add item > Kind."
+  },
+  {
+    "job": 7,
+    "severity": "rough",
+    "what": "Document rows and assessment rows have no eye preview on hover (documents have a three-dot menu instead), so the row-and-eye pattern is not the same on every list.",
+    "where": "#documents, #assessments",
+    "repro": "Documents: hover System security plan. Assessments: hover any row."
+  }
+]

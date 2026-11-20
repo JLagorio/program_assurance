@@ -1,4 +1,14 @@
-# Prototype v2 (2026-11-19)
+# Prototype v2, with V3 as a switch (2026-11-20)
+
+- `prototype.html`: the page published as artifact version 21. It opens as v2 (artifact version 15, unchanged: 863 screens compared, 0 differences). The **V3** switch in the top bar turns on the rethought arrangement; About › Before & after › V3 says what changed, with guided walks, before-and-after screenshots, the ten jobs walked before and after, the checks, and what is still open. Open it in any browser; it runs from the file. `ba/` and `v3/` hold the screenshots the Before & after pages show, all of them our own prototype's screens (no Vanta image; hashed against the research images before each push).
+- **V3 in one paragraph.** Ten places in one sidebar with two levels (Overview, System, Controls, Requirements, Evidence, Documents, Assessments, Findings, Risks, Authorization). A record's kinds run across the page as tabs, or as a dropdown beside the search; no list of categories runs down the side. A table row goes to the record's own page; an eye on the row, shown on hover, opens its preview. Work is done on the record: a component's software, controls and requirements each have their own Add; a requirement's statement is edited in place; a finding's plan and risk are made on its page. "Component", never "element".
+- `v3-notes/first/`: the first V3 (a layer that fixed the walkthrough's 82 findings): briefs and each lane's notes.
+- `v3-notes/rethink/`: the rethink by record after that V3 was rejected: `MODEL.md` (the model and its rules), `PASS2.md` (one sidebar, horizontal tabs, a row opens its page), the lane briefs (`O.md`, `S.md`, `C.md`, `D.md`, `E.md`), each lane's `notes.json`, `asks.json` and click-through `walk.mjs`, `checks.json`, `jobs.json`, `verify/` (an independent re-walk of the ten jobs and the problems it found), and the lead's checks in `look/`. The scripts still name the session scratch folder they ran from.
+- `src/`: the source of `prototype.html`. `python3 -I build.py <name>` joins `core.js`, `shell.html` and every `mod-*.js`/`.css` into `out/<name>.html`. V3 is `mod-zzzz-v3-*`: `-0core` (the switch, routes, facts), `-1kit` (the page shapes every V3 page is built from, `PA.v3k`), `-2program` to `-7more` (the first V3's layers), `-8a-shell` (the sidebar and the return bar), `-8o` Overview, `-8s` System, `-8c` Controls, `-8d` Documents, requirements and evidence, `-8e` Assessments, findings, risks and authorization, `-9ba*` and `-9bb-data` (Before & after).
+
+What follows is the v2 note of 19 November, still true of everything under V3 off.
+
+## Prototype v2 (2026-11-19)
 
 - `prototype.html`: v2, the page published as artifact version 15. About › Before & after compares Before (version 5), v1 and v2 screen by screen. Open it in any browser; it runs from the file. `ba/` holds the screenshots Before & after shows, all of them our own prototype's screens (no Vanta images).
 - `prototype-v1.html`: v1, the v9.1 page (artifact version 11) as the gap review of 18 November read it.
@@ -9,4 +19,4 @@
 - `gap/`: the gap review of 18 November.
 - `dod/`: the public DISA STIG files and the AF ITCSC v2.0 form the DoD screens were built from.
 
-Copied out of the session scratch folder, which is temporary. `artifacts/` stays gitignored on design-system. This folder is committed on the `prototype-v9` branch: v9.1 on 18 November, and v2 as artifact version 15 on 19 November.
+Copied out of the session scratch folder, which is temporary. `artifacts/` stays gitignored on design-system. This folder is committed on the `prototype-v9` branch: v9.1 on 18 November, v2 as artifact version 15 on 19 November, and v2 with the V3 switch as artifact version 21 on 20 November.

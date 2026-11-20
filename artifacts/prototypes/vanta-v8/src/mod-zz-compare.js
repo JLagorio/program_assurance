@@ -19,7 +19,8 @@
   const SHORT = { v2new: "New in v2", work: "Home and work", tests: "Tests", docs: "Documents", people: "People", risk: "Risk", program: "Program", analysis: "Analysis", library: "Library" };
   function groups() {
     const added = B2().groups || [];
-    return [...added.filter((g) => g.key === "v2new"), ...B().groups, ...added.filter((g) => g.key !== "v2new")].map((g) => ({ ...g, short: SHORT[g.key] || g.short }));
+    // V3 (mod-zzzz-v3-9ba.js adds it) leads: it is what this round proposes.
+    return [...added.filter((g) => g.key === "v3"), ...added.filter((g) => g.key === "v2new"), ...B().groups, ...added.filter((g) => g.key !== "v2new" && g.key !== "v3")].map((g) => ({ ...g, short: SHORT[g.key] || g.short }));
   }
   function pairs() {
     const b2 = B2();
@@ -91,7 +92,8 @@
 
   function tabs(on) {
     const ps = pairs();
-    const list = [["before-after", "Overview", null], ...groups().map((g) => ["before-after-" + g.key, g.short || g.label, ps.filter((p) => p.group === g.key).length])];
+    const v3n = () => (window.PA.v3ba ? (window.PA.v3ba.tabCount ? window.PA.v3ba.tabCount() : window.PA.v3ba.count()) : null);
+    const list = [["before-after", "Overview", null], ...groups().map((g) => ["before-after-" + g.key, g.short || g.label, g.key === "v3" ? v3n() : ps.filter((p) => p.group === g.key).length])];
     return `<div class="ba-tabs" role="tablist" aria-label="Before, v1 and v2">${list.map(([r, l, n]) => `<span role="tab" tabindex="0" aria-selected="${r === on}" class="${r === on ? "on" : ""}" data-go="${r}">${esc(l)}${n !== null ? `<span class="ct num">${n}</span>` : ""}</span>`).join("")}</div>`;
   }
 
@@ -119,8 +121,9 @@
       const list = ps.filter((p) => p.group === g.key); if (!list.length) return "";
       return `<div class="ba-toc-g"><span class="ba-toc-k" data-go="before-after-${esc(g.key)}" role="link" tabindex="0">${esc(g.label)} <span class="num">${list.length}</span></span>${list.map((p) => `<a href="#before-after-${esc(g.key)}" data-ba-jump="${esc(g.key)}|${esc(p.id)}">${esc(p.title)} <span class="num">${((c) => p.group === "v2new" && !c ? "New" : c)(p.v2notes.filter((n) => n.by !== "V").length)}</span></a>`).join("")}</div>`;
     }).join("");
-    return `<div class="main ba">${header("Before, v1 and v2", facts(), "")}${tabs("before-after")}
-      ${LEDE}
+    const v3 = window.PA.v3ba ? `<div class="ba-v3call"><div><b>V3 has been rethought by record.</b> Ten places in the program's menu instead of 27 pages, and the work done on each record. It is a layer you switch on, so you can see it before it goes into the prototype.</div><span class="btn ink" data-go="before-after-v3" role="link" tabindex="0">Open V3</span></div>` : "";
+    return `<div class="main ba">${header(window.PA.v3ba ? "Before, v1, v2 and V3" : "Before, v1 and v2", facts(), "")}${tabs("before-after")}
+      ${v3}${LEDE}
       ${v2block()}
       <h3 class="ba-sub">Screens compared</h3>
       <p class="ba-quiet">The number beside each screen is how many changes v2 made on it. New marks a screen v1 did not have.</p>
@@ -140,7 +143,7 @@
     const g = groups().find((x) => x.key === key) || { label: key };
     const ps = pairs().filter((p) => p.group === key);
     if (pendingJump) { const id = pendingJump; pendingJump = null; setTimeout(() => { const t = document.getElementById("ba-" + id); if (t) { t.scrollIntoView({ block: "start" }); t.querySelector("h3").focus({ preventScroll: true }); } }, 60); }
-    return `<div class="main ba">${header("Before, v1 and v2", facts(), "")}${tabs(route)}
+    return `<div class="main ba">${header(window.PA.v3ba ? "Before, v1, v2 and V3" : "Before, v1 and v2", facts(), "")}${tabs(route)}
       <div class="ba-gintro">${LEDE}<h2 class="ba-gh">${esc(g.label)}</h2>${g.intro ? `<p class="ba-lede">${esc(g.intro)}</p>` : ""}
       <div class="ba-gbar"><span class="ba-glabel">Show in every screen</span>${switcher(mode, "Show in every screen", "data-ba-all")}</div>
       <div class="ba-jumps">${ps.map((p) => `<a href="#${route}" data-ba-jump="${key}|${esc(p.id)}">${esc(p.title)}</a>`).join("")}</div></div>

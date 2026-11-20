@@ -1,0 +1,122 @@
+/* V3 lane C (k3c-): Controls and the baseline as one page, the control's panel, the workbook's view switch. Kit look; no page chrome. */
+.k3c-mu { color: var(--ink-3); }
+.k3c .k3-head-t .k3-seg { margin-inline-start: 10px; }
+.k3c .k3-table td:first-child { min-width: 250px; }
+.k3c-src { font-size: 13.5px; color: var(--ink-2); white-space: nowrap; }
+.k3c-rs { display: grid; font-size: 13.5px; line-height: 20px; color: var(--ink); white-space: nowrap; }
+.k3c-rs .p { font-size: 12.5px; line-height: 17px; color: var(--ink-3); white-space: normal; max-width: 22ch; }
+/* The filter row: the search, the families dropdown, then five filters, on one line from 1280px and wrapping whole below. */
+.k3c .k3-tools { row-gap: 8px; }
+.k3c .k3-tools .k3-search input { width: 208px; }
+.k3c .k3-tools .k3-flt select { max-inline-size: 136px; text-overflow: ellipsis; field-sizing: content; }
+.k3c .k3-tools .k3-rsel select { max-inline-size: 184px; }
+@media (max-width: 1679px) {
+  .k3c-rs .p { display: none; }
+  .k3c .k3-table .k3c-own .nm { display: none; }
+  .k3c .k3-table td, .k3c .k3-table th { padding-inline: 10px; }
+}
+@media (max-width: 1399px) { .k3c .k3-table .k3c-w2 { display: none; } }
+.k3c .k3-nm-d { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; max-width: 62ch; }
+
+/* The Baseline card: the total, then each layer on one line, in the order they apply. A line is a filter. */
+.k3c-base { gap: 10px; }
+.k3c-base .k3-sec-h { margin: 0; }
+.k3c-base-n { font-size: 13.5px; line-height: 20px; color: var(--ink-3); }
+.k3c-base-n .num { font-size: 22px; line-height: 28px; font-weight: 600; letter-spacing: -0.02em; color: var(--ink); margin-inline-end: 2px; }
+.k3c-lys { list-style: none; margin: 0; padding: 0; }
+.k3c-ly { display: grid; grid-template-columns: minmax(0, 1fr) auto 44px; gap: 12px; align-items: baseline; width: 100%; border: 0; border-top: 1px solid var(--line); background: none; padding: 7px 0; font: 400 14px/20px var(--font); color: var(--ink); text-align: start; cursor: pointer; }
+.k3c-lys li:first-child .k3c-ly { border-top: 0; }
+.k3c-ly .l { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.k3c-ly .d { color: var(--ink-3); font-size: 13px; white-space: nowrap; }
+.k3c-ly .n { font-weight: 600; text-align: end; }
+.k3c-ly:hover .l { text-decoration: underline; }
+.k3c-ly.still { cursor: default; }
+.k3c-ly.still:hover .l { text-decoration: none; }
+.k3c-ly.on .l { font-weight: 600; box-shadow: inset 0 -2px 0 var(--ink); }
+.k3c-ly.off { color: var(--ink-4); }
+.k3c-ly.off .n { font-weight: 400; }
+.k3c-ly:focus-visible, .k3c-pv:focus-visible, .k3c-sw:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.k3c-base-f { font-size: 13px; line-height: 18px; }
+
+.k3c-showing { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: baseline; margin: 0; font-size: 13.5px; line-height: 20px; color: var(--ink-2); }
+.k3c-out td { color: var(--ink-3); }
+.k3c-out .k3-nm-t { color: var(--ink-2); }
+.k3c .pager { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; }
+.k3c-same { color: var(--ink-3); font-size: 13px; }
+.k3c-pg { margin-inline-start: auto; display: inline-flex; gap: 8px; }
+
+/* Coverage: what Posture drew, under this page's header. */
+.k3c-covt { max-width: 90ch; }
+.k3c-cov { min-width: 0; display: grid; gap: 16px; }
+.k3c-cov > * { min-width: 0; }
+
+/* Edit baseline. */
+.k3c-eb { display: grid; gap: 14px; margin-top: 12px; }
+.k3c-eb-l { list-style: none; margin: 0; padding: 0; border: 1px solid var(--line); border-radius: 8px; }
+.k3c-eb-r { display: grid; grid-template-columns: minmax(0, 1fr) auto 48px 84px; gap: 12px; align-items: center; padding: 9px 12px; border-top: 1px solid var(--line); font-size: 14px; line-height: 20px; }
+.k3c-eb-r:first-child { border-top: 0; }
+.k3c-eb-r .x { display: grid; min-width: 0; }
+.k3c-eb-r .x b { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.k3c-eb-r .x .k3c-mu { font-size: 12.5px; line-height: 16px; }
+.k3c-eb-r .d { color: var(--ink-3); font-size: 13px; white-space: nowrap; }
+.k3c-eb-r .n { font-weight: 600; text-align: end; }
+.k3c-eb-r .s { justify-self: end; font-size: 12.5px; }
+.k3c-eb-r.off .x b, .k3c-eb-r.off .n { color: var(--ink-4); font-weight: 400; }
+.k3c-sw { inline-size: 34px; block-size: 20px; border-radius: 999px; border: 0; background: var(--track); position: relative; cursor: pointer; padding: 0; }
+.k3c-sw::after { content: ""; position: absolute; inset-block-start: 2px; inset-inline-start: 2px; inline-size: 16px; block-size: 16px; border-radius: 50%; background: var(--canvas); box-shadow: 0 1px 2px rgb(0 0 0 / 0.25); transition: inset-inline-start 0.12s; }
+.k3c-sw[aria-checked="true"] { background: var(--ink); }
+.k3c-sw[aria-checked="true"]::after { inset-inline-start: 16px; }
+.k3c-eb-add { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 13.5px; }
+.k3c-eb-w { border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; display: grid; gap: 8px; }
+.k3c-eb-w h5 { margin: 0; font-size: 14px; line-height: 20px; font-weight: 600; }
+.k3c-eb-w .k3-facts dd { min-width: 0; }
+.k3c-code { font: 500 12.5px/18px var(--mono, ui-monospace, monospace); color: var(--ink-2); white-space: nowrap; }
+
+/* The control's panel. */
+.k3c-stmt { font-size: 14px; line-height: 22px; color: var(--ink); max-width: 68ch; }
+.k3c-pv { font-weight: 500; color: var(--ink); cursor: pointer; text-decoration: underline; text-decoration-color: var(--ink-4); text-decoration-thickness: 1px; text-underline-offset: 3px; border-radius: 3px; }
+.k3c-pv:hover { text-decoration-color: var(--ink); background: var(--band); }
+.k3c-pv.unset { font-weight: 400; color: var(--ink-3); text-decoration-style: dashed; }
+.k3c-plist { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: 14px; line-height: 22px; }
+.k3c-impl { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; font-size: 13px; line-height: 19px; color: var(--ink-2); white-space: normal; }
+.k3c-impl.none { color: var(--ink-3); }
+.k3c-lead .k3c-impl { -webkit-line-clamp: 8; }
+.k3c-impl.wide { -webkit-line-clamp: 6; font-size: 13.5px; line-height: 20px; max-width: 78ch; }
+
+/* The control's page. */
+.k3c-rec .k3-nm-d { -webkit-line-clamp: 2; max-width: 72ch; }
+.k3c-rec .k3-table td:first-child { min-width: 240px; }
+.k3c-prose { margin: 0; font-size: 14.5px; line-height: 23px; color: var(--ink); max-width: 78ch; white-space: pre-line; }
+.k3c-rec .k3-sub { max-width: none; }
+.k3c-step { display: inline-flex; flex-wrap: wrap; gap: 4px 16px; align-items: baseline; font-size: 13.5px; line-height: 20px; color: var(--ink-3); }
+.k3c-step .k3-link { white-space: nowrap; }
+.k3c-lead td:first-child { box-shadow: inset 2px 0 0 var(--ink); }
+.k3c-under { margin-top: -6px; font-size: 13px; line-height: 19px; }
+.k3-pn .k3-sec + .k3c-under { margin-top: -8px; }
+.k3c-rq { display: block; width: 100%; text-align: start; text-decoration: none; color: inherit; }
+.k3c-rq:hover .k3-nm-t { text-decoration: underline; }
+.k3-pn .k3-table td.tight { white-space: nowrap; }
+.k3-pn .k3-table td:first-child { width: 100%; }
+.k3-pn .k3-table td.nw { white-space: nowrap; }
+
+/* The workbook says it is Controls' second view. */
+.k3c-wb { display: inline-flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; margin-inline-start: 4px; }
+.k3c-wb-n { font-size: 12.5px; line-height: 16px; color: var(--ink-3); }
+
+@media (max-width: 900px) {
+  .k3c-eb-r { grid-template-columns: minmax(0, 1fr) auto 44px; }
+  .k3c-eb-r .d { display: none; }
+  .k3c-wb-n { display: none; }
+}
+@media (max-width: 640px) {
+  .k3c-same { display: none; }
+  .k3c .k3-table td:first-child { min-width: 200px; }
+}
+
+/* objectives inside the control's panel */
+.k3c-objs { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+.k3c-objs li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; padding: 9px 0; border-top: 1px solid var(--line, #e7e7ea); font-size: 13px; line-height: 19px; }
+.k3c-objs li:first-child { border-top: 0; }
+.k3c-objs .k3-code { grid-column: 1 / -1; justify-self: start; }
+.k3c-objs .t { min-width: 0; }
+.k3c-objs .s { white-space: nowrap; font-size: 12px; }

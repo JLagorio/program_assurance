@@ -1,0 +1,13 @@
+/* V3 shell. Navigation option 2 (Josef, 20 Nov): one sidebar with two levels; the rail of icons is gone on a wide screen. */
+@media (min-width: 901px) {
+  #proto.v3on:not(.fullwin) .pt-shell, #proto.v3on:not(.fullwin) .pt-shell.inprog, #proto.v3on:not(.fullwin) .pt-shell.inarea { grid-template-columns: 240px minmax(0, 1fr); }
+  #proto.v3on .pt-shell > .rail { display: none; }
+  #proto.v3on:not(.fullwin) .pt-shell:not(.inprog):not(.inarea) > .side { display: grid; }
+}
+#proto.v3on .side .v3n-back { display: flex; align-items: center; gap: 8px; width: 100%; border: 0; background: none; padding: 6px 10px; margin: 0 0 8px; border-radius: 6px; font: 500 13px/20px var(--font); color: var(--ink-3); text-align: start; cursor: pointer; }
+#proto.v3on .side .v3n-back:hover { color: var(--ink); background: rgb(127 127 127 / 0.1); }
+#proto.v3on .side .v3n-back:focus-visible, #proto.v3on .side .v3n-sub:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; }
+#proto.v3on .side .v3n-back span { font-size: 16px; line-height: 1; }
+#proto.v3on .side .v3n-ws { font: 600 14px/1.2 var(--font); color: var(--ink); padding: 10px 10px 12px; margin-bottom: 6px; border-bottom: 1px solid var(--line); }
+#proto.v3on .side .v3n-sub { width: 100%; border: 0; background: none; justify-content: space-between; padding-inline-start: 36px; font: inherit; color: var(--ink-2); cursor: pointer; text-align: start; }
+#proto.v3on .side .v3n-sub .v3n-sl { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

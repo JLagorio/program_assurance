@@ -1,0 +1,27 @@
+/* V3 lane W (v3w-): one inbox, sources, checks and providers. Written in v2's look. */
+#proto.v3on .a-work-bellw:not(.v3w-bellw) { display: none !important; }
+#proto:not(.v3on) .v3w-bellw { display: none !important; }
+.v3w-ibf { padding: 8px 12px; font-size: 12px; color: var(--text-2, #5b6270); border-top: 1px solid var(--line, #e6e8ec); }
+.v3w-mu { color: var(--text-2, #5b6270); }
+.v3w-empty { color: var(--text-2, #5b6270); text-align: center; padding: 14px 8px; }
+.v3w-pg { display: inline-flex; align-items: center; gap: 6px; }
+.v3w-pg .ib[disabled] { opacity: .4; cursor: default; }
+.v3w-moves { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.v3w-moves li { display: grid; grid-template-columns: minmax(0, 11rem) minmax(0, 1fr); gap: 8px; font-size: 13px; }
+.v3w-moves li span { color: var(--text-2, #5b6270); min-width: 0; overflow-wrap: anywhere; }
+.v3w-fl { display: grid; gap: 4px; margin-top: 10px; font-size: 13px; font-weight: 500; }
+.v3w-req { font-weight: 400; color: var(--text-2, #5b6270); font-size: 12px; }
+.v3w-ta, .v3w-in { width: 100%; box-sizing: border-box; font: inherit; font-weight: 400; padding: 7px 9px; border: 1px solid var(--line-2, #d3d7de); border-radius: 6px; background: var(--bg, #fff); color: inherit; }
+.v3w-ta[aria-invalid="true"], .v3w-in[aria-invalid="true"] { border-color: var(--bad, #c4314b); }
+.v3w-err { color: var(--bad-text, #b42318); font-size: 12px; margin: 4px 0 0; }
+.v3w-flagline { margin-top: 10px; flex-wrap: wrap; }
+.v3w-flagline .ak-link { white-space: nowrap; }
+.v3w-srcl { cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+.v3w-minip { display: block; font-size: 12px; }
+.v3w-setup .v2k-li { cursor: pointer; }
+.v3w-step.done .x s { color: var(--text-2, #5b6270); }
+.v3w-ctabs { margin-bottom: 4px; }
+.v3w-cm { min-width: 0; }
+@media (max-width: 600px) { .v3w-moves li { grid-template-columns: minmax(0, 1fr); gap: 2px; } }
+.next.v3w-flagline { display: flex; align-items: flex-start; gap: 8px; }
+.next.v3w-flagline > span:not(.gl) { flex: 1 1 16rem; min-width: 0; }

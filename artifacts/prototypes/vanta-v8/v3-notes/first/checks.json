@@ -1,0 +1,7 @@
+[
+ "With V3 off, this build matches v2 exactly. All 863 screens, 366 previews and 241 dialogs, and the menu on 61 pages, draw the same as the frozen v2.",
+ "With V3 on, all 880 screens draw with no page errors, and none of the 52 menu pages scrolls sideways at 1440 or 390 pixels wide.",
+ "Each lane's walk passes on the whole V3 build. Created programs: 38 checks. Gates and decisions: 53. One source per fact: 63. Assessment: 64. Inbox and merges: 56. Earlier open items: 52.",
+ "v2's own flow checks still pass with V3 off: 15 v7 flows, 25 v8 flows and the shell probe. So do the Walkthrough findings page's tests.",
+ "Where the prototype holds fewer records than a register counts (it has 117 of WS-X90's 640 requirements in full), V3 says so where it shows the count."
+]

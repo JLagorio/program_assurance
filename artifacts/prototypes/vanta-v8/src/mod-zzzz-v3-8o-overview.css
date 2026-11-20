@@ -1,0 +1,80 @@
+/* V3 lane O (mod-zzzz-v3-8o-overview.js): the program's Overview, its lifecycle in place, the gate's panel. Kit look; only the
+   parts the kit has no shape for: the phase strip, the deliverable checklist, a criterion row. */
+.k3o-chip { text-decoration: none; display: inline-flex; border-radius: 99px; }
+.k3o-chip:hover .pill { box-shadow: 0 0 0 1px var(--line-2, var(--line)); }
+.k3o-chip:focus-visible, .k3o-ph:focus-visible, .k3o-pers:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.k3o-late { color: var(--bad); }
+.k3o-pers { cursor: default; display: inline-flex; align-items: center; gap: 2px; min-width: 0; }
+.k3o-pers[data-panel] { cursor: pointer; border-radius: 6px; }
+.k3o-pers[data-panel]:hover .nm { text-decoration: underline; }
+.k3o .k3-sec-h .k3-flt select { font-weight: 500; width: auto; max-width: none; }
+.k3o .k3-title { max-width: none; }
+
+/* The phase strip: five phases, each with its steps as marks. Choosing one lists its steps under the strip. */
+.k3o-strip { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; min-width: 0; }
+.k3o-ph { display: grid; gap: 2px; align-content: start; text-align: start; border: 1px solid var(--line); border-radius: 10px; background: var(--canvas); padding: 10px 12px 10px; font: inherit; color: var(--ink-2); cursor: pointer; min-width: 0; }
+.k3o-ph:hover { border-color: var(--ink-4); }
+.k3o-ph.on { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); color: var(--ink); }
+.k3o-ph-c { font-size: 14px; line-height: 20px; font-weight: 600; color: var(--ink); }
+.k3o-ph-n { font-size: 12.5px; line-height: 17px; color: var(--ink-3); min-height: 34px; }
+.k3o-ph-m { font-size: 12.5px; line-height: 17px; color: var(--ink-3); }
+.k3o-marks { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; min-height: 12px; margin-block: 8px 4px; }
+.k3o-marks i { width: 10px; height: 10px; border-radius: 50%; box-sizing: border-box; border: 1.5px solid var(--ink-4); background: var(--canvas); }
+.k3o-marks i.done { background: var(--ok); border-color: var(--ok); }
+.k3o-marks i.now { border: 3px solid var(--ink); }
+.k3o-marks i.skip { border-style: dashed; opacity: 0.7; }
+.k3o-ph.skip { background: var(--page); }
+tr.k3o-now > td:first-child { box-shadow: inset 2px 0 0 var(--ink); }
+#k3o-life .k3-table :is(th, td):first-child { min-width: 190px; }
+.k3o .k3-table[aria-label="Roles"] :is(th, td):first-child, .k3o .k3-table[aria-label="People"] :is(th, td):first-child { min-width: 180px; }
+
+/* The next gate, opened up: a checklist of its deliverables. */
+.k3o-gate { gap: 16px; }
+.k3o-gate-h { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px 20px; flex-wrap: wrap; }
+.k3o-gate-h > div:first-child { display: grid; gap: 2px; min-width: 0; }
+.k3o-k { font-size: 11.5px; line-height: 16px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); }
+.k3o-gate-t { font: inherit; color: var(--ink); text-align: start; }
+.k3o-gate-r { display: inline-flex; align-items: center; gap: 6px; font-size: 13.5px; line-height: 20px; color: var(--ink-2); white-space: nowrap; }
+.k3o-dls { display: grid; border-top: 1px solid var(--line); min-width: 0; }
+.k3o-dl { display: grid; grid-template-columns: 18px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 11px 2px; border-bottom: 1px solid var(--line); min-width: 0; }
+.k3o-dl-s { width: 16px; height: 16px; border-radius: 50%; box-sizing: border-box; border: 1.5px solid var(--ink-4); background: var(--canvas); }
+.k3o-dl.ok .k3o-dl-s, .k3o-rs.ok .k3o-dl-s { border-color: var(--ok); background: var(--ok) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4.4 8.3l2.3 2.3 4.9-5' fill='none' stroke='%23fff' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 14px no-repeat; }
+.k3o-dl.out .k3o-dl-s { border-style: dashed; }
+.k3o-dl-b { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 12px; min-width: 0; }
+.k3o-dl-n { font-size: 14px; line-height: 20px; font-weight: 500; color: var(--ink); }
+.k3o-dl-w { font-size: 13.5px; line-height: 20px; color: var(--ink-2); }
+.k3o-dl-w b { font-weight: 600; color: var(--ink); }
+.k3o-dl.ok .k3o-dl-n, .k3o-dl.out .k3o-dl-n { font-weight: 400; color: var(--ink-2); }
+.k3o-dl.ok .k3o-dl-w, .k3o-dl.out .k3o-dl-w { color: var(--ink-3); }
+.k3o-gate .k3-next { margin: 0; }
+
+/* The gate's panel */
+.k3-pn .k3o-dls, .k3-pn .k3o-crs { list-style: none; padding: 0; margin: 0; }
+.k3-pn .k3o-desc { max-width: 60ch; }
+.k3-pn .k3o-dl { grid-template-columns: 18px minmax(0, 1fr); }
+.k3-pn .k3o-dl .btn { grid-column: 2; justify-self: start; }
+.k3o-crs { display: grid; border-top: 1px solid var(--line); }
+.k3o-cr { display: flex; align-items: center; gap: 8px 10px; flex-wrap: wrap; padding: 10px 2px; border-bottom: 1px solid var(--line); min-width: 0; }
+.k3o-cr-b { display: grid; gap: 4px; flex: 1 1 220px; min-width: 0; }
+.k3o-cr-t { font-size: 13.5px; line-height: 19px; color: var(--ink); }
+.k3o-cr-m { font-size: 12.5px; line-height: 17px; color: var(--ink-3); }
+.k3o-log td { vertical-align: middle; }
+
+@media (max-width: 860px) {
+  .k3o-strip { grid-template-columns: repeat(5, minmax(132px, 1fr)); overflow-x: auto; scrollbar-width: thin; padding-bottom: 4px; }
+  .k3o-dl { grid-template-columns: 18px minmax(0, 1fr); }
+  .k3o-dl .btn { grid-column: 2; justify-self: start; }
+}
+
+/* The gate's page (gate--<id>): what holds it back, its criteria */
+.k3o-why b { font-weight: 600; }
+.k3o-acts { display: inline-flex; gap: 4px; white-space: nowrap; }
+.k3o-rs { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; font-size: 13.5px; color: var(--ink-2); }
+.k3o-rs.ok { color: var(--ink-3); }
+.k3o-rs .k3o-dl-s { flex: none; }
+.k3-rec .k3-table[aria-label="Deliverables"] :is(th, td):first-child { min-width: 150px; }
+#k3o-crit .k3-table :is(th, td):nth-child(3) { min-width: 150px; }
+#k3o-crit .k3-table :is(th, td):first-child { min-width: 220px; }
+/* The kit's record page keeps its two columns at every width (.k3-rec .k3-aside outranks the kit's own narrow rule): on a gate's
+   page the side cards go under the body where the window is narrow. (asks.json: the kit should do this for every record page.) */
+@media (max-width: 1080px) { .k3-rec:has(#k3o-crit) .k3-aside { grid-template-columns: minmax(0, 1fr); } }

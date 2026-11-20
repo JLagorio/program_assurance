@@ -1,0 +1,39 @@
+/* Prototype V3, lane G (v3g-): conditions, open items, the outcomes view. Every rule is scoped to V3 (html.v3on) and to v3g- classes. */
+html.v3on .v3g-cnds { display: flex; flex-direction: column; border-top: 1px solid var(--line, #e5e5e5); }
+html.v3on .v3g-cnd { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; gap: 10px; align-items: center; padding: 9px 4px; border-bottom: 1px solid var(--line, #e5e5e5); cursor: pointer; }
+html.v3on .v3g-cnd:hover { background: var(--hover, rgba(0, 0, 0, 0.03)); }
+html.v3on .v3g-cnd:focus-visible { outline: 2px solid var(--focus, #2563eb); outline-offset: -2px; }
+html.v3on .v3g-cnd .x { display: flex; flex-direction: column; min-width: 0; }
+html.v3on .v3g-cnd .x b { font-weight: 500; overflow-wrap: anywhere; }
+html.v3on .v3g-cnd.done .x b { color: var(--mute, #6b6b6b); }
+html.v3on .v3g-life > .ak-sec { margin-top: 18px; }
+html.v3on .v3g-warn { margin: 4px 0 12px; display: flex; flex-direction: column; gap: 4px; }
+html.v3on .v3g-warn p { display: flex; gap: 6px; align-items: flex-start; margin: 0; color: var(--ink, #1a1a1a); font-size: 13px; line-height: 1.45; }
+html.v3on .v3g-open { margin: 2px 0 12px; font-size: 13px; }
+html.v3on .v3g-open b { font-weight: 600; }
+html.v3on .v3g-open ul { margin: 4px 0 0; padding-inline-start: 18px; color: var(--mute, #555); }
+html.v3on .v3g-open li { margin: 2px 0; overflow-wrap: anywhere; }
+html.v3on .v3g-cf { border-top: 1px solid var(--line, #e5e5e5); padding-top: 8px; margin-top: 4px; }
+html.v3on .v2g-dot.v3g-out { background: transparent; border-style: dashed; }
+html.v3on .v3g-ring { display: inline-flex; gap: 5px; align-items: center; color: var(--mute, #6b6b6b); }
+html.v3on .v3g-crow { cursor: pointer; border-radius: 6px; }
+html.v3on .v3g-crow:hover { background: var(--hover, rgba(0, 0, 0, 0.03)); }
+html.v3on .v3g-revs { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; margin: 14px 0 6px; }
+html.v3on .v3g-rev { display: flex; flex-direction: column; gap: 4px; padding: 10px; border: 1px solid var(--line, #e5e5e5); border-radius: 8px; color: inherit; text-decoration: none; min-width: 0; }
+html.v3on .v3g-rev:hover { border-color: var(--ink-3, #999); }
+html.v3on .v3g-rev .k { font-weight: 600; }
+html.v3on .v3g-rev .m { color: var(--mute, #6b6b6b); font-size: 12px; }
+html.v3on .v3g-band { margin: 6px 0 10px; color: var(--mute, #6b6b6b); font-size: 13px; }
+html.v3on .v3g-otbl .v3g-grp td { background: var(--soft, #fafafa); font-weight: 500; }
+html.v3on .v3g-oc { display: inline; overflow-wrap: anywhere; }
+html.v3on .v3g-rec { margin-top: 10px; }
+html.v3on .v3g-side { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+html.v3on .v3g-hint { color: var(--mute, #6b6b6b); font-size: 12px; }
+@media (max-width: 900px) {
+  html.v3on .v3g-revs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  html.v3on .v3g-cnd { grid-template-columns: auto minmax(0, 1fr); }
+  html.v3on .v3g-cnd > .ak-owner, html.v3on .v3g-cnd > .ak-due, html.v3on .v3g-cnd > .v2g-mu { grid-column: 2; }
+}
+
+/* Lead, integration: a deliverables list outside a sized container (Plans' revision rows) stacks on a phone, as it does inside one. */
+@media (max-width: 640px) { #proto.v3on .v2g-dls li { grid-template-columns: minmax(0, 1fr); gap: 4px; } }

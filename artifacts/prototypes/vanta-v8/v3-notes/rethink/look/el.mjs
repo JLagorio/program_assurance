@@ -1,0 +1,17 @@
+import { createRequire } from "module";
+const require = createRequire("/Users/joseflagorio/Development/program_assurance-ux-proposal/package.json");
+const { chromium } = require("playwright");
+const build = process.argv[2], out = process.argv[3];
+const b = await chromium.launch(); const p = await b.newPage({ viewport: { width: 1440, height: 1200 } });
+await p.goto("file://" + build + "#overview"); await p.waitForTimeout(700);
+await p.evaluate(() => { sessionStorage.clear(); PA.v2.reset(); PA.v3.set(true); }); await p.waitForTimeout(300);
+const go = async (r) => { await p.evaluate((r) => { location.hash = r; }, r); await p.waitForTimeout(500); };
+await go("composition");
+const id = await p.evaluate(() => { const e = document.querySelectorAll("#main .v7p-elrow[data-panel='v7p-el']")[0]; e.click(); return e.dataset.id; });
+await p.waitForTimeout(500);
+await p.screenshot({ path: `${out}/el-preview.jpg`, type: "jpeg", quality: 60 });
+await go("rec--v7p-el--" + id);
+await p.screenshot({ path: `${out}/el-page.jpg`, type: "jpeg", quality: 60, fullPage: true });
+console.log(id, await p.evaluate(() => document.querySelector("#main").innerText.replace(/\s+/g, " ").slice(0, 1800)));
+console.log("actions:", await p.evaluate(() => [...document.querySelectorAll("#main button, #main a.btn, #main .ak-btn, #main [role=tab]")].map((e) => e.innerText.trim().replace(/\s+/g, " ")).filter(Boolean).join(" | ")));
+await b.close();

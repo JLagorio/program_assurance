@@ -1,0 +1,20 @@
+import { createRequire } from "module";
+const require = createRequire("/Users/joseflagorio/Development/program_assurance-ux-proposal/package.json");
+const { chromium } = require("playwright");
+const fs = await import("fs");
+const build = process.argv[2], out = process.argv[3], PUB = process.argv[4];
+const b = await chromium.launch(); const p = await b.newPage({ viewport: { width: 1440, height: 900 } });
+const errs = []; p.on("pageerror", (e) => errs.push(e.message));
+await p.route("**/v3/*.png", (r) => { const f = PUB + "/" + r.request().url().split("/v3/").pop(); fs.existsSync(f) ? r.fulfill({ path: f }) : r.abort(); });
+await p.goto("file://" + build + "#before-after-v3"); await p.waitForTimeout(900);
+await p.evaluate(() => { sessionStorage.clear(); PA.v2.reset(); }); await p.waitForTimeout(400);
+await p.screenshot({ path: `${out}/ba-1.jpg`, type: "jpeg", quality: 60, fullPage: false });
+await p.evaluate(() => document.getElementById("main").scrollTo(0, 620)); await p.waitForTimeout(300);
+await p.screenshot({ path: `${out}/ba-2.jpg`, type: "jpeg", quality: 60 });
+console.log("text:", (await p.evaluate(() => document.querySelector("#main").innerText.replace(/\s+/g, " "))).slice(0, 900));
+// start a walk
+await p.click("[data-v3-walk]"); await p.waitForTimeout(700);
+console.log("walk:", await p.evaluate(() => ({ hash: location.hash, on: PA.v3.on(), guide: (document.getElementById("v3guide") || {}).innerText })).then((x) => JSON.stringify(x).slice(0, 400)));
+await p.screenshot({ path: `${out}/ba-walk.jpg`, type: "jpeg", quality: 60 });
+console.log("errors", errs.slice(0, 5));
+await b.close();

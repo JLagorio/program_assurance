@@ -1,0 +1,30 @@
+{
+ "lane": "E",
+ "pass": 2,
+ "asks": [
+  {
+   "of": "lane S",
+   "what": "Publish fact cveFixed(cve, componentCode) \u2192 true (not in the build yet). Lane E already reads it: the CVE leaves findingsOn for that component, and the open findings once every component it names is fixed."
+  },
+  {
+   "of": "lane C",
+   "what": "statusOf captures lane F's fact('status') at load (status0), so a later wrapper of the fact is not seen by the Controls list. Lane E works through PA.v3f.INC2 instead; reading V3.fact('status') at draw time would remove the need."
+  },
+  {
+   "of": "lane F / lead",
+   "what": "fact('issues') is wrapped by lane E for the program on screen (43, not 44, on WS-X90: the CVE's issue counts as a vulnerability). Say if 44 should stand and the CVE's issue be listed under Operational issues too."
+  },
+  {
+   "of": "kit",
+   "what": "A record page has the next step in two places if a lane keeps K.next with its button and a header primary. A K.next variant without a button, or a head option for the step's sentence, would make the page shape explicit."
+  },
+  {
+   "of": "kit",
+   "what": "K.related has no cls for its table: a related table on a record page cannot ask for a minimum first-column width (the risk page's findings were squeezed until the columns were cut to four)."
+  },
+  {
+   "of": "v2 data",
+   "what": "Expose VULNS, the open STIG rules, the cyber campaigns, the checks' runs, the expanded campaign's requests and the package's recipients as data; lane E parses the pages that draw them."
+  }
+ ]
+}

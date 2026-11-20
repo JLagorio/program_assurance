@@ -1,0 +1,460 @@
+{
+ "pages": [
+  {
+   "route": "findings (-issues, -assessment, -vulns, -stig, -poam)",
+   "what": "One list of everything found: the sources as horizontal tabs, state chips, one table; On the POA&M shows the plan's columns."
+  },
+  {
+   "route": "finding--<id>",
+   "what": "A finding's page: short title over the full sentence, next step as the one primary, plan and milestones, risk, control and component rows."
+  },
+  {
+   "route": "assessments (-control, -cyber, -checks)",
+   "what": "Control assessments, cyber tests and monitoring checks in one table; the kinds are horizontal tabs; one needs-attention card."
+  },
+  {
+   "route": "assessment--<id>[--objectives|requests|results|findings|runs]",
+   "what": "An assessment's page under the program menu: plan approval, objectives judged one by one (controls in a dropdown beside the search), requests, results, findings."
+  },
+  {
+   "route": "risks, risks-threats",
+   "what": "The register with state chips, and the ATT&CK techniques its risks name."
+  },
+  {
+   "route": "risk--<id>",
+   "what": "A risk's page: assessment, response, acceptance steps, the findings behind it, its techniques with what counters them."
+  },
+  {
+   "route": "technique--<code>",
+   "what": "A technique's page: the risks that name it, the countering controls with baseline standing and status; Link to a risk."
+  },
+  {
+   "route": "authorization (-decisions, -conditions, -monitoring, -sharing)",
+   "what": "The decision in force; the package's parts with readiness; decisions; conditions closed in place; monitoring; who can open it."
+  },
+  {
+   "route": "previews k3e-finding, k3e-risk, k3e-tech",
+   "what": "The eye on a row: the same definition as the page, in the side panel; its way to the full record is the page."
+  }
+ ],
+ "folded": [
+  {
+   "old": "findings-assessment, findings-vulns",
+   "now": "findings-assessment, findings-vulns",
+   "how": "rail",
+   "kept": "Same addresses; they open Findings on that source.",
+   "dropped": "Their own completion and attention cards, five column sets."
+  },
+  {
+   "old": "findings-assets, findings-deactivated, findings-history",
+   "now": "findings",
+   "how": "view",
+   "kept": "By asset is the Component filter; Deactivated is a chip with the reason in the panel.",
+   "dropped": "The asset table's SBOM column (lane S's component page) and the history tab."
+  },
+  {
+   "old": "poam, poam-milestones",
+   "now": "findings-poam",
+   "how": "view",
+   "kept": "Planned date, milestones, resources and owner as columns; Export POA&M in More; Create, move, add milestone in the finding's panel.",
+   "dropped": "The POA&M item as a second record and its page."
+  },
+  {
+   "old": "stigs-open (rows)",
+   "now": "findings-stig",
+   "how": "rail",
+   "kept": "The 75 open rules as findings with CAT, control, component and plan.",
+   "dropped": "The rule's v8g-rule preview (CCIs, fix text); the checklists stay lane D's."
+  },
+  {
+   "old": "cyber-te, cyber-te-events, cyber-te-findings",
+   "now": "assessments-cyber",
+   "how": "rail",
+   "kept": "The four tests with phase, window and lead; a test's page with Plan the test and its findings.",
+   "dropped": "The phase lane diagram and the events tab."
+  },
+  {
+   "old": "conmon, conmon-runs, checks, schedule",
+   "now": "assessments-checks",
+   "how": "rail",
+   "kept": "The 12 checks with cadence, next run, owner and state; Record a run on the check's page.",
+   "dropped": "The schedule's task rows and the checks page's Deactivate and subscribers."
+  },
+  {
+   "old": "check-<id>(-history|tasks|controls|comments)",
+   "now": "assessment--chk-<id>",
+   "how": "tab",
+   "kept": "What it covers, its runs, its failures as findings.",
+   "dropped": "Tasks and comments tabs."
+  },
+  {
+   "old": "campaign, campaign-conmon, campaign-new-<n>, campaign-findings",
+   "now": "assessment--<id>",
+   "how": "tab",
+   "kept": "Plan approval, objectives with methods, requests, results, findings; publish as the lead assessor.",
+   "dropped": "The campaign's own menu, its comments, activity and internal tabs."
+  },
+  {
+   "old": "assessments-plans, -results, -completed, -assessor; campaign-r<n>",
+   "now": "assessments",
+   "how": "view",
+   "kept": "Completed assessments are rows; results to publish is an attention row.",
+   "dropped": "The assessor's cross-program view and the archived audit records r1 to r14."
+  },
+  {
+   "old": "threats, threats-controls",
+   "now": "risks-threats",
+   "how": "tab",
+   "kept": "Each technique with matrix, tactics, its risks and its countering controls in its panel.",
+   "dropped": "The countering-controls table across all techniques, and Add to tailoring from a technique."
+  },
+  {
+   "old": "risks-snapshots, risks-library",
+   "now": "risks",
+   "how": "gone",
+   "kept": "The register.",
+   "dropped": "Snapshots and the risk library: no flow in the brief used them."
+  },
+  {
+   "old": "package-room, package-room-requests|versions|log|settings|preview, authorization-sharing-requests|log",
+   "now": "authorization-sharing",
+   "how": "tab",
+   "kept": "The seven recipients, what each can open and until when; Share with a person, Remove.",
+   "dropped": "Access requests, the access log, package versions and Preview as recipient."
+  },
+  {
+   "old": "previews a-risk-issue, a-risk-poam, a-risk-risk, v7a-att",
+   "now": "panels k3e-finding, k3e-risk, k3e-tech",
+   "how": "panel",
+   "kept": "Every list that names an issue, a POA&M item, a risk or a technique opens the new panel.",
+   "dropped": "Their Open in links and v2 dialogs."
+  }
+ ],
+ "inplace": [
+  {
+   "on": "finding page (and its preview)",
+   "can": "create its plan with a planned date, resources and a first milestone",
+   "how": "form",
+   "shows": [
+    "On the POA&M chip and view",
+    "Authorization's POA&M part",
+    "fact(poam) and the Overview (chain.poams)",
+    "Export POA&M"
+   ]
+  },
+  {
+   "on": "finding page (and its preview)",
+   "can": "change the planned date with a reason, add a milestone, mark one reached, edit resources",
+   "how": "form",
+   "shows": [
+    "Plan column",
+    "Past due chip",
+    "kept after reload"
+   ]
+  },
+  {
+   "on": "finding page (and its preview)",
+   "can": "create a risk asking the response, or link one",
+   "how": "form, pick",
+   "shows": [
+    "Risks register and tab count",
+    "fact(risks)",
+    "the risk's Findings behind it",
+    "the control's panel"
+   ]
+  },
+  {
+   "on": "finding page (and its preview)",
+   "can": "assign owner; deactivate with a reason; reactivate",
+   "how": "form, confirm",
+   "shows": [
+    "No owner and Deactivated chips",
+    "fact(issues) and the Overview for an operational issue"
+   ]
+  },
+  {
+   "on": "Findings",
+   "can": "add a finding by hand; export the POA&M as CSV",
+   "how": "form",
+   "shows": [
+    "the list",
+    "a created program's own register"
+   ]
+  },
+  {
+   "on": "assessment page, Plan",
+   "can": "approve the plan as the lead assessor, record the AO's concurrence, add controls",
+   "how": "confirm, pick",
+   "shows": [
+    "Objectives' Judge buttons",
+    "lane R's plan state"
+   ]
+  },
+  {
+   "on": "assessment page, Objectives",
+   "can": "judge one objective: determination, methods, justification, where found, recorded as",
+   "how": "form",
+   "shows": [
+    "a finding exists at once: the toast's Open finding and the row's Its finding go to its page",
+    "campaign Findings tab",
+    "Assessment findings tab count",
+    "control's page",
+    "fact(findingsOf)"
+   ]
+  },
+  {
+   "on": "assessment page",
+   "can": "publish results as the lead assessor",
+   "how": "form",
+   "shows": [
+    "fact(status) and fact(controls)",
+    "Controls list",
+    "Overview's Assessed and satisfied",
+    "the finding leaves Draft results",
+    "Authorization's SAR part"
+   ]
+  },
+  {
+   "on": "assessment page, Requests",
+   "can": "set a request Ready, Flagged or Accepted",
+   "how": "menu",
+   "shows": [
+    "the request's status"
+   ]
+  },
+  {
+   "on": "monitoring check page",
+   "can": "record a run",
+   "how": "form",
+   "shows": [
+    "status and next run on the page, in Assessments and in Authorization's Monitoring"
+   ]
+  },
+  {
+   "on": "risk page (and its preview)",
+   "can": "edit likelihood and impact, change response, assign owner, request acceptance and record each step, link or unlink techniques, link findings",
+   "how": "form, pick, confirm",
+   "shows": [
+    "register chips and columns",
+    "the technique's panel",
+    "risksOf(control)"
+   ]
+  },
+  {
+   "on": "technique page (and its preview)",
+   "can": "link it to a risk",
+   "how": "pick",
+   "shows": [
+    "Threats' Risks count",
+    "the risk's panel"
+   ]
+  },
+  {
+   "on": "Authorization, Conditions",
+   "can": "close a condition with what closed it",
+   "how": "form",
+   "shows": [
+    "Conditions tab count",
+    "lane G's fact(conditions)"
+   ]
+  },
+  {
+   "on": "Authorization, Sharing",
+   "can": "share with a person until a day; remove",
+   "how": "form, confirm",
+   "shows": [
+    "Sharing tab count"
+   ]
+  },
+  {
+   "on": "Authorization, Monitoring",
+   "can": "report a significant change",
+   "how": "form",
+   "shows": [
+    "the list"
+   ]
+  },
+  {
+   "on": "Authorization, Decisions",
+   "can": "record a decision",
+   "how": "the row and Record decision go to lane O's gate page for WS-X90; a form for a created program",
+   "shows": [
+    "fact(authorizations)",
+    "the header's decision in force"
+   ]
+  },
+  {
+   "on": "Findings",
+   "can": "export the POA&M",
+   "how": "More, through the kit's K.save",
+   "shows": [
+    "a CSV of the findings with a plan and the completed items"
+   ]
+  }
+ ],
+ "walks": [
+  {
+   "id": "E-w1",
+   "title": "Judge an objective, plan it, publish",
+   "steps": [
+    {
+     "route": "assessments",
+     "do": "Choose the Control assessments tab, then click Expanded control set assessment.",
+     "see": "Three rows in place; then the assessment's page with the program menu still there, Assessments marked.",
+     "was": "Cards on one page, a table on another; the campaign replaced the program menu."
+    },
+    {
+     "route": "assessment--exp--objectives",
+     "do": "Open Objectives, choose AC-2(7) in the controls dropdown beside the search, press Judge on AC-02(07)(a).",
+     "see": "Four objectives with their methods; a form for that one objective.",
+     "was": "No determination could be recorded on one objective."
+    },
+    {
+     "route": null,
+     "do": "Choose Other than satisfied, write the justification, Record determination; then Open finding in the toast.",
+     "see": "The objective names its finding; the finding's own page opens, marked Draft results, under Findings › Assessment findings.",
+     "was": "The row opened the control, which said it had no finding."
+    },
+    {
+     "route": null,
+     "do": "On the finding's page: Create plan with a planned date, resources and a first milestone; then Add milestone.",
+     "see": "The plan and its milestones with their state are on the page; On the POA&M counts one more.",
+     "was": "Create POA&M item on a separate POA&M page."
+    },
+    {
+     "route": null,
+     "do": "On the same page: Create risk, response Mitigate, with an owner; click the risk's row.",
+     "see": "The risk's page names the finding behind it; Risks lists it.",
+     "was": "Risk created from the issue's preview, then found again on Risks."
+    },
+    {
+     "route": null,
+     "do": "Back on the finding, click the control's row AC-2(7).",
+     "see": "The control's page lists the finding and the risk under Findings and risks.",
+     "was": "Open in Controls."
+    },
+    {
+     "route": "assessment--exp--objectives",
+     "do": "Judge the other three Satisfied, then Publish results as D. Okafor.",
+     "see": "AC-2(7) reads Other than satisfied on Controls; the Overview's Assessed count rises; the finding leaves Draft results.",
+     "was": "Publishing opened a second record, an operational issue, for the same result."
+    }
+   ]
+  },
+  {
+   "id": "E-w2",
+   "title": "Work a finding, then the authorization",
+   "steps": [
+    {
+     "route": "overview",
+     "do": "In Needs attention click Operational issues 43.",
+     "see": "Findings opens on the Operational issues tab, Open chosen: exactly 43 rows.",
+     "was": "The count and the list it opened did not agree."
+    },
+    {
+     "route": "findings-issues",
+     "do": "Hover a row and press its eye; then click the row Session-table occupancy missing.",
+     "see": "The eye previews the finding beside the list; the click opens its page: plan with four milestones, risk, control, components.",
+     "was": "A click opened a side preview; the plan was on another page."
+    },
+    {
+     "route": null,
+     "do": "Change planned date with a reason; Add milestone; Mark one reached; More, Deactivate with a reason.",
+     "see": "Each shows on the page at once and after a reload; Open counts one fewer and a Deactivated chip lists it.",
+     "was": "Change planned date lived on the POA&M page; a Deactivated tab."
+    },
+    {
+     "route": "findings-poam",
+     "do": "Choose On the POA&M; More, Export POA&M.",
+     "see": "The same list with planned date, milestones and resources; the file is saved.",
+     "was": "A POA&M page with its own records."
+    },
+    {
+     "route": "risks-threats",
+     "do": "Click T1078; click one of its risks; Link technique T1200.",
+     "see": "The technique's page lists its risks and countering controls; the risk's page gains the technique, and T1200 lists the risk.",
+     "was": "A Threats page, and a dialog that asked which risk."
+    },
+    {
+     "route": "authorization",
+     "do": "Read the package; click the POA&M part.",
+     "see": "Four parts, each Ready or Not ready from its record; the POA&M part counts what Findings counts and opens that list.",
+     "was": "A long page restating counts typed in markup."
+    },
+    {
+     "route": "authorization-conditions",
+     "do": "Close a condition; then Sharing, Share with a person.",
+     "see": "Conditions counts one fewer; the person is in Sharing's list.",
+     "was": "Conditions closed from a preview; sharing in the Package room."
+    }
+   ]
+  }
+ ],
+ "shots": [
+  {
+   "id": "E-s1",
+   "title": "One list for everything found",
+   "caption": "Operational issues, assessment findings, CVEs and STIG rules in one table; the sources are tabs across the page, the chips are states.",
+   "was": "v3r/E/shots/E-s1-was.png",
+   "now": "v3r/E/shots/E-s1-now.png"
+  },
+  {
+   "id": "E-s2",
+   "title": "An assessment finding has its own page",
+   "caption": "Its row opens its own page with its source, plan, risk and control, not the control's preview.",
+   "was": "v3r/E/shots/E-s2-was.png",
+   "now": "v3r/E/shots/E-s2-now.png"
+  },
+  {
+   "id": "E-s3",
+   "title": "Judge one objective on the assessment's page",
+   "caption": "The campaign is a page under the program menu; one objective is judged with its methods and justification.",
+   "was": "v3r/E/shots/E-s3-was.png",
+   "now": "v3r/E/shots/E-s3-now.png"
+  },
+  {
+   "id": "E-s4",
+   "title": "The POA&M is a view of Findings",
+   "caption": "On the POA&M shows the findings with a plan; a row's eye previews the finding with its plan beside the list.",
+   "was": "v3r/E/shots/E-s4-was.png",
+   "now": "v3r/E/shots/E-s4-now.png"
+  },
+  {
+   "id": "E-s5",
+   "title": "Assessments in one table",
+   "caption": "Control assessments, cyber tests and monitoring checks as tabs over one table; one needs-attention card.",
+   "was": "v3r/E/shots/E-s5-was.png",
+   "now": "v3r/E/shots/E-s5-now.png"
+  },
+  {
+   "id": "E-s6",
+   "title": "Authorization: the record the AO decides on",
+   "caption": "The decision in force, then what the package holds and whether each part is ready, read from its record.",
+   "was": "v3r/E/shots/E-s6-was.png",
+   "now": "v3r/E/shots/E-s6-now.png"
+  },
+  {
+   "id": "E-s7",
+   "title": "A finding's page",
+   "caption": "A row goes to the finding's page: one primary, its plan and milestones, its risk, its control and components as rows.",
+   "was": "v3r/E/shots/E-s7-was.png",
+   "now": "v3r/E/shots/E-s7-now.png"
+  }
+ ],
+ "open": [
+  "fact('issues') now answers what Findings lists for the program on screen: 43 on a fresh WS-X90 (the issue raised for CVE-2024-6387 is listed once, under Vulnerabilities), so the Overview prints 43 and a condition reads '11 high issues open'. Lane F's own count was 44.",
+  "On a record page the next step's button is the header's one primary and the Next step line says why, without a button; in the preview the line keeps its button.",
+  "Lane S's cveFixed fact was not in the build: the walk stands in for it. A CVE fixed on every component it names leaves the open findings and shows under a Fixed chip; the operational issue behind CVE-2024-6387 is not closed in lane R's store.",
+  "The expanded campaign's objective results no longer touch PA.v2.chain: a control published there joins lane F's table PA.v3f.INC2 (mutated from outside, restored on reset), which lanes C, O and S read through lane F's status. V3 off shows v2's Assessments unchanged.",
+  "A determination short of satisfied opens an assessment finding and no operational issue; lane R's dialogs v3r-det and v3r-publish are unreachable.",
+  "An assessment finding whose control already has an operational issue shows that issue's plan ('Belongs to'); it is not counted again under On the POA&M.",
+  "The lists' search, chips and filters are kept when the reader comes back from a record's page, and across the source tabs; they are one view for every program (K 'fnd.view').",
+  "Vulnerabilities, open STIG rules, cyber tests, check runs, expanded-set requests, techniques and the package's recipients are parsed from the v2 pages that draw them.",
+  "Dropped from v19's issue preview: its Tickets card (the Jira sync) and Edit deadline. A cyber test's findings still open v2's v7a-cyf preview on a click (no page for that kind).",
+  "Risks and Authorization stay lighter than Findings and Assessments: no risk matrix, snapshots, package versions, access requests or access log. Import scan results and Export the package only record or toast.",
+  "Found by the re-walk, not fixed: the signed-in engineer chooses which assessor a determination is recorded as, so a finding reads \"recorded as Nadia Fournier by Ingrid Solberg\" (the prototype's way of acting as another person).",
+  "Found by the re-walk, not fixed: assessment rows have no eye; an assessment has a page and no preview.",
+  "A planned authorization decision (IATT or ATO of Increment 2) is recorded in one form on Authorization › Decisions; the lifecycle's step-by-step approval chain for it is not shown there."
+ ],
+ "pass": 2
+}

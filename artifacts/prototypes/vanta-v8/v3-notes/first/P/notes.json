@@ -1,0 +1,435 @@
+{
+ "findings": [
+  {
+   "id": "A01",
+   "status": "fixed",
+   "text": "Blank program starts empty: no Customer D name or mission, an unnamed system on the next free code, and element codes taken from the system code typed.",
+   "see": {
+    "route": "program-new-details",
+    "prog": "created"
+   }
+  },
+  {
+   "id": "A02",
+   "status": "fixed",
+   "text": "No tailoring is pre-applied on any start; a product program sees the customer decisions as suggestions, each with its own Add that opens Tailor for this program.",
+   "see": {
+    "route": "program-new-baseline",
+    "prog": "created"
+   }
+  },
+  {
+   "id": "A03",
+   "status": "fixed",
+   "text": "A link followed from Lifecycle, Boundary, Host & providers, the workbook or a record page keeps the created program current; only the switcher or a link naming a program changes it.",
+   "see": {
+    "route": "lifecycle",
+    "prog": "created"
+   }
+  },
+  {
+   "id": "A04",
+   "status": "fixed",
+   "text": "The SCTM workbook of a created program is an empty state naming it, with its requirement and mapping counts and links to Requirements and Controls.",
+   "see": {
+    "route": "sctm",
+    "prog": "created"
+   }
+  },
+  {
+   "id": "A05",
+   "status": "fixed",
+   "text": "Host & providers lists the host's controls with the provider's status beside the program's own standing (No requirement); the control and provider previews name the created program.",
+   "see": {
+    "route": "hosts",
+    "prog": "created"
+   }
+  },
+  {
+   "id": "A06",
+   "status": "fixed",
+   "text": "Each build page has its first action: Create element, Add interconnection, Add port, Tailor a control, Upload policy, Import checklist; each writes a record the page lists.",
+   "see": {
+    "route": "composition",
+    "prog": "created"
+   }
+  },
+  {
+   "id": "A07",
+   "status": "fixed",
+   "text": "Composition lists the system and its elements, Baseline the wizard's stack, Controls every control at its standing, Boundary the elements, People the roles.",
+   "see": {
+    "route": "baseline",
+    "prog": "created"
+   }
+  },
+  {
+   "id": "A08",
+   "status": "fixed",
+   "text": "Lifecycle dates count back from the wizard's target authorization date: the ATO is due on it, earlier steps keep the template's order, scaled to fit; step previews agree.",
+   "see": {
+    "route": "lifecycle",
+    "prog": "created"
+   }
+  },
+  {
+   "id": "A09",
+   "status": "fixed",
+   "text": "Categorize and Select read In review, awaiting signature, with the wizard's levels, baseline and date, and Completed once the PM and the AO sign the ITCSC.",
+   "see": {
+    "route": "lifecycle",
+    "prog": "created"
+   }
+  },
+  {
+   "id": "A10",
+   "status": "fixed",
+   "text": "The setup guide is read from each program's own records, so two created programs keep their own progress.",
+   "see": {
+    "route": "overview",
+    "prog": "created"
+   }
+  },
+  {
+   "id": "A11",
+   "status": "fixed",
+   "text": "Create requirement and Map control, Upload evidence against a requirement, SSP revision 1 narratives and Publish, then Plan assessment; Findings, POA&M, Risks Create and Start package.",
+   "see": {
+    "route": "requirements",
+    "prog": "created"
+   }
+  },
+  {
+   "id": "A12",
+   "status": "fixed",
+   "text": "Each setup step is done when its record exists (requirements, mappings, evidence, signatures, the published SSP); nothing is ticked by hand and no file drop ticks a step.",
+   "see": {
+    "route": "overview",
+    "prog": "created"
+   }
+  },
+  {
+   "id": "A13",
+   "status": "fixed",
+   "text": "Overview, Controls, Programs and Home count the host's inherited controls by the provider's status, as WS-X90's counts do; the inherits card lists them.",
+   "see": {
+    "route": "portfolio",
+    "prog": "created"
+   }
+  },
+  {
+   "id": "A14",
+   "status": "fixed",
+   "text": "The created program's ITCSC is a draft from the wizard (§6, §7, §10, §11) with Sign for the PM and the AO; done only once both sign.",
+   "see": {
+    "route": "itcsc",
+    "prog": "created"
+   }
+  },
+  {
+   "id": "A16",
+   "status": "fixed",
+   "text": "Choosing another created program in the switcher draws it, even at the same address; the switcher and its stage line read the new program.",
+   "see": {
+    "route": "overview",
+    "prog": "created"
+   }
+  },
+  {
+   "id": "A17",
+   "status": "fixed",
+   "text": "Each open setup step with an owner is a task in My work, under Setup · the program, linking to the step's page with the program made current.",
+   "see": {
+    "route": "my-work",
+    "prog": "created"
+   }
+  },
+  {
+   "id": "A18",
+   "status": "partly",
+   "text": "The setup guide, the Invite placeholder and Import requirements no longer name Customer D or a product a blank program lacks.",
+   "see": {
+    "route": "overview",
+    "prog": "created"
+   },
+   "why": "The invite's error message still cites name@customer-d.mil; the wizard writes it from inside, with no hook V3 can reach."
+  },
+  {
+   "id": "A19",
+   "status": "fixed",
+   "text": "A created program's Overview shows its control status band, its life cycle and the setup card; Getting started and program-start open that one page.",
+   "see": {
+    "route": "overview",
+    "prog": "created"
+   }
+  },
+  {
+   "id": "A20",
+   "status": "fixed",
+   "text": "Systems asks the ITCSC §7 national security system question before Continue and applies CNSSI 1253 on Yes; no start preselects a host.",
+   "see": {
+    "route": "program-new-systems",
+    "prog": "created"
+   }
+  },
+  {
+   "id": "A21",
+   "status": "fixed",
+   "text": "Systems proposes the next free system code and checks it as the program code is checked: a taken code is named and Continue waits.",
+   "see": {
+    "route": "program-new-systems",
+    "prog": "created"
+   }
+  },
+  {
+   "id": "A22",
+   "status": "fixed",
+   "text": "⌘K search finds created programs by name, program code and system code; the result opens the program's Overview and makes it current.",
+   "see": {
+    "route": "overview",
+    "prog": "created"
+   }
+  },
+  {
+   "id": "A23",
+   "status": "fixed",
+   "text": "SP-70's Programs row names its system owner from the wizard, leaves No owner, and opens the program preview like the other rows.",
+   "see": {
+    "route": "portfolio",
+    "prog": "created",
+    "open": {
+     "kind": "v7o-prog",
+     "id": "PRG-2301"
+    }
+   }
+  },
+  {
+   "id": "A24",
+   "status": "fixed",
+   "text": "Host & providers offers Add provider for a created program, with or without a host; the added provider's controls join its counts.",
+   "see": {
+    "route": "hosts",
+    "prog": "created",
+    "modal": "v3p-new"
+   }
+  },
+  {
+   "id": "A25",
+   "status": "fixed",
+   "text": "A program made from a product keeps the product's inherits card on its Overview, with the rule: inherited counts unchanged claims, satisfied counts determinations, so they differ.",
+   "see": {
+    "route": "overview",
+    "prog": "created"
+   }
+  }
+ ],
+ "extra": [
+  {
+   "id": "P-x1",
+   "text": "A created program's Activity page lists its own events: creation, requirements, evidence, signatures, the published SSP, the planned campaign.",
+   "see": {
+    "route": "activity",
+    "prog": "created"
+   }
+  },
+  {
+   "id": "P-x2",
+   "text": "Lifecycle's Select step completes with the ITCSC, the Categorization and Selection Checklist the AO signs, as AF programs record both decisions.",
+   "see": {
+    "route": "lifecycle",
+    "prog": "created"
+   }
+  },
+  {
+   "id": "P-x3",
+   "text": "Publishing SSP revision 1 says exactly what it needs: a narrative for each control a requirement maps; Plan assessment waits on it and says so.",
+   "see": {
+    "route": "ssps",
+    "prog": "created"
+   }
+  }
+ ],
+ "walks": [
+  {
+   "id": "P-w1",
+   "title": "Create a program, take it to assessment",
+   "findings": [
+    "A01",
+    "A02",
+    "A20",
+    "A21",
+    "A03",
+    "A07",
+    "A11",
+    "A08",
+    "A09",
+    "A14",
+    "A13",
+    "A19"
+   ],
+   "prog": "created",
+   "steps": [
+    {
+     "route": "program-new",
+     "do": "Choose Blank program, then Continue.",
+     "see": "Name and mission are empty, with placeholders; no Customer D anywhere.",
+     "v2": "Prefilled 'Customer D · X800 Eject Launch Integration'."
+    },
+    {
+     "route": null,
+     "do": "Name it SP-70, Continue to Systems; read the host and the new national security system question.",
+     "see": "Host None, system code SYS-2301 marked free, the NSS question required.",
+     "v2": "No NSS question; a product start preselected F-16."
+    },
+    {
+     "route": null,
+     "do": "Answer Yes, add elements, then Continue through Baseline, Team and Create program.",
+     "see": "CNSSI 1253 in the stack; no tailoring decisions until you add one.",
+     "v2": "Customer D's PE-17 and SR-4 decisions arrived pre-applied."
+    },
+    {
+     "route": "overview",
+     "do": "Read the new program's Overview.",
+     "see": "Control status band (inherited satisfied, the rest No requirement), the life cycle, Setup 2 of 9.",
+     "v2": "A starter guide copy; no control status."
+    },
+    {
+     "route": "lifecycle",
+     "do": "Open Lifecycle, then ITCSC from the menu.",
+     "see": "ATO due Sep 30, 2027; Categorize awaiting signature; ITCSC stays SP-70's.",
+     "v2": "ATO May 30, 2030; ITCSC link switched to WS-X90."
+    },
+    {
+     "route": "itcsc",
+     "do": "Sign as program manager, then as authorizing official.",
+     "see": "Both signatures recorded; Lifecycle's Categorize and Select read Completed.",
+     "v2": "Empty ITCSC page with no action."
+    },
+    {
+     "route": "requirements",
+     "do": "Create requirement REQ-001 mapped to AC-2, then Upload evidence against it on Evidence.",
+     "see": "Controls shows AC-2 move to No evidence, then Not assessed.",
+     "v2": "No Create requirement; evidence left the program."
+    },
+    {
+     "route": "ssps",
+     "do": "Write AC-2's narrative, then Publish revision 1.",
+     "see": "Publish says what it needs; publishing opens Assessments.",
+     "v2": "The SSP page looped back to the starter guide."
+    },
+    {
+     "route": "assessments",
+     "do": "Plan assessment.",
+     "see": "CMP-001 planned over AC-2; Overview's Setup counts it.",
+     "v2": "Assessment waited for an SSP nothing could publish."
+    }
+   ]
+  },
+  {
+   "id": "P-w2",
+   "title": "Two programs stay apart",
+   "findings": [
+    "A10",
+    "A16",
+    "A17",
+    "A22",
+    "A23",
+    "A05",
+    "A24"
+   ],
+   "prog": "created",
+   "steps": [
+    {
+     "route": "hosts",
+     "do": "Open Host & providers; preview F-16 Block 70.",
+     "see": "Each hybrid control reads SP-70's No requirement; the preview says What SP-70 takes.",
+     "v2": "WS-X90's part and 'What WS-X90 takes'."
+    },
+    {
+     "route": "portfolio",
+     "do": "Find SP-70's row on Programs and click it.",
+     "see": "Owner Marcus Ryde, inherited controls counted, a program preview opens.",
+     "v2": "Owner '—', 0 of 555, the row left for the program."
+    },
+    {
+     "route": "my-work",
+     "do": "Open My work.",
+     "see": "Setup · SP-70 lists its open steps, each linked to its page.",
+     "v2": "No guide step reached My work."
+    },
+    {
+     "route": null,
+     "do": "Press ⌘K and type SP-70.",
+     "see": "SP-70 is found; Enter opens its Overview.",
+     "v2": "No results."
+    },
+    {
+     "route": "program-new",
+     "do": "Create a second program with every default, answering the NSS question.",
+     "see": "No host preselected, CNSSI 1253 applied, no tailoring.",
+     "v2": "F-16 preselected, High without CNSSI, Customer D tailoring."
+    },
+    {
+     "route": "overview",
+     "do": "Switch back to SP-70 in the switcher.",
+     "see": "SP-70 draws with its own Setup progress; the second program keeps its own.",
+     "v2": "The old page stayed drawn; guide progress was shared."
+    }
+   ]
+  }
+ ],
+ "shots": [
+  {
+   "id": "P-s1",
+   "title": "A blank wizard's Program step",
+   "findings": [
+    "A01",
+    "A18"
+   ],
+   "caption": "v2 prefills Customer D's X800 name and mission on a blank program; V3 starts empty, with placeholders.",
+   "v2": "v3/P/shots/P-s1-v2.png",
+   "v3": "v3/P/shots/P-s1-v3.png"
+  },
+  {
+   "id": "P-s2",
+   "title": "A created program's Composition",
+   "findings": [
+    "A06",
+    "A07",
+    "A01"
+   ],
+   "caption": "v2 says nothing is recorded; V3 lists the system's four elements, codes from SYS-2301, with Create element.",
+   "v2": "v3/P/shots/P-s2-v2.png",
+   "v3": "v3/P/shots/P-s2-v3.png"
+  },
+  {
+   "id": "P-s3",
+   "title": "A created program's Overview",
+   "findings": [
+    "A19",
+    "A13",
+    "A10",
+    "A12"
+   ],
+   "caption": "v2 repeats the starter guide; V3 shows control status (inherited satisfied), Setup read from records, and the life cycle.",
+   "v2": "v3/P/shots/P-s3-v2.png",
+   "v3": "v3/P/shots/P-s3-v3.png"
+  },
+  {
+   "id": "P-s4",
+   "title": "Lifecycle against the target date",
+   "findings": [
+    "A08",
+    "A09"
+   ],
+   "caption": "v2 dates the ATO May 30, 2030; V3 dates it on the target, Sep 30, 2027, with Categorize awaiting signature.",
+   "v2": "v3/P/shots/P-s4-v2.png",
+   "v3": "v3/P/shots/P-s4-v3.png"
+  }
+ ],
+ "checks": {
+  "offcheck": "0 differences, 0 page errors (863 screens, 366 previews, 241 dialogs, 61 menu pages)",
+  "walk": "38 assertions pass, no page errors, on the lane build (37 also on a build with every lane's module)",
+  "narrow": "34 routes at 1440 and 390: no sideways scroll, no page errors"
+ }
+}

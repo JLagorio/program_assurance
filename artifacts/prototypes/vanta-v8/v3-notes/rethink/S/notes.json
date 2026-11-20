@@ -1,0 +1,453 @@
+{
+ "lane": "S",
+ "files": [
+  "proto/mod-zzzz-v3-8s-system.js",
+  "proto/mod-zzzz-v3-8s-system.css",
+  "proto/out/v3r2-S.html (the whole build)",
+  "v3r/S/walk.mjs (whole build; node walk.mjs [build] [width])",
+  "v3r/S/walk.lane.mjs (the lane alone, pass 1: stale since the rails went)",
+  "v3r/S/shots.mjs",
+  "v3r/S/asks.json"
+ ],
+ "checks": {
+  "node_check": "ok",
+  "build": "out/v3r2-S.html (whole build, 60 modules)",
+  "offcheck": "863 screens, 366 previews, 241 dialogs, 61 menu pages: 0 differences, 0 page errors",
+  "walk_1440": "165 passed, 0 failed, no page errors (v3r/S/walk.out)",
+  "walk_390": "164 passed, 0 failed, no page errors (v3r/S/walk.390.out; the Compare drawer step needs 1,100 px and is skipped)",
+  "routes": "27 routes at 1440 and 390: drawn, System marked, nothing down the side, no row opens a preview on click, no sideways scroll, no 'element', no 'Open in'",
+  "scenes": "5 pairs retaken: was out/prototype-v19.html (V3 on), now out/v3r2-S.html"
+ },
+ "pages": [
+  {
+   "route": "system",
+   "what": "Components tab: what is inside the boundary; Subsystem filter beside the search; authorization and needs-attention cards; List or Boundary."
+  },
+  {
+   "route": "system-providers",
+   "what": "Host and providers tab: the host first, authorization, controls taken, connections; Add provider."
+  },
+  {
+   "route": "system-connected",
+   "what": "Connected systems tab: agreement state, connections; Add connected system."
+  },
+  {
+   "route": "system-boundary, system-boundary--blk, system-boundary--iatt",
+   "what": "Components tab as the bubble per authorization; editable description; a box goes to its component, a line to its connection's page."
+  },
+  {
+   "route": "system-connections",
+   "what": "Connections tab: every connection with ports and agreement; state chips; a row goes to the connection's page, its eye previews."
+  },
+  {
+   "route": "connection--<id>",
+   "what": "A connection's page (kit-drawn from k3s-conn): ports with Add port, agreement with Link agreement, controls it bears on, components it joins."
+  },
+  {
+   "route": "component--<code>[--software|connections|controls|requirements|findings|components|offered]",
+   "what": "The component's record; counted tabs; Add menu; Controls has a Family filter; rows go to the control's, requirement's, finding's page."
+  },
+  {
+   "route": "preview k3s-comp (the eye on a component row)",
+   "what": "A component's preview: counts link to its tabs; Open component. Also replaces the old v7p-el, sys-el, v2h-prov previews."
+  },
+  {
+   "route": "preview k3s-conn (the eye on a connection row)",
+   "what": "A connection's preview: facts, ports (add, remove), agreement, controls."
+  },
+  {
+   "route": "previews k3s-ctl, k3s-req",
+   "what": "Stand-ins only in a build without lanes C or D; the whole build opens k3c-control and k3d-req."
+  }
+ ],
+ "folded": [
+  {
+   "old": "composition, composition-list",
+   "now": "system",
+   "how": "tab",
+   "kept": "The tree as indented rows with software, controls, requirements, findings, owner; Create becomes a real Add component.",
+   "dropped": "The two-column card tree and the proposed-owner note: one table reads calmer."
+  },
+  {
+   "old": "composition-config",
+   "now": "system",
+   "how": "section",
+   "kept": "Block 1 and Block 1.1 pins are each component's Software & firmware rows with a Baseline; Boundary's Block 1.1 counts changes.",
+   "dropped": "The configuration pair cards and Submit for approval: not a component fact; no home yet (Documents or Authorization)."
+  },
+  {
+   "old": "composition-assets, inventory, inventory-changes",
+   "now": "system",
+   "how": "section",
+   "kept": "An asset is the hardware row of its component (asset tag, unit number); Mission Computer's version follows Take version 2.",
+   "dropped": "Asset owner and scope columns, scope changes: no record reachable from outside the old module."
+  },
+  {
+   "old": "inventory-scans",
+   "now": "system",
+   "how": "gone",
+   "kept": "Nothing.",
+   "dropped": "Hosts discovered by scans and matching them to assets: belongs to Evidence sources (lane D); address now opens System."
+  },
+  {
+   "old": "boundary, boundary-iatt, boundary-block-1-1",
+   "now": "system-boundary, --iatt, --blk",
+   "how": "view",
+   "kept": "The bubble, ATO / Block 1.1 / IATT choice, flight test instrumentation, lane G's SCA review request, added providers.",
+   "dropped": "The 'What it covers' table: it repeated the drawing and the list; coverage reads from the bubble and each row's Agreement/Authorization."
+  },
+  {
+   "old": "interconnections (and its three state tabs)",
+   "now": "system-connections",
+   "how": "tab",
+   "kept": "Nine outside connections with interface, direction, agreement state; state tabs become chips; a row opens the connection's page; PDR's question still filters to its four.",
+   "dropped": "Renewal reminders, approver routing, comments and the 'What the SSP says' excerpts of the old preview."
+  },
+  {
+   "old": "ppsm (and its three tabs)",
+   "now": "system-connections",
+   "how": "section",
+   "kept": "A service is a port row of its connection (protocol, port, service, PPSM state), on the connection's page; internal services are inside connections.",
+   "dropped": "CAL assessment conditions, registry id and the DoD-boundary tab: only what the old table printed is reachable."
+  },
+  {
+   "old": "hosts, inheritance, inheritance-controls, inheritance-sources",
+   "now": "system-providers (the Host and providers tab) and component--<provider>--offered",
+   "how": "tab",
+   "kept": "Providers with authorization and what is taken; each offered control and Change responsibility; Add provider; the no-authorization flag once.",
+   "dropped": "The 76-row all-providers table (each provider lists its own) and Library components table (Take version 2 is on the component)."
+  },
+  {
+   "old": "rec--v7p-el--<code>, previews v7p-el and sys-el",
+   "now": "component--<code>, panel k3s-comp",
+   "how": "panel",
+   "kept": "Everything it showed, now as tabs that add, edit and remove.",
+   "dropped": "Family chips and the 12-code sample; 'Open the component' (library record) link."
+  },
+  {
+   "old": "rec--v2h-prov--<id>, preview v2h-prov",
+   "now": "component--<id>",
+   "how": "panel",
+   "kept": "Authorization, what it offers, what is taken, interfaces as connections, components it carries.",
+   "dropped": "Capabilities list of the identity provider."
+  },
+  {
+   "old": "rec--v8b-ic--<id>, preview v8b-ic",
+   "now": "connection--<id>",
+   "how": "page",
+   "kept": "Facts, ports, agreement, controls.",
+   "dropped": "See interconnections."
+  },
+  {
+   "old": "rec--sys-asset--<id>",
+   "now": "component--<its component>--software",
+   "how": "section",
+   "kept": "The asset as a hardware row.",
+   "dropped": "Its own page."
+  }
+ ],
+ "inplace": [
+  {
+   "on": "component",
+   "can": "add, edit, remove software, firmware or hardware",
+   "how": "form",
+   "shows": [
+    "tab count",
+    "System row's Software & firmware",
+    "subsystem's pooled list",
+    "component panel"
+   ]
+  },
+  {
+   "on": "component",
+   "can": "add controls (many), remove one",
+   "how": "pick",
+   "shows": [
+    "tab count and family rail",
+    "System row",
+    "subsystem and system totals",
+    "fact controlsOf / componentsOf",
+    "control panel 'Placed on'"
+   ]
+  },
+  {
+   "on": "component",
+   "can": "write or edit a control's implementation for this component",
+   "how": "panel",
+   "shows": [
+    "row reads Written",
+    "Overview completion and next step",
+    "lane C via setImpl when present"
+   ]
+  },
+  {
+   "on": "component, host page",
+   "can": "change a control's responsibility (Inherited, Hybrid, This system)",
+   "how": "form",
+   "shows": [
+    "component Controls tab",
+    "host's Controls offered",
+    "host row counts",
+    "fact controls (inherited, hybrid)",
+    "old Controls page"
+   ]
+  },
+  {
+   "on": "component",
+   "can": "allocate requirements, create one mapped to a control here, remove an allocation",
+   "how": "pick",
+   "shows": [
+    "tab count",
+    "System row",
+    "requirement panel",
+    "control panel 'Requirements here'",
+    "fact requirementsOf / madeRequirements"
+   ]
+  },
+  {
+   "on": "requirement panel",
+   "can": "map and unmap controls, allocate to components",
+   "how": "panel",
+   "shows": [
+    "Requirements tab's Controls column",
+    "other components' tabs"
+   ]
+  },
+  {
+   "on": "component, System",
+   "can": "add a connection to a component or an outside system, with protocol and port",
+   "how": "form",
+   "shows": [
+    "both components' Connections tabs",
+    "System Connections tab",
+    "Boundary view",
+    "needs attention when no agreement"
+   ]
+  },
+  {
+   "on": "connection panel",
+   "can": "add or remove ports, link an agreement, record none needed, edit, remove",
+   "how": "panel",
+   "shows": [
+    "Connections table",
+    "needs attention count",
+    "Boundary box state"
+   ]
+  },
+  {
+   "on": "System",
+   "can": "add a component inside a chosen subsystem; edit (rename, kind, move, unit, owner); remove",
+   "how": "form",
+   "shows": [
+    "rail counts",
+    "list",
+    "Boundary view",
+    "fact components",
+    "lane P's store for a created program"
+   ]
+  },
+  {
+   "on": "System",
+   "can": "add a provider, add a connected system",
+   "how": "pick",
+   "shows": [
+    "rail counts",
+    "Boundary view",
+    "provider's page"
+   ]
+  },
+  {
+   "on": "component",
+   "can": "assign its owner",
+   "how": "form",
+   "shows": [
+    "fact line",
+    "Details",
+    "System row"
+   ]
+  },
+  {
+   "on": "component (Mission Computer)",
+   "can": "take library version 2 (lane W's command)",
+   "how": "form",
+   "shows": [
+    "version on the page",
+    "findings lose the CVE",
+    "System needs attention",
+    "fact mc2 and W's pages"
+   ]
+  },
+  {
+   "on": "Boundary view",
+   "can": "edit the boundary's description; request the SCA's review (lane G)",
+   "how": "form",
+   "shows": [
+    "SSP section 5 text",
+    "PDR's Boundary deliverable"
+   ]
+  }
+ ],
+ "walks": [
+  {
+   "id": "S-w1",
+   "title": "Work a component where it is",
+   "steps": [
+    {
+     "route": "system",
+     "do": "Open System. Choose Mission Computing Subsystem in the Subsystem filter, then click Mission Computer.",
+     "see": "The list narrows to its 3 components; hovering a row shows an eye for its preview; the click opens Mission Computer's page.",
+     "was": "Composition tree, then a preview, then a read-only Element page with the menu gone."
+    },
+    {
+     "route": "component--CN-109101--software",
+     "do": "Software & firmware → Add item: Firmware, MC-FW, 5.0. Then click the row and change the version.",
+     "see": "The row is there, the tab counts 5, System's row reads +2; the edit is kept.",
+     "was": "Rows were text; nothing could be added."
+    },
+    {
+     "route": "component--CN-109101--controls",
+     "do": "Controls → Add controls, tick two, Add 2 controls.",
+     "see": "Both rows appear and the count follows; every control placed here is listed, with why.",
+     "was": "12 of 98 codes shown; 'Open in Controls' opened all 560 unfiltered."
+    },
+    {
+     "route": "component--CN-109101--controls",
+     "do": "Click one of them. On the control's page, write its implementation for Mission Computer; go Back.",
+     "see": "The control's page leads with Mission Computer; back on the tab the row reads Written.",
+     "was": "One narrative for the whole system, edited seven clicks away in the SSP."
+    },
+    {
+     "route": "component--CN-109101--requirements",
+     "do": "Requirements → Add requirement → Create requirement; choose that control.",
+     "see": "The new requirement is in the tab, mapped to the control; its row opens its page, which lists Mission Computer.",
+     "was": "'Open in Requirements' left for the register."
+    },
+    {
+     "route": "component--CN-109101",
+     "do": "Overview → Take version 2, write the review comment.",
+     "see": "Still on Mission Computer, now version 2.",
+     "was": "A banner said 'Take it on Host & providers'."
+    }
+   ]
+  },
+  {
+   "id": "S-w2",
+   "title": "Connections, the boundary and the host",
+   "steps": [
+    {
+     "route": "component--CN-109101--connections",
+     "do": "Add connection: to Navigation Processor, MIL-STD-1553B, a protocol and a port. Then click its row.",
+     "see": "The row is on both components; its page shows the port, the agreement and the two components.",
+     "was": "No record existed for a connection between two components."
+    },
+    {
+     "route": "system-connections",
+     "do": "Open System › Connections.",
+     "see": "One table: the nine outside connections with ports and agreement, the host's interfaces, and the new one, Inside.",
+     "was": "Interconnections and Ports & protocols were two registers; Add added nothing."
+    },
+    {
+     "route": "system-connections",
+     "do": "Click 'Without an agreement', click Mission data loads, Link agreement on its page.",
+     "see": "The page reads Agreement signed; the chip and System's needs attention drop by one.",
+     "was": "Agreement shown in a preview ending in 'Open evidence'."
+    },
+    {
+     "route": "system-boundary",
+     "do": "Components → Boundary. Click a line, go Back, click a subsystem box. Try Block 1.1 and IATT.",
+     "see": "A line opens its connection's page, a box its component: one rule.",
+     "was": "A separate Boundary page with a second table of the same 17 things."
+    },
+    {
+     "route": "system-providers",
+     "do": "System › Host and providers, click F-16 Block 70, Controls offered, Change on PE-4 → Hybrid.",
+     "see": "The row reads Hybrid; a component carrying PE-4 reads 'Hybrid with F-16 Block 70'.",
+     "was": "Host & providers page: row, preview, Change, radio, button."
+    },
+    {
+     "route": "system",
+     "do": "Components, Subsystem filter Mission Computing Subsystem → Add component: Health Monitor, Software.",
+     "see": "Its page opens empty, each tab offering its Add; the filter counts 4, the bubble too.",
+     "was": "'Create element' toasted; kind and place were fixed text."
+    }
+   ]
+  }
+ ],
+ "shots": [
+  {
+   "id": "S-s1",
+   "title": "Composition becomes System",
+   "caption": "Four tabs for what System lists, a Subsystem filter beside the search, the authorization in force and three filters. Nothing down the side.",
+   "was": "v3r/S/shots/S-s1-was.png",
+   "now": "v3r/S/shots/S-s1-now.png"
+  },
+  {
+   "id": "S-s2",
+   "title": "The element page becomes the component",
+   "caption": "Every control placed here with why; a row goes to the control's page, the eye previews it; Add controls and Remove on the page.",
+   "was": "v3r/S/shots/S-s2-was.png",
+   "now": "v3r/S/shots/S-s2-now.png"
+  },
+  {
+   "id": "S-s3",
+   "title": "Add firmware on the component",
+   "caption": "Software, firmware and hardware are rows the component owns, with Add item, edit and remove.",
+   "was": "v3r/S/shots/S-s3-was.png",
+   "now": "v3r/S/shots/S-s3-now.png"
+  },
+  {
+   "id": "S-s4",
+   "title": "Interconnections and ports, one record",
+   "caption": "A connection's own page: its ports with Add port, its agreement, the controls it bears on.",
+   "was": "v3r/S/shots/S-s4-was.png",
+   "now": "v3r/S/shots/S-s4-now.png"
+  },
+  {
+   "id": "S-s5",
+   "title": "The host is a component",
+   "caption": "F-16 Block 70's own page: what it offers, how this system takes each, Change in the row.",
+   "was": "v3r/S/shots/S-s5-was.png",
+   "now": "v3r/S/shots/S-s5-now.png"
+  }
+ ],
+ "open": [
+  "Pass 2: requirement and finding pages opened from a component do not carry the component in their breadcrumb (the control's page does); Back and the component's name on the page are the way back.",
+  "Pass 2: in a build without lanes C and D the stand-in previews k3s-ctl and k3s-req have no page, so those rows still open a preview on click; the whole build has no such row (asserted on 27 routes). walk.lane.mjs predates pass 2.",
+  "Pass 2: findings on a component are lane E's list on the whole build (Mission Computer 54, system 140; the lane alone derived 14 and 62).",
+  "Still printing the old count or another placement list (for the lead to point at fact componentCounts / controlsOf / requirementsOf / componentsOf):",
+  "1. PA.v7p.EBY itself (ctl, req, o, e, i, r; Mission Computer 98, 102, 358, 257, 7, 10) and its copies PA.SCTMD.els and mod-system.js SD.els. With V3 on, the only pages that printed ctl and req were Composition (tree, List) and the Element preview and page, all folded here; they still show in Compare with v2 and with V3 off.",
+  "2. Posture (route posture, which the shell now sends to controls; previews v7a-pel, sys-pel, v7a-pcell): component by family in objectives from mod-v7-analysis (Mission Computer 358 mapped, 257 with evidence, 7 issues, 10 risks), not from placements. Lane C's coverage view should count from controlsOf.",
+  "3. The workbook (sctm): SCTM sheet's 'Allocated to' is the components of the requirements that map the control (always a subset of componentsOf(control)), 'Responsible element' the first unit its narrative names; the Requirements sheet's 'Allocated to' is PA.SCTMD.reqs' els. Neither sees a control placed or a requirement allocated on a component, and both say element.",
+  "4. The SSP editor (ssp): section 5 'System tree, 27 elements' and section 8 'Hardware and software inventory, 20 elements' are fixed tables (no control counts): a component, firmware item, connection or port added here does not reach sections 5, 7, 8, 9.",
+  "5. The Requirements register (requirements, requirements-chain): 640 in its tab and pager against 115 requirement records held (42 allocated to a component); its 'Allocated to' column reads its own rows, not S's allocations.",
+  "6. Findings › By asset (findings-assets): issues and CVEs by its own rule (Mission Computer 1 issue, 1 CVE) against the component's Findings 14 (operational issues through its requirements, assessment findings short of satisfied on its controls, the SBOM's CVE).",
+  "The builds carry no charset line: Chromium sometimes reads out/*.html as Latin-1 (mojibake in ›, ·, ⌄; seen on prototype.html and once on v3r-S.html). meta.html needs <meta charset=\"utf-8\">; S's scripts read a copy with a byte-order mark.",
+  "Ports are read by parsing the old ppsm page (12 services), the SBOM from the old element preview, the flight test instrumentation names from v2h-ext previews: those records are private to their modules (asks.json).",
+  "SSP section 5: the Boundary view's edit writes PA.SSP.sec('s5').text; text typed in the SSP editor (its private ST.secHTML) does not come back.",
+  "Host and provider interfaces (1553B, 1760, power, antennas, facility) are now connection records that 'ride on the provider's authorization': a modelling choice, no agreement asked.",
+  "Hardware rows derive the asset tag from the code scheme (AST-1090NN for CN-1091NN).",
+  "A created program: placements start empty; Add controls offers WS-X90's control list unless lane C's control fact says inBaseline false. Its host's responsibilities cannot be changed (v2host keeps them for WS-X90 only).",
+  "hosts opens System's list, not a provider; the Library components table is gone (only Mission Computer has a version to take).",
+  "composition-config's Submit Block 1.1 for approval and inventory-scans have no home in this lane.",
+  "The primary of a side panel is drawn as a secondary by v2's visual layer (one primary a screen).",
+  "Found by the re-walk, not fixed: a component's Software & firmware tab lists the unit itself as a Hardware row, and Add software or firmware offers Hardware as a kind."
+ ],
+ "one_number": {
+  "truth": "What stands on a component is the list this lane draws row by row. Controls: where a requirement allocated there maps the control, or the control's SSP implementation names the component, or the reader placed it; each row says which (Mapped by REQ-001, Named in its implementation, Placed here). Requirements: the requirement records held (PA.SCTMD.reqs, 115) allocated there, plus what the reader allocates or creates. A subsystem pools what is inside it.",
+  "read_it": "PA.v3.fact('componentCounts', code) → { controls, requirements, findings, items, connections, components }; lists: controlsOf, requirementsOf, componentsOf(control). Every place lane S draws reads these (System's row, the component's tabs, its Overview, the Boundary, the component's panel on other pages): asserted in the walk.",
+  "numbers": "Mission Computer: 74 controls, 13 requirements, 14 findings (was 98 and 102, PA.v7p.EBY's ctl and req, with 12 codes and 6 titles behind them). System: 543 controls, 42 requirements (was 547 and 640)."
+ },
+ "pass": 2,
+ "pass2": {
+  "navigation_2": "Nothing of S read #rail. System stays marked on every page of the lane, the connection's page included (asserted).",
+  "no_vertical_tabs": "System's rail is gone, not turned into a dropdown: its kinds are the page's four tabs (Components 27, Host and providers 3, Connected systems 8, Connections 18), each with its own primary; Subsystem is a filter beside the search (K.toolbar filter, options with counts). A component's Controls tab: Family is a filter beside the search. Connections had no rail. K.rail and K.split are no longer called by this lane.",
+  "rows_and_eyes": "Component rows (System, a subsystem's Components, a connection's 'Components it joins') go to the component's page and carry peek k3s-comp. A connection row goes to connection--<id>; the page is given crumbs System › Connections › name, a line From ↔ To · interface, ports with a Service column and Add port (header and section), the agreement with Link/Change agreement and No agreement needed, controls it bears on, and the components it joins. On a component, a control row goes to control--<code>@<component> (lane C), a requirement row to requirement--<id> (lane D), a finding row to finding--<id> (lane E); each lands right. Row buttons (Remove, Change) act alone. The bubble has one rule: a click goes to the record's page (a box to its component, a line and an inside-connection chip to the connection's page). After Add connection the reader stays on the tab; the toast offers Open connection. rec--v8b-ic--<id> opens the connection's page.",
+  "seam_cve": "New fact cveFixed(cve, componentCode): true once the component (or one inside it) runs a version that fixes the CVE. Lane E reads it on the final build: after Take version 2 the CVE leaves Mission Computer's findings (asserted). The walk still asserts the step either way: with E reading it, without E, and prints a note if E is present and does not.",
+  "late_additions": "Exports go through K.save (the kit's save: the viewer's prompt in the published page, a download from disk, a copy dialog otherwise). New fact items(componentCode) → { software, firmware, hardware } for lane D's SSP section 8; allocations stay [component, requirement] pairs under sys.alloc and sys.unalloc."
+ },
+ "asks_pass2": [
+  "Requirement and finding pages opened from a component's tab still read Requirements › REQ-001 and Findings › … : the component is named only in a section. The control's page already carries it (System › Mission Computing Subsystem › Mission Computer › AC-1). The same origin for requirement--<id> and finding--<id> would finish it.",
+  "Lane D can drop PA.v3s.itemsOf and sys.items for fact items(componentCode) (each row says added: true when the reader made it).",
+  "meta.html still has no <meta charset=\"utf-8\">: Chromium sometimes reads a build as Latin-1 (S's scripts read a copy with a byte-order mark)."
+ ]
+}

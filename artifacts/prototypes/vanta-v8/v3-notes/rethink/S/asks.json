@@ -1,0 +1,58 @@
+{
+ "kit": [
+  {
+   "need": "A primary menu",
+   "why": "The component's one primary is Add with six choices; K.menu has no primary look.",
+   "did": "k3s-add: the kit's details.k3-menu markup with class 'btn ink' in the lane's module."
+  },
+  {
+   "need": "K.owner quiet form",
+   "why": "A column of 'Unassigned' avatars is noise; the lane prints a dash when nobody owns the row.",
+   "did": "Local: owner ? K.owner(owner) : dash."
+  },
+  {
+   "need": "Row indentation in K.table",
+   "why": "A tree as a table (system, subsystem, unit).",
+   "did": "k3s-ind wrapper around K.name with --d; a row class cannot pad the cell (v2's table rule wins)."
+  },
+  {
+   "need": "Buttons inside a row that opens a panel",
+   "why": "v2 notes the row under any click as the last preview, so a redraw after Remove drew the row's panel into the open one.",
+   "did": "The lane's stop(e) stops the click and notes the open panel again (K.openPanel). Better in the kit."
+  },
+  {
+   "need": "K.table cols without wrapping headers, and a min-width per column",
+   "why": "Seven columns beside the rail.",
+   "did": "k3s-list and k3s-w classes in the lane's CSS."
+  }
+ ],
+ "data": [
+  {
+   "need": "PA exports for PPS (mod-v8-boundary.js), SBOM and ASSETS and ELSUM (mod-v7-program.js)",
+   "why": "Ports, the SBOM and assets are private; the lane parses the old ppsm page and the old element preview once.",
+   "did": "oldPorts(), sbomOf(), derived asset tags."
+  },
+  {
+   "need": "The SSP editor to keep a section's edited text where others can read it (PA.SSP.sec(id).text or a fact)",
+   "why": "The Boundary view and SSP section 5 should be one text both ways.",
+   "did": "One way: the view writes sec('s5').text."
+  },
+  {
+   "need": "A per-component implementation and a control owner from lane C",
+   "why": "Component Controls tab.",
+   "did": "Reads fact impl/setImpl when present; else its own store; Owner column left out."
+  },
+  {
+   "need": "Lane D: the requirement panel's kind (fact reqPanel) and a create-requirement command",
+   "why": "So a requirement made on a component is in the register and opens D's panel.",
+   "did": "k3s-req panel and facts requirementsOf, allocate, madeRequirements."
+  }
+ ],
+ "shell": [
+  {
+   "need": "MERGED default for hosts could be a provider view",
+   "why": "hosts opens System's list with the rail as it was left.",
+   "did": "Left as MODEL says."
+  }
+ ]
+}

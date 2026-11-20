@@ -1,0 +1,47 @@
+{ "findings": [
+  { "id": "B18", "status": "fixed", "text": "Objectives tab lists each assessment objective with its methods; Record determinations judges every objective with its methods; the control takes the worst once all are judged.", "see": { "route": "campaign-conmon", "prog": "wsx", "modal": "v3r-det" } },
+  { "id": "B19", "status": "fixed", "text": "Requests and determinations wait on the plan: D. Okafor approves, R. Calloway concurs, each recorded as its holder. A control added to an approved plan joins version 2.", "see": { "route": "campaign-conmon", "prog": "wsx" } },
+  { "id": "B20", "status": "fixed", "text": "Determinations read 'recorded as Nadia Fournier by Ingrid Solberg'; only the lead assessor publishes, recorded as D. Okafor, and the results and plan approvals say so.", "see": { "route": "campaign-conmon", "prog": "wsx", "modal": "v3r-publish" } },
+  { "id": "B21", "status": "fixed", "text": "One publish rule: every determination short of satisfied opens an operational issue, in continuous monitoring and in expanded set 2 alike (five issues there).", "see": { "route": "assessments", "prog": "wsx", "modal": "a-tests-publish" } },
+  { "id": "B16", "status": "fixed", "text": "Result batches read 'Expanded set 1', 'Expanded set 2', 'set 1' on every page, dialog and toast; Increment names only acquisition increments.", "see": { "route": "review-queue", "prog": "wsx" } },
+  { "id": "B17", "status": "fixed", "text": "A control names the campaign holding it from every campaign's requests and plans; AC-2(7) names the expanded campaign, offers Open assessment campaign, and Add refuses a second.", "see": { "route": "rec--a-tests-control--AC-2(7)", "prog": "wsx" } },
+  { "id": "C13", "status": "fixed", "text": "Assign owner (risks, issues, POA&M items), Deactivate, Change planned date and Link ATT&CK technique save; Overview, My work, People and the registers recount from them.", "see": { "route": "risks", "prog": "wsx" } },
+  { "id": "B22", "status": "fixed", "text": "Create risk asks Mitigate, Accept or Transfer (Mitigate when a POA&M item answers it); an issue offers Create risk before its POA&M item; Mitigate drops Request acceptance.", "see": { "route": "findings", "prog": "wsx", "modal": "v2k-risk" } },
+  { "id": "B24", "status": "fixed", "text": "Adversarial DT&E is proposed after the IATT (Jun 8); the recorded SA-24 exercise keeps its window but warns it starts before the IATT, which shows as a prerequisite lane.", "see": { "route": "cyber-te", "prog": "wsx" } },
+  { "id": "B25", "status": "fixed", "text": "Plan the test runs Plan an assessment's command: a campaign with a draft plan, on SSP 3 for Increment 2, listed on Assessments and Cyber T&E.", "see": { "route": "cyber-te", "prog": "wsx", "modal": "v7a-cyber-plan" } },
+  { "id": "B28", "status": "fixed", "text": "SVR's Cyber T&E deliverable names the CVI campaign's lead, Ingrid Solberg, as Cyber T&E and Assessments do.", "see": { "route": "lifecycle-svr-2", "prog": "wsx" } }
+],
+"extra": [
+  { "id": "R-x1", "text": "Plan an assessment offers SSP 3 (Increment 2) beside SSP 2, as lane G asked; the CVI defaults to SSP 3.", "see": { "route": "assessments", "prog": "wsx", "modal": "v2k-plan" } },
+  { "id": "R-x2", "text": "A campaign gains a Plan tab: each plan version, the controls it adds, and who approved or concurred, recorded as whom.", "see": { "route": "campaign-conmon", "prog": "wsx" } },
+  { "id": "R-x3", "text": "The Deactivated tab lists deactivated issues with reason and why, in place of 'Nothing is deactivated'.", "see": { "route": "findings", "prog": "wsx" } }
+],
+"walks": [
+  { "id": "R-w1", "title": "Assess SI-2 by objective, publish as lead", "findings": ["B18", "B19", "B20", "B21", "B17", "B16"], "prog": "wsx", "steps": [
+    { "route": "campaign-conmon", "do": "Read the Plan fact and the request row.", "see": "Plan version 1 waits on D. Okafor and R. Calloway; Set Ready is held.", "v2": "Requests ran on a draft plan." },
+    { "route": null, "do": "Approve plan, choose Approve, Record decision; then Record AO concurrence, Concur.", "see": "Plan reads 'Version 1 · approved Nov 17'; the Plan tab says each step was recorded as its holder.", "v2": "No plan approval anywhere." },
+    { "route": null, "do": "On Requests, Set Ready, then Record determinations.", "see": "Ten SI-2 objectives, each with Examine, Interview, Test and its own determination.", "v2": "One value per control." },
+    { "route": null, "do": "Judge nine Satisfied and SI-02d. Other than satisfied with a rationale, recorded as Nadia Fournier.", "see": "Toast: all 10 judged; SI-2 stays Not assessed until published.", "v2": "Assessor chosen silently, no 'recorded as'." },
+    { "route": null, "do": "Open the Objectives tab.", "see": "Each objective's methods and determination, 'Draft · recorded as Nadia Fournier by Ingrid Solberg'.", "v2": "Controls with counts only." },
+    { "route": null, "do": "Publish assessment results.", "see": "Only the lead assessor publishes, recorded as D. Okafor; SI-2 opens an operational issue.", "v2": "Anyone published, silently as D. Okafor." },
+    { "route": "findings", "do": "Find SI-2's issue; open Controls.", "see": "'SI-2 Flaw Remediation judged other than satisfied'; SI-2 reads Other than satisfied.", "v2": "Same for this campaign only." },
+    { "route": "rec--a-tests-control--AC-2(7)", "do": "Read Campaign and Next step.", "see": "Expanded control set assessment · request ready; Open assessment campaign.", "v2": "Campaign — and Add to assessment campaign." },
+    { "route": "assessments", "do": "Publish the expanded set 2 results.", "see": "Named 'expanded set 2'; five determinations short of satisfied open operational issues.", "v2": "'Increment 2 published', no issues." }
+  ] },
+  { "id": "R-w2", "title": "Owners, risk response, Cyber T&E", "findings": ["C13", "B22", "B24", "B25", "B28"], "prog": "wsx", "steps": [
+    { "route": "risks", "do": "Tick the first risk, Assign owner, Priya Raghavan.", "see": "Owner shows; No owner 39.", "v2": "'Not saved … isn't wired'." },
+    { "route": "overview", "do": "Read Open risks; then My work.", "see": "'39 with no owner'; 'Give an owner to 39 open risks'.", "v2": "Stayed 40." },
+    { "route": "findings", "do": "Open SI-2's issue (walk 1), Create risk; choose a response.", "see": "Mitigate, Accept or Transfer asked; created before any POA&M item.", "v2": "Risk only after POA&M; response silently Accept." },
+    { "route": null, "do": "Open the new risk.", "see": "Response 'Mitigate · no POA&M item yet'; primary is Create POA&M item.", "v2": "Primary was Request acceptance." },
+    { "route": "findings", "do": "Tick an issue, Deactivate, give a reason.", "see": "It leaves the open issues (43); the Deactivated tab lists it with its reason.", "v2": "'Not saved'." },
+    { "route": "cyber-te", "do": "Read the timeline.", "see": "ACD Jun 8 after the IATT lane (May 18); the exercise warns it starts before it.", "v2": "ACD and exercise before TRR and IATT." },
+    { "route": null, "do": "Plan the test, keep SSP 3, Plan cyber test.", "see": "A campaign with a draft plan; the banner names it; Assessments lists it.", "v2": "'Not saved'." },
+    { "route": "lifecycle-svr-2", "do": "Read the Cyber T&E deliverable.", "see": "CVI FY2027 · Ingrid Solberg, the campaign's lead.", "v2": "Wes Duarte." }
+  ] }
+],
+"shots": [
+  { "id": "R-s1", "title": "Record determination: per objective", "findings": ["B18", "B20"], "caption": "v2 takes one value per control and picks an assessor silently; V3 judges each objective with its methods, recorded as the assessor named.", "v2": "v3/R/shots/R-s1-v2.png", "v3": "v3/R/shots/R-s1-v3.png" },
+  { "id": "R-s2", "title": "The campaign's objectives", "findings": ["B18", "B19"], "caption": "v2 lists SI-2 with a count; V3 lists its ten objectives with methods, and the plan waits on approval.", "v2": "v3/R/shots/R-s2-v2.png", "v3": "v3/R/shots/R-s2-v3.png" },
+  { "id": "R-s3", "title": "Create risk asks its response", "findings": ["B22"], "caption": "v2 never asks and defaults to Accept; V3 asks Mitigate, Accept or Transfer, before or after the POA&M item.", "v2": "v3/R/shots/R-s3-v2.png", "v3": "v3/R/shots/R-s3-v3.png" },
+  { "id": "R-s4", "title": "Cyber T&E waits on the IATT", "findings": ["B24"], "caption": "v2 runs ACD before TRR and the IATT; V3 proposes it after the IATT, shown as a prerequisite, and warns on the exercise.", "v2": "v3/R/shots/R-s4-v2.png", "v3": "v3/R/shots/R-s4-v3.png" }
+] }

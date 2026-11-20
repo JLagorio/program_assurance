@@ -1,0 +1,30 @@
+// Seam checks after the first fixes. usage: node int2.mjs <build> <outdir>
+import { createRequire } from "module";
+const require = createRequire("/Users/joseflagorio/Development/program_assurance-ux-proposal/package.json");
+const { chromium } = require("playwright");
+const [build, out] = process.argv.slice(2);
+const b = await chromium.launch(); const p = await b.newPage({ viewport: { width: 1440, height: 900 } });
+const errs = []; p.on("pageerror", (e) => errs.push(e.message));
+await p.goto("file://" + build + "#overview"); await p.waitForTimeout(700);
+await p.evaluate(() => { sessionStorage.clear(); PA.v2.reset(); PA.v3.set(true); }); await p.waitForTimeout(300);
+const go = async (r) => { await p.evaluate((r) => { location.hash = r; }, r); await p.waitForTimeout(700); await p.evaluate(() => { const t = document.getElementById("v2-toast"); if (t) t.remove(); }); };
+const shot = (n) => p.screenshot({ path: `${out}/int2-${n}.jpg`, type: "jpeg", quality: 60 });
+const pan = () => p.evaluate(() => { const pn = document.querySelector(".panel .k3-pn"); return pn ? { title: pn.querySelector("h4").innerText, full: pn.dataset.v2rFull, open: [...pn.querySelectorAll(".k3-pn-a a")].map((a) => a.innerText), arrow: !!document.querySelector(".panel [data-v2r-open], .panel .v2r-full, .panel [aria-label*='full']"), obj: !!pn.querySelector(".k3-group") } : null; });
+let ok = 0, bad = 0; const t = (name, cond, extra) => { cond ? ok++ : bad++; console.log(cond ? "ok  " : "FAIL", name, extra === undefined ? "" : JSON.stringify(extra)); };
+
+await go("controls"); await shot("controls");
+t("filters sit under the cards", await p.evaluate(() => { const tools = document.querySelector("#main .k3-tools"), card = document.querySelector("#main .k3-card, #main .k3-cards"); return tools && card && tools.getBoundingClientRect().top > card.getBoundingClientRect().bottom - 2; }));
+await p.click("#main table tbody tr:nth-child(2)"); await p.waitForTimeout(500);
+let x = await pan(); t("control panel has no Open control and no second page", x && !x.full && !x.open.length, x); await shot("panel");
+t("objectives listed in the panel (AC-2)", x && x.obj);
+await p.keyboard.press("Escape"); await p.waitForTimeout(200);
+await go("rec--a-tests-control--AC-2"); 
+t("old control address opens Controls", (await p.evaluate(() => location.hash)) === "#controls", await p.evaluate(() => location.hash));
+x = await pan(); t("… with AC-2's panel open", x && /Account Management/.test(x.title), x);
+await go("control-si2"); x = await pan(); t("control-si2 opens Controls with SI-2's panel", (await p.evaluate(() => location.hash)) === "#controls" && x && /Flaw/.test(x.title), x);
+await go("sctm"); await p.waitForTimeout(600);
+const link = await p.$('a[href^="#rec--a-tests-control--"]');
+if (link) { await link.click(); await p.waitForTimeout(500); x = await pan(); t("a link to the old control page opens the panel in place", (await p.evaluate(() => location.hash)) === "#sctm" && !!x, [await p.evaluate(() => location.hash), x && x.title]); } else console.log("    (no old control link on the workbook)");
+await go("component--CN-109101--controls"); await p.click("#main table tbody tr"); await p.waitForTimeout(500); x = await pan(); t("component's control row opens the panel", !!x && !x.open.length, x);
+console.log(ok, "ok,", bad, "failed; errors", errs.slice(0, 5));
+await b.close();

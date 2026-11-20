@@ -1,0 +1,85 @@
+{
+ "lede": "An independent re-walk of the ten jobs the last version was rejected on: nine could be done end to end on the record itself, and the tenth (editing the plan) worked except that the boundary paragraph was kept in two places. That, and four other things the re-walk found wrong, were fixed afterwards and checked by script; what it found rough and is still open is listed under What is still open.",
+ "rows": [
+  {
+   "n": 1,
+   "job": "From Overview, find what is due next and act on the first deliverable that is not ready",
+   "was": "Done in 5 clicks, but the step printed in every row did nothing: the work sat behind the control's code, a preview and a dialog that offered 26 of the 640 requirements, one control at a time.",
+   "now": "Done in 5 clicks: the not-ready deliverable opens its 14 controls, a row opens the control's own page, and Add requirement there maps one from the full searchable list. The gate, the list and Overview all drop to 13, and a bar at the foot of the page leads back to the gate.",
+   "done": "yes",
+   "clicks": 5
+  },
+  {
+   "n": 2,
+   "job": "Add a firmware or software item to Mission Computer; create a new component in a subsystem",
+   "was": "Not done (stopped after 4 clicks): the element page had no way to add software or firmware, Edit element was only a message, and Create element added nothing.",
+   "now": "Done: 3 clicks reach Mission Computer's Software & firmware tab, where Add item adds a firmware row and the counts on System follow. Add component on System asks for the subsystem and the kind, and the new component shows in the list, the counts and the boundary drawing (8 clicks in all).",
+   "done": "yes",
+   "clicks": 8
+  },
+  {
+   "n": 3,
+   "job": "Record a connection between two components with protocol and ports; find an outside connection and its agreement",
+   "was": "Not done (3 clicks to the list): a connection between two components could not be recorded anywhere, and the add forms for outside connections and for ports added nothing.",
+   "now": "Done in 4 clicks: System's Connections tab has Add connection with both ends, a protocol and a port. The connection shows in the list, on its own page (where more ports are added) and on Mission Computer; an outside connection's agreement sits on that connection's page with Change agreement, one more click.",
+   "done": "yes",
+   "clicks": 5
+  },
+  {
+   "n": 4,
+   "job": "Add a control to Mission Computer and remove one; write how Mission Computer implements AC-2",
+   "was": "Partly (7 clicks): controls could not be added to or removed from the element, \"Open in Controls\" opened all 560 with nothing selected, and the implementation could only be changed by hunting for the control inside the SSP.",
+   "now": "Done on the component: its Controls tab adds and removes controls and the counts on System follow; a row opens AC-2 for Mission Computer with Write implementation, which then shows on the control and on the component (11 clicks for all three). The tab does call many controls \"Written\" that their own page says are not.",
+   "done": "yes",
+   "clicks": 11
+  },
+  {
+   "n": 5,
+   "job": "Add a requirement to Mission Computer, map it to a control, attach evidence",
+   "was": "Partly (5 clicks): Create requirement added nothing and could not be given to Mission Computer; only mapping a control and linking one of six evidence items on an existing requirement worked.",
+   "now": "Done in 10 clicks from Mission Computer's Requirements tab: Create requirement there gives it to the component and maps a control in one form; its page links evidence from the full searchable list (or adds new evidence). The requirement then shows on the control, on the evidence and in the register.",
+   "done": "yes",
+   "clicks": 10
+  },
+  {
+   "n": 6,
+   "job": "Tailor the baseline: add a control, remove a control; find it in the controls list and work on it",
+   "was": "Not done (3 clicks): there was no way to add or remove a single control in the program's tailoring, and a tailored-in control could not be found in the controls list, whose search and pager did nothing.",
+   "now": "Done from Controls in about 10 clicks: Add control, From the catalog adds one with a rationale (561, shown at once in the list); a control's More menu removes one to Tailored out (559 on every page that counts them). Search finds either, and its page takes requirements like any other control.",
+   "done": "yes",
+   "clicks": 10
+  },
+  {
+   "n": 7,
+   "job": "Edit the SSP: one control's narrative and one sentence of the boundary section",
+   "was": "Done, 6 clicks to typing: the editor was not in the menu, links into it opened the top of the document, and the typed boundary sentence showed nowhere else.",
+   "now": "Done: 2 clicks open the editor (Documents, then the plan's row), 6 in all, and the control's text shows on the control's page at once. The re-walk found the boundary paragraph kept twice, in the plan and on the System page; that was fixed afterwards, so a sentence typed in either place now shows in the other (checked by script, not re-walked by a person).",
+   "done": "yes",
+   "clicks": 6
+  },
+  {
+   "n": 8,
+   "job": "Open the SCTM workbook; edit a cell; open a record from a row; return",
+   "was": "Done, 3 clicks to reach it through a secondary button on Controls; a record opened from a row had no way back to the workbook but the browser's Back.",
+   "now": "Done: the workbook is a view of Controls (2 clicks), a cell edit is staged, reviewed and applied (5), and a record's code opens its side panel and then its page (7). The re-walk found the page had no way back but the browser's Back; it now carries a link back to the workbook (added afterwards, checked by script).",
+   "done": "yes",
+   "clicks": 7
+  },
+  {
+   "n": 9,
+   "job": "See a control inherited from the host on the component, in the controls list and on the host; change its responsibility",
+   "was": "Partly (5 clicks): the responsibility could be changed and the counts agreed, but the inherited control could not be seen on the component.",
+   "now": "Done in 7 clicks: System, Host and providers, F-16 Block 70 lists the 16 controls it offers; the control's page changes its responsibility, and the host, the Controls list, Overview and the component's Controls tab (which says whom each control is inherited from) all follow.",
+   "done": "yes",
+   "clicks": 7
+  },
+  {
+   "n": 10,
+   "job": "Record a result short of satisfied on one objective; follow it to its finding, POA&M item and risk; check the control and the component; decide the PDR gate",
+   "was": "Partly (6 clicks to a request): no result could be recorded on one objective, Flag changed nothing, and an assessment finding had no record of its own to follow.",
+   "now": "Done in about 16 clicks: the assessment's Objectives tab has Judge on every objective; a result short of satisfied opens a finding with its own page, where the plan, a milestone and a risk are created, and the control, Mission Computer, Findings and Risks all show them. The gate records a decision, though only \"Not passed\" is accepted while deliverables are open, and the control's page gives mixed signals about its assessment.",
+   "done": "yes",
+   "clicks": 16
+  }
+ ]
+}

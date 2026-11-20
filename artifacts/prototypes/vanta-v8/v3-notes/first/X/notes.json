@@ -1,0 +1,207 @@
+{
+ "findings": [
+  {
+   "id": "C06",
+   "status": "partly",
+   "text": "The sheets now hold every row the registers count: Requirements 640, Evidence 368, Operational issues 44, Assessment findings 313 (its own sheet), so the workbook and the registers agree.",
+   "why": "The prototype holds 117 requirements in full; the other rows are filled in from each control's counts, as the sheet says.",
+   "see": {
+    "route": "sctm-requirements",
+    "prog": "wsx"
+   }
+  }
+ ],
+ "extra": [
+  {
+   "id": "X-x1",
+   "text": "In the SCTM, a row's number opens that row's record preview beside the workbook; every record in a cell opens its own: a finding its finding, evidence its artifact.",
+   "see": {
+    "route": "sctm-requirements",
+    "prog": "wsx",
+    "open": {
+     "kind": "v7p-req",
+     "id": "REQ-004"
+    }
+   }
+  },
+  {
+   "id": "X-x2",
+   "text": "The workbook is Controls' spreadsheet view: Controls offers Open as spreadsheet in its header, and the workbook's back link and Close return to Controls.",
+   "see": {
+    "route": "controls",
+    "prog": "wsx"
+   }
+  },
+  {
+   "id": "X-x3",
+   "text": "Posture's Columns switches between control families and the 14 resiliency techniques of SP 800-160 Vol. 2; by technique, cells count the boundary's objectives, issues and risks.",
+   "why": "Partly: by technique reads the authorization boundary only; the snapshot places objectives on the elements inside it by control family alone.",
+   "see": {
+    "route": "posture",
+    "prog": "wsx",
+    "open": {
+     "kind": "v3x-ptech",
+     "id": "mapped:segmentation"
+    }
+   }
+  },
+  {
+   "id": "X-x4",
+   "text": "A link naming an SSP section (Shown in SSP section 13, §9, §12) opens the SSP editor at that section, not at its top.",
+   "see": {
+    "route": "conmon",
+    "prog": "wsx"
+   }
+  },
+  {
+   "id": "X-x5",
+   "text": "New plan creates the draft: listed on Plans as revision 1, Draft, with its preview; Create draft opens its editor, and what is written there stays.",
+   "see": {
+    "route": "ssps",
+    "prog": "wsx",
+    "modal": "v8d-newplan"
+   }
+  },
+  {
+   "id": "X-x6",
+   "text": "Shown twice (↗ opens a page repeating the preview): review queue item, ATT&CK technique, asset, interconnection, agent run, authorization decision, another program's gate. WS-X90's gates open their Lifecycle page instead.",
+   "why": "Not folded: Josef has not decided. Each preview's ↗ opens a page repeating 92–99% of its words; assets 67–72%.",
+   "see": {
+    "route": "interconnections",
+    "prog": "wsx",
+    "open": {
+     "kind": "v8b-ic",
+     "id": "IC-101"
+    }
+   }
+  },
+  {
+   "id": "X-x7",
+   "text": "Posture's callout no longer shows a rotated copy of its sentence beside the icon (lane F's edit wrote it into the icon too).",
+   "see": {
+    "route": "posture-issues",
+    "prog": "wsx"
+   }
+  }
+ ],
+ "walks": [
+  {
+   "id": "X-w1",
+   "title": "The workbook opens records",
+   "findings": [
+    "C06"
+   ],
+   "prog": "wsx",
+   "steps": [
+    {
+     "route": "controls",
+     "do": "Choose Open as spreadsheet in the page header.",
+     "see": "The SCTM workbook. Tabs: Requirements 640, Evidence 368, Operational issues 44, Assessment findings 313.",
+     "v2": "Tabs read Requirements 117, Evidence 89, Findings 112, issues and findings mixed."
+    },
+    {
+     "route": null,
+     "do": "Click the number of row 2 on the SCTM sheet.",
+     "see": "AC-2's control preview opens beside the workbook.",
+     "v2": "The row number only selected the row."
+    },
+    {
+     "route": null,
+     "do": "Open the Requirements sheet; click row 4's number.",
+     "see": "REQ-004's requirement preview: statement, AC-5 mapped, its chain.",
+     "v2": "Only REQ codes in cells opened; 117 rows."
+    },
+    {
+     "route": null,
+     "do": "Open Assessment findings; click AC-11 Device Lock.",
+     "see": "Its assessment finding preview: Other than satisfied, initial authorization SAR, D. Okafor.",
+     "v2": "A finding opened its control's preview, mixed with issues."
+    },
+    {
+     "route": null,
+     "do": "Open Evidence; scroll to row 24, Evidence for REQ-001, and click it.",
+     "see": "Its evidence preview: state, cited by REQ-001, controls AC-2 and AC-7.",
+     "v2": "A cited title opened nothing."
+    },
+    {
+     "route": null,
+     "do": "Open Analysis.",
+     "see": "286 requirements citing no evidence, 54 evidence to revise, 88 pending, 44 open issues: the registers' numbers.",
+     "v2": "Counted the snapshot's subsets."
+    },
+    {
+     "route": null,
+     "do": "Choose Controls at the top left, or the ✕.",
+     "see": "Controls opens.",
+     "v2": "Close landed on Overview or Home."
+    }
+   ]
+  },
+  {
+   "id": "X-w2",
+   "title": "Techniques, SSP sections and a new plan",
+   "findings": [],
+   "prog": "wsx",
+   "steps": [
+    {
+     "route": "posture",
+     "do": "Choose Resiliency techniques beside Export CSV.",
+     "see": "14 techniques as columns, the four readings as rows, Total counting each objective once.",
+     "v2": "Columns was a label; control families only."
+    },
+    {
+     "route": null,
+     "do": "Click Segmentation's Objectives mapped cell.",
+     "see": "Its preview lists the baseline's Segmentation controls, each with objectives mapped and evidenced.",
+     "v2": "No technique reading existed."
+    },
+    {
+     "route": "conmon",
+     "do": "Click Shown in SSP section 13 under the checks (also Open SSP §12 on Cyber resiliency).",
+     "see": "The SSP editor opens at §13 Continuous monitoring strategy.",
+     "v2": "The editor opened at its top."
+    },
+    {
+     "route": "ssps",
+     "do": "Choose New plan, pick Privacy impact assessment, then Create draft.",
+     "see": "The draft's editor, six template sections; type in one and leave it.",
+     "v2": "Create draft only toasted; nothing was made."
+    },
+    {
+     "route": "ssps",
+     "do": "Look at the Plans list; open the new row.",
+     "see": "Plans 5: the draft, revision 1, Draft; its preview counts 1 of 6 sections written.",
+     "v2": "Plans stayed at 4."
+    }
+   ]
+  }
+ ],
+ "shots": [
+  {
+   "id": "X-s1",
+   "title": "Workbook with a record preview open",
+   "findings": [
+    "C06"
+   ],
+   "caption": "Requirements holds 640; a row's number opens its requirement preview beside the grid. Sheets for issues and findings stand apart.",
+   "v2": "v3/X/shots/X-s1-v2.png",
+   "v3": "v3/X/shots/X-s1-v3.png"
+  },
+  {
+   "id": "X-s2",
+   "title": "Posture by resiliency technique",
+   "findings": [],
+   "caption": "Columns reads the 14 techniques of SP 800-160 Vol. 2 at the boundary: objectives, without evidence, issues, risks.",
+   "v2": "v3/X/shots/X-s2-v2.png",
+   "v3": "v3/X/shots/X-s2-v3.png"
+  },
+  {
+   "id": "X-s3",
+   "title": "A new plan is a draft on Plans",
+   "findings": [],
+   "caption": "New plan made the supply chain risk management plan: listed as revision 1, Draft, opening its editor.",
+   "v2": "v3/X/shots/X-s3-v2.png",
+   "v3": "v3/X/shots/X-s3-v3.png"
+  }
+ ]
+}

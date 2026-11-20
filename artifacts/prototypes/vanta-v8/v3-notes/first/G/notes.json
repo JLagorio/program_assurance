@@ -1,0 +1,410 @@
+{
+ "findings": [
+  {
+   "id": "A15",
+   "status": "fixed",
+   "text": "Every program's gate: the request names each step's holder, only that person records it (or it says recorded as them), Approve waits on open items, and deliverables never flip.",
+   "see": {
+    "route": "lifecycle",
+    "prog": "created",
+    "open": {
+     "kind": "a-work-gate",
+     "id": "asr-1"
+    }
+   }
+  },
+  {
+   "id": "B01",
+   "status": "fixed",
+   "text": "PDR's Interconnections deliverable reads the agreements: Not ready, 2 expired · 2 unsigned, and opens Interconnections showing just those four.",
+   "see": {
+    "route": "lifecycle-pdr-2",
+    "prog": "wsx"
+   }
+  },
+  {
+   "id": "B02",
+   "status": "fixed",
+   "text": "A decision records only the decision: deliverables and criteria keep reading their records, so PDR stays 2 of 5 ready and 2 of 4 met after it passes.",
+   "see": {
+    "route": "lifecycle-pdr-2",
+    "prog": "wsx"
+   }
+  },
+  {
+   "id": "B05",
+   "status": "fixed",
+   "text": "The ATO condition's progress, ConMon's trigger and the package's POA&M count read the live issue and POA&M registers (lane F's facts) at draw time.",
+   "see": {
+    "route": "authorization",
+    "prog": "wsx"
+   }
+  },
+  {
+   "id": "B06",
+   "status": "fixed",
+   "text": "Increment 1's IATT is one record: Nov 18, 2025, ATD Aug 31, 2026, the developmental test article, read by Lifecycle and Authorization.",
+   "see": {
+    "route": "authorization",
+    "prog": "wsx"
+   }
+  },
+  {
+   "id": "B07",
+   "status": "fixed",
+   "text": "Beside Submit for review the page says it needs a review comment, with a link to the field; with one, SSP 3 goes to the ISSM.",
+   "see": {
+    "route": "ssp-review",
+    "prog": "wsx"
+   }
+  },
+  {
+   "id": "B08",
+   "status": "fixed",
+   "text": "Approve is unavailable while a deliverable or criterion is open; with conditions and Not approved stay. A request far ahead, or with earlier steps open, says so.",
+   "see": {
+    "route": "lifecycle-pdr-2",
+    "prog": "wsx",
+    "modal": "v2g-decide"
+   }
+  },
+  {
+   "id": "B09",
+   "status": "fixed",
+   "text": "Lifecycle's IATT and ATO steps write one authorization record; Authorization's decision history, Boundary's IATT and Block 1.1 views read it, including Increment 2's planned IATT.",
+   "see": {
+    "route": "authorization",
+    "prog": "wsx"
+   }
+  },
+  {
+   "id": "B10",
+   "status": "fixed",
+   "text": "With conditions the row reads Passed with conditions; each condition has an owner and due day on Lifecycle, the gate and its owner's My work until closed.",
+   "see": {
+    "route": "lifecycle",
+    "prog": "wsx"
+   }
+  },
+  {
+   "id": "B11",
+   "status": "fixed",
+   "text": "Each step of a chain is recorded on its own, naming the current holder (ISSM, then SCA, then AO), as risk acceptance does.",
+   "see": {
+    "route": "lifecycle-iatt-2",
+    "prog": "wsx"
+   }
+  },
+  {
+   "id": "B12",
+   "status": "fixed",
+   "text": "PDR's Boundary opens a Block 1.1 view with the SCA's boundary review shown, requestable and recordable; recording it makes the deliverable ready.",
+   "see": {
+    "route": "boundary-block-1-1",
+    "prog": "wsx"
+   }
+  },
+  {
+   "id": "B13",
+   "status": "fixed",
+   "text": "Each security outcome has one status per increment, read by every gate and the outcomes view: RM.3 reads Not assessed on both the strategy and Milestone B.",
+   "see": {
+    "route": "lifecycle-ms-b-2",
+    "prog": "wsx"
+   }
+  },
+  {
+   "id": "B14",
+   "status": "fixed",
+   "text": "Develop the SSP reads In progress, its deliverable SSP revision 3 In progress · draft, 74 placeholder narratives, then the review's state.",
+   "see": {
+    "route": "lifecycle-ssp-2",
+    "prog": "wsx"
+   }
+  },
+  {
+   "id": "B15",
+   "status": "partly",
+   "text": "Package version 2 holds revision 2.1, Increment 1's annual update, with its own review; SSP revision 3 feeds Increment 2's CDR and IATT.",
+   "why": "ConMon's significant-change trigger (lane W) and Plan an assessment's SSP choice (Assessments) still name SSP 3 and SSP 2.",
+   "see": {
+    "route": "authorization",
+    "prog": "wsx",
+    "modal": "v7p-submit"
+   }
+  },
+  {
+   "id": "B23",
+   "status": "fixed",
+   "text": "The SAR step's first step records the SCA's risk recommendation and residual risk; the package shows it. Authorization records read ATO, ATO with conditions, IATT, DATO.",
+   "see": {
+    "route": "lifecycle-sar-2",
+    "prog": "wsx"
+   }
+  },
+  {
+   "id": "B26",
+   "status": "partly",
+   "text": "Requirements · 14 controls with no requirement opens the SCTM workbook's No requirement view: exactly the 14 controls.",
+   "why": "Controls (lane F's page) has no No requirement quick view to open; asked.",
+   "see": {
+    "route": "lifecycle-pdr-2",
+    "prog": "wsx"
+   }
+  },
+  {
+   "id": "B27",
+   "status": "fixed",
+   "text": "The AO, or the AODR when chosen, decides Select security controls and Develop the SSP; the SCA's step reviews.",
+   "see": {
+    "route": "lifecycle-ssp-2",
+    "prog": "wsx"
+   }
+  },
+  {
+   "id": "B29",
+   "status": "partly",
+   "text": "SSP 3's review reads the categorization rationale from ITCSC version 3, signed Sep 2, so nothing blocks submission.",
+   "why": "The SSP editor's section 2 (route ssp, not lane G's) still draws the rationale empty.",
+   "see": {
+    "route": "ssp-review",
+    "prog": "wsx"
+   }
+  },
+  {
+   "id": "B30",
+   "status": "fixed",
+   "text": "The outcomes view uses Lifecycle's status words and drops the stale footnote; My work's Waiting on others lists the decisions the reader requested.",
+   "see": {
+    "route": "my-work",
+    "prog": "wsx"
+   }
+  },
+  {
+   "id": "C01",
+   "status": "fixed",
+   "text": "Lifecycle owns each gate's criteria, deliverables and decision; Security engineering becomes Lifecycle's Security outcomes view reading the same statuses.",
+   "see": {
+    "route": "lifecycle-outcomes",
+    "prog": "wsx"
+   }
+  },
+  {
+   "id": "C05",
+   "status": "fixed",
+   "text": "Authorization's decision history reads Increment 1's IATT from Lifecycle (Nov 18, 2025) and lists Increment 2's, due May 18, 2027.",
+   "see": {
+    "route": "authorization",
+    "prog": "wsx"
+   }
+  },
+  {
+   "id": "C21",
+   "status": "fixed",
+   "text": "Package room becomes Authorization's Sharing tab (recipients, access requests, access log); Authorization alone holds versions, readiness and the decision.",
+   "see": {
+    "route": "authorization-sharing",
+    "prog": "wsx"
+   }
+  }
+ ],
+ "extra": [
+  {
+   "id": "G-x1",
+   "text": "Request decision is offered on any undecided step, not only the next one, with the warning saying what is early or open.",
+   "see": {
+    "route": "lifecycle-iatt-2",
+    "prog": "wsx"
+   }
+  },
+  {
+   "id": "G-x2",
+   "text": "The line under the program switcher and My work's Due for group count the next gate's deliverables as Lifecycle does.",
+   "see": {
+    "route": "my-work",
+    "prog": "wsx"
+   }
+  },
+  {
+   "id": "G-x3",
+   "text": "Increment 1's three ATO conditions have owners and due days; one counts open high issues, one closes itself when the increment 2 results publish.",
+   "see": {
+    "route": "lifecycle-ato-1",
+    "prog": "wsx"
+   }
+  },
+  {
+   "id": "G-x4",
+   "text": "A signed memo and the authorization decision are listed as the decision's own records, not inputs, so they never block or fake readiness.",
+   "see": {
+    "route": "lifecycle-strat-2",
+    "prog": "wsx"
+   }
+  }
+ ],
+ "walks": [
+  {
+   "id": "G-w1",
+   "title": "Decide PDR: the gate reads its records",
+   "findings": [
+    "B01",
+    "B02",
+    "B08",
+    "A15",
+    "B10",
+    "B12"
+   ],
+   "prog": "wsx",
+   "steps": [
+    {
+     "route": "lifecycle-pdr-2",
+     "do": "Read PDR's deliverables and criteria.",
+     "see": "2 of 5 ready: Interconnections 2 expired · 2 unsigned; Boundary SCA review not requested.",
+     "v2": "3 of 5 ready; Interconnections read Agreements current."
+    },
+    {
+     "route": null,
+     "do": "Click the Interconnections deliverable.",
+     "see": "Interconnections shows only the four agreements PDR waits on.",
+     "v2": "All nine agreements, unfiltered."
+    },
+    {
+     "route": "lifecycle-pdr-2",
+     "do": "Press Record decision.",
+     "see": "What is open is listed; Approve is unavailable: waits on 3 deliverables and 2 criteria.",
+     "v2": "Approve accepted with nothing ready."
+    },
+    {
+     "route": null,
+     "do": "Choose Approve with conditions; give each condition an owner and a due day; Record decision.",
+     "see": "Passed with conditions; still 2 of 5 ready, 2 of 4 met; recorded by Ingrid Solberg as Marcus Ryde.",
+     "v2": "Every deliverable flipped to Ready, criteria 4 of 4 met."
+    },
+    {
+     "route": "lifecycle",
+     "do": "Open Lifecycle.",
+     "see": "PDR's row reads Passed with conditions; Open conditions lists both with owners and dues.",
+     "v2": "Row read Passed; conditions nowhere."
+    },
+    {
+     "route": "my-work",
+     "do": "Open My work, then the condition's row.",
+     "see": "Conditions to close lists them; the row opens the gate with the condition, and Close condition.",
+     "v2": "My work dropped the conditions."
+    },
+    {
+     "route": "boundary-block-1-1",
+     "do": "Request the SCA's review, then Record the review as accepted.",
+     "see": "PDR's Boundary deliverable is ready: 3 of 5.",
+     "v2": "Boundary opened Increment 1; no review anywhere."
+    }
+   ]
+  },
+  {
+   "id": "G-w2",
+   "title": "Increment 2's IATT reaches every page",
+   "findings": [
+    "B09",
+    "B11",
+    "B06",
+    "C05",
+    "B30",
+    "C21"
+   ],
+   "prog": "wsx",
+   "steps": [
+    {
+     "route": "lifecycle-iatt-2",
+     "do": "Press Request decision; keep R. Calloway as the decider.",
+     "see": "It warns: due in 182 days, earlier steps still open.",
+     "v2": "No warning; nobody chose the decider."
+    },
+    {
+     "route": "my-work",
+     "do": "Look under Waiting on others.",
+     "see": "The IATT decision waits on Joel Barrantes.",
+     "v2": "The requested decision was missing."
+    },
+    {
+     "route": "lifecycle-iatt-2",
+     "do": "Record step 1, then step 2.",
+     "see": "Each step is recorded on its own; the IATT stays In review for the AO.",
+     "v2": "One record approved all three steps."
+    },
+    {
+     "route": null,
+     "do": "Record step 3: IATT with conditions, ATD Aug 31, 2027.",
+     "see": "IATT without conditions is unavailable while items are open.",
+     "v2": "Approve with nothing ready."
+    },
+    {
+     "route": "authorization",
+     "do": "Read the decision history.",
+     "see": "Increment 2's IATT, Nov 17, 2026; Increment 1's IATT, Nov 18, 2025 only.",
+     "v2": "Only Increment 1; its IATT dated Jun 2, 2026."
+    },
+    {
+     "route": "boundary-iatt",
+     "do": "Open Boundary's IATT view.",
+     "see": "IATT signed Nov 17, 2026 · ATD Aug 31, 2027.",
+     "v2": "IATT planned May 18, 2027."
+    },
+    {
+     "route": "package-room",
+     "do": "Open Package room.",
+     "see": "It opens Authorization's Sharing tab: recipients, access requests, access log.",
+     "v2": "A separate page owning the package too."
+    }
+   ]
+  }
+ ],
+ "shots": [
+  {
+   "id": "G-s1",
+   "title": "PDR after the decision",
+   "findings": [
+    "B02",
+    "A15"
+   ],
+   "caption": "v2 flips every deliverable to Ready on approval; V3 keeps 2 of 5 ready, tracks the conditions and names whom it was recorded as.",
+   "v2": "v3/G/shots/G-s1-v2.png",
+   "v3": "v3/G/shots/G-s1-v3.png"
+  },
+  {
+   "id": "G-s2",
+   "title": "Authorization's decision history",
+   "findings": [
+    "B06",
+    "C05",
+    "B09"
+   ],
+   "caption": "One IATT record per increment, read from Lifecycle: Increment 1's on Nov 18, 2025; Increment 2's due May 18, 2027.",
+   "v2": "v3/G/shots/G-s2-v2.png",
+   "v3": "v3/G/shots/G-s2-v3.png"
+  },
+  {
+   "id": "G-s3",
+   "title": "Lifecycle with the security outcomes",
+   "findings": [
+    "C01",
+    "B13",
+    "B30"
+   ],
+   "caption": "Security engineering becomes Lifecycle's outcomes view: one status per outcome, Lifecycle's words, each gate linked.",
+   "v2": "v3/G/shots/G-s3-v2.png",
+   "v3": "v3/G/shots/G-s3-v3.png"
+  },
+  {
+   "id": "G-s4",
+   "title": "The decide dialog",
+   "findings": [
+    "B08",
+    "A15",
+    "B10"
+   ],
+   "caption": "V3 lists what is open, makes Approve unavailable, names the decider and gives each condition an owner and a due day.",
+   "v2": "v3/G/shots/G-s4-v2.png",
+   "v3": "v3/G/shots/G-s4-v3.png"
+  }
+ ]
+}
