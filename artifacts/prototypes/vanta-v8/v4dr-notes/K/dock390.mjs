@@ -1,0 +1,15 @@
+import { createRequire } from "module";
+const require = createRequire("/Users/joseflagorio/Development/program_assurance-ux-proposal/package.json");
+const { chromium } = require("playwright");
+const B = (await import("path")).resolve(process.argv[2]);
+const b = await chromium.launch();
+const p = await b.newPage({ viewport: { width: 390, height: 844 } });
+await p.route(/fonts\.(googleapis|gstatic)\.com/, (r) => r.abort());
+await p.goto("file://" + B + "#overview"); await p.waitForTimeout(700);
+await p.evaluate(() => { sessionStorage.clear(); PA.v2.reset(); PA.v3.set(true); const D = PA.drk, K = PA.v3k;
+ D.routeLike("dr-ktest", (id) => K.page({ cls: "k3-rec", head: D.head({ crumbs: [["Findings", "findings"], [id]], id: { code: id, tone: "bad" }, title: "Test " + id, facts: [["Status", "Open"]], tabs: D.tabs([{ label: "Overview", on: true, route: "dr-ktest--" + id }, { label: "Items", problem: 3, route: "dr-ktest--" + id }]) }), body: [D.sunken([D.box("Body", "<p>Body text that should narrow.</p>")]), D.dock({ id: "ktest", items: [{ key: "notes", icon: "chat", label: "Notes", count: 2, pane: () => "<p>Pane</p>" }, { key: "tasks", icon: "task", label: "Tasks", pane: () => "<p>Tasks</p>" }] })] }), { nav: "findings" }); });
+await p.evaluate(() => { location.hash = "dr-ktest--AC-2"; }); await p.waitForTimeout(600);
+await p.click(".drk-dk-i >> nth=0"); await p.waitForTimeout(300);
+console.log(await p.evaluate(() => { const m = document.getElementById("main"); const out = []; for (const el of m.querySelectorAll("*")) { const r = el.getBoundingClientRect(); if (r.right > m.getBoundingClientRect().right + 0.5) out.push(el.tagName + "." + el.className + " " + Math.round(r.right)); } return JSON.stringify({ mw: m.clientWidth, sw: m.scrollWidth, mr: m.getBoundingClientRect().right, out: out.slice(0, 8) }); }));
+await p.screenshot({ path: "dock390.jpg", type: "jpeg", quality: 60 });
+await b.close();

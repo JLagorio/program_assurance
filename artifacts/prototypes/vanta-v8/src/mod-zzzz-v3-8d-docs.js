@@ -1,5 +1,5 @@
-// V3 lane D (k3d-): the program's documents, requirements and evidence. Three registers in the kit's list shape, each with its
-// kinds as tabs (K.rail) and its states as chips; a document's row opens its editor at once; a requirement's row and an
+// V3 lane D (k3d-): the program's documents, requirements and evidence. Three registers in the kit's list shape, each with one
+// row over its table (search, saved views, its kinds and states as filters, its actions); a document's row opens its editor at once and its eye previews it; a requirement's row and an
 // artifact's row go to the record's page, where the work is done, and the row's eye previews the same record in a panel. It replaces Plans (ssps…), Policies, STIG checklists (the register), Evidence sources,
 // Traceability and Requirements' Objectives, Compliance and Chain tabs. Inert while V3 is off (K.screen / K.lazy / V3.S pages,
 // kit actions, V3.redirect; every listener returns at once).
@@ -111,6 +111,8 @@
   const ctlRec = (code) => (SSP && SSP.ctl ? SSP.ctl(code) : null);
   const CSW = { satisfied: "Satisfied", partially_satisfied: "Partially satisfied", other_than_satisfied: "Other than satisfied", not_assessed: "Not assessed", no_evidence: "No evidence", no_requirement: "No requirement" };
   const ctlStatus = (code) => { const s = V3.fact("status", code) || (ctlRec(code) || {}).cs; return CSW[s] || ""; };
+  const CTONE = { Satisfied: "ok", "Partially satisfied": "warn", "Other than satisfied": "bad" };
+  const ctlPill = (code) => { const w = ctlStatus(code); return w ? K.status(w, CTONE[w] || "none") : none(); };
 
   // ════════════════ Documents ════════════════
   const DSTATE = { draft: ["Draft", "none"], review: ["In review", "none"], changes: ["Changes requested", "bad"], expired: ["Expired", "bad"], approved: ["Approved", "ok"], none: ["Not started", "none"] };
@@ -129,16 +131,16 @@
         const revs = (SSP && SSP.revisions) || [], pub = revs.filter((r) => r.state === "Published").pop(), d = (SSP && SSP.doc) || {};
         const inc = txt(td[2]).replace(/^Revision \d+\s*·?\s*/, "");
         out.push(Object.assign(base, { id: "ssp", route: "ssp", abbr: abbr || "SSP", state: dstate(d.state || "Draft"), rev: String(d.revision || base.rev),
-          what: `${abbr || "SSP"} · revision ${d.revision || base.rev} is the draft${inc ? ` for ${inc}` : ""}${pub ? `; revision ${pub.v} is published` : ""}`,
+          what: [inc ? `For ${inc}` : "", pub ? `revision ${pub.v} is published` : ""].filter(Boolean).join(" · "),
           menu: [{ label: "Version history", act: "k3d.go", arg: "ssp-history" }, { label: "Submit for review", act: "k3d.go", arg: "ssp-review" }, PA.M["v3g-ssp21"] ? { label: "Revision 2.1, Increment 1's annual update", act: "k3d.modal", arg: ["v3g-ssp21", "r21"] } : null, { label: "Export as PDF", act: "k3d.export", arg: "System security plan, revision " + (d.revision || base.rev) }] }));
       } else if (kind === "v8d-plan" && has("plan-" + id)) {
-        out.push(Object.assign(base, { id: "plan-" + id, route: "plan-" + id, abbr, state: dstate(txt(td[2])), what: `${abbr} · revision ${base.rev}`,
+        out.push(Object.assign(base, { id: "plan-" + id, route: "plan-" + id, abbr, state: dstate(txt(td[2])), what: "",
           menu: [has(`plan-${id}-history`) ? { label: "Version history", act: "k3d.go", arg: `plan-${id}-history` } : null, { label: dstate(txt(td[2])) === "changes" ? "Resubmit for review" : dstate(txt(td[2])) === "review" ? "Review status" : "Submit for review", act: "k3d.modal", arg: ["v8d-submit", id] }, { label: "Export as PDF", act: "k3d.export", arg: `${name}, revision ${base.rev}` }] }));
       } else if (kind === "v3x-plan" && has("plan-" + id)) {
-        out.push(Object.assign(base, { id: "plan-" + id, route: "plan-" + id, abbr, state: "draft", editing: "", editors: "", what: `${abbr} · revision 1, from its template`, menu: [{ label: "Export as PDF", act: "k3d.export", arg: `${name}, revision 1` }] }));
+        out.push(Object.assign(base, { id: "plan-" + id, route: "plan-" + id, abbr, state: "draft", editing: "", editors: "", what: "From its template", menu: [{ label: "Export as PDF", act: "k3d.export", arg: `${name}, revision 1` }] }));
       }
     }
-    for (const d of madeDocs()) out.push({ id: d.id, kind: d.kind === "policy" ? "policy" : "plan", name: d.title, abbr: "", rev: "1", state: d.state || "draft", owner: d.by, editing: "", editors: "", edited: md(d.edited || d.at), route: "document--" + d.id, made: true, what: `${d.kind === "policy" ? "Policy" : "Plan"} · revision 1, written here`,
+    for (const d of madeDocs()) out.push({ id: d.id, kind: d.kind === "policy" ? "policy" : "plan", name: d.title, abbr: "", rev: "1", state: d.state || "draft", owner: d.by, editing: "", editors: "", edited: md(d.edited || d.at), route: "document--" + d.id, made: true, what: "Written here",
       menu: [{ label: (d.state || "draft") === "review" ? "Withdraw from review" : "Submit for review", act: "k3d.doc.submit", arg: d.id }, { label: "Export as PDF", act: "k3d.export", arg: d.title }, { label: "Delete document", act: "k3d.doc.rm", arg: d.id, danger: true }] });
     for (const tr of oldRows("policies")) {
       const id = String(tr.getAttribute("data-id") || "").split("|")[0], td = [...tr.children]; if (!id) continue;
@@ -148,16 +150,16 @@
       const renew = st === "none" ? "" : txt(td[4]), owner = st === "none" ? "" : txt(td[6] && td[6].querySelector(".nm"));
       // A plan the policy register lists beside the -1 policies (the incident response plan under IR-8) is the plan's own row.
       const twin = slug ? null : out.find((d) => d.kind === "plan" && d.name.toLowerCase() === name.toLowerCase());
-      if (twin) { twin.what += ` · implements ${id}${rev && !/^(—|)$/.test(rev) ? ` · ${rev.toLowerCase()} ${DSTATE[st][0].toLowerCase()}` : ""}`; continue; }
+      if (twin) { twin.what = [twin.what, `Implements ${id}`, rev && !/^(—|)$/.test(rev) ? `${rev.toLowerCase()} ${DSTATE[st][0].toLowerCase()}` : ""].filter(Boolean).join(" · "); twin.ctl = id; continue; }
       out.push({ id: "pol-" + id, kind: "policy", name: `${name} policy`, abbr: id, rev: /^(—|)$/.test(rev) ? "" : rev.replace(/^(Revision|Version|Edition|Issue)\s*/, ""), state: st, owner, editing: "", editors: "", edited: "", route: slug || null, panel: slug ? null : ["a-docs-pol", `${id}|versions`],
-        what: `${id} · policy and procedures${renew && renew !== "—" ? ` · renew by ${renew}` : ""}`,
+        ctl: id, what: renew && renew !== "—" ? `Renew by ${renew}` : st === "none" ? "No document yet" : "Policy and procedures",
         menu: [st === "none" && PA.M["a-docs-start"] ? { label: "Start the document", act: "k3d.modal", arg: ["a-docs-start", id] } : null, st === "none" ? null : { label: "Export as PDF", act: "k3d.export", arg: `${name} policy` }] });
     }
     if (has("itcsc")) {
       const pg = oldPage("itcsc"), facts = {}; pg.querySelectorAll(".ak-rh .ak-facts > div").forEach((d) => { facts[txt(d.querySelector("dt"))] = txt(d.querySelector("dd")); });
       const word = txt(pg.querySelector(".ak-rh .ak-title-row .pill")), ver = (facts.Version || "").split("·")[0].trim();
       out.push({ id: "itcsc", kind: "cat", name: txt(pg.querySelector(".ak-rh .ak-title")) || "IT categorization and selection checklist", abbr: "ITCSC", rev: ver, state: dstate(word || "Approved"), owner: facts.Owner || "", editing: "", editors: "", edited: (facts.Version || "").split("·")[1] ? (facts.Version || "").split("·")[1].trim().replace(/, 2026$/, "") : "", route: "itcsc",
-        what: `ITCSC · ${facts.Categorization || "the system's categorization"}${facts["Next review"] ? ` · next review ${facts["Next review"]}` : ""}`,
+        what: `${facts.Categorization || "The system's categorization"}${facts["Next review"] ? ` · next review ${facts["Next review"]}` : ""}`,
         menu: [has("itcsc-history") ? { label: "Version history", act: "k3d.go", arg: "itcsc-history" } : null, has("itcsc-approval") ? { label: "Approval and signatures", act: "k3d.go", arg: "itcsc-approval" } : null, { label: "Export as AF ITCSC", act: "k3d.export", arg: "ITCSC, version " + ver }] });
     }
     // Agreements are a connection's own (lane S): listed here, each opening its connection.
@@ -166,7 +168,7 @@
       const a = x.agreement; if (!a || !(a.ref || a.kind)) continue;
       const w = String(a.st || a.state || ""), st = /expired/i.test(w) ? "expired" : /draft/i.test(w) ? "draft" : /review|pending/i.test(w) ? "review" : "approved", exp = a.exp || a.expires || "";
       out.push({ id: "agr-" + x.id, kind: "agreement", name: `${a.kind || "Agreement"} with ${x.name}`, abbr: a.ref || "", rev: "", state: st, stateWord: st === "approved" ? w || "Signed" : "", owner: a.owner || "", editing: "", editors: "", edited: a.signed ? md(a.signed) : "", panel: ["k3s-conn", x.id],
-        what: `${a.ref ? a.ref + " · " : ""}the agreement of the ${x.name} connection${exp ? ` · ${st === "expired" ? "expired" : "expires"} ${md(exp)}` : a.interim ? ` · interim until ${md(a.interim)}` : ""}`, menu: [] });
+        what: exp ? `${st === "expired" ? "Expired" : "Expires"} ${md(exp)}` : a.interim ? `Interim until ${md(a.interim)}` : "", menu: [] });
     }
     return out;
   }
@@ -175,10 +177,10 @@
     const code = V3.prog(), out = [], P = PA.v3p;
     const g = (k, d) => { const v = V.get(`v3.P.${code}.${k}`); return v == null ? d : v; };
     const ssp = g("ssp", {}) || {}, nar = g("nar", {}) || {};
-    if (has("ssp")) out.push({ id: "ssp", kind: "plan", name: "System security plan", abbr: "SSP", rev: "1", state: ssp.state === "published" ? "approved" : "draft", stateWord: ssp.state === "published" ? "Published" : "", owner: ssp.by || "", editing: "", editors: "", edited: ssp.at ? md(ssp.at) : "", route: "ssp", what: `SSP · revision 1 · ${plural(Object.values(nar).filter((t) => String(t || "").trim()).length, "narrative")} written`, menu: [] });
-    if (has("itcsc")) out.push({ id: "itcsc", kind: "cat", name: "IT categorization and selection checklist", abbr: "ITCSC", rev: "1", state: (g("itcsc", {}) || {}).ao ? "approved" : "draft", owner: "", editing: "", editors: "", edited: "", route: "itcsc", what: "ITCSC · the system's categorization and its signatures", menu: [] });
-    for (const p of (P && P.recs ? P.recs(code, "pol") : g("pol", [])) || []) out.push({ id: "pol-" + p.id, kind: "policy", name: p.title || p.id, abbr: p.id, rev: "1", state: "draft", owner: p.owner || p.by || "", editing: "", editors: "", edited: p.at ? md(p.at) : "", panel: ["v3p-rec", `pol|${p.id}`], what: `${p.id} · policy`, menu: [] });
-    for (const d of madeDocs()) out.push({ id: d.id, kind: d.kind === "policy" ? "policy" : "plan", name: d.title, abbr: "", rev: "1", state: d.state || "draft", owner: d.by, editing: "", editors: "", edited: md(d.edited || d.at), route: "document--" + d.id, made: true, what: `${d.kind === "policy" ? "Policy" : "Plan"} · revision 1, written here`, menu: [{ label: "Delete document", act: "k3d.doc.rm", arg: d.id, danger: true }] });
+    if (has("ssp")) out.push({ id: "ssp", kind: "plan", name: "System security plan", abbr: "SSP", rev: "1", state: ssp.state === "published" ? "approved" : "draft", stateWord: ssp.state === "published" ? "Published" : "", owner: ssp.by || "", editing: "", editors: "", edited: ssp.at ? md(ssp.at) : "", route: "ssp", what: `${plural(Object.values(nar).filter((t) => String(t || "").trim()).length, "narrative")} written`, menu: [] });
+    if (has("itcsc")) out.push({ id: "itcsc", kind: "cat", name: "IT categorization and selection checklist", abbr: "ITCSC", rev: "1", state: (g("itcsc", {}) || {}).ao ? "approved" : "draft", owner: "", editing: "", editors: "", edited: "", route: "itcsc", what: "The system's categorization and its signatures", menu: [] });
+    for (const p of (P && P.recs ? P.recs(code, "pol") : g("pol", [])) || []) out.push({ id: "pol-" + p.id, kind: "policy", name: p.title || p.id, abbr: p.id, rev: "1", state: "draft", owner: p.owner || p.by || "", editing: "", editors: "", edited: p.at ? md(p.at) : "", panel: ["v3p-rec", `pol|${p.id}`], what: "", menu: [] });
+    for (const d of madeDocs()) out.push({ id: d.id, kind: d.kind === "policy" ? "policy" : "plan", name: d.title, abbr: "", rev: "1", state: d.state || "draft", owner: d.by, editing: "", editors: "", edited: md(d.edited || d.at), route: "document--" + d.id, made: true, what: "Written here", menu: [{ label: "Delete document", act: "k3d.doc.rm", arg: d.id, danger: true }] });
     return out;
   }
   const docs = () => memo("docs", () => (wsx() ? docsWsx() : docsMade()));
@@ -189,8 +191,8 @@
   K.on("k3d.modal", (a) => openModal(a[0], a[1]));
   K.on("k3d.panel", (a) => K.openPanel(a[0], a[1]));
   K.on("k3d.export", (what) => K.toast(`${what}: exported as a PDF with today's date`));
-  K.on("k3d.doc.rail", (id) => { docSet({ rail: id || "", chip: "" }); K.redraw(); });
-  K.on("k3d.doc.chip", (id) => { docSet({ chip: docView().chip === id ? "" : id || "" }); K.redraw(); });
+  K.on("k3d.doc.rail", (id) => { docSet({ rail: id || "" }); K.redraw(); });
+  K.on("k3d.doc.chip", (id) => { docSet({ chip: id || "" }); K.redraw(); });
   K.on("k3d.doc.q", (v) => { docSet({ q: v }); K.redraw(); });
   K.on("k3d.doc.att", (a) => { docSet({ rail: a[0] || "", chip: a[1] || "", q: "" }); K.redraw(); });
   K.on("k3d.doc.open", (id) => { const d = docs().find((x) => x.id === id); if (!d) return; if (d.route) K.go(d.route); else if (d.panel) K.openPanel(d.panel[0], d.panel[1]); });
@@ -228,8 +230,10 @@
     fresh();
     const v = docView(), all = docs(), q = v.q.trim().toLowerCase();
     const inRail = all.filter((d) => !v.rail || d.kind === v.rail);
-    const rows = inRail.filter((d) => (!v.chip || d.state === v.chip) && (!q || `${d.name} ${d.abbr} ${d.what} ${d.owner}`.toLowerCase().includes(q)));
+    const dtext = (d) => `${d.name} ${d.abbr} ${d.what} ${d.owner}`.toLowerCase();
+    const rows = inRail.filter((d) => (!v.chip || d.state === v.chip) && (!q || dtext(d).includes(q)));
     const n = (list, st) => list.filter((d) => d.state === st).length;
+    const ask = (st) => all.filter((d) => (!st.kind || d.kind === st.kind) && (!st.state || d.state === st.state) && (!st.q || dtext(d).includes(String(st.q).trim().toLowerCase()))).length;
     const ph = wsx() ? placeholders().length : 0;
     const kinds = Object.keys(DKIND).filter((k) => all.some((d) => d.kind === k) || k === "plan" || k === "policy");
     const att = K.attention({ rows: [
@@ -238,18 +242,60 @@
       { label: "In review, waiting on an approver", n: n(all, "review"), act: "k3d.doc.att", arg: ["", "review"] },
       { label: "Policies not started", n: all.filter((d) => d.kind === "policy" && d.state === "none").length, act: "k3d.doc.att", arg: ["policy", "none"] },
       all.some((d) => d.kind === "agreement") ? { label: "Agreements expired", n: all.filter((d) => d.kind === "agreement" && d.state === "expired").length, tone: "bad", act: "k3d.doc.att", arg: ["agreement", "expired"] } : null].filter(Boolean) });
-    const chips = K.chips([{ id: "", label: "All", count: inRail.length, on: !v.chip }].concat(Object.keys(DSTATE).filter((k) => n(inRail, k) || v.chip === k).map((k) => ({ id: k, label: DSTATE[k][0], count: n(inRail, k), on: v.chip === k }))), "k3d.doc.chip", "State");
+    // One row over the list: search, the view, Kind, State, then the page's actions.
+    const rail = K.rail({ label: "Kind", key: "kind", act: "k3d.doc.rail", items: [{ id: "", label: "All documents", count: all.length, on: !v.rail }].concat(kinds.map((k) => ({ id: k, label: DKIND[k], count: all.filter((d) => d.kind === k).length, on: v.rail === k }))) });
+    const states = Object.keys(DSTATE).filter((k) => n(all, k) || v.chip === k);
+    const chips = K.chips([{ id: "", label: "All", count: inRail.length, on: !v.chip }].concat(states.map((k) => ({ id: k, label: DSTATE[k][0], count: n(inRail, k), on: v.chip === k }))), "k3d.doc.chip", "State", { key: "state" });
+    const tools = K.toolbar({ id: "documents", noun: "documents", search: { act: "k3d.doc.q", value: v.q, placeholder: "Search documents" },
+      views: { total: all.length, presets: states.filter((k) => n(all, k)).map((k) => ({ label: DSTATE[k][0], state: { state: k }, count: n(all, k) })), count: ask,
+        seed: wsx() ? [{ name: "Policies to start", state: { kind: "policy", state: "none" }, by: "Priya Raghavan" }] : [] } });
     const table = K.table({ label: "Documents", cls: "k3d-docs",
       cols: [{ label: "Document" }, { label: "Revision", cls: "nw" }, { label: "State", cls: "nw" }, { label: "Owner" }, { label: "Editing now", cls: "nw" }, { label: "Last edited", cls: "nw" }, { label: "", cls: "tight" }],
-      rows: rows.map((d) => ({ go: d.route || undefined, panel: d.route ? undefined : (d.panel || [])[0], id: d.route ? undefined : (d.panel || [])[1], cls: "k3d-doc", cells: [K.name(d.name, d.what), d.rev ? `<span class="num">${esc(d.rev)}</span>` : none("No revision"), K.status(d.stateWord || DSTATE[d.state][0], DSTATE[d.state][1]), d.owner ? K.owner(d.owner) : none("No owner"), d.editing ? `<span class="k3d-eds">${d.editing}</span>` : none("Nobody"), d.edited ? `<span class="num">${esc(d.edited)}</span>` : none(), rowMenu(d.name, d.menu || [])] })),
+      rows: rows.map((d) => ({ go: d.route || undefined, panel: d.route ? undefined : (d.panel || [])[0], id: d.route ? undefined : (d.panel || [])[1], peek: d.kind === "agreement" ? undefined : { panel: "k3d-doc", id: d.id }, cls: "k3d-doc", cells: [K.name(d.name, d.what, d.abbr), d.rev ? `<span class="num">${esc(d.rev)}</span>` : none("No revision"), K.status(d.stateWord || DSTATE[d.state][0], DSTATE[d.state][1]), d.owner ? K.owner(d.owner) : none("No owner"), d.editing ? `<span class="k3d-eds">${d.editing}</span>` : none("Nobody"), d.edited ? `<span class="num">${esc(d.edited)}</span>` : none(), rowMenu(d.name, d.menu || [])] })),
       empty: all.length ? { title: "No document matches", line: "Clear the search or choose another state.", action: K.btn("Show every document", { sm: true, act: "k3d.doc.att", arg: ["", ""] }) } : { title: "No documents yet", line: "Start the program's first plan or policy.", action: K.btn("New document", { sm: true, primary: true, act: "k3d.doc.new" }) },
       foot: `<span class="num">${fmt(rows.length)} of ${plural(all.length, "document")}</span>` });
     return K.page({ cls: "k3d",
       head: K.head({ title: "Documents", actions: K.menu("More", [{ label: "Export the list", act: "k3d.export", arg: "The documents list" }, wsx() && has("ssp-history") ? { label: "Published revisions of the SSP", act: "k3d.go", arg: "ssp-history" } : null]) + K.btn("New document", { primary: true, act: "k3d.doc.new" }) }),
-      body: K.split(
-        K.rail({ title: "Documents", act: "k3d.doc.rail", items: [{ id: "", label: "All documents", count: all.length, on: !v.rail }].concat(kinds.map((k) => ({ id: k, label: DKIND[k], count: all.filter((d) => d.kind === k).length, on: v.rail === k }))) }),
-        [all.length ? K.cards(att) : "", chips, K.toolbar({ search: { act: "k3d.doc.q", value: v.q, placeholder: "Search documents" } }), table]) });
+      body: K.split(rail, [all.length ? K.cards(att) : "", chips, tools, table]) });
   }
+  // ——— A document's preview (the row's eye): what it is, where it stands, and what its editor lists ———
+  const KINDW = { plan: "Plan", policy: "Policy", cat: "Categorization", agreement: "Agreement" };
+  const oldDoc = (d) => !!d.route && has(d.route) && d.id !== "ssp" && !/^document--/.test(d.route);
+  const docSections = (d) => memo("dsec:" + d.id, () => {
+    if (d.id === "ssp") return wsx() ? ((SSP && SSP.sections) || []).map((x) => ({ n: x.n, t: x.t, from: x.src || (x.kind === "controls" ? "" : "Written in the plan"), go: "ssp--" + x.id })) : [];
+    if (!oldDoc(d)) return [];
+    return [...oldPage(d.route).querySelectorAll(".sd-h1")].map((hd) => { const n0 = txt(hd.firstElementChild), n = n0.length <= 3 ? n0 : "", t = txt(hd); return { n, t: n && t.indexOf(n) === 0 ? t.slice(n.length).trim() : t, from: "", go: d.route }; }).filter((x) => x.t);
+  });
+  const docCites = (d) => memo("dcite:" + d.id, () => {
+    if (!oldDoc(d)) return [];
+    const tb = [...oldPage(d.route).querySelectorAll("table")].find((t) => /^Evidence/.test(txt(t.querySelector("thead"))));
+    return tb ? [...tb.querySelectorAll("tbody tr")].map((tr) => { const td = [...tr.children].map(txt); return { title: td[0], owner: /^—?$/.test(td[1] || "") ? "" : td[1], a: artList().find((x) => x.title === td[0]) || null }; }).filter((x) => x.title) : [];
+  });
+  const docRevs = (d) => memo("drev:" + d.id, () => {
+    if (d.id === "ssp" && wsx()) return ((SSP && SSP.revisions) || []).slice().reverse().map((r) => ({ name: `Revision ${r.v}`, desc: r.description || "", state: r.state, at: md(r.published || r.started || ""), go: has("ssp-history") ? "ssp-history" : "ssp" }));
+    if (d.id === "itcsc" && wsx() && has("itcsc-history")) { const tb = oldPage("itcsc-history").querySelector("table"); if (tb) return [...tb.querySelectorAll("tbody tr")].map((tr) => { const td = [...tr.children].map(txt); return { name: td[0], desc: td[3] || "", state: td[1], at: /not signed|^—?$/i.test(td[2] || "") ? "" : td[2], go: "itcsc-history" }; }); }
+    const hist = d.route && has(d.route + "-history") ? d.route + "-history" : "";
+    return d.rev ? [{ name: `Revision ${d.rev}`, desc: "", state: d.stateWord || DSTATE[d.state][0], at: d.edited || "", go: hist || d.route || "" }] : [];
+  });
+  const revTone = (w) => (/publish|current|approved|signed/i.test(w) ? "ok" : /needed|changes|sent back|expired/i.test(w) ? "bad" : "none");
+  function docPanel(id0) {
+    const id = String(id0 || "").split("|")[0], d = docs().find((x) => x.id === id); if (!d) return null;
+    const st = DSTATE[d.state], secs = docSections(d), cites = docCites(d), revs = docRevs(d), ph = d.id === "ssp" && wsx() ? placeholders() : [];
+    const made = madeDocs().find((x) => x.id === d.id), hist = revs.length && revs[0].go !== d.route ? revs[0].go : "";
+    const about = cap(String(d.what || "").replace(/^Implements \S+( · )?/, ""));
+    const ctl = d.ctl && ctlRec(d.ctl) ? `<button type="button" class="k3-link" data-panel="${esc(ctlPanel())}" data-id="${esc(d.ctl)}">${esc(d.ctl)}</button> ${ctlPill(d.ctl)}` : "";
+    return { label: "Document", title: d.name, code: d.abbr, chip: K.status(d.stateWord || st[0], st[1]), page: d.route || "", open: d.kind === "plan" && !made ? "Open the editor" : "Open the document",
+      facts: [["Kind", KINDW[d.kind] || "Document"], d.rev ? ["Revision", `<span class="num">${esc(d.rev)}</span>`] : null, ["Owner", d.owner ? K.owner(d.owner) : none("No owner")], d.editors ? ["Editing now", esc(d.editors)] : null, d.edited ? ["Last edited", `<span class="num">${esc(d.edited)}</span>`] : null,
+        ctl ? [d.kind === "policy" ? "Control" : "Implements", ctl] : null, about ? ["About", esc(about)] : null],
+      sections: [
+        secs.length ? K.related({ title: "Sections", cols: [{ label: "Section" }].concat(secs.some((x) => x.from) ? [{ label: "Drawn from", peek: true }] : []), rows: secs.map((x) => ({ go: x.go, cells: [K.name(x.t, "", x.n)].concat(secs.some((y) => y.from) ? [x.from ? esc(x.from) : none()] : []) })), all: { go: d.route } }) : "",
+        ph.length ? K.related({ title: "Placeholder narratives", cols: [{ label: "Control" }, { label: "Family", peek: true }], rows: ph.map((c) => ({ go: "ssp--" + c.c, cells: [K.name(c.t, "", c.c), esc(c.f)] })), all: { go: "ssp--placeholder" } }) : "",
+        cites.length ? K.related({ title: "Evidence it cites", cols: [{ label: "Artifact" }, { label: "Owner", peek: true }], rows: cites.map((x) => Object.assign(x.a ? rowOpen("k3d-ev", x.a.id) : {}, { cells: [K.name(x.title), x.owner ? esc(x.owner) : none("No owner")] })), all: { go: d.route } }) : "",
+        made ? K.section({ title: "Text", body: made.text ? `<p class="k3d-ex">${esc(clip(made.text, 420))}</p>` : `<div class="k3-none-row"><span>Nothing written yet</span></div>` }) : "",
+        revs.length ? K.related({ title: "Revisions", cols: [{ label: "Revision" }, { label: "State", peek: true }, { label: "Date", cls: "nw", peek: true }], rows: revs.map((r) => ({ go: r.go || undefined, cells: [K.name(r.name, r.desc), K.status(r.state, revTone(r.state)), r.at ? `<span class="num">${esc(r.at)}</span>` : none()] })), all: { go: hist || d.route, label: hist ? "Version history" : "" } }) : "",
+      ] };
+  }
+  K.panel("k3d-doc", docPanel);
   K.screen("documents", documentsPage, "documents");
   V3.compareAs("documents", "ssps");
   V3.redirect(/^ssps(-|$)/, (r) => { if (r === "ssps-review") K.set("doc.view", { rail: "", chip: "review", q: "" }); else if (r === "ssps-published") K.set("doc.view", { rail: "", chip: "approved", q: "" }); return "documents"; });
@@ -413,9 +459,10 @@
   const plainReq = (r) => (r ? { code: r.code, id: r.code, title: r.title, statement: r.statement, st: r.statement, type: r.type, controls: [...r.ctl].sort(natural), ctl: [...r.ctl].sort(natural), components: [...r.els], els: [...r.els], evidence: [...r.ev], state: reqState(r)[0], owner: r.owner || null, made: r.made || null, by: r.by || null, at: r.at || null } : null);
 
   // ════════════════ Requirements ════════════════
-  const reqView = () => Object.assign({ rail: "", chip: "", q: "", comp: "", fam: "", ctl: "", codes: null, note: "", page: 0 }, K.get("req.view", {}) || {});
+  // rail: the source; chip: the gap (engineering requirements); ans: the program's answer (the customer's document, where a chip some other page set is read as the answer)
+  const reqView = () => { const v = Object.assign({ rail: "", chip: "", ans: "", q: "", comp: "", fam: "", ctl: "", codes: null, note: "", page: 0 }, K.get("req.view", {}) || {}); if (v.rail === "cust" && v.chip) { if (!v.ans) v.ans = v.chip; v.chip = ""; } return v; };
   const reqSet = (ch) => K.set("req.view", Object.assign({}, reqView(), ch));
-  const CHIPS = [["noctl", "No control mapped", (r) => !r.ctl.size], ["noev", "Cites no evidence", (r) => !r.ev.size], ["noalloc", "Not allocated", (r) => !r.els.size], ["review", "Mapping to review", (r) => !!r.review]];
+  const CHIPS = [["noctl", "No control mapped", (r) => !r.ctl.size, "No control"], ["noev", "Cites no evidence", (r) => !r.ev.size, "No evidence"], ["noalloc", "Not allocated", (r) => !r.els.size, "Not allocated"], ["review", "Mapping to review", (r) => !!r.review, "Mapping to review"]];
   // The customer's requirements document, with the program's answers (the old Compliance tab's rows).
   const custDoc = () => memo("cust", () => {
     if (!wsx() || !S["requirements-compliance"]) return null;
@@ -429,11 +476,21 @@
   const PAGE = 50;
   const pager = (act, page, total) => { const from = total ? page * PAGE + 1 : 0, to = Math.min(total, (page + 1) * PAGE); return `<span class="num">${fmt(from)}–${fmt(to)} of ${fmt(total)}</span>${total > PAGE ? `<span class="k3d-pg">${K.btn("Previous", { sm: true, quiet: true, act, arg: page - 1, disabled: page <= 0 ? "This is the first page" : "" })}${K.btn("Next", { sm: true, quiet: true, act, arg: page + 1, disabled: to >= total ? "This is the last page" : "" })}</span>` : ""}`; };
 
-  K.on("k3d.req.rail", (id) => { reqSet({ rail: id || "", chip: "", page: 0, codes: null, note: "" }); K.redraw(); });
-  K.on("k3d.req.chip", (id) => { reqSet({ chip: reqView().chip === id ? "" : id || "", page: 0 }); K.redraw(); });
-  K.on("k3d.req.q", (v) => { reqSet({ q: v, page: 0 }); K.redraw(); });
-  K.on("k3d.req.comp", (v) => { reqSet({ comp: v, page: 0 }); K.redraw(); });
-  K.on("k3d.req.fam", (v) => { reqSet({ fam: v, page: 0 }); K.redraw(); });
+  // The list's question, each part a control of its one row: Source, Gap (engineering requirements), Answer (the customer's
+  // document), Component, Family and the search. A part that does not apply where the reader stands is still an action the
+  // kit can call (a saved view picked from anywhere asks its whole question): a gap, a component or a family leaves the
+  // customer's document, an answer opens it.
+  const offCust = (val) => (val && reqView().rail === "cust" ? { rail: "", ans: "" } : {});
+  const reqActs = {
+    rail: (id) => { const to = id || ""; reqSet(Object.assign({ rail: to, page: 0, codes: null, ctl: "", note: "" }, to === "cust" ? { chip: "", comp: "", fam: "" } : { ans: "" })); K.redraw(); },
+    chip: (id) => { reqSet(Object.assign({ chip: id || "", page: 0 }, offCust(id))); K.redraw(); },
+    ans: (id) => { reqSet(Object.assign({ ans: id || "", page: 0 }, id ? { rail: "cust", chip: "", comp: "", fam: "", codes: null, ctl: "", note: "" } : {})); K.redraw(); },
+    comp: (c) => { reqSet(Object.assign({ comp: c || "", page: 0 }, offCust(c))); K.redraw(); },
+    fam: (f) => { reqSet(Object.assign({ fam: f || "", page: 0 }, offCust(f))); K.redraw(); },
+    q: (t) => { reqSet({ q: t || "", page: 0 }); K.redraw(); } };
+  Object.keys(reqActs).forEach((k) => { K.on("k3d.req." + k, reqActs[k]); K.on("k3d.h.req." + k, reqActs[k]); });
+  // A part of the question with no control where the reader stands: in the row's data, not on screen (the lane's CSS hides it).
+  const hid = (list, label, key, act, options) => ({ label, key, act: `k3d.h.${list}.${act}`, value: "", options });
   K.on("k3d.req.page", (n) => { reqSet({ page: Math.max(0, n) }); K.redraw(); const m = document.getElementById("main"); if (m) m.scrollTop = 0; });
   K.on("k3d.req.clear", () => { K.set("req.view", { rail: reqView().rail }); K.redraw(); });
   K.on("k3d.req.export", () => K.toast(`${plural(reqList().length, "requirement")} exported as CSV, with their controls, components and evidence`));
@@ -442,61 +499,69 @@
   const compCell = (r) => { const l = [...r.els]; return l.length ? `<span class="k3d-c1"><a class="k3-link" href="#${esc(compRoute(l[0]))}" title="${esc(compName(l[0]))} · ${esc(l[0])}">${esc(compName(l[0]))}</a>${l.length > 1 ? `<span class="k3-muted num" title="${esc(l.slice(1).map(compName).join(", "))}">+${l.length - 1}</span>` : ""}</span>` : none("Not allocated"); };
   // A question another page sent with the reader (PA.v2.go(route, { open, rows, note, filter: { qv } })) is answered here.
   const takeAsk = (route, apply) => { const ask = V.peek ? V.peek(route) : null; if (!ask) return; V.take(route); try { apply(ask); } catch (e) { console.error("k3d", e); } };
+  const reqText = (r) => `${r.code} ${r.title} ${r.statement} ${[...r.ctl].join(" ")} ${[...r.els].map(compName).join(" ")}`.toLowerCase();
+  // The rows a question finds: the engineering requirements, then the customer document's.
+  const reqAsk = (v) => {
+    const all = reqList(), cd = custDoc(), q = String(v.q || "").trim().toLowerCase(), codes = v.codes && v.codes.length ? new Set(v.codes) : null;
+    if (v.rail === "cust") { const inq = cd ? cd.rows.filter((r) => !q || `${r.ref} ${r.title} ${r.met} ${r.els}`.toLowerCase().includes(q)) : []; return { scoped: [], eng: [], custAll: inq, cust: inq.filter((r) => !v.ans || answerOf(r.answer) === v.ans) }; }
+    const scoped = all.filter((r) => (!codes || codes.has(r.code)) && (!v.comp || r.els.has(v.comp)) && (!v.ctl || r.ctl.has(v.ctl)) && (!v.fam || [...r.ctl].some((c) => c.indexOf(v.fam + "-") === 0)) && (!q || reqText(r).includes(q)));
+    const chipFn = (CHIPS.find((c) => c[0] === v.chip) || [])[2];
+    const custAll = v.rail === "eng" || !cd || codes || v.comp || v.ctl || v.fam ? [] : cd.rows.filter((r) => !q || `${r.ref} ${r.title}`.toLowerCase().includes(q));
+    return { scoped, eng: chipFn ? scoped.filter(chipFn) : scoped, custAll, cust: chipFn ? [] : custAll };
+  };
   function requirementsPage() {
     fresh();
     if (!wsx()) return requirementsMade();
     takeAsk("requirements", (ask) => {
       const ch = {}, qv = ask.filter && ask.filter.qv ? String(ask.filter.qv).toLowerCase() : "";
-      if (ask.rows && ask.rows.length) Object.assign(ch, { codes: ask.rows.filter((x) => /^REQ-/.test(x)), note: ask.note || "", rail: "", chip: "", q: "", page: 0 });
+      if (ask.rows && ask.rows.length) Object.assign(ch, { codes: ask.rows.filter((x) => /^REQ-/.test(x)), note: ask.note || "", rail: "", chip: "", ans: "", q: "", page: 0 });
       if (qv) Object.assign(ch, { chip: /no evidence/.test(qv) ? "noev" : /review/.test(qv) ? "review" : "", rail: /compliance/.test(qv) ? "cust" : "", page: 0 });
       if (Object.keys(ch).length) K.set("req.view", Object.assign({}, reqView(), ch));
       if (ask.open && ask.open.id) { const id = String(ask.open.id).split("|")[0], to = recRoute("k3d-req", id); setTimeout(() => { if (!req(id)) return; if (to) K.go(to); else K.openPanel("k3d-req", id); }, 60); }
     });
-    const v = reqView(), all = reqList(), cd = custDoc(), q = v.q.trim().toLowerCase();
-    const nCust = cd ? cd.rows.length : 0;
-    const rail = K.rail({ title: "Requirements", act: "k3d.req.rail", items: [{ id: "", label: "All requirements", count: all.length + nCust, on: !v.rail }, { head: "Where they come from" }, { id: "eng", label: "Engineering requirements", count: all.length, on: v.rail === "eng" }, cd ? { id: "cust", label: cd.code, count: nCust, on: v.rail === "cust" } : null] });
+    const v = reqView(), all = reqList(), cd = custDoc(), nCust = cd ? cd.rows.length : 0, A = reqAsk(v);
+    const rail = K.rail({ label: "Source", key: "source", act: "k3d.req.rail", items: [{ id: "", label: "All requirements", count: all.length + nCust, on: !v.rail }, { id: "eng", label: "Engineering", count: all.length, on: v.rail === "eng" }, cd ? { id: "cust", label: cd.code, count: nCust, on: v.rail === "cust" } : null] });
     const head = K.head({ title: "Requirements", actions: K.menu("More", [PA.M["v7p-import"] ? { label: "Import requirements", act: "k3d.modal", arg: ["v7p-import", ""] } : null, { label: "Export requirements", act: "k3d.req.export" }, has("sctm") ? { label: "Open the workbook", act: "k3d.go", arg: "sctm" } : null]) + K.btn("Create requirement", { primary: true, act: "k3d.req.new" }) });
-    if (v.rail === "cust" && cd) {
-      const ans = (r) => answerOf(r.answer), inq = cd.rows.filter((r) => !q || `${r.ref} ${r.title} ${r.met} ${r.els}`.toLowerCase().includes(q));
-      const rows = inq.filter((r) => !v.chip || ans(r) === v.chip);
-      return K.page({ cls: "k3d", head, body: K.split(rail, [
-        `<p class="k3-muted k3d-src"><b>${esc(cd.name)}</b> · ${esc(cd.sub)}</p>`,
-        K.chips([{ id: "", label: "All", count: inq.length, on: !v.chip }].concat(ANSWERS.filter((a) => inq.some((r) => ans(r) === a) || v.chip === a).map((a) => ({ id: a, label: a, count: inq.filter((r) => ans(r) === a).length, on: v.chip === a }))), "k3d.req.chip", "The program's answer"),
-        K.toolbar({ search: { act: "k3d.req.q", value: v.q, placeholder: "Search this document's requirements" } }),
-        K.table({ label: `${cd.code} requirements`, cols: [{ label: "Requirement" }, { label: "Answer" }, { label: "Met by" }, { label: "Components" }, { label: "Verification" }, { label: "Controls", cls: "nw" }],
-          rows: rows.map((r) => ({ panel: r.panel, id: r.id, cells: [K.name(r.title, "", r.ref), K.status(ans(r), ansTone(ans(r))), esc(r.met) || none(), esc(r.els) || none(), esc(r.ver) || none(), `<span class="num">${esc(r.ctl)}</span>`] })),
-          empty: { title: "No requirement matches", line: "Clear the search or choose another answer.", action: K.btn("Show them all", { sm: true, act: "k3d.req.clear" }) }, foot: `<span class="num">${fmt(rows.length)} of ${plural(cd.rows.length, "requirement")}</span>` })]) });
-    }
     const fams = (SSP.families || []).map((f) => [f.f, `${f.f} ${typeof f.t === "string" ? f.t : ""}`.trim()]);
-    const codes = v.codes && v.codes.length ? new Set(v.codes) : null;
-    const scoped = all.filter((r) => (!codes || codes.has(r.code)) && (!v.comp || r.els.has(v.comp)) && (!v.ctl || r.ctl.has(v.ctl)) && (!v.fam || [...r.ctl].some((c) => c.indexOf(v.fam + "-") === 0)) && (!q || `${r.code} ${r.title} ${r.statement} ${[...r.ctl].join(" ")} ${[...r.els].map(compName).join(" ")}`.toLowerCase().includes(q)));
-    const chipFn = (CHIPS.find((c) => c[0] === v.chip) || [])[2];
-    const eng = chipFn ? scoped.filter(chipFn) : scoped;
-    const custAll = v.rail === "eng" || !cd || codes || v.comp || v.ctl || v.fam ? [] : cd.rows.filter((r) => !q || `${r.ref} ${r.title}`.toLowerCase().includes(q));
-    const cust = chipFn ? [] : custAll;
-    const total = eng.length + cust.length, page = Math.min(v.page, Math.max(0, Math.ceil(total / PAGE) - 1));
-    const slice = eng.map((r) => ["e", r]).concat(cust.map((r) => ["c", r])).slice(page * PAGE, (page + 1) * PAGE);
     const compOpts = allComps().filter((c) => all.some((r) => r.els.has(c.code))).map((c) => [c.code, c.name]);
+    const gapOpts = CHIPS.map((c) => [c[0], c[3]]), ansOpts = ANSWERS.map((a) => [a, a]);
+    const search = { act: "k3d.req.q", value: v.q, placeholder: "Search requirements" };
+    const views = { total: all.length + nCust, count: (st) => { const a = reqAsk({ rail: st.source || "", chip: st.gap || "", ans: st.answer || "", comp: st.component || "", fam: st.family || "", q: st.q || "" }); return a.eng.length + a.cust.length; },
+      presets: CHIPS.filter((c) => all.some(c[2])).map((c) => ({ label: c[1], state: { gap: c[0] }, count: all.filter(c[2]).length })).concat(cd ? [{ label: `${cd.code} requirements`, state: { source: "cust" }, count: nCust }] : []),
+      seed: [{ name: "AC with no evidence", state: { family: "AC", gap: "noev" }, by: "Priya Raghavan" }] };
+    if (v.rail === "cust" && cd) {
+      const ans = (r) => answerOf(r.answer), rows = A.cust;
+      return K.page({ cls: "k3d", head, body: K.split(rail, [
+        K.chips([{ id: "", label: "All", count: A.custAll.length, on: !v.ans }].concat(ANSWERS.filter((a) => cd.rows.some((r) => ans(r) === a) || v.ans === a).map((a) => ({ id: a, label: a, count: A.custAll.filter((r) => ans(r) === a).length, on: v.ans === a }))), "k3d.req.ans", "Answer", { key: "answer" }),
+        K.toolbar({ id: "requirements", noun: "requirements", search, filters: [hid("req", "Gap", "gap", "chip", gapOpts), hid("req", "Component", "component", "comp", compOpts), hid("req", "Family", "family", "fam", fams)], views }),
+        K.table({ label: `${cd.code} requirements`, cols: [{ label: "Requirement" }, { label: "Answer", cls: "nw" }, { label: "Met by" }, { label: "Components" }, { label: "Verification", cls: "nw" }, { label: "Controls", cls: "nw" }],
+          rows: rows.map((r) => ({ panel: r.panel, id: r.id, cells: [K.name(r.title, "", r.ref), K.status(ans(r), ansTone(ans(r))), esc(r.met) || none(), esc(r.els) || none(), esc(r.ver) || none(), `<span class="num">${esc(r.ctl)}</span>`] })),
+          empty: { title: "No requirement matches", line: "Clear the search or choose another answer.", action: K.btn("Show them all", { sm: true, act: "k3d.req.clear" }) }, foot: `<span class="k3d-src"><b>${esc(cd.code)}</b> ${esc(cd.name)}${cd.sub ? ` · ${esc(cd.sub)}` : ""}</span><span class="num">${fmt(rows.length)} of ${plural(cd.rows.length, "requirement")}</span>` })]) });
+    }
+    const codes = v.codes && v.codes.length ? new Set(v.codes) : null, q = v.q.trim();
+    const total = A.eng.length + A.cust.length, page = Math.min(v.page, Math.max(0, Math.ceil(total / PAGE) - 1));
+    const slice = A.eng.map((r) => ["e", r]).concat(A.cust.map((r) => ["c", r])).slice(page * PAGE, (page + 1) * PAGE);
     const narrowed = !!(v.chip || q || v.comp || v.ctl || v.fam || codes);
     return K.page({ cls: "k3d", head, body: K.split(rail, [
       codes || v.ctl ? K.note(`${esc(v.note || (v.ctl ? `The requirements that map ${v.ctl}` : `${plural(codes.size, "requirement")} chosen elsewhere`))} · ${K.actLink("Show every requirement", "k3d.req.clear")}`) : "",
-      K.chips([{ id: "", label: "All", count: scoped.length + custAll.length, on: !v.chip }].concat(CHIPS.filter((c) => scoped.some(c[2]) || v.chip === c[0]).map((c) => ({ id: c[0], label: c[1], count: scoped.filter(c[2]).length, on: v.chip === c[0] }))), "k3d.req.chip", "What a requirement lacks"),
-      K.toolbar({ search: { act: "k3d.req.q", value: v.q, placeholder: "Search requirements" }, filters: [compOpts.length ? { label: "Component", value: v.comp, act: "k3d.req.comp", options: compOpts } : null, { label: "Control family", value: v.fam, act: "k3d.req.fam", options: fams }] }),
-      K.table({ label: "Requirements", cls: "k3d-reqs", cols: [{ label: "Requirement" }, { label: "Controls", cls: "nw" }, { label: "Components" }, { label: "Evidence", cls: "nw" }, { label: "State" }, { label: "Owner" }],
+      K.chips([{ id: "", label: "All", count: A.scoped.length + A.custAll.length, on: !v.chip }].concat(CHIPS.filter((c) => all.some(c[2]) || v.chip === c[0]).map((c) => ({ id: c[0], label: c[3], count: A.scoped.filter(c[2]).length, on: v.chip === c[0] }))), "k3d.req.chip", "Gap", { key: "gap" }),
+      K.toolbar({ id: "requirements", noun: "requirements", search, filters: [cd ? hid("req", "Answer", "answer", "ans", ansOpts) : null, compOpts.length ? { label: "Component", key: "component", value: v.comp, act: "k3d.req.comp", options: compOpts } : null, { label: "Family", key: "family", value: v.fam, act: "k3d.req.fam", options: fams }], views }),
+      K.table({ label: "Requirements", cls: "k3d-reqs", cols: [{ label: "Requirement" }, { label: "Controls", cls: "nw" }, { label: "Components" }, { label: "Evidence", cls: "nw" }, { label: "State", cls: "nw" }, { label: "Owner" }],
         rows: slice.map(([k, r]) => (k === "e"
-          ? { panel: "k3d-req", id: r.code, cells: [K.name(r.title, clip(r.statement, 120), r.code), ctlCell(r), compCell(r), r.ev.size ? `<span class="num">${fmt(r.ev.size)}</span>` : none("No evidence"), K.status(reqState(r)[0], reqState(r)[1]), r.owner ? K.owner(r.owner) : none("No owner")] }
+          ? { panel: "k3d-req", id: r.code, cells: [K.name(r.title, "", r.code), ctlCell(r), compCell(r), r.ev.size ? `<span class="num">${fmt(r.ev.size)}</span>` : none("No evidence"), K.status(reqState(r)[0], reqState(r)[1]), r.owner ? K.owner(r.owner) : none("No owner")] }
           : { panel: r.panel, id: r.id, cells: [K.name(r.title, `${cd.code} · met by ${r.met || "nothing yet"}`, r.ref), `<span class="num">${esc(r.ctl)}</span>`, esc(r.els) || none(), none(), K.status(answerOf(r.answer), ansTone(answerOf(r.answer))), none()] })),
         empty: narrowed ? { title: "No requirement matches", line: "Clear the search and the filters to see them all.", action: K.btn("Show every requirement", { sm: true, act: "k3d.req.clear" }) } : { title: "No requirements yet", line: "Create each requirement the system must meet, then map the controls it answers.", action: K.btn("Create requirement", { sm: true, primary: true, act: "k3d.req.new" }) },
         foot: pager("k3d.req.page", page, total) })]) });
   }
   // A created program: its own requirements (lane P's records), with lane P's working Create requirement.
   function requirementsMade() {
-    const all = reqList();
+    const all = reqList(), q = reqView().q.trim().toLowerCase(), rows = all.filter((r) => !q || reqText(r).includes(q));
     const newBtn = (sm) => (PA.M["v3p-new"] ? `<button type="button" class="btn ink${sm ? " sm" : ""}" data-modal="v3p-new" data-id="req">Create requirement</button>` : "");
     return K.page({ cls: "k3d", head: K.head({ title: "Requirements", actions: newBtn() }), body: [
-      K.table({ label: "Requirements", cols: [{ label: "Requirement" }, { label: "Controls", cls: "nw" }, { label: "Evidence", cls: "nw" }, { label: "State" }, { label: "Owner" }],
-        rows: all.map((r) => ({ panel: "v3p-rec", id: `req|${r.code}`, cells: [K.name(r.title, clip(r.statement, 120), r.code), ctlCell(r), r.ev.size ? `<span class="num">${fmt(r.ev.size)}</span>` : none("No evidence"), K.status(reqState(r)[0], reqState(r)[1]), r.owner ? K.owner(r.owner) : none("No owner")] })),
-        empty: { title: "No requirements yet", line: "Create each requirement the system must meet, then map it to the controls it answers.", action: newBtn(true) }, foot: all.length ? `<span class="num">${plural(all.length, "requirement")}</span>` : "" })] });
+      K.toolbar({ id: "requirements", noun: "requirements", search: { act: "k3d.req.q", value: reqView().q, placeholder: "Search requirements" }, views: { total: all.length } }),
+      K.table({ label: "Requirements", cols: [{ label: "Requirement" }, { label: "Controls", cls: "nw" }, { label: "Evidence", cls: "nw" }, { label: "State", cls: "nw" }, { label: "Owner" }],
+        rows: rows.map((r) => ({ panel: "v3p-rec", id: `req|${r.code}`, cells: [K.name(r.title, "", r.code), ctlCell(r), r.ev.size ? `<span class="num">${fmt(r.ev.size)}</span>` : none("No evidence"), K.status(reqState(r)[0], reqState(r)[1]), r.owner ? K.owner(r.owner) : none("No owner")] })),
+        empty: all.length ? { title: "No requirement matches", line: "Clear the search to see them all." } : { title: "No requirements yet", line: "Create each requirement the system must meet, then map it to the controls it answers.", action: newBtn(true) }, foot: all.length ? `<span class="num">${fmt(rows.length)} of ${plural(all.length, "requirement")}</span>` : "" })] });
   }
   V3.S("requirements", (orig) => { ORIG.requirements = orig; return DEPTH ? orig() : requirementsPage(); });
   V3.redirect("requirements-compliance", () => { K.set("req.view", { rail: "cust" }); return "requirements"; });
@@ -593,7 +658,9 @@
       : !evs.length ? K.next({ text: `It cites no evidence: ${esc(ctls.slice(0, 2).join(" and "))} cannot be assessed on it.`, action: K.btn("Link evidence", { sm: true, act: "k3d.req.link", arg: code }) })
       : pending && !evs.some((a) => a.state === "accepted") ? K.next({ text: "Its evidence waits on a reviewer.", action: K.btn("Review the evidence", { sm: true, act: "k3d.ev.go", arg: pending.id }) }) : "";
     const f = PA.v2reqs && PA.v2reqs.follow && r.base ? PA.v2reqs.follow(code) || {} : {};
-    const fol = [["Assessment findings", f.fnd], ["Operational issues", f.iss], ["Risks", f.rsk], ["Remediation", f.rem]].filter(([, l]) => l && l.length);
+    // a record down the chain: its page and eye where a lane gives its kind one, else the earlier preview
+    const chainRow = (kind, old, id, oldId) => (!id ? {} : kind && PA.P[kind] && recRoute(kind, id) ? { panel: kind, id } : PA.P[old] ? { act: "k3d.open", arg: [old, oldId] } : {});
+    const sevPill = (w) => (w ? K.status(cap(w), /critical|high/i.test(w) ? "bad" : /moderate|medium/i.test(w) ? "warn" : "none") : none());
     const more = [page ? null : { label: "Edit title and statement", act: "k3d.req.rename", arg: code }, { label: r.owner ? "Change owner" : "Assign owner", act: "k3d.req.owner", arg: code }, r.mine ? { label: "Delete requirement", act: "k3d.req.rm", arg: code, danger: true } : null];
     const parent = (c) => { const x = compRec(c), p = x && x.parent ? compRec(x.parent) : null; return p ? p.name : ""; };
     return { label: "Requirement", title: r.title, code: r.code, chip: K.status(st[0], st[1]),
@@ -602,15 +669,20 @@
       facts: [["Source", r.made ? `Engineering requirement, created today on ${esc(r.made)}` : "Engineering requirement"], r.type ? ["Type", esc(r.type)] : null, ["Owner", r.owner ? K.owner(r.owner) : K.actLink("Assign owner", "k3d.req.owner", code)],
         page ? ["Controls", `<span class="num">${fmt(ctls.length)}</span>`] : null, page ? ["Components", `<span class="num">${fmt(els.length)}</span>`] : null, page ? ["Evidence", evs.length ? `<span class="num">${fmt(evs.length)}</span> ${mu(`· ${fmt(evs.filter((a) => a.state === "accepted").length)} accepted`)}` : `<span class="num">0</span>`] : null],
       sections: [
-        K.section({ title: "Statement", body: `<div class="k3d-st" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Statement of ${esc(code)}" spellcheck="false" data-k3d-st="${esc(code)}">${esc(r.statement)}</div><p class="k3-muted k3d-saved" role="status">Type here to change it: it saves when you leave the text.</p>` }),
+        K.section({ title: "Statement", body: `<div class="k3d-st" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Statement of ${esc(code)}" spellcheck="false" data-ph="No statement yet: write what the system must do" data-k3d-st="${esc(code)}">${esc(r.statement)}</div><p class="k3-muted k3d-saved" role="status">Type here to change it: it saves when you leave the text.</p>` }),
         next,
-        K.related({ title: "Controls", empty: "No control mapped", add: { label: "Map control", act: "k3d.req.map", arg: code }, cols: [{ label: "Control" }, page ? { label: "Family" } : null, { label: "Status", cls: "nw" }, { label: "", cls: "tight" }].filter(Boolean),
-          rows: ctls.map((c) => Object.assign(rowOpen(ctlPanel(), c), { cells: [K.name((ctlRec(c) || {}).t || c, "", c), page ? esc(famOf(c)) : null, ctlStatus(c) ? esc(ctlStatus(c)) : none(), rowAct("Unmap", "k3d.req.unmap", [code, c], `Unmap ${c} from ${code}`)].filter((x) => x !== null) })) }),
-        K.related({ title: "Components", empty: "Allocated to no component", add: { label: "Allocate", act: "k3d.req.alloc", arg: code }, cols: [{ label: "Component" }, { label: "Kind", cls: "nw" }, page ? { label: "Inside" } : null, { label: "", cls: "tight" }].filter(Boolean),
-          rows: els.map((c) => Object.assign(hasS() ? { go: compRoute(c) } : {}, { cells: [hasS() ? K.name(compName(c), c) : `<span class="k3d-comp">${compLink(c)}</span>`, esc(cap((compRec(c) || {}).kind)), page ? esc(parent(c)) || none() : null, rowAct("Remove", "k3d.req.unalloc", [code, c], `Remove the allocation to ${compName(c)}`)].filter((x) => x !== null) })) }),
-        K.related({ title: "Evidence", empty: "Cites no evidence", add: { label: "Link evidence", act: "k3d.req.link", arg: code }, cols: [{ label: "Artifact" }, page ? { label: "Kind", cls: "nw" } : null, { label: "Review", cls: "nw" }, page ? { label: "Collected", cls: "nw" } : null, { label: "", cls: "tight" }].filter(Boolean),
-          rows: evs.map((a) => Object.assign(rowOpen("k3d-ev", a.id), { cells: [K.name(a.title, page ? (a.owner ? `Owner ${a.owner}` : "") : `${a.kind}${a.collected ? ` · collected ${md(a.collected)}` : ""}`), page ? esc(a.kind) : null, K.status(REVW[a.state][0], REVW[a.state][1]), page ? (a.collected ? `<span class="num">${esc(md(a.collected))}</span>` : none()) : null, rowAct("Unlink", "k3d.req.unlink", [code, a.id], `Unlink this artifact from ${code}`)].filter((x) => x !== null) })) }),
-      ].concat(fol.map(([t, l]) => K.section({ title: t, count: l.length, body: `<ul class="k3d-fol">${l.map((x) => `<li>${x.p || x.panel ? `<button type="button" class="k3-link" data-panel="${esc(x.p || x.panel)}" data-id="${esc(x.id)}">${esc(x.title || x.label || x.id)}</button>` : esc(x.title || x.label || String(x.id || x))}${x.sub || x.meta ? ` <span class="k3-muted">${esc(x.sub || x.meta)}</span>` : ""}</li>`).join("")}</ul>` }))) };
+        K.related({ title: "Controls", empty: "No control mapped", add: { label: "Map control", act: "k3d.req.map", arg: code }, cols: [{ label: "Control" }, { label: "Status", cls: "nw", peek: true }, { label: "", cls: "tight" }],
+          rows: ctls.map((c) => Object.assign(rowOpen(ctlPanel(), c), { cells: [K.name((ctlRec(c) || {}).t || c, "", c), ctlPill(c), rowAct("Unmap", "k3d.req.unmap", [code, c], `Unmap ${c} from ${code}`)].filter((x) => x !== null) })) }),
+        K.related({ title: "Components", empty: "Allocated to no component", add: { label: "Allocate", act: "k3d.req.alloc", arg: code }, cols: [{ label: "Component" }, { label: "Kind", cls: "nw", peek: true }, page ? { label: "Inside" } : null, { label: "", cls: "tight" }].filter(Boolean),
+          rows: els.map((c) => Object.assign(hasS() ? { go: compRoute(c), peek: PA.P["k3s-comp"] ? { panel: "k3s-comp", id: c } : undefined } : {}, { cells: [hasS() ? K.name(compName(c), "", c) : `<span class="k3d-comp">${compLink(c)}</span>`, esc(cap((compRec(c) || {}).kind)) || none(), page ? esc(parent(c)) || none() : null, rowAct("Remove", "k3d.req.unalloc", [code, c], `Remove the allocation to ${compName(c)}`)].filter((x) => x !== null) })) }),
+        K.related({ title: "Evidence", empty: "Cites no evidence", add: { label: "Link evidence", act: "k3d.req.link", arg: code }, cols: [{ label: "Artifact" }, page ? { label: "Kind", cls: "nw" } : null, { label: "Review", cls: "nw", peek: true }, page ? { label: "Collected", cls: "nw" } : null, { label: "", cls: "tight" }].filter(Boolean),
+          rows: evs.map((a) => Object.assign(rowOpen("k3d-ev", a.id), { cells: [K.name(a.title), page ? esc(a.kind) : null, K.status(REVW[a.state][0], REVW[a.state][1]), page ? (a.collected ? `<span class="num">${esc(md(a.collected))}</span>` : none()) : null, rowAct("Unlink", "k3d.req.unlink", [code, a.id], `Unlink this artifact from ${code}`)].filter((x) => x !== null) })) }),
+        // The chain past the requirement: what its controls were found to be, and what was opened about it.
+        (f.fnd || []).length ? K.related({ title: "Assessment findings", cols: [{ label: "Control" }, { label: "Determination", cls: "nw", peek: true }], rows: f.fnd.map((x) => Object.assign(rowOpen(ctlPanel(), x.ctl), { cells: [K.name(x.title || x.ctl, "", x.ctl), CSW[x.det] ? K.status(CSW[x.det], CTONE[CSW[x.det]] || "none") : none()] })) }) : "",
+        (f.iss || []).length ? K.related({ title: "Operational issues", cols: [{ label: "Issue" }, { label: "Severity", cls: "nw", peek: true }, { label: "State", cls: "nw" }], rows: f.iss.map((x) => Object.assign(chainRow("k3e-finding", "a-risk-issue", x.id, x.id), { cells: [K.name(x.title || x.id), sevPill(x.sev), x.open ? "Open" : "Closed"] })) }) : "",
+        (f.rsk || []).length ? K.related({ title: "Risks", cols: [{ label: "Risk" }, { label: "Severity", cls: "nw", peek: true }, { label: "State", cls: "nw" }], rows: f.rsk.map((x) => Object.assign(chainRow("k3e-risk", "a-risk-risk", x.id, `${x.id}|overview`), { cells: [K.name(x.title || x.id), sevPill(x.sev), x.open ? "Open" : "Closed"] })) }) : "",
+        (f.rem || []).length ? K.related({ title: "Remediation", cols: [{ label: "Item" }, { label: "Status", cls: "nw", peek: true }, { label: "Planned", cls: "nw", peek: true }], rows: f.rem.map((x) => Object.assign(chainRow("", "a-risk-poam", x.id, `${x.id}|overview`), { cells: [K.name(x.title || x.id), K.status(x.status || "Open", /done|complete|closed/i.test(x.status || "") ? "ok" : "none"), x.planned ? `<span class="num">${esc(md(x.planned))}</span>` : none()] })) }) : "",
+      ] };
   }
   K.panel("k3d-req", reqPanel);
   // Every place that opened the old requirement preview opens this panel (WS-X90; a created program keeps lane P's preview).
@@ -624,10 +696,14 @@
   const stigs = () => memo("stigs", () => (wsx() && S.stigs ? oldRows("stigs").map((tr) => { const td = [...tr.children].map(txt), id = tr.getAttribute("data-id"); return { id, asset: td[0], stig: td[1], source: td[2], last: td[3], cat: td[4], notrev: td[5], comp: td[6], route: has("stigs-" + id) ? "stigs-" + id : null, panel: tr.getAttribute("data-panel") }; }).filter((x) => x.id) : []));
   const sources = () => memo("sources", () => (ORIG["evidence-sources"] || S["evidence-sources"] ? oldRows("evidence-sources").map((tr) => ({ panel: tr.getAttribute("data-panel"), id: tr.getAttribute("data-id"), td: [...tr.children].map((c) => ({ t: txt(c), h: c.innerHTML })) })).filter((x) => x.td.length > 3) : []));
 
-  K.on("k3d.ev.rail", (id) => { evSet({ rail: id || "", chip: "", page: 0, codes: null, note: "" }); K.redraw(); });
-  K.on("k3d.ev.chip", (id) => { evSet({ chip: evView().chip === id ? "" : id || "", page: 0 }); K.redraw(); });
-  K.on("k3d.ev.q", (v) => { evSet({ q: v, page: 0 }); K.redraw(); });
-  K.on("k3d.ev.owner", (v) => { evSet({ owner: v, page: 0 }); K.redraw(); });
+  // The list's question: Kind, Review, Owner and the search. A review state or an owner leaves the STIG checklists, which have neither.
+  const offStig = (val) => (val && evView().rail === "stig" ? { rail: "" } : {});
+  const evActs = {
+    rail: (id) => { const to = id || ""; evSet(Object.assign({ rail: to, page: 0, codes: null, note: "" }, to === "stig" ? { chip: "", owner: "" } : {})); K.redraw(); },
+    chip: (id) => { evSet(Object.assign({ chip: id || "", page: 0 }, offStig(id))); K.redraw(); },
+    owner: (o) => { evSet(Object.assign({ owner: o || "", page: 0 }, offStig(o))); K.redraw(); },
+    q: (t) => { evSet({ q: t || "", page: 0 }); K.redraw(); } };
+  Object.keys(evActs).forEach((k) => { K.on("k3d.ev." + k, evActs[k]); K.on("k3d.h.ev." + k, evActs[k]); });
   K.on("k3d.ev.page", (n) => { evSet({ page: Math.max(0, n) }); K.redraw(); const m = document.getElementById("main"); if (m) m.scrollTop = 0; });
   K.on("k3d.ev.clear", () => { K.set("evd.view", { rail: evView().rail }); K.redraw(); });
   K.on("k3d.ev.export", () => K.toast(`${plural(artList().length, "evidence artifact")} exported as CSV, with their reviews and the requirements that cite them`));
@@ -636,6 +712,14 @@
   const evTabs = (onTab) => K.tabs([{ label: "Evidence", count: artList().length, route: "evidence", on: onTab === "ev" }, wsx() && (ORIG["evidence-sources"] || S["evidence-sources"]) ? { label: "Sources", count: sources().length, route: "evidence-sources", on: onTab === "src" } : null], "Evidence");
   const evHead = (primary, stig) => K.head({ title: "Evidence", actions: K.menu("More", [{ label: "Export evidence", act: "k3d.ev.export" }, PA.M["a-docs-request"] ? { label: "Request evidence from an owner", act: "k3d.modal", arg: ["a-docs-request", ""] } : null]
     .concat(stig ? [has("stigs-open") ? { label: "Open STIG rules, across the checklists", act: "k3d.go", arg: "stigs-open" } : null, has("stigs-benchmarks") ? { label: "STIG benchmarks and their releases", act: "k3d.go", arg: "stigs-benchmarks" } : null, has("stigs-imports") ? { label: "Checklist imports", act: "k3d.go", arg: "stigs-imports" } : null] : [])) + primary });
+  const evAsk = (v) => {
+    const q = String(v.q || "").trim().toLowerCase();
+    if (v.rail === "stig") return { scoped: [], rows: stigs().filter((x) => !q || `${x.asset} ${x.stig} ${x.source}`.toLowerCase().includes(q)) };
+    const codes = v.codes && v.codes.length ? new Set(v.codes) : null;
+    const scoped = artList().filter((a) => (!v.rail || a.kind === v.rail) && (!codes || codes.has(a.id)) && (!v.owner || a.owner === v.owner) && (!q || `${a.title} ${a.kind} ${a.owner} ${a.reqs.join(" ")}`.toLowerCase().includes(q)));
+    const chipFn = (EVCHIPS.find((c) => c[0] === v.chip) || [])[2];
+    return { scoped, rows: chipFn ? scoped.filter(chipFn) : scoped };
+  };
   function evidencePage() {
     fresh();
     if (!wsx()) return evidenceMade();
@@ -645,39 +729,40 @@
       if (ask.open && ask.open.id) { const id = String(ask.open.id).split("|")[0]; setTimeout(() => { if (art(id)) K.openPanel("k3d-ev", id); }, 90); }
     });
     const v = evView(), all = artList(), q = v.q.trim().toLowerCase(), ck = stigs();
-    const rail = K.rail({ title: "Evidence", act: "k3d.ev.rail", items: [{ id: "", label: "All evidence", count: all.length, on: !v.rail }].concat(EVKINDS.map((k) => ({ id: k, label: EVKW[k], count: all.filter((a) => a.kind === k).length, on: v.rail === k })), ck.length ? [{ head: "Checklists" }, { id: "stig", label: "STIG checklists", count: ck.length, on: v.rail === "stig" }] : []) });
+    const rail = K.rail({ label: "Kind", key: "kind", act: "k3d.ev.rail", items: [{ id: "", label: "All evidence", count: all.length, on: !v.rail }].concat(EVKINDS.map((k) => ({ id: k, label: EVKW[k], count: all.filter((a) => a.kind === k).length, on: v.rail === k })), ck.length ? [{ id: "stig", label: "STIG checklists", count: ck.length, on: v.rail === "stig" }] : []) });
     const head = evHead(K.btn("Add evidence", { primary: true, act: "k3d.ev.new" }), v.rail === "stig");
+    const owners = uniq(all.map((a) => a.owner)).sort(), ownOpts = owners.map((o) => [o, o]), revOpts = EVCHIPS.map((c) => [c[0], c[1]]);
+    const views = { total: all.length, all: "All evidence", count: (st) => evAsk({ rail: st.kind || "", chip: st.review || "", owner: st.owner || "", q: st.q || "" }).rows.length,
+      presets: EVCHIPS.filter((c) => all.some(c[2])).map((c) => ({ label: c[1], state: { review: c[0] }, count: all.filter(c[2]).length })).concat(ck.length ? [{ label: "STIG checklists", state: { kind: "stig" }, count: ck.length }] : []),
+      seed: [{ name: "Scans to review", state: { kind: "Scan result", review: "pending" }, by: "Joel Barrantes" }] };
     if (v.rail === "stig") {
-      const rows = ck.filter((s) => !q || `${s.asset} ${s.stig} ${s.source}`.toLowerCase().includes(q));
+      const rows = evAsk(v).rows;
       return K.page({ cls: "k3d", head, tabs: evTabs("ev"), body: K.split(rail, [
-        K.toolbar({ search: { act: "k3d.ev.q", value: v.q, placeholder: "Search checklists" }, right: PA.M["v8g-import"] ? `<button type="button" class="btn sm" data-modal="v8g-import">Import a checklist</button>` : "" }),
-        K.table({ label: "STIG checklists", cols: [{ label: "Checklist" }, { label: "Source" }, { label: "Last import" }, { label: "Open by CAT I·II·III", cls: "nw" }, { label: "Not reviewed", cls: "nw" }, { label: "Compliance", cls: "nw" }],
-          rows: rows.map((s) => Object.assign(s.route ? { go: s.route } : { act: "k3d.stig", arg: s.id }, { cells: [K.name(s.stig, `On ${s.asset}`), esc(s.source), esc(s.last), `<span class="num">${esc(s.cat)}</span>`, `<span class="num">${esc(s.notrev)}</span>`, `<span class="num">${esc(s.comp)}</span>`] })),
+        K.toolbar({ id: "evidence", noun: "evidence", search: { act: "k3d.ev.q", value: v.q, placeholder: "Search checklists" }, filters: [hid("ev", "Review", "review", "chip", revOpts), hid("ev", "Owner", "owner", "owner", ownOpts)], views, right: PA.M["v8g-import"] ? `<button type="button" class="btn sm" data-modal="v8g-import">Import a checklist</button>` : "" }),
+        K.table({ label: "STIG checklists", cols: [{ label: "Checklist" }, { label: "Asset" }, { label: "Source" }, { label: "Last import", cls: "nw" }, { label: "Open CAT I · II · III", cls: "nw" }, { label: "Not reviewed", cls: "nw" }, { label: "Compliance", cls: "nw" }],
+          rows: rows.map((x) => Object.assign(x.route ? { go: x.route } : { act: "k3d.stig", arg: x.id }, { cells: [K.name(x.stig), esc(x.asset), esc(x.source), `<span class="num"${x.last.indexOf(" · ") > 0 ? ` title="${esc(x.last)}"` : ""}>${esc(x.last.split(" · ")[0])}</span>`, `<span class="num">${esc(x.cat)}</span>`, `<span class="num">${esc(x.notrev)}</span>`, `<span class="num">${esc(x.comp)}</span>`] })),
           empty: { title: "No checklist matches", line: "Clear the search to see them all." }, foot: `<span class="num">${fmt(rows.length)} of ${plural(ck.length, "checklist")}</span>` })]) });
     }
-    const codes = v.codes && v.codes.length ? new Set(v.codes) : null;
-    const scoped = all.filter((a) => (!v.rail || a.kind === v.rail) && (!codes || codes.has(a.id)) && (!v.owner || a.owner === v.owner) && (!q || `${a.title} ${a.kind} ${a.owner} ${a.reqs.join(" ")}`.toLowerCase().includes(q)));
-    const chipFn = (EVCHIPS.find((c) => c[0] === v.chip) || [])[2];
-    const rows = chipFn ? scoped.filter(chipFn) : scoped;
+    const codes = v.codes && v.codes.length ? new Set(v.codes) : null, A = evAsk(v), rows = A.rows;
     const page = Math.min(v.page, Math.max(0, Math.ceil(rows.length / PAGE) - 1));
-    const owners = uniq(all.map((a) => a.owner)).sort();
-    const shows = (a) => { const r = a.reqs.length ? req(a.reqs[0]) : null; return r ? `Supports ${a.reqs[0]} ${clip(r.title, 80)}` : "Cited by no requirement yet"; };
+    const shown = rows.slice(page * PAGE, (page + 1) * PAGE), renews = shown.some((a) => a.renew);
     return K.page({ cls: "k3d", head, tabs: evTabs("ev"), body: K.split(rail, [
       codes ? K.note(`${esc(v.note || `${plural(codes.size, "artifact")} chosen elsewhere`)} · ${K.actLink("Show all evidence", "k3d.ev.clear")}`) : "",
-      K.chips([{ id: "", label: "All", count: scoped.length, on: !v.chip }].concat(EVCHIPS.filter((c) => scoped.some(c[2]) || v.chip === c[0]).map((c) => ({ id: c[0], label: c[1], count: scoped.filter(c[2]).length, on: v.chip === c[0] }))), "k3d.ev.chip", "Review"),
-      K.toolbar({ search: { act: "k3d.ev.q", value: v.q, placeholder: "Search evidence" }, filters: [{ label: "Owner", value: v.owner, act: "k3d.ev.owner", options: owners.map((o) => [o, o]) }] }),
-      K.table({ label: "Evidence", cls: "k3d-evs", cols: [{ label: "Evidence" }, { label: "Kind", cls: "nw" }, { label: "Review" }, { label: "Cited by", cls: "nw" }, { label: "Collected", cls: "nw" }, { label: "Renew by", cls: "nw" }, { label: "Owner" }],
-        rows: rows.slice(page * PAGE, (page + 1) * PAGE).map((a) => ({ panel: "k3d-ev", id: a.id, cells: [K.name(a.title, shows(a)), esc(a.kind), K.status(REVW[a.state][0], REVW[a.state][1]), a.reqs.length ? `<span class="num">${esc(a.reqs.slice(0, 1).join(""))}</span>${a.reqs.length > 1 ? ` <span class="k3-muted num">+${a.reqs.length - 1}</span>` : ""}` : none("No requirement"), a.collected ? `<span class="num">${esc(md(a.collected))}</span>` : none(), a.renew ? `<span class="num${expiring(a) ? " k3d-due" : ""}">${esc(md(a.renew))}</span>` : none("Not set"), a.owner ? K.owner(a.owner) : none("No owner")] })),
-        empty: v.chip || q || v.owner || codes ? { title: "No evidence matches", line: "Clear the search and the filters to see it all.", action: K.btn("Show all evidence", { sm: true, act: "k3d.ev.clear" }) } : { title: "No evidence of this kind yet", line: "Add the first artifact; a requirement cites it from its panel.", action: K.btn("Add evidence", { sm: true, primary: true, act: "k3d.ev.new" }) },
+      K.chips([{ id: "", label: "All", count: A.scoped.length, on: !v.chip }].concat(EVCHIPS.filter((c) => all.some(c[2]) || v.chip === c[0]).map((c) => ({ id: c[0], label: c[1], count: A.scoped.filter(c[2]).length, on: v.chip === c[0] }))), "k3d.ev.chip", "Review", { key: "review" }),
+      K.toolbar({ id: "evidence", noun: "evidence", search: { act: "k3d.ev.q", value: v.q, placeholder: "Search evidence" }, filters: [{ label: "Owner", key: "owner", value: v.owner, act: "k3d.ev.owner", options: ownOpts }], views }),
+      K.table({ label: "Evidence", cls: "k3d-evs", cols: [{ label: "Evidence" }, { label: "Kind", cls: "nw" }, { label: "Review", cls: "nw" }, { label: "Cited by", cls: "nw" }, { label: "Collected", cls: "nw" }, renews ? { label: "Renew by", cls: "nw" } : null, { label: "Owner" }].filter(Boolean),
+        rows: shown.map((a) => ({ panel: "k3d-ev", id: a.id, cells: [K.name(a.title), esc(a.kind), K.status(REVW[a.state][0], REVW[a.state][1]), a.reqs.length ? `<span class="num"${a.reqs.length ? ` title="${esc(a.reqs.slice(0, 12).join(", "))}"` : ""}>${esc(a.reqs[0])}</span>${a.reqs.length > 1 ? ` <span class="k3-muted num">+${a.reqs.length - 1}</span>` : ""}` : none("No requirement"), a.collected ? `<span class="num">${esc(md(a.collected))}</span>` : none(), renews ? (a.renew ? `<span class="num${expiring(a) ? " k3d-due" : ""}">${esc(md(a.renew))}</span>` : none("Not set")) : null, a.owner ? K.owner(a.owner) : none("No owner")].filter((c) => c !== null) })),
+        empty: v.chip || q || v.owner || codes ? { title: "No evidence matches", line: "Clear the search and the filters to see it all.", action: K.btn("Show all evidence", { sm: true, act: "k3d.ev.clear" }) } : { title: "No evidence of this kind yet", line: "Add the first artifact; a requirement cites it from its page.", action: K.btn("Add evidence", { sm: true, primary: true, act: "k3d.ev.new" }) },
         foot: pager("k3d.ev.page", page, rows.length) })]) });
   }
   function evidenceMade() {
-    const all = artList(), canAdd = reqList().length > 0 && PA.M["v3p-new"];
+    const all = artList(), canAdd = reqList().length > 0 && PA.M["v3p-new"], q = evView().q.trim().toLowerCase(), rows = all.filter((a) => !q || `${a.title} ${a.kind} ${a.reqs.join(" ")}`.toLowerCase().includes(q));
     const add = (sm) => (canAdd ? `<button type="button" class="btn ink${sm ? " sm" : ""}" data-modal="v3p-new" data-id="ev">Add evidence</button>` : `<a class="btn${sm ? " sm" : ""}" href="#requirements">Open requirements</a>`);
     return K.page({ cls: "k3d", head: K.head({ title: "Evidence", actions: all.length || canAdd ? add() : "" }), body: [
-      K.table({ label: "Evidence", cols: [{ label: "Evidence" }, { label: "Kind" }, { label: "Review" }, { label: "Cited by", cls: "nw" }, { label: "Collected", cls: "nw" }],
-        rows: all.map((a) => ({ panel: a.p ? "v3p-rec" : "k3d-ev", id: a.p ? `ev|${a.id}` : a.id, cells: [K.name(a.title, a.file || ""), esc(a.kind), K.status(REVW[a.state][0], REVW[a.state][1]), a.reqs.length ? `<span class="num">${esc(a.reqs.join(", "))}</span>` : none(), a.collected ? `<span class="num">${esc(md(a.collected))}</span>` : none()] })),
-        empty: { title: "No evidence yet", line: canAdd ? "Add evidence against a requirement: it moves the controls that requirement maps to Not assessed." : "Evidence is added against a requirement: create a requirement first.", action: add(true) }, foot: all.length ? `<span class="num">${plural(all.length, "artifact")}</span>` : "" })] });
+      K.toolbar({ id: "evidence", noun: "evidence", search: { act: "k3d.ev.q", value: evView().q, placeholder: "Search evidence" }, views: { total: all.length, all: "All evidence" } }),
+      K.table({ label: "Evidence", cols: [{ label: "Evidence" }, { label: "Kind", cls: "nw" }, { label: "Review", cls: "nw" }, { label: "Cited by", cls: "nw" }, { label: "Collected", cls: "nw" }],
+        rows: rows.map((a) => ({ panel: a.p ? "v3p-rec" : "k3d-ev", id: a.p ? `ev|${a.id}` : a.id, cells: [K.name(a.title, a.file || ""), esc(a.kind), K.status(REVW[a.state][0], REVW[a.state][1]), a.reqs.length ? `<span class="num">${esc(a.reqs[0])}</span>${a.reqs.length > 1 ? ` <span class="k3-muted num">+${a.reqs.length - 1}</span>` : ""}` : none(), a.collected ? `<span class="num">${esc(md(a.collected))}</span>` : none()] })),
+        empty: all.length ? { title: "No evidence matches", line: "Clear the search to see it all." } : { title: "No evidence yet", line: canAdd ? "Add evidence against a requirement: it moves the controls that requirement maps to Not assessed." : "Evidence is added against a requirement: create a requirement first.", action: add(true) }, foot: all.length ? `<span class="num">${fmt(rows.length)} of ${plural(all.length, "artifact")}</span>` : "" })] });
   }
   V3.S("evidence", (orig) => { ORIG.evidence = orig; return DEPTH ? orig() : evidencePage(); });
   // Sources: the integrations that collect evidence (lane W's rows and panel), in this page's shape.
@@ -686,9 +771,17 @@
     if (DEPTH || !wsx()) return orig();
     fresh();
     const src = sources(), heads = [...oldPage("evidence-sources").querySelectorAll("table thead th")].map(txt);
+    const sv = Object.assign({ q: "", state: "" }, K.get("evd.src", {}) || {}), q = sv.q.trim().toLowerCase(), si = heads.indexOf("State"), keep = heads.map((t, i) => i).filter((i) => heads[i] !== "Check");
+    const stOf = (x) => (si >= 0 && x.td[si] ? x.td[si].t : ""), find = (st) => src.filter((x) => (!st.state || stOf(x) === st.state) && (!st.q || x.td.map((c) => c.t).join(" ").toLowerCase().includes(String(st.q).trim().toLowerCase())));
+    const rows = find({ state: sv.state, q }), states = uniq(src.map(stOf));
     return K.page({ cls: "k3d", head: evHead(PA.M["plat-add-source"] ? `<button type="button" class="btn ink" data-modal="plat-add-source">Add source</button>` : ""), tabs: evTabs("src"),
-      body: [K.table({ label: "Evidence sources", cols: heads.map((t) => ({ label: t, cls: /^(Kind|Cadence|State|Owner)$/.test(t) ? "nw" : "" })), rows: src.map((s) => ({ panel: s.panel, id: s.id, cells: s.td.map((c, i) => (i === 0 ? K.name(c.t) : c.h)) })), empty: { title: "No source collects evidence yet", line: "Connect a scanner or a checklist tool and its results arrive here as evidence." }, foot: `<span class="num">${plural(src.length, "source")}</span>` })] });
+      body: [K.toolbar({ id: "evidence-sources", noun: "sources", search: { act: "k3d.src.q", value: sv.q, placeholder: "Search sources" }, filters: states.length > 1 ? [{ label: "State", key: "state", value: sv.state, act: "k3d.src.state", options: states.map((x) => [x, x, src.filter((y) => stOf(y) === x).length]) }] : [],
+          views: { total: src.length, count: (st) => find(st).length, seed: states.indexOf("Overdue") >= 0 ? [{ name: "Overdue imports", state: { state: "Overdue" }, by: "Joel Barrantes" }] : [] } }),
+        K.table({ label: "Evidence sources", cols: keep.map((i) => ({ label: heads[i], cls: /^(Kind|Cadence|State|Last imported)$/.test(heads[i]) ? "nw" : "" })), rows: rows.map((x) => ({ panel: x.panel, id: x.id, cells: keep.map((i) => (i === 0 ? K.name(x.td[i].t) : x.td[i].h)) })),
+          empty: src.length ? { title: "No source matches", line: "Clear the search and the filter to see them all." } : { title: "No source collects evidence yet", line: "Connect a scanner or a checklist tool and its results arrive here as evidence." }, foot: `<span class="num">${fmt(rows.length)} of ${plural(src.length, "source")}</span>` })] });
   });
+  K.on("k3d.src.q", (t) => { K.set("evd.src", Object.assign({}, K.get("evd.src", {}) || {}, { q: t || "" })); K.redraw(); });
+  K.on("k3d.src.state", (x) => { K.set("evd.src", Object.assign({}, K.get("evd.src", {}) || {}, { state: x || "" })); K.redraw(); });
   V3.redirect("stigs", () => { K.set("evd.view", { rail: "stig" }); return "evidence"; });
   V3.compareAs("evidence", "evidence");
 
@@ -757,10 +850,10 @@
         ["Renew by", `${a.renew ? `<span class="num${expiring(a) ? " k3d-due" : ""}">${esc(md(a.renew))}</span> ` : ""}${K.actLink(a.renew ? "Change" : "Set a date", "k3d.ev.renew", id)}`],
         ["File", versions[0].file ? K.actLink(versions[0].file, "k3d.ev.file", id) : mu("No file recorded")]],
       sections: [
-        K.related({ title: "Cited by", empty: "No requirement cites it", add: { label: "Link to a requirement", act: "k3d.ev.cite", arg: id }, cols: [{ label: "Requirement" }, page ? { label: "Controls" } : null, { label: "State", cls: "nw" }, { label: "", cls: "tight" }].filter(Boolean),
-          rows: reqs.map((r) => Object.assign(rowOpen("k3d-req", r.code), { cells: [K.name(r.title, page ? clip(r.statement, 110) : "", r.code), page ? ctlCell(r) : null, esc(reqState(r)[0]), rowAct("Unlink", "k3d.ev.uncite", [id, r.code], `Unlink ${r.code}`)].filter((x) => x !== null) })) }),
-        ctls.length ? K.related({ title: "Controls it supports", cols: [{ label: "Control" }, { label: "Status", cls: "nw" }], rows: ctls.slice(0, 12).map((c) => Object.assign(rowOpen(ctlPanel(), c), { cells: [K.name((ctlRec(c) || {}).t || c, "", c), ctlStatus(c) ? esc(ctlStatus(c)) : none()] })) }) : "",
-        K.related({ title: "Versions", count: nver, add: { label: "Add a version", act: "k3d.ev.version", arg: id }, cols: [{ label: "Version" }, page ? { label: "File" } : null, { label: "Added", cls: "nw" }, { label: "By", cls: "nw" }].filter(Boolean),
+        K.related({ title: "Cited by", empty: "No requirement cites it", add: { label: "Link to a requirement", act: "k3d.ev.cite", arg: id }, cols: [{ label: "Requirement" }, page ? { label: "Controls", cls: "nw" } : null, { label: "State", cls: "nw", peek: true }, { label: "", cls: "tight" }].filter(Boolean),
+          rows: reqs.map((r) => Object.assign(rowOpen("k3d-req", r.code), { cells: [K.name(r.title, "", r.code), page ? ctlCell(r) : null, K.status(reqState(r)[0], reqState(r)[1]), rowAct("Unlink", "k3d.ev.uncite", [id, r.code], `Unlink ${r.code}`)].filter((x) => x !== null) })) }),
+        ctls.length ? K.related({ title: "Controls it supports", cols: [{ label: "Control" }, { label: "Status", cls: "nw", peek: true }], rows: ctls.map((c) => Object.assign(rowOpen(ctlPanel(), c), { cells: [K.name((ctlRec(c) || {}).t || c, "", c), ctlPill(c)] })) }) : "",
+        K.related({ title: "Versions", count: nver, add: { label: "Add a version", act: "k3d.ev.version", arg: id }, cols: [{ label: "Version" }, page ? { label: "File" } : null, { label: "Added", cls: "nw", peek: true }, { label: "By", cls: "nw" }].filter(Boolean),
           rows: versions.map((x) => ({ cells: [K.name(`Version ${x.n}`, page ? x.note || "" : x.note || x.file || ""), page ? (x.file ? esc(x.file) : mu("No file recorded")) : null, x.at ? `<span class="num">${esc(md(x.at))}</span>` : none(), esc(x.by || "") || none()].filter((y) => y !== null) })) }),
       ] };
   }

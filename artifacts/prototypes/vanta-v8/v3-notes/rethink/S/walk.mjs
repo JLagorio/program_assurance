@@ -1,5 +1,7 @@
 // Lane S's walk: with V3 on, through the UI, every flow of S.md's "It works when", asserting what a person would see.
-// usage: node walk.mjs [build.html]   (default: proto/out/v3r-S.html)
+// usage: node walk.mjs [build.html] [width]   (default: proto/out/v3r3-S.html at 1440)
+// Pass 3: one row over every table. A list's actions stand at the end of that row (TB), a filter is a select in it
+// (a classic one by its action, a folded one by its key), and the Boundary's authorization is such a filter.
 import { createRequire } from "module";
 const require = createRequire("/Users/joseflagorio/Development/program_assurance-ux-proposal/package.json");
 const { chromium } = require("playwright");
@@ -7,9 +9,10 @@ const SP = "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assu
 const fs = require("fs");
 // The build carries no charset line and the browser sometimes guesses Latin-1: the walk reads a copy with a byte-order mark.
 const build = SP + "/v3r/S/.walk-build.html";
-fs.writeFileSync(build, "\ufeff" + fs.readFileSync(process.argv[2] || SP + "/proto/out/v3r2-S.html", "utf8").replace(/^\ufeff/, ""));
+fs.writeFileSync(build, "\ufeff" + fs.readFileSync(process.argv[2] || SP + "/proto/out/v3r3-S.html", "utf8").replace(/^\ufeff/, ""));
 // usage: node walk.mjs [build.html] [width]   (width 1440 by default; 390 walks the same steps on a phone)
 const W = +(process.argv[3] || 1440), VP = { width: W, height: W > 600 ? 900 : 800 };
+console.log(`walk S on ${process.argv[2] || SP + "/proto/out/v3r3-S.html"} at ${W}px`);
 const b = await chromium.launch(); const p = await b.newPage({ viewport: VP, hasTouch: W < 600 });
 const errs = []; p.on("pageerror", (e) => errs.push(e.message)); p.on("console", (m) => { if (m.type() === "error" && !/ERR_FAILED|fonts/.test(m.text())) errs.push("console: " + m.text()); });
 await p.route(/fonts\.(googleapis|gstatic)\.com/, (r) => r.abort());
@@ -29,7 +32,13 @@ const tabCount = (label) => p.evaluate((l) => { const a = [...document.querySele
 // The Subsystem filter beside the search (it was a rail down the side): its options carry their counts.
 const SUB = '#main select[data-k3-input="k3s.sub"]';
 const pickSub = async (code) => { await p.selectOption(SUB, code); await wait(450); };
-const subCount = (code) => p.evaluate(([s, c]) => { const o = [...document.querySelectorAll(s + " option")].find((x) => x.value === c); const m = o && /\((\d+)\)/.exec(o.textContent); return m ? +m[1] : null; }, [SUB, code]);
+const TB = "#main .k3-tb .k3-tools-r";
+// A filter of the row: by its action (a classic one) or its key (a folded one), chosen by the option's text; "" clears it.
+const pickFilter = async (which, text) => { const r = await p.evaluate(([which, text]) => { const s = document.querySelector(`#main .k3-tb select[data-k3-input="${which}"], #main .k3-tb select[data-k3-fkey="${which}"]`); if (!s) return "no filter " + which; const i = text === "" ? 0 : [...s.options].findIndex((o) => o.textContent.trim().replace(/ \(\d[\d,]*\)$/, "").replace(/^[^:]+: /, "") === text); if (i < 0) return "no option " + text + " in " + [...s.options].map((o) => o.textContent).join(" | "); s.selectedIndex = i; s.dispatchEvent(new Event("input", { bubbles: true })); s.dispatchEvent(new Event("change", { bubbles: true })); return ""; }, [which, text]); if (r) console.log("     pickFilter: " + r); await wait(450); };
+const toolbar = () => p.evaluate(() => { const t = document.querySelector("#main .k3-tb"); if (!t) return null; const kids = [...t.children].flatMap((c) => (c.classList.contains("k3-fs") ? [...c.children] : [c])).filter((e) => e.getClientRects().length); return { list: t.getAttribute("data-k3-list") || "", lines: new Set(kids.map((e) => Math.round((e.getBoundingClientRect().top + e.getBoundingClientRect().height / 2) / 10))).size, view: (t.querySelector(".k3-vname") || { textContent: "" }).textContent, edited: !!t.querySelector(".k3-vedit"), filters: [...t.querySelectorAll(".k3-flt select")].map((x) => x.getAttribute("aria-label")), on: [...t.querySelectorAll(".k3-flt.on select")].map((x) => x.options[x.selectedIndex].textContent), acts: [...t.querySelectorAll(".k3-tools-r .btn, .k3-tools-r summary, .k3-tools-r .k3-seg > *")].map((e) => e.textContent.trim()), q: (t.querySelector("input[type=search]") || {}).value || "" }; });
+const viewMenu = async (label) => { await p.click("#main .k3-vbtn"); await wait(120); const r = await p.evaluate((l) => { const x = [...document.querySelectorAll("#main .k3-vlist .k3-menu-i")].find((e) => e.textContent.trim().startsWith(l)); if (!x) return [...document.querySelectorAll("#main .k3-vlist .k3-menu-i")].map((e) => e.textContent.trim()).join(" | "); x.click(); return ""; }, label); if (r) console.log("     viewMenu: no " + label + " in " + r); await wait(450); };
+const panelSecs = () => p.evaluate(() => [...document.querySelectorAll("#panel .k3-pn .k3-sec")].map((s) => { const h = s.querySelector("h2").cloneNode(true), ct = h.querySelector(".k3-ct"), n = ct ? +ct.textContent.replace(/,/g, "") : null; if (ct) ct.remove(); const a = s.querySelector(".k3-pk-all"); return { title: h.textContent.trim(), n, rows: s.querySelectorAll("tbody tr").length, all: a ? a.getAttribute("href").slice(1) : "", tall: [...s.querySelectorAll("tbody tr")].filter((r) => r.getBoundingClientRect().height > 44).length }; }));
+const subCount = async (code) => { const was = await p.evaluate((s) => (document.querySelector(s) || {}).value || "", SUB); if (was === code) await pickSub(""); const n = await p.evaluate(([s, c]) => { const o = [...document.querySelectorAll(s + " option")].find((x) => x.value === c); const m = o && /\((\d+)\)/.exec(o.textContent); return m ? +m[1] : null; }, [SUB, code]); if (was === code) await pickSub(code); return n; };
 // Click the first visible thing in scope whose text matches (shortest first).
 const click = async (text, scope = "#main", o = {}) => {
   const r = await p.evaluate(([text, scope, exact, sel]) => {
@@ -69,8 +78,8 @@ ok("System opens from the program menu and is marked", (await hash()) === "syste
 const all0 = await tabCount("Components");
 ok("nothing runs down the side: System's kinds are its tabs, the subsystem a filter beside the search", !(await p.$("#main .k3-rail:not(.k3-rtabs)")) && !(await p.$("#main .k3-split")) && (await p.evaluate(() => [...document.querySelectorAll("#main .k3-tabs a")].map((a) => a.childNodes[0].textContent.trim()).join(" | "))) === "Components | Host and providers | Connected systems | Connections" && !!(await p.$(SUB)), await p.evaluate(() => [...document.querySelectorAll("#main .k3-tabs a")].map((a) => a.innerText).join(" | ")));
 ok("Components lists every component inside the boundary (27)", all0 === 27 && (await rows()).length === 27, [all0, (await rows()).length]);
-await pickSub("CN-109001");
-ok("the Subsystem filter narrows in place to its 3 components", (await hash()) === "system" && (await rows()).length === 3 && (await subCount("CN-109001")) === 3 && (await rows()).every((r) => /Mission Computer|Secure Boot|Cryptographic/.test(r)), await rows());
+const subN = await subCount("CN-109001"); await pickSub("CN-109001");
+ok("the Subsystem filter narrows in place to its 3 components", (await hash()) === "system" && (await rows()).length === 3 && subN === 3 && (await rows()).every((r) => /Mission Computer|Secure Boot|Cryptographic/.test(r)), await rows());
 await eyeOf("Mission Computer");
 ok("a row's eye opens the component's preview over the list", (await hash()) === "system" && /^Component /.test(await panel()) && /Mission Computer/.test(await panel()) && /Open component/.test(await panel()), (await panel()).slice(0, 160));
 await closePanel();
@@ -92,9 +101,9 @@ await go(MC);
 ok("its tabs read the same", (await tabCount("Controls")) === cc.controls && (await tabCount("Requirements")) === cc.requirements && (await tabCount("Findings")) === cc.findings && (await tabCount("Software & firmware")) === cc.items, cc);
 for (const [t, n] of [["Controls", cc.controls], ["Requirements", cc.requirements], ["Findings", cc.findings]]) { await tab(t); ok(`${t}: ${n} rows behind the count`, (await rows()).length === n, (await rows()).length); }
 await tab("Controls");
-ok("and each control's row says why it stands here", (await p.evaluate(() => { const t = document.querySelectorAll("#main .k3-table")[0]; return [...t.querySelectorAll("tbody tr")].every((r) => /Mapped by REQ-\d+|Named in its implementation|Placed here/.test(r.innerText)); })));
+ok("and each control's row says why it stands here", (await p.evaluate(() => { const t = document.querySelectorAll("#main .k3-table")[0]; return [...t.querySelectorAll("tbody tr")].every((r) => /Mapped by REQ-\d+|Named in implementation|Placed here/.test(r.innerText)); })));
 await go("requirements"); await p.evaluate(() => PA.v3k.openPanel("v7p-el", "CN-109101")); await wait(400);
-ok("the component's panel on another page reads the same", new RegExp(`Controls ${cc.controls} Requirements ${cc.requirements} Open findings ${cc.findings}`).test(await panel()), (await panel()).slice(0, 300));
+ok("the component's panel on another page reads the same", new RegExp(`Controls ${cc.controls}\\b.* Requirements ${cc.requirements}\\b.* Findings ${cc.findings}\\b`).test(await panel()), (await panel()).slice(0, 300));
 await closePanel();
 ok("the old counts with no rows behind them (98 controls, 102 requirements) are drawn nowhere here", cc.controls !== 98 && !/\b98\b/.test(mcRow) && !/\b102\b/.test(mcRow));
 
@@ -247,13 +256,13 @@ await click("Add port", "#panel", { sel: "button.btn" });
 await fill("protocol", "Link 16"); await fill("port", "J-series"); await submit();
 ok("a port is added from the connection's preview too (the eye)", (await hash()) === "system-connections" && /Link 16/.test(await panel()) && /J-series/.test(await panel()));
 await closePanel();
-ok("and reads in the table's Protocols and ports", (await rows()).some((r) => /Ground data link/.test(r) && /Link 16/.test(r)), (await rows()).filter((r) => /Ground data link/.test(r)));
+ok("and counts in the table's Ports: the first port, then how many more", (await rows()).some((r) => /Ground data link/.test(r) && /Link protocol n\/a \+1/.test(r)), (await rows()).filter((r) => /Ground data link/.test(r)));
 ok("interconnections and ports are one table (9 outside connections with their ports)", (await rows()).filter((r) => / Crosses /.test(r)).length >= 14 && (await rows()).some((r) => /Mission planning network/.test(r) && /443\/tcp/.test(r)));
 
 // ——— 6. Add a component inside a subsystem ———
 console.log("\n6. Add a component");
 await go("system"); await pickSub("CN-109001");
-await click("Add component", "#main .k3-head");
+await click("Add component", TB);
 ok("Add component is a form whose kind and place are chosen (the subsystem in the filter is preselected)", (await p.evaluate(() => document.querySelector("#k3f-parent").value === "CN-109001" && document.querySelectorAll("#k3f-kind option").length >= 3 && document.querySelectorAll("#k3f-parent option").length >= 7)));
 await fill("name", "Health Monitor"); await choose("kind", "Software"); await submit();
 const nh = await hash();
@@ -270,14 +279,14 @@ await fill("name", "Health and Usage Monitor"); await choose("parent", "CN-10900
 ok("renamed and moved: the title and the breadcrumb follow", /System › Platform Management Subsystem › Health and Usage Monitor/.test((await p.evaluate(() => document.querySelector("#main .k3-crumbs").innerText)).replace(/\s+/g, " ")));
 ok("fact components() carries it", (await fact("components")).some((c) => c.name === "Health and Usage Monitor" && c.parent === "CN-109005" && c.boundary === "inside"));
 
-await go("system"); await menu("More", "Export components", "#main .k3-head");
+await go("system"); await menu("More", "Export components", TB);
 ok("Export goes through the kit's save (a download from disk; the viewer's Save prompt once published)", /system-components\.csv (downloaded|saved)/.test(await toast()) || /Copy system-components\.csv/.test(await modal()), [await toast(), (await modal()).slice(0, 60)]);
 if (await modal()) { await p.click("#modal [data-k3-close]"); await wait(200); }
 
 // ——— 7. The host's page: what it offers, what WS-X90 takes; change one in place ———
 console.log("\n7. The host system");
 await go("system"); await tab("Host and providers");
-ok("Host and providers is a tab of System: the host first, with what is taken", (await hash()) === "system-providers" && (await rows()).length === 3 && /F-16 Block 70/.test((await rows())[0]) && /Host system/.test((await rows())[0]) && /12 inherited · 4 hybrid/.test((await rows())[0]), await rows());
+ok("Host and providers is a tab of System: the host first, with what is taken", (await hash()) === "system-providers" && (await rows()).length === 3 && /F-16 Block 70/.test((await rows())[0]) && /Host system Authorized Mar 3, 2028 12 4 4 /.test((await rows())[0]), await rows());
 await eyeOf("F-16 Block 70");
 ok("its eye previews it; its row goes to its page", /^Component /.test(await panel()) && /F-16 Block 70/.test(await panel()));
 await closePanel();
@@ -295,15 +304,15 @@ ok(`${inh} is inherited`, / Inherited Inherited /.test(await inhRow()), await in
 await p.evaluate((id) => document.querySelector(`#main .k3-table tr[data-id="${id}"] .k3s-x`).click(), inhId); await wait(350);
 ok("Change opens here", new RegExp(`Change responsibility of ${inh.replace(/[()]/g, "\\$&")}`).test(await modal()));
 await choose("kind", "Hybrid"); await fill("part", "WS-X90 checks the bay's seal at every sortie."); await fill("reason", "The walk: WS-X90 keeps a part."); await submit();
-ok("the row reads Hybrid with this system's part", / Inherited Hybrid WS-X90 checks/.test(await inhRow()), await inhRow());
+ok("the row reads Hybrid with this system's part", /WS-X90 checks the bay's seal at every sortie\. Inherited Hybrid /.test(await inhRow()), await inhRow());
 await go(MC + "--controls"); await p.fill("#main .k3-search input", inh); await wait(500);
-ok("the component's Controls tab reads the same", /Hybrid with F-16 Block 70/.test((await rows()).find((r) => r.startsWith(inh + " ")) || ""), await rows());
+ok("the component's Controls tab reads the same", / Hybrid · F-16 Block 70 /.test((await rows()).find((r) => r.startsWith(inh + " ")) || ""), await rows());
 ok("the program's count of inherited controls follows", (await fact("controls")).inherited === 51 && (await fact("controls")).hybrid === 25, await fact("controls"));
 await p.fill("#main .k3-search input", ""); await wait(450);
 await go("component--idp");
 ok("a provider with no authorization says so once on its page", ((await main()).match(/has no authorization of its own/g) || []).length === 1);
 await go(MC + "--controls"); await p.fill("#main .k3-search input", "AC-2"); await wait(500);
-ok("and on a control that leans on it", /Provider not authorized/.test((await rows()).find((r) => r.startsWith("AC-2 ")) || ""), (await rows())[0]);
+ok("and on a control that leans on it", / Provider has no ATO /.test((await rows()).find((r) => r.startsWith("AC-2 ")) || ""), (await rows())[0]);
 await p.fill("#main .k3-search input", ""); await wait(450);
 
 // ——— 8. Take version 2 on the component's own page ———
@@ -335,9 +344,9 @@ await go("rec--v8b-ic--IC-103"); await wait(400);
 ok("rec--v8b-ic--IC-103 → that connection's page", (await hash()) === "connection--IC-103" && /Depot maintenance enclave/.test(await main()) && /Ports and protocols 2/.test(await main()), [await hash(), (await main()).slice(0, 80)]);
 await go("system-boundary--iatt");
 ok("the Boundary keeps its authorization choice: the IATT's test configuration", /IATT · Increment 2 test configuration/.test(await main()) && /Flight test instrumentation/.test(await main()) && /Not in the test configuration/.test(await main()));
-await click("Block 1.1", "#main .k3-seg");
+await pickFilter("authorization", "Block 1.1");
 ok("Block 1.1: the design boundary, its changes and the SCA's review, asked for here", (await hash()) === "system-boundary--blk" && /changed in Block 1.1/.test(await main()) && /Request the SCA's review/.test(await main()));
-await click("ATO", "#main .k3-seg", { exact: true });
+await pickFilter("authorization", "ATO");
 ok("the Boundary view has its description, editable", /The boundary is SYS-WSX90 and everything inside it/.test(await main()) && !/elements/.test(await main()));
 await click("Edit description");
 await p.fill("#k3f-text", "The boundary is WS-X90 and everything inside it. The walk edited this sentence."); await submit();
@@ -380,8 +389,8 @@ ok("Assign owner, on the component's fact line", /Priya Raghavan/.test(await p.e
 await go("system"); await pickSub("");
 ok("the owner shows on System's row", (await rows()).some((r) => /Mission Computer /.test(r) && /Priya Raghavan/.test(r)));
 await tab("Connected systems");
-ok("Connected systems is a tab of System, with its own Add", (await hash()) === "system-connected" && (await rows()).length === 8 && /Add connected system/.test(await p.evaluate(() => document.querySelector("#main .k3-head-a").innerText)));
-await click("Add connected system", "#main .k3-head");
+ok("Connected systems is a tab of System, with its own Add", (await hash()) === "system-connected" && (await rows()).length === 8 && /Add connected system/.test(await p.evaluate(() => document.querySelector("#main .k3-tb .k3-tools-r").innerText)) && !(await p.$("#main .k3-head-a")));
+await click("Add connected system", TB);
 await fill("name", "Test range ground station"); await fill("org", "Test range"); await submit();
 const ext = await hash();
 ok("Add connected system: its page opens, outside the boundary", /^component--EXT-2\d\d$/.test(ext) && /Connected system/.test(await main()), ext);
@@ -400,7 +409,7 @@ await menu("More", "Remove component");
 ok("Remove component asks first", /Test range ground station leaves the system/.test(await modal()));
 await submit();
 ok("removed: back on System, and the fact no longer lists it", /^system/.test(await hash()) && !(await fact("components")).some((c) => c.name === "Test range ground station"), await hash());
-await go("system-providers"); await click("Add provider", "#main .k3-head");
+await go("system-providers"); await click("Add provider", TB);
 ok("Add provider picks from the systems that offer controls; this system's own are marked", (await p.evaluate(() => document.querySelectorAll("#modal .k3-pick-i").length)) >= 5 && (await p.evaluate(() => document.querySelectorAll("#modal .k3-pick-i.held").length)) >= 3);
 const prov = await p.evaluate(() => { const i = document.querySelector("#modal .k3-pick-i:not(.held) input"); i.click(); return i.value; }); await wait(150); await submit();
 ok("the provider's page opens with what it offers", (await hash()) === "component--" + prov && /Controls offered/.test(await main()) && (await fact("components")).some((c) => c.code === prov && c.boundary === "provider"), await hash());
@@ -453,6 +462,66 @@ for (const w of [1440, 390]) {
 }
 await p.setViewportSize(VP);
 
+// ——— Pass 3 (Josef, 21 Nov): one row over every table, saved views, compact rows, previews that list what the page lists ———
+console.log("\nPass 3: the row, the views, the rows, the previews");
+const oneLine = () => p.evaluate(() => [...document.querySelectorAll("#main .k3-table tbody tr")].filter((r) => r.getClientRects().length && r.getBoundingClientRect().height > 44).length);
+for (const [r, noun, add] of [["system", "components", "Add component"], ["system-providers", "providers", "Add provider"], ["system-connected", "connected systems", "Add connected system"], ["system-connections", "connections", "Add connection"]]) {
+  await go(r); await viewMenu("All " + noun); const t = await toolbar();
+  ok(`${r}: one row over its table, its own views (All ${noun}), its actions at the row's end`, !!t && t.list === r && (W < 600 || t.lines === 1) && t.view === "All " + noun && !t.edited && t.acts.includes(add) && t.acts.some((a) => /^More/.test(a)) && t.filters.length >= 1 && (await p.$$("#main .k3-tb")).length === 1 && !(await p.$("#main .k3-head-a")) && !(await p.$("#main .k3-chips, #main .k3-rtabs")), t);
+  ok(`${r}: every row is one line`, (await oneLine()) === 0 && (await rows()).length > 0);
+}
+await go("system");
+ok("the List / Boundary switch stands in the row, before the actions", (await p.evaluate(() => { const r = document.querySelector("#main .k3-tb .k3-tools-r"), seg = r && r.querySelector(".k3-seg"); return !!seg && seg.textContent === "ListBoundary" && seg.compareDocumentPosition(r.querySelector(".btn.ink")) === Node.DOCUMENT_POSITION_FOLLOWING; })));
+ok("a component's code and its library state each have their place on the line", (await rows()).some((r) => /^Mission Computer CN-109101 /.test(r)) && (await p.evaluate(() => [...document.querySelectorAll("#main .k3-table thead th")].map((x) => x.textContent).join("|"))).startsWith("Component|Code|Unit|Kind|Library|"), (await rows()).filter((r) => /^Mission Computer /.test(r)));
+await click("Boundary", TB, { sel: "a" });
+const tbB = await toolbar();
+ok("the Boundary view has the same row: its authorization a filter, the switch and the actions at the end", (await hash()) === "system-boundary" && !!tbB && (W < 600 || tbB.lines === 1) && tbB.filters.join() === "Authorization" && tbB.acts.includes("Add component") && !(await p.$("#main .k3-head-a")) && !(await p.$("#main > .main > .k3-tools:not(.k3-tb)")), tbB);
+// A saved view: two filters, saved under a name, left, and picked again.
+await go("system-connections"); await viewMenu("All connections");
+const cAll = await rows();
+await pickFilter("k3s.cb", "Crosses"); await pickFilter("k3s.cagr", "Not signed");
+const cT = await toolbar(), cRows = await rows();
+ok("two filters of the row narrow the connections, and the view says it was edited", cT.on.length === 2 && cT.edited && cRows.length > 0 && cRows.length < cAll.length && cRows.every((r) => / Crosses /.test(r)), [cT, cRows.length, cAll.length]);
+await viewMenu("Save as new view"); await p.fill("#modal input[name=name]", "Crossing, not signed"); await p.click("#modal [data-k3-submit]"); await wait(450);
+ok("Save as new view names the question", (await toolbar()).view === "Crossing, not signed" && !(await toolbar()).edited, await toolbar());
+await viewMenu("All connections");
+ok("All connections asks nothing again", (await toolbar()).on.length === 0 && (await rows()).length === cAll.length);
+await go("system"); await go("system-connections");
+await viewMenu("Crossing, not signed");
+ok("left and picked again, the saved view gives the same rows", JSON.stringify(await rows()) === JSON.stringify(cRows) && (await toolbar()).view === "Crossing, not signed" && (await toolbar()).on.length === 2, [(await rows()).length, cRows.length]);
+await p.click("#main .k3-vbtn"); await wait(120);
+const vItems = await p.evaluate(() => [...document.querySelectorAll("#main .k3-vlist .k3-menu-i")].map((e) => e.textContent.trim()));
+await p.evaluate(() => { const d = document.querySelector("#main .k3-vmenu"); if (d) d.open = false; });
+ok("the views menu lists the list's own views, the seeded one, the saved one, and how to manage them", ["All connections", "Crosses the boundary", "Without a signed agreement", "PPSM not registered", "Crossing, not signed", "Manage views"].every((l) => vItems.some((x) => x.startsWith(l))), vItems);
+await viewMenu("PPSM not registered");
+ok("the seeded view asks its question", (await toolbar()).on.join() === "PPSM: Not registered" && (await rows()).length >= 1 && (await rows()).length < cAll.length, [await toolbar(), (await rows()).length]);
+await viewMenu("All connections");
+// The component's tabs: one row over each table; the long ones keep views.
+for (const [t, id, filters] of [["controls", "component-controls", "Family,Implementation,Status"], ["requirements", "component-requirements", "Evidence"], ["findings", "component-findings", "Source,Severity"], ["software", "", "Kind,CVE"], ["connections", "", "Agreement"]]) {
+  await go(`component--CN-109001--${t}`); const tb = await toolbar();
+  ok(`a component's ${t}: one row, ${id ? "with views" : "search and filters only"}, every row one line`, !!tb && tb.list === id && (W < 600 || tb.lines === 1) && tb.filters.join() === filters && (await p.$$("#main .k3-tb")).length === 1 && !(await p.$("#main .k3-chips, #main .k3-rtabs")) && (await oneLine()) === 0, tb);
+}
+await go("component--CN-109001--controls"); await viewMenu("Not written");
+const nwRows = await rows();
+ok("Not written is a view of a component's controls", (await toolbar()).on.join() === "Implementation: Not written" && nwRows.every((r) => / Not written /.test(r)), [await toolbar(), nwRows.length]);
+await viewMenu("All controls");
+// Previews: after the facts, what the page lists.
+await go("system"); await eyeOf("Mission Computing Subsystem");
+const pTabs = ["Components", "Software & firmware", "Connections", "Controls", "Requirements", "Findings"], pS = await panelSecs(), pOf = (t) => pS.find((x) => x.title === t) || {};
+const pTo = { Components: "components", "Software & firmware": "software", Connections: "connections", Controls: "controls", Requirements: "requirements", Findings: "findings" };
+ok("a component's preview lists what its page lists, tab by tab, after its facts", pTabs.every((t) => pS.some((x) => x.title === t)) && /Kind Subsystem/.test(await panel()), pS);
+ok("each as a short list: five rows at most, one line each, then View all to that tab", pTabs.every((t) => pOf(t).rows <= 5 && !pOf(t).tall && (pOf(t).n <= 5 || pOf(t).all === `component--CN-109001--${pTo[t]}`)), pS);
+ok("no table in the preview is wider than the panel", (await p.evaluate(() => [...document.querySelectorAll("#panel .k3-pn table")].filter((t) => t.scrollWidth > t.parentElement.clientWidth + 2).length)) === 0);
+await p.evaluate(() => { const a = [...document.querySelectorAll("#panel .k3-pk-all")].find((x) => /--controls$/.test(x.getAttribute("href"))); if (a) a.click(); }); await wait(500);
+ok("View all opens the tab, whose count is the preview's", (await hash()) === "component--CN-109001--controls" && (await tabCount("Controls")) === pOf("Controls").n, [await hash(), pOf("Controls").n]);
+await closePanel(); await go("system-connections"); await eyeOf("Mission planning network");
+const xS = await panelSecs();
+ok("a connection's preview lists its ports, its agreement and the components it joins", ["Ports and protocols", "Agreement", "Components it joins"].every((t) => xS.some((x) => x.title === t)) && xS.every((x) => !x.tall) && /Protected Network Gateway/.test(await panel()), xS);
+await closePanel(); await go("system-providers"); await eyeOf("F-16 Block 70");
+const hS = await panelSecs();
+ok("a provider's preview lists the controls it offers, the components it carries and its connections", ["Controls offered", "Components it carries", "Connections"].every((t) => hS.some((x) => x.title === t)) && (hS.find((x) => x.title === "Controls offered") || {}).all === "component--f16--offered", hS);
+await closePanel();
+
 // ——— 10. A created program shows its own system, never WS-X90's ———
 console.log("\n10. A created program");
 await b.close();
@@ -465,11 +534,11 @@ await H.go("system");
 const t10 = await H.main();
 ok("its System page is its own: its system, none of WS-X90's components", /SP-70 Strike Pod/.test(t10) && !/Mission Computer|Navigation Processor|Tactical Data Radio/.test(t10), t10.slice(0, 400));
 ok("it offers Add component", /Add component/.test(t10));
-await H.click("Add component", "#main .k3-head");
+await H.click("Add component", "#main .k3-tb .k3-tools-r");
 await H.fill("#k3f-name", "Pod Power Supply"); await H.sel("#modal [data-k3-submit]");
 ok("a component added there is kept under that program", /Pod Power Supply/.test(await H.main()) && /^component--/.test(await H.hash()), await H.hash());
 ok("as that program's own record (lane P's store), so its other pages read it", (await H.ev(() => (PA.v2.get("v3.P." + PA.v2hubs.cur() + ".el", []) || []).some((e) => e.name === "Pod Power Supply"))));
-await H.go("system-providers"); await H.click("Add provider", "#main .k3-head");
+await H.go("system-providers"); await H.click("Add provider", "#main .k3-tb .k3-tools-r");
 ok("Add provider there is that program's own dialog, opened on this page", /Add provider/.test(await H.modal()) && (await H.hash()) === "system-providers", (await H.modal()).slice(0, 120));
 await H.ev(() => { const s = document.querySelector("#modal select"); if (s) { s.value = s.options[s.options.length - 1].value; s.dispatchEvent(new Event("change", { bubbles: true })); } });
 await H.click("Add provider", "#modal", { sel: "button" }); await H.wait(500); await H.go("system");

@@ -1,0 +1,571 @@
+{
+  "lane": "F",
+  "pairs": [
+    {
+      "id": "f-checks-register",
+      "title": "Checks register",
+      "group": "automation",
+      "new": false,
+      "current": {
+        "route": "assessments-checks",
+        "note": "Assessments filtered to monitoring checks: cadence, owner, due and state; no result, no findings count, no draft, unused or new"
+      },
+      "after": {
+        "route": "dr-checks"
+      },
+      "changes": [
+        {
+          "n": 1,
+          "rec": 17,
+          "title": "Result, findings, source, controls, state",
+          "text": "One row a check: Passed, Failed or Error; its failing resources as a number; the tool it reads; how many baseline controls it evidences; and a state of Enabled, Draft, Unused or New.",
+          "drata": "The test list shows each test's result, its findings count, its connection and its status in one row.",
+          "ev": [
+            "images/ux/monitoring/monitoring-overview--03.png"
+          ]
+        },
+        {
+          "n": 2,
+          "rec": 15,
+          "title": "Drafts run but don't count",
+          "text": "The RHEL 9 V2R10 draft runs and reads Failed with 29 resources, but its state says \"Doesn't count yet\" and a line under the toolbar says drafts stay out of WS-X90's numbers until published.",
+          "drata": "A custom test saved as a draft runs, but its result moves no status and auditors don't see it.",
+          "ev": [
+            "images/ux/monitoring/monitoring-overview--04.png",
+            "images/ux/monitoring/create-and-publish-custom-tests--01.png"
+          ]
+        },
+        {
+          "n": 3,
+          "rec": 17,
+          "title": "Unused names the missing source",
+          "text": "A check the baseline needs whose source isn't connected reads Unused, and its Source cell names the source with \"Not connected\": the gateway's retired Nessus scan, the audit log collection.",
+          "drata": "Unused means the control needs the test but its connection is missing; New marks a test added recently.",
+          "ev": [
+            "images/ux/monitoring/october-2024-release-aws-drata-test--01.png"
+          ]
+        },
+        {
+          "n": 4,
+          "rec": 16,
+          "title": "Library among the list's actions",
+          "text": "The toolbar row ends with Library, beside the saved views and the Result, State and Kind filters; Create check starts from a template.",
+          "drata": "The Monitoring toolbar carries the Test Library beside its filters and Create test.",
+          "ev": [
+            "images/ux/monitoring/filter-and-search-tests-in-monitoring-new-experience--01.png"
+          ]
+        },
+        {
+          "n": 5,
+          "rec": 26,
+          "title": "Problems counted in plain tiles",
+          "text": "Failed, Error, Passed and Unused over the counted checks only, each a filter; a zero tile is not drawn.",
+          "drata": "A result summary over the tests list, counted by result.",
+          "ev": [
+            "images/ux/monitoring/monitoring-overview--01.png"
+          ]
+        },
+        {
+          "n": 6,
+          "rec": 17,
+          "title": "Two checks V3 already watches join",
+          "text": "Evidence renewed before it expires and Privileged accounts reviewed each quarter are rows now: one failing on the evidence owed, one New with no result until it first runs.",
+          "drata": "Every test the program relies on is a row with its result, even one that has not run yet.",
+          "ev": [
+            "images/ux/monitoring/monitoring-overview--03.png"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "f-check-record",
+      "title": "Check record",
+      "group": "automation",
+      "new": false,
+      "current": {
+        "route": "assessment--chk-stig",
+        "note": "STIG compliance scan: state, cadence, runs and all 75 open STIG rules in one check; no per-checklist page, no time failing"
+      },
+      "after": {
+        "route": "dr-check--rhel9-mc"
+      },
+      "changes": [
+        {
+          "n": 1,
+          "rec": 12,
+          "title": "Track, Fix, Manage open the page",
+          "text": "Days failing 127, since Jul 13; Failing resources 29 with View findings; POA&M items in progress 1 with Create POA&M item. Each number opens its place.",
+          "drata": "A test opens on three numbers: days failed since a date, failing resources with View findings, tickets in progress with Create ticket.",
+          "ev": [
+            "images/ux/monitoring/view-and-manage-test-details-new-experience--02.png"
+          ]
+        },
+        {
+          "n": 2,
+          "rec": 20,
+          "title": "One header, tabs that count problems",
+          "text": "The trail, CHK-101 as a chip, Result, State, Source, Owner (with its pencil), Last run and Component; tabs Overview, Findings 29 in red, Decisions, Controls 78, History 2.",
+          "drata": "Latest result, latest run, lifecycle and category under the title; tabs Overview, Findings, Exclusions, Controls, History.",
+          "ev": [
+            "images/ux/monitoring/view-and-manage-test-details-new-experience--01.png"
+          ]
+        },
+        {
+          "n": 3,
+          "rec": 15,
+          "title": "Publish a draft; edit opens a draft",
+          "text": "A draft's one primary is Publish, which names what it replaces; on a published check Edit check opens a draft over it, which runs beside the published one until published.",
+          "drata": "Publishing a draft starts it counting; editing a published test opens a new draft.",
+          "ev": [
+            "images/ux/monitoring/create-and-publish-custom-tests--02.png"
+          ]
+        },
+        {
+          "n": 4,
+          "rec": 12,
+          "title": "Runs over twelve months",
+          "text": "History draws a mark a month for a year (Sep 29, an Error on Oct 2, Oct 21 on the laptop) over the runs table, each with what it read.",
+          "drata": "A test's History tab lists each run with its result and a chart of results over time.",
+          "ev": [
+            "images/ux/monitoring/view-and-manage-test-details-new-experience--02.png"
+          ]
+        },
+        {
+          "n": 5,
+          "rec": 16,
+          "title": "A check is a copy of a template",
+          "text": "Details names its template (RHEL 9 STIG V2R9), which links to the library page that lists every copy.",
+          "drata": "A test made from the library keeps its template, and the template lists the tests using it.",
+          "ev": [
+            "images/ux/monitoring/test-library-new-experience--03.png"
+          ]
+        },
+        {
+          "n": 6,
+          "rec": 23,
+          "title": "Each failing rule opens with its text",
+          "text": "A failing row's eye opens the drawer, 1 of 29 with Previous and Next: the STIG rule's check text and fix text as DISA wrote them, its STIG ID, and Finding preview for V3's own preview.",
+          "drata": "A test's finding opens in a side drawer you walk: the resource, what the test checked and how to fix it.",
+          "ev": [
+            "images/ux/monitoring/integrate-multiple-identity-and-hris-connections--04.png"
+          ]
+        },
+        {
+          "n": 7,
+          "rec": 16,
+          "title": "What it checks, on the Overview",
+          "text": "A STIG check counts its rules (445 · CAT I 28, CAT II 402, CAT III 15) and lists its worst open rules, each opening its text; any other check states its rule in one line.",
+          "drata": "A template carries instructions saying what the test checks and how it decides.",
+          "ev": [
+            "images/ux/monitoring/test-library-new-experience--04.png",
+            "images/ux/monitoring/test-library-new-experience--05.png"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "f-renewal-check",
+      "title": "Evidence renewal check",
+      "group": "automation",
+      "new": false,
+      "current": {
+        "route": "assessment--chk-expiring",
+        "note": "A daily monitoring check: Failing now 54 results, no owner, and no list of what fails or anything to open"
+      },
+      "after": {
+        "route": "dr-check--ev-renewal--findings"
+      },
+      "changes": [
+        {
+          "n": 1,
+          "rec": 7,
+          "title": "The evidence owed is the failing list",
+          "text": "Its failing resources are the evidence past its renewal date or inside its window, read from the Evidence register: each with its state and Renew by date, and each row opens its evidence record.",
+          "drata": "A renewal past due shows on the item with its date and a Renewal past due warning.",
+          "ev": [
+            "images/ux/policies/manage-policy-renewals--01.png"
+          ]
+        },
+        {
+          "n": 2,
+          "rec": 12,
+          "title": "Track, Fix, Manage for renewals",
+          "text": "Days failing since the first item passed its date; Failing resources with View findings; Past their renewal date with Open evidence. No POA&M tile: renewing is the fix.",
+          "drata": "A test opens on days failed, failing resources and tickets in progress, each with its link.",
+          "ev": [
+            "images/ux/monitoring/view-and-manage-test-details-new-experience--02.png"
+          ]
+        },
+        {
+          "n": 3,
+          "rec": 7,
+          "title": "Renewing lowers the count",
+          "text": "Renew an item on its evidence record and the check's count drops by one: the check and the Evidence register read the same renewals. Without the register, it shows V3's own 54.",
+          "drata": "Renewing a policy or evidence clears its renewal warning everywhere it was counted.",
+          "ev": [
+            "images/ux/policies/manage-policy-renewals--02.png"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "f-priv-review",
+      "title": "Privileged account review check",
+      "group": "automation",
+      "new": false,
+      "current": {
+        "route": "assessment--chk-par",
+        "note": "A quarterly monitoring check with no run recorded: Failing now Nothing, and no way to see the accounts it reads"
+      },
+      "after": {
+        "route": "dr-check--priv-review"
+      },
+      "changes": [
+        {
+          "n": 1,
+          "rec": 17,
+          "title": "Never run says so",
+          "text": "A check that has never run reads New with no result; its one primary is Run now, and Findings says it has not run instead of Nothing failing.",
+          "drata": "A test with no run yet shows no result, with Test now beside its header.",
+          "ev": [
+            "images/ux/monitoring/integrate-multiple-identity-and-hris-connections--04.png"
+          ]
+        },
+        {
+          "n": 2,
+          "rec": 12,
+          "title": "Run now reads the accounts",
+          "text": "Run now reads the 18 privileged accounts of the quarterly review: svc-maint-07 and field-tech-03 fail (no owner, marked for removal, still active), and Manage counts 7 still to decide by Dec 1.",
+          "drata": "MFA on Identity Provider reads each account from the identity provider and lists those that fail.",
+          "ev": [
+            "images/ux/monitoring/integrate-multiple-identity-and-hris-connections--04.png"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "f-exclusions",
+      "title": "Exclusions as decisions",
+      "group": "automation",
+      "new": false,
+      "current": {
+        "route": "finding--stig%3Aethernet-switch-ndm%7C220604",
+        "click": "[data-k3=\"k3e.f.deact\"]",
+        "note": "More › Deactivate: a reason from a list and a note, by whoever clicks; no signer by role, no end date"
+      },
+      "after": {
+        "route": "dr-check--rhel9-mc--decisions",
+        "click": "#main .k3-tools-r .btn"
+      },
+      "changes": [
+        {
+          "n": 1,
+          "rec": 15,
+          "title": "No free Exclude, only a decision",
+          "text": "A failing resource leaves the count only by a recorded decision: false positive, operational requirement or risk acceptance, with why, who signed, when and an end date.",
+          "drata": "An Exclusions tab lists excluded resources with who excluded them, when and a reason; anyone may exclude.",
+          "ev": [
+            "images/ux/monitoring/view-and-manage-test-details-new-experience--05.png"
+          ]
+        },
+        {
+          "n": 2,
+          "rec": 18,
+          "title": "Each kind signed by its role",
+          "text": "A false positive is signed by the ISSO (Priya Raghavan), an operational requirement by the ISSM (Joel Barrantes), a risk acceptance by the AO (R. Calloway) and ends within 180 days.",
+          "drata": "Exclusions carry a reason and the person who made them; their selection bar offers Update reason and Remove exclusions.",
+          "ev": [
+            "images/ux/monitoring/view-and-manage-test-details-new-experience--06.png"
+          ]
+        },
+        {
+          "n": 3,
+          "rec": 12,
+          "title": "The count follows the decision",
+          "text": "Recording one drops the Findings tab's red count by one and the Fix tile says how many are left out by a decision; End returns it to the count.",
+          "drata": "Excluded resources stop counting toward the test's result.",
+          "ev": [
+            "images/ux/monitoring/view-and-manage-test-details-new-experience--04.png"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "f-library",
+      "title": "Checks library",
+      "group": "automation",
+      "new": true,
+      "current": {
+        "route": "stigs-benchmarks",
+        "note": "The nearest page: STIG checklists › Benchmarks lists the 7 STIGs in use and DISA's newer releases; nothing to add from"
+      },
+      "after": {
+        "route": "dr-library"
+      },
+      "changes": [
+        {
+          "n": 1,
+          "rec": 16,
+          "title": "Templates, in use or not, rated",
+          "text": "20 templates: DISA STIGs, SCAP benchmarks, scanner policies, an SBOM check, program reviews and an evidence check; In use 17, Not in use 3, each Essential or Recommended, with the controls it evidences.",
+          "drata": "The Test Library holds templates with In use and Not in use counts and an Essential or Recommended rating.",
+          "ev": [
+            "images/ux/monitoring/test-library-new-experience--01.png"
+          ]
+        },
+        {
+          "n": 2,
+          "rec": 21,
+          "title": "Filter panel beside the table",
+          "text": "Usage, Rating and Kind in a panel the toolbar's Filter button opens and closes; the one toolbar row stays.",
+          "drata": "A filter sidebar beside the library: usage, rating, connections and resources.",
+          "ev": [
+            "images/ux/monitoring/test-library-new-experience--02.png"
+          ]
+        },
+        {
+          "n": 3,
+          "rec": 16,
+          "title": "Add to program as Draft or Published",
+          "text": "Tick templates and the selection bar offers Add to program; choose the components and Draft (runs, doesn't count) or Published. One check is added per component.",
+          "drata": "Select tests, Add to program, choose the workspace and Draft or Published.",
+          "ev": [
+            "images/ux/monitoring/add-tests-from-the-test-library-to-a-workspace-new-experience--01.png",
+            "images/ux/monitoring/add-tests-from-the-test-library-to-a-workspace-new-experience--02.png"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "f-template",
+      "title": "Template page",
+      "group": "automation",
+      "new": true,
+      "current": {
+        "route": "stigs-benchmarks",
+        "note": "The nearest page: a benchmark row lists its checklists, with no template behind them"
+      },
+      "after": {
+        "route": "dr-library--rhel9-v2r9"
+      },
+      "changes": [
+        {
+          "n": 1,
+          "rec": 16,
+          "title": "Checks using this template, each with Manage",
+          "text": "RHEL 9 STIG V2R9 lists its copy on the Mission Computer with state and result, and Manage opens that check; its release, rules by CAT and rating sit in the header.",
+          "drata": "A template's page lists Tests using template, each with Manage, beside its info and mappings.",
+          "ev": [
+            "images/ux/monitoring/test-library-new-experience--03.png"
+          ]
+        },
+        {
+          "n": 2,
+          "rec": 16,
+          "title": "The controls it evidences",
+          "text": "The controls of WS-X90's baseline its rules map to (DISA's CCIs read through to SP 800-53), as status chips.",
+          "drata": "Mappings: associated frameworks and mapped controls.",
+          "ev": [
+            "images/ux/monitoring/add-tests-from-the-test-library-to-a-workspace-new-experience--06.png"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "f-finding-record",
+      "title": "Finding record",
+      "group": "automation",
+      "new": false,
+      "current": {
+        "route": "finding--stig%3Aethernet-switch-ndm%7C220604",
+        "note": "Source, owner, plan with milestones, risk, control and components as sections; no days open, no routing, notes or tickets"
+      },
+      "after": {
+        "route": "dr-finding--stig%3Aethernet-switch-ndm%7C220604"
+      },
+      "changes": [
+        {
+          "n": 1,
+          "rec": 12,
+          "title": "Days open, affected items, milestones",
+          "text": "Days open 91 since Aug 18; Affected items 2 (IA-3(1) on the switch); Milestones in progress 3 of 4, under the item's name, with Add milestone.",
+          "drata": "A test opens on Track, Fix and Manage numbers, each with its link.",
+          "ev": [
+            "images/ux/monitoring/view-and-manage-test-details-new-experience--02.png"
+          ]
+        },
+        {
+          "n": 2,
+          "rec": 18,
+          "title": "The routing rule and its one item",
+          "text": "Goes to the component's owner (Priya Raghavan for the switch), else the system owner, Ray Colston. No second item while one is open for the same weakness. Shows the item it made and the three findings held on it.",
+          "drata": "Ticket automation: one ticket per account or tag, a fallback for the rest, no new ticket while one is open.",
+          "ev": [
+            "images/ux/tickets/create-and-manage-workspace-tickets--02.png"
+          ]
+        },
+        {
+          "n": 3,
+          "rec": 24,
+          "title": "Notes, Tickets and Tasks dock beside",
+          "text": "A thin rail at the right edge: each pane docks beside the page, which narrows; nothing covers the record. Notes, tickets and tasks are kept on the finding.",
+          "drata": "A utilities rail on a record opens notes, tickets or tasks as a side panel beside the page.",
+          "ev": [
+            "images/ux/tickets/create-and-manage-tickets-in-drata--01.gif",
+            "images/ux/risk/manage-risk-tasks-in-drata-new-experience--04.png"
+          ]
+        },
+        {
+          "n": 4,
+          "rec": 19,
+          "title": "Sunken page, white cards",
+          "text": "The numbers, Routing, What was found, Milestones and Affected items stand as white cards in the grey well; the header stays on white.",
+          "drata": "Records hold white bordered cards in a grey page.",
+          "ev": [
+            "images/ux/monitoring/test-library-new-experience--03.png"
+          ]
+        },
+        {
+          "n": 5,
+          "rec": 23,
+          "title": "The rule it fails, check beside fix",
+          "text": "A STIG finding shows the rule it fails: its STIG ID, the check text beside the fix text, and DISA's discussion where there is one. What to run and what to change, on the record.",
+          "drata": "A finding's drawer says what was checked and offers the fix beside it.",
+          "ev": [
+            "images/ux/monitoring/assigning-policies-to-specific-groups--04.png"
+          ]
+        }
+      ]
+    }
+  ],
+  "components": [
+    {
+      "id": "numbers",
+      "rec": [
+        12
+      ],
+      "used": "dr-check--<id> Overview (days failing, failing resources, POA&M items) and dr-finding--<id> (days open, affected items, milestones in progress)"
+    },
+    {
+      "id": "dock",
+      "rec": [
+        24
+      ],
+      "used": "dr-finding--<id>: Notes, Tickets and Tasks at the right edge"
+    },
+    {
+      "id": "head",
+      "rec": [
+        20
+      ],
+      "used": "dr-check--<id>, dr-library--<id> and dr-finding--<id>"
+    },
+    {
+      "id": "tabs",
+      "rec": [
+        3
+      ],
+      "used": "dr-check--<id>: Findings counts in red while the check counts, grey while a draft"
+    },
+    {
+      "id": "idchip",
+      "rec": [
+        2
+      ],
+      "used": "a check's code, a finding's rule or CVE, and every control chip"
+    },
+    {
+      "id": "sunken",
+      "rec": [
+        19
+      ],
+      "used": "check Overview, template page and finding record"
+    },
+    {
+      "id": "stats",
+      "rec": [
+        26
+      ],
+      "used": "dr-checks (Failed, Error, Passed, Unused) and dr-library (In use, Not in use)"
+    },
+    {
+      "id": "facets",
+      "rec": [
+        21
+      ],
+      "used": "dr-library: Usage, Rating and Kind beside the templates"
+    },
+    {
+      "id": "selbar",
+      "rec": [
+        22
+      ],
+      "used": "dr-library: chosen templates, Add to program"
+    },
+    {
+      "id": "drawer",
+      "rec": [
+        23
+      ],
+      "used": "dr-checks: the eye opens a walkable check preview; dr-check--<id> Findings: each failing row's eye opens the rule it fails (a STIG rule's check and fix text), walkable, with Finding preview"
+    }
+  ],
+  "derived": [
+    "Check results and failing resources: a STIG checklist's open rules are the findings V3 already lists under Findings › STIG rules (75 across seven checklists); IAVA/IAVB is the three open CVEs that carry an IAVA or IAVB; the SBOM check is CVE-2024-6387 while the Mission Computer runs version 1; RA-5's frequency is the two scans past 30 days (ACAS applied Oct 10, the gateway's Nessus cancelled Sep 28).",
+    "Error: a check whose last import failed (the telemetry SARIF file, Oct 30) or was rejected (the laptop's ARF file, Oct 2, shown in its history).",
+    "Runs and history come from V3's import records (Evidence › Sources history); the latest run's failing count is the live count. Days failing count from the first run of the unbroken failing streak (RHEL 9: Jul 13, 41 open).",
+    "The RHEL 9 V2R10 draft: DISA published V2R10 on Sep 30 (mod-v8-dod); the draft's creation on Nov 10 by Joel Barrantes is derived, and it reads the Oct 13 checklist's answers. Publishing it marks the V2R9 check Replaced.",
+    "Unused checks: the gateway's Nessus source (retired Sep 28 in V3's sources) and an audit-record review that reads the Security Log Collector, which V3's AU-6 check (Audit log review sampling) has no automated source for.",
+    "New: a check added within 30 days of Nov 17 (the ASD checklist, Nov 4; the SARIF scan, Oct 30) or published here.",
+    "Check codes CHK-101 on, in the order of the seeded list.",
+    "Controls per STIG: each benchmark's rules' CCIs read through DISA's CCI list to SP 800-53, then kept to WS-X90's baseline at draw time.",
+    "Template ratings (Essential, Recommended) and the scanner, SBOM and review templates' descriptions; the Defender and Edge benchmarks are the two SCC ran beside Windows 11 (the laptop checklist's comment).",
+    "Component owner for routing: WS-X90 records none, so the owner of the component's STIG checklist stands in (Mission Computer and gateway: Joel Barrantes; switch: Priya Raghavan; laptop: Joel Barrantes); else the system owner, Ray Colston.",
+    "Same weakness: the same control on the same component. Affected items are the open findings of that weakness.",
+    "Days open for a STIG rule: from the run that found it (its check's first failing run) when V3 has no opened date.",
+    "Decision signers: false positive the ISSO, operational requirement the ISSM, risk acceptance the AO (ends within 180 days).",
+    "Rule text: DISA's check, fix and discussion text are mod-v8-dod's (held for the open rules), read through its own rule preview (PA.P[\"v8g-rule\"]) and matched by Vuln ID. A scanner, SBOM, review or records check's rule is its template's one line, worded here.",
+    "Evidence renewed before it expires: V3's daily check (no owner, last run today, 54 of 368 in its count). Its failing resources are lane B's evidence owed (PA.drB.renewalCheck(), the session's renewals applied); without lane B, V3's 54 with its four listed items. Added Oct 1, the FY2027 plan's first day; days failing count from the first item past its renewal date.",
+    "Privileged accounts reviewed each quarter: V3 records no run. Run now reads the 18 accounts of the quarterly review (mod-after-people, whose account lines are Example there): 11 decided, 7 to decide by Dec 1; svc-maint-07 and field-tech-03 have no owner and are marked for removal but still active. Added Nov 7, when the review opened (task t8); the rule's wording is derived.",
+    "The two checks' templates (Evidence renewed before it expires, a Program records template; Privileged accounts reviewed each quarter, a Program review), both rated Essential."
+  ],
+  "conflicts": [
+    "Drata's free Exclude (anyone excludes a resource with a free-text reason) is left behind: an exclusion is a decision of one of three kinds, each signed by its role (the AO for a risk acceptance), with a reason and an end date, and it can be ended. RECS.md's Leave behind names this.",
+    "Drata's 'Fix Now' on every failing row is left behind: a failing row's only control is a quiet Record decision shown on hover; the one next step is in the Manage tile and the header.",
+    "Drata's filter sidebar (rec 21) on the library keeps Josef's one toolbar row: the toolbar's Filter button opens and closes the panel, and there is no Filters applied chip row.",
+    "Drata's Track tile with zero (Tickets in progress 0) is kept on the record as the brief asks, but zero tiles are left out of the registers' stat rows.",
+    "Drata's red badge counts on tabs: Findings counts in red only while the check counts; a draft's findings count is grey.",
+    "A column whose values are all the same folds: a checklist's Findings tab drops Component when every resource is on one component."
+  ],
+  "open": [],
+  "added": [
+    {
+      "text": "A failing row's eye opens the STIG rule's check and fix text in the drawer, with Finding preview",
+      "pair": "f-check-record",
+      "route": "dr-check--rhel9-mc--findings",
+      "click": "#main .k3-eye"
+    },
+    {
+      "text": "What it checks: a STIG's rules counted, each open rule one click from its text",
+      "pair": "f-check-record",
+      "route": "dr-check--rhel9-mc",
+      "scroll": "#main .drf-rl"
+    },
+    {
+      "text": "A STIG finding shows the rule it fails, check text beside fix text",
+      "pair": "f-finding-record",
+      "route": "dr-finding--stig%3Amission-computer-rhel9%7C257789",
+      "scroll": "#main .drf-rule2"
+    },
+    {
+      "text": "Evidence renewed before it expires: the evidence owed is its failing list, and renewing lowers it",
+      "pair": "f-renewal-check",
+      "route": "dr-check--ev-renewal--findings"
+    },
+    {
+      "text": "Privileged account review: never run until Run now, which fails two accounts",
+      "pair": "f-priv-review",
+      "route": "dr-check--priv-review"
+    }
+  ]
+}

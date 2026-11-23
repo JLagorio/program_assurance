@@ -212,8 +212,8 @@
     },
     {
      "route": "controls",
-     "do": "Choose AC · Access Control in the families dropdown, then the chip Needs evidence.",
-     "see": "The same page, 52 then 15 rows; search, pager and Clear filters work.",
+     "do": "In the Family filter choose AC · Access Control, then in Status choose No evidence.",
+     "see": "The same page, 52 then fewer rows, in one row of filters; search, the pager and Clear work.",
      "was": "A family tile opened Controls with nothing selected; search and pager were dead."
     },
     {
@@ -278,7 +278,7 @@
     },
     {
      "route": "controls",
-     "do": "Choose the chip No requirement, then the first row; on its page press Next.",
+     "do": "In the view menu choose No requirement, then the first row; on its page press Next.",
      "see": "1 of 14 in Controls: No requirement, then the next control's page; the breadcrumb returns to the same list.",
      "was": "Each control was a preview over a 17-row list."
     },
@@ -301,14 +301,14 @@
   {
    "id": "C-s1",
    "title": "Baseline and Controls are one page",
-   "caption": "The stack table and 18 family tiles become one Baseline card on Controls; a family is a rail filter.",
+   "caption": "The stack table and 18 family tiles become one Baseline card on Controls; a family is a filter in the list's row.",
    "was": "v3r/C/shots/C-s1-was.png",
    "now": "v3r/C/shots/C-s1-now.png"
   },
   {
    "id": "C-s2",
    "title": "All 560, filtered in place",
-   "caption": "17 sample rows with dead search and pager become the whole baseline: a families dropdown, chips, filters, 50 a page.",
+   "caption": "17 sample rows with dead search and pager become the whole baseline: one row of search, views and filters, 50 a page.",
    "was": "v3r/C/shots/C-s2-was.png",
    "now": "v3r/C/shots/C-s2-now.png"
   },
@@ -352,6 +352,22 @@
   "Another program: a created program draws its own baseline with Add control and Remove a control; its rows open lane P's preview, with no control page. The created-program steps of the walk run at 1440 only.",
   "If a program was created earlier in the session and the page is reloaded before Controls was ever opened, the reference baseline's membership may not be readable (not seen in the walk).",
   "Found by the re-walk, not fixed: the Controls list keeps its search and filters when you leave and come back, so it can open on a narrowed list (\"All 0\") without saying why; after Add control it stays narrowed to Program tailoring.",
-  "Found by the re-walk, not fixed: in the workbook a record's code opens the side panel, not the record's page; the page is a second click."
- ]
+  "Found by the re-walk, not fixed: in the workbook a record's code opens the side panel, not the record's page; the page is a second click.",
+  "Pass 3, check: views.mjs prints 14 passed, 3 failed on controls with the seeded saved view (AC: needs evidence). All three are the script counting Manage views' rows as 1 after a save and 0 after a delete, and renaming the first row; a seeded list has 2 then 1. With the seed taken out it prints 17 passed, 0 failed. The seed is kept, as PASS3 asks.",
+  "Pass 3, kit: a column's cls \"wrap\" and cls \"main\" also match the page shell's .wrap and .main in core.css (display: grid; .wrap has a 72px gap), so a wrapping cell stacks what it holds. Worked around for the implementation statement's column with a class of this lane (k3c-stm: display: table-cell; width: 100%).",
+  "Pass 3, kit: in a preview the short list's first column keeps the pages' 200px floor at 760px and under (the kit's own .k3-pk min-width: 0 is beaten by the first-column rule), so a name beside a wide pill scrolls sideways at 390. Worked around for this lane's five sections by their ids.",
+  "Pass 3, not done: under 1360px wide the Controls row falls back to the kit's wrapping (two rows at 1280). From 1360 to 1559 it stays one row by cutting the chosen filters' values with an ellipsis and hiding Clear (the views menu's All controls clears).",
+  "Pass 3, decisions that cut something: Technique is no longer a filter of its own but a second group inside Family (the filter then reads Technique: Segmentation), so a family and a technique cannot be chosen together. A row's grey words now name a gap only (Implementation not written); the cut-off statement is gone from the list and from a requirement's row. The preview's lists no longer carry Unmap and Remove: both are on the control's page. A provider that is not authorized is a dotted underline and a tooltip on the row (and Responsibility: Provider not authorized as a filter); under 1680px the row shows Hybrid or Inherited alone.",
+  "Pass 3, not done: a set another page names (a component's controls, the controls an SSP section cites, the controls with parameters) heads the table as one band with Show every control; it is not a control of the row and no saved view keeps it."
+ ],
+ "pass3": {
+  "build": "v3r3-C",
+  "check": "p3 check lane C: 2 pages, 2 record pages, 1 previews; problems 0",
+  "views": "controls: 14 passed, 3 failed with the seeded view; 17 passed, 0 failed without it",
+  "offcheck": "differences 0",
+  "walk": {
+   "1440": "116 of 116",
+   "390": "107 of 107"
+  }
+ }
 }

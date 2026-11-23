@@ -1,0 +1,10 @@
+build /private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-ux-proposal/6eb5e97f-5653-4066-aa27-f008818de078/scratchpad/v4dr-A-walk.html
+ok B4: the default view folds Rationale, and Owner while no control has one
+ok choose three rows, then Select all
+ok mark two controls out of scope; they stay listed with the reason
+ok Compare: apply the statement, and the statement changes
+ok Send to reviewers moves the stage
+ok map a suggestion, then undo it
+errors on pages outside lane A (not counted): before-after-drata
+routes 20 (2 widths) · cells 520 · clicked 194 · failures 0
+exit 0

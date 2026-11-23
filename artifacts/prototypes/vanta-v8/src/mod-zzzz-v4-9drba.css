@@ -1,0 +1,41 @@
+/* Before & after › Drata (drba-): the tab's own pieces; pairs, frames and numbered changes reuse the comparison's ba- classes. */
+.drba-hero { display: grid; gap: 10px; padding: 4px 0 8px; }
+.drba-hero h2 { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.01em; }
+.drba-small { font-size: 13px; color: var(--ink-3); }
+.drba-jump { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 14px; }
+.drba-jump a { color: var(--ink-2); text-decoration: none; border-bottom: 1px solid var(--line); padding-bottom: 2px; }
+.drba-jump a:hover { color: var(--ink); border-color: var(--ink-3); }
+.drba-jump .num { color: var(--ink-3); margin-left: 2px; }
+.drba-rec { display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 20px; padding: 0 6px; border-radius: 10px; background: var(--track); color: var(--ink-2); font-size: 12px; font-weight: 600; }
+.ba-dev-p .drba-rec + .drba-rec { margin-left: 4px; }
+.drba-pair .ba-frames { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.drba-comps { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 560px), 1fr)); gap: 16px; }
+.drba-comp { background: var(--canvas); border: 1px solid var(--line); border-radius: 14px; padding: 18px; display: grid; gap: 10px; min-width: 0; align-content: start; scroll-margin-top: 16px; }
+.drba-comp-h { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.drba-comp-h h4 { margin: 0; font-size: 15px; font-weight: 600; }
+.drba-comp-w { margin: 0; color: var(--ink-2); font-size: 14px; }
+.drba-demo { border: 1px dashed var(--line); border-radius: 10px; padding: 14px; min-width: 0; overflow: auto; background: var(--canvas); }
+.drba-cov-w { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 520px), 1fr)); gap: 16px 24px; }
+.drba-cov-g h4 { margin: 0 0 6px; font-size: 13px; font-weight: 600; color: var(--ink-3); text-transform: none; }
+.drba-cov { width: 100%; border-collapse: collapse; font-size: 14px; table-layout: fixed; }
+.drba-cov td { padding: 7px 8px 7px 0; border-top: 1px solid var(--line); vertical-align: top; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.drba-cov td:first-child { width: 32px; color: var(--ink-3); }
+.drba-cov td:last-child { width: 42%; }
+.drba-leave, .drba-list { margin: 0; padding-left: 20px; display: grid; gap: 6px; font-size: 14px; color: var(--ink-2); }
+.drba-call { margin-top: 4px; }
+@media (max-width: 760px) {
+  .drba-pair .ba-frames { grid-template-columns: minmax(0, 1fr); }
+  .drba-cov td:last-child { width: 38%; }
+}
+.drba-new { display: grid; gap: 8px; scroll-margin-top: 16px; }
+.drba-new-h { display: flex; align-items: baseline; gap: 10px; }
+.drba-new-h .num { color: var(--ink-3); font-size: 14px; }
+.drba-new-l { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
+.drba-new-l li { display: grid; grid-template-columns: 110px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+.drba-new-k { color: var(--ink-3); font-size: 13px; }
+.drba-new-t { min-width: 0; color: var(--ink); }
+.drba-new-t a { color: var(--ink-3); margin-left: 6px; font-size: 13px; }
+@media (max-width: 760px) {
+  .drba-new-l li { grid-template-columns: minmax(0, 1fr) auto; }
+  .drba-new-k { grid-column: 1 / -1; }
+}

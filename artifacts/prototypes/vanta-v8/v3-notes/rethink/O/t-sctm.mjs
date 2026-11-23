@@ -1,0 +1,15 @@
+import { createRequire } from "module";
+const require = createRequire("/Users/joseflagorio/Development/program_assurance-ux-proposal/package.json");
+const { chromium } = require("playwright");
+const build = process.argv[2], mode = process.argv[3];
+const b = await chromium.launch(); const p = await b.newPage({ viewport: { width: 1440, height: 900 } });
+const errs = []; p.on("pageerror", (e) => errs.push(e.message));
+await p.goto("file://" + build + "#overview"); await p.waitForTimeout(700);
+await p.evaluate(() => { sessionStorage.clear(); PA.v2.reset(); PA.v3.set(true); }); await p.waitForTimeout(400);
+if (mode === "task") await p.evaluate(() => { PA.v3k.task.start({ from: { label: "PDR", route: "overview" }, steps: [{ label: "14 controls with no requirement" }] }); PA.v2.go("sctm", { view: "noreq" }); });
+else await p.evaluate(() => { PA.v2.go("sctm", { view: "noreq" }); });
+const t = setTimeout(async () => { console.log("HUNG", mode); process.exit(1); }, 15000);
+await p.waitForTimeout(1500);
+console.log(mode, await p.evaluate(() => ({ hash: location.hash, full: document.getElementById("proto").classList.contains("fullwin"), bar: !!document.getElementById("k3task"), mainKids: [...document.getElementById("main").children].map((c) => c.className).slice(0, 5) })));
+await p.screenshot({ path: `t-sctm-${mode}.jpg`, type: "jpeg", quality: 60 });
+clearTimeout(t); console.log("errors", errs); await b.close();

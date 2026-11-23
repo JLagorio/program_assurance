@@ -1,0 +1,12 @@
+import { createRequire } from "module";
+const require = createRequire("/Users/joseflagorio/Development/program_assurance-ux-proposal/package.json");
+const { chromium } = require("playwright");
+const B = (await import("path")).resolve(process.argv[2]);
+const b = await chromium.launch();
+const p = await b.newPage({ viewport: { width: 1440, height: 900 } });
+const errs = []; p.on("pageerror", (e) => errs.push(e.message)); p.on("console", (m) => { if (m.type() === "error") errs.push(m.text()); });
+await p.route(/fonts\.(googleapis|gstatic)\.com/, (r) => r.abort());
+await p.goto("file://" + B + "#overview"); await p.waitForTimeout(700);
+const r = await p.evaluate(() => ({ drk: !!window.PA.drk, keys: Object.keys(window.PA.drk || {}).join(",") }));
+console.log(JSON.stringify(r), errs);
+await b.close();

@@ -335,7 +335,12 @@
   "The ITCSC's team, Authorization's Sharing and the SSP's access list still keep their own people lists (see 'people lists').",
   "The steps table and the gate's tables at 390 scroll sideways inside their frames; the page itself does not.",
   "Found by the re-walk, not fixed: confirmation messages stay up for about eight seconds and across page changes; the Back to … bar floats over the foot of the page (pages now keep room under it).",
-  "Found by the re-walk, not checked at phone width beyond pages opening: tables scroll sideways inside their frames, and the workbook's header controls overlap at 390."
+  "Found by the re-walk, not checked at phone width beyond pages opening: tables scroll sideways inside their frames, and the workbook's header controls overlap at 390.",
+  "Pass 3: Activity searches and filters the 30 newest events v2 draws (24 of 280 for Evidence reviews); the views' counts are the kinds' totals (299, 280, 8, 6, 5), a saved view shows no count.",
+  "Pass 3: Team keeps two tables under headings (Roles, People), each with its add button in the section head as K.related draws one; no toolbar, 15 rows each.",
+  "Pass 3: the gate's preview no longer assesses a criterion in place (the short list has no button column); Open gate does.",
+  "Pass 3: at 390 the lane's tables scroll sideways inside their frame (the kit's compact table keeps its columns); the page itself does not.",
+  "Pass 3: core's pill reads 'Ready' and 'Not ready' as the same neutral tone whatever tone is asked for, so a deliverable's status keeps the checklist's own mark."
  ],
  "pass2": {
   "1 navigation (one sidebar)": "Nothing of lane O read #rail. Every page of the lane marks Overview in the sidebar, the gate's page included (walked at 1440 and 390).",
@@ -344,5 +349,23 @@
   "the gate's page": "Header: what the gate is (sub), More (Export the gate), and the decision as the one primary: Record decision for the holder of the deciding role; for anyone else Request decision, and Record as <holder> (the prototype acting as that person, said in the form). Body: the one next step; Deliverables as a table whose not-ready rows go to exactly the records that hold them back, with the return bar; Criteria as a table with Add criterion (a picker of the NIST SP 800-160 outcomes the gate does not hold, Write a criterion as its first line), Assess and Remove in the row, and what meets each; Actions once decided with actions. Side: Details, and a Decision card (decides, reviews first, requested, recorded by).",
   "numbers": "Checked on the whole build: Operational issues 43 → findings-issues, chip Open, 43 rows (count from fact findingCounts.bySource.issue); Risks without an owner 40 → risks chip No owner, 40 rows; Evidence waiting on review 88 → evidence chip, 1–50 of 88; Your tasks 4 → My work, Assigned to me 4; Requirements 14 → Controls chip No requirement, 14 rows; Connections 4 → system-connections, Without an agreement, 4 rows; Boundary → system-boundary--blk where the SCA review is; Details' baseline (name and count from fact baseline.total) → Controls, All 560; System → system on its default view.",
   "exports": "Export the lifecycle, Export the gate, Export the team and Export the activity are CSV files made by K.save; v2's export dialog is no longer used."
+ },
+ "pass3": {
+  "toolbars": "Activity: one row (search, the view, Kind, Who, More at its end). Kind was the chip strip and is now a filter whose four kinds are the built-in views; Who is new; one seeded saved view, Evidence sent back (Kind: Evidence reviews, search 'sent back'). Overview, Team and a gate's page have no table toolbar, so their header keeps its actions.",
+  "rows": [
+   "Activity: drawn by K.table from v2's events (was v2's tbody copied whole): When, Who, Action, Record (the column that takes the room; When took 484px before), Details; a cell that is cut carries the whole as its title. A row still opens the event.",
+   "Team, Roles: what a role decides is a column, Decides (was a second line under the role); the sentence under the heading is gone. People: a person's roles are the first and +N.",
+   "Gate, Deliverables: Deliverable, Status (the checklist's own tick or ring with Ready / Not ready, since the shared pill reads both words as neutral), What holds it back (takes the room), Owner, Open (the full label is its title). The table scrolled sideways at 1440; it fits now.",
+   "Gate, Criteria: Criterion (code and sentence, the one cell that wraps: 1 to 2 lines at 1728, 2 at 1440), Status, What meets it only once a criterion has a note, then Assess / Remove. The life cycle process (was a grey second line) is the code's title.",
+   "The connections deliverable reads '4 connections with no current agreement' (was 'without a current agreement'), parallel to '14 controls with no requirement'; it is what lets the line fit at 1440."
+  ],
+  "previews": "The gate's preview: facts, the page's Next step line with its button, then Deliverables, Criteria and Actions as kit short lists (one line: the name with why in grey, the status; five rows, then View all N to the gate's page). A deliverable's row there opens the records that hold it back, as on the page. Assess is done on the page.",
+  "checks": {
+   "p3 check lane O": "3 pages, 2 record pages, 1 preview; problems 0",
+   "views overview-activity": "17 passed, 0 failed",
+   "offcheck": "differences 0",
+   "walk": "145 passed, 0 failed (1440 and 390), out/v3r3-O.html"
+  },
+  "shots": "v3r/O/p3shots: overview.jpg, overview_team.jpg, overview_activity.jpg, gate_pdr_2.jpg (1728), overview_pdr_eye.jpg (the gate's preview), overview_activity_views-1440.jpg, gate_pdr_2-1440.jpg"
  }
 }

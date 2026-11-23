@@ -1,5 +1,44 @@
 [
  {
+  "id": "p3-toolbar",
+  "lanes": [
+   "P1"
+  ],
+  "see": {
+   "route": "evidence"
+  },
+  "seeLabel": "Open Evidence",
+  "quote": "those tabs to show different kinds of evidence should just be filters applied and we should have a “saved view” drop down select for saved views, ability to manage saved views, delete and create saved views. all datatables should have one consistent single row toolbar. no extra tabs or nonsense for filters of saved views or actions.",
+  "title": "21 Nov: one row over every table, with saved views",
+  "text": "Every list has one row: search, the view, the filters, then the list's actions. A list's kinds and its quick filters are filters in that row; no strip of tabs or chips is left for them, and the page's buttons moved from the header to the row's end. The view menu holds the built-in views with their counts and your own: save the current filters under a name, share it with the program, rename it, delete it."
+ },
+ {
+  "id": "p3-rows",
+  "lanes": [
+   "P2"
+  ],
+  "see": {
+   "route": "requirements"
+  },
+  "seeLabel": "Open Requirements",
+  "quote": "v3 isnt using the full page theres a lot of space on the right side. also table cells should rarely have multiple rows of text/data within a cell. I prefer compact rows for most things",
+  "title": "21 Nov: the page takes the window, and a row is one line",
+  "text": "V3's pages no longer stop at 1280px. A table row is 40px and each cell one line: a record's code, its name, then its description in grey, cut with an ellipsis. A second line became a column or was dropped; only an implementation statement still wraps."
+ },
+ {
+  "id": "p3-previews",
+  "lanes": [
+   "P3"
+  ],
+  "see": {
+   "route": "system"
+  },
+  "seeLabel": "Open System",
+  "quote": "all previews should show their related / associated data you see on the details page in just a different format.",
+  "title": "21 Nov: a preview lists what the record's page lists",
+  "text": "The eye's preview shows the record's facts and then each collection its page holds as a short list: five rows, the name and a status, and View all to the page. Documents and assessments have an eye and a preview too."
+ },
+ {
   "id": "system",
   "lanes": [
    "S"

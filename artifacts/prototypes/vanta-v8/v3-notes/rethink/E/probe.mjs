@@ -1,0 +1,14 @@
+import { createRequire } from "module";
+const require = createRequire("/Users/joseflagorio/Development/program_assurance-ux-proposal/package.json");
+const { chromium } = require("playwright");
+const SP = "/private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad";
+const build = SP + "/vanta/proto/out/" + (process.env.BUILD || "v3r2-E") + ".html";
+const b = await chromium.launch(); const p = await b.newPage({ viewport: { width: 1440, height: 900 } });
+const errs = []; p.on("pageerror", (e) => errs.push(e.message));
+await p.goto("file://" + build + "#overview"); await p.waitForTimeout(700);
+await p.evaluate(() => { sessionStorage.clear(); PA.v2.reset(); PA.v3.set(true); }); await p.waitForTimeout(300);
+const code = process.argv[2];
+const r = await p.evaluate(new Function("return (async () => {" + code + "})()"));
+console.log(typeof r === "string" ? r : JSON.stringify(r, null, 1));
+if (errs.length) console.log("errors", errs.slice(0, 5));
+await b.close();

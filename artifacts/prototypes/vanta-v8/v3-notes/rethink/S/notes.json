@@ -348,8 +348,8 @@
     },
     {
      "route": "system-connections",
-     "do": "Click 'Without an agreement', click Mission data loads, Link agreement on its page.",
-     "see": "The page reads Agreement signed; the chip and System's needs attention drop by one.",
+     "do": "In the view menu choose Without a signed agreement, click Mission data loads, then Link agreement on its page.",
+     "see": "The page reads Agreement signed; the view's count and System's needs attention drop by one.",
      "was": "Agreement shown in a preview ending in 'Open evidence'."
     },
     {
@@ -377,7 +377,7 @@
   {
    "id": "S-s1",
    "title": "Composition becomes System",
-   "caption": "Four tabs for what System lists, a Subsystem filter beside the search, the authorization in force and three filters. Nothing down the side.",
+   "caption": "Four tabs for what System lists, and one row over each table: search, the view, the filters, then the list's actions. Nothing down the side.",
    "was": "v3r/S/shots/S-s1-was.png",
    "now": "v3r/S/shots/S-s1-now.png"
   },
@@ -430,14 +430,19 @@
   "hosts opens System's list, not a provider; the Library components table is gone (only Mission Computer has a version to take).",
   "composition-config's Submit Block 1.1 for approval and inventory-scans have no home in this lane.",
   "The primary of a side panel is drawn as a secondary by v2's visual layer (one primary a screen).",
-  "Found by the re-walk, not fixed: a component's Software & firmware tab lists the unit itself as a Hardware row, and Add software or firmware offers Hardware as a kind."
+  "Found by the re-walk, not fixed: a component's Software & firmware tab lists the unit itself as a Hardware row, and Add software or firmware offers Hardware as a kind.",
+  "Pass 3: under 1600px three columns give way rather than cut the record's name: a component's Unit, a provider's Organization, an item's Supplier. The record's page and preview keep the fact.",
+  "Pass 3: at 1440 the longest names still end in an ellipsis: 14 cells of 126 on Connections, about a fifth of the control titles on the root's Controls, and most finding titles (they are sentences). At 1728 nothing is cut on Components or Connections.",
+  "Pass 3: a component's Controls lost its Inherited / Hybrid choice (the search finds both words and the column shows them); sys.tab f 'inherited|hybrid' is no longer read. Nothing else set it.",
+  "Pass 3: saved views on a component's tabs are shared by every component, so a view saved on Mission Computer's Controls is offered on every component's Controls.",
+  "Pass 3: views.mjs on a component's tab reports 'no header actions' (16 of 17): a record page keeps its actions in its header, as PASS3.md says."
  ],
  "one_number": {
   "truth": "What stands on a component is the list this lane draws row by row. Controls: where a requirement allocated there maps the control, or the control's SSP implementation names the component, or the reader placed it; each row says which (Mapped by REQ-001, Named in its implementation, Placed here). Requirements: the requirement records held (PA.SCTMD.reqs, 115) allocated there, plus what the reader allocates or creates. A subsystem pools what is inside it.",
   "read_it": "PA.v3.fact('componentCounts', code) → { controls, requirements, findings, items, connections, components }; lists: controlsOf, requirementsOf, componentsOf(control). Every place lane S draws reads these (System's row, the component's tabs, its Overview, the Boundary, the component's panel on other pages): asserted in the walk.",
   "numbers": "Mission Computer: 74 controls, 13 requirements, 14 findings (was 98 and 102, PA.v7p.EBY's ctl and req, with 12 codes and 6 titles behind them). System: 543 controls, 42 requirements (was 547 and 640)."
  },
- "pass": 2,
+ "pass": 3,
  "pass2": {
   "navigation_2": "Nothing of S read #rail. System stays marked on every page of the lane, the connection's page included (asserted).",
   "no_vertical_tabs": "System's rail is gone, not turned into a dropdown: its kinds are the page's four tabs (Components 27, Host and providers 3, Connected systems 8, Connections 18), each with its own primary; Subsystem is a filter beside the search (K.toolbar filter, options with counts). A component's Controls tab: Family is a filter beside the search. Connections had no rail. K.rail and K.split are no longer called by this lane.",
@@ -449,5 +454,54 @@
   "Requirement and finding pages opened from a component's tab still read Requirements › REQ-001 and Findings › … : the component is named only in a section. The control's page already carries it (System › Mission Computing Subsystem › Mission Computer › AC-1). The same origin for requirement--<id> and finding--<id> would finish it.",
   "Lane D can drop PA.v3s.itemsOf and sys.items for fact items(componentCode) (each row says added: true when the reader made it).",
   "meta.html still has no <meta charset=\"utf-8\">: Chromium sometimes reads a build as Latin-1 (S's scripts read a copy with a byte-order mark)."
+ ],
+ "pass3": {
+  "build": "proto/out/v3r3-S.html",
+  "toolbars": [
+   "Each System tab is a list of its own: ids system, system-providers, system-connected, system-connections; nouns components, providers, connected systems, connections. Actions (More, Add ...) stand at the row's end; List / Boundary before them.",
+   "Filters. Components: Subsystem, Kind, Library (the attention card's 'Behind its library version' is that filter). Providers: Kind, Authorization. Connected systems: Agreement (Not signed, Expires within 90 days, Signed). Connections: Boundary, Agreement, PPSM (the old chips are the first two; built-in views Crosses the boundary, Without a signed agreement).",
+   "Seeded views: Behind the library version; No authorization of its own; Agreements to renew within 90 days; PPSM not registered.",
+   "The Boundary view has the same row: Authorization (ATO, Block 1.1, IATT) is a filter of it, then List / Boundary, More, Add component.",
+   "A component's tabs: one row each. Controls (Family, Implementation, Status), Requirements (Evidence) and Findings (Source, Severity) keep views under component-controls, component-requirements, component-findings (one id for every component; seeds 'Access control, not written', 'Critical vulnerabilities'). Components, Software & firmware (Kind, CVE), Connections (Agreement) and Controls offered (Taken as) pass views: false.",
+   "One row at 1440 and 1728 with every filter on (v3r/S/p3/rows.mjs); three rows at 390, the kit's phone layout."
+  ],
+  "rows": [
+   "Components: Component, Code, Unit (from 1600px), Kind, Library (pill '1 version behind' or its version), Software & firmware, Controls, Requirements, Findings, Owner.",
+   "Host and providers: System, Organization (from 1600px), Kind, Authorization (pill), Expires, Inherited, Hybrid, Connections, Authorizing official. Connected systems: Organization, Agreement (pill: the worst of its connections'), Expires, Connections, Authorizing official.",
+   "Connections (103px rows before): Connection with its interface in grey, From, an arrow for the direction, To (first +N), Ports (first +N), Boundary, Agreement (pill).",
+   "Component tabs: Controls (Component or Basis, Responsibility, Implementation, Status), Requirements (statement in grey, Allocated to, Controls, Evidence), Findings (Source, Severity, About, Opened, Owner), Software (Kind, Version, Component, Supplier from 1600px, SBOM parts, CVE pill, Baseline), Controls offered (this system's part in grey, Offered as, Taken as, Status).",
+   "Names in From / To / Component columns are capped (200px under 1600px, 300px from there) and a '+N' never leaves with the cut. No <br>, no stacked spans (.k3s-two is gone), no row height or wrap in the lane's CSS."
+  ],
+  "previews": [
+   "A component: facts (Kind, Unit number, Inside, Owner, Built from, Library), then one short list a tab of its page with View all to that tab: Components, Software & firmware, Connections, Controls, Requirements, Findings (What it is where the page has it). A provider: Controls offered, Components it carries, Connections. A connected system: Connections.",
+   "A connection: Ports and protocols (Port and PPSM state beside the protocol), Agreement, Controls it bears on, Components it joins (now in the preview too)."
+  ],
+  "checks": {
+   "p3 check lane S": "7 pages, 4 record pages, 2 previews; problems 0",
+   "views.mjs": "system, system-providers, system-connected, system-connections: 17 passed, 0 failed each",
+   "offcheck": "863 screens, 366 previews, 241 dialogs, 61 menu pages; differences 0",
+   "walk": "194 passed, 0 failed at 1440; 193 passed, 0 failed at 390; page errors none"
+  },
+  "looked": [
+   "system",
+   "system preview of the root",
+   "system-connections with the views menu open",
+   "a connection's preview",
+   "system-boundary",
+   "the root's Controls",
+   "Mission Computer's Controls",
+   "the root's Findings (all at 1440)"
+  ]
+ },
+ "asks_pass3": [
+  "core.js toneOf lets a pill's words beat the kind a lane gives: 'Provider not authorized' with kind warn drew green with a tick ('authorized' is in the good family). The lane now writes 'Provider has no ATO'. 'No agreement' and 'Not authorized' draw grey for the same reason.",
+  "v2's '#proto:not(.v2meta) .frame td { padding-inline: 12px }' beats a lane's '.k3x .k3-table td' padding (lane C's 10px rule does not apply either); lane S prefixes #proto for its two long registers under 1600px.",
+  "A .k3-sr span inside a table cell widens the page on a phone: it is absolute and .tablebox is not its containing block, so the table's sideways scroll does not clip it. The lane uses role=img with aria-label for the direction arrow instead."
+ ],
+ "pass3_walk_notes": [
+  {
+   "pass": 3,
+   "run": "Pass 3: node v3r/S/walk.mjs proto/out/v3r3-S.html [width] on the whole build: 194 passed, 0 failed at 1440; 193 passed, 0 failed at 390; page errors none. New steps: one row on each list and tab, the Boundary's row, a view saved, left and picked again, the seeded view, previews of a component, a connection and a provider against their pages. Outputs in v3r/S/p3/walk1440.out and walk390.out."
+  }
  ]
 }

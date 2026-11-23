@@ -1,0 +1,50 @@
+// ——— Round 2: the POA&M import has its own columns and sample, and clears its red cells ———
+await p.evaluate(() => PA.v3k.set("dr.B.imp", {}));
+await go("dr-import");
+const pim = await p.evaluate(async () => {
+  const w = (t) => new Promise((r) => setTimeout(r, t)), next = () => [...document.querySelectorAll("#main button")].filter((x) => /^(Next|Fix|Import)/.test(x.innerText.trim())).pop();
+  const seg = [...document.querySelectorAll("#main button")].find((x) => x.innerText.trim() === "POA&M"); seg.click(); await w(350);
+  [...document.querySelectorAll("#main button")].find((x) => /Use the sample: WS-X90 POA&M/.test(x.innerText)).click(); await w(350);
+  next().click(); await w(350);
+  const cols = [...document.querySelectorAll("#main table.k3-table tbody tr td:first-child")].map((td) => td.innerText.trim()).join(" | ");
+  next().click(); await w(350);
+  const vals = [...document.querySelectorAll("#main table.k3-table tbody tr td:first-child")].map((td) => td.innerText.trim()).join(" | ");
+  next().click(); await w(350);
+  const head = [...document.querySelectorAll("#main .drk-sheet th")].map((th) => th.innerText.trim()).join(" | ");
+  const fixes = () => [...document.querySelectorAll("#main .drb-fixes button")];
+  const red0 = fixes().length; let guard = 0;
+  while (fixes().length && guard++ < 20) { fixes()[0].click(); await w(300); const s = document.querySelector("#modal select"); if (s && !s.value) { s.selectedIndex = 1; s.dispatchEvent(new Event("change", { bubbles: true })); } const ok = document.querySelector("#modal [data-k3-submit]"); if (ok) ok.click(); await w(350); }
+  const red1 = fixes().length; next().click(); await w(350);
+  const mv = ((document.querySelector("#main .drk-mv") || {}).innerText || "").replace(/\s+/g, " ").slice(0, 160);
+  next().click(); await w(350);
+  return { cols, vals, head, red0, red1, mv, done: ((document.querySelector("#main .drb-done") || {}).innerText || "").replace(/\s+/g, " ").slice(0, 140) };
+});
+console.log("poam import:", JSON.stringify(pim));
+if (!/Scheduled Completion Date/.test(pim.cols) || !/Milestones/.test(pim.cols) || /Implementation status/.test(pim.cols)) fail("poam import: not the POA&M's own columns");
+if (!/Ongoing/.test(pim.vals) || !/Weakness/.test(pim.head)) fail("poam import: not the POA&M's own values or review");
+if (!pim.red0 || pim.red1) fail("poam import: red cells not cleared");
+if (!/POA&M items created/.test(pim.mv) || !/saved/i.test(pim.done)) fail("poam import: did not finish");
+
+// ——— Round 2: the STIG checklists join the register as fixed evidence, with their own record ———
+await p.evaluate(() => { PA.v3k.set("dr.B.ev", { source: "STIG checklist" }); }); await go("dr-evidence");
+const ck = await p.evaluate(() => ({ rows: [...document.querySelectorAll("#main table.k3-table tbody tr:not(.k3-grow)")].map((tr) => ((tr.children[3] || {}).innerText || "").trim()), names: [...document.querySelectorAll("#main table.k3-table tbody tr:not(.k3-grow) td:first-child")].slice(0, 2).map((td) => td.innerText.trim()) }));
+await p.evaluate(() => PA.v3k.set("dr.B.ev", {}));
+console.log("checklists in the register:", ck.rows.length, ck.names.join(" | "));
+if (ck.rows.length !== 7 || !ck.rows.every((x) => /STIG checklist/.test(x))) fail("register: the seven STIG checklists are not listed as evidence");
+await go("dr-evidence--ckl-mission-computer-rhel9");
+const cr = await p.evaluate(() => ({ rules: document.querySelectorAll("#main .drb-rules tbody tr").length, fixed: document.querySelectorAll("#main .drb-vers .drb-fixed").length, del: /Delete evidence/.test(document.getElementById("main").innerHTML) }));
+console.log("checklist record:", JSON.stringify(cr));
+if (!cr.rules || !cr.fixed || cr.del) fail("checklist record: no open rules, no fixed versions, or a delete");
+
+// ——— Round 2: PA.drB is the one store: a link made through it shows on the record, an unlink removes it ———
+const st = await p.evaluate(async () => {
+  const w = (t) => new Promise((r) => setTimeout(r, t)), id = "v3x-ev-270", has = () => [...document.querySelectorAll("#main .drb-ctls tbody tr td:first-child")].some((td) => /SC-8\b/.test(td.innerText));
+  location.hash = "dr-evidence--" + id; await w(450); const h0 = has();
+  PA.drB.link("SC-8", id); PA.v2.redraw(); await w(300); const h1 = has(), l1 = PA.drB.linksFor("SC-8").some((x) => x.id === id);
+  PA.drB.unlink("SC-8", id); PA.v2.redraw(); await w(300); const h2 = has();
+  const rc = PA.drB.renewalCheck();
+  return { h0, h1, l1, h2, total: rc.total, failing: rc.failing.length };
+});
+console.log("store:", JSON.stringify(st));
+if (st.h0 || !st.h1 || !st.l1 || st.h2 || !st.failing) fail("store: link or unlink through PA.drB did not show on the record");
+

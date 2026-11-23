@@ -1,0 +1,9 @@
+[
+["ok((await ev(() => !!document.querySelector(\"#main nav.k3-rail.k3-rtabs\") && !document.querySelector(\"#main .k3-rail:not(.k3-rtabs)\"))) && (NARROW || new Set(r1.map((x) => x.top)).size === 1), \"1 the kinds run across the page as tabs, not down its side\", r1.map((x) => x.top));",
+ "const b1 = await bar();\nok(b1.strips === 0 && b1.filters[0] === \"Kind\" && b1.list === \"assessments\" && (NARROW || b1.rows === 1) && /Plan an assessment/.test(b1.acts.join(\"|\")) && !b1.headA, \"1 one row over the table: search, view, Kind and the other filters, then Plan an assessment; no strip of tabs\", b1);"],
+["/draft/.test((await rows())[0]) && /Its finding/.test((await rows())[0])", "/draft/.test((await rows())[0]) && /Finding/.test((await rows())[0])"],
+["ok((await rail())[2].on && (await rail())[2].n === src0.af + 1 && srcA.af === src0.af + 1,", "ok((await rail())[2].on && (await footN()) === src0.af + 1 && srcA.af === src0.af + 1,"],
+["ok((await ev(() => !!document.querySelector(\"#main nav.k3-rail.k3-rtabs\") && !document.querySelector(\"#main .k3-rail:not(.k3-rtabs)\"))) && (await rail()).length === 5 && (NARROW || new Set((await rail()).map((x) => x.top)).size === 1), \"2 Findings' sources are horizontal tabs\");",
+ "const b2 = await bar();\nok(b2.strips === 0 && b2.list === \"findings\" && b2.filters.join() === \"Source,State,Severity,Component,Control\" && (await rail()).length === 5 && (NARROW || b2.rows === 1) && /Add finding/.test(b2.acts.join(\"|\")) && !b2.headA, \"2 Findings' sources are one filter in the list's one row, with State and the rest; the list's actions end the row\", b2);"],
+["await p.click(\"#main .k3-head details.k3-menu summary\"); await w(150); await H.click(\"Export POA&M\", \"#main .k3-head .k3-menu-l\", { exact: true });", "await headMenu(\"Export POA&M\");"]
+]

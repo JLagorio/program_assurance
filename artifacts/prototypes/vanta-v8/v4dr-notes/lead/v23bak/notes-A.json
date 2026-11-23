@@ -1,0 +1,351 @@
+{
+  "lane": "A",
+  "pairs": [
+    {
+      "id": "a-controls-register",
+      "title": "Controls register",
+      "group": "controls",
+      "new": false,
+      "current": {
+        "route": "controls",
+        "note": "Status is a pill column beside the code; filters are selects in the toolbar; no way to act on many rows; tailored-out controls hide under a Status choice."
+      },
+      "after": {
+        "route": "dr-controls"
+      },
+      "changes": [
+        {
+          "n": 1,
+          "rec": 2,
+          "title": "The code chip carries the status",
+          "text": "Each row's code sits in a tinted pill with a glyph (check, clock, dash), and the Status column is gone: one mark per row instead of two. The status word is the chip's tooltip.",
+          "drata": "The control code is a monospace pill, green with a check when ready and pink with a crossed circle when not.",
+          "ev": [
+            "images/ux/controls/create-edit-and-manage-controls--01.png"
+          ]
+        },
+        {
+          "n": 2,
+          "rec": 21,
+          "title": "Filters in a panel beside the table",
+          "text": "Family, Status, Responsibility, Owner, Source and Scope, with counts, sit in a panel the toolbar's Filter button opens and closes. The one-row toolbar and saved views stay. While it is open, Responsibility and Components step aside.",
+          "drata": "Long lists have a filter card about 300px wide beside the table, with collapsible groups and an applied count on each.",
+          "ev": [
+            "images/ux/controls/manage-required-approval-and-control-readiness--06.png"
+          ]
+        },
+        {
+          "n": 3,
+          "rec": 22,
+          "title": "A floating selection bar",
+          "text": "Ticking rows raises a bar at the foot of the window: \"3 selected controls · Select all 560\", then Assign owner, Add review and Mark out of scope. Every verb applies to all the chosen rows or to none.",
+          "drata": "Choosing rows shows \"10 Selected · Select all 363\" in a floating bar, with the verbs for those rows.",
+          "ev": [
+            "images/ux/controls/create-edit-and-manage-controls--01.png",
+            "images/ux/controls/manage-required-approval-and-control-readiness--04.png"
+          ]
+        },
+        {
+          "n": 4,
+          "rec": 4,
+          "title": "Out of scope keeps the control listed",
+          "text": "Mark out of scope asks one rationale for every chosen control. The register opens on controls in scope; Scope › Out of scope lists the others, dimmed, with a Rationale column. Layer removals read the same way.",
+          "drata": "Mark out of scope sits in the selection bar and needs a rationale. Out-of-scope controls stay visible instead of being deleted.",
+          "ev": [
+            "images/ux/controls/mark-controls-in-or-out-of-scope--01.png"
+          ]
+        },
+        {
+          "n": 5,
+          "rec": 6,
+          "title": "Send many statements to review",
+          "text": "Add review in the selection bar sends the chosen controls' implementation statements to the ISSO and ISSM, with a deadline. Each control moves to Needs approval.",
+          "drata": "The controls list's selection bar has Add approvals, so approval can be set up on many controls at once.",
+          "ev": [
+            "images/ux/controls/manage-required-approval-and-control-readiness--05.png"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a-control-record",
+      "title": "Control record",
+      "group": "controls",
+      "new": false,
+      "current": {
+        "route": "control--AC-17(4)",
+        "note": "Sections stack down one long page; the status pill and a Status section repeat the counts as prose; no tab shows where the problems are."
+      },
+      "after": {
+        "route": "dr-control--AC-17(4)"
+      },
+      "changes": [
+        {
+          "n": 1,
+          "rec": 20,
+          "title": "One header shape",
+          "text": "Trail, then the AC-17(4) chip, the title and the status word Not assessed. Then ⋯ and one primary, Open assessment campaign. A facts strip shows Owner (with a pencil), Baseline, Responsibility, Components (\"4 · 1 from a library\") and Family.",
+          "drata": "Every record has the same header: the trail, an ID chip before the title, ⋯ then a secondary and a primary, and label-over-value facts, some with a pencil.",
+          "ev": [
+            "images/ux/controls/create-edit-and-manage-controls--02.png"
+          ]
+        },
+        {
+          "n": 2,
+          "rec": 3,
+          "title": "Tabs say where the problems are",
+          "text": "Seven line tabs: Overview, Requirements, Evidence, Assessment, Findings, Risks, History. Evidence and Findings show a pale red count only for a problem (evidence not accepted, a finding open). Other counts are grey, and a zero shows nothing.",
+          "drata": "A record's tabs carry pale red counts such as \"Monitoring 1\" or \"Policies 3\". A tab with no problem shows no badge.",
+          "ev": [
+            "images/ux/controls/create-edit-and-manage-controls--03.png"
+          ]
+        },
+        {
+          "n": 3,
+          "rec": 1,
+          "title": "The status as a sum of four stages",
+          "text": "\"0 of 5 objectives satisfied\" over four cards: Requirements 5 of 5 mapped, Evidence 5 of 5 evidenced, Assessment 0 of 5 judged (5 in draft), Remediation none open. \"22 components don't carry it\" is not counted.",
+          "drata": "A bar reads \"6 of 11\", with a tooltip breaking it down, over four cards with a state, counts and a first action. \"Not factored\" counts what is left out.",
+          "ev": [
+            "images/ux/controls/create-edit-and-manage-controls--03.png",
+            "images/ux/controls/annotate-a-control--01.png"
+          ]
+        },
+        {
+          "n": 4,
+          "rec": 25,
+          "title": "The Info card owns its Edit",
+          "text": "Info holds the implementation statement, its status, the parameters the program set and the owner. Its own Edit swaps them for inputs with Save and Cancel. Changing the statement sends the review back to Prepare for reviewers.",
+          "drata": "Each card on a control has its own Edit, which turns that card's facts into inputs with Save and Cancel below.",
+          "ev": [
+            "images/ux/controls/revert-a-control-to-drata-s-latest-dcf-template--01.png"
+          ]
+        },
+        {
+          "n": 5,
+          "rec": 19,
+          "title": "A sunken well, white cards",
+          "text": "The Overview body sits in a grey well, with the stage cards, Info, Implementations and Review and approval as white raised cards. The register stays one flat surface.",
+          "drata": "The chrome is white and the page sits in a grey well. Records and dashboards hold white bordered cards, while lists stay one surface.",
+          "ev": [
+            "images/ux/controls/create-edit-and-manage-controls--02.png"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a-compare-library",
+      "title": "Compare with library",
+      "group": "controls",
+      "new": false,
+      "current": {
+        "route": "control--AC-17(4)@CN-109101",
+        "note": "The Mission Computer shows the system's text; nothing says it began as the X800 set's library implementation, or how it drifted."
+      },
+      "after": {
+        "route": "dr-control--AC-17(4)",
+        "scroll": ".dra-impl",
+        "click": ".dra-impl tbody tr:first-child button"
+      },
+      "changes": [
+        {
+          "n": 1,
+          "rec": 5,
+          "title": "Drift from the library is named",
+          "text": "The Implementations card has one row per component. The Mission Computer, built from the X800 Missile component set, reads \"Changed from library\". The other three read \"Program only\".",
+          "drata": "A control whose fields differ from Drata's template says so and offers Compare with template.",
+          "ev": [
+            "images/ux/controls/revert-a-control-to-drata-s-latest-dcf-template--01.png"
+          ]
+        },
+        {
+          "n": 2,
+          "rec": 5,
+          "title": "Compare field by field, apply back",
+          "text": "Compare opens three columns: Current, the library's version 1, and Selections, with Apply or Reject on each field (statement, implementation status, parameters). Confirm writes the chosen fields to the component and returns the review to Prepare for reviewers.",
+          "drata": "Compare with template is a dialog of three columns, Current, Template and Selections, with Apply or Reject on each field.",
+          "ev": [
+            "images/ux/controls/revert-a-control-to-drata-s-latest-dcf-template--02.png"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a-review-approval",
+      "title": "Review and approval",
+      "group": "controls",
+      "new": true,
+      "current": {
+        "route": "control--AC-17(4)",
+        "note": "No review of a control's implementation statement exists before the SSP goes out."
+      },
+      "after": {
+        "route": "dr-control--AC-17(4)",
+        "scroll": ".dra-appr"
+      },
+      "changes": [
+        {
+          "n": 1,
+          "rec": 6,
+          "title": "Four stages, two named approvers",
+          "text": "The implementation statement moves through Prepare for reviewers, Needs approval, Changes requested and Approved. The approvers are the program's ISSO (Priya Raghavan) and ISSM (Joel Barrantes), the deadline is Dec 8, and Send to reviewers moves the stage.",
+          "drata": "A control's Review and approval card has the stages Prepare for approvers, Needs approval, Changes requested and Approved, with named approvers and a deadline.",
+          "ev": [
+            "images/ux/controls/manage-required-approval-and-control-readiness--01.png",
+            "images/ux/controls/manage-required-approval-and-control-readiness--02.png"
+          ]
+        },
+        {
+          "n": 2,
+          "rec": 6,
+          "title": "Rules that reset, one line each",
+          "text": "A changed statement or a newly mapped requirement returns it to Prepare for reviewers. An approval returns to Needs approval 14 days before its deadline. Adding evidence asks: Send to reviewers, or Still working.",
+          "drata": "An approval resets when a new policy is mapped, and again 14 days before its deadline. Adding evidence to an approved control asks Send to approvers or Still working.",
+          "ev": [
+            "images/ux/controls/manage-required-approval-and-control-readiness--03.png"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a-suggested-requirements",
+      "title": "Suggested requirements",
+      "group": "controls",
+      "new": false,
+      "current": {
+        "route": "control--AC-17(4)",
+        "scroll": "#k3c-reqs",
+        "note": "Requirements are mapped by hand from a picker. Nothing proposes what to map or says why."
+      },
+      "after": {
+        "route": "dr-control--AC-17(4)--requirements",
+        "scroll": ".dra-aisec"
+      },
+      "changes": [
+        {
+          "n": 1,
+          "rec": 28,
+          "title": "Suggestions with confidence and reasons",
+          "text": "Under the control's requirements, AI cards offer requirements to map. Each has a confidence word, a one-line rationale (\"Maps AC-17; allocated to Mission Computer\"), its source, and Map and Dismiss. A mapped card leaves Undo in its place.",
+          "drata": "Recommendations show a confidence chip and a one-line rationale with Map, Dismiss and Undo.",
+          "ev": [
+            "images/ux/home/ai-assisted-custom-control-mapping-to-grc-objects--01.png",
+            "images/ux/home/ai-assisted-custom-control-mapping-to-grc-objects--06.png"
+          ]
+        },
+        {
+          "n": 2,
+          "rec": 28,
+          "title": "An agent proposes; you approve",
+          "text": "One proposal card from the mapping assistant reads \"Map REQ-010 and REQ-084 to AC-17(4)\", with its reasons under Why, then Approve and Decline. A line above says how much the assistant may do alone, chosen in a setting.",
+          "drata": "An agent's proposal ends in a card with Approve and Decline, and how much the AI may do alone is chosen up front.",
+          "ev": [
+            "images/ux/ai/conducting-a-security-review--02.png",
+            "images/ux/home/ai-assisted-custom-control-mapping-to-grc-objects--05.png"
+          ]
+        }
+      ]
+    }
+  ],
+  "components": [
+    {
+      "id": "idchip",
+      "rec": [
+        2
+      ],
+      "used": "dr-controls, each row's code; dr-control--AC-17(4) header"
+    },
+    {
+      "id": "facets",
+      "rec": [
+        21
+      ],
+      "used": "dr-controls, the panel beside the table, opened by the toolbar's Filter button"
+    },
+    {
+      "id": "selbar",
+      "rec": [
+        22
+      ],
+      "used": "dr-controls, while rows are chosen: Select all, Assign owner, Add review, Mark out of scope"
+    },
+    {
+      "id": "head",
+      "rec": [
+        20
+      ],
+      "used": "dr-control--AC-17(4), the header with facts and the owner's pencil"
+    },
+    {
+      "id": "tabs",
+      "rec": [
+        3
+      ],
+      "used": "dr-control--AC-17(4), the seven line tabs with problem counts"
+    },
+    {
+      "id": "stages",
+      "rec": [
+        1
+      ],
+      "used": "dr-control--AC-17(4) Overview, objectives satisfied over four stage cards"
+    },
+    {
+      "id": "card",
+      "rec": [
+        25
+      ],
+      "used": "dr-control--AC-17(4) Overview, the Info card"
+    },
+    {
+      "id": "sunken",
+      "rec": [
+        19
+      ],
+      "used": "dr-control--AC-17(4) Overview body"
+    },
+    {
+      "id": "compare",
+      "rec": [
+        5
+      ],
+      "used": "dr-control--AC-17(4), Compare on the Mission Computer's row"
+    },
+    {
+      "id": "suggest",
+      "rec": [
+        28
+      ],
+      "used": "dr-control--AC-17(4)--requirements, suggested requirements"
+    },
+    {
+      "id": "proposal",
+      "rec": [
+        28
+      ],
+      "used": "dr-control--AC-17(4)--requirements, the mapping assistant's proposal"
+    }
+  ],
+  "derived": [
+    "The library implementation the Mission Computer started from (X800 Missile component set, version 1) is not in the prototype. It is the component's own sentences of the SSP narrative with WS-X90's particulars removed (LRU numbers, other components' names, dates, the program's listed needs), and its status is Implemented.",
+    "The approval deadline is 14 days after the next gate (PDR, Nov 24), so Dec 8. The approvers are the program's ISSO and ISSM from the people data.",
+    "The suggested requirements are the register's requirements that map AC-17 or a sibling enhancement and not AC-17(4). High confidence: it maps the base control and is allocated to a component that carries AC-17(4). Medium: it shares a component. Low: it maps a sibling only.",
+    "Evidence problems on the Evidence tab are evidence not Accepted (Pending review or Needs revision). The prototype holds no evidence dates to call evidence stale.",
+    "\"Components don't carry it\" counts the components inside the boundary, less the system itself and those that carry the control.",
+    "Objectives satisfied counts a control's objectives only when its status is Satisfied, since the prototype holds no per-objective determinations."
+  ],
+  "conflicts": [
+    "Filter panel against the one-row toolbar: the toolbar stays, with search, saved views, Filter, More and Add control. Filter opens and closes the panel beside the table, there is no Filters applied chip row, and a saved view carries the panel's choices as one hidden toolbar filter.",
+    "Drata's code chip plus a status column: the Status column is dropped, and the chip is the only status mark in a row (B14).",
+    "Drata's header puts a secondary beside the primary. Compare with library went into ⋯, so the title isn't cut at 1440 (B15) and the header has one primary.",
+    "Drata's suggestion cards have filled Map buttons. Here Map is a secondary, so the page keeps one primary.",
+    "Drata lets anyone approve. Here the approvers are the program's ISSO and ISSM, and the prototype's user (the ISSE) records their answers through a menu named for that.",
+    "The filter panel against B15 (no name cut while the table has room): while the panel is open, the Responsibility column (a filter in the panel) and Components step aside, and the Rationale column is at most 180px. That keeps every name box at 268px or more at 1440.",
+    "B4 against Drata's fixed columns: Owner is drawn only while the listed controls' owners vary. Otherwise one line above the table says it once (\"No owner on any of the 560 listed controls · Assign owner\", which chooses them all). Rationale is drawn only while tailored-out controls are listed, which is why the register opens on the controls in scope."
+  ],
+  "open": [
+    "No WS-X90 control has some objectives judged and others not at reset. AC-17(4) has all five judged in draft results and none published, so the Assessment card shows the draft count.",
+    "Compare shows a Parameters field only where Program tailoring set a parameter. AC-17(4) has none set, so its Compare has two fields.",
+    "Ask for lane K: .drk-title inherits core.css h1 { max-width: 18ch }, which cut every record title at about 270px. Lane A overrides it under .dra; the kit should set max-width: none."
+  ]
+}

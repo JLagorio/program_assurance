@@ -1,4 +1,15 @@
-# Prototype v2, with V3 as a switch (2026-11-20)
+# Prototype v2 with V3, and the Drata tab (2026-11-23)
+
+- `prototype.html`: the page published as artifact version 24. V3 off is still v2 (863 screens compared, 0 differences); V3 on draws all 910 screens at 1440 and 390 with 0 problems. `python3 -I build.py prototype` in `src/` rebuilds it byte for byte.
+- **Version 22 (21 November), pass three** on the review of version 21: one toolbar row over every table with saved views (a list's kinds are filters), compact one-line rows, full-width pages, and previews that list what their page lists. Notes: `v3-notes/rethink/PASS3.md`, `P1/`, `P2/` and `p3/`. Its before-and-after screenshots are `v3/r-P*`.
+- **Versions 23 and 24 (22 and 23 November), About › Before & after › Drata**: what to borrow from Drata. 27 screens as they are today beside the screen after Drata's pattern, the 19 new components drawn live, all 28 recommendations with where each is shown, and "New in version 24" (version 23's Not done list, built, each line opening its screen). The after screens are extra routes (`dr-*`). Nothing of v2 or V3 changed; `mod-zz-compare.js` only puts the tab first in the strip.
+  - Source: `src/mod-zzzz-v4-*`: `-0drk` the Drata kit (`PA.drk`) and the components gallery, `-1ctl` controls, `-2evi` evidence (and `PA.drB`, the links and renewals the other Drata screens read), `-3src` sources, `-4chk` checks and findings, `-9drba*` the tab and its generated data.
+  - `dr/`: the tab's screenshots, all of them our own prototype's screens (hashed against the Vanta and Drata research images before this push: no match).
+  - `v4dr-notes/`: `RECS.md` (the 28 recommendations and what to leave behind), `COMMON.md` and `ROUND2.md` (the briefs), each lane's brief, `notes.json` and `walk.mjs`, and the lead's generator, shooter and checks in `lead/`. Drata's own screenshots are not here; its help-center text is in `docs/products/drata` on `ux-proposal-build`.
+
+What follows is the note of 20 November, still true under the Drata tab.
+
+## Prototype v2, with V3 as a switch (2026-11-20)
 
 - `prototype.html`: the page published as artifact version 21. It opens as v2 (artifact version 15, unchanged: 863 screens compared, 0 differences). The **V3** switch in the top bar turns on the rethought arrangement; About › Before & after › V3 says what changed, with guided walks, before-and-after screenshots, the ten jobs walked before and after, the checks, and what is still open. Open it in any browser; it runs from the file. `ba/` and `v3/` hold the screenshots the Before & after pages show, all of them our own prototype's screens (no Vanta image; hashed against the research images before each push).
 - **V3 in one paragraph.** Ten places in one sidebar with two levels (Overview, System, Controls, Requirements, Evidence, Documents, Assessments, Findings, Risks, Authorization). A record's kinds run across the page as tabs, or as a dropdown beside the search; no list of categories runs down the side. A table row goes to the record's own page; an eye on the row, shown on hover, opens its preview. Work is done on the record: a component's software, controls and requirements each have their own Add; a requirement's statement is edited in place; a finding's plan and risk are made on its page. "Component", never "element".
@@ -19,4 +30,4 @@ What follows is the v2 note of 19 November, still true of everything under V3 of
 - `gap/`: the gap review of 18 November.
 - `dod/`: the public DISA STIG files and the AF ITCSC v2.0 form the DoD screens were built from.
 
-Copied out of the session scratch folder, which is temporary. `artifacts/` stays gitignored on design-system. This folder is committed on the `prototype-v9` branch: v9.1 on 18 November, v2 as artifact version 15 on 19 November, and v2 with the V3 switch as artifact version 21 on 20 November.
+Copied out of the session scratch folder, which is temporary. `artifacts/` stays gitignored on design-system. This folder is committed on the `prototype-v9` branch: v9.1 on 18 November, v2 as artifact version 15 on 19 November, v2 with the V3 switch as artifact version 21 on 20 November, and the Drata tab as artifact version 24 on 23 November.

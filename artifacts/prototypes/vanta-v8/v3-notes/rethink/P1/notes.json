@@ -1,0 +1,38 @@
+{
+ "lane": "P1",
+ "shots": [
+  {
+   "id": "P1-s1",
+   "title": "Evidence: one row",
+   "caption": "Version 21 had a strip of tabs, a strip of kinds and a row of filters. Now: the page's two tabs, then one row: search, the view, Kind, Review, Owner, then More and Add evidence.",
+   "was": "v3r/P1/shots/P1-s1-was.jpg",
+   "now": "v3r/P1/shots/P1-s1-now.jpg"
+  },
+  {
+   "id": "P1-s2",
+   "title": "The view menu",
+   "caption": "The quick filters that stood as chips are built-in views with their counts; your saved views follow them; Save as new view, Manage views.",
+   "was": "v3r/P1/shots/P1-s2-was.jpg",
+   "now": "v3r/P1/shots/P1-s2-now.jpg"
+  },
+  {
+   "id": "P1-s3",
+   "title": "Manage views",
+   "caption": "Rename a saved view, choose who sees it, delete it, or save the current filters as a new one.",
+   "was": null,
+   "now": "v3r/P1/shots/P1-s3-now.jpg"
+  },
+  {
+   "id": "P1-s4",
+   "title": "Controls: one row",
+   "caption": "Family, the quick filters and the list's actions stood in three places. Now they are one row over the table.",
+   "was": "v3r/P1/shots/P1-s4-was.jpg",
+   "now": "v3r/P1/shots/P1-s4-now.jpg"
+  }
+ ],
+ "open": [
+  "The workspace's own pages (Home, My work, Review queue, Programs, Products, Library) are still v2's: they take the window's width now, but keep v2's toolbar and 48px rows. The one row and saved views are on the program's ten places.",
+  "Between about 1180 and 1360px of window a list with five filters keeps one row by cutting the filters' names; under 1180px the row wraps to two, and a phone gives it three (search and view, a strip of filters that scrolls sideways, the actions).",
+  "Saved views live in the session, like every record of the prototype: Reset clears them and each list starts again with its built-in views and one seeded view."
+ ]
+}

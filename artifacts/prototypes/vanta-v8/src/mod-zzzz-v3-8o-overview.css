@@ -49,16 +49,7 @@ tr.k3o-now > td:first-child { box-shadow: inset 2px 0 0 var(--ink); }
 .k3o-gate .k3-next { margin: 0; }
 
 /* The gate's panel */
-.k3-pn .k3o-dls, .k3-pn .k3o-crs { list-style: none; padding: 0; margin: 0; }
 .k3-pn .k3o-desc { max-width: 60ch; }
-.k3-pn .k3o-dl { grid-template-columns: 18px minmax(0, 1fr); }
-.k3-pn .k3o-dl .btn { grid-column: 2; justify-self: start; }
-.k3o-crs { display: grid; border-top: 1px solid var(--line); }
-.k3o-cr { display: flex; align-items: center; gap: 8px 10px; flex-wrap: wrap; padding: 10px 2px; border-bottom: 1px solid var(--line); min-width: 0; }
-.k3o-cr-b { display: grid; gap: 4px; flex: 1 1 220px; min-width: 0; }
-.k3o-cr-t { font-size: 13.5px; line-height: 19px; color: var(--ink); }
-.k3o-cr-m { font-size: 12.5px; line-height: 17px; color: var(--ink-3); }
-.k3o-log td { vertical-align: middle; }
 
 @media (max-width: 860px) {
   .k3o-strip { grid-template-columns: repeat(5, minmax(132px, 1fr)); overflow-x: auto; scrollbar-width: thin; padding-bottom: 4px; }
@@ -69,12 +60,14 @@ tr.k3o-now > td:first-child { box-shadow: inset 2px 0 0 var(--ink); }
 /* The gate's page (gate--<id>): what holds it back, its criteria */
 .k3o-why b { font-weight: 600; }
 .k3o-acts { display: inline-flex; gap: 4px; white-space: nowrap; }
-.k3o-rs { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; font-size: 13.5px; color: var(--ink-2); }
+.k3o-rs { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; color: var(--ink); vertical-align: middle; }
 .k3o-rs.ok { color: var(--ink-3); }
 .k3o-rs .k3o-dl-s { flex: none; }
-.k3-rec .k3-table[aria-label="Deliverables"] :is(th, td):first-child { min-width: 150px; }
-#k3o-crit .k3-table :is(th, td):nth-child(3) { min-width: 150px; }
-#k3o-crit .k3-table :is(th, td):first-child { min-width: 220px; }
+/* Pass 3: one line a row. A note on a criterion and an event's details give way to the name beside them; both are whole on hover. */
+#k3o-crit .k3-table td:nth-child(3):not(.tight) { max-width: 240px; }
+.k3o-crt .k3-nm-c { margin-inline-end: 4px; }
+@media (min-width: 1600px) { .k3o-log .k3-table td:last-child { max-width: 440px; } }
+@media (max-width: 760px) { #k3o-crit .k3-table td.k3-cw { min-width: 300px; } }
 /* The kit's record page keeps its two columns at every width (.k3-rec .k3-aside outranks the kit's own narrow rule): on a gate's
    page the side cards go under the body where the window is narrow. (asks.json: the kit should do this for every record page.) */
 @media (max-width: 1080px) { .k3-rec:has(#k3o-crit) .k3-aside { grid-template-columns: minmax(0, 1fr); } }

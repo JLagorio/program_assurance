@@ -1,24 +1,34 @@
 // V3 lane E (k3e-): what was assessed, what was found, what could happen, and what the authorizing official decides.
 // Pages
-//   findings[-issues|-assessment|-vulns|-stig|-poam]   one list of everything found. The source is a row of tabs; the chips are states;
-//                                   "On the POA&M" is the findings that have a plan, with the plan's columns (findings-poam opens on it).
-//   assessments[-control|-cyber|-checks]               every assessment in one table: control assessments, cyber tests, monitoring checks
+//   findings[-issues|-assessment|-vulns|-stig|-poam]   one list of everything found, under one row: search, the view, Source, State,
+//                                   Severity, Component, Control, then the list's actions. The source is a filter whose values are
+//                                   addresses; "On the POA&M" is the state of the findings that have a plan, with the plan's columns
+//                                   (findings-poam opens on it). Every address is the list "findings": its views are kept once.
+//   assessments[-control|-cyber|-checks]               every assessment in one table: control assessments, cyber tests, monitoring
+//                                   checks; Kind, Status and Needs are its filters, and each kind is a built-in view
 //   assessment--<id>[--<tab>]       an assessment's page, the program menu still there. Control assessment: plan, objectives, requests,
 //                                   results, findings. <id>: exp, init, a campaign's id (conmon), cy-<id> a cyber test, chk-<id> a check.
 //   risks, risks-threats            the register, and the ATT&CK techniques its risks name
 //   authorization[-decisions|-conditions|-monitoring|-sharing]   the record the authorizing official decides on
 // Records: k3e-finding (any finding: its plan and milestones, its risk, its owner), k3e-risk, k3e-tech (an ATT&CK technique). Each is
 //   one definition, fn(id, { page }): the kit draws its page (finding--<id>, risk--<id>, technique--<code>: where a row's click
-//   goes) and its preview (the eye on a row). On the page the next step's button is the header's one primary, and the control and
-//   the components are rows that go to their pages. With V3 on, v2's a-risk-issue, a-risk-poam, a-risk-risk and v7a-att previews
-//   are these previews.
+//   goes) and its preview (the eye on a row). The preview lists what the page lists: every table is defined once and the kit draws
+//   it there as a short list of the same rows. On the page the next step's button is the header's one primary. With V3 on, v2's
+//   a-risk-issue, a-risk-poam, a-risk-risk and v7a-att previews are these previews.
+//   k3e-asm is an assessment's preview (its page is assessment--<id>, drawn here): a row { panel: "k3e-asm", id } goes to the page
+//   and has the eye; a row that goes to one of its tabs names it as peek: { panel: "k3e-asm", id }.
+// Rows are one line: a name, then what a person sorts and narrows by in columns of its own; nothing stands in grey under a name.
 // Folded here: cyber-te…, conmon…, checks, check-…, schedule, campaign…, assessments-plans|results|completed|assessor → Assessments;
 //   poam…, findings-assets|deactivated|history → Findings; threats… → Risks' Threats tab; package-room… → Authorization's Sharing.
 //
 // Opening a list on exactly some records (then go to the route):
-//   K.set("fnd.view", { chip: "open|late|poam|noowner|deact|fixed", q, sev, comp: "<component code>", ctl: "<control code>", asm: "<assessment id>", page })
-//   K.set("asm.view", { att: "publish|failing|ending", q })      K.set("rsk.view", { chip: "open|noowner|late|accept", q, sev, tech: "T1078" })
+//   K.set("fnd.view", { chip: "open|late|poam|noowner|deact|fixed", q, sev, comp: "<component code>", ctl: "<control code>", page })
+//   K.set("asm.view", { att: "publish|failing|ending", st: "<status>", q })
+//   K.set("rsk.view", { chip: "open|noowner|late|accept", q, sev, tech: "T1078" })   (Threats: tq, tmx: "<matrix>", trs: "named|none")
 //   The source (findings) and the kind (assessments) are in the address: findings-stig, assessments-checks.
+//   Each part of such a question is a control in the list's row, so the row always says what the list shows, and a saved view is
+//   the same question: { q, source, state, severity, component, control } · { q, kind, status, needs } · { q, state, severity,
+//   technique } · { q, matrix, risks }.
 //
 // Facts for the other lanes (PA.v3.fact(name, …)); each finding is
 //   { id, kind: "issue|af|vuln|stig", source: "Operational issue|Assessment finding|Vulnerability|STIG rule", title, where, sev,
@@ -64,6 +74,8 @@
   const plural = (n, one, many) => `${fmt(n)} ${n === 1 ? one : many || one + "s"}`;
   const mu = (t) => `<span class="k3e-mu">${t}</span>`;
   const NONE = '<span class="k3-none">—</span>';
+  // A long name is cut to its line: it says itself whole on hover.
+  const nameT = (title, code) => K.name(title, "", code).replace(/^<span class="k3-nm"(?! title)/, `<span class="k3-nm" title="${esc(title)}"`);
   const parse = (html) => { const t = document.createElement("template"); t.innerHTML = typeof html === "string" ? html : ""; return t.content; };
   const txt = (el) => (el ? el.textContent.replace(/\s+/g, " ").trim() : "");
   const uniq = (a) => [...new Set(a)];
@@ -201,47 +213,63 @@
 
   // ════════════════ Findings: the page ════════════════
   const srcOfRoute = (route) => { const m = /^findings-(issues|assessment|vulns|stig)$/.exec(route); return m ? { issues: "issue", assessment: "af", vulns: "vuln", stig: "stig" }[m[1]] : ""; };
-  const fview = (route) => { const v = Object.assign({ chip: "open", q: "", sev: "", comp: "", ctl: "", asm: "", page: 0 }, view("fnd")); if (route === "findings-poam") v.chip = "poam"; return v; };
+  const fview = (route) => { const v = Object.assign({ chip: "open", q: "", sev: "", comp: "", ctl: "", page: 0 }, view("fnd")); if (!CHIPF[v.chip]) v.chip = "open"; if (route === "findings-poam") v.chip = "poam"; return v; };
   const matchQ = (q, s) => !q || s.toLowerCase().includes(q.toLowerCase());
   // Filtered to a component, the list is findingsOn(component): the component's Findings tab counts the same records.
   let CC = null; const compCtls = (comp) => { if (!CC || CC[0] !== comp) CC = [comp, new Set(ctlsOfComp(comp)), withinOf(comp)]; return CC[1]; }; const compIn = (comp) => { compCtls(comp); return CC[2]; };
-  const filtered = (route) => { CC = null; const v = fview(route), src = srcOfRoute(route); const base = findings().filter((f) => !src || f.kind === src); const narrowed = base.filter((f) => (!v.sev || f.sev === v.sev) && (!v.comp || onComp(f, compIn(v.comp), compCtls(v.comp))) && (!v.ctl || f.control === v.ctl) && (!v.asm || f.asm === v.asm) && matchQ(v.q, `${f.title} ${whereOf(f)} ${f.control || ""} ${f.owner || ""}`)); return { v, src, base, narrowed, rows: narrowed.filter(CHIPF[v.chip] || CHIPF.open) }; };
+  const narrow = (src, v) => { CC = null; return findings().filter((f) => (!src || f.kind === src) && (!v.sev || f.sev === v.sev) && (!v.comp || onComp(f, compIn(v.comp), compCtls(v.comp))) && (!v.ctl || f.control === v.ctl) && matchQ(v.q, `${f.title} ${whereOf(f)} ${f.control || ""} ${f.owner || ""}`)); };
+  const filtered = (route) => { const v = fview(route), src = srcOfRoute(route), base = findings().filter((f) => !src || f.kind === src), narrowed = narrow(src, v); return { v, src, base, narrowed, rows: narrowed.filter(CHIPF[v.chip] || CHIPF.open) }; };
+  // A view's count: the same question asked of the view's own state ({ q, source, state, severity, component, control }).
+  const countView = (st) => narrow(st.source || "", { q: st.q || "", sev: st.severity || "", comp: st.component || "", ctl: st.control || "" }).filter(CHIPF[st.state] || CHIPF.open).length;
   const sortF = (a, b) => (b.late - a.late) || ((SEVN[b.sev] || 0) - (SEVN[a.sev] || 0)) || String(a.due || "9").localeCompare(String(b.due || "9")) || a.title.localeCompare(b.title);
-  const planCell = (f) => { const p = planOfFinding(f); if (!p) return mu("None"); return `<span class="k3e-plan">${p.planned ? `<span class="num${p.late ? " k3e-late" : ""}">${esc(md(p.planned))}</span>` : mu("No date")}${p.total ? K.ring(p.reached, p.total, "milestones") : ""}${f.via ? mu("its issue's") : ""}</span>`; };
+  const planCell = (f) => { const p = planOfFinding(f); if (!p) return mu("None"); return `<span class="k3e-plan"${f.via ? ' title="The plan of its operational issue"' : ""}>${p.planned ? `<span class="num${p.late ? " k3e-late" : ""}">${esc(md(p.planned))}</span>` : mu("No date")}${p.total ? K.ring(p.reached, p.total, "milestones") : ""}</span>`; };
   const dueCell = (f) => (f.due ? `<span class="num${f.late ? " k3e-late" : ""}">${esc(md(f.due))}</span>` : NONE);
   const sevCell = (f) => (f.kind === "af" ? detPill(f.det) : f.kind === "stig" ? h.pill(f.cat === "CAT I" ? "bad" : f.cat === "CAT II" ? "warn" : "none", f.cat) : sevPill(f.sev));
-  const stateTag = (f) => (f.state === "draft" ? `<span class="k3e-tag">${K.tagged("Draft results")}</span>` : f.state === "deact" ? `<span class="k3e-tag">${K.tagged("Deactivated")}</span>` : f.state === "fixed" ? `<span class="k3e-tag">${K.tagged("Fixed in a newer version")}</span>` : "");
-  const findingRow = (f, poam, src) => { const p = planOfFinding(f); return { panel: "k3e-finding", id: f.id, cells: poam
-    ? [K.name(f.title, whereOf(f)), sevCell(f), p && p.planned ? `<span class="num${p.late ? " k3e-late" : ""}">${esc(mdy(p.planned))}</span>` : mu("No date"), p && p.total ? K.ring(p.reached, p.total, "milestones") : mu("None"), p && p.resources ? esc(p.resources) : NONE, `<span class="k3e-own">${K.owner(f.owner)}</span>`]
-    : [K.name(f.title, [src ? "" : f.source, f.kind === "issue" || f.issueId ? f.req || "" : f.where || ""].filter(Boolean).join(" · ")) + stateTag(f), sevCell(f), f.control ? `<span class="num">${esc(f.control)}</span>` : NONE, f.components[0] ? `<span class="k3e-cut">${esc(compName(f.components[0]))}</span>${f.components.length > 1 ? mu(` +${f.components.length - 1}`) : ""}` : NONE, planCell(f), `<span class="k3e-own">${K.owner(f.owner)}</span>`] }; };
-  const FCOLS = [{ label: "Finding" }, { label: "Severity or determination" }, { label: "Control", cls: "nw" }, { label: "Component" }, { label: "Plan", cls: "nw" }, { label: "Owner" }];
-  const PCOLS = [{ label: "Finding" }, { label: "Severity or determination" }, { label: "Planned completion", cls: "nw" }, { label: "Milestones", cls: "nw" }, { label: "Resources" }, { label: "Owner" }];
+  const stateWord = (f) => (f.state === "draft" ? "Draft results" : f.state === "deact" ? "Deactivated" : f.state === "fixed" ? "Fixed in a newer version" : "");
+  const stateTag = (f) => (stateWord(f) ? `<span class="k3e-tag">${K.tagged(stateWord(f))}</span>` : "");
+  // One line a finding: its name, then what a person sorts and narrows by, each in a column of its own.
+  const sevCol = (f) => `${f.kind === "af" ? sevPill(f.sev) : sevCell(f)}${f.state === "draft" ? ` ${mu("draft")}` : ""}`;
+  const ownCell = (n) => `<span class="k3e-own">${K.owner(n)}</span>`;
+  const ctlCell = (f) => (f.control ? `<span class="num">${esc(f.control)}</span>` : NONE);
+  const findingRow = (f, poam, src) => { const p = planOfFinding(f), name = nameT(f.title); return { panel: "k3e-finding", id: f.id, cells: poam
+    ? [name, sevCol(f), ctlCell(f), p && p.planned ? `<span class="num${p.late ? " k3e-late" : ""}">${esc(mdy(p.planned))}</span>` : mu("No date"), p && p.total ? K.ring(p.reached, p.total, "milestones") : mu("None"), p && p.resources ? esc(p.resources) : NONE, ownCell(f.owner)]
+    : [name, sevCol(f), ctlCell(f), f.components[0] ? `<span class="k3e-cut">${esc(compName(f.components[0]))}</span>${f.components.length > 1 ? mu(` +${f.components.length - 1}`) : ""}` : NONE, dueCell(f), planCell(f), ownCell(f.owner)] }; };
+  const FCOLS = [{ label: "Finding" }, { label: "Severity", peek: true }, { label: "Control", cls: "nw" }, { label: "Component" }, { label: "Due", cls: "nw" }, { label: "Plan", cls: "nw" }, { label: "Owner" }];
+  const FCOLS_ALL = FCOLS;
+  const PCOLS = [{ label: "Finding" }, { label: "Severity", peek: true }, { label: "Control", cls: "nw" }, { label: "Planned completion", cls: "nw" }, { label: "Milestones", cls: "nw" }, { label: "Resources" }, { label: "Owner" }];
   const pager = (n, page, act) => { const pages = Math.max(1, Math.ceil(n / PER)); return `<span class="num">${n ? `${fmt(page * PER + 1)}–${fmt(Math.min(n, (page + 1) * PER))} of ${fmt(n)}` : "0"}</span>${pages > 1 ? `<span class="k3e-pg">${K.btn("Previous", { sm: true, quiet: true, act, arg: page - 1, disabled: page <= 0 ? "This is the first page" : "" })}${K.btn("Next", { sm: true, quiet: true, act, arg: page + 1, disabled: page >= pages - 1 ? "This is the last page" : "" })}</span>` : ""}`; };
+  // One list at nine addresses: the source is a filter whose values are addresses, the state a filter, and both are views.
   function findingsPage(route) {
     const { v, src, base, narrowed, rows } = filtered(route), poam = v.chip === "poam";
     const list = rows.slice().sort(sortF), page = Math.min(v.page || 0, Math.max(0, Math.ceil(list.length / PER) - 1));
-    const comps = uniq(findings().flatMap((f) => f.components)).map((c) => [c, compName(c)]).sort((a, b) => a[1].localeCompare(b[1]));
+    const open = findings().filter(isOpen);
+    const comps = uniq(open.flatMap((f) => f.components).concat(v.comp ? [v.comp] : [])).map((c) => [c, compName(c)]).sort((a, b) => a[1].localeCompare(b[1]));
+    const ctls = uniq(open.map((f) => f.control).filter(Boolean).concat(v.ctl ? [v.ctl] : [])).sort((a, b) => a.localeCompare(b, "en", { numeric: true })).map((c) => [c, c]);
     const chip = (id, label) => ({ id, label, count: narrowed.filter(CHIPF[id]).length, on: v.chip === id });
-    const dn = narrowed.filter(CHIPF.deact).length, fxn = narrowed.filter(CHIPF.fixed).length;
-    const narrowedBy = [v.ctl ? `control ${v.ctl}` : "", v.asm ? asmName(v.asm) : ""].filter(Boolean);
+    const fxn = narrowed.filter(CHIPF.fixed).length, preset = (label, state) => ({ label, state, count: countView(state) });
     return K.page({ cls: "k3e",
       head: K.head({ title: "Findings", actions: K.menu("More", [{ label: "Export POA&M", act: "k3e.export" }, { label: "Import scan results", act: "k3e.import" }]) + K.btn("Add finding", { primary: true, act: "k3e.f.add", icon: "plus" }) }),
-      body: K.split(
-        K.rail({ title: "Source", label: "Source of the findings", items: SRCS.map(([id, label, r]) => ({ id, label, go: r, on: src === id, count: findings().filter((f) => isOpen(f) && (!id || f.kind === id)).length })) }),
-        [K.chips([chip("open", "Open"), chip("late", "Past due"), chip("poam", "On the POA&M"), chip("noowner", "No owner"), dn || v.chip === "deact" ? chip("deact", "Deactivated") : null, fxn || v.chip === "fixed" ? chip("fixed", "Fixed") : null], "k3e.f.chip"),
-          K.toolbar({ search: { act: "k3e.f.q", value: v.q, placeholder: "Search findings" }, filters: [{ label: "Severity", act: "k3e.f.sev", value: v.sev, options: Object.keys(SEVW).map((k) => [k, SEVW[k]]) }, comps.length ? { label: "Component", act: "k3e.f.comp", value: v.comp, options: comps } : null] }),
-          narrowedBy.length ? K.note(`Showing the findings of ${esc(narrowedBy.join(" and "))}. ${K.actLink("Show all", "k3e.f.clear")}`) : "",
-          K.table({ label: "Findings", cls: "k3e-list", cols: poam ? PCOLS : FCOLS, rows: list.slice(page * PER, page * PER + PER).map((f) => findingRow(f, poam, src)),
-            empty: base.length ? { title: "No finding matches", line: "Clear the search, or choose another state." } : { title: wsx() ? "Nothing found here" : "No finding yet", line: "An assessment's result short of satisfied, a scan's result and what the team notices all arrive here.", action: K.btn("Add finding", { sm: true, act: "k3e.f.add" }) },
-            foot: pager(list.length, page, "k3e.f.page") })]) });
+      body: [
+        K.rail({ label: "Source", key: "source", items: SRCS.map(([id, label, r]) => ({ id, label, go: r, on: src === id, count: open.filter((f) => !id || f.kind === id).length })) }),
+        K.chips([{ id: "", label: "Open", count: narrowed.filter(CHIPF.open).length, on: v.chip === "open" }, chip("late", "Past due"), chip("poam", "On the POA&M"), chip("noowner", "No owner"), chip("deact", "Deactivated"), fxn || v.chip === "fixed" ? chip("fixed", "Fixed") : null], "k3e.f.chip", "State"),
+        K.toolbar({ id: "findings", noun: "findings", search: { act: "k3e.f.q", value: v.q, placeholder: "Search findings" },
+          filters: [{ label: "Severity", key: "severity", act: "k3e.f.sev", value: v.sev, options: Object.keys(SEVW).map((k) => [k, SEVW[k]]) }, comps.length ? { label: "Component", key: "component", act: "k3e.f.comp", value: v.comp, options: comps } : null, ctls.length ? { label: "Control", key: "control", act: "k3e.f.ctl", value: v.ctl, options: ctls } : null],
+          views: { total: open.length, count: countView,
+            presets: [preset("Past due", { state: "late" }), preset("On the POA&M", { state: "poam" }), preset("No owner", { state: "noowner" })].concat(SRCS.slice(1).map(([id, label]) => preset(label, { source: id }))),
+            seed: [{ name: "High, past due", state: { state: "late", severity: "high" }, by: ISSM }] } }),
+        K.table({ label: "Findings", cols: poam ? PCOLS : src ? FCOLS : FCOLS_ALL, rows: list.slice(page * PER, page * PER + PER).map((f) => findingRow(f, poam, src)),
+          empty: base.length ? { title: "No finding matches", line: "Clear the search and the filters, or choose another state." } : { title: wsx() ? "Nothing found here" : "No finding yet", line: "An assessment's result short of satisfied, a scan's result and what the team notices all arrive here.", action: K.btn("Add finding", { sm: true, act: "k3e.f.add" }) },
+          foot: pager(list.length, page, "k3e.f.page") })] });
   }
   const fset = (patch) => { setView("fnd", Object.assign({ page: 0 }, patch)); if (cur() === "findings-poam" && patch.chip && patch.chip !== "poam") K.go("findings"); else K.redraw(); };
-  K.on("k3e.f.chip", (id) => fset({ chip: id }));
-  K.on("k3e.f.q", (q) => fset({ q }));
-  K.on("k3e.f.sev", (sev) => fset({ sev }));
-  K.on("k3e.f.comp", (comp) => fset({ comp }));
+  // Each works with the value alone ("" clears), so a view can ask the list's whole question again.
+  K.on("k3e.f.chip", (id) => fset({ chip: id || "open" }));
+  K.on("k3e.f.q", (q) => fset({ q: q || "" }));
+  K.on("k3e.f.sev", (sev) => fset({ sev: sev || "" }));
+  K.on("k3e.f.comp", (comp) => fset({ comp: comp || "" }));
+  K.on("k3e.f.ctl", (ctl) => fset({ ctl: ctl || "" }));
   K.on("k3e.f.page", (page) => { setView("fnd", { page }); K.redraw(); });
-  K.on("k3e.f.clear", () => fset({ ctl: "", asm: "", comp: "" }));
+  K.on("k3e.f.clear", () => fset({ ctl: "", comp: "" }));
 
   // ——— Changing a finding: each writes the store the fact already lives in ———
   const nextId = (p) => `${p}-${CH.seq ? CH.seq(p) : K.id("n")}`;
@@ -316,7 +344,8 @@
   const ctlRoute = (code) => (code && P["k3c-control"] && inBaseline(code) ? recGo("k3c-control", code) : "");
   const ctlOpen = (code) => (code ? (ctlRoute(code) ? K.link(`${code} ${ctlTitle(code)}`.trim(), ctlRoute(code)) : esc(`${code} ${ctlTitle(code)}`.trim())) : NONE);
   const clip = (t, n) => { t = String(t || ""); if (t.length <= n) return t; const c = t.slice(0, n - 1), i = c.lastIndexOf(" "); return (i > n * 0.6 ? c.slice(0, i) : c).replace(/[\s,;:(]+$/, "") + "…"; };
-  const riskRow = (r) => ({ panel: "k3e-risk", id: r.id, cells: [K.name(r.title, [SEVW[r.sev] || "", respWord(r)].filter(Boolean).join(" · ")), K.owner(r.owner)] });
+  const RCOLS = [{ label: "Risk" }, { label: "Severity", peek: true }, { label: "Response" }, { label: "Owner" }];
+  const riskRow = (r) => ({ panel: "k3e-risk", id: r.id, cells: [nameT(r.title), sevPill(r.sev), esc(respWord(r)), ownCell(r.owner)] });
   // A next step is { text, label, act, arg } (done here, in a dialog) or { text, label, go } (done on another record's page).
   // In a preview the step's line carries its button; on a page the button is the header's one primary and the line says why.
   const stepBtn = (nx, page) => (!nx || !nx.label ? "" : nx.go ? (page ? K.btn(nx.label, { primary: true, go: nx.go }) : K.link(nx.label, nx.go)) : K.btn(nx.label, { primary: page || !nx.plain, sm: !page, act: nx.act, arg: nx.arg }));
@@ -337,51 +366,49 @@
   const compRow = (c) => { const cells = [K.name(compName(c), "", c), esc(compKind(c))]; return hasCompPage(c) ? Object.assign({ go: "component--" + c, cells }, P["k3s-comp"] ? { peek: { panel: "k3s-comp", id: c } } : {}) : { cells }; };
   const ctlRow = (code) => { const st = V3.fact("status", code), cells = [K.name(ctlTitle(code) || code, "", ctlTitle(code) ? code : ""), st ? detPill(st) : NONE]; return ctlRoute(code) ? { panel: "k3c-control", id: code, cells } : { cells }; };
   K.panel("k3e-finding", (raw, opt) => {
-    const page = !!(opt && opt.page), f = findingById(String(raw || "")) || findingById(String(raw || "").split("|")[0]); if (!f) return null; const id = f.id;
+    const page = !!(opt && opt.page), f = findingById(String(raw || "")) || findingById(String(raw || "").split("|")[0]); if (!f) return null;
     const src = f.via ? findingById(f.via) : null, pf = src || f, p = planOfFinding(pf), r = riskOfFinding(f) || (src ? riskOfFinding(src) : null), nx = nextOfFinding(f), a = f.asm ? assessmentById(f.asm) : null;
-    const carry = !f.components.length && f.kind === "af" ? compsOfCtl(f.control) : [];
+    const carry = !f.components.length && f.kind === "af" ? compsOfCtl(f.control) : [], where = f.components.length ? f.components : carry;
     const facts = [
       ["Source", a ? `${esc(f.source)} · ${K.link(a.short || a.name, a.route + (f.kind === "af" ? "--findings" : ""))}` : esc(f.source)],
       f.objective ? ["Objective", `<span class="num">${esc(f.objective)}</span>${f.methods && f.methods.length ? mu(" · " + f.methods.map((m) => m[0].toUpperCase() + m.slice(1)).join(", ")) : ""}`] : null,
-      page ? null : ["Control", ctlOpen(f.control)],
-      page ? null : ["Component", f.components.length ? f.components.slice(0, 3).map(compLink).join(", ") + (f.components.length > 3 ? mu(` and ${f.components.length - 3} more`) : "") : carry.length ? mu(`${plural(carry.length, "component")} carry ${esc(f.control)}`) : mu("The system as a whole")],
       f.req ? ["Requirement", K.recRoute && P["k3d-req"] ? K.link(f.req, recGo("k3d-req", f.req)) : `<span class="num">${esc(f.req)}</span>`] : null,
       ["Owner", `${K.owner(f.owner)} ${K.actLink(f.owner ? "Change" : "Assign", "k3e.f.owner", f.id)}`],
       f.due ? ["Remediate by", `<span class="num${f.late ? " k3e-late" : ""}">${esc(mdy(f.due))}</span>${f.late ? mu(` · ${plural(days(TODAY, f.due), "day")} past`) : ""}`] : null,
       f.opened ? ["Found", `<span class="num">${esc(mdy(f.opened))}</span>${f.by ? mu(` · recorded as ${esc(f.by)}${f.rec && f.rec !== f.by ? " by " + esc(f.rec) : ""}`) : ""}`] : null,
-      f.state === "deact" && f.deact ? ["Deactivated", `${esc(f.deact.reason)}${mu(` · ${esc(md(f.deact.at))} · ${esc(f.deact.by || "")}`)}<br>${mu(esc(f.deact.note || ""))}`] : null,
+      f.state === "deact" && f.deact ? ["Deactivated", `${esc(f.deact.reason)}${mu(` · ${esc(md(f.deact.at))} · ${esc(f.deact.by || "")}`)}`] : null,
+      f.state === "deact" && f.deact && f.deact.note ? ["Why", esc(f.deact.note)] : null,
       f.fixedOn && f.fixedOn.length ? ["Fixed", `${f.fixedOn.map(compLink).join(", ")} took a version that fixes it`] : null,
     ];
+    // What the page lists, the preview lists: the kit draws each table there as a short list of the same rows.
     const hist = p ? get("hist", {})[p.id] || [] : [];
-    const msAct = (m) => (m.done || m.status === "completed" ? (m.done && get("msd", {})[p.id + ":" + m.key] ? K.btn("Undo", { sm: true, quiet: true, act: "k3e.f.msdone", arg: { plan: p.id, key: m.key, undo: true } }) : "") : K.btn("Mark reached", { sm: true, quiet: true, act: "k3e.f.msdone", arg: { plan: p.id, key: m.key } }));
-    const msState = (m) => (m.done || m.status === "completed" ? h.pill("ok", "Reached") : m.planned && iso(m.planned) < TODAY ? h.pill("bad", "Past its date") : m.status === "in_progress" ? h.pill("info", "Under way") : h.pill("none", "Planned"));
-    const msTable = p && p.ms.length ? (page
-      ? K.table({ label: "Milestones", cols: [{ label: "Milestone" }, { label: "Planned", cls: "nw" }, { label: "State" }, { label: "", cls: "tight" }], rows: p.ms.map((m) => ({ cells: [K.name(m.title), m.planned ? `<span class="num">${esc(mdy(m.planned))}</span>` : NONE, msState(m), msAct(m)] })) })
-      : K.table({ label: "Milestones", cols: [{ label: "Milestone" }, { label: "Planned", cls: "nw" }, { label: "", cls: "tight" }], rows: p.ms.map((m) => ({ cells: [K.name(m.title), m.planned ? `<span class="num">${esc(md(m.planned))}</span>` : NONE, m.done || m.status === "completed" ? `${h.pill("ok", "Reached")}${msAct(m)}` : msAct(m)] })) })) : "";
+    const msDone = (m) => m.done || m.status === "completed";
+    const msAct = (m) => (msDone(m) ? (m.done && get("msd", {})[p.id + ":" + m.key] ? K.btn("Undo", { sm: true, quiet: true, act: "k3e.f.msdone", arg: { plan: p.id, key: m.key, undo: true } }) : "") : K.btn("Mark reached", { sm: true, quiet: true, act: "k3e.f.msdone", arg: { plan: p.id, key: m.key } }));
+    const msState = (m) => (msDone(m) ? h.pill("ok", "Reached") : m.planned && iso(m.planned) < TODAY ? h.pill("bad", "Past its date") : m.status === "in_progress" ? h.pill("info", "Under way") : h.pill("none", "Planned"));
+    const msTable = p && p.ms.length ? K.table({ label: "Milestones", cols: [{ label: "Milestone" }, { label: "Planned", cls: "nw", peek: true }, { label: "State", cls: "nw", peek: true }, { label: "", cls: "tight" }], rows: p.ms.map((m) => ({ cells: [K.name(m.title), m.planned ? `<span class="num">${esc(mdy(m.planned))}</span>` : NONE, msState(m), msAct(m)] })) }) : "";
     const planSec = p
-      ? K.section({ title: "Plan", count: page ? p.total : null, actions: K.btn("Add milestone", { sm: true, act: "k3e.f.ms", arg: pf.id, icon: "plus" }), body: [
-        K.facts([["Plan", `${esc(p.title)}${p.text ? `<br>${mu(esc(p.text))}` : ""}`], ["Planned completion", `${p.planned ? `<span class="num${p.late ? " k3e-late" : ""}">${esc(mdy(p.planned))}</span>` : mu("No date")} ${K.actLink("Change planned date", "k3e.f.move", pf.id)}${hist.length ? `<br>${mu(`Moved ${hist.length === 1 ? "once" : hist.length + " times"}: ${esc(hist[hist.length - 1].reason)}`)}` : ""}`], ["Resources", `${p.resources ? esc(p.resources) : mu("None recorded")} ${K.actLink(p.resources ? "Edit" : "Add", "k3e.f.res", pf.id)}`], f.via ? ["Belongs to", K.link(clip((src || {}).title || "its operational issue", 60), recGo("k3e-finding", f.via))] : null]),
+      ? K.section({ title: "Plan", count: p.total, actions: K.btn("Add milestone", { sm: true, act: "k3e.f.ms", arg: pf.id, icon: "plus" }), body: [
+        K.facts([["Plan", esc(p.title)], p.text ? ["How", esc(p.text)] : null, ["Planned completion", `${p.planned ? `<span class="num${p.late ? " k3e-late" : ""}">${esc(mdy(p.planned))}</span>` : mu("No date")} ${K.actLink("Change planned date", "k3e.f.move", pf.id)}`], hist.length ? ["Moved", `${hist.length === 1 ? "Once" : hist.length + " times"}${mu(" · " + esc(hist[hist.length - 1].reason))}`] : null, ["Resources", `${p.resources ? esc(p.resources) : mu("None recorded")} ${K.actLink(p.resources ? "Edit" : "Add", "k3e.f.res", pf.id)}`], f.via ? ["Belongs to", K.link(clip((src || {}).title || "its operational issue", 60), recGo("k3e-finding", f.via))] : null]),
         msTable || `<div class="k3-none-row"><span>No milestone yet</span>${K.actLink("Add milestone", "k3e.f.ms", pf.id)}</div>`] })
       : K.section({ title: "Plan", body: `<div class="k3-none-row"><span>No plan yet: with one, the finding is on the POA&amp;M</span>${f.state === "deact" || f.state === "fixed" ? "" : K.actLink("Create plan", "k3e.f.plan", f.id)}</div>` });
-    const riskSec = K.related({ title: "Risk", count: r ? 1 : 0, add: r ? null : { label: "Create risk", act: "k3e.f.risk", arg: f.id }, more: r ? "" : K.btn("Link a risk", { sm: true, quiet: true, act: "k3e.f.rlink", arg: f.id }), cols: [{ label: "Risk" }, { label: "Owner" }], rows: r ? [riskRow(r)] : [], empty: "No risk rests on it yet" });
+    const riskSec = K.related({ title: "Risk", count: r ? 1 : 0, add: r ? null : { label: "Create risk", act: "k3e.f.risk", arg: f.id }, more: r ? "" : K.btn("Link a risk", { sm: true, quiet: true, act: "k3e.f.rlink", arg: f.id }), cols: RCOLS, rows: r ? [riskRow(r)] : [], empty: "No risk rests on it yet" });
     const found = f.note || f.text || (f.cve ? `${f.cve.title}. CVSS ${f.cve.cvss || "—"}${f.cve.iava ? " · " + f.cve.iava : ""} · ${f.cve.status}.` : "") || (f.stig ? `${f.stig.stig} on ${f.stig.asset}: the rule is open.` : "");
-    const foundSec = found ? K.section({ title: "What was found", body: `<p class="k3e-p">${f.text ? esc(f.text) + (f.note ? "<br>" : "") : ""}${esc(f.note || (f.text ? "" : found))}</p>` }) : "";
+    const foundSec = found ? K.section({ title: "What was found", body: `${f.text ? `<p class="k3e-p">${esc(f.text)}</p>` : ""}${f.note || !f.text ? `<p class="k3e-p">${esc(f.note || found)}</p>` : ""}` }) : "";
+    const ctlSec = K.related({ title: "Control", count: f.control ? 1 : 0, cols: [{ label: "Control" }, { label: "Status", cls: "nw", peek: true }], rows: f.control ? [ctlRow(f.control)] : [], empty: "It names no control" });
+    const compSec = K.related({ title: f.components.length || !carry.length ? "Components" : `Components that carry ${f.control}`, count: where.length, cols: [{ label: "Component" }, { label: "Kind", cls: "nw", peek: true }], rows: where.map(compRow), empty: "It stands on the system as a whole" });
     const menu = K.menu("More", [{ label: f.owner ? "Change owner" : "Assign owner", act: "k3e.f.owner", arg: f.id }, p ? { label: "Change planned date", act: "k3e.f.move", arg: pf.id } : null, f.state === "fixed" ? null : f.state === "deact" ? { label: "Reactivate", act: "k3e.f.react", arg: f.id } : { label: "Deactivate", act: "k3e.f.deact", arg: f.id, danger: true }], { sm: !page });
-    const out = { label: SRC[f.kind], title: f.title, chip: `${sevCell(f)}${stateTag(f)}`, actions: menu, facts, sections: [stepLine(nx, false), foundSec, planSec, riskSec] };
+    const body = (pg) => [stepLine(nx, pg), foundSec, planSec, riskSec, ctlSec, compSec];
+    const out = { label: SRC[f.kind], title: f.title, chip: `${sevCell(f)}${stateTag(f)}`, actions: menu, facts, sections: body(false) };
     if (!page) return out;
-    // The page: a short title with the full sentence under it, the next step's button as the one primary, and the control
-    // and the components it stands on as rows that go to their pages.
-    const short = clip(f.title, 64), where = f.components.length ? f.components : carry, srcTab = SRCS.find((x) => x[0] === f.kind) || SRCS[0];
-    return Object.assign(out, { title: short, sub: short !== f.title ? esc(f.title) : "", crumbs: [["Findings", "findings"], [srcTab[1], srcTab[2]], [clip(f.title, 40)]], actions: menu + stepBtn(nx, true),
-      sections: [stepLine(nx, true), foundSec, planSec, riskSec,
-        K.related({ title: "Control", count: f.control ? 1 : 0, cols: [{ label: "Control" }, { label: "Status", cls: "nw" }], rows: f.control ? [ctlRow(f.control)] : [], empty: "It names no control" }),
-        K.related({ title: f.components.length || !carry.length ? "Components" : `Components that carry ${f.control}`, count: where.length, cols: [{ label: "Component" }, { label: "Kind", cls: "nw" }], rows: where.map(compRow), empty: "It stands on the system as a whole" })] });
+    // The page: a short title with the full sentence under it, and the next step's button as the header's one primary.
+    const short = clip(f.title, 64), srcTab = SRCS.find((x) => x[0] === f.kind) || SRCS[0];
+    return Object.assign(out, { title: short, sub: short !== f.title ? esc(f.title) : "", crumbs: [["Findings", "findings"], [srcTab[1], srcTab[2]], [clip(f.title, 40)]], actions: menu + stepBtn(nx, true), sections: body(true) });
   });
 
   // The rest of the module (assessments, risks, authorization, folding) registers below; these are filled in there.
   let assessmentById = () => null, respWord = () => "";
   PA.v3e = { findings, findingById, planOfFinding, riskOfFinding, findingsOf, findingsOn, risksOfCtl, findingsPage, filtered, CHIPF, isOpen, regs, get, set, mapSet, riskList, poamList, hooks: (o) => { if (o.assessmentById) assessmentById = o.assessmentById; if (o.respWord) respWord = o.respWord; },
-    u: { recGo, ctlRoute, ctlRow, compRow, clip, stepBtn, stepLine, sevCell, planCell, md, mdy, iso, days, addDays, plural, mu, NONE, parse, txt, uniq, cur, safe, memo, stat, old, off, people, ownerOpts, sevPill, detPill, SEVW, SEVN, DETW, SHORT, ctlTitle, inBaseline, compName, compLink, compsOfCtl, ctlOpen, findingRow, FCOLS, sortF, riskRow, riskForm, createRisk, pager, view, setView, matchQ, publicFinding, asmName, whereOf, hasPlan, ownPlan, RESP, LEVELS, SEVOF, nextId, PER, TODAY, ME, LEAD, ASSESSOR, AO, ISSO, ISSM } };
+    u: { nameT, recGo, ctlRoute, ctlRow, compRow, clip, stepBtn, stepLine, sevCell, planCell, md, mdy, iso, days, addDays, plural, mu, NONE, parse, txt, uniq, cur, safe, memo, stat, old, off, people, ownerOpts, sevPill, detPill, SEVW, SEVN, DETW, SHORT, ctlTitle, inBaseline, compName, compLink, compsOfCtl, ctlOpen, findingRow, FCOLS, FCOLS_ALL, RCOLS, ownCell, sevCol, stateWord, sortF, riskRow, riskForm, createRisk, pager, view, setView, matchQ, publicFinding, asmName, whereOf, hasPlan, ownPlan, RESP, LEVELS, SEVOF, nextId, PER, TODAY, ME, LEAD, ASSESSOR, AO, ISSO, ISSM } };
 
   V3.S(/^findings(-(vulns|assets|assessment|deactivated|history))?$/, (orig, route) => findingsPage(/-(vulns|assessment)$/.test(route) ? route : "findings"));
   for (const r of ["findings-issues", "findings-stig", "findings-poam"]) K.screen(r, () => findingsPage(r), "findings");
@@ -452,29 +479,39 @@
   const toPublish = (a) => resultsOf(a).filter((r) => r.state === "draft").length;
   const findingsOfAsm = (id) => E.findings().filter((f) => f.asm === id && E.isOpen(f));
   const windowCell = (a) => (a.kind === "check" ? `${esc(a.cadence)}${a.due ? ` · next <span class="num${a.status === "Overdue" ? " k3e-late" : ""}">${esc(md(a.due))}</span>` : ""}` : a.window ? esc(a.window) : a.from ? `<span class="num">${esc(md(a.from))} – ${esc(a.to && a.to.slice(0, 4) !== a.from.slice(0, 4) ? mdy(a.to) : md(a.to))}</span>` : NONE);
-  const coversLine = (a) => (a.kind === "control" ? (a.id === "init" ? "The baseline as first authorized" : `${plural(ctlsOf(a.id).length, "control")} · plan version ${planOf(a.id).rev}, ${planOf(a.id).state === "approved" ? "approved" : "a draft"}`) : a.kind === "cyber" ? `Phase ${a.phase || ""}${a.plan ? " · " + a.plan : ""}` : a.covers && a.covers.length ? a.covers.join(", ") : "Runs on its cadence");
   const ending = (a) => a.kind !== "check" && a.status === "Active" && a.to && days(a.to, TODAY) >= 0 && days(a.to, TODAY) <= 14;
   const ATT = { publish: (a) => a.kind === "control" && toPublish(a) > 0, failing: (a) => a.kind === "check" && a.status === "Overdue", ending };
   const kindOfRoute = (route) => { const m = /^assessments-(control|cyber|checks)$/.exec(route); return m ? (m[1] === "checks" ? "check" : m[1]) : ""; };
 
+  // One line an assessment. Its row goes to its page; the eye opens its preview (k3e-asm).
+  const ACOLS = [{ label: "Assessment" }, { label: "Status", peek: true }, { label: "Window or cadence", cls: "nw" }, { label: "Progress", cls: "nw" }, { label: "Findings", cls: "nw end" }, { label: "Lead" }];
+  const asmRow = (a, kindCol) => { const p = a.kind === "control" && a.id !== "init" ? progress(a.id) : null, n = findingsOfAsm(a.id).length + (a.cyf || 0); return { panel: "k3e-asm", id: a.id, cells: [K.name(a.short || a.name)].concat(kindCol ? [esc(KINDW[a.kind])] : [], [stPill(a.status), windowCell(a), p && p.total ? K.ring(p.done, p.total, "objectives judged") : a.kind === "check" ? mu(plural(a.nruns, "run")) : NONE, n ? K.num(n) : NONE, `<span class="k3e-own">${K.owner(a.lead)}</span>`]) }; };
+  const STORDER = ["Active", "Planned", "Proposed", "Overdue", "Due soon", "On schedule", "Completed"];
+  const NEEDW = [["publish", "Results to publish"], ["failing", "An overdue run"], ["ending", "Window ends in two weeks"]];
+  const askA = (kind, v) => assessments().filter((a) => (!kind || a.kind === kind) && (!v.att || (ATT[v.att] && ATT[v.att](a))) && (!v.st || a.status === v.st) && matchQ(v.q, `${a.name} ${a.lead || ""} ${KINDW[a.kind]}`));
   function listPage(route) {
-    const kind = kindOfRoute(route), v = Object.assign({ att: "", q: "" }, view("asm")), all = assessments();
-    const rows = all.filter((a) => (!kind || a.kind === kind) && (!v.att || ATT[v.att](a)) && matchQ(v.q, `${a.name} ${a.lead || ""} ${KINDW[a.kind]}`));
+    const kind = kindOfRoute(route), v = Object.assign({ att: "", q: "", st: "" }, view("asm")), all = assessments(), inKind = all.filter((a) => !kind || a.kind === kind);
+    const rows = askA(kind, v);
     const act = all.filter((a) => a.kind === "control" && a.status === "Active"), pr = act.map((a) => progress(a.id));
-    const attRow = (id, label, tone) => ({ label, n: all.filter(ATT[id]).length, tone, act: "k3e.a.att", arg: id });
+    const attRow = (id, label, tone) => ({ label, n: all.filter(ATT[id]).length, tone, act: "k3e.a.need", arg: id });
+    const sts = STORDER.filter((s) => v.st === s || inKind.some((a) => a.status === s)).map((s) => [s, s, inKind.filter((a) => a.status === s).length]);
     return K.page({ cls: "k3e",
       head: K.head({ title: "Assessments", actions: wsx() ? `<button type="button" class="btn ink" data-modal="v2k-plan">${K.i("plus")}Plan an assessment</button>` : K.btn("Plan an assessment", { primary: true, act: "k3e.a.new", icon: "plus" }) }),
-      body: K.split(
-        K.rail({ title: "Kind", items: KINDS.map(([id, label, r]) => ({ id, label, go: r, on: kind === id, count: all.filter((a) => !id || a.kind === id).length })) }),
-        [all.length ? K.cards(K.completion({ title: "Under way", label: "Objectives judged", done: pr.reduce((n, p) => n + p.done, 0), total: pr.reduce((n, p) => n + p.total, 0), unit: "objectives", note: plural(act.length, "active control assessment") }), K.attention({ rows: [attRow("publish", "Results waiting to be published"), attRow("failing", "Monitoring checks overdue", "bad"), attRow("ending", "Windows ending within two weeks")] })) : "",
-          v.att ? K.note(`Showing ${esc({ publish: "the assessments with results to publish", failing: "the monitoring checks that are overdue", ending: "the assessments whose window ends within two weeks" }[v.att])}. ${K.actLink("Show all", "k3e.a.att", "")}`) : "",
-          K.toolbar({ search: { act: "k3e.a.q", value: v.q, placeholder: "Search assessments" } }),
-          K.table({ label: "Assessments", cls: "k3e-list", cols: [{ label: "Assessment" }, { label: "Status" }, { label: "Window or cadence", cls: "nw" }, { label: "Progress", cls: "nw" }, { label: "Findings", cls: "nw" }, { label: "Lead" }],
-            rows: rows.map((a) => { const p = a.kind === "control" && a.id !== "init" ? progress(a.id) : null, n = findingsOfAsm(a.id).length + (a.cyf || 0); return { go: a.route, cells: [K.name(a.short || a.name, (kind ? "" : KINDW[a.kind] + " · ") + coversLine(a)), stPill(a.status), windowCell(a), p && p.total ? K.ring(p.done, p.total, "objectives judged") : a.kind === "check" ? mu(plural(a.nruns, "run")) : NONE, n ? K.num(n) : NONE, `<span class="k3e-own">${K.owner(a.lead)}</span>`] }; }),
-            empty: all.length ? { title: "No assessment matches", line: "Clear the search or choose All assessments." } : { title: "No assessment yet", line: "Plan the first one: it names the controls an assessor will judge and when.", action: K.btn("Plan an assessment", { sm: true, act: "k3e.a.new" }) }, foot: `<span class="num">${plural(rows.length, "assessment")}</span>` })]) });
+      body: [all.length ? K.cards(K.completion({ title: "Under way", label: "Objectives judged", done: pr.reduce((n, p) => n + p.done, 0), total: pr.reduce((n, p) => n + p.total, 0), unit: "objectives", note: plural(act.length, "active control assessment") }), K.attention({ rows: [attRow("publish", "Results waiting to be published"), attRow("failing", "Monitoring checks overdue", "bad"), attRow("ending", "Windows ending within two weeks")] })) : "",
+        K.rail({ label: "Kind", key: "kind", items: KINDS.map(([id, label, r]) => ({ id, label, go: r, on: kind === id, count: all.filter((a) => !id || a.kind === id).length })) }),
+        K.toolbar({ id: "assessments", noun: "assessments", search: { act: "k3e.a.q", value: v.q, placeholder: "Search assessments" },
+          filters: [{ label: "Status", key: "status", act: "k3e.a.st", value: v.st, options: sts }, { label: "Needs", key: "needs", act: "k3e.a.att", value: v.att, options: NEEDW.map(([id, label]) => [id, label, inKind.filter(ATT[id]).length]) }],
+          views: { total: all.length, count: (st) => askA(st.kind || "", { att: st.needs || "", st: st.status || "", q: st.q || "" }).length,
+            presets: KINDS.slice(1).map(([id, label]) => ({ label, state: { kind: id }, count: all.filter((a) => a.kind === id).length })).concat([{ label: "Results to publish", state: { needs: "publish" }, count: all.filter(ATT.publish).length }]),
+            seed: [{ name: "Overdue monitoring checks", state: { kind: "check", status: "Overdue" }, by: U.ISSM }] } }),
+        K.table({ label: "Assessments", cols: kind ? ACOLS : [ACOLS[0], { label: "Kind", cls: "nw" }].concat(ACOLS.slice(1)), rows: rows.map((a) => asmRow(a, !kind)),
+          empty: all.length ? { title: "No assessment matches", line: "Clear the search and the filters." } : { title: "No assessment yet", line: "Plan the first one: it names the controls an assessor will judge and when.", action: K.btn("Plan an assessment", { sm: true, act: "k3e.a.new" }) }, foot: `<span class="num">${plural(rows.length, "assessment")}</span>` })] });
   }
-  K.on("k3e.a.att", (id) => { setView("asm", { att: id || "" }); if (id && kindOfRoute(cur())) K.go("assessments"); else K.redraw(); });
-  K.on("k3e.a.q", (q) => { setView("asm", { q }); K.redraw(); });
+  // The card's rows ask the whole list; the row's own filters work with the value alone ("" clears), so a view can ask them again.
+  K.on("k3e.a.need", (id) => { setView("asm", { att: id || "", st: "" }); if (kindOfRoute(cur())) K.go("assessments"); else K.redraw(); });
+  K.on("k3e.a.att", (id) => { setView("asm", { att: id || "" }); K.redraw(); });
+  K.on("k3e.a.st", (st) => { setView("asm", { st: st || "" }); K.redraw(); });
+  K.on("k3e.a.q", (q) => { setView("asm", { q: q || "" }); K.redraw(); });
   K.on("k3e.a.new", () => K.form({ title: "Plan an assessment", submit: "Plan assessment", intro: "A control assessment with a draft plan. Add its controls on its page; the lead assessor approves the plan before anything is judged.",
     fields: [{ key: "name", label: "Name", required: true }, { key: "from", label: "Window opens", type: "date", required: true, half: true, value: addDays(TODAY, 14) }, { key: "to", label: "Window closes", type: "date", required: true, half: true, value: addDays(TODAY, 44) }, { key: "lead", label: "Lead assessor", type: "select", options: ownerOpts().length ? ownerOpts() : [[ME, ME]], value: (ownerOpts()[0] || [ME])[0], required: true }],
     onSubmit: (o) => { if (o.to < o.from) return { to: "The window closes on or after the day it opens." }; const id = K.id("asm"); set("camps", get("camps", []).concat([{ id, name: o.name, short: o.name, from: o.from, to: o.to, lead: o.lead, controls: [] }])); K.toast(`Assessment planned: ${o.name}`); K.go("assessment--" + id); } }));
@@ -511,72 +548,95 @@
       tabs: K.tabs(TABS[a.kind].map(([k, label]) => ({ label, route: k ? `${base}--${k}` : base, on: (tab || "") === k, count: k ? c[k] : null })), "Assessment") };
   }
   const ctlBtn = (code) => (U.ctlRoute(code) ? K.link(code, U.ctlRoute(code)) : `<span class="num">${esc(code)}</span>`);
+  // ——— What an assessment lists, each defined once: its page draws them under its tabs, its preview as short lists of the same rows ———
+  const STEPCOLS = [{ label: "Step" }, { label: "Who" }, { label: "Recorded", cls: "nw" }, { label: "State", cls: "nw", peek: true }];
+  const stepRows = (a) => { const p = planOf(a.id); return PLAN_STEPS.map(([k, role, who, verb], i) => { const s = (p.steps || []).filter((x) => x.k === k && x.rev === p.rev && x.o !== "return").pop(); const turn = !s && a.status !== "Completed" && ((i === 0 && p.state === "draft") || (i === 1 && p.state === "review")); return { cells: [K.name(`${role} ${verb}`), K.owner(who), s ? `<span class="num">${esc(md(s.at))}</span>${s.rec && s.rec !== who ? mu(` by ${esc(s.rec)}`) : ""}` : a.id === "init" || (p.state === "approved" && !s) ? mu("With the plan") : NONE, s || p.state === "approved" ? h.pill("ok", i ? "Concurred" : "Approved") : turn ? K.btn(i ? "Concur" : "Approve", { sm: true, act: "k3e.a.approve", arg: a.id }) : mu("Waits")] }; }); };
+  const PCTLCOLS = [{ label: "Control" }, { label: "Objectives judged", cls: "nw" }, { label: "Determination", peek: true }];
+  const planCtlRow = (code) => { const d = ctlDet(code); return { panel: P["k3c-control"] ? "k3c-control" : "a-tests-control", id: code, cells: [K.name(ctlTitle(code), "", code), K.ring(judgedN(code), objectivesOf(code).length, "objectives"), d ? detPill(d.det) + (d.draft ? ` ${mu("draft")}` : "") : mu("Not judged")] }; };
+  const detailFacts = (a) => { const pr = a.kind === "control" ? progress(a.id) : null; return a.kind === "control"
+    ? [["Kind", esc(KINDW[a.kind])], ["Window", windowCell(a)], ["Plan", esc(planWords(a.id))], ["Lead assessor", K.owner(a.lead)], a.assessor ? ["Assessor", K.owner(a.assessor)] : null, a.owner ? ["Owner", K.owner(a.owner)] : null, a.ssp ? ["Assesses", esc(a.ssp)] : null, a.id === "init" ? null : ["Judged", `<span class="num">${fmt(pr.done)} of ${fmt(pr.total)}</span> objectives`]]
+    : a.kind === "cyber" ? [["Kind", "Cyber test"], ["Phase", esc(a.phase || "")], ["Window", windowCell(a)], ["Lead", a.lead ? K.owner(a.lead) : mu("Not named")], ["Test plan", a.plan ? esc(a.plan) : mu("None")]]
+    : [["Kind", "Monitoring check"], ["Cadence", esc(a.cadence)], ["Owner", K.owner(a.lead)], ["Last run", a.lastRun ? esc(a.lastRun) : mu("None recorded")], ["Next run", a.due ? `<span class="num${a.status === "Overdue" ? " k3e-late" : ""}">${esc(mdy(a.due))}</span>` : NONE], ["Failing now", a.failing ? K.link(plural(a.failing, "result"), a.route + "--findings") : mu("Nothing")]]; };
   function tabPlan(a) {
-    const p = planOf(a.id), nx = nextOf(a), L = ctlsOf(a.id), pr = progress(a.id);
-    const steps = PLAN_STEPS.map(([k, role, who, verb], i) => { const s = (p.steps || []).filter((x) => x.k === k && x.rev === p.rev && x.o !== "return").pop(); const turn = !s && a.status !== "Completed" && ((i === 0 && p.state === "draft") || (i === 1 && p.state === "review")); return { cells: [K.name(`${role} ${verb}`, s ? `Recorded as ${who}${s.rec && s.rec !== who ? " by " + s.rec : ""} · ${md(s.at)}` : a.id === "init" || (p.state === "approved" && !s) ? "Recorded with the plan" : "Not yet"), K.owner(who), s || p.state === "approved" ? h.pill("ok", i ? "Concurred" : "Approved") : turn ? K.btn(i ? "Concur" : "Approve", { sm: true, act: "k3e.a.approve", arg: a.id }) : mu("Waits")] }; });
+    const nx = nextOf(a), L = ctlsOf(a.id);
     return K.aside([nx ? K.next(nx) : "",
-      K.section({ title: "Plan approval", body: K.table({ label: "Plan approval", cols: [{ label: "Step" }, { label: "Who" }, { label: "", cls: "tight" }], rows: steps }) }),
-      a.id === "init" ? "" : K.related({ title: "Controls in the plan", count: L.length, add: a.status === "Completed" || a.id === "exp" ? null : { label: "Add controls", act: "k3e.a.addctl", arg: a.id }, empty: "The plan names no control yet",
-        cols: [{ label: "Control" }, { label: "Objectives judged", cls: "nw" }, { label: "Determination" }], rows: L.map((code) => { const d = ctlDet(code); return { panel: P["k3c-control"] ? "k3c-control" : "a-tests-control", id: code, cells: [K.name(ctlTitle(code), "", code), K.ring(judgedN(code), objectivesOf(code).length, "objectives"), d ? detPill(d.det) + (d.draft ? ` ${mu("draft")}` : "") : mu("Not judged")] }; }) })],
-    [K.details("Details", [["Kind", esc(KINDW[a.kind])], ["Window", windowCell(a)], ["Plan", esc(planWords(a.id))], ["Lead assessor", K.owner(a.lead)], a.assessor ? ["Assessor", K.owner(a.assessor)] : null, a.owner ? ["Owner", K.owner(a.owner)] : null, a.ssp ? ["Assesses", esc(a.ssp)] : null, a.id === "init" ? null : ["Objectives", `<span class="num">${fmt(pr.done)} of ${fmt(pr.total)}</span> judged`]])]);
+      K.section({ title: "Plan approval", body: K.table({ label: "Plan approval", cols: STEPCOLS, rows: stepRows(a) }) }),
+      a.id === "init" ? "" : K.related({ title: "Controls in the plan", count: L.length, add: a.status === "Completed" || a.id === "exp" ? null : { label: "Add controls", act: "k3e.a.addctl", arg: a.id }, empty: "The plan names no control yet", cols: PCTLCOLS, rows: L.map(planCtlRow) })],
+    [K.details("Details", detailFacts(a))]);
   }
   const oview = (id) => Object.assign({ ctl: "", chip: "all", q: "" }, (view("asmo") || {})[id] || {});
   const setO = (id, patch) => K.set("asmo.view", Object.assign({}, view("asmo"), { [id]: Object.assign({}, oview(id), patch) }));
   const METHODW = { examine: "Examine", interview: "Interview", test: "Test" };
+  const OCOLS = [{ label: "Objective: determine if" }, { label: "Methods", cls: "nw" }, { label: "Determination", cls: "nw", peek: true }, { label: "Recorded as", cls: "nw" }, { label: "", cls: "tight" }];
+  const objText = (o) => { const t = String(o.text || "").replace(/^determine if\s+/i, "").replace(/\.$/, ""); return t; };
+  const objEntries = (code) => { const st = objState(code), d = ctlDet(code); return objectivesOf(code).map((o) => { const s = st[o.i] || null; return { code, o, s, whole: !s && d && d.whole ? d : null }; }); };
+  // bare: the row as a preview lists it, with no button and no link beside the determination.
+  const objRow = (a, r, ok, bare) => { const s = r.s, arg = { cid: a.id, code: r.code, i: r.o.i }; return { cells: [U.nameT(objText(r.o), r.o.label), esc((s ? s.methods : r.o.methods).map((m) => METHODW[m] || m).join(", ")),
+    s ? `${detPill(s.det)}${s.pub ? "" : ` ${mu("draft")}`}${!bare && SHORT.has(s.det) && U.recGo("k3e-finding", "x") ? ` ${K.link("Finding", U.recGo("k3e-finding", `af:${(s.pub && s.pub.cid) || a.id}:${r.code}:${r.o.i}`))}` : ""}` : r.whole ? `<span title="Judged with the control as a whole">${detPill(r.whole.det)}</span>` : mu("Not judged"), s ? `<span class="k3e-own">${K.owner(s.by)}</span>` : NONE,
+    bare || (s && s.pub) ? "" : K.btn(s ? "Change" : "Judge", { sm: true, quiet: !!s, act: "k3e.a.judge", arg, disabled: a.status === "Completed" ? "This assessment is completed" : ok ? "" : "The plan is approved first" })] }; };
   function tabObjectives(a) {
     const L = ctlsOf(a.id), v = oview(a.id), ok = workable(a.id), nx0 = nextOf(a), nx = nx0 && !/Open the objectives/.test(nx0.action) ? nx0 : null;
-    const rowsOf = (code) => objectivesOf(code).map((o) => { const s = objState(code)[o.i] || null, d = ctlDet(code); return { code, o, s, whole: !s && d && d.whole ? d : null }; });
-    const all = L.flatMap(rowsOf), CHIP = { all: () => true, open: (r) => !r.s && !r.whole, short: (r) => (r.s && SHORT.has(r.s.det)) || (r.whole && SHORT.has(r.whole.det)), draft: (r) => (r.s && !r.s.pub) || (r.whole && r.whole.draft) };
+    const all = L.flatMap(objEntries), CHIP = { all: () => true, open: (r) => !r.s && !r.whole, short: (r) => (r.s && SHORT.has(r.s.det)) || (r.whole && SHORT.has(r.whole.det)), draft: (r) => (r.s && !r.s.pub) || (r.whole && r.whole.draft) };
     const inCtl = all.filter((r) => (!v.ctl || r.code === v.ctl) && matchQ(v.q, `${r.o.label} ${r.o.text} ${r.code} ${ctlTitle(r.code)}`)), shown = inCtl.filter(CHIP[v.chip] || CHIP.all);
     const rows = []; let last = null;
     for (const r of shown) {
       if (r.code !== last) { last = r.code; const d = ctlDet(r.code); rows.push({ group: `<span class="k3e-grp">${ctlBtn(r.code)} ${esc(ctlTitle(r.code))}<span class="k3e-grp-m">${d ? detPill(d.det) + (d.draft ? mu(" draft") : "") : mu("Not assessed until every objective is judged")}</span></span>` }); }
-      const s = r.s, arg = { cid: a.id, code: r.code, i: r.o.i };
-      rows.push({ cells: [K.name(r.o.label, `Determine if ${r.o.text}.`), esc((s ? s.methods : r.o.methods).map((m) => METHODW[m] || m).join(", ")), s ? `${detPill(s.det)}${s.pub ? "" : ` ${mu("draft")}`}${SHORT.has(s.det) && U.recGo("k3e-finding", "x") ? ` ${K.link("Its finding", U.recGo("k3e-finding", `af:${(s.pub && s.pub.cid) || a.id}:${r.code}:${r.o.i}`))}` : ""}` : r.whole ? `${detPill(r.whole.det)} ${mu("with the control")}` : mu("Not judged"), s ? `<span class="k3e-own">${K.owner(s.by)}</span>` : NONE,
-        s && s.pub ? "" : K.btn(s ? "Change" : "Judge", { sm: true, quiet: !!s, act: "k3e.a.judge", arg, disabled: a.status === "Completed" ? "This assessment is completed" : ok ? "" : "The plan is approved first" })] });
+      rows.push(objRow(a, r, ok, false));
     }
     const chip = (id, label) => ({ id, label, count: inCtl.filter(CHIP[id]).length, on: v.chip === id });
-    return [nx ? K.next(nx) : "", K.split(
-      K.rail({ title: "Controls in the plan", act: "k3e.a.octl", items: [{ id: { a: a.id, c: "" }, label: "All controls", count: all.length, on: !v.ctl }].concat(L.map((code) => ({ id: { a: a.id, c: code }, code, label: ctlTitle(code), count: objectivesOf(code).length, on: v.ctl === code }))) }),
-      [K.chips([chip("all", "All"), chip("open", "Not judged"), chip("short", "Short of satisfied"), chip("draft", "Draft")], "k3e.a.ochip"),
-        K.toolbar({ search: { act: "k3e.a.oq", value: v.q, placeholder: "Search objectives" } }),
-        K.table({ label: "Objectives", cls: "k3e-obj", cols: [{ label: "Objective" }, { label: "Methods", cls: "nw" }, { label: "Determination" }, { label: "Recorded as" }, { label: "", cls: "tight" }], rows,
-          empty: L.length ? { title: "No objective matches", line: "Choose All, or another control." } : { title: "No objective yet", line: "Add the controls the plan assesses: each brings its objectives.", action: a.id === "exp" ? "" : K.btn("Add controls", { sm: true, act: "k3e.a.addctl", arg: a.id }) }, foot: `<span class="num">${plural(shown.length, "objective")}</span>` })])];
+    return [nx ? K.next(nx) : "",
+      K.rail({ label: "Control", key: "control", act: "k3e.a.octl", items: [{ id: "", label: "All controls", count: all.length, on: !v.ctl }].concat(L.map((code) => ({ id: code, code, label: ctlTitle(code), count: objectivesOf(code).length, on: v.ctl === code }))) }),
+      K.chips([{ id: "", label: "All", count: inCtl.length, on: !CHIP[v.chip] || v.chip === "all" }, chip("open", "Not judged"), chip("short", "Short of satisfied"), chip("draft", "Draft")], "k3e.a.ochip", "State"),
+      K.toolbar({ id: "assessment-objectives", noun: "objectives", search: { act: "k3e.a.oq", value: v.q, placeholder: "Search objectives" }, views: { total: all.length } }),
+      K.table({ label: "Objectives", cols: OCOLS, rows,
+        empty: L.length ? { title: "No objective matches", line: "Clear the search and the filters." } : { title: "No objective yet", line: "Add the controls the plan assesses: each brings its objectives.", action: a.id === "exp" ? "" : K.btn("Add controls", { sm: true, act: "k3e.a.addctl", arg: a.id }) }, foot: `<span class="num">${plural(shown.length, "objective")}</span>` })];
   }
   const REQP = { Accepted: "ok", Ready: "info", Flagged: "warn", "Not ready": "none" };
+  const QCOLS = [{ label: "Request" }, { label: "Control", cls: "nw" }, { label: "Owner" }, { label: "Due", cls: "nw" }, { label: "Status", peek: true }, { label: "", cls: "tight" }];
+  const reqRow = (a, r, bare) => ({ cells: [U.nameT(r.title), ctlBtn(r.control), `<span class="k3e-own">${K.owner(r.owner)}</span>`, r.due && r.due !== "—" ? `<span class="num">${esc(r.due)}</span>` : NONE, h.pill(REQP[r.status] || "none", r.status),
+    bare || a.status === "Completed" || r.status === "Accepted" ? "" : K.menu("Set", [{ label: "Ready", act: "k3e.a.req", arg: { a: a.id, key: r.key, code: r.control, to: "Ready" } }, { label: "Flagged: evidence falls short", act: "k3e.a.req", arg: { a: a.id, key: r.key, code: r.control, to: "Flagged" } }, { label: "Accepted", act: "k3e.a.req", arg: { a: a.id, key: r.key, code: r.control, to: "Accepted" } }], { sm: true })] });
+  const qview = (id) => Object.assign({ q: "", st: "" }, (view("asmq") || {})[id] || {});
   function tabRequests(a) {
-    const L = requestsOf(a), ok = workable(a.id);
-    return [K.table({ label: "Requests", cols: [{ label: "Request" }, { label: "Control", cls: "nw" }, { label: "Owner" }, { label: "Status" }, { label: "", cls: "tight" }],
-      rows: L.map((r) => ({ cells: [K.name(r.title, r.due ? `Due ${r.due}` : ""), ctlBtn(r.control), `<span class="k3e-own">${K.owner(r.owner)}</span>`, h.pill(REQP[r.status] || "none", r.status), a.status === "Completed" || r.status === "Accepted" ? "" : K.menu("Set", [{ label: "Ready", act: "k3e.a.req", arg: { a: a.id, key: r.key, code: r.control, to: "Ready" } }, { label: "Flagged: evidence falls short", act: "k3e.a.req", arg: { a: a.id, key: r.key, code: r.control, to: "Flagged" } }, { label: "Accepted", act: "k3e.a.req", arg: { a: a.id, key: r.key, code: r.control, to: "Accepted" } }], { sm: true })] })),
-      empty: { title: "No request yet", line: ok ? "A request asks a control's owner for the evidence its objectives need." : "Requests run once the plan is approved." }, foot: `<span class="num">${plural(L.length, "request")}</span>` })];
+    const L = requestsOf(a), ok = workable(a.id), v = qview(a.id);
+    const rows = L.filter((r) => (!v.st || r.status === v.st) && matchQ(v.q, `${r.title} ${r.control} ${r.owner || ""}`));
+    return [L.length > 8 ? K.toolbar({ views: false, search: { act: "k3e.a.rq", value: v.q, placeholder: "Search requests" }, filters: [{ label: "Status", key: "status", act: "k3e.a.rst", value: v.st, options: Object.keys(REQP).filter((s) => v.st === s || L.some((r) => r.status === s)).map((s) => [s, s, L.filter((r) => r.status === s).length]) }] }) : "",
+      K.table({ label: "Requests", cols: QCOLS, rows: rows.map((r) => reqRow(a, r, false)),
+        empty: L.length ? { title: "No request matches", line: "Clear the search and the status." } : { title: "No request yet", line: ok ? "A request asks a control's owner for the evidence its objectives need." : "Requests run once the plan is approved." }, foot: `<span class="num">${plural(rows.length, "request")}</span>` })];
   }
+  const RESCOLS = [{ label: "Results" }, { label: "State", peek: true }, { label: "Published", cls: "nw" }, { label: "By" }, { label: "Controls", cls: "nw end" }];
+  const resRow = (r) => ({ cells: [K.name(r.title), r.state === "draft" ? h.pill("warn", "Draft") : h.pill("ok", "Published"), r.at ? `<span class="num">${esc(mdy(r.at))}</span>` : NONE, r.by ? `<span class="k3e-own">${K.owner(r.by)}</span>` : NONE, r.n ? K.num(r.n) : NONE] });
   function tabResults(a) {
     const L = resultsOf(a);
     return [toPublish(a) ? K.next({ text: "A draft decides nothing: the controls keep their status until the lead assessor publishes.", action: K.btn("Publish results", { sm: true, primary: true, act: "k3e.a.publish", arg: a.id }) }) : "",
-      K.table({ label: "Results", cols: [{ label: "Results" }, { label: "State" }, { label: "Published", cls: "nw" }, { label: "By" }, { label: "Controls", cls: "nw" }],
-        rows: L.map((r) => ({ cells: [K.name(r.title, r.rec && r.rec !== r.by ? `Recorded as ${r.by} by ${r.rec}` : ""), r.state === "draft" ? h.pill("warn", "Draft") : h.pill("ok", "Published"), r.at ? `<span class="num">${esc(mdy(r.at))}</span>` : NONE, r.by ? `<span class="k3e-own">${K.owner(r.by)}</span>` : NONE, r.n ? K.num(r.n) : NONE] })),
-        empty: { title: "No results yet", line: "Results join here once an objective is judged." } })];
+      K.table({ label: "Results", cols: RESCOLS, rows: L.map(resRow), empty: { title: "No results yet", line: "Results join here once an objective is judged." } })];
   }
+  const CYFCOLS = [{ label: "Finding" }, { label: "Severity", peek: true }, { label: "Then" }, { label: "Remediate within", cls: "nw" }];
+  const cyfRows = (a) => cyberFinds().filter((f) => a.phase && f.from === a.phase).map((f) => ({ panel: "v7a-cyf", id: f.id, cells: [K.name(f.title), U.sevPill(f.sev.toLowerCase()), esc(f.then), esc(f.within)] }));
   function tabFindings(a) {
-    if (a.kind === "cyber") { const L = cyberFinds().filter((f) => a.phase && f.from === a.phase); return [K.table({ label: "Findings", cols: [{ label: "Finding" }, { label: "Severity" }, { label: "Then" }, { label: "Remediate within", cls: "nw" }], rows: L.map((f) => ({ panel: "v7a-cyf", id: f.id, cells: [K.name(f.title), U.sevPill(f.sev.toLowerCase()), esc(f.then), esc(f.within)] })), empty: { title: "No finding yet", line: "What the test finds arrives here and in Findings." } })]; }
+    if (a.kind === "cyber") return [K.table({ label: "Findings", cols: CYFCOLS, rows: cyfRows(a), empty: { title: "No finding yet", line: "What the test finds arrives here and in Findings." } })];
     const L = findingsOfAsm(a.id).slice().sort(sortF);
-    return [K.table({ label: "Findings", cls: "k3e-list", cols: FCOLS, rows: L.map((f) => findingRow(f, false, f.kind)), empty: { title: "No finding", line: a.kind === "check" ? "A failing run's results arrive here and in Findings." : "A determination short of satisfied opens a finding at once." }, foot: `<span class="num">${plural(L.length, "finding")}</span>` })];
+    return [K.table({ label: "Findings", cols: FCOLS, rows: L.map((f) => findingRow(f, false, f.kind)), empty: { title: "No finding", line: a.kind === "check" ? "A failing run's results arrive here and in Findings." : "A determination short of satisfied opens a finding at once." }, foot: `<span class="num">${plural(L.length, "finding")}</span>` })];
   }
+  const COVCOLS = [{ label: "Control" }, { label: "Status", cls: "nw", peek: true }];
   function tabCheck(a) {
     const nx = nextOf(a);
-    return K.aside([nx ? K.next(nx) : "", K.related({ title: "What it covers", count: a.covers.length, cols: [{ label: "Control" }], rows: a.covers.map((code) => ({ panel: P["k3c-control"] ? "k3c-control" : "a-tests-control", id: code, cells: [K.name(ctlTitle(code), "", code)] })), empty: "It names no control" })],
-      [K.details("Details", [["Kind", "Monitoring check"], ["Cadence", esc(a.cadence)], ["Owner", K.owner(a.lead)], ["Last run", a.lastRun ? esc(a.lastRun) : mu("None recorded")], ["Next run", a.due ? `<span class="num${a.status === "Overdue" ? " k3e-late" : ""}">${esc(mdy(a.due))}</span>` : NONE], ["Failing now", a.failing ? K.link(plural(a.failing, "result"), a.route + "--findings") : mu("Nothing")]])]);
+    return K.aside([nx ? K.next(nx) : "", K.related({ title: "What it covers", count: a.covers.length, cols: COVCOLS, rows: a.covers.map((code) => U.ctlRow(code)), empty: "It names no control" })], [K.details("Details", detailFacts(a))]);
   }
-  function tabRuns(a) {
+  const RUNCOLS = [{ label: "Run", cls: "nw" }, { label: "Result", cls: "nw", peek: true }, { label: "By" }, { label: "Note", cls: "main" }];
+  const runRows = (a) => {
     const mine = runsOf(a.check).slice().reverse(), seedN = a.nruns - mine.length;
     const rows = mine.map((r) => ({ cells: [`<span class="num">${esc(mdy(r.at))}</span>`, h.pill(r.result === "Failed" ? "bad" : "ok", r.result), `<span class="k3e-own">${K.owner(r.by)}</span>`, esc(r.note || "")] }));
     if (a.lastRun && seedN > 0) rows.push({ cells: [`<span class="num">${esc(runsOf(a.check).length ? (checkRuns()[a.check] || {}).last || "" : a.lastRun)}</span>`, h.pill(a.failing ? "bad" : "ok", a.failing ? "Failed" : "Passed"), `<span class="k3e-own">${K.owner(a.lead)}</span>`, a.failing ? esc(`${plural(a.failing, "result")} failing`) : ""] });
-    return [K.table({ label: "Runs", cols: [{ label: "Run", cls: "nw" }, { label: "Result" }, { label: "By" }, { label: "Note" }], rows, empty: { title: "No run recorded", line: "Record each run: a failing one opens findings.", action: K.btn("Record a run", { sm: true, act: "k3e.a.run", arg: a.id }) }, foot: `<span class="num">${plural(a.nruns, "run")}${seedN > rows.length - mine.length ? " · the latest shown" : ""}</span>` })];
+    return { rows, older: seedN > rows.length - mine.length };
+  };
+  function tabRuns(a) {
+    const { rows, older } = runRows(a);
+    return [K.table({ label: "Runs", cols: RUNCOLS, rows, empty: { title: "No run recorded", line: "Record each run: a failing one opens findings.", action: K.btn("Record a run", { sm: true, act: "k3e.a.run", arg: a.id }) }, foot: `<span class="num">${plural(a.nruns, "run")}${older ? " · the latest shown" : ""}</span>` })];
   }
+  const testsSec = (a) => K.section({ title: "What it tests", body: `<p class="k3e-p">${esc(a.name)}: phase ${esc(a.phase || "")} of the cyber test and evaluation sequence. Its findings arrive in Findings with their plans.</p>` });
   function cyberOverview(a) {
     const nx = nextOf(a);
-    return K.aside([nx ? K.next(nx) : "", K.section({ title: "What it tests", body: `<p class="k3e-p">${esc(a.name)}: phase ${esc(a.phase || "")} of the cyber test and evaluation sequence. Its findings arrive in Findings with their plans.</p>` })],
-      [K.details("Details", [["Kind", "Cyber test"], ["Phase", esc(a.phase || "")], ["Window", windowCell(a)], ["Lead", a.lead ? K.owner(a.lead) : mu("Not named")], ["Test plan", a.plan ? esc(a.plan) : mu("None")]])]);
+    return K.aside([nx ? K.next(nx) : "", testsSec(a)], [K.details("Details", detailFacts(a))]);
   }
   function recordPage(route, m) {
     const a = byId(m[1]), tab = m[2] || "";
@@ -585,14 +645,42 @@
     const body = a.kind === "control" ? (tab === "objectives" ? tabObjectives(a) : tab === "requests" ? tabRequests(a) : tab === "results" ? tabResults(a) : tab === "findings" ? tabFindings(a) : tabPlan(a)) : a.kind === "cyber" ? (tab === "findings" ? tabFindings(a) : cyberOverview(a)) : tab === "runs" ? tabRuns(a) : tab === "findings" ? tabFindings(a) : tabCheck(a);
     return K.page({ cls: "k3e", head: hd.head, tabs: hd.tabs, body });
   }
+  // An assessment's preview (the eye on its row, wherever a row goes to its page): its facts, then every tab and section of
+  // the page as a short list of the same rows, each with a way to all of them.
+  K.record("k3e-asm", { route: (id) => "assessment--" + id });
+  K.panel("k3e-asm", (raw) => {
+    const a = byId(String(raw || "").split("|")[0]); if (!a) return null;
+    const nx = nextOf(a), base = a.route, c = counts(a), five = (list) => list.slice(0, 5);
+    const fL = a.kind === "cyber" ? [] : findingsOfAsm(a.id).slice().sort(sortF);
+    const findSec = a.kind === "cyber" ? K.related({ title: "Findings", cols: CYFCOLS, rows: cyfRows(a), empty: "No finding yet", all: { go: base + "--findings" } })
+      : K.related({ title: "Findings", count: fL.length, cols: FCOLS, rows: five(fL).map((f) => findingRow(f, false, f.kind)), empty: "No finding", all: { go: base + "--findings" } });
+    let sections;
+    if (a.kind === "control") {
+      const L = ctlsOf(a.id), objs = [], Q = requestsOf(a), R = resultsOf(a);
+      for (const code of L) { if (objs.length >= 5) break; objs.push(...objEntries(code)); }
+      sections = [K.related({ title: "Plan approval", cols: STEPCOLS, rows: stepRows(a) }),
+        a.id === "init" ? "" : K.related({ title: "Controls in the plan", count: L.length, cols: PCTLCOLS, rows: five(L).map(planCtlRow), empty: "The plan names no control yet" }),
+        K.related({ title: "Objectives", count: c.objectives, cols: OCOLS, rows: five(objs).map((r) => objRow(a, r, false, true)), empty: "No objective yet", all: { go: base + "--objectives" } }),
+        K.related({ title: "Requests", count: Q.length, cols: QCOLS, rows: five(Q).map((r) => reqRow(a, r, true)), empty: "No request yet", all: { go: base + "--requests" } }),
+        K.related({ title: "Results", count: R.length, cols: RESCOLS, rows: five(R).map(resRow), empty: "No results yet", all: { go: base + "--results" } }),
+        findSec];
+    } else if (a.kind === "cyber") sections = [testsSec(a), findSec];
+    else sections = [K.related({ title: "What it covers", count: a.covers.length, cols: COVCOLS, rows: a.covers.map((code) => U.ctlRow(code)), empty: "It names no control" }),
+      K.related({ title: "Runs", count: a.nruns, cols: RUNCOLS, rows: five(runRows(a).rows), empty: "No run recorded", all: { go: base + "--runs" } }), findSec];
+    return { label: KINDW[a.kind], title: a.short || a.name, chip: stPill(a.status), facts: detailFacts(a), sections: [nx ? K.next(nx) : ""].concat(sections) };
+  });
   K.lazy(/^assessment--([\w-]+?)(?:--(objectives|requests|results|findings|runs))?$/, recordPage, "assessments");
   V3.S("assessments", (orig, route) => listPage("assessments"));
   for (const r of ["assessments-control", "assessments-cyber", "assessments-checks"]) K.screen(r, () => listPage(r), "assessments");
 
   // ——— What an assessor does on the page ———
-  K.on("k3e.a.octl", (x) => { setO(x.a, { ctl: x.c }); K.redraw(); });
-  K.on("k3e.a.oq", (q) => { const m = /^assessment--([\w-]+?)--objectives$/.exec(cur()); if (m) { setO(m[1], { q }); K.redraw(); } });
-  K.on("k3e.a.ochip", (id) => { const m = /^assessment--([\w-]+?)--objectives$/.exec(cur()); if (m) { setO(m[1], { chip: id }); K.redraw(); } });
+  const objAsm = () => (/^assessment--([\w-]+?)--(objectives|requests)$/.exec(cur()) || [])[1] || "";
+  K.on("k3e.a.octl", (code) => { const id = objAsm(); if (id) { setO(id, { ctl: code || "" }); K.redraw(); } });
+  K.on("k3e.a.oq", (q) => { const id = objAsm(); if (id) { setO(id, { q: q || "" }); K.redraw(); } });
+  K.on("k3e.a.ochip", (chip) => { const id = objAsm(); if (id) { setO(id, { chip: chip || "all" }); K.redraw(); } });
+  const setQ = (patch) => { const id = objAsm(); if (!id) return; K.set("asmq.view", Object.assign({}, view("asmq"), { [id]: Object.assign({}, qview(id), patch) })); K.redraw(); };
+  K.on("k3e.a.rq", (q) => setQ({ q: q || "" }));
+  K.on("k3e.a.rst", (st) => setQ({ st: st || "" }));
   K.on("k3e.a.approve", (id) => { const a = byId(id); if (!a) return; if (a.made) { set("camps", get("camps", []).map((c) => (c.id === id ? Object.assign({}, c, { approved: TODAY }) : c))); K.redraw(); return; } const p = planOf(id), k = p.state === "review" ? 1 : 0, [key, role, who] = PLAN_STEPS[k];
     K.confirm({ title: k ? "Record the AO's concurrence" : "Approve the plan", text: `Plan version ${p.rev} of ${esc(a.short || a.name)}: ${plural(ctlsOf(id).length, "control")}, ${plural(progress(id).total, "objective")}. The step is ${esc(who)}'s, the ${esc(role.toLowerCase())}; the prototype records it as ${esc(who)}, by ${esc(ME)}.`, submit: k ? `Concur as ${who}` : `Approve as ${who}`,
       onOk: () => { const steps = (p.steps || []).concat([{ k: key, role, who, o: "approve", note: "", at: TODAY, rec: ME, rev: p.rev }]); V.set("v3.R.plan." + id, k ? Object.assign({}, p, { state: "approved", steps, adds: [], hist: (p.hist || []).concat([{ rev: p.rev, adds: p.adds || [], at: TODAY }]) }) : Object.assign({}, p, { state: "review", steps })); K.redraw(); K.toast(k ? `Plan version ${p.rev} approved: its objectives can be judged` : `${LEAD} approved plan version ${p.rev}; it waits on ${AO}'s concurrence`); } }); });
@@ -674,34 +762,48 @@
 
   const tabs = (on) => K.tabs([{ label: "Register", count: risks().length, route: "risks", on: on === "risks" }, { label: "Threats", count: allTechs().filter((t) => risksOfTech(t.code).length).length, route: "risks-threats", on: on === "threats" }], "Risks");
   const headOf = () => K.head({ title: "Risks", actions: K.btn("Create risk", { primary: true, act: "k3e.r.new", icon: "plus" }) });
+  const askR = (v) => risks().filter((r) => (!v.sev || r.sev === v.sev) && (!v.tech || r.tech.some((t) => t[0] === v.tech)) && matchQ(v.q, `${r.title} ${r.threat} ${r.owner} ${r.tech.map((t) => t.join(" ")).join(" ")}`));
+  const RISKCOLS = [{ label: "Risk" }, { label: "Severity", peek: true }, { label: "Response" }, { label: "Findings", cls: "nw end" }, { label: "Techniques", cls: "nw" }, { label: "Response due", cls: "nw" }, { label: "Owner" }];
   function registerPage() {
-    const v = Object.assign({ chip: "open", q: "", sev: "", tech: "" }, view("rsk")), all = risks();
-    const narrowed = all.filter((r) => (!v.sev || r.sev === v.sev) && (!v.tech || r.tech.some((t) => t[0] === v.tech)) && matchQ(v.q, `${r.title} ${r.threat} ${r.owner} ${r.tech.map((t) => t.join(" ")).join(" ")}`));
-    const rows = narrowed.filter(CHIPR[v.chip] || CHIPR.open).sort((a, b) => (SEVN[b.sev] || 0) - (SEVN[a.sev] || 0) || String(a.due || "9").localeCompare(String(b.due || "9")));
+    const v = Object.assign({ chip: "open", q: "", sev: "", tech: "" }, view("rsk")), all = risks(); if (!CHIPR[v.chip]) v.chip = "open";
+    const narrowed = askR(v);
+    const rows = narrowed.filter(CHIPR[v.chip]).sort((a, b) => (SEVN[b.sev] || 0) - (SEVN[a.sev] || 0) || String(a.due || "9").localeCompare(String(b.due || "9")));
     const chip = (id, label) => ({ id, label, count: narrowed.filter(CHIPR[id]).length, on: v.chip === id });
+    const techOpts = uniq(all.flatMap((r) => r.tech.map((t) => t[0])).concat(v.tech ? [v.tech] : [])).sort().map((c) => [c, `${c} ${techName(c)}`.trim(), risksOfTech(c).length]);
     return K.page({ cls: "k3e", head: headOf(), tabs: tabs("risks"), body: [
-      K.chips([chip("open", "Open"), chip("noowner", "No owner"), chip("late", "Response past due"), chip("accept", "Acceptance requested")], "k3e.r.chip"),
-      K.toolbar({ search: { act: "k3e.r.q", value: v.q, placeholder: "Search risks" }, filters: [{ label: "Severity", act: "k3e.r.sev", value: v.sev, options: Object.keys(SEVW).map((k) => [k, SEVW[k]]) }] }),
-      v.tech ? K.note(`Showing the risks that name ${esc(v.tech)} ${esc(techName(v.tech))}. ${K.actLink("Show all", "k3e.r.tech", "")}`) : "",
-      K.table({ label: "Risks", cls: "k3e-list", cols: [{ label: "Risk" }, { label: "Severity" }, { label: "Response" }, { label: "Findings", cls: "nw" }, { label: "Techniques" }, { label: "Response due", cls: "nw" }, { label: "Owner" }],
-        rows: rows.map((r) => { const n = findingsOfRisk(r.id).length; return { panel: "k3e-risk", id: r.id, cells: [K.name(r.title, r.threat), sevPill(r.sev), esc(respWord(r)), n ? K.num(n) : NONE, r.tech.length ? `<span class="num k3e-mu">${esc(r.tech.slice(0, 2).map((t) => t[0]).join(", "))}${r.tech.length > 2 ? ` +${r.tech.length - 2}` : ""}</span>` : NONE, r.due ? `<span class="num${late(r) ? " k3e-late" : ""}">${esc(md(r.due))}</span>` : NONE, `<span class="k3e-own">${K.owner(r.owner)}</span>`] }; }),
-        empty: all.length ? { title: "No risk matches", line: "Clear the search, or choose Open." } : { title: "No risk yet", line: "A risk says what a finding could lead to, how likely and how bad, and what is done about it.", action: K.btn("Create risk", { sm: true, act: "k3e.r.new" }) }, foot: `<span class="num">${plural(rows.length, "risk")}</span>` })] });
+      K.chips([{ id: "", label: "Open", count: narrowed.length, on: v.chip === "open" }, chip("noowner", "No owner"), chip("late", "Response past due"), chip("accept", "Acceptance requested")], "k3e.r.chip", "State"),
+      K.toolbar({ id: "risks", noun: "risks", search: { act: "k3e.r.q", value: v.q, placeholder: "Search risks" },
+        filters: [{ label: "Severity", key: "severity", act: "k3e.r.sev", value: v.sev, options: Object.keys(SEVW).filter((k) => v.sev === k || all.some((r) => r.sev === k)).map((k) => [k, SEVW[k], all.filter((r) => r.sev === k).length]) }, techOpts.length ? { label: "Technique", key: "technique", act: "k3e.r.ftech", value: v.tech, options: techOpts } : null],
+        views: { total: all.length, count: (st) => askR({ sev: st.severity || "", tech: st.technique || "", q: st.q || "" }).filter(CHIPR[st.state] || CHIPR.open).length, seed: [{ name: "High, response past due", state: { state: "late", severity: "high" }, by: U.ISSM }] } }),
+      K.table({ label: "Risks", cols: RISKCOLS,
+        rows: rows.map((r) => { const n = findingsOfRisk(r.id).length; return { panel: "k3e-risk", id: r.id, cells: [U.nameT(r.title), sevPill(r.sev), esc(respWord(r)), n ? K.num(n) : NONE, r.tech.length ? `<span class="num k3e-mu">${esc(r.tech.slice(0, 2).map((t) => t[0]).join(", "))}${r.tech.length > 2 ? ` +${r.tech.length - 2}` : ""}</span>` : NONE, r.due ? `<span class="num${late(r) ? " k3e-late" : ""}">${esc(md(r.due))}</span>` : NONE, `<span class="k3e-own">${K.owner(r.owner)}</span>`] }; }),
+        empty: all.length ? { title: "No risk matches", line: "Clear the search and the filters." } : { title: "No risk yet", line: "A risk says what a finding could lead to, how likely and how bad, and what is done about it.", action: K.btn("Create risk", { sm: true, act: "k3e.r.new" }) }, foot: `<span class="num">${plural(rows.length, "risk")}</span>` })] });
   }
+  const techList = () => allTechs().map((t) => { const rs = risksOfTech(t.code); return Object.assign({ rs, worst: rs.map((r) => r.sev).sort((a, b) => (SEVN[b] || 0) - (SEVN[a] || 0))[0] || "" }, t); });
+  const askT = (v) => techList().filter((t) => (!v.tmx || t.matrix === v.tmx) && (!v.trs || (v.trs === "named") === t.rs.length > 0) && matchQ(v.tq, `${t.code} ${t.name} ${t.tactics}`));
   function threatsPage() {
-    const q = (view("rsk").tq || ""), L = allTechs().map((t) => { const rs = risksOfTech(t.code); return Object.assign({ rs, worst: rs.map((r) => r.sev).sort((a, b) => (SEVN[b] || 0) - (SEVN[a] || 0))[0] || "" }, t); }).filter((t) => matchQ(q, `${t.code} ${t.name} ${t.tactics}`)).sort((a, b) => (SEVN[b.worst] || 0) - (SEVN[a.worst] || 0) || b.rs.length - a.rs.length || a.code.localeCompare(b.code));
+    const v = Object.assign({ tq: "", tmx: "", trs: "" }, view("rsk")), base = techList();
+    const L = askT(v).sort((a, b) => (SEVN[b.worst] || 0) - (SEVN[a.worst] || 0) || b.rs.length - a.rs.length || a.code.localeCompare(b.code));
+    const named = base.filter((t) => t.rs.length).length;
     return K.page({ cls: "k3e", head: headOf(), tabs: tabs("threats"), body: [
-      K.toolbar({ search: { act: "k3e.r.tq", value: q, placeholder: "Search techniques" } }),
-      K.table({ label: "ATT&CK techniques", cols: [{ label: "ATT&CK technique" }, { label: "Matrix", cls: "nw" }, { label: "Risks", cls: "nw" }, { label: "Worst" }, { label: "Countering controls in the baseline", cls: "nw" }],
-        rows: L.map((t) => ({ panel: "k3e-tech", id: t.code, cells: [K.name(t.name, t.tactics, t.code), esc(t.matrix), t.rs.length ? K.num(t.rs.length) : NONE, t.worst ? sevPill(t.worst) : NONE, t.counter ? `<span class="num">${esc(t.counter)}</span>` : NONE] })),
-        empty: { title: wsx() ? "No technique matches" : "No technique named yet", line: wsx() ? "Clear the search." : "Link an ATT&CK technique on a risk's panel: it then lists here with its risks." }, foot: `<span class="num">${plural(L.length, "technique")}</span>` })] });
+      K.toolbar({ id: "techniques", noun: "techniques", search: { act: "k3e.r.tq", value: v.tq, placeholder: "Search techniques" },
+        filters: [{ label: "Matrix", key: "matrix", act: "k3e.r.tmx", value: v.tmx, options: uniq(base.map((t) => t.matrix).filter(Boolean)).sort().map((m) => [m, m, base.filter((t) => t.matrix === m).length]) }, { label: "Risks", key: "risks", act: "k3e.r.trs", value: v.trs, options: [["named", "Named by a risk", named], ["none", "Named by no risk", base.length - named]] }],
+        views: { total: base.length, count: (st) => askT({ tq: st.q || "", tmx: st.matrix || "", trs: st.risks || "" }).length, seed: [{ name: "Named by a risk", state: { risks: "named" }, by: U.ISSM }] } }),
+      K.table({ label: "ATT&CK techniques", cols: [{ label: "ATT&CK technique" }, { label: "Tactics" }, { label: "Matrix", cls: "nw" }, { label: "Risks", cls: "nw end" }, { label: "Worst", cls: "nw" }, { label: "Countering controls", cls: "nw" }],
+        rows: L.map((t) => ({ panel: "k3e-tech", id: t.code, cells: [K.name(t.name, "", t.code), t.tactics ? esc(t.tactics) : NONE, esc(t.matrix), t.rs.length ? K.num(t.rs.length) : NONE, t.worst ? sevPill(t.worst) : NONE, t.counter ? `<span class="num">${esc(t.counter)}</span>` : NONE] })),
+        empty: { title: wsx() && base.length ? "No technique matches" : "No technique named yet", line: wsx() && base.length ? "Clear the search and the filters." : "Link an ATT&CK technique on a risk's page: it then lists here with its risks." }, foot: `<span class="num">${plural(L.length, "technique")}</span>` })] });
   }
   V3.S(/^risks(-snapshots|-library)?$/, () => registerPage());
   K.screen("risks-threats", threatsPage, "risks");
+  // Each works with the value alone ("" clears), so a view can ask the list's whole question again.
   const rset = (patch) => { setView("rsk", patch); K.redraw(); };
-  K.on("k3e.r.chip", (id) => rset({ chip: id }));
-  K.on("k3e.r.q", (q) => rset({ q }));
-  K.on("k3e.r.tq", (tq) => rset({ tq }));
-  K.on("k3e.r.sev", (sev) => rset({ sev }));
+  K.on("k3e.r.chip", (id) => rset({ chip: id || "open" }));
+  K.on("k3e.r.q", (q) => rset({ q: q || "" }));
+  K.on("k3e.r.sev", (sev) => rset({ sev: sev || "" }));
+  K.on("k3e.r.ftech", (tech) => rset({ tech: tech || "" }));
+  K.on("k3e.r.tq", (tq) => rset({ tq: tq || "" }));
+  K.on("k3e.r.tmx", (tmx) => rset({ tmx: tmx || "" }));
+  K.on("k3e.r.trs", (trs) => rset({ trs: trs || "" }));
   K.on("k3e.r.tech", (tech) => { setView("rsk", { tech: tech || "", chip: "open" }); K.go("risks"); });
   K.on("k3e.r.new", () => U.riskForm(null));
 
@@ -736,36 +838,35 @@
     if (r.resp === "mitigate" && !fs.some(E.u.hasPlan)) return fs.length ? { text: "Its response is Mitigate, and none of its findings has a plan.", label: "Open the finding", go: U.recGo("k3e-finding", fs[0].id) } : { text: "Its response is Mitigate, and no finding with a plan stands behind it.", label: "Link findings", act: "k3e.r.fadd", arg: r.id };
     return null;
   }
-  const techRow = (r, c, n, page) => { const t = allTechs().find((x) => x.code === c) || {}, un = addedTech(r, c) ? K.btn("Unlink", { sm: true, quiet: true, act: "k3e.r.techrm", arg: { id: r.id, code: c } }) : ""; return { panel: "k3e-tech", id: c, cells: page ? [K.name(n, t.tactics || "", c), esc(t.matrix || ""), t.counter ? `<span class="num">${esc(t.counter)}</span>` : NONE, un] : [K.name(n, "", c), un] }; };
+  const TCOLS = [{ label: "Technique" }, { label: "Matrix", cls: "nw", peek: true }, { label: "Countering controls", cls: "nw" }, { label: "", cls: "tight" }];
+  const techRow = (r, c, n) => { const t = allTechs().find((x) => x.code === c) || {}, un = addedTech(r, c) ? K.btn("Unlink", { sm: true, quiet: true, act: "k3e.r.techrm", arg: { id: r.id, code: c } }) : ""; return { panel: "k3e-tech", id: c, cells: [K.name(n, "", c), esc(t.matrix || ""), t.counter ? `<span class="num">${esc(t.counter)}</span>` : NONE, un] }; };
+  const RFCOLS = [{ label: "Finding" }, { label: "Severity", peek: true }, { label: "Plan", cls: "nw", peek: true }, { label: "Owner" }];
   K.panel("k3e-risk", (raw, opt) => {
     const page = !!(opt && opt.page), id = String(raw || "").split("|")[0], r = riskById(id); if (!r) return null;
     const fs = findingsOfRisk(id), nx = nextOf(r), a = r.acc, due = get("rdue", {})[id] || r.due;
     const accSec = r.resp === "accept" || a ? K.section({ title: "Acceptance", actions: !a || a.state === "returned" ? K.btn("Request acceptance", { sm: true, act: "k3e.r.accreq", arg: id }) : "", body: a
-      ? [K.facts([["Why", esc(a.reason || "")], ["Until", a.until ? `<span class="num">${esc(mdy(a.until))}</span>` : NONE]]), K.table({ label: "Acceptance steps", cols: [{ label: "Step" }, { label: "", cls: "tight" }], rows: (CH.STEPS || []).map(([n, role, who]) => { const done = a.state === "accepted" || n < a.step, turn = a.state === "requested" && n === a.step; return { cells: [K.name(`${n}. ${role}`, who), done ? h.pill("ok", n === 3 ? "Accepted" : "Approved") : turn ? K.btn(`Record as ${who}`, { sm: true, act: "k3e.r.accstep", arg: id }) : a.state === "returned" && n === a.step ? h.pill("warn", "Sent back") : mu("Waits")] }; }) })]
+      ? [K.facts([["Why", esc(a.reason || "")], ["Until", a.until ? `<span class="num">${esc(mdy(a.until))}</span>` : NONE]]), K.table({ label: "Acceptance steps", cols: [{ label: "Step" }, { label: "Who" }, { label: "State", cls: "tight", peek: true }], rows: (CH.STEPS || []).map(([n, role, who]) => { const done = a.state === "accepted" || n < a.step, turn = a.state === "requested" && n === a.step; return { cells: [K.name(`${n}. ${role}`), U.ownCell(who), done ? h.pill("ok", n === 3 ? "Accepted" : "Approved") : turn ? K.btn(`Record as ${who}`, { sm: true, act: "k3e.r.accstep", arg: id }) : a.state === "returned" && n === a.step ? h.pill("warn", "Sent back") : mu("Waits")] }; }) })]
       : `<div class="k3-none-row"><span>Not requested yet</span>${K.actLink("Request acceptance", "k3e.r.accreq", id)}</div>` }) : "";
     const menu = K.menu("More", [{ label: "Edit assessment", act: "k3e.r.assess", arg: id }, { label: "Change response", act: "k3e.r.resp", arg: id }, { label: r.owner ? "Change owner" : "Assign owner", act: "k3e.r.owner", arg: id }], { sm: !page });
     const threat = r.threat ? K.section({ title: "Threat", body: `<p class="k3e-p">${esc(r.threat)}</p>` }) : "";
-    const fAdd = { label: "Link findings", act: "k3e.r.fadd", arg: id }, tAdd = { label: "Link technique", act: "k3e.r.techadd", arg: id };
+    // What the page lists, the preview lists: the findings behind it and the techniques it names, the same rows.
+    const fSec = K.related({ title: "Findings behind it", count: fs.length, add: { label: "Link findings", act: "k3e.r.fadd", arg: id }, cols: RFCOLS, rows: fs.slice().sort(U.sortF).map((f) => ({ panel: "k3e-finding", id: f.id, cells: [U.nameT(f.title), U.sevCol(f), U.planCell(f), U.ownCell(f.owner)] })), empty: "No finding is linked" });
+    const tSec = K.related({ title: "ATT&CK techniques", count: r.tech.length, add: { label: "Link technique", act: "k3e.r.techadd", arg: id }, cols: TCOLS, rows: r.tech.map(([c, n]) => techRow(r, c, n)), empty: "It names no technique yet" });
+    const body = (pg) => [U.stepLine(nx, pg), threat, accSec, fSec, tSec];
     const out = { label: "Risk", title: r.title, chip: sevPill(r.sev), actions: menu,
       facts: [["Assessment", `${esc(LVW[r.lik] || r.lik || "")} likelihood · ${esc(LVW[r.imp] || r.imp || "")} impact ${K.actLink("Edit", "k3e.r.assess", id)}`], ["Response", `${esc(respWord(r))} ${K.actLink("Change", "k3e.r.resp", id)}`], ["Owner", `${K.owner(r.owner)} ${K.actLink(r.owner ? "Change" : "Assign", "k3e.r.owner", id)}`], due ? ["Response due", `<span class="num${late(r) ? " k3e-late" : ""}">${esc(mdy(due))}</span>`] : null, r.created ? ["Created", `<span class="num">${esc(mdy(r.created))}</span>`] : null],
-      sections: [U.stepLine(nx, false), threat, accSec,
-        K.related({ title: "Findings behind it", count: fs.length, add: fAdd, cols: [{ label: "Finding" }, { label: "Plan", cls: "nw" }], rows: fs.map((f) => { const p = E.planOfFinding(f); return { panel: "k3e-finding", id: f.id, cells: [K.name(f.title, f.source), p ? (p.planned ? `<span class="num">${esc(md(p.planned))}</span>` : mu("No date")) : mu("No plan")] }; }), empty: "No finding is linked" }),
-        K.related({ title: "ATT&CK techniques", count: r.tech.length, add: tAdd, cols: [{ label: "Technique" }, { label: "", cls: "tight" }], rows: r.tech.map(([c, n]) => techRow(r, c, n, false)), empty: "It names no technique yet" })] };
+      sections: body(false) };
     if (!page) return out;
-    // The page: the findings behind it in the list's own columns, the techniques with what counters them.
     const short = U.clip(r.title, 64);
-    return Object.assign(out, { title: short, sub: short !== r.title ? esc(r.title) : "", crumbs: [["Risks", "risks"], [U.clip(r.title, 40)]], actions: menu + U.stepBtn(nx, true),
-      sections: [U.stepLine(nx, true), threat, accSec,
-        K.related({ title: "Findings behind it", count: fs.length, add: fAdd, cols: [{ label: "Finding" }, { label: "Severity or determination" }, { label: "Plan", cls: "nw" }, { label: "Owner" }], rows: fs.slice().sort(U.sortF).map((f) => ({ panel: "k3e-finding", id: f.id, cells: [K.name(f.title, [f.source, U.whereOf(f)].filter(Boolean).join(" · ")), U.sevCell(f), U.planCell(f), K.owner(f.owner)] })), empty: "No finding is linked" }),
-        K.related({ title: "ATT&CK techniques", count: r.tech.length, add: tAdd, cols: [{ label: "Technique" }, { label: "Matrix", cls: "nw" }, { label: "Countering controls in the baseline", cls: "nw" }, { label: "", cls: "tight" }], rows: r.tech.map(([c, n]) => techRow(r, c, n, true)), empty: "It names no technique yet" })] });
+    return Object.assign(out, { title: short, sub: short !== r.title ? esc(r.title) : "", crumbs: [["Risks", "risks"], [U.clip(r.title, 40)]], actions: menu + U.stepBtn(nx, true), sections: body(true) });
   });
   K.panel("k3e-tech", (code, opt) => {
     const page = !!(opt && opt.page), t = allTechs().find((x) => x.code === code); if (!t) return null;
     const rs = risksOfTech(code), cc = counterOf(code), link = { label: "Link to a risk", act: "k3e.t.link", arg: code };
-    const ccRow = (c) => { const st = inBaseline(c) ? V3.fact("status", c) : null, cells = [K.name(U.ctlTitle(c) || c, "", U.ctlTitle(c) ? c : ""), inBaseline(c) ? "In the baseline" : mu("Not selected")].concat(page ? [st ? U.detPill(st) : NONE] : []); return U.ctlRoute(c) ? { panel: "k3c-control", id: c, cells } : { cells }; };
+    const ccRow = (c) => { const st = inBaseline(c) ? V3.fact("status", c) : null, cells = [K.name(U.ctlTitle(c) || c, "", U.ctlTitle(c) ? c : ""), inBaseline(c) ? "In the baseline" : mu("Not selected"), st ? U.detPill(st) : NONE]; return U.ctlRoute(c) ? { panel: "k3c-control", id: c, cells } : { cells }; };
     const out = { label: "ATT&CK technique", title: t.name, code, chip: K.tagged(t.matrix), facts: [["Tactics", t.tactics ? esc(t.tactics) : NONE], ["Printed in", esc(t.matrix === "ICS" ? "NIST SP 800-160 Vol. 2, Appendix G" : "NIST SP 800-160 Vol. 2, Appendix F")], page ? ["Risks", rs.length ? K.actLink(plural(rs.length, "risk"), "k3e.r.tech", code) : mu("None")] : null],
-      sections: [K.related({ title: "Risks that name it", count: rs.length, add: page ? null : link, cols: page ? [{ label: "Risk" }, { label: "Severity" }, { label: "Response" }, { label: "Owner" }] : [{ label: "Risk" }, { label: "Owner" }], rows: rs.map((r) => (page ? { panel: "k3e-risk", id: r.id, cells: [K.name(r.title, r.threat), sevPill(r.sev), esc(respWord(r)), K.owner(r.owner)] } : U.riskRow(r))), empty: "No risk names it yet" }),
-        K.related({ title: "Countering controls", count: cc.length, cols: [{ label: "Control" }, { label: "Baseline", cls: "nw" }].concat(page ? [{ label: "Status", cls: "nw" }] : []), rows: cc.map(ccRow), empty: "The appendix prints no control against it" })] };
+      sections: [K.related({ title: "Risks that name it", count: rs.length, add: page ? null : link, cols: U.RCOLS, rows: rs.map((r) => U.riskRow(r)), empty: "No risk names it yet" }),
+        K.related({ title: "Countering controls", count: cc.length, cols: [{ label: "Control" }, { label: "Baseline", cls: "nw", peek: true }, { label: "Status", cls: "nw", peek: true }], rows: cc.map(ccRow), empty: "The appendix prints no control against it" })] };
     return page ? Object.assign(out, { crumbs: [["Risks", "risks"], ["Threats", "risks-threats"], [code]], actions: K.btn(link.label, { primary: true, act: link.act, arg: link.arg, icon: "plus" }) }) : out;
   });
   V3.P("a-risk-risk", (orig, id) => { const rid = String(id || "").split("|")[0]; return riskById(rid) ? P["k3e-risk"](rid) : orig(); });
@@ -792,7 +893,7 @@
     const out = [], F = E.findings(), poam = F.filter(E.CHIPF.poam), plate = poam.filter((f) => (E.planOfFinding(f) || {}).late).length, R = E.rsk ? E.rsk.risks() : [], noOwn = R.filter((r) => !r.owner).length;
     if (wsx()) { const st = CH.ssp3 ? CH.ssp3() : "draft"; out.push({ part: "System security plan", holds: "Revision 3, Increment 2", state: st === "approved" ? "Approved" : st === "submitted" ? "In review" : st === "changes" ? "Changes requested" : "A draft", ready: st === "approved", go: "ssp", open: "Open the SSP" }); }
     const A = E.asm ? E.asm.assessments().filter((a) => a.kind === "control") : [], drafts = A.filter((a) => E.asm.toPublish(a) > 0);
-    out.push({ part: "Security assessment report", holds: A.length ? `${plural(A.length, "control assessment")}` : "No assessment yet", state: !A.length ? "Nothing to report" : drafts.length ? `${plural(drafts.length, "assessment")} with results in draft` : "Every result published", ready: !!A.length && !drafts.length, go: drafts.length === 1 ? drafts[0].route + "--results" : "assessments", act: drafts.length > 1 ? ["asm", { att: "publish" }] : null, open: drafts.length ? "Open the results" : "Open Assessments" });
+    out.push({ part: "Security assessment report", holds: A.length ? `${plural(A.length, "control assessment")}` : "No assessment yet", state: !A.length ? "Nothing to report" : drafts.length ? `${plural(drafts.length, "assessment")} with results in draft` : "Every result published", ready: !!A.length && !drafts.length, go: drafts.length === 1 ? drafts[0].route + "--results" : "assessments", act: drafts.length > 1 ? ["asm", { att: "publish" }] : null, open: drafts.length ? "Open the results" : "Open Assessments", peek: drafts.length === 1 ? { panel: "k3e-asm", id: drafts[0].id } : null });
     out.push({ part: "Plan of action and milestones", holds: `${plural(poam.length, "finding")} with a plan`, state: !poam.length ? "No finding has a plan" : plate ? `${plural(plate, "plan")} past the planned date` : "Every plan on its date", ready: !!poam.length && !plate, go: "findings-poam", open: "Open the POA&M" });
     out.push({ part: "Risk assessment", holds: `${plural(R.length, "open risk")}`, state: !R.length ? "No risk recorded" : noOwn ? `${plural(noOwn, "risk")} without an owner` : "Every risk owned", ready: !!R.length && !noOwn, go: "risks", act: noOwn ? ["rsk", { chip: "noowner" }] : null, open: "Open the risks" });
     return out;
@@ -808,31 +909,32 @@
   function tabPackage() {
     const L = parts(), ready = L.filter((x) => x.ready).length, f = inForce(), next = auths().find((a) => !a.decided), first = L.find((x) => !x.ready);
     return K.aside([first ? K.next({ text: `${fmt(ready)} of ${fmt(L.length)} parts are ready. ${esc(first.part)}: ${esc(first.state.toLowerCase())}.`, action: first.act ? K.btn(first.open, { sm: true, primary: true, act: "k3e.z.open", arg: { go: first.go, set: first.act } }) : K.btn(first.open, { sm: true, primary: true, go: first.go }) }) : K.next({ text: "Every part is ready for the authorizing official.", action: next ? K.btn("Record decision", { sm: true, primary: true, act: "k3e.z.decide", arg: next.id }) : "" }),
-      K.section({ title: "What the package holds", count: L.length, body: K.table({ label: "Package", cols: [{ label: "Part" }, { label: "State" }, { label: "", cls: "tight" }], rows: L.map((x) => Object.assign(x.act ? { act: "k3e.z.open", arg: { go: x.go, set: x.act } } : { go: x.go }, { cells: [K.name(x.part, x.holds), `${h.pill(x.ready ? "ok" : "warn", x.ready ? "Ready" : "Not ready")} ${mu(esc(x.state))}`, ""] })) }) })],
+      K.section({ title: "What the package holds", count: L.length, body: K.table({ label: "Package", cols: [{ label: "Part" }, { label: "Holds" }, { label: "Ready", cls: "nw" }, { label: "State" }], rows: L.map((x) => Object.assign(x.act ? { act: "k3e.z.open", arg: { go: x.go, set: x.act } } : { go: x.go }, x.peek && !x.act ? { peek: x.peek } : {}, { cells: [K.name(x.part), esc(x.holds), h.pill(x.ready ? "ok" : "warn", x.ready ? "Ready" : "Not ready"), mu(esc(x.state))] })) }) })],
     [K.details("Decision in force", f ? [["Decision", esc(f.type)], ["Signed", `<span class="num">${esc(mdy(f.decided))}</span>`], ["By", K.owner(f.by || AO)], ["Ends", f.atd ? `<span class="num">${esc(mdy(f.atd))}</span>` : NONE], ["Covers", esc(f.scope || "")], ["Conditions", openConds().length ? K.link(`${fmt(openConds().length)} open`, route("conditions")) : mu("None open")]] : [["Decision", mu("None yet")], next ? ["Planned", `${esc(next.type)}${next.planned ? ` · <span class="num">${esc(mdy(next.planned))}</span>` : ""}`] : null])]);
   }
   function tabDecisions() {
     const L = auths().slice().sort((a, b) => String(b.decided || b.planned || "").localeCompare(String(a.decided || a.planned || "")));
-    return [K.table({ label: "Decisions", cols: [{ label: "Decision" }, { label: "State" }, { label: "Decided or planned", cls: "nw" }, { label: "Authorizing official" }, { label: "Ends", cls: "nw" }, { label: "", cls: "tight" }],
-      rows: L.map((a) => Object.assign({}, { cells: [K.name(a.type, `${a.inc ? `Increment ${a.inc} · ` : ""}${a.scope || ""}`), a.decided ? h.pill(/condition/i.test(a.type) ? "warn" : /DATO|Not approved/.test(a.type) ? "bad" : "ok", (a.conditions || []).length ? `Decided · ${plural(a.conditions.length, "condition")}` : "Decided") : h.pill("none", "Planned"), a.decided ? `<span class="num">${esc(mdy(a.decided))}</span>` : a.planned ? `<span class="num">${esc(mdy(a.planned))}</span>` : NONE, a.by ? `<span class="k3e-own">${K.owner(a.by)}</span>` : mu(AO), a.atd ? `<span class="num">${esc(mdy(a.atd))}</span>` : NONE, a.decided ? "" : K.btn("Record decision", { sm: true, act: "k3e.z.decide", arg: a.id })] })),
+    return [K.table({ label: "Decisions", cols: [{ label: "Decision", cls: "nw" }, { label: "Covers", cls: "main" }, { label: "State", cls: "nw" }, { label: "Decided or planned", cls: "nw" }, { label: "Ends", cls: "nw" }, { label: "", cls: "tight" }],
+      rows: L.map((a) => Object.assign({}, { cells: [K.name(a.type), a.scope ? `<span title="${esc(a.scope)}">${esc(a.scope)}</span>` : a.inc ? esc(`Increment ${a.inc}`) : NONE, a.decided ? h.pill(/condition/i.test(a.type) ? "warn" : /DATO|Not approved/.test(a.type) ? "bad" : "ok", (a.conditions || []).length ? `Decided · ${plural(a.conditions.length, "condition")}` : "Decided") : h.pill("none", "Planned"), a.decided ? `<span class="num">${esc(mdy(a.decided))}</span>` : a.planned ? `<span class="num">${esc(mdy(a.planned))}</span>` : NONE, a.atd ? `<span class="num">${esc(mdy(a.atd))}</span>` : NONE, a.decided ? "" : K.btn("Record decision", { sm: true, act: "k3e.z.decide", arg: a.id })] })),
       empty: { title: "No decision yet", line: "An interim authorization to test or an authorization to operate is recorded here when the authorizing official signs.", action: K.btn("Record decision", { sm: true, act: "k3e.z.decide", arg: "" }) }, foot: `<span class="num">${plural(L.length, "decision")}</span>` })];
   }
   function tabConditions() {
     const L = conds().slice().sort((a, b) => (a.closed ? 1 : 0) - (b.closed ? 1 : 0) || String(a.due || "").localeCompare(String(b.due || "")));
     const nameOf = (c) => { const a = auths().find((x) => x.id === c.step); return a ? a.type : c.step || ""; };
-    return [K.table({ label: "Conditions", cols: [{ label: "Condition" }, { label: "Owner" }, { label: "Due", cls: "nw" }, { label: "State" }, { label: "", cls: "tight" }],
-      rows: L.map((c) => ({ cells: [K.name(c.t, [nameOf(c), c.closed ? "" : c.progress].filter(Boolean).join(" · ")), `<span class="k3e-own">${K.owner(c.owner)}</span>`, c.due ? `<span class="num${!c.closed && c.due < TODAY ? " k3e-late" : ""}">${esc(md(c.due))}</span>` : NONE, c.closed ? `${h.pill("ok", "Closed")} ${mu(esc(md(c.closed)))}` : h.pill("none", "Open"), c.closed ? "" : K.btn("Close", { sm: true, act: "k3e.z.close", arg: c.id })] })),
+    const several = new Set(L.map((c) => c.step)).size > 1, pick = (a) => a.filter((x, i) => several || i !== 1);
+    return [K.table({ label: "Conditions", cols: pick([{ label: "Condition" }, { label: "Decision", cls: "nw" }, { label: "Progress" }, { label: "Owner" }, { label: "Due", cls: "nw" }, { label: "State", cls: "nw" }, { label: "", cls: "tight" }]),
+      rows: L.map((c) => ({ cells: pick([U.nameT(c.t), nameOf(c) ? esc(nameOf(c)) : NONE, !c.closed && c.progress ? esc(c.progress) : NONE, `<span class="k3e-own">${K.owner(c.owner)}</span>`, c.due ? `<span class="num${!c.closed && c.due < TODAY ? " k3e-late" : ""}">${esc(md(c.due))}</span>` : NONE, c.closed ? `${h.pill("ok", "Closed")} ${mu(esc(md(c.closed)))}` : h.pill("none", "Open"), c.closed ? "" : K.btn("Close", { sm: true, act: "k3e.z.close", arg: c.id })]) })),
       empty: { title: "No condition", line: "A decision with conditions lists each here with its owner and its due day." }, foot: `<span class="num">${plural(openConds().length, "open condition")} of ${fmt(L.length)}</span>` })];
   }
   function tabMonitoring() {
     const checks = E.asm ? E.asm.assessments().filter((a) => a.kind === "check") : [], scn = get("scn", []), f = inForce();
-    return [K.related({ title: "What ongoing authorization owes", count: checks.length, cols: [{ label: "Report or check" }, { label: "Cadence", cls: "nw" }, { label: "Next", cls: "nw" }, { label: "State" }], rows: checks.map((a) => ({ go: a.route, cells: [K.name(a.name, a.covers && a.covers.length ? a.covers.join(", ") : ""), esc(a.cadence), a.due ? `<span class="num${a.status === "Overdue" ? " k3e-late" : ""}">${esc(md(a.due))}</span>` : NONE, h.pill(a.status === "Overdue" ? "bad" : a.status === "Due soon" ? "warn" : "ok", a.status)] })), empty: f ? "No monitoring check is planned yet: plan them on Assessments" : "Monitoring starts with the first decision" }),
+    return [K.related({ title: "What ongoing authorization owes", count: checks.length, cols: [{ label: "Report or check" }, { label: "Covers", cls: "nw" }, { label: "Cadence", cls: "nw" }, { label: "Next", cls: "nw" }, { label: "State", cls: "nw", peek: true }], rows: checks.map((a) => ({ panel: "k3e-asm", id: a.id, cells: [K.name(a.name), a.covers && a.covers.length ? `<span class="num">${esc(a.covers.slice(0, 2).join(", "))}</span>${a.covers.length > 2 ? mu(` +${a.covers.length - 2}`) : ""}` : NONE, esc(a.cadence), a.due ? `<span class="num${a.status === "Overdue" ? " k3e-late" : ""}">${esc(md(a.due))}</span>` : NONE, h.pill(a.status === "Overdue" ? "bad" : a.status === "Due soon" ? "warn" : "ok", a.status)] })), empty: f ? "No monitoring check is planned yet: plan them on Assessments" : "Monitoring starts with the first decision" }),
       K.related({ title: "Significant changes", count: scn.length, add: { label: "Report a change", act: "k3e.z.scn" }, cols: [{ label: "Change" }, { label: "Reported", cls: "nw" }, { label: "Effect on the authorization" }], rows: scn.map((x) => ({ cells: [K.name(x.what, x.by), `<span class="num">${esc(md(x.at))}</span>`, h.pill(x.effect === "Reauthorization" ? "bad" : x.effect === "AO review" ? "warn" : "none", x.effect)] })), empty: "No significant change reported since the decision" })];
   }
   function tabSharing() {
     const L = recipients();
-    return [K.toolbar({ right: K.btn("Share with a person", { sm: true, act: "k3e.z.share", icon: "plus" }) }),
-      K.table({ label: "Who can open the package", cols: [{ label: "Recipient" }, { label: "Can open" }, { label: "Until", cls: "nw" }, { label: "Last opened", cls: "nw" }, { label: "", cls: "tight" }], rows: L.map((r) => ({ cells: [K.name(r.name, r.role), esc(r.can), r.mine ? `<span class="num">${esc(mdy(r.expires))}</span>` : esc(r.expires), esc(r.opened), r.mine ? K.btn("Remove", { sm: true, quiet: true, act: "k3e.z.unshare", arg: r.id }) : ""] })),
+    return [K.toolbar({ views: false, right: K.btn("Share with a person", { sm: true, act: "k3e.z.share", icon: "plus" }) }),
+      K.table({ label: "Who can open the package", cols: [{ label: "Recipient" }, { label: "Role" }, { label: "Can open" }, { label: "Until", cls: "nw" }, { label: "Last opened", cls: "nw" }, { label: "", cls: "tight" }], rows: L.map((r) => ({ cells: [K.name(r.name), r.role ? esc(r.role) : NONE, esc(r.can), r.mine ? `<span class="num">${esc(mdy(r.expires))}</span>` : esc(r.expires), esc(r.opened), r.mine ? K.btn("Remove", { sm: true, quiet: true, act: "k3e.z.unshare", arg: r.id }) : ""] })),
         empty: { title: "Nobody outside the team can open it", line: "Share the package with the people who review and sign it. Every open is watermarked and logged.", action: K.btn("Share with a person", { sm: true, act: "k3e.z.share" }) }, foot: `<span class="num">${plural(L.length, "recipient")}</span>` })];
   }
   function page(tab) { const hd = head(tab); return K.page({ cls: "k3e", head: hd.head, tabs: hd.tabs, body: tab === "decisions" ? tabDecisions() : tab === "conditions" ? tabConditions() : tab === "monitoring" ? tabMonitoring() : tab === "sharing" ? tabSharing() : tabPackage() }); }

@@ -16,11 +16,18 @@
 //   k3s-comp (a component named on another page; its Open goes to its page). With V3 on, the old previews v7p-el, sys-el and
 //   v2h-prov draw k3s-comp, and v8b-ic draws k3s-conn.
 // Opening exactly some records (set, then go):
-//   K.set("sys.view", { rail: "" | "<subsystem code>", q: "", att: "" | "behind" })  → system   (rail host | provider | connected
-//     still opens its tab);  K.set("sys.oview", { provider: { q, att: "" | "noauth" }, connected: { q } })  → system-providers, system-connected
-//   K.set("sys.cview", { q: "", f: "" | "noagr" | "inside" | "cross" })                                                          → system-connections
-//   K.set("sys.tab", { ["<componentCode>:<tab>"]: { fam: "", q: "", f: "" } })   one tab of a component, then go component--<code>--<tab>
-//     (f: controls "nowritten|inherited|hybrid"; requirements "noev"; connections "noagr"; offered "inh|hyb|back"; software and findings: a kind)
+//   K.set("sys.view", { rail: "" | "<subsystem code>", kind: "" | "<kind>", att: "" | "behind" | "current", q: "" })  → system
+//     (rail host | provider | connected still opens its tab);  K.set("sys.oview", { provider: { q, kind, att: "" | "noauth" | "auth" },
+//     connected: { q, agr: "" | "unsigned" | "soon" | "signed" } })  → system-providers, system-connected
+//   K.set("sys.cview", { q: "", b: "" | "cross" | "inside", agr: "" | "noagr" | "signed", ppsm: "" | "<a PPSM state>" })  → system-connections
+//     (the older { q, f: "noagr" | "inside" | "cross" } is still read)
+//   K.set("sys.tab", { ["<componentCode>:<tab>"]: { fam: "", q: "", f: "", s: "" } })   one tab of a component, then go component--<code>--<tab>
+//     (controls: f "nowritten|written", s a status; requirements: f "noev|ev"; connections: f "noagr|signed"; offered: f "inh|hyb|back";
+//     software: f a kind, s "open|fixed|none" for its CVE; findings: f a source, s a severity)
+// Pass 3: every list has one row (K.toolbar): each part of the states above is a filter in it, the four System tabs and a
+//   component's Controls, Requirements and Findings keep saved views (ids system, system-providers, system-connected,
+//   system-connections, component-controls, component-requirements, component-findings), every cell is one line, and the
+//   previews of a component and a connection list what their pages list.
 // Session data (K.get/K.set under "sys." for WS-X90, "p.<program>.sys." for any other program; Reset clears it). Nothing is seeded:
 //   added [component], edits { code: changes }, removed [code]; items [{ id, comp, … }], itemEdits { id: changes }, itemsRm [id];
 //   placed [[comp, ctl]], unplaced [[comp, ctl]]; impl { "ctl@comp": { status, text } } (only without lane C);
@@ -333,17 +340,22 @@
   // ════════════════ System: the lists ════════════════
   // Four tabs under System, each a kind of record it lists: the components inside the boundary, the host and providers, the
   // systems it connects to, and the connections. A subsystem is a filter of the first tab. Nothing runs down the side.
-  const view = () => Object.assign({ rail: "", q: "", att: "" }, K.get("sys.view", {}));
+  const view = () => Object.assign({ rail: "", q: "", att: "", kind: "" }, K.get("sys.view", {}));
   const setView = (p) => K.set("sys.view", Object.assign({}, view(), p));
-  const oview = (k) => Object.assign({ q: "", att: "" }, (K.get("sys.oview", {}) || {})[k] || {});
+  const oview = (k) => Object.assign({ q: "", att: "", kind: "", agr: "" }, (K.get("sys.oview", {}) || {})[k] || {});
   const setO = (k, p) => K.set("sys.oview", Object.assign({}, K.get("sys.oview", {}) || {}, { [k]: Object.assign({}, oview(k), p) }));
   const OUT = { host: "provider", provider: "provider", connected: "connected" }, OROUTE = { provider: "system-providers", connected: "system-connected" };
   const tabNow = () => { const r = V.cur(); return r === "system-providers" ? "provider" : r === "system-connected" ? "connected" : "components"; };
-  K.on("k3s.sub", (id) => { setView({ rail: id || "", att: "" }); K.redraw(); });
-  K.on("k3s.rail", (id) => { if (OUT[id]) { K.go(OROUTE[OUT[id]]); return; } setView({ rail: id || "", att: "" }); K.go("system"); });
+  // Every part of a list's question is one control of its row and works alone, so a saved view can set them one by one.
+  K.on("k3s.sub", (id) => { setView({ rail: id || "" }); K.redraw(); });
+  K.on("k3s.kind", (id) => { const t = tabNow(); if (t === "components") setView({ kind: id || "" }); else setO(t, { kind: id || "" }); K.redraw(); });
+  K.on("k3s.lib", (id) => { setView({ att: id || "" }); K.redraw(); });
+  K.on("k3s.oauth", (id) => { setO("provider", { att: id || "" }); K.redraw(); });
+  K.on("k3s.oagr", (id) => { setO("connected", { agr: id || "" }); K.redraw(); });
+  K.on("k3s.rail", (id) => { if (OUT[id]) { K.go(OROUTE[OUT[id]]); return; } setView({ rail: id || "", att: "", kind: "" }); K.go("system"); });
   K.on("k3s.q", (v) => { const t = tabNow(); if (t === "components") setView({ q: v }); else setO(t, { q: v }); K.redraw(); });
-  K.on("k3s.att", (id) => { if (id === "noauth") { setO("provider", { att: V.cur() === "system-providers" && oview("provider").att === id ? "" : id, q: "" }); K.go("system-providers"); return; } setView({ att: V.cur() === "system" && view().att === id ? "" : id, rail: "", q: "" }); K.go("system"); });
-  K.on("k3s.attc", (id) => { K.set("sys.cview", { q: "", f: id }); K.go("system-connections"); });
+  K.on("k3s.att", (id) => { if (id === "noauth") { setO("provider", { att: V.cur() === "system-providers" && oview("provider").att === id ? "" : id, q: "", kind: "" }); K.go("system-providers"); return; } setView({ att: V.cur() === "system" && view().att === id ? "" : id, rail: "", q: "", kind: "" }); K.go("system"); });
+  K.on("k3s.attc", (id) => { K.set("sys.cview", { q: "", b: id === "noagr" ? "" : id || "", agr: id === "noagr" ? "noagr" : "", ppsm: "" }); K.go("system-connections"); });
   const authInForce = () => { const l = (D.wsx() && V3.fact("authorizations")) || []; const done = l.filter((a) => a.decided); return done.length ? done[done.length - 1] : null; };
   const counts = () => D.S0.memo("sysCounts", () => {
     const ins = D.inside(), out = D.components().filter((c) => c.boundary !== "inside");
@@ -352,58 +364,100 @@
   });
   const sysTabs = (on) => { const c = counts(); return K.tabs([{ label: "Components", count: c.inside, route: "system", on: on === "components" }, { label: "Host and providers", count: c.host + c.provider, route: "system-providers", on: on === "provider" }, { label: "Connected systems", count: c.connected, route: "system-connected", on: on === "connected" }, { label: "Connections", count: c.conns, route: "system-connections", on: on === "connections" }], "System"); };
   const primaryFor = (tab, sub) => (tab === "connections" ? K.btn("Add connection", { primary: true, act: "k3s.addConn", arg: "", icon: "plus" }) : tab === "provider" ? K.btn("Add provider", { primary: true, act: "k3s.addProvider", icon: "plus" }) : tab === "connected" ? K.btn("Add connected system", { primary: true, act: "k3s.addExt", icon: "plus" }) : K.btn("Add component", { primary: true, act: "k3s.addComp", arg: sub && !OUT[sub] ? sub : "", icon: "plus" }));
-  const sysHead = (sub, tab) => K.head({ title: "System", code: D.wsx() ? SSP.system && SSP.system.code : V3.prog(), actions: K.menu("More", [{ label: "Export components", act: "k3s.export" }, { label: "Export connections", act: "k3s.exportConns" }, D.wsx() && PA.S.ssp ? { label: "System security plan, section 5", go: "ssp" } : null]) + primaryFor(tab, sub) });
+  const sysActions = (tab, sub) => K.menu("More", [{ label: "Export components", act: "k3s.export" }, { label: "Export connections", act: "k3s.exportConns" }, D.wsx() && PA.S.ssp ? { label: "System security plan, section 5", go: "ssp" } : null]) + primaryFor(tab, sub);
+  const sysHead = (sub, tab, bare) => K.head({ title: "System", code: D.wsx() ? SSP.system && SSP.system.code : V3.prog(), actions: bare ? "" : sysActions(tab, sub) });
   const authCard = () => {
     const a = authInForce(), c = counts();
     if (!a) return `<section class="k3-card k3s-auth"><h2 class="k3-card-t">Authorization</h2><p class="k3s-auth-w">Not authorized yet</p><p class="k3-muted">${plural(c.inside, "component")} inside the boundary.</p></section>`;
     return `<section class="k3-card k3s-auth"><h2 class="k3-card-t">Authorization in force</h2><p class="k3s-auth-w">${K.link(a.type, "authorization")}<span class="k3-muted num">until ${esc(mdy(a.atd))}</span></p><p class="k3-muted">${esc(a.scope)}</p><div class="k3s-auth-f">${K.link(`${plural(c.inside, "component")} in the boundary`, "system-boundary")}${a.conditions && a.conditions.length ? `<span class="k3-muted num">${plural(a.conditions.length, "condition")}</span>` : ""}</div></section>`;
   };
   const attCard = () => { const c = counts(); return K.attention({ rows: [{ label: "Behind its library version", n: c.behind, act: "k3s.att", arg: "behind" }, { label: "Provider with no authorization", n: c.noauth, act: "k3s.att", arg: "noauth" }, { label: "Connections without an agreement", n: c.noagr, act: "k3s.attc", arg: "noagr" }] }); };
+  // ——— Rows: every cell is one line. A code, a unit number and a day each have their column; a state is a pill. ———
+  const NONE = '<span class="k3-none">—</span>', BY = "Priya Raghavan";
+  const codeCell = (code) => (code ? `<span class="k3-code">${esc(code)}</span>` : NONE);
+  // Several names on one line: the first, then how many more.
+  const firstN = (list, n) => { const k = n || 1; return list.length > k ? `<span class="k3s-fn"><span>${list.slice(0, k).join(", ")}</span>${mu("+" + (list.length - k))}</span>` : list.join(", ") || NONE; };
+  const daysTo = (d) => Math.round((Date.parse(d) - Date.parse(TODAY)) / 864e5);
+  const libCell = (c) => { const lib = D.libOf(c); return !lib ? NONE : lib.behind ? pill("warn", `${plural(lib.behind, "version")} behind`) : `<span class="num">Version ${fmt(lib.v)}</span>`; };
+  const insideCols = [{ label: "Component" }, { label: "Code", cls: "nw" }, { label: "Unit", cls: "nw k3s-opt" }, { label: "Kind", cls: "nw" }, { label: "Library", cls: "nw" }, { label: "Software & firmware", cls: "nw" }, { label: "Controls", cls: "nw end" }, { label: "Requirements", cls: "nw end" }, { label: "Findings", cls: "nw end" }, { label: "Owner", cls: "nw" }];
   const insideRow = (c, depth) => {
-    const cont = D.isContainer(c), lib = D.libOf(c), f = D.findingsOf(c.code).length;
-    const desc = [c.code, c.root ? "the system as a whole" : cont ? plural(D.below(c.code).length, "component") : c.unit, lib && lib.behind ? `${plural(lib.behind, "version")} behind` : ""].filter(Boolean).join(" · ");
-    return { go: route(c.code), peek: { panel: "k3s-comp", id: c.code }, cells: [depth > 0 ? `<span class="k3s-ind" style="--d:${Math.min(depth, 3)}">${K.name(c.name, desc, "")}</span>` : K.name(c.name, desc, ""), esc(c.kind), cont ? mu(plural([c.code].concat(D.below(c.code)).reduce((n, k) => n + D.itemsOf(k).filter((x) => x.kind !== "Hardware").length, 0), "item")) : D.swLine(c.code) || '<span class="k3-none">—</span>', K.num(D.controlsOf(c.code).length), K.num(D.requirementsOf(c.code).length), f ? K.num(f) : '<span class="k3-none">—</span>', D.ownerOf(c.code) ? K.owner(D.ownerOf(c.code)) : '<span class="k3-none">—</span>'] };
+    const cont = D.isContainer(c), f = D.findingsOf(c.code).length, own = D.ownerOf(c.code), nm = K.name(c.name, "", "");
+    const sw = cont ? [c.code].concat(D.below(c.code)).reduce((n, k) => n + D.itemsOf(k).filter((x) => x.kind !== "Hardware").length, 0) : 0;
+    return { go: route(c.code), peek: { panel: "k3s-comp", id: c.code }, cells: [depth > 0 ? `<span class="k3s-ind" style="--d:${Math.min(depth, 3)}">${nm}</span>` : nm, codeCell(c.code), c.unit ? `<span class="num">${esc(c.unit)}</span>` : NONE, esc(c.kind), libCell(c), cont ? `<span class="num">${plural(sw, "item")}</span>` : D.swLine(c.code) || NONE, K.num(D.controlsOf(c.code).length), K.num(D.requirementsOf(c.code).length), f ? K.num(f) : NONE, own ? K.owner(own) : NONE] };
   };
+  // An agreement is a state on one line; the day it expires stands in its own column.
+  const agrPill = (x) => { const a = x.agr || {}, st = D.agrState(x.agr), k = a.kind || "Agreement"; return !D.needsAgr(x) || st === "notneeded" ? mu("Not needed") : st === "signed" ? pill("ok", `${k} signed`) : st === "expired" ? pill("bad", `${k} expired`) : st === "draft" ? pill("warn", `${k} in draft`) : pill("warn", "No agreement"); };
+  const agrExp = (x) => { const a = x.agr; return a && a.exp && D.needsAgr(x) && D.agrState(a) !== "notneeded" ? esc(mdy(a.exp)) : NONE; };
+  // The agreement that stands for a connected system: the one in the worst state among its connections.
+  const agrOf = (c) => { const rank = { expired: 0, none: 1, draft: 2, signed: 3, notneeded: 4 }, xs = D.connsOf(c.code).filter(D.needsAgr).sort((a, b) => rank[D.agrState(a.agr)] - rank[D.agrState(b.agr)]), x = xs[0] || null, st = x ? D.agrState(x.agr) : ""; return { x, st, soon: st === "signed" && !!x.agr.exp && daysTo(x.agr.exp) <= 90 }; };
+  const provCols = [{ label: "System" }, { label: "Organization", cls: "nw k3s-opt" }, { label: "Kind", cls: "nw" }, { label: "Authorization", cls: "nw" }, { label: "Expires", cls: "nw" }, { label: "Inherited", cls: "nw end" }, { label: "Hybrid", cls: "nw end" }, { label: "Connections", cls: "nw end" }, { label: "Authorizing official", cls: "nw" }];
+  const connectedCols = [{ label: "Connected system" }, { label: "Organization", cls: "nw" }, { label: "Agreement", cls: "nw" }, { label: "Expires", cls: "nw" }, { label: "Connections", cls: "nw end" }, { label: "Authorizing official", cls: "nw" }];
+  const authd = (c) => { const a = D.provAuth(c.code); return !!a && a.word === "Authorized"; };
   const outsideRow = (c) => {
-    const a = D.provAuth(c.code), n = D.connsOf(c.code).length, ao = esc(c.ao || (D.PROV()[c.code] || {}).ao || "") || '<span class="k3-none">—</span>', peek = { panel: "k3s-comp", id: c.code };
-    if (c.boundary === "connected") return { go: route(c.code), peek, cells: [K.name(c.name, c.org || "", ""), D.connsOf(c.code).map((x) => agrWord(x)).join(", ") || '<span class="k3-none">—</span>', K.num(n), ao] };
+    const a = D.provAuth(c.code), n = D.connsOf(c.code).length, ao = esc(c.ao || (D.PROV()[c.code] || {}).ao || "") || NONE, peek = { panel: "k3s-comp", id: c.code }, org = c.org ? esc(c.org) : NONE, nm = K.name(c.name, "", "");
+    if (c.boundary === "connected") { const g = agrOf(c); return { go: route(c.code), peek, cells: [nm, org, g.x ? agrPill(g.x) : NONE, g.x ? agrExp(g.x) : NONE, K.num(n), ao] }; }
     const t = D.takeCounts(c.code);
-    return { go: route(c.code), peek, cells: [K.name(c.name, c.org || "", ""), esc(c.kind), a && a.word !== "Authorized" ? pill("warn", a.word) : esc(authWord(a)), `<span class="num">${fmt(t.inh)} inherited · ${fmt(t.hyb)} hybrid</span>`, K.num(n), ao] };
+    return { go: route(c.code), peek, cells: [nm, org, esc(c.kind), !a ? NONE : a.word === "Authorized" ? pill("ok", "Authorized") : pill("warn", a.word), a && a.atd ? esc(mdy(a.atd)) : NONE, K.num(t.inh), K.num(t.hyb), K.num(n), ao] };
   };
-  const agrWord = (x) => { const a = x.agr, st = D.agrState(a); if (!D.needsAgr(x)) { const o = D.outsideEnd(x); return o ? mu(`${esc(o.name)}'s authorization`) : mu("Inside the boundary"); } return st === "signed" ? `${esc(a.kind || "Agreement")} · signed${a.exp ? ` · until ${esc(mdy(a.exp))}` : ""}` : st === "notneeded" ? mu("None needed") : st === "expired" ? pill("bad", `${a.kind || "Agreement"} expired`) : st === "draft" ? pill("warn", `${a.kind || "Agreement"} in draft`) : pill("warn", "No agreement"); };
+  // What a list holds under a question: the same test draws the rows and counts a saved view.
+  const insideMatch = (st) => {
+    const q = (st.q || "").trim().toLowerCase(), sub = st.rail && !OUT[st.rail] ? D.component(st.rail) : null, under = sub ? new Set(D.below(sub.code)) : null;
+    return D.treeOrder().filter(([c]) => (!under || under.has(c.code)) && (!q || `${c.name} ${c.code} ${c.unit || ""} ${c.kind}`.toLowerCase().includes(q)) && (!st.kind || c.kind === st.kind) && (st.att === "behind" ? !!D.behind(c) : st.att === "current" ? !!D.libOf(c) && !D.behind(c) : true));
+  };
+  const outsideMatch = (kind, st) => {
+    const q = (st.q || "").trim().toLowerCase(), con = kind === "connected";
+    const agrOk = (c) => { if (!st.agr) return true; const g = agrOf(c); return st.agr === "soon" ? g.soon : st.agr === "signed" ? g.st === "signed" : ["none", "draft", "expired"].includes(g.st); };
+    const rows = D.components().filter((c) => (con ? c.boundary === "connected" : c.boundary === "host" || c.boundary === "provider") && (!q || `${c.name} ${c.kind} ${c.org || ""}`.toLowerCase().includes(q)) && (con ? agrOk(c) : (!st.kind || c.kind === st.kind) && (st.att === "noauth" ? D.unauth(c.code) : st.att === "auth" ? authd(c) : true)));
+    if (!con) rows.sort((a, b) => (a.boundary === "host" ? 0 : 1) - (b.boundary === "host" ? 0 : 1));
+    return rows;
+  };
   function listInside(v) {
-    const q = v.q.trim().toLowerCase(), hit = (c) => !q || `${c.name} ${c.code} ${c.unit || ""} ${c.kind}`.toLowerCase().includes(q);
-    const sub = v.rail && !OUT[v.rail] ? D.component(v.rail) : null;
-    const all = D.treeOrder().filter(([c]) => (!sub || D.below(sub.code).includes(c.code)) && hit(c) && (v.att !== "behind" || D.behind(c)));
-    const flat = !!q || !!v.att, rows = all.map(([c, d]) => insideRow(c, flat ? 0 : sub ? d - 2 : d));
-    if (sub && !q && !v.att) rows.unshift({ group: `<span class="k3s-grp">${K.link(sub.name, route(sub.code))}<span class="k3-muted num">${esc(sub.code)} · ${plural(D.controlsOf(sub.code).length, "control")} · ${plural(D.requirementsOf(sub.code).length, "requirement")}</span></span>` });
-    return K.table({ label: "Components", cls: "k3s-list", cols: [{ label: "Component" }, { label: "Kind" }, { label: "Software & firmware", cls: "nw" }, { label: "Controls", cls: "nw" }, { label: "Requirements", cls: "nw" }, { label: "Findings", cls: "nw" }, { label: "Owner" }], rows,
-      empty: q || v.att ? { title: "No component matches", line: "Clear the search or the subsystem." } : { title: sub ? `Nothing inside ${sub.name} yet` : "No component yet", line: sub ? "Add the units and software it holds." : "Add the system's subsystems, units and software: everything inside the authorization boundary.", action: K.btn("Add component", { sm: true, act: "k3s.addComp", arg: sub ? sub.code : "" }) },
-      foot: `<span class="num">${plural(all.length, "component")}${v.att === "behind" ? " behind the library version" : ""}</span>${v.att ? K.actLink("Show all", "k3s.att", v.att) : ""}` });
+    const sub = v.rail && !OUT[v.rail] ? D.component(v.rail) : null, all = insideMatch(v), narrowed = !!(v.q.trim() || v.att || v.kind);
+    const rows = all.map(([c, d]) => insideRow(c, narrowed ? 0 : sub ? d - 2 : d));
+    if (sub && !narrowed) rows.unshift({ group: `<span class="k3s-grp">${K.link(sub.name, route(sub.code))}<span class="k3-muted num">${esc(sub.code)} · ${plural(D.controlsOf(sub.code).length, "control")} · ${plural(D.requirementsOf(sub.code).length, "requirement")}</span></span>` });
+    return K.table({ label: "Components", cls: "k3s-list", cols: insideCols, rows,
+      empty: narrowed ? { title: "No component matches", line: "Clear the search or the filters." } : { title: sub ? `Nothing inside ${sub.name} yet` : "No component yet", line: sub ? "Add the units and software it holds." : "Add the system's subsystems, units and software: everything inside the authorization boundary.", action: K.btn("Add component", { sm: true, act: "k3s.addComp", arg: sub ? sub.code : "" }) },
+      foot: `<span class="num">${plural(all.length, "component")}</span>` });
   }
   // Outside the boundary: the host system and the providers (one tab: each offers controls), or the connected systems.
   function listOutside(kind) {
-    const v = oview(kind), q = v.q.trim().toLowerCase(), con = kind === "connected";
-    const rows = D.components().filter((c) => (con ? c.boundary === "connected" : c.boundary === "host" || c.boundary === "provider") && (!q || `${c.name} ${c.kind} ${c.org || ""}`.toLowerCase().includes(q)) && (v.att !== "noauth" || D.unauth(c.code)));
-    if (!con) rows.sort((a, b) => (a.boundary === "host" ? 0 : 1) - (b.boundary === "host" ? 0 : 1));
-    return K.table({ label: con ? "Connected systems" : "Host and providers", cols: con ? [{ label: "Connected system" }, { label: "Agreement" }, { label: "Connections", cls: "nw" }, { label: "Authorizing official" }] : [{ label: "System" }, { label: "Kind" }, { label: "Authorization" }, { label: "Controls taken", cls: "nw" }, { label: "Connections", cls: "nw" }, { label: "Authorizing official" }], rows: rows.map(outsideRow),
-      empty: q || v.att ? { title: "Nothing matches", line: "Clear the search." } : con ? { title: "No connected system", line: "A system outside the boundary that a component exchanges data with.", action: K.btn("Add connected system", { sm: true, act: "k3s.addExt" }) } : { title: "No host system or provider", line: "A system outside the boundary whose controls this one inherits.", action: K.btn("Add provider", { sm: true, act: "k3s.addProvider" }) },
-      foot: `<span class="num">${con ? plural(rows.length, "connected system") : `${plural(rows.length, "system")}${v.att === "noauth" ? " with no authorization" : ""}`}</span>${v.att ? K.actLink("Show all", "k3s.att", v.att) : ""}` });
+    const v = oview(kind), con = kind === "connected", rows = outsideMatch(kind, v), narrowed = !!(v.q.trim() || v.att || v.kind || v.agr);
+    return K.table({ label: con ? "Connected systems" : "Host and providers", cols: con ? connectedCols : provCols, rows: rows.map(outsideRow),
+      empty: narrowed ? { title: "Nothing matches", line: "Clear the search or the filters." } : con ? { title: "No connected system", line: "A system outside the boundary that a component exchanges data with.", action: K.btn("Add connected system", { sm: true, act: "k3s.addExt" }) } : { title: "No host system or provider", line: "A system outside the boundary whose controls this one inherits.", action: K.btn("Add provider", { sm: true, act: "k3s.addProvider" }) },
+      foot: `<span class="num">${con ? plural(rows.length, "connected system") : plural(rows.length, "system")}</span>` });
   }
   const viewSeg = (on) => K.seg([{ label: "List", on: on === "list", go: "system" }, { label: "Boundary", on: on === "boundary", go: "system-boundary" }], "View");
+  // Each tab is a list of its own: its row has its own id (its saved views), its noun and the filters a person narrows it by.
   K.screen("system", () => {
-    const v = view(), subs = D.subsystems();
+    const v = view(), subs = D.subsystems(), ins = D.treeOrder().map(([c]) => c), kinds = uniq(ins.map((c) => c.kind)), libs = ins.filter((c) => D.libOf(c));
     // An older address of the choice (rail: host, provider, connected) opens its tab.
     if (OUT[v.rail]) { const to = OROUTE[OUT[v.rail]]; setTimeout(() => { setView({ rail: "" }); if (V.cur() === "system") K.go(to); }, 0); }
     return K.page({ cls: "k3s", head: sysHead(v.rail, "components"), tabs: sysTabs("components"), body: [K.cards(authCard(), attCard()),
-      K.toolbar({ search: { act: "k3s.q", value: v.q, placeholder: "Search components" }, filters: subs.length ? [{ label: "Subsystem", act: "k3s.sub", value: OUT[v.rail] ? "" : v.rail, options: subs.map((s) => [s.code, `${s.name} (${fmt(D.below(s.code).length)})`]) }] : [], right: viewSeg("list") }), listInside(v)] });
+      K.toolbar({ id: "system", noun: "components", search: { act: "k3s.q", value: v.q, placeholder: "Search components" }, right: viewSeg("list"),
+        filters: [subs.length ? { label: "Subsystem", key: "subsystem", act: "k3s.sub", value: OUT[v.rail] ? "" : v.rail, options: subs.map((s) => [s.code, s.name, D.below(s.code).length]) } : null,
+          kinds.length > 1 ? { label: "Kind", key: "kind", act: "k3s.kind", value: v.kind, options: kinds.map((k) => [k, k, ins.filter((c) => c.kind === k).length]) } : null,
+          libs.length ? { label: "Library", key: "library", act: "k3s.lib", value: v.att, options: [["behind", "Behind its version", libs.filter((c) => D.behind(c)).length], ["current", "On the current version", libs.filter((c) => !D.behind(c)).length]] } : null],
+        views: { total: ins.length, seed: libs.length ? [{ name: "Behind the library version", state: { library: "behind" }, by: BY }] : [], count: (s) => insideMatch({ q: s.q, rail: s.subsystem, kind: s.kind, att: s.library }).length } }), listInside(v)] });
   }, "system");
-  K.screen("system-providers", () => K.page({ cls: "k3s", head: sysHead("", "provider"), tabs: sysTabs("provider"), body: [K.toolbar({ search: { act: "k3s.q", value: oview("provider").q, placeholder: "Search the host and providers" } }), listOutside("provider")] }), "system");
-  K.screen("system-connected", () => K.page({ cls: "k3s", head: sysHead("", "connected"), tabs: sysTabs("connected"), body: [K.toolbar({ search: { act: "k3s.q", value: oview("connected").q, placeholder: "Search connected systems" } }), listOutside("connected")] }), "system");
+  K.screen("system-providers", () => {
+    const v = oview("provider"), all = outsideMatch("provider", {}), kinds = uniq(all.map((c) => c.kind));
+    return K.page({ cls: "k3s", head: sysHead("", "provider"), tabs: sysTabs("provider"), body: [
+      K.toolbar({ id: "system-providers", noun: "providers", search: { act: "k3s.q", value: v.q, placeholder: "Search providers" },
+        filters: [kinds.length > 1 ? { label: "Kind", key: "kind", act: "k3s.kind", value: v.kind, options: kinds.map((k) => [k, k, all.filter((c) => c.kind === k).length]) } : null,
+          { label: "Authorization", key: "authorization", act: "k3s.oauth", value: v.att, options: [["noauth", "Not authorized", all.filter((c) => D.unauth(c.code)).length], ["auth", "Authorized", all.filter(authd).length]] }],
+        views: { total: all.length, seed: [{ name: "No authorization of its own", state: { authorization: "noauth" }, by: BY }], count: (s) => outsideMatch("provider", { q: s.q, kind: s.kind, att: s.authorization }).length } }), listOutside("provider")] });
+  }, "system");
+  K.screen("system-connected", () => {
+    const v = oview("connected"), all = outsideMatch("connected", {}), n = (agr) => outsideMatch("connected", { agr }).length;
+    return K.page({ cls: "k3s", head: sysHead("", "connected"), tabs: sysTabs("connected"), body: [
+      K.toolbar({ id: "system-connected", noun: "connected systems", search: { act: "k3s.q", value: v.q, placeholder: "Search connected systems" },
+        filters: [{ label: "Agreement", key: "agreement", act: "k3s.oagr", value: v.agr, options: [["unsigned", "Not signed", n("unsigned")], ["soon", "Expires within 90 days", n("soon")], ["signed", "Signed", n("signed")]] }],
+        views: { total: all.length, seed: [{ name: "Agreements to renew within 90 days", state: { agreement: "soon" }, by: BY }], count: (s) => outsideMatch("connected", { q: s.q, agr: s.agreement }).length } }), listOutside("connected")] });
+  }, "system");
   K.on("k3s.export", () => { const rows = [["Code", "Component", "Kind", "Where", "Inside", "Controls", "Requirements", "Owner"]].concat(D.components().map((c) => [c.code, c.name, c.kind, D.WHERE[c.boundary], c.parent ? D.nameOf(c.parent) : "", D.controlsOf(c.code).length, c.boundary === "inside" ? D.requirementsOf(c.code).length : "", D.ownerOf(c.code) || ""])); csvDown("system-components.csv", rows); });
   K.on("k3s.exportConns", () => { const rows = [["Id", "Connection", "From", "To", "Interface", "Direction", "Crosses the boundary", "Agreement", "Ports"]].concat(D.connections().map((x) => [x.id, x.name, D.nameOf(x.from), x.to.map(D.nameOf).join("; "), x.iface, x.dir, D.crosses(x) ? "Yes" : "No", x.agr ? `${x.agr.kind || ""} ${x.agr.st || ""}`.trim() : "", D.portsOf(x.id).map((p) => `${p.protocol} ${p.port}`).join("; ")])); csvDown("system-connections.csv", rows); });
 
-  PA.v3s.ui = { route, pill, openModal, addMenu, rowBtn, stop, cname, clink, whereChip, authWord, agrWord, sysHead, sysTabs, viewSeg, view, setView, counts, authInForce, insideRow, csvDown };
+  PA.v3s.ui = { route, pill, openModal, addMenu, rowBtn, stop, cname, clink, whereChip, authWord, agrWord: agrPill, agrPill, agrExp, agrOf, firstN, codeCell, daysTo, NONE, BY, insideCols, sysActions, sysHead, sysTabs, viewSeg, view, setView, counts, authInForce, insideRow, csvDown };
 })();
 
 // ════════════════ Adding, editing and removing components; connections; the Boundary view ════════════════
@@ -413,7 +467,7 @@
   const SSP = PA.SSP, esc = K.esc, fmt = K.fmt;
   const { get, set, push, drop } = D.S0;
   const { plural, mdy, clip, mu, uniq, ME, TODAY } = D;
-  const { route, pill, rowBtn, stop, clink } = U;
+  const { route, pill, rowBtn, stop, clink, NONE, BY, firstN, agrPill, agrExp, codeCell } = U;
   const cur = () => (location.hash || "#").slice(1);
   const curComp = () => { const m = /^component--(.+?)(?:--(?:overview|software|connections|controls|requirements|findings|components|offered))?$/.exec(cur()); return m ? m[1] : null; };
   const ownerOpts = () => D.people().map((n) => [n, n]);
@@ -459,19 +513,35 @@
     onSubmit: (v) => { if (D.components().some((x) => x.name.toLowerCase() === v.name.toLowerCase())) return { name: "A system with this name is already here." }; const code = D.nextCode("ext"); push("added", { code, name: v.name, kind: "Connected system", boundary: "connected", parent: null, org: v.org || null, ao: v.ao || null, about: v.about || "" }); K.go(route(code)); K.toast(`${v.name} added as a connected system`); } }));
 
   // ——— Connections ———
-  const cview = () => Object.assign({ q: "", f: "" }, K.get("sys.cview", {}));
-  K.on("k3s.cq", (v) => { K.set("sys.cview", Object.assign({}, cview(), { q: v })); K.redraw(); });
-  K.on("k3s.cf", (id) => { K.set("sys.cview", Object.assign({}, cview(), { f: id || "" })); K.redraw(); });
-  const DIRW = { "Both ways": "Both ways", Outbound: "Outbound", Inbound: "Inbound", Inside: "Inside" };
-  const connRow = (x, here) => ({ panel: "k3s-conn", id: x.id, cells: [K.name(x.name, x.iface, ""), here && x.from === here ? mu("This component") : esc(D.nameOf(x.from)), x.to.map((t) => (here && t === here ? mu("This component") : esc(D.nameOf(t)))).join(", "), D.portLine(x.id) || '<span class="k3-none">—</span>', esc(DIRW[x.dir] || x.dir || ""), D.crosses(x) ? "Crosses" : mu("Inside"), U.agrWord(x)] });
-  const connCols = [{ label: "Connection" }, { label: "From", cls: "k3s-w" }, { label: "To", cls: "k3s-w" }, { label: "Protocols and ports" }, { label: "Direction", cls: "nw" }, { label: "Boundary", cls: "nw" }, { label: "Agreement" }];
+  // The list's question: its search, which side of the boundary, the agreement's state and a PPSM state. f is the one
+  // choice an older address wrote ("noagr", "cross", "inside"): it is read once and kept as the filters it meant.
+  const cview = () => { const s = K.get("sys.cview", {}) || {}, v = { q: s.q || "", b: s.b || "", agr: s.agr || "", ppsm: s.ppsm || "" }; if (s.f === "noagr") v.agr = "noagr"; else if (s.f) v.b = s.f; return v; };
+  const setC = (p) => K.set("sys.cview", Object.assign(cview(), p));
+  K.on("k3s.cq", (v) => { setC({ q: v }); K.redraw(); });
+  K.on("k3s.cb", (id) => { setC({ b: id || "" }); K.redraw(); });
+  K.on("k3s.cagr", (id) => { setC({ agr: id || "" }); K.redraw(); });
+  K.on("k3s.cppsm", (id) => { setC({ ppsm: id || "" }); K.redraw(); });
+  K.on("k3s.cf", (id) => { setC({ b: id === "noagr" ? "" : id || "", agr: id === "noagr" ? "noagr" : "" }); K.redraw(); });
+  // One line a connection: its two ends with the way the data runs between them, its first port and how many more, which
+  // side of the boundary, and the agreement's state. Its interface follows its name.
+  const ARROW = { "Both ways": "↔", Outbound: "→", Inbound: "←", Inside: "↔" };
+  const dirCell = (x) => `<span class="k3s-dir" role="img" aria-label="${esc(x.dir || "Both ways")}" title="${esc(x.dir || "Both ways")}">${ARROW[x.dir] || "↔"}</span>`;
+  const endName = (code, here) => (here && code === here ? mu("This component") : esc(D.nameOf(code)));
+  const portCell = (id) => { const l = D.portsOf(id); return l.length ? `${esc(l[0].protocol)} <span class="num">${esc(l[0].port)}</span>${l.length > 1 ? ` ${mu("+" + (l.length - 1))}` : ""}` : NONE; };
+  const connRow = (x, here) => ({ panel: "k3s-conn", id: x.id, cells: [K.name(x.name, x.iface || "", ""), endName(x.from, here), dirCell(x), firstN(x.to.map((t) => endName(t, here))), portCell(x.id), D.crosses(x) ? "Crosses" : mu("Inside"), agrPill(x)] });
+  const connCols = [{ label: "Connection" }, { label: "From", cls: "k3s-w" }, { label: "", cls: "tight" }, { label: "To", cls: "k3s-w" }, { label: "Ports", cls: "nw" }, { label: "Boundary", cls: "nw" }, { label: "Agreement", cls: "nw" }];
+  const PPSM = ["Not registered", "Pending", "Registered", "Not required"];
+  const connMatch = (st) => { const q = (st.q || "").trim().toLowerCase(); return D.connections().filter((x) => (!st.b || (st.b === "cross") === D.crosses(x)) && (!st.agr || (st.agr === "noagr" ? D.noAgr(x) : D.needsAgr(x) && D.agrState(x.agr) === "signed")) && (!st.ppsm || D.portsOf(x.id).some((p) => p.ppsm === st.ppsm)) && (!q || `${x.name} ${x.id} ${x.iface} ${D.nameOf(x.from)} ${x.to.map(D.nameOf).join(" ")} ${D.portsOf(x.id).map((p) => p.protocol + " " + p.port).join(" ")}`.toLowerCase().includes(q))); };
   K.screen("system-connections", () => {
-    const v = cview(), all = D.connections(), q = v.q.trim().toLowerCase();
-    const F = { "": () => true, cross: D.crosses, inside: (x) => !D.crosses(x), noagr: D.noAgr };
-    const rows = all.filter(F[v.f] || F[""]).filter((x) => !q || `${x.name} ${x.id} ${x.iface} ${D.nameOf(x.from)} ${x.to.map(D.nameOf).join(" ")} ${D.portsOf(x.id).map((p) => p.protocol + " " + p.port).join(" ")}`.toLowerCase().includes(q));
+    const v = cview(), all = D.connections(), rows = connMatch(v), n = (st) => connMatch(st).length, ppsm = PPSM.filter((s) => n({ ppsm: s }));
     return K.page({ cls: "k3s", head: U.sysHead("", "connections"), tabs: U.sysTabs("connections"), body: [
-      K.toolbar({ search: { act: "k3s.cq", value: v.q, placeholder: "Search connections" }, right: K.chips([{ id: "", label: "All", count: all.length, on: !v.f }, { id: "cross", label: "Crosses the boundary", count: all.filter(D.crosses).length, on: v.f === "cross" }, { id: "inside", label: "Inside", count: all.filter((x) => !D.crosses(x)).length, on: v.f === "inside" }, { id: "noagr", label: "Without an agreement", count: all.filter(D.noAgr).length, on: v.f === "noagr" }], "k3s.cf", "Show connections") }),
-      K.table({ label: "Connections", cols: connCols, rows: rows.map((x) => connRow(x)), empty: all.length ? { title: "No connection matches", line: "Clear the search or choose All." } : { title: "No connection yet", line: "A connection joins two components, or a component and a system outside the boundary. Its ports and its agreement are kept on it.", action: K.btn("Add connection", { sm: true, act: "k3s.addConn", arg: "" }) }, foot: `<span class="num">${plural(rows.length, "connection")}</span>` })] });
+      K.toolbar({ id: "system-connections", noun: "connections", search: { act: "k3s.cq", value: v.q, placeholder: "Search connections" },
+        filters: [{ label: "Boundary", key: "boundary", act: "k3s.cb", value: v.b, options: [["cross", "Crosses", n({ b: "cross" })], ["inside", "Inside", n({ b: "inside" })]] },
+          { label: "Agreement", key: "agreement", act: "k3s.cagr", value: v.agr, options: [["noagr", "Not signed", n({ agr: "noagr" })], ["signed", "Signed", n({ agr: "signed" })]] },
+          ppsm.length ? { label: "PPSM", key: "ppsm", act: "k3s.cppsm", value: v.ppsm, options: ppsm.map((s) => [s, s, n({ ppsm: s })]) } : null],
+        views: { total: all.length, presets: [{ label: "Crosses the boundary", state: { boundary: "cross" }, count: n({ b: "cross" }) }, { label: "Without a signed agreement", state: { agreement: "noagr" }, count: n({ agr: "noagr" }) }],
+          seed: ppsm.includes("Not registered") ? [{ name: "PPSM not registered", state: { ppsm: "Not registered" }, by: BY }] : [], count: (s) => n({ q: s.q, b: s.boundary, agr: s.agreement, ppsm: s.ppsm }) } }),
+      K.table({ label: "Connections", cls: "k3s-list", cols: connCols, rows: rows.map((x) => connRow(x)), empty: all.length ? { title: "No connection matches", line: "Clear the search or the filters." } : { title: "No connection yet", line: "A connection joins two components, or a component and a system outside the boundary. Its ports and its agreement are kept on it.", action: K.btn("Add connection", { sm: true, act: "k3s.addConn", arg: "" }) }, foot: `<span class="num">${plural(rows.length, "connection")}</span>` })] });
   }, "system");
   const connRoute = (id) => (K.recRoute ? K.recRoute("k3s-conn", id) : "") || "system-connections";
   const endOpts = (skip) => D.components().filter((c) => c.code !== skip).map((c) => [c.code, `${c.name} · ${c.boundary === "inside" ? c.kind.toLowerCase() : D.WHERE[c.boundary].toLowerCase()}`]);
@@ -535,11 +605,11 @@
       facts: [page ? null : ["From", clink(x.from)], page ? null : ["To", x.to.map(clink).join(", ")], !page && (x.via || []).length ? ["Through", x.via.map(clink).join(", ")] : null, ["Interface", esc(x.iface || "")], ["Direction", esc(x.dir || "")], ["Boundary", D.crosses(x) ? "Crosses it" : "Stays inside"], x.flows ? ["Carries", esc(x.flows)] : null, x.cls && page ? ["Classification", esc(x.cls)] : null, x.enc ? ["Encryption", `${esc(x.enc)}${x.encBy ? ` ${mu(esc(x.encBy))}` : ""}`] : null, x.owner ? ["Owner", K.owner(x.owner)] : null],
       sections: [
         K.related({ title: "Ports and protocols", add: { label: "Add port", act: "k3s.addPort", arg: id }, empty: "No port recorded on this connection",
-          cols: page ? [{ label: "Protocol" }, { label: "Port", cls: "nw" }, { label: "Service" }, { label: "Direction", cls: "nw" }, { label: "PPSM state" }, { label: "", cls: "tight" }] : [{ label: "Protocol" }, { label: "Port", cls: "nw" }, { label: "Direction", cls: "nw" }, { label: "PPSM" }, { label: "", cls: "tight" }],
-          rows: ports.map((p) => ({ cells: page ? [K.name(p.protocol, "", ""), K.num(p.port), p.service ? esc(p.service) : NONE, esc(p.dir || ""), p.ppsm ? esc(p.ppsm) : NONE, rowBtn("Remove", "k3s.rmPort", [id, p.id], `Remove ${p.protocol} ${p.port}`)] : [K.name(p.protocol, p.service || "", ""), K.num(p.port), esc(p.dir || ""), esc(p.ppsm || ""), rowBtn("Remove", "k3s.rmPort", [id, p.id], `Remove ${p.protocol} ${p.port}`)] })) }),
+          cols: [{ label: "Protocol" }, { label: "Port", cls: "nw", peek: true }, { label: "Service" }, { label: "Direction", cls: "nw" }, { label: "PPSM state", cls: "nw", peek: true }, { label: "", cls: "tight" }],
+          rows: ports.map((p) => ({ cells: [K.name(p.protocol, "", ""), K.num(p.port), p.service ? esc(p.service) : NONE, esc(p.dir || ""), p.ppsm ? esc(p.ppsm) : NONE, rowBtn("Remove", "k3s.rmPort", [id, p.id], `Remove ${p.protocol} ${p.port}`)] })) }),
         K.section({ title: "Agreement", actions: agrActs, body: agrBody }),
         (x.ctl || []).length ? K.related({ title: "Controls it bears on", cols: [{ label: "Control" }, { label: "Status" }], rows: x.ctl.filter(D.inBaseline).map((c) => ({ panel: ctlPanel(), id: PA.P["k3c-control"] ? c : `${c}@${x.from}`, cells: [K.name(D.titleOf(c), "", c), K.status(D.statusOf(c))] })) }) : "",
-        page ? K.related({ title: "Components it joins", cols: [{ label: "Component" }, { label: "End", cls: "nw" }, { label: "Kind" }, { label: "Where" }], rows: ends.map((e) => { const c = D.component(e); return { go: route(e), peek: { panel: "k3s-comp", id: e }, cells: [K.name(c.name, c.boundary === "inside" ? c.code : c.org || "", ""), esc(role(e)), esc(c.kind), esc(D.WHERE[c.boundary])] }; }) }) : ""] };
+        K.related({ title: "Components it joins", cols: [{ label: "Component" }, { label: "Code", cls: "nw" }, { label: "End", cls: "nw", peek: true }, { label: "Kind", cls: "nw" }, { label: "Where", cls: "nw" }], rows: ends.map((e) => { const c = D.component(e); return { go: route(e), peek: { panel: "k3s-comp", id: e }, cells: [K.name(c.name, "", ""), c.boundary === "inside" ? codeCell(c.code) : NONE, esc(role(e)), esc(c.kind), esc(D.WHERE[c.boundary])] }; }) })] };
   });
 
   // ——— The Boundary view: whatever is in the bubble is what the authorization covers ———
@@ -580,10 +650,12 @@
   }
   function boundaryPage(r) {
     const key = /--iatt$/.test(r) ? "iatt" : /--blk$/.test(r) ? "blk" : "ato", text = boundaryText(), b = bndReview();
-    const seg = D.wsx() ? K.seg([{ label: "ATO", on: key === "ato", go: "system-boundary" }, { label: "Block 1.1", on: key === "blk", go: "system-boundary--blk" }, { label: "IATT", on: key === "iatt", go: "system-boundary--iatt" }], "Authorization") : "";
+    // Which authorization's boundary is drawn is the one choice of this view: a filter of its row, where the List / Boundary
+    // switch and the page's actions stand too (the same row as the list has).
+    const auth = D.wsx() ? K.rail({ label: "Authorization", key: "authorization", items: [{ label: "ATO", on: key === "ato", go: "system-boundary" }, { label: "Block 1.1", on: key === "blk", go: "system-boundary--blk" }, { label: "IATT", on: key === "iatt", go: "system-boundary--iatt" }] }) : "";
     const review = key === "blk" && D.wsx() && PA.M["v3g-bndreq"] ? K.next({ label: "SCA boundary review", text: !b ? "The lead assessor reviews the Block 1.1 design boundary before PDR decides." : b.state === "requested" ? `Requested ${esc(mdy(b.at))} by ${esc(b.by)}: it waits on D. Okafor.` : b.state === "accepted" ? `Reviewed ${esc(mdy(b.at))} by D. Okafor${b.note ? `: ${esc(b.note)}` : ""}.` : `Changes requested ${esc(mdy(b.at))} by D. Okafor: ${esc(b.note || "")}`, action: !b || b.state === "changes" ? K.btn(b ? "Request the review again" : "Request the SCA's review", { sm: true, primary: true, act: "k3s.modal", arg: ["v3g-bndreq", "blk"] }) : b.state === "requested" ? K.btn("Record the review", { sm: true, act: "k3s.modal", arg: ["v3g-bndrec", "blk"] }) : "" }) : "";
-    return K.page({ cls: "k3s", head: U.sysHead("", "components"), tabs: U.sysTabs("components"), body: [
-      `<div class="k3-tools">${seg}<div class="k3-tools-r">${U.viewSeg("boundary")}</div></div>`,
+    return K.page({ cls: "k3s", head: U.sysHead("", "components", true), tabs: U.sysTabs("components"), body: [
+      auth, K.toolbar({ views: false, right: U.viewSeg("boundary") + U.sysActions("components", "") }),
       `<div class="k3s-btext">${text ? `<p>${esc(text).replace(/\n{2,}/g, "</p><p>")}</p>` : `<p class="k3-muted">No description of the boundary yet.</p>`}${K.actLink(text ? "Edit description" : "Add description", "k3s.bText")}</div>`,
       review, bubble(key)] });
   }
@@ -602,25 +674,29 @@
   const SSP = PA.SSP, esc = K.esc, fmt = K.fmt;
   const { get, set, push, drop, pairAdd, pairDrop } = D.S0;
   const { plural, mdy, clip, mu, uniq, natural, ME, TODAY } = D;
-  const { route, pill, rowBtn, stop, clink, curComp, ctlPanel } = U;
+  const { route, pill, rowBtn, stop, clink, curComp, ctlPanel, firstN, agrPill, agrExp, codeCell, BY } = U;
   const NONE = '<span class="k3-none">—</span>';
   const TABS = "overview|software|connections|controls|requirements|findings|components|offered";
   const RE = new RegExp(`^component--(.+?)(?:--(${TABS}))?$`);
   const tabKey = (code, tab) => code + ":" + tab;
-  const tabState = (code, tab) => Object.assign({ fam: "", q: "", f: "" }, (K.get("sys.tab", {}) || {})[tabKey(code, tab)] || {});
+  const tabState = (code, tab) => Object.assign({ fam: "", q: "", f: "", s: "" }, (K.get("sys.tab", {}) || {})[tabKey(code, tab)] || {});
   const setTab = (code, tab, p) => K.set("sys.tab", Object.assign({}, K.get("sys.tab", {}) || {}, { [tabKey(code, tab)]: Object.assign({}, tabState(code, tab), p) }));
   const here = () => { const m = RE.exec(U.cur()); return m ? [m[1], m[2] || "overview"] : [null, null]; };
   K.on("k3s.tq", (v) => { const [c, t] = here(); if (c) { setTab(c, t, { q: v }); K.redraw(); } });
   K.on("k3s.tfam", (id) => { const [c, t] = here(); if (c) { setTab(c, t, { fam: id || "" }); K.redraw(); } });
   K.on("k3s.tf", (id) => { const [c, t] = here(); if (c) { setTab(c, t, { f: id || "" }); K.redraw(); } });
-  K.on("k3s.goTab", ([code, tab, f]) => { setTab(code, tab, { f: f || "", fam: "", q: "" }); K.go(route(code, tab)); });
+  K.on("k3s.ts", (id) => { const [c, t] = here(); if (c) { setTab(c, t, { s: id || "" }); K.redraw(); } });
+  K.on("k3s.goTab", ([code, tab, f]) => { setTab(code, tab, { f: f || "", fam: "", q: "", s: "" }); K.go(route(code, tab)); });
   const reqPanel = () => V3.fact("reqPanel") || "k3s-req";
   // Lane D keeps the requirement records: with it in the build a requirement is created, mapped and unmapped through it, so the
   // control's panel and the Requirements register read the same links (it writes this lane's lists too). Falsy: do it here.
   const dOp = (name, ...a) => { if (!D.wsx() || typeof V3.facts[name] !== "function") return null; try { return V3.fact(name, ...a) || null; } catch (e) { return null; } };
   const sevKind = (s) => (s === "critical" || s === "high" ? "bad" : s === "moderate" ? "warn" : "none");
-  const two = (a, b, warn) => `<span class="k3s-two"><span>${a}</span>${b ? `<small${warn ? ' class="warn"' : ""}>${b}</small>` : ""}</span>`;
-  const respCell = (ctl) => { const r = D.respOf(ctl); return two(esc(D.respWord(r)), r.providerId && D.unauth(r.providerId) ? "Provider not authorized" : "", true); };
+  // A control's responsibility on one line: whose it is and, where a provider carries it, which one. A provider with no
+  // authorization of its own is the state to see first, so it takes the cell as a pill (its name stays in the title). The
+  // pill's words are chosen for their tone: the core reads "authorized" anywhere in a pill as good news.
+  const respCell = (ctl) => { const r = D.respOf(ctl); if (r.kind !== "Inherited" && r.kind !== "Hybrid") return "This system"; return r.providerId && D.unauth(r.providerId) ? `<span title="${esc(D.respWord(r))}: it has no authorization of its own">${pill("warn", "Provider has no ATO")}</span>` : `${esc(r.kind)} ${mu("· " + esc(r.provider || ""))}`; };
+  const basisCell = (comp, ctl) => { const b = D.basisOf(comp, ctl), m = /^Mapped by (\S+)(?: and (\d+) more)?$/.exec(b); return m ? `Mapped by <span class="num">${esc(m[1])}</span>${m[2] ? ` ${mu("+" + m[2])}` : ""}` : b === "Named in its implementation" ? "Named in implementation" : b ? esc(b) : NONE; };
 
   // ——— Software, firmware and hardware ———
   function itemForm(comp, id, kind) {
@@ -731,7 +807,7 @@
     const add = ins ? U.addMenu("Add", [{ label: "Software or firmware", act: "k3s.addItem", arg: [c.code, ""] }, { label: "Hardware", act: "k3s.addItem", arg: [c.code, "Hardware"] }, { label: "Connection", act: "k3s.addConn", arg: c.code }, { label: "Controls", act: "k3s.addCtl", arg: c.code }, { label: "Requirement", act: "k3s.addReq", arg: c.code }, D.isContainer(c) ? { label: "Component inside", act: "k3s.addComp", arg: c.code } : null]) : K.btn("Add connection", { primary: true, act: "k3s.addConn", arg: c.code, icon: "plus" });
     return K.head({ crumbs, title: c.name, code: ins ? c.code : "", chip: U.whereChip(c), sub: line, actions: more + add });
   }
-  const tools = (code, tab, o) => { const st = tabState(code, tab); return K.toolbar({ search: o.search ? { act: "k3s.tq", value: st.q, placeholder: o.search } : null, filters: o.filters || [], right: `${o.chips || ""}${o.add || ""}` }); };
+  const tools = (code, tab, o) => { const st = tabState(code, tab); return K.toolbar({ id: o.id || "", noun: o.noun || "", views: o.id ? o.views || {} : false, search: o.search ? { act: "k3s.tq", value: st.q, placeholder: o.search } : null, filters: o.filters || [], right: o.add || "" }); };
   const addBtn = (label, act, arg) => K.btn(label, { sm: true, act, arg, icon: "plus" });
   const has = (st, s) => !st.q.trim() || s.toLowerCase().includes(st.q.trim().toLowerCase());
 
@@ -763,65 +839,90 @@
     if (isProv && D.unauth(c.code)) body.push(K.note(`<b>${esc(c.name)} has no authorization of its own.</b> ${t ? `This system leans on it for ${plural(t.inh + t.hyb, "control")}; an assessor would not accept the inheritance until it is authorized.` : ""}${a && a.note ? ` ${esc(a.note)}` : ""}`));
     if (t) body.push(K.cards(K.completion({ title: "What this system takes", label: "Controls taken of those offered", done: t.inh + t.hyb, total: t.offered, unit: "controls", minis: [{ label: "Inherited", done: t.inh, total: t.offered, act: "k3s.goTab", arg: [c.code, "offered", "inh"] }, { label: "Hybrid", done: t.hyb, total: t.offered, act: "k3s.goTab", arg: [c.code, "offered", "hyb"] }] }), K.attention({ rows: [{ label: "Taken back as this system's own", n: t.back, act: "k3s.goTab", arg: [c.code, "offered", "back"] }, { label: "Connections", n: xs.length, act: "k3s.goTab", arg: [c.code, "connections", ""] }] })));
     if (c.about || P0.about) body.push(K.section({ title: "What it is", body: `<p class="k3s-prose">${esc(c.about || P0.about)}</p>` }));
-    if ((P0.els || []).length) body.push(K.related({ title: P0.kind === "Host system" ? "Components it carries" : "Components it serves", cols: [{ label: "Component" }, { label: "Kind" }], rows: P0.els.filter((e) => D.component(e)).map((e) => ({ go: route(e), cells: [K.name(D.nameOf(e), "", e), esc(D.component(e).kind)] })) }));
-    if (!isProv) body.push(K.related({ title: "Connections", add: { label: "Add connection", act: "k3s.addConn", arg: c.code }, empty: "No connection to this system yet", cols: [{ label: "Connection" }, { label: "Component" }, { label: "Agreement" }], rows: xs.map((x) => ({ panel: "k3s-conn", id: x.id, cells: [K.name(x.name, x.iface, ""), esc(D.endsOf(x).filter((e) => e !== c.code).map(D.nameOf).join(", ")), U.agrWord(x)] })) }));
+    body.push(carriesSec(c, P0));
+    if (!isProv) body.push(K.related({ title: "Connections", add: { label: "Add connection", act: "k3s.addConn", arg: c.code }, empty: "No connection to this system yet", cols: [{ label: "Connection" }, { label: "Component", cls: "k3s-w" }, { label: "Agreement", cls: "nw", peek: true }, { label: "Expires", cls: "nw" }], rows: xs.map((x) => ({ panel: "k3s-conn", id: x.id, cells: [K.name(x.name, x.iface || "", ""), firstN(D.endsOf(x).filter((e) => e !== c.code).map((e) => esc(D.nameOf(e)))), agrPill(x), agrExp(x)] })) }));
     return K.aside(body, [K.details("Details", [["Kind", esc(c.kind)], c.kind === D.WHERE[c.boundary] ? null : ["Where", esc(D.WHERE[c.boundary])], c.org ? ["Organization", esc(c.org)] : null, c.ao || P0.ao ? ["Authorizing official", esc(c.ao || P0.ao)] : null, isProv ? ["Authorization", a ? (a.word === "Authorized" ? `Authorized ${esc(mdy(a.on))}` : pill("warn", a.word)) : mu("Not recorded")] : ["Authorization", mu("Its own, kept by its organization")], a && a.atd ? ["Expires", esc(mdy(a.atd))] : null, a && a.ref ? ["Reference", `<span class="k3-code">${esc(a.ref)}</span>`] : null, P0.program && PA.v2hubs && PA.v2hubs.goAttrs ? ["Its program", `<a class="k3-link" href="#portfolio" ${PA.v2hubs.goAttrs("portfolio", { rows: [c.name], note: "Showing the provider's program" })}>${esc(P0.program)}</a>`] : null, ["Owner", K.owner(D.ownerOf(c.code))]])]);
   }
+  // ——— The tabs: each is a list with one row over it. Controls, requirements and findings keep saved views, under one id
+  // for every component; the short lists have a search and their filters only. ———
+  const cveOf = (x) => (!x.sbom ? "" : x.sbom.cve ? "open" : x.sbom.fixed ? "fixed" : "none");
+  const cveCell = (x) => (!x.sbom ? NONE : x.sbom.cve ? pill("bad", x.sbom.cve) : x.sbom.fixed ? mu(`${esc(x.sbom.fixed)} fixed`) : mu("None open"));
+  const sevCell = (f) => (f.sev ? pill(sevKind(f.sev), D.SEVW[f.sev] || f.sev) : NONE);
+  const takenCell = (r) => (r.back || r.kind === "System-specific" ? pill("warn", "Taken back") : esc(r.kind));
+  const carriesSec = (c, P0) => { const els = (P0.els || []).filter((e) => D.component(e)); return els.length ? K.related({ title: P0.kind === "Host system" ? "Components it carries" : "Components it serves", cols: [{ label: "Component" }, { label: "Code", cls: "nw" }, { label: "Kind", cls: "nw", peek: true }], rows: els.map((e) => ({ go: route(e), peek: { panel: "k3s-comp", id: e }, cells: [K.name(D.nameOf(e), "", ""), codeCell(e), esc(D.component(e).kind)] })) }) : ""; };
   function tabSoftware(c) {
-    const code = c.code, st = tabState(code, "software"), cont = D.isContainer(c);
-    const rows = pooledItems(c).filter((x) => (!st.f || x.kind === st.f) && has(st, `${x.name} ${x.version} ${x.supplier || ""} ${x.kind}`));
-    return [tools(code, "software", { search: "Search items", filters: [{ label: "Kind", act: "k3s.tf", value: st.f, options: [["Software", "Software"], ["Firmware", "Firmware"], ["Hardware", "Hardware"]] }], add: addBtn("Add item", "k3s.addItem", [code, ""]) }),
-      K.table({ label: "Software, firmware and hardware", cols: [{ label: "Item" }, { label: "Kind" }, { label: "Version", cls: "nw" }, { label: "Supplier" }, { label: "SBOM" }, { label: "Baseline", cls: "nw" }, { label: "", cls: "tight" }],
-        rows: rows.map((x) => ({ act: "k3s.editItem", arg: [x.comp, x.id], cells: [K.name(x.name, cont && x.comp !== code ? `On ${D.nameOf(x.comp)}` : x.asset ? `Asset ${x.asset}` : clip(x.note || "", 90), ""), esc(x.kind), K.num(x.version), x.supplier ? esc(x.supplier) : NONE, x.sbom ? `<span class="num">${plural(x.sbom.parts, "part")}</span> · ${x.sbom.cve ? pill("bad", x.sbom.cve) : mu(x.sbom.fixed ? `${esc(x.sbom.fixed)} fixed` : "no open CVE")}` : NONE, esc(x.baseline || "") || NONE, rowBtn("Remove", "k3s.rmItem", [x.comp, x.id], `Remove ${x.name} ${x.version}`)] })),
-        empty: st.q || st.f ? { title: "No item matches", line: "Clear the search or the kind." } : { title: "Nothing recorded yet", line: "The software, firmware and hardware this component is made of. Each row is kept here and read by the SSP's inventory.", action: addBtn("Add item", "k3s.addItem", [code, ""]) }, foot: `<span class="num">${plural(rows.length, "item")}</span>` })];
+    const code = c.code, st = tabState(code, "software"), cont = D.isContainer(c), all = pooledItems(c), n = (fn) => all.filter(fn).length;
+    const rows = all.filter((x) => (!st.f || x.kind === st.f) && (!st.s || cveOf(x) === st.s) && has(st, `${x.name} ${x.version} ${x.supplier || ""} ${x.kind} ${x.sbom && x.sbom.cve ? x.sbom.cve : ""}`));
+    return [tools(code, "software", { search: "Search items", add: addBtn("Add item", "k3s.addItem", [code, ""]),
+      filters: [{ label: "Kind", key: "kind", act: "k3s.tf", value: st.f, options: ["Software", "Firmware", "Hardware"].map((k) => [k, k, n((x) => x.kind === k)]) },
+        all.some((x) => x.sbom) ? { label: "CVE", key: "cve", act: "k3s.ts", value: st.s, options: [["open", "Open", n((x) => cveOf(x) === "open")], ["fixed", "Fixed", n((x) => cveOf(x) === "fixed")], ["none", "None open", n((x) => cveOf(x) === "none")]] } : null] }),
+      K.table({ label: "Software, firmware and hardware", cols: [{ label: "Item" }, { label: "Kind", cls: "nw" }, { label: "Version", cls: "nw" }, cont ? { label: "Component", cls: "k3s-w" } : null, { label: "Supplier", cls: "k3s-w k3s-opt" }, { label: "SBOM", cls: "nw end" }, { label: "CVE", cls: "nw" }, { label: "Baseline", cls: "nw" }, { label: "", cls: "tight" }].filter(Boolean),
+        rows: rows.map((x) => ({ act: "k3s.editItem", arg: [x.comp, x.id], cells: [K.name(x.name, x.asset ? `Asset ${x.asset}` : x.note || "", ""), esc(x.kind), K.num(x.version), cont ? (x.comp !== code ? esc(D.nameOf(x.comp)) : mu("This component")) : null, x.supplier ? esc(x.supplier) : NONE, x.sbom ? `<span class="num">${plural(x.sbom.parts, "part")}</span>` : NONE, cveCell(x), esc(x.baseline || "") || NONE, rowBtn("Remove", "k3s.rmItem", [x.comp, x.id], `Remove ${x.name} ${x.version}`)].filter((v) => v !== null) })),
+        empty: st.q || st.f || st.s ? { title: "No item matches", line: "Clear the search or the filters." } : { title: "Nothing recorded yet", line: "The software, firmware and hardware this component is made of. Each row is kept here and read by the SSP's inventory.", action: addBtn("Add item", "k3s.addItem", [code, ""]) }, foot: `<span class="num">${plural(rows.length, "item")}</span>` })];
   }
   function tabConnections(c) {
-    const code = c.code, st = tabState(code, "connections"), all = D.connsOf(code), rows = all.filter((x) => (st.f !== "noagr" || D.noAgr(x)) && has(st, `${x.name} ${x.iface} ${D.endsOf(x).map(D.nameOf).join(" ")}`));
-    return [tools(code, "connections", { search: "Search connections", chips: K.chips([{ id: "", label: "All", count: all.length, on: st.f !== "noagr" }, { id: "noagr", label: "Without an agreement", count: all.filter(D.noAgr).length, on: st.f === "noagr" }], "k3s.tf", "Show connections"), add: addBtn("Add connection", "k3s.addConn", code) }),
-      K.table({ label: "Connections", cols: U.connCols, rows: rows.map((x) => U.connRow(x, code)), empty: st.q || st.f ? { title: "No connection matches", line: "Clear the search or choose All." } : { title: "No connection yet", line: "What this component exchanges data with: another component, the host system or a system outside the boundary.", action: addBtn("Add connection", "k3s.addConn", code) }, foot: `<span class="num">${plural(rows.length, "connection")}</span>` })];
+    const code = c.code, st = tabState(code, "connections"), all = D.connsOf(code), f = st.f === "noagr" || st.f === "signed" ? st.f : "", signed = (x) => D.needsAgr(x) && D.agrState(x.agr) === "signed";
+    const rows = all.filter((x) => (!f || (f === "noagr" ? D.noAgr(x) : signed(x))) && has(st, `${x.name} ${x.iface} ${D.endsOf(x).map(D.nameOf).join(" ")}`));
+    return [tools(code, "connections", { search: "Search connections", add: addBtn("Add connection", "k3s.addConn", code), filters: [{ label: "Agreement", key: "agreement", act: "k3s.tf", value: f, options: [["noagr", "Not signed", all.filter(D.noAgr).length], ["signed", "Signed", all.filter(signed).length]] }] }),
+      K.table({ label: "Connections", cls: "k3s-list", cols: U.connCols, rows: rows.map((x) => U.connRow(x, code)), empty: st.q || f ? { title: "No connection matches", line: "Clear the search or the filter." } : { title: "No connection yet", line: "What this component exchanges data with: another component, the host system or a system outside the boundary.", action: addBtn("Add connection", "k3s.addConn", code) }, foot: `<span class="num">${plural(rows.length, "connection")}</span>` })];
   }
+  const STATUSES = ["Other than satisfied", "Partially satisfied", "Not assessed", "No evidence", "No requirement", "Satisfied"];
   function tabControls(c) {
     const code = c.code, st = tabState(code, "controls"), all = D.controlsOf(code), cont = D.isContainer(c), own = new Set(D.direct(code));
-    const holders = (k) => D.heldBy(code, k), wr = (k) => holders(k).some((x) => D.written(k, x));
-    const F = { "": () => true, nowritten: (k) => !wr(k), inherited: (k) => D.respOf(k).kind === "Inherited", hybrid: (k) => D.respOf(k).kind === "Hybrid" };
-    const inFam = all.filter((k) => !st.fam || D.famOf(k) === st.fam), rows = inFam.filter(F[st.f] || F[""]).filter((k) => has(st, `${k} ${D.titleOf(k)}`));
-    const fams = uniq(all.map(D.famOf)), order = (SSP.families || []).map((f) => f.f); fams.sort((a, b) => order.indexOf(a) - order.indexOf(b));
-    const table = K.table({ label: "Controls", cols: [{ label: "Control" }, { label: "Responsibility", cls: "k3s-w" }, { label: "Implementation", cls: "nw" }, { label: "Status" }, { label: "", cls: "tight" }],
-      rows: rows.map((k) => { const hs = holders(k), at = own.has(k) ? code : hs[0] || code; return { panel: ctlPanel(), id: `${k}@${at}`, cells: [K.name(D.titleOf(k), !cont ? D.basisOf(code, k) : (own.has(k) && hs.length === 1 ? "On this component itself" : `On ${hs.filter((x) => x !== code).slice(0, 2).map(D.nameOf).join(", ")}${hs.filter((x) => x !== code).length > 2 ? ` and ${hs.filter((x) => x !== code).length - 2} more` : ""}`), k), respCell(k), wr(k) ? "Written" : mu("Not written"), K.status(D.statusOf(k)), own.has(k) ? rowBtn("Remove", "k3s.rmCtl", [code, k], `Remove ${k} from this component`) : ""] }; }),
-      empty: st.q || st.f || st.fam ? { title: "No control matches", line: "Clear the search, or choose All controls." } : { title: "No control placed here yet", line: "Place the baseline's controls this component carries. Each is then written and assessed here.", action: addBtn("Add controls", "k3s.addCtl", code) }, foot: `<span class="num">${fmt(rows.length)} of ${plural(all.length, "control")}</span>` });
-    const top = tools(code, "controls", { search: "Search controls", filters: fams.length > 1 ? [{ label: "Family", act: "k3s.tfam", value: st.fam, options: fams.map((f) => [f, `${f} · ${D.famName(f)} (${fmt(all.filter((k) => D.famOf(k) === f).length)})`]) }] : [], chips: K.chips([{ id: "", label: "All", count: inFam.length, on: !F[st.f] || !st.f }, { id: "nowritten", label: "Not written", count: inFam.filter(F.nowritten).length, on: st.f === "nowritten" }, { id: "inherited", label: "Inherited", count: inFam.filter(F.inherited).length, on: st.f === "inherited" }, { id: "hybrid", label: "Hybrid", count: inFam.filter(F.hybrid).length, on: st.f === "hybrid" }], "k3s.tf", "Show controls"), add: addBtn("Add controls", "k3s.addCtl", code) });
+    const holders = (k) => D.heldBy(code, k), W = new Map(), wr = (k) => { if (!W.has(k)) W.set(k, holders(k).some((x) => D.written(k, x))); return W.get(k); };
+    const f = st.f === "nowritten" || st.f === "written" ? st.f : "", tally = (of) => { const m = {}; all.forEach((k) => { const v = of(k); m[v] = (m[v] || 0) + 1; }); return m; };
+    const rows = all.filter((k) => (!st.fam || D.famOf(k) === st.fam) && (!f || (f === "written") === wr(k)) && (!st.s || D.statusOf(k) === st.s) && has(st, `${k} ${D.titleOf(k)} ${D.respWord(D.respOf(k))}`));
+    const byFam = tally(D.famOf), bySt = tally((k) => D.statusOf(k) || ""), nw = all.filter((k) => !wr(k)).length;
+    const fams = Object.keys(byFam), order = (SSP.families || []).map((x) => x.f); fams.sort((a, b) => order.indexOf(a) - order.indexOf(b));
+    const sts = Object.keys(bySt).filter(Boolean).sort((a, b) => (STATUSES.indexOf(a) + 1 || 99) - (STATUSES.indexOf(b) + 1 || 99));
+    const top = tools(code, "controls", { id: "component-controls", noun: "controls", search: "Search controls", add: addBtn("Add controls", "k3s.addCtl", code),
+      filters: [fams.length > 1 ? { label: "Family", key: "family", act: "k3s.tfam", value: st.fam, options: fams.map((x) => [x, `${x} · ${D.famName(x)}`, byFam[x]]) } : null,
+        { label: "Implementation", key: "implementation", act: "k3s.tf", value: f, options: [["nowritten", "Not written", nw], ["written", "Written", all.length - nw]] },
+        sts.length > 1 ? { label: "Status", key: "status", act: "k3s.ts", value: st.s, options: sts.map((s) => [s, s, bySt[s]]) } : null],
+      views: { total: all.length, presets: [{ label: "Not written", state: { implementation: "nowritten" }, count: nw }], seed: [{ name: "Access control, not written", state: { family: "AC", implementation: "nowritten" }, by: BY }] } });
+    const table = K.table({ label: "Controls", cls: "k3s-list", cols: [{ label: "Control" }, { label: cont ? "Component" : "Basis", cls: "k3s-w" }, { label: "Responsibility", cls: "k3s-w" }, { label: "Implementation", cls: "nw" }, { label: "Status", cls: "nw" }, { label: "", cls: "tight" }],
+      rows: rows.map((k) => { const hs = holders(k), at = own.has(k) ? code : hs[0] || code, others = hs.filter((x) => x !== code); return { panel: ctlPanel(), id: `${k}@${at}`, cells: [K.name(D.titleOf(k), "", k), cont ? (others.length ? firstN(others.map((x) => esc(D.nameOf(x)))) : mu("This component")) : basisCell(code, k), respCell(k), wr(k) ? "Written" : mu("Not written"), K.status(D.statusOf(k)), own.has(k) ? rowBtn("Remove", "k3s.rmCtl", [code, k], `Remove ${k} from this component`) : ""] }; }),
+      empty: st.q || f || st.fam || st.s ? { title: "No control matches", line: "Clear the search or the filters." } : { title: "No control placed here yet", line: "Place the baseline's controls this component carries. Each is then written and assessed here.", action: addBtn("Add controls", "k3s.addCtl", code) }, foot: `<span class="num">${fmt(rows.length)} of ${plural(all.length, "control")}</span>` });
     return [top, table];
   }
   function tabRequirements(c) {
     const code = c.code, st = tabState(code, "requirements"), all = D.requirementsOf(code), own = new Set(D.directReqs(code)), cont = D.isContainer(c);
-    const noev = (q) => !(D.reqRec(q).ev || []).length, rows = all.filter((q) => (st.f !== "noev" || noev(q))).filter((q) => { const r = D.reqRec(q); return has(st, `${q} ${r.title} ${r.statement} ${D.reqCtls(q).join(" ")}`); });
-    return [tools(code, "requirements", { search: "Search requirements", chips: K.chips([{ id: "", label: "All", count: all.length, on: st.f !== "noev" }, { id: "noev", label: "Without evidence", count: all.filter(noev).length, on: st.f === "noev" }], "k3s.tf", "Show requirements"), add: addBtn("Add requirement", "k3s.addReq", code) }),
-      K.table({ label: "Requirements", cols: [{ label: "Requirement" }, { label: "Controls it maps" }, { label: "Evidence", cls: "nw" }, { label: "", cls: "tight" }],
-        rows: rows.map((q) => { const r = D.reqRec(q), ks = D.reqCtls(q), at = own.has(q) ? code : D.reqEls(q).find((e) => D.below(code).includes(e)) || code; return { panel: reqPanel(), id: reqPanel() === "k3s-req" ? `${q}@${at}` : q, cells: [K.name(r.title, cont && !own.has(q) ? `On ${D.nameOf(at)}` : clip(r.statement, 110), q), ks.length ? `<span class="num">${esc(ks.slice(0, 3).join(", "))}</span>${ks.length > 3 ? ` ${mu("+" + (ks.length - 3))}` : ""}` : mu("None"), (r.ev || []).length ? K.num(r.ev.length) : mu("None"), own.has(q) ? rowBtn("Remove", "k3s.rmReq", [code, q], `Remove the allocation of ${q}`) : ""] }; }),
-        empty: st.q || st.f ? { title: "No requirement matches", line: "Clear the search or choose All." } : { title: "No requirement allocated here yet", line: "Allocate the program's requirements this component must meet, or create one here.", action: addBtn("Add requirement", "k3s.addReq", code) }, foot: `<span class="num">${plural(rows.length, "requirement")}</span>` })];
+    const noev = (q) => !(D.reqRec(q).ev || []).length, f = st.f === "noev" || st.f === "ev" ? st.f : "", nn = all.filter(noev).length;
+    const rows = all.filter((q) => !f || (f === "noev") === noev(q)).filter((q) => { const r = D.reqRec(q); return has(st, `${q} ${r.title} ${r.statement} ${D.reqCtls(q).join(" ")}`); });
+    return [tools(code, "requirements", { id: "component-requirements", noun: "requirements", search: "Search requirements", add: addBtn("Add requirement", "k3s.addReq", code),
+      filters: [{ label: "Evidence", key: "evidence", act: "k3s.tf", value: f, options: [["noev", "Without evidence", nn], ["ev", "With evidence", all.length - nn]] }],
+      views: { total: all.length, presets: [{ label: "Without evidence", state: { evidence: "noev" }, count: nn }] } }),
+      K.table({ label: "Requirements", cols: [{ label: "Requirement" }, cont ? { label: "Allocated to", cls: "nw" } : null, { label: "Controls", cls: "nw" }, { label: "Evidence", cls: "nw end" }, { label: "", cls: "tight" }].filter(Boolean),
+        rows: rows.map((q) => { const r = D.reqRec(q), ks = D.reqCtls(q), at = own.has(q) ? code : D.reqEls(q).find((e) => D.below(code).includes(e)) || code; return { panel: reqPanel(), id: reqPanel() === "k3s-req" ? `${q}@${at}` : q, cells: [K.name(r.title, clip(r.statement, 160), q), cont ? (own.has(q) ? mu("This component") : esc(D.nameOf(at))) : null, ks.length ? `<span class="num">${esc(ks.slice(0, 3).join(", "))}</span>${ks.length > 3 ? ` ${mu("+" + (ks.length - 3))}` : ""}` : mu("None"), (r.ev || []).length ? K.num(r.ev.length) : mu("None"), own.has(q) ? rowBtn("Remove", "k3s.rmReq", [code, q], `Remove the allocation of ${q}`) : ""].filter((v) => v !== null) }; }),
+        empty: st.q || f ? { title: "No requirement matches", line: "Clear the search or the filter." } : { title: "No requirement allocated here yet", line: "Allocate the program's requirements this component must meet, or create one here.", action: addBtn("Add requirement", "k3s.addReq", code) }, foot: `<span class="num">${plural(rows.length, "requirement")}</span>` })];
   }
+  const SEVS = ["critical", "high", "moderate", "low"];
   function tabFindings(c) {
-    const code = c.code, st = tabState(code, "findings"), all = D.findingsOf(code), rows = all.filter((f) => (!st.f || f.kind === st.f) && has(st, `${f.title} ${f.about} ${f.kind}`));
-    return [tools(code, "findings", { search: "Search findings", filters: [{ label: "Kind", act: "k3s.tf", value: st.f, options: uniq(all.map((f) => f.kind)).map((k) => [k, k]) }] }),
-      K.table({ label: "Findings", cols: [{ label: "Finding" }, { label: "Severity or determination" }, { label: "Opened", cls: "nw" }, { label: "Owner" }],
-        rows: rows.map((f) => Object.assign(f.panel && PA.P[f.panel] ? { panel: f.panel, id: f.pid } : {}, { cells: [K.name(clip(f.title, 120), `${f.kind} · ${f.about}`, ""), f.det ? K.status(f.det) : pill(sevKind(f.sev), D.SEVW[f.sev] || f.sev || ""), f.opened ? esc(mdy(f.opened)) : NONE, f.owner ? K.owner(f.owner) : NONE] })),
-        empty: st.q || st.f ? { title: "No finding matches", line: "Clear the search or the kind." } : { title: "Nothing open on this component", line: "Open issues, assessment findings short of satisfied and known vulnerabilities show here as they are recorded." }, foot: `<span class="num">${plural(rows.length, "finding")}</span>` })];
+    const code = c.code, st = tabState(code, "findings"), all = D.findingsOf(code), rows = all.filter((f) => (!st.f || f.kind === st.f) && (!st.s || f.sev === st.s) && has(st, `${f.title} ${f.about} ${f.kind}`));
+    const sevs = SEVS.filter((s) => all.some((f) => f.sev === s));
+    return [tools(code, "findings", { id: "component-findings", noun: "findings", search: "Search findings",
+      filters: [{ label: "Source", key: "source", act: "k3s.tf", value: st.f, options: uniq(all.map((f) => f.kind)).map((k) => [k, k, all.filter((f) => f.kind === k).length]) },
+        sevs.length ? { label: "Severity", key: "severity", act: "k3s.ts", value: st.s, options: sevs.map((s) => [s, D.SEVW[s] || s, all.filter((f) => f.sev === s).length]) } : null],
+      views: { total: all.length, seed: [{ name: "Critical vulnerabilities", state: { source: "Vulnerability", severity: "critical" }, by: BY }] } }),
+      K.table({ label: "Findings", cls: "k3s-list", cols: [{ label: "Finding" }, { label: "Source", cls: "nw" }, { label: "Severity", cls: "nw" }, { label: "About", cls: "k3s-w" }, { label: "Opened", cls: "nw" }, { label: "Owner", cls: "nw" }],
+        rows: rows.map((f) => Object.assign(f.panel && PA.P[f.panel] ? { panel: f.panel, id: f.pid } : {}, { cells: [K.name(clip(f.title, 140), "", ""), esc(f.kind), sevCell(f), f.about ? esc(f.about) : NONE, f.opened ? esc(mdy(f.opened)) : NONE, f.owner ? K.owner(f.owner) : NONE] })),
+        empty: st.q || st.f || st.s ? { title: "No finding matches", line: "Clear the search or the filters." } : { title: "Nothing open on this component", line: "Open issues, assessment findings short of satisfied and known vulnerabilities show here as they are recorded." }, foot: `<span class="num">${plural(rows.length, "finding")}</span>` })];
   }
   function tabComponents(c) {
     const code = c.code, st = tabState(code, "components"), under = new Set(D.below(code)), base = D.treeOrder().find(([x]) => x.code === code), d0 = base ? base[1] + 1 : 1;
     const rows = D.treeOrder().filter(([x]) => under.has(x.code) && has(st, `${x.name} ${x.code} ${x.unit || ""}`));
     return [tools(code, "components", { search: "Search components", add: addBtn("Add component", "k3s.addComp", code) }),
-      K.table({ label: "Components inside", cls: "k3s-list", cols: [{ label: "Component" }, { label: "Kind" }, { label: "Software & firmware", cls: "nw" }, { label: "Controls", cls: "nw" }, { label: "Requirements", cls: "nw" }, { label: "Findings", cls: "nw" }, { label: "Owner" }], rows: rows.map(([x, d]) => U.insideRow(x, st.q ? 0 : d - d0)),
+      K.table({ label: "Components inside", cls: "k3s-list", cols: U.insideCols, rows: rows.map(([x, d]) => U.insideRow(x, st.q ? 0 : d - d0)),
         empty: st.q ? { title: "No component matches", line: "Clear the search." } : { title: `Nothing inside ${c.name} yet`, line: "Add the units and software it holds.", action: addBtn("Add component", "k3s.addComp", code) }, foot: `<span class="num">${plural(rows.length, "component")}</span>` })];
   }
   function tabOffered(c) {
     const code = c.code, st = tabState(code, "offered"), all = offersOf(code);
-    const F = { "": () => true, inh: (r) => r.kind === "Inherited", hyb: (r) => r.kind === "Hybrid", back: (r) => r.back };
-    const rows = all.filter(F[st.f] || F[""]).filter((r) => has(st, `${r.code} ${D.titleOf(r.code)}`));
-    return [tools(code, "offered", { search: "Search controls", chips: K.chips([{ id: "", label: "All", count: all.length, on: !st.f }, { id: "inh", label: "Inherited", count: all.filter(F.inh).length, on: st.f === "inh" }, { id: "hyb", label: "Hybrid", count: all.filter(F.hyb).length, on: st.f === "hyb" }, { id: "back", label: "Taken back", count: all.filter(F.back).length, on: st.f === "back" }], "k3s.tf", "Show controls") }),
-      K.table({ label: "Controls offered", cols: [{ label: "Control" }, { label: "Offered as", cls: "nw" }, { label: "This system takes it as" }, { label: "This system's part" }, { label: "Status" }, { label: "", cls: "tight" }],
-        rows: rows.map((r) => ({ panel: ctlPanel(), id: PA.P["k3c-control"] ? r.code : `${r.code}@${code}`, cells: [K.name(D.titleOf(r.code), clip((r.offer || {}).prov || "", 110), r.code), esc(r.def), r.kind === "System-specific" ? two("This system", "Taken back") : esc(r.kind), r.own ? esc(clip(r.own, 90)) : NONE, K.status(D.statusOf(r.code)), D.wsx() ? rowBtn("Change", "k3s.resp", r.code, `Change the responsibility of ${r.code}`) : ""] })),
-        empty: st.q || st.f ? { title: "No control matches", line: "Clear the search or choose All." } : { title: "It offers no control of this baseline", line: "Controls a provider offers are inherited by default; their status becomes the provider's." }, foot: `<span class="num">${plural(rows.length, "control")}</span>` })];
+    const F = { inh: (r) => r.kind === "Inherited", hyb: (r) => r.kind === "Hybrid", back: (r) => r.back }, f = F[st.f] ? st.f : "";
+    const rows = all.filter(F[f] || (() => true)).filter((r) => has(st, `${r.code} ${D.titleOf(r.code)}`));
+    return [tools(code, "offered", { search: "Search controls", filters: [{ label: "Taken as", key: "taken", act: "k3s.tf", value: f, options: [["inh", "Inherited", all.filter(F.inh).length], ["hyb", "Hybrid", all.filter(F.hyb).length], ["back", "Taken back", all.filter(F.back).length]] }] }),
+      K.table({ label: "Controls offered", cols: [{ label: "Control" }, { label: "Offered as", cls: "nw" }, { label: "Taken as", cls: "nw" }, { label: "Status", cls: "nw" }, { label: "", cls: "tight" }],
+        rows: rows.map((r) => ({ panel: ctlPanel(), id: PA.P["k3c-control"] ? r.code : `${r.code}@${code}`, cells: [K.name(D.titleOf(r.code), r.kind === "Hybrid" && r.own ? r.own : "", r.code), esc(r.def), takenCell(r), K.status(D.statusOf(r.code)), D.wsx() ? rowBtn("Change", "k3s.resp", r.code, `Change the responsibility of ${r.code}`) : ""] })),
+        empty: st.q || f ? { title: "No control matches", line: "Clear the search or the filter." } : { title: "It offers no control of this baseline", line: "Controls a provider offers are inherited by default; their status becomes the provider's." }, foot: `<span class="num">${plural(rows.length, "control")}</span>` })];
   }
   K.lazy(RE, (r, m) => {
     const c = D.component(m[1]), tab = m[2] || "overview";
@@ -831,13 +932,32 @@
     return K.page({ cls: "k3s", head: head(c), tabs: K.tabs(list.map(([id, label, count]) => ({ label, count, route: route(c.code, id), on: id === t })), c.name), body });
   }, "system");
 
-  // ——— A component named on another page: its panel, whose Open goes to its page ———
+  // ——— A component named on another page: its preview. After the facts it lists what its page lists, tab by tab: the first
+  // rows of each (the kit draws a table as a short list here), then View all, which opens that tab. Open goes to its page. ———
   K.panel("k3s-comp", (code0) => {
     const code = code0 === "SYS-WSX90" && D.rootOf() ? D.rootOf().code : code0, c = D.component(code); if (!c) return null;
-    const ins = c.boundary === "inside", n = (list, tab) => (list.length ? K.link(fmt(list.length), route(code, tab)) : mu("None")), t = ins || c.boundary === "connected" ? null : D.takeCounts(code), lib = D.libOf(c);
-    return { label: "Component", title: c.name, code: ins ? c.code : "", chip: U.whereChip(c), page: route(code), open: "Open component",
-      facts: ins ? [["Kind", esc(c.kind)], c.parent && D.component(c.parent) ? ["Inside", clink(c.parent)] : null, ["Owner", K.owner(D.ownerOf(code))], lib ? ["Built from", `${esc(lib.name)}, version ${fmt(lib.v)}${lib.behind ? ` ${mu("· " + plural(lib.behind, "version") + " behind")}` : ""}`] : null, ["Software & firmware", D.swLine(code) || mu("None recorded")], ["Controls", n(D.controlsOf(code), "controls")], ["Requirements", n(D.requirementsOf(code), "requirements")], ["Open findings", n(D.findingsOf(code), "findings")], ["Connections", n(D.connsOf(code), "connections")]]
-        : [["Kind", esc(c.kind)], c.org ? ["Organization", esc(c.org)] : null, c.boundary !== "connected" ? ["Authorization", D.unauth(code) ? pill("warn", (D.provAuth(code) || {}).word || "Not authorized") : esc(U.authWord(D.provAuth(code)))] : null, t ? ["This system takes", K.link(`${fmt(t.inh)} inherited · ${fmt(t.hyb)} hybrid`, route(code, "offered"))] : null, ["Connections", n(D.connsOf(code), "connections")]] };
+    const ins = c.boundary === "inside", isProv = !ins && c.boundary !== "connected", lib = D.libOf(c), P0 = D.PROV()[code] || {}, t = isProv ? D.takeCounts(code) : null;
+    const sec = (title, tab, list, cols, row, empty) => K.related({ title, count: list.length, cols, rows: list.slice(0, 5).map(row), all: { go: route(code, tab) }, empty });
+    const about = c.about || P0.about ? K.section({ title: "What it is", body: `<p class="k3s-prose">${esc(c.about || P0.about)}</p>` }) : "";
+    const conns = () => sec("Connections", "connections", D.connsOf(code), [{ label: "Connection" }, { label: "Agreement", peek: true }], (x) => ({ panel: "k3s-conn", id: x.id, cells: [K.name(x.name, D.endsOf(x).filter((e) => e !== code).map(D.nameOf).join(", "), ""), agrPill(x)] }), "No connection yet");
+    let sections;
+    if (ins) {
+      const under = new Set(D.below(code)), own = new Set(D.direct(code));
+      sections = [about,
+        D.isContainer(c) ? sec("Components", "components", D.treeOrder().filter(([x]) => under.has(x.code)), [{ label: "Component" }, { label: "Kind", peek: true }], ([x]) => ({ go: route(x.code), peek: { panel: "k3s-comp", id: x.code }, cells: [K.name(x.name, "", ""), esc(x.kind)] }), "Nothing inside it yet") : "",
+        sec("Software & firmware", "software", pooledItems(c), [{ label: "Item" }, { label: "Version", peek: true }, { label: "CVE", peek: true }], (x) => ({ act: "k3s.editItem", arg: [x.comp, x.id], cells: [K.name(x.name, "", ""), K.num(x.version), x.sbom && x.sbom.cve ? pill("bad", x.sbom.cve) : ""] }), "Nothing recorded yet"),
+        conns(),
+        sec("Controls", "controls", D.controlsOf(code), [{ label: "Control" }, { label: "Status", peek: true }], (k) => ({ panel: ctlPanel(), id: `${k}@${own.has(k) ? code : D.heldBy(code, k)[0] || code}`, cells: [K.name(D.titleOf(k), "", k), K.status(D.statusOf(k))] }), "No control placed here yet"),
+        sec("Requirements", "requirements", D.requirementsOf(code), [{ label: "Requirement" }, { label: "Evidence", peek: true }], (q) => { const r = D.reqRec(q), n = (r.ev || []).length; return { panel: reqPanel(), id: reqPanel() === "k3s-req" ? `${q}@${code}` : q, cells: [K.name(r.title, "", q), n ? `<span class="num">${plural(n, "evidence item")}</span>` : pill("warn", "No evidence")] }; }, "No requirement allocated here yet"),
+        sec("Findings", "findings", D.findingsOf(code), [{ label: "Finding" }, { label: "Severity", peek: true }], (f) => Object.assign(f.panel && PA.P[f.panel] ? { panel: f.panel, id: f.pid } : {}, { cells: [K.name(clip(f.title, 120), "", ""), sevCell(f)] }), "Nothing open on this component")];
+    } else {
+      sections = [about,
+        isProv ? sec("Controls offered", "offered", offersOf(code), [{ label: "Control" }, { label: "Taken as", peek: true }], (r) => ({ panel: ctlPanel(), id: PA.P["k3c-control"] ? r.code : `${r.code}@${code}`, cells: [K.name(D.titleOf(r.code), "", r.code), takenCell(r)] }), "It offers no control of this baseline") : "",
+        carriesSec(c, P0), conns()];
+    }
+    return { label: "Component", title: c.name, code: ins ? c.code : "", chip: U.whereChip(c), page: route(code), open: "Open component", sections: sections.filter(Boolean),
+      facts: ins ? [["Kind", esc(c.kind)], c.unit ? ["Unit number", `<span class="k3-code">${esc(c.unit)}</span>`] : null, c.parent && D.component(c.parent) ? ["Inside", clink(c.parent)] : null, ["Owner", K.owner(D.ownerOf(code))], lib ? ["Built from", `${esc(lib.name)}, version ${fmt(lib.v)}`] : null, lib && lib.behind ? ["Library", pill("warn", `${plural(lib.behind, "version")} behind`)] : null]
+        : [["Kind", esc(c.kind)], c.org ? ["Organization", esc(c.org)] : null, isProv ? ["Authorization", D.unauth(code) ? pill("warn", (D.provAuth(code) || {}).word || "Not authorized") : esc(U.authWord(D.provAuth(code)))] : null, c.ao || P0.ao ? ["Authorizing official", esc(c.ao || P0.ao)] : null, t ? ["This system takes", K.link(`${fmt(t.inh)} inherited · ${fmt(t.hyb)} hybrid`, route(code, "offered"))] : null] };
   });
   for (const k of ["v7p-el", "sys-el"]) V3.P(k, (orig, id) => (D.wsx() && (D.component(id) || id === "SYS-WSX90") ? PA.P["k3s-comp"](id) : orig()));
   V3.P("v2h-prov", (orig, id) => (D.component(id) ? PA.P["k3s-comp"](id) : orig()));

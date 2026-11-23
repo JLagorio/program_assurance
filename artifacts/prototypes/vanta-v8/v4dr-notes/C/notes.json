@@ -1,0 +1,429 @@
+{
+ "lane": "C",
+ "pairs": [
+  {
+   "id": "c-sources-register",
+   "title": "Sources register",
+   "group": "automation",
+   "new": false,
+   "current": {
+    "route": "evidence-sources",
+    "note": "Evidence › Sources lists ten sources by state (Current, Overdue, Import failed) and check; nothing says what a source evidences, and a missing source is not listed."
+   },
+   "after": {
+    "route": "dr-sources"
+   },
+   "changes": [
+    {
+     "n": 1,
+     "rec": 11,
+     "title": "Each source says what it evidences",
+     "text": "An Evidences column counts the objectives and controls of WS-X90's baseline each source can evidence (ACAS: 46 objectives · 10 controls). One line above sums the connected sources: 185 of 1,791 objectives.",
+     "drata": "A connection's card and its Benefits rail count the impact areas, controls and tests it feeds, before and after connecting.",
+     "ev": [
+      "images/ux/connections/understanding-connections-in-drata--04.png"
+     ]
+    },
+    {
+     "n": 2,
+     "rec": 11,
+     "title": "A missing source reads Not connected",
+     "text": "Two sources the baseline needs and lacks are rows of their own: the Configuration Repository's inventory export and the program office's Jira change tickets. Each reads Not connected with the count it would evidence; connecting both adds 29 objectives.",
+     "drata": "The Available tab lists connections not made yet beside the active ones, each card saying what it covers.",
+     "ev": [
+      "images/ux/connections/enterprise-scim-integration-guide--01.png",
+      "images/ux/connections/understanding-connections-in-drata--01.png"
+     ]
+    },
+    {
+     "n": 3,
+     "rec": 11,
+     "title": "Health names the step that failed",
+     "text": "Health is one word: Healthy, Overdue (past its cadence), or Error with the step that failed (the telemetry SARIF scan: Error at Validate). Problems sort first; Kind and Health are filters in the one toolbar row, with saved views.",
+     "drata": "Connections carry an operational status, Healthy or Unhealthy, filterable beside the category of each connection.",
+     "ev": [
+      "images/ux/connections/understanding-connections-in-drata--02.png"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "c-source-record",
+   "title": "Source record",
+   "group": "automation",
+   "new": false,
+   "current": {
+    "route": "evidence-sources",
+    "panel": {
+     "kind": "v3w-source",
+     "id": "acas"
+    },
+    "note": "A preview only: state, kind, last imported, cadence, its check, owner, \"Informs 11 controls\" as plain text, and the list of imports."
+   },
+   "after": {
+    "route": "dr-source--acas"
+   },
+   "changes": [
+    {
+     "n": 1,
+     "rec": 20,
+     "title": "A page with the one header",
+     "text": "The source gets its own page: the trail, the title, ⋯ then Import file as the one primary, a facts strip (Health, Kind, Last run, Cadence, Tool, Owner with a pencil) and line tabs, Matching with a pale red 9.",
+     "drata": "A connection's page puts Status and the account's details in a facts row under its name, with Overview and Manage tabs.",
+     "ev": [
+      "images/ux/connections/understanding-connections-in-drata--03.png"
+     ]
+    },
+    {
+     "n": 2,
+     "rec": 11,
+     "title": "Evidences: every number opens its list",
+     "text": "\"46 objectives · 10 controls · 16 components\": the first two open the controls with their objective counts, the third the matched hosts. Under them the ten controls as status chips, and how many objectives have evidence today.",
+     "drata": "The Benefits rail counts impact areas, controls and tests, and each count expands into its list.",
+     "ev": [
+      "images/ux/connections/understanding-connections-in-drata--04.png"
+     ]
+    },
+    {
+     "n": 3,
+     "rec": 11,
+     "title": "Sync steps, each with its state",
+     "text": "Collect, Validate, Match assets, Apply, each Done, Running, Failed or Waiting; a failed step carries the tool's own reason (SARIF validation failed at runs[0].results[17]). What it last brought in sits beside: 1,284 results across 26 hosts.",
+     "drata": "Sync status lists each synced object with its state, and an unhealthy connection explains the failure.",
+     "ev": [
+      "images/ux/connections/understanding-connections-in-drata--03.png",
+      "images/ux/connections/understanding-connections-in-drata--04.png"
+     ]
+    },
+    {
+     "n": 4,
+     "rec": 19,
+     "title": "The body in the grey well",
+     "text": "Overview's four cards (Evidences, Sync, Scope and matching, Last brought in) are white raised cards in the sunken well; the register stays one surface.",
+     "drata": "Record pages sit in a grey well with white bordered cards; lists stay flat.",
+     "ev": [
+      "images/ux/connections/understanding-connections-in-drata--04.png"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "c-scope-rules",
+   "title": "Scope rules",
+   "group": "automation",
+   "new": false,
+   "current": {
+    "route": "system-boundary",
+    "note": "The boundary is a picture of the components each authorization covers; nothing decides which scanned hosts count, so every host ACAS reached counts."
+   },
+   "after": {
+    "route": "dr-source--acas--scope",
+    "click": ".drc-acts .btn.ink"
+   },
+   "changes": [
+    {
+     "n": 1,
+     "rec": 14,
+     "title": "The boundary written as rules",
+     "text": "Enclave rules first (mission network and ground support LAN in; depot enclave and test bench out), then tag and name rules, each In or Out; the last match decides. Each rule says how many hosts it reaches.",
+     "drata": "Resource scoping picks all or specific resources, in or out of scope, through condition groups of tag and name conditions.",
+     "ev": [
+      "images/ux/connections/aws-integration-guide-infrastructure-user-access-review--03.png"
+     ]
+    },
+    {
+     "n": 2,
+     "rec": 14,
+     "title": "A live count as rules change",
+     "text": "In scope 26 · Out of scope 4 · Rules 5, redrawn on every change; once rules are applied, the difference from them; beside it, every host the scan reached with In or Out.",
+     "drata": "The scoping card shows how many people the chosen groups bring in, as a count of the whole.",
+     "ev": [
+      "images/ux/workspaces/scope-personnel-to-a-workspace--02.png"
+     ]
+    },
+    {
+     "n": 3,
+     "rec": 27,
+     "title": "Apply shows the counts first",
+     "text": "Apply scope opens a review in place: hosts in WS-X90's enclaves (locked), left out, \"Moving 26 · Not moving 4\", and the consequence: findings on the 4 stop counting toward WS-X90. Then Apply scope or Back to rules.",
+     "drata": "A command over many records opens a confirmation that counts what it will create, update or leave alone before it runs.",
+     "ev": [
+      "images/ux/assets/bulk-import-assets--12.png"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "c-matching-assets",
+   "title": "Matching: hosts to the inventory",
+   "group": "automation",
+   "new": false,
+   "current": {
+    "route": "system",
+    "note": "The component inventory lists what is inside the boundary; scanned hosts are never compared with it, so CM-8 cannot tell a host nobody inventoried."
+   },
+   "after": {
+    "route": "dr-source--acas--matching"
+   },
+   "changes": [
+    {
+     "n": 1,
+     "rec": 13,
+     "title": "Not matched, with a picker in the cell",
+     "text": "ACAS's 26 in-scope hosts against the component inventory: 17 match by their LRU name; the 9 that don't have a red edge, \"Not matched\", and a component picker in the Component cell. Your match can be undone.",
+     "drata": "Unlinked rows carry a red edge and Not linked, with Link personnel or a device dropdown right in the row.",
+     "ev": [
+      "images/ux/connections/map-accounts-to-personnel-in-drata-new-experience--02.png",
+      "images/ux/connections/sentinelone-edr-integration-guide--03.png"
+     ]
+    },
+    {
+     "n": 2,
+     "rec": 13,
+     "title": "One line names the consequence",
+     "text": "Above the table, one warning line: \"9 hosts not matched · CM-8 objective 1 stays unevidenced\". It is words, not a tinted banner, and it falls with each match.",
+     "drata": "A banner names the test that will fail while devices or accounts stay unlinked.",
+     "ev": [
+      "images/ux/connections/sterling-integration-guide--01.png"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "c-matching-accounts",
+   "title": "Matching: accounts to people",
+   "group": "automation",
+   "new": true,
+   "current": {
+    "route": "overview-team",
+    "note": "The team lists people and the roles they hold; no account from any directory is compared with it."
+   },
+   "after": {
+    "route": "dr-source--idp--matching"
+   },
+   "changes": [
+    {
+     "n": 1,
+     "rec": 13,
+     "title": "Accounts matched to people for AC-2",
+     "text": "The identity provider's WS-X90 accounts against the program's people: 12 match, 3 don't (kchen, jlee.adm, mx-shared01), each with a person picker. The line reads \"3 accounts not matched · AC-02a.[01] stays unevidenced\".",
+     "drata": "Accounts from each identity source are linked to personnel; an unlinked account is flagged where it stands.",
+     "ev": [
+      "images/ux/connections/map-accounts-to-personnel-in-drata-new-experience--02.png"
+     ]
+    },
+    {
+     "n": 2,
+     "rec": 13,
+     "title": "A deleted account stays, revoked",
+     "text": "hwalsh, deleted at the source, stays in the list as \"Access revoked · Oct 28\", so the AC-2 review can show when access ended.",
+     "drata": "Accounts keep an Access revoked date column after the source deletes them.",
+     "ev": [
+      "images/ux/connections/map-accounts-to-personnel-in-drata-new-experience--02.png"
+     ]
+    },
+    {
+     "n": 3,
+     "rec": 14,
+     "title": "Directory groups decide the scope",
+     "text": "The same rules over directory groups: the three ws-x90 groups in, depot-maintenance-users and service accounts out, so 4 depot accounts never count.",
+     "drata": "Personnel scoping picks the identity provider's groups that a workspace counts.",
+     "ev": [
+      "images/ux/workspaces/scope-personnel-to-a-workspace--03.png"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "c-checklist-scope",
+   "title": "A checklist's Scope and Matching",
+   "group": "automation",
+   "new": false,
+   "current": {
+    "route": "evidence-sources",
+    "panel": {
+     "kind": "v3w-source",
+     "id": "stig-sw"
+    },
+    "note": "The switch's checklists: a preview with state, cadence and imports; nothing says which host it read, which component it counts for, or which rules"
+   },
+   "after": {
+    "route": "dr-source--stig-sw--scope"
+   },
+   "changes": [
+    {
+     "n": 1,
+     "rec": 14,
+     "title": "Every source has the same tabs",
+     "text": "A STIG checklist, an SBOM and a container scan now open on Overview, Scope, Matching and Runs, as ACAS and the identity source do; a source not connected says so on each.",
+     "drata": "Every connection opens on the same tabs, whatever it connects.",
+     "ev": [
+      "images/ux/connections/understanding-connections-in-drata--03.png"
+     ]
+    },
+    {
+     "n": 2,
+     "rec": 14,
+     "title": "Scope: its component and its rules",
+     "text": "The switch's scope is one component and the rules of its two STIGs: 65 rules, 4 not applicable, 61 in scope, 6 open, from V3's checklists, each a link to its checklist.",
+     "drata": "Scoping says which resources a connection counts, with live counts.",
+     "ev": [
+      "images/ux/connections/aws-integration-guide-infrastructure-user-access-review--03.png"
+     ]
+    },
+    {
+     "n": 3,
+     "rec": 13,
+     "title": "Matching: the host it ran on",
+     "text": "Matching shows the host the checklist ran on, lru-009-esw at 10.20.3.31, matched to the Internal Ethernet Switch by the checklist's asset.",
+     "drata": "Each resource a connection reads is linked to a person or an asset, with its link state.",
+     "ev": [
+      "images/ux/connections/map-accounts-to-personnel-in-drata-new-experience--02.png"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "c-runs",
+   "title": "Runs that finish",
+   "group": "automation",
+   "new": false,
+   "current": {
+    "route": "evidence-sources",
+    "panel": {
+     "kind": "v3w-source",
+     "id": "stig-gw"
+    },
+    "note": "Import file adds a row that stays queued; ACAS's November import reads Importing for days"
+   },
+   "after": {
+    "route": "dr-source--stig-gw",
+    "click": "#main .drk-head-a .btn.ink"
+   },
+   "changes": [
+    {
+     "n": 1,
+     "rec": 11,
+     "title": "A run moves, then finishes",
+     "text": "Import file, Run now and Connect queue a run that reads Queued, then Running while the sync steps light one by one, then Done within four seconds.",
+     "drata": "A sync shows its state while it runs and its result when it is done.",
+     "ev": [
+      "images/ux/connections/understanding-connections-in-drata--03.png"
+     ]
+    },
+    {
+     "n": 2,
+     "rec": 11,
+     "title": "Counts from the last run",
+     "text": "A finished run reads what V3 holds for the source (the gateway: 139 rules, 11 open); Last run, Health and the register update, and its checklists' evidence renews.",
+     "drata": "A connection's last sync and health update when a sync finishes.",
+     "ev": [
+      "images/ux/connections/understanding-connections-in-drata--04.png"
+     ]
+    },
+    {
+     "n": 3,
+     "rec": 11,
+     "title": "It holds across pages",
+     "text": "A run's state follows from when it was asked, kept in the session, so leaving the page and coming back shows it done, and the register updates while open.",
+     "drata": "Syncs run in the background while the user works elsewhere.",
+     "ev": [
+      "images/ux/connections/ad-hoc-identity-and-account-resync--02.png"
+     ]
+    }
+   ]
+  }
+ ],
+ "components": [
+  {
+   "id": "worth",
+   "rec": [
+    11
+   ],
+   "used": "Source record Overview (Evidences, Would evidence) and the register's preview"
+  },
+  {
+   "id": "moving",
+   "rec": [
+    27
+   ],
+   "used": "Scope tab: the review before Apply scope"
+  },
+  {
+   "id": "head",
+   "rec": [
+    20
+   ],
+   "used": "Every source record, health in the facts strip, Owner with its pencil"
+  },
+  {
+   "id": "tabs",
+   "rec": [
+    3
+   ],
+   "used": "Source record: Matching carries the unmatched count as a problem badge"
+  },
+  {
+   "id": "sunken",
+   "rec": [
+    19
+   ],
+   "used": "Source record Overview and Scope: white cards in the grey well"
+  },
+  {
+   "id": "drawer",
+   "rec": [
+    23
+   ],
+   "used": "Register: the eye opens a walkable source preview"
+  },
+  {
+   "id": "idchip",
+   "rec": [
+    2
+   ],
+   "used": "Source record: the controls it evidences as status chips"
+  }
+ ],
+ "derived": [
+  "Source kinds (scanner, STIG checklist, inventory, ticketing, identity): from each V3 source's file kind; SBOMs read as inventory.",
+  "The controls each source can evidence: chosen from what its tool reads (ACAS: RA-5, SI-2, SI-3, CM-8 and enhancements; STIG and SCAP: CM-6, CM-7, CM-2, IA-5, AU-12), kept to those WS-X90's baseline selects. Objective counts are the SSP's own (ob per control).",
+  "Health: from V3's imports (Error when the latest import failed or was rejected after the last applied one; Overdue when the last applied import is older than its check's cadence).",
+  "Sync steps (Upload or Collect, Validate, Match, Apply) and their states: from the latest import's state.",
+  "The identity source (Corporate identity provider, WS-X90 accounts): the enterprise service WS-X90 lists as a provider; its 21 accounts are the program's people by username, three with no person, one deleted Oct 28 (hwalsh) and five outside the scope (four depot, one service account); daily runs.",
+  "The two not-connected sources (Configuration Repository inventory export; Jira change tickets): CM-8/CM-2 and CM-3/CM-4/CM-5, which the baseline selects and no source feeds.",
+  "ACAS's 30 hosts: one per hardware component of the inventory, named for its LRU (17 match by name), plus 9 in the boundary's enclaves it does not match (a second gateway unit, a second switch, a second workstation, a laptop, a log collector VM, the repository host, two named differently, one bare address) and 4 outside (depot enclave, test bench). Addresses and enclaves are derived.",
+  "Scope rules: written from the boundary (inside enclaves in, outside out); ACAS's are a draft not yet applied, the identity source's applied when it was connected.",
+  "The objective a matching gap holds back: the control's first assessment objective (CM-8's, AC-2's AC-02a.[01]).",
+  "Last sign-in of each account: a fixed offset from today by its name.",
+  "A checklist source's host: the scanner's host for its component's LRU (lru-001-mc, lru-009-esw, lru-007-pngw, lru-019-mlt); SBOM and container images named for their component; its rules and their counts are V3's checklists, read through lane B.",
+  "A STIG source's cadence: its checklists' own next import as V3 schedules it (RHEL 9, switch and gateway 90 days, ASD 180, Windows 11 30), so a source and its checklist evidence agree; it was 30 days for all.",
+  "Run timing: Queued for 1.5 s, Running until 4 s, then Done, from the moment it was asked (kept in the session). A run reads the source's last applied import from V3; a source that never ran reads, for the inventory export, V3's component inventory, and for Jira no count.",
+  "A V3 import still pending (ACAS's November scan, the switch's queued checklist, the PIC's SBOM) is taken over by a run asked here, which finishes it."
+ ],
+ "conflicts": [
+  "Drata's red Unhealthy and Not linked chips and its warning banner meet \"no tinted banners\" and \"one tone a status\": the consequence is one line of warning words above the table, an unmatched row has a thin red edge, and Health is one word with one tone.",
+  "Drata's Benefits rail of three cards with icons meets \"numbers over prose\" and calm: it became one line of linked counts (D.worth) with the controls as chips under it.",
+  "Drata's connections gallery splits Active and Available into tabs: a list's kinds are filters, so Not connected is a Health value and a saved view in the one toolbar row, never a tab.",
+  "Drata's AI sync-failure summary: no AI here; the failed step carries the tool's own error text."
+ ],
+ "open": [],
+ "added": [
+  {
+   "text": "A STIG checklist source has Scope: its one component and the rules of its STIGs",
+   "pair": "c-checklist-scope",
+   "route": "dr-source--stig-sw--scope"
+  },
+  {
+   "text": "Matching shows the host the checklist ran on, matched to its component",
+   "pair": "c-checklist-scope",
+   "route": "dr-source--stig-sw--matching"
+  },
+  {
+   "text": "Import file queues a run: Queued, Running, Done, and the source updates",
+   "pair": "c-runs",
+   "route": "dr-source--stig-gw",
+   "click": "#main .drk-head-a .btn.ink"
+  }
+ ]
+}

@@ -1,0 +1,30 @@
+import { createRequire } from "module";
+const require = createRequire("/Users/joseflagorio/Development/program_assurance-ux-proposal/package.json");
+const { chromium } = require("playwright");
+const build = process.argv[2];
+const b = await chromium.launch(); const p = await b.newPage({ viewport: { width: 1440, height: 900 } });
+const errs = []; p.on("pageerror", (e) => errs.push(e.message));
+await p.goto("file://" + build + "#overview"); await p.waitForTimeout(700);
+await p.evaluate(() => { sessionStorage.clear(); PA.v2.reset(); PA.v3.set(true); }); await p.waitForTimeout(300);
+const r = await p.evaluate(() => {
+  const F = (n, ...a) => { try { return PA.v3.fact(n, ...a); } catch (e) { return "ERR " + e.message; } };
+  const out = {};
+  out.facts = Object.keys(PA.v3.facts);
+  for (const n of ["program", "controls", "status", "issues", "risks", "poam", "evidence", "requirements", "setup", "people", "inbox", "authorizations", "conditions"]) { let v = F(n); try { out[n] = JSON.stringify(v).slice(0, 1500); } catch (e) { out[n] = String(v); } }
+  out.gate = F("gate", "pdr-2");
+  out.gateStrat = F("gate", "strat-2");
+  out.steps = PA.v2life.steps().slice(19, 40);
+  out.stage = PA.v2life.stage("PRG-1090");
+  out.hubs = Object.keys(PA.v2hubs || {});
+  out.people = PA.v8people ? Object.keys(PA.v8people) : null; out.PAkeys = Object.keys(PA).filter(k => /people|life|hubs|host|mywork|review|sse|act/i.test(k));
+  out.ic = (PA.v8bIC || []).map((x) => ({ id: x.id, name: x.name, agr: x.agr }));
+  out.S = Object.keys(PA.S).filter((k) => /^(overview|lifecycle|people|activity|sse|getting|system|controls|requirements|interconn|boundary|sctm|my-work|review)/.test(k));
+  out.P = Object.keys(PA.P).filter((k) => /gate|person|people|v3g|v8p/.test(k));
+  out.M = Object.keys(PA.M).filter((k) => /v2g|v3g|people|role|person/.test(k));
+  out.v2 = Object.keys(PA.v2 || {});
+  out.v3k = Object.keys(PA.v3k || {}).length;
+  return out;
+});
+console.log(JSON.stringify(r, null, 1));
+console.log("errors", errs);
+await b.close();

@@ -145,7 +145,7 @@
     return `<dl class="v3b-stats"><div><dt>Fixed</dt><dd class="num">${by("fixed")}</dd></div><div><dt>Partly</dt><dd class="num">${by("partly")}</dd></div><div><dt>Not fixed</dt><dd class="num">${by("not") + none}</dd></div><div><dt>Of findings</dt><dd class="num">${fs.length}</dd></div></dl>`;
   }
   // ——— The rethink's blocks ———
-  const LANE_OF = { O: "Overview", S: "System", C: "Controls", D: "Documents, requirements and evidence", E: "Assessments, findings, risks and authorization" };
+  const LANE_OF = { O: "Overview", S: "System", C: "Controls", D: "Documents, requirements and evidence", E: "Assessments, findings, risks and authorization", P1: "Every list", P2: "Every page", P3: "Every preview" };
   const HOME = [["overview", "Overview"], ["system", "System"], ["component", "System"], ["controls", "Controls"], ["requirements", "Requirements"], ["evidence", "Evidence"], ["documents", "Documents"], ["ssp", "Documents"], ["itcsc", "Documents"], ["assessments", "Assessments"], ["findings", "Findings"], ["risks", "Risks"], ["authorization", "Authorization"]];
   const homeOf = (route) => { const r = String(route || ""); const hit = HOME.find(([k]) => r === k || r.startsWith(k + "-")); return hit ? hit[1] : "Elsewhere"; };
   const HOW = { view: "a view", tab: "a tab", rail: "a tab or a filter", section: "a section", panel: "a record's page", gone: "gone", page: "a page", filter: "a filter", rows: "rows of a record" };

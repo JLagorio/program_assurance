@@ -285,3 +285,116 @@ body:has(#k3task) #v2-toast { bottom: 76px; }
 body:has(#k3task) #main > .k3, body:has(#k3task) #main > .main { padding-bottom: 76px; }
 /* On a phone a table scrolls inside its frame; its first column keeps a readable measure instead of four letters a line. */
 @media (max-width: 760px) { .k3-table th:first-child, .k3-table td:first-child { min-width: 168px; } .k3-table td.tight:first-child, .k3-table th.tight:first-child { min-width: 0; } }
+
+/* ——— Pass 3 (Josef, 21 Nov): the page takes the window's width; a row is one compact line; one row of controls stands over a
+   table (search, the view, the filters, then the list's actions); a preview lists what the record's page lists. ——— */
+#proto.v3on .pt-main > .main { max-width: none; }
+
+/* The one row */
+.k3-tb { gap: 8px; align-items: center; }
+.k3-tb .k3-search { flex: 0 1 260px; min-width: 150px; }
+.k3-tb .k3-search input { width: 100%; height: 32px; padding: 0 10px 0 30px; font-size: 13.5px; background: var(--canvas) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 16 16' fill='none' stroke='%2385858f' stroke-width='1.6' stroke-linecap='round'%3E%3Ccircle cx='7' cy='7' r='4.5'/%3E%3Cpath d='M10.5 10.5 14 14'/%3E%3C/svg%3E") no-repeat 9px center; }
+.k3-tb .k3-flt select { appearance: none; -webkit-appearance: none; height: 32px; border: 1px solid var(--line); border-radius: 6px; padding: 0 26px 0 10px; font: 500 13px/1 var(--font); color: var(--ink-2); max-width: 200px; text-overflow: ellipsis; background: var(--canvas) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10' fill='none' stroke='%2385858f' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 3.5 5 6.5 8 3.5'/%3E%3C/svg%3E") no-repeat right 9px center; }
+.k3-tb .k3-flt select:hover { background-color: var(--band); color: var(--ink); }
+.k3-tb .k3-flt.on select { color: var(--brand-text); background-color: var(--brand-soft); border-color: transparent; }
+.k3-tb .k3-rsel select { max-width: 240px; }
+.k3-clear { border: 0; background: none; height: 32px; padding: 0 6px; border-radius: 6px; font: 500 13px/1 var(--font); color: var(--ink-3); cursor: pointer; }
+.k3-clear:hover { color: var(--ink); background: var(--band); }
+.k3-clear:focus-visible, .k3-vbtn:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
+.k3-tb .k3-tools-r { gap: 8px; flex-wrap: nowrap; }
+.k3-tb .k3-tools-r:empty { display: none; }
+.k3-tb .btn { height: 32px; padding: 0 12px; font-size: 13px; }
+.k3-tb .k3-seg > * { height: 26px; }
+.k3-fold { display: inline-flex; }
+
+/* The view: a menu of the list's views, the reader's own under them */
+.k3-vmenu > summary.k3-vbtn { height: 32px; display: inline-flex; align-items: center; gap: 6px; padding: 0 8px 0 9px; border: 1px solid var(--line); border-radius: 6px; background: var(--canvas); font: 500 13px/1 var(--font); color: var(--ink); max-width: 280px; box-sizing: border-box; }
+.k3-vmenu > summary.k3-vbtn:hover { background: var(--band); }
+.k3-vmenu[open] > summary.k3-vbtn { box-shadow: 0 0 0 2px var(--brand-soft); border-color: var(--brand); }
+.k3-vbtn svg { flex: none; color: var(--ink-3); }
+.k3-vname { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.k3-vedit { flex: none; font-size: 11.5px; line-height: 16px; font-weight: 500; padding: 1px 6px; border-radius: 99px; background: var(--warn-soft); color: var(--ink); }
+.k3-vlist { inset-inline: 0 auto; min-width: 300px; max-width: min(380px, calc(100vw - 32px)); max-height: min(70vh, 540px); overflow-y: auto; }
+.k3-vg { padding: 8px 10px 4px; font-size: 11.5px; line-height: 16px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-3); }
+.k3-vi { display: grid; grid-template-columns: 16px minmax(0, 1fr) auto auto; gap: 8px; align-items: center; padding-block: 7px; }
+.k3-vi-c { display: inline-grid; place-items: center; color: var(--brand-text); }
+.k3-vi-n { overflow: hidden; text-overflow: ellipsis; }
+.k3-vi.on .k3-vi-n { font-weight: 500; }
+.k3-vi-s { font-size: 11px; line-height: 16px; padding: 0 6px; border-radius: 99px; box-shadow: 0 0 0 1px var(--line); color: var(--ink-3); }
+.k3-vi-ct { font-size: 12.5px; color: var(--ink-3); }
+.k3-vsep { height: 1px; background: var(--line); margin: 4px 0; }
+.k3-vcmd { padding-inline-start: 34px; color: var(--ink-2); font-size: 13.5px; }
+.k3-vcmd[aria-disabled="true"] { color: var(--ink-4); cursor: not-allowed; }
+.k3-vm { display: grid; gap: 14px; }
+.k3-vm-l { display: grid; gap: 6px; list-style: none; padding: 0; margin: 0; }
+.k3-vm-r { display: grid; grid-template-columns: minmax(150px, 1fr) minmax(0, 1.3fr) auto auto; gap: 8px; align-items: center; padding: 6px 6px 6px 8px; border-radius: 8px; box-shadow: 0 0 0 1px var(--line); }
+.k3-vm-r.ask { grid-template-columns: minmax(0, 1fr) auto auto; background: var(--bad-soft); box-shadow: none; padding-block: 7px; }
+.k3-vm-q { font-size: 13.5px; line-height: 20px; }
+.k3-vm-n, .k3-vm-r select { height: 30px; min-width: 0; border: 1px solid var(--line); border-radius: 6px; padding: 0 8px; font: 500 13.5px/1 var(--font); color: var(--ink); background: var(--canvas); }
+.k3-vm-r select { font-weight: 400; font-size: 13px; color: var(--ink-2); }
+.k3-vm-n:focus-visible, .k3-vm-r select:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; border-color: transparent; }
+.k3-vm-w { font-size: 12.5px; line-height: 18px; color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 640px) { .k3-vm-r { grid-template-columns: minmax(0, 1fr) auto; } .k3-vm-w { grid-column: 1 / -1; grid-row: 2; } .k3-vm-r select { grid-row: 3; } }
+
+/* Compact rows: one line a cell. The name's column takes the room the others leave and cuts with an ellipsis; a description
+   follows the name on its line. A table (cls "k3-wrap") or a column (cls "wrap") whose text is the content may still wrap. */
+.k3-table th { height: 34px; padding: 0 12px; font-size: 12.5px; line-height: 16px; }
+.k3-table td { height: 40px; padding: 0 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 320px; font-size: 13.5px; line-height: 20px; vertical-align: middle; }
+.k3-table td:first-child:not(.tight):not(.end):not(.nw), .k3-table td.k3-cm { width: 100%; max-width: 0; min-width: 220px; }
+.k3-table:has(td.k3-cm) td:first-child:not(.k3-cm) { width: auto; max-width: 320px; min-width: 0; }
+.k3-table th:first-child:not(.tight):not(.end):not(.nw), .k3-table th.k3-cm { min-width: 220px; }
+.k3-table td.tight, .k3-table th.tight { max-width: none; }
+.k3-table td.end .k3-ring { justify-content: flex-end; }
+.k3-frame.k3-wrap .k3-table td, .k3-table td.k3-cw { white-space: normal; height: auto; padding-block: 9px; overflow: visible; }
+.k3-table td.k3-cw { min-width: 260px; max-width: 520px; }
+.k3-table .k3-nm { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+.k3-table .k3-nm-c { flex: none; }
+.k3-table .k3-nm-t { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; overflow-wrap: normal; }
+.k3-table .k3-nm-d { flex: 1 1 0; min-width: 0; display: block; max-width: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.k3-frame.k3-wrap .k3-table .k3-nm { display: grid; }
+.k3-frame.k3-wrap .k3-table .k3-nm-t, .k3-frame.k3-wrap .k3-table .k3-nm-d { white-space: normal; }
+.k3-table .k3-c1 { min-width: 0; }
+.k3-table .k3-c1-b { overflow: hidden; text-overflow: ellipsis; }
+.k3-table tr.k3-grow td { height: 32px; padding: 0 12px; }
+.k3-eye { width: 26px; height: 26px; }
+@media (max-width: 760px) { .k3-table td:first-child:not(.tight):not(.end):not(.nw), .k3-table td.k3-cm { min-width: 200px; } }
+
+/* A preview's related records: the page's table as a short list */
+.k3-pk thead { display: none; }
+.k3-pk .k3-table td { height: 36px; padding: 0 10px; font-size: 13px; }
+.k3-pk .k3-table td:first-child { min-width: 0; }
+.k3-pk .k3-table td.end { max-width: 200px; color: var(--ink-2); }
+.k3-pk-all { justify-self: start; font-size: 13px; line-height: 18px; color: var(--brand-text); text-decoration: none; }
+.k3-pk-all:hover { text-decoration: underline; }
+.k3-pn .k3-sec { gap: 8px; }
+.k3-pn .k3-none-row { padding: 8px 10px; font-size: 13px; }
+
+/* The filters keep one line: beside the view where there is room, a strip that scrolls sideways on a phone */
+.k3-fs { display: contents; }
+.k3-tb > .k3-fs:empty { display: none; }
+#proto.v3on .frame.k3-frame.v2-fit:not(.k3-wrap) td:not(.k3-cw), #proto.v3on .frame.k3-frame.v2-fit:not(.k3-wrap) td:not(.k3-cw) *:not(svg):not(svg *) { white-space: nowrap; }
+@media (max-width: 760px) {
+  .k3-tb { flex-wrap: wrap; }
+  .k3-tb .k3-search { flex: 1 1 150px; }
+  .k3-tb > .k3-fs { display: flex; flex: 1 1 100%; order: 3; gap: 8px; overflow-x: auto; scrollbar-width: none; min-width: 0; padding-block: 1px; }
+  .k3-tb > .k3-fs::-webkit-scrollbar { display: none; }
+  .k3-tb > .k3-fs > * { flex: none; }
+  .k3-tb .k3-tools-r { order: 4; flex: 1 1 100%; justify-content: flex-end; flex-wrap: wrap; }
+  .k3-vmenu > summary.k3-vbtn { max-width: 190px; }
+  .k3-vlist { max-width: calc(100vw - 32px); min-width: min(300px, calc(100vw - 32px)); inset-inline: auto 0; }
+}
+.k3-tb .k3-flt, .k3-tb .k3-search { position: relative; } /* a hidden label stays inside its control, so a strip that scrolls sideways never widens the page */
+/* One row holds: where the controls outgrow it, the search and then the filters give way (each cut with an ellipsis) before
+   anything drops to a second line. Under about 1180px of window it wraps; a phone has its own layout above. */
+@media (min-width: 1181px) { .k3-tb { flex-wrap: nowrap; } }
+.k3-tb .k3-flt { flex: 0 1 auto; min-width: 76px; }
+.k3-tb .k3-flt select, .k3-tb .k3-rsel select { max-width: 100%; }
+.k3-tb .k3-vmenu { flex: 0 1 auto; min-width: 104px; max-width: 280px; }
+.k3-tb .k3-vmenu > summary.k3-vbtn { display: flex; max-width: 100%; }
+.k3-tb .k3-tools-r, .k3-tb .k3-clear { flex: none; }
+@media (max-width: 760px) { .k3-tb .k3-flt { flex: none; } }
+.k3-pk .k3-table td:first-child:not(.tight):not(.end):not(.nw) { min-width: 0; }
+/* A cell that holds a menu or a control of its own does not cut it */
+.k3-table td.tight, .k3-table td:has(details, .k3-menu) { overflow: visible; }
+/* A hidden label inside a table stays inside the table's own scroller, so it never widens the page */
+.k3-frame .tablebox { position: relative; }

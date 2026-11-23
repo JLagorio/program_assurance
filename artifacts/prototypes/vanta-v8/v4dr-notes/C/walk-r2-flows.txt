@@ -1,0 +1,37 @@
+// 4. Round 2: a checklist's Scope and Matching; runs that finish, and hold across pages
+{
+  const p = await open({ width: 1440, height: 900 });
+  await go(p, "dr-source--stig-sw--scope");
+  const sc = await p.evaluate(() => ({ ck: document.querySelectorAll("#main .drc-ckt tbody tr").length, live: [...document.querySelectorAll(".drc-live-n")].map((x) => x.innerText.replace(/\s+/g, " ")).join(" | "), tabs: [...document.querySelectorAll("#main .drk-tabs a, #main [role=tab]")].map((a) => a.innerText.replace(/\s+\d+$/, "").trim()).join(",") }));
+  console.log("checklist scope:", JSON.stringify(sc));
+  if (sc.ck !== 2 || !/Rules in scope/.test(sc.live)) fail("checklist scope: not its component and its STIGs' rules");
+  await go(p, "dr-source--stig-sw--matching");
+  const mt = await p.evaluate(() => ({ rows: [...document.querySelectorAll("#main table.k3-table tbody tr")].map((tr) => tr.innerText.replace(/\s+/g, " ")), }));
+  console.log("checklist matching:", JSON.stringify(mt));
+  if (mt.rows.length !== 1 || !/lru-009-esw/.test(mt.rows[0]) || !/Matched/.test(mt.rows[0])) fail("checklist matching: the host is not matched to its component");
+  const primary = (label) => p.evaluate((label) => { const b = [...document.querySelectorAll("#main button")].find((x) => x.innerText.trim() === label); if (b) b.click(); return !!b; }, label);
+  const state = () => p.evaluate(() => { const t = document.getElementById("main").innerText.replace(/\s+/g, " "); return { sync: [...document.querySelectorAll("#main .drc-sy")].map((li) => li.className.replace(/.*drc-sy-/, "")).join(","), last: (t.match(/Last run (\S+ \S+ · \S+( ago)?)/) || [])[1] || "", health: (t.match(/Health (\S+)/) || [])[1] || "" }; });
+  await go(p, "dr-source--stig-gw");
+  if (!(await primary("Import file"))) fail("run: no Import file button");
+  await p.waitForTimeout(400); const s1 = await state();
+  await p.waitForTimeout(2200); const s2 = await state();
+  await p.waitForTimeout(2200); const s3 = await state();
+  console.log("run:", JSON.stringify([s1, s2, s3]));
+  if (!/wait/.test(s1.sync) || !/run/.test(s2.sync) || !/^(done,)+done$/.test(s3.sync) || !/0d ago/.test(s3.last)) fail("run: did not move Queued, Running, Done with the last run updated");
+  await go(p, "dr-source--sarif-tel");
+  await primary("Import file"); await go(p, "dr-sources"); await p.waitForTimeout(4400);
+  const reg = await p.evaluate(() => { const tr = [...document.querySelectorAll("#main table.k3-table tbody tr")].find((x) => /telemetry/.test(x.innerText)); return tr ? tr.innerText.replace(/\s+/g, " ") : ""; });
+  console.log("register after the run:", reg);
+  if (!/Healthy/.test(reg) || !/0d ago/.test(reg)) fail("run: the register did not update while on another page");
+  await go(p, "dr-source--inv-cfg");
+  await primary("Connect"); await p.waitForTimeout(300);
+  await p.evaluate(() => { const ok = document.querySelector("#modal [data-k3-submit]"); if (ok) ok.click(); }); await p.waitForTimeout(4500);
+  const cn = await state();
+  console.log("connect:", JSON.stringify(cn));
+  if (cn.health !== "Healthy" || !/done/.test(cn.sync)) fail("connect: the first run did not finish");
+  await go(p, "dr-evidence--ckl-network-gateway-ndm");
+  const ev = await p.evaluate(() => (document.getElementById("main").innerText.match(/Last run\s*(\S+ \S+)/) || [])[1] || "");
+  console.log("checklist evidence after its source ran:", ev);
+  if (!/Nov 17/.test(ev)) fail("run: the checklist's evidence did not renew from its source's run");
+  await p.close();
+}

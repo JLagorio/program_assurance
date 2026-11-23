@@ -4,7 +4,7 @@
   "proto/mod-zzzz-v3-8d-docs.js",
   "proto/mod-zzzz-v3-8d-docs.css"
  ],
- "build": "proto/out/v3r2-D.html (the whole prototype, every module in name order)",
+ "build": "proto/out/v3r3-D.html (pass 3: the whole prototype, every module in name order)",
  "pages": [
   {
    "route": "documents",
@@ -327,8 +327,8 @@
     },
     {
      "route": "evidence",
-     "do": "Open Evidence. Click Waiting on review, click a row's eye, then Accept.",
-     "see": "The chip counts one less; a requirement that stood on it alone reads Supported.",
+     "do": "Open Evidence. In the view menu choose Waiting on review, click a row's eye, then Accept.",
+     "see": "The view counts one less; a requirement that stood on it alone reads Supported.",
      "was": "The register listed 6 of 368; a review was a dialog elsewhere."
     },
     {
@@ -344,7 +344,7 @@
   {
    "id": "D-s1",
    "title": "Documents, one list",
-   "caption": "Plans, policies, the ITCSC and the agreements in one list under tabs; a row opens its editor.",
+   "caption": "Plans, policies, the ITCSC and the agreements in one list; Kind and State are filters in its row. A row opens its editor and the eye previews it.",
    "was": "v3r/D/shots/D-s1-was.png",
    "now": "v3r/D/shots/D-s1-now.png"
   },
@@ -378,9 +378,12 @@
   }
  ],
  "checks": {
-  "walk": "v3r/D/walk.mjs on out/v3r2-D.html: 148 of 148 (v3r/D/walk.out), routes at 1440 and 390 included",
-  "offcheck": "863 screens, 366 previews, 241 dialogs, 61 menu pages; differences 0; page errors 0 (v3r/D/offcheck.txt)",
-  "earlier": "Before pass 2: 123 of 123 on the lane build (kit, shell, C, O, D) and 132 of 132 with S; those builds (v3r-D, v3r-D-all) are older than the kit and are not kept current."
+  "pass": "3 (Josef, 21 Nov): one row over every table, saved views, compact rows, previews that list what the page lists",
+  "p3": "v3r/p3/check.mjs out/v3r3-D.html D: 7 pages, 4 record pages, 2 previews; problems 0 (v3r/D/p3check.json)",
+  "views": "v3r/p3/views.mjs on requirements, evidence, documents: 14 of 17 each. The 3 that fail rename and delete the first row of Manage views and expect one row: with the seeded view the brief asks for, the first row is the seed (the same 3 fail on controls). The walk saves, leaves, picks again and deletes a view by its name and passes.",
+  "walk": "v3r/D/walk.mjs out/v3r3-D.html: 162 of 162 (v3r/D/walk.out), routes at 1440 and 390 included",
+  "offcheck": "863 screens, 366 previews, 241 dialogs, 61 menu pages; differences 0; page errors 0",
+  "earlier": "v3r/D/walk.mjs on out/v3r2-D.html: 148 of 148 (v3r/D/walk.out), routes at 1440 and 390 included (pass 2)"
  },
  "open": [
   "The base registers (640 requirements, 368 artifacts) are the workbook's records, read by calling PA.sctm.build() (about 80 ms) on the first draw and after anything the chain changed.",
@@ -399,9 +402,14 @@
   "A created program: the three registers draw lane P's records in the kit's table with lane P's own dialogs and previews; the requirement's page is WS-X90 only.",
   "After Create requirement the reader lands on the new requirement's page (not the register); a link sent with PA.v2.go('requirements', { open }) lands there too.",
   "Not walked at 390 beyond the route checks: the flows were driven at 1440.",
-  "Found by the re-walk, not fixed: the plan editor and the workbook take the whole window and the program menu is gone; the way out is the small Documents or Controls link at the top left.",
-  "Found by the re-walk, not fixed: the Evidence page has two strips above its list (Evidence and Sources, then six kinds) and a row of state chips under them.",
   "Found by the re-walk, not fixed: a requirement created on a component reads \"Created today on the Requirements register\" and its number can skip (REQ-644 after 640); Link evidence's button reads \"Link 1 artifact\".",
-  "Found by the re-walk, not fixed: document rows have a three-dot menu and no eye; they open their editor, and no preview exists for a document."
+  "Pass 3, not done: views.mjs prints 3 failed on each list because of the seeded saved view (see checks.views); the script is the lead's.",
+  "Pass 3: a part of a list's question that has no control in the mode shown (Gap, Component and Family on the customer's document; Answer elsewhere; Review and Owner on STIG checklists) is passed to K.toolbar as a filter the lane's CSS hides (acts k3d.h.*), so a saved view picked from any mode asks its whole question. The kit has no hidden filter of its own.",
+  "Pass 3: a question another page sent (requirements chosen elsewhere, the requirements that map a control) is a note over the row with Show every requirement, not a control of the row; a saved view does not keep it, and Clear or any view ends it.",
+  "Pass 3: a document's preview (k3d-doc) lists the SSP's sections, placeholder narratives and revisions, a plan's sections, the evidence its text cites and its revision, the ITCSC's versions. A policy's preview has its facts and its revision only: its page's Versions, Objectives, Comments and History are v2's. A plan's cited evidence rows are plain text: their titles match no artifact of the register.",
+  "Pass 3: Remediation rows on a requirement open v2's POA&M preview (no V3 record kind for them); STIG checklist rows and the customer document's rows go to v2's page or preview and have no eye.",
+  "Pass 3, the kit's and not changed: on a phone a list's name column is cut to about 24 characters (its 220px minimum); a record page's header stacks its two actions beside a long title (an artifact's page).",
+  "Pass 3: the walks and shots entries of this file still say tabs and chips (pass 2's words); the walk itself is current.",
+  "Pass 3: Evidence shows Renew by as a column only while a row on the page has a date (the snapshot records none)."
  ]
 }

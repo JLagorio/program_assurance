@@ -360,7 +360,7 @@
     {
      "route": null,
      "do": "Change planned date with a reason; Add milestone; Mark one reached; More, Deactivate with a reason.",
-     "see": "Each shows on the page at once and after a reload; Open counts one fewer and a Deactivated chip lists it.",
+     "see": "Each shows on the page at once and after a reload; the open findings count one fewer, and State: Deactivated lists it.",
      "was": "Change planned date lived on the POA&M page; a Deactivated tab."
     },
     {
@@ -394,7 +394,7 @@
   {
    "id": "E-s1",
    "title": "One list for everything found",
-   "caption": "Operational issues, assessment findings, CVEs and STIG rules in one table; the sources are tabs across the page, the chips are states.",
+   "caption": "Operational issues, assessment findings, CVEs and STIG rules in one table; Source, State and Severity are filters in its one row.",
    "was": "v3r/E/shots/E-s1-was.png",
    "now": "v3r/E/shots/E-s1-now.png"
   },
@@ -422,7 +422,7 @@
   {
    "id": "E-s5",
    "title": "Assessments in one table",
-   "caption": "Control assessments, cyber tests and monitoring checks as tabs over one table; one needs-attention card.",
+   "caption": "Control assessments, cyber tests and monitoring checks in one table, with Kind as a filter; one needs-attention card.",
    "was": "v3r/E/shots/E-s5-was.png",
    "now": "v3r/E/shots/E-s5-now.png"
   },
@@ -453,8 +453,37 @@
   "Dropped from v19's issue preview: its Tickets card (the Jira sync) and Edit deadline. A cyber test's findings still open v2's v7a-cyf preview on a click (no page for that kind).",
   "Risks and Authorization stay lighter than Findings and Assessments: no risk matrix, snapshots, package versions, access requests or access log. Import scan results and Export the package only record or toast.",
   "Found by the re-walk, not fixed: the signed-in engineer chooses which assessor a determination is recorded as, so a finding reads \"recorded as Nadia Fournier by Ingrid Solberg\" (the prototype's way of acting as another person).",
-  "Found by the re-walk, not fixed: assessment rows have no eye; an assessment has a page and no preview.",
-  "A planned authorization decision (IATT or ATO of Increment 2) is recorded in one form on Authorization › Decisions; the lifecycle's step-by-step approval chain for it is not shown there."
+  "A planned authorization decision (IATT or ATO of Increment 2) is recorded in one form on Authorization › Decisions; the lifecycle's step-by-step approval chain for it is not shown there.",
+  "Pass 3. Other lanes' rows that go to an assessment's page (assessment--<id> or one of its tabs) get the eye with { panel: 'k3e-asm', id } or peek: { panel: 'k3e-asm', id }; lane E's own rows have it.",
+  "Pass 3. A finding's row no longer says its source, its requirement or the asset's STIG in grey under the name (no subtext in cells): the source is the Source filter and the built-in views, the rest is on the record. An assessment finding's row shows the severity the Severity filter asks for (High for other than satisfied, Moderate for partially), not the determination pill; its name and its record say the determination.",
+  "Pass 3. The list's question no longer has an assessment part ('asm' in fnd.view): nothing set it. A control ('ctl') and a component ('comp') set from another page are now the Control and Component filters of the row.",
+  "Pass 3. At 1440 a finding's name gets 380px of the row (670px at 1728): 25 of the first 50 names are cut with an ellipsis; the full sentence shows on hover and on the record's page. Dropping the Component or the Plan column would give it back; both were kept.",
+  "Pass 3. Requests, Results, Runs and Findings on an assessment's page, and Decisions, Conditions and Monitoring on Authorization, have no saved views: Requests has a search and a Status filter once it holds more than eight, the others are short tables with no row of controls. Objectives is the list 'assessment-objectives' with views shared by every assessment.",
+  "Pass 3. In a preview the kit's short list drops a table's last column, so Mark reached (a milestone), Unlink (a technique) and Judge (an objective) are done on the record's page, not in its preview; Add milestone, Link findings and Link technique stay in the preview's section heads.",
+  "Pass 3. At a phone's width the row is the kit's three lines (search and view, the filters in a strip that scrolls, the actions) and a table scrolls sideways inside its frame; the page itself never does.",
+  "Pass 3. The walk at 390 once timed out on a dialog's primary while three other browser checks ran beside it; alone it passes. Its click limit is now 15 s and its watchdog 15 minutes, for a machine that runs several lanes' walks at once."
  ],
- "pass": 2
+ "pass": 3,
+ "pass3": {
+  "toolbars": "Findings (nine addresses, one list 'findings'): search, view, Source, State, Severity, Component, Control, More, Add finding. Assessments ('assessments'): Kind, Status, Needs, Plan an assessment. Risks ('risks'): State, Severity, Technique, Create risk. Threats ('techniques'): Matrix, Risks. An assessment's Objectives ('assessment-objectives'): Control, State. Built-in views: the states, and every source and kind (so each address is a named view). One seeded saved view a list: High, past due · Overdue monitoring checks · High, response past due · Named by a risk.",
+  "rows": "No <br>, no stacked spans, no grey line under a name, no lane CSS that sets a row's height or wraps a cell. What stood under a name is a column (Kind, Due, Recorded, Covers, Tactics, Role, Holds, Decision, Progress) or left to the record. The owner's name shows at every width. A name that may be cut says itself whole on hover.",
+  "previews": "k3e-asm: an assessment's preview (facts, next step, then Plan approval, Controls in the plan, Objectives, Requests, Results, Findings; a check: What it covers, Runs, Findings; a cyber test: What it tests, Findings), on every row that goes to an assessment (Assessments, Authorization's package and Monitoring). A finding's preview adds Control and Components; a risk's and a technique's draw the page's own tables as short lists.",
+  "checks": {
+   "build": "out/v3r3-E.html, built 10:17 on 21 Nov with the lead's kit of 10:06",
+   "p3check": "28 pages, 8 record pages, 4 previews; problems 0 (check3.json)",
+   "views": "p3/views.mjs: 17 passed, 0 failed on findings, risks and assessments (also findings-poam, risks-threats, assessments-checks before the last rebuild)",
+   "offcheck": "863 screens, 366 previews, 241 dialogs, 61 menu pages; differences 0 (offcheck3.txt)",
+   "walk": "155 of 155 at 1440 (walk3.log); 154 of 154 at 390 (walk3-390.log)"
+  },
+  "files": [
+   "walk.mjs",
+   "walk3.log",
+   "walk3-390.log",
+   "check3.json",
+   "offcheck3.txt",
+   "probe3.mjs (every page measured: row of controls, columns, cut names)",
+   "probe4.mjs (the row with every filter set)",
+   "shots3/"
+  ]
+ }
 }

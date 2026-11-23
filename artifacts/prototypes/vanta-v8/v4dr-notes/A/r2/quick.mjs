@@ -1,0 +1,24 @@
+import { createRequire } from "module";
+const require = createRequire("/Users/joseflagorio/Development/program_assurance-ux-proposal/package.json");
+const { chromium } = require("playwright");
+const B = process.argv[2], DIR = new URL(".", import.meta.url).pathname;
+const b = await chromium.launch();
+const p = await b.newPage({ viewport: { width: 1440, height: 900 } });
+p.on("pageerror", (e) => console.log("ERR", e.message));
+p.on("console", (m) => { if (m.type() === "error") console.log("CERR", m.text().slice(0, 300)); });
+await p.goto("file://" + B + "#overview"); await p.waitForTimeout(700);
+await p.evaluate(() => { sessionStorage.clear(); PA.v2.reset(); PA.v3.set(true); }); await p.waitForTimeout(300);
+const go = async (r) => { await p.evaluate((r) => { location.hash = r; }, r); await p.waitForTimeout(500); };
+const t0 = Date.now(); await go("dr-controls"); console.log("register ms", Date.now() - t0);
+console.log(await p.evaluate(() => ({ th: [...document.querySelectorAll("#main .k3-table th")].map((t) => t.textContent).join("|"), part: PA.dra && PA.dra.rows().filter((r) => r.oj > 0 && r.oj < r.ob).map((r) => r.code + " " + r.oj + "/" + r.ob), pm: PA.dra.rows().filter((r) => r.pm).map((r) => r.code + ":" + r.pm).join(" ") })));
+await p.screenshot({ path: DIR + "q-register.jpg", type: "jpeg", quality: 60 });
+await go("dr-control--AU-14"); await p.screenshot({ path: DIR + "q-au14.jpg", type: "jpeg", quality: 60, fullPage: false });
+console.log(await p.evaluate(() => (document.querySelector("#main .drk-stg, #main [class*=drk-st]") || {}).textContent));
+await go("dr-control--AU-14--assessment"); await p.screenshot({ path: DIR + "q-au14-as.jpg", type: "jpeg", quality: 60 });
+await go("dr-control--AC-2(3)"); 
+await p.click(".dra-impl tbody button"); await p.waitForTimeout(400); await p.screenshot({ path: DIR + "q-cmp.jpg", type: "jpeg", quality: 60 });
+await p.evaluate(() => PA.v3k.close()); await p.waitForTimeout(200);
+await go("dr-control--AC-2--evidence"); await p.screenshot({ path: DIR + "q-ev.jpg", type: "jpeg", quality: 60 });
+console.log(await p.evaluate(() => ({ rows: document.querySelectorAll("#main .k3-table tbody tr").length, eyes: document.querySelectorAll("#main [data-panel=drb-ev]").length, links: PA.drB ? PA.drB.linksFor("AC-2").length : -1 })));
+const eye = await p.$("#main [data-panel=drb-ev] >> nth=1"); if (eye) { await eye.click({ force: true }); await p.waitForTimeout(400); console.log("drawer", await p.evaluate(() => (document.querySelector("#panel .drk-dw-pos") || {}).textContent)); await p.screenshot({ path: DIR + "q-ev-drawer.jpg", type: "jpeg", quality: 60 }); }
+await b.close();

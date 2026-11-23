@@ -1,0 +1,21 @@
+import { createRequire } from "module";
+const require = createRequire("/Users/joseflagorio/Development/program_assurance-ux-proposal/package.json");
+const { chromium } = require("playwright");
+const B = process.argv[2], DIR = new URL(".", import.meta.url).pathname;
+const b = await chromium.launch();
+const p = await b.newPage({ viewport: { width: 1440, height: 900 } });
+p.on("pageerror", (e) => console.log("ERR", e.message));
+await p.goto("file://" + B + "#overview"); await p.waitForTimeout(700);
+await p.evaluate(() => { sessionStorage.clear(); PA.v2.reset(); PA.v3.set(true); }); await p.waitForTimeout(300);
+const go = async (r) => { await p.evaluate((r) => { location.hash = r; }, r); await p.waitForTimeout(500); };
+await go("dr-controls");
+// apply the Judged in part view via facet
+await p.click('input[data-drk-key="jd"][value="part"]'); await p.waitForTimeout(400);
+console.log(await p.evaluate(() => [...document.querySelectorAll("#main .k3-table tbody tr")].map((tr) => tr.textContent.replace(/\s+/g, " ").trim()).join(" || ")));
+await p.evaluate(() => document.querySelector('.drk-fg [data-drk-key="jd"]').scrollIntoView()); await p.waitForTimeout(100);
+await p.screenshot({ path: DIR + "q-register-part.jpg", type: "jpeg", quality: 60 });
+await p.click('input[data-drk-key="jd"][value=""]'); await p.click('input[data-drk-key="pm"][value="set"]'); await p.waitForTimeout(400);
+console.log(await p.evaluate(() => [...document.querySelectorAll("#main .k3-table tbody tr")].map((tr) => tr.textContent.replace(/\s+/g, " ").trim()).join(" || ")));
+await go("dr-control--AC-2(3)"); await p.click(".dra-impl tbody button"); await p.waitForTimeout(400);
+console.log(await p.evaluate(() => [...document.querySelectorAll("#modal tbody tr")].map((tr) => tr.textContent.replace(/\s+/g, " ").trim().slice(0, 400)).join("\n")));
+await b.close();

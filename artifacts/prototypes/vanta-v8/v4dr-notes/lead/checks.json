@@ -1,0 +1,8 @@
+[
+ "Five agents built this, three at a time: K the shared components and their gallery, A controls, B evidence, C sources, F checks and findings. Every after screen is a new page of its own. No existing screen or module of v2 or V3 changed; the only edit to an existing file lets the Before & after strip list this tab first.",
+ "V3 off is still v2: 863 screens, 366 previews, 241 dialogs and 61 menu pages compared with the frozen v2, 0 differences.",
+ "Every V3 screen still draws: 910 screens and 35 menu pages at 1440 and 390 wide, 0 problems, 0 page errors.",
+ "Each lane's walk opened its pages at 1440 and 390 and clicked every control once: K 92 controls; A 20 pages, 194 clicks; B 20 pages, 107 clicks; C 31 pages, 177 controls; F 42 pages, 319 clicks. None did nothing; 0 failures.",
+ "This tab draws with V3 off and on at 1440 and 390; all 37 Open buttons open their screen and every jump link lands; 0 console errors.",
+ "Screenshots are 1440\u00d7900, taken by opening each screen the way its Open button does. Drata's own screenshots are not published here: each Drata line links the help-center article it comes from."
+]

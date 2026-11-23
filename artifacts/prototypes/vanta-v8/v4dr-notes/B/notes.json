@@ -1,0 +1,575 @@
+{
+ "lane": "B",
+ "pairs": [
+  {
+   "id": "b-evidence-register",
+   "title": "Evidence register",
+   "group": "evidence",
+   "new": false,
+   "current": {
+    "route": "evidence",
+    "note": "368 artifacts by review state (Waiting, Accepted, To revise); kinds as a filter; no renewal for most, no control readiness"
+   },
+   "after": {
+    "route": "dr-evidence"
+   },
+   "changes": [
+    {
+     "n": 1,
+     "rec": 7,
+     "title": "Status is what the evidence owes",
+     "text": "The Status column reads the lifecycle: Needs artifact, Needs renewal, Upcoming renewal, Ready, in that order. Error rows (a rejected automated run) wait behind one line over the table and its Show them.",
+     "drata": "Evidence carries five statuses, driven by its renewal date and artifact; Error counts neither way.",
+     "ev": [
+      "images/ux/evidence/drata-evidence-library-sync--01.png"
+     ]
+    },
+    {
+     "n": 2,
+     "rec": 26,
+     "title": "Four plain tiles that filter",
+     "text": "Needs artifact 108, Needs renewal 37, Upcoming renewal 16, Ready 195. Only the two problem tiles lead with the warning glyph; choosing a tile filters the list, choosing it again clears it.",
+     "drata": "Plain stat tiles over a register, a big ink number under a label; a problem tile carries a glyph.",
+     "ev": [
+      "images/ux/policies/bulk-import-policy-acknowledgments--01.png"
+     ]
+    },
+    {
+     "n": 3,
+     "rec": 7,
+     "title": "A renewal date for every artifact",
+     "text": "Collected date plus its controls' assessment frequency (every 30 days, quarterly or annually). A past date says so in red words: \"Oct 13 · 35 days past due\".",
+     "drata": "Each evidence has a renewal date and schedule; Upcoming renewal starts two months before it.",
+     "ev": [
+      "images/ux/evidence/drata-evidence-library-sync--01.png"
+     ]
+    },
+    {
+     "n": 4,
+     "rec": 8,
+     "title": "Controls as k of n ready",
+     "text": "One compact mark per row: a dot per control in its status tone, then \"1 of 2 ready\". The evidence owner has its own column, apart from any control's owner.",
+     "drata": "An evidence row counts its Ready and Not ready controls; the evidence owner is separate from the control owner.",
+     "ev": [
+      "images/ux/evidence/evidence-overview--01.png"
+     ]
+    },
+    {
+     "n": 5,
+     "rec": 9,
+     "title": "Source says how it arrives",
+     "text": "File, Link, Scan import or Ticket, as a filter and a column. A scan import carries the sync mark: its versions are fixed.",
+     "drata": "Source is File, URL, Ticket or Test; test evidence comes from the test itself.",
+     "ev": [
+      "images/ux/evidence/a-guide-to-drata-s-fedramp-readiness-framework--05.png"
+     ]
+    },
+    {
+     "n": 6,
+     "rec": 23,
+     "title": "A preview you walk through",
+     "text": "The eye opens a drawer with \"4 of 368\", Previous and Next walking the filtered list, the status, the facts, linked controls, versions and renewal, and Open.",
+     "drata": "A record's preview drawer shows \"2 of 10\" with Previous and Next, the status and Open.",
+     "ev": [
+      "images/ux/evidence/evidence-overview--01.png"
+     ]
+    },
+    {
+     "n": 7,
+     "rec": 10,
+     "title": "Import sits in More",
+     "text": "More › Import evidence from a spreadsheet opens the import flow; Add evidence stays the one primary.",
+     "drata": "Create evidence offers Bulk import, Import evidence from CSV.",
+     "ev": [
+      "images/ux/evidence/bulk-import-evidence--01.jpg"
+     ]
+    },
+    {
+     "n": 8,
+     "rec": 9,
+     "title": "STIG checklists join the list",
+     "text": "V3's seven STIG checklists are rows of the register, Source STIG checklist, each with its run date and renewal; a saved view lists them, and the drawer shows their open rules by CAT.",
+     "drata": "Evidence collected by a connection sits in the one library beside uploaded files, marked by where it came from.",
+     "ev": [
+      "images/ux/evidence/drata-evidence-library-sync--01.png"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "b-evidence-record",
+   "title": "Evidence record (needs renewal, two controls)",
+   "group": "evidence",
+   "new": false,
+   "current": {
+    "route": "artifact--v3x-ev-270",
+    "note": "Review state in the header, Cited by and versions; no renewal date, no control readiness"
+   },
+   "after": {
+    "route": "dr-evidence--v3x-ev-270"
+   },
+   "changes": [
+    {
+     "n": 1,
+     "rec": 8,
+     "title": "The one next step: Renew",
+     "text": "\"Past renewal by 26 days: collected Sep 22, renew every 30 days\" with Renew. Loud in words, on a white card, not a tinted banner. With no artifact it says so and offers Add new artifact.",
+     "drata": "A pale red banner, \"This evidence needs an artifact\", with a filled Add new artifact.",
+     "ev": [
+      "images/ux/evidence/drata-evidence-library-sync--06.png"
+     ]
+    },
+    {
+     "n": 2,
+     "rec": 8,
+     "title": "Linked controls as status chips",
+     "text": "SI-6(3) and SI-7(1) as code chips in their status tone, each with its status, the requirement that cites it and objectives evidenced (0 of 2, 3 of 3); \"1 of 2 ready\" and Link controls.",
+     "drata": "Linked controls card with Link Controls; each control a code chip in its status colour.",
+     "ev": [
+      "images/ux/evidence/drata-evidence-library-sync--06.png"
+     ]
+    },
+    {
+     "n": 3,
+     "rec": 7,
+     "title": "Renewal says when and why",
+     "text": "Schedule every 30 days; why: SI-7(1)'s assessment frequency; the parameter that would set it (CA-07_ODP[02], not set); renew by; upcoming from.",
+     "drata": "Creation and renewal dates and a renewal schedule drive the status.",
+     "ev": [
+      "images/ux/evidence/drata-evidence-library-sync--06.png"
+     ]
+    },
+    {
+     "n": 4,
+     "rec": 20,
+     "title": "One header with facts",
+     "text": "Trail, title, ⋯ then Link controls; a facts strip: Status, Renewal date, Source, Evidence owner (with a pencil), Collected, Controls.",
+     "drata": "Facts row: status chip, evidence owner, source; ⋯ at top right.",
+     "ev": [
+      "images/ux/evidence/drata-evidence-library-sync--06.png"
+     ]
+    },
+    {
+     "n": 5,
+     "rec": 19,
+     "title": "A sunken body with cards",
+     "text": "The body sits in the grey well: Linked controls and Versions on the left, Renewal and Details (its own Edit for the owner) on the right.",
+     "drata": "White chrome, the record body in a grey well holding white bordered cards.",
+     "ev": [
+      "images/ux/evidence/drata-evidence-library-sync--06.png"
+     ]
+    },
+    {
+     "n": 6,
+     "rec": 8,
+     "title": "One store for every link",
+     "text": "Link controls here, in the picker or on the Drata control record, and it is one link: the control record's evidence and the renewal check read the same store, and a renewal here lowers the check's count.",
+     "drata": "Evidence and controls are linked once and shown from both sides.",
+     "ev": [
+      "images/ux/evidence/evidence-overview--01.png"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "b-evidence-automated",
+   "title": "Evidence record (automated)",
+   "group": "evidence",
+   "new": false,
+   "current": {
+    "route": "artifact--v3x-ev-95",
+    "note": "A scan's log extract reads like any uploaded file: one version, editable, deletable"
+   },
+   "after": {
+    "route": "dr-evidence--v3x-ev-95"
+   },
+   "changes": [
+    {
+     "n": 1,
+     "rec": 9,
+     "title": "Each run is a fixed version",
+     "text": "Audit log collection's monthly runs (Sep 13, Aug 14, Jul 15) list as versions marked Fixed, with no Remove and no Delete evidence.",
+     "drata": "Every automated run writes an event that is itself evidence; test evidence can't be deleted.",
+     "ev": [
+      "images/ux/evidence/delete-evidence-new-experience--02.png"
+     ]
+    },
+    {
+     "n": 2,
+     "rec": 9,
+     "title": "Fix or disable the source",
+     "text": "In place of editing: Fix the source, and Disable the source, which stops new runs and says the evidence will stop renewing. Turning it back on is one click.",
+     "drata": "To change test evidence you fix or disable the test, never the evidence.",
+     "ev": [
+      "images/ux/evidence/delete-evidence-new-experience--02.png"
+     ]
+    },
+    {
+     "n": 3,
+     "rec": 7,
+     "title": "Past renewal names the run",
+     "text": "\"Past renewal by 35 days: Audit log collection's last run was Sep 13\" with Run the import now, which adds a fixed version dated today.",
+     "drata": "Needs renewal: past its renewal date, it hurts readiness until renewed.",
+     "ev": [
+      "images/ux/evidence/drata-evidence-library-sync--06.png"
+     ]
+    },
+    {
+     "n": 4,
+     "rec": 7,
+     "title": "A rejected run is Error",
+     "text": "An automated item whose last run was rejected reads Error and counts neither way; the register names how many and its record says Fix the source.",
+     "drata": "Error: its test erred, so the evidence counts neither way.",
+     "ev": [
+      "images/ux/evidence/drata-evidence-library-sync--01.png"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "b-evidence-checklist",
+   "title": "STIG checklist as evidence",
+   "group": "evidence",
+   "new": false,
+   "current": {
+    "route": "stigs-mission-computer-rhel9",
+    "note": "A checklist is its own page under Evidence's STIG kind: no renewal date, no evidence status, no controls it evidences"
+   },
+   "after": {
+    "route": "dr-evidence--ckl-mission-computer-rhel9"
+   },
+   "changes": [
+    {
+     "n": 1,
+     "rec": 9,
+     "title": "A checklist is fixed evidence",
+     "text": "Each STIG checklist is evidence from its source: every import is a fixed version, with no delete, and the record offers Fix or disable the source.",
+     "drata": "Evidence pulled from a connection is read-only and versioned; it is fixed at the source.",
+     "ev": [
+      "images/ux/evidence/delete-evidence-new-experience--02.png"
+     ]
+    },
+    {
+     "n": 2,
+     "rec": 9,
+     "title": "Its open rules on the record",
+     "text": "The record lists the open rules by CAT (2 · 21 · 6 for RHEL 9), the first five with a link to all, and Results: rules, not a finding, not applicable, not reviewed, compliance.",
+     "drata": "Evidence a test produced shows what the test found beside the artifact.",
+     "ev": [
+      "images/ux/evidence/drata-evidence-library-sync--06.png"
+     ]
+    },
+    {
+     "n": 3,
+     "rec": 7,
+     "title": "Renewal is the next import",
+     "text": "The renewal date is the next import V3 schedules (RHEL 9: Jan 11, 2027; the switch: Nov 16, past due). A run of its source on the sources screens renews it.",
+     "drata": "Evidence from a connection renews with each sync.",
+     "ev": [
+      "images/ux/evidence/drata-evidence-library-sync--06.png"
+     ]
+    },
+    {
+     "n": 4,
+     "rec": 8,
+     "title": "The controls it evidences",
+     "text": "Its linked controls are its source's (CM-6, CM-7, CM-2, IA-5, AU-12 and their enhancements in the baseline), each a code chip with its status, cited by its rules.",
+     "drata": "Evidence shows the controls it maps to, each with its readiness.",
+     "ev": [
+      "images/ux/evidence/evidence-overview--01.png"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "b-evidence-picker",
+   "title": "Evidence picker on an assessment objective",
+   "group": "evidence",
+   "new": false,
+   "current": {
+    "route": "control--AC-17(4)",
+    "click": "#main [data-k3=\"k3c.ev.add\"]",
+    "note": "Add evidence lists all 368 artifacts, any date, any state; nothing ties it to the campaign's period"
+   },
+   "after": {
+    "route": "dr-evidence-pick"
+   },
+   "changes": [
+    {
+     "n": 1,
+     "rec": 9,
+     "title": "Only what is current in the period",
+     "text": "Opened from AC-17(04)(a)[01] of the expanded control set assessment (Sep 14 – Nov 20): it offers evidence collected in that window, not sent back and not lapsed.",
+     "drata": "Choose evidence offers only Ready or Upcoming renewal items for the audit period.",
+     "ev": [
+      "images/ux/audits/link-to-evidence-from-audit-hub-requests--03.png"
+     ]
+    },
+    {
+     "n": 2,
+     "rec": 9,
+     "title": "What is hidden, and Show them",
+     "text": "\"166 items hidden: not current in the assessment period. Show them.\" Shown, each says why (collected before the period, sent back, no artifact) and can't be linked.",
+     "drata": "One dated after the audit's end goes to the comment only, not the request.",
+     "ev": [
+      "images/ux/audits/link-to-evidence-from-audit-hub-requests--03.png"
+     ]
+    },
+    {
+     "n": 3,
+     "rec": 9,
+     "title": "The pick maps to the control",
+     "text": "Linking maps each artifact to AC-17(4), the objective's control; the evidence register then counts it among that artifact's controls.",
+     "drata": "Map control, limited to the request's controls, in the same dialog.",
+     "ev": [
+      "images/ux/audits/link-to-evidence-from-audit-hub-requests--03.png"
+     ]
+    },
+    {
+     "n": 4,
+     "rec": 8,
+     "title": "What serves the control first",
+     "text": "\"Serves AC-17(4)\" leads (here: nothing current, 2 out of the period), then other current evidence nearest first: AC-17, then AC.",
+     "drata": "The request page lists its evidence beside the controls it maps.",
+     "ev": [
+      "images/ux/audits/link-to-evidence-from-audit-hub-requests--02.png"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "b-import",
+   "title": "Import an SCTM or a POA&M spreadsheet",
+   "group": "evidence",
+   "new": true,
+   "current": {
+    "route": "sctm",
+    "note": "The SCTM lives in the workbook today; nothing imports a sheet"
+   },
+   "after": {
+    "route": "dr-import--review"
+   },
+   "changes": [
+    {
+     "n": 1,
+     "rec": 10,
+     "title": "Five steps, one at a time",
+     "text": "A full page with a vertical stepper: Upload, Map columns, Map values, Review, Confirm. Upload offers the sample, WS-X90 SCTM.xlsx, and SCTM or POA&M.",
+     "drata": "Bulk import: upload, map fields, map values, a sheet, then a confirmation.",
+     "ev": [
+      "images/ux/assets/bulk-import-assets--02.png"
+     ]
+    },
+    {
+     "n": 2,
+     "rec": 10,
+     "title": "Columns mapped with a preview",
+     "text": "Each of the sheet's eight columns matched to a field by name (Control code, Requirement, Implementation status, Component, Owner…), with its first values and a three-row preview.",
+     "drata": "Map fields: incoming columns to destination fields, with a data preview.",
+     "ev": [
+      "images/ux/assets/bulk-import-assets--03.png"
+     ]
+    },
+    {
+     "n": 3,
+     "rec": 10,
+     "title": "The sheet's words become ours",
+     "text": "Implemented, Partial, Planned, Not implemented and N/A map to WS-X90's implementation statuses; N/A rows are skipped unless mapped.",
+     "drata": "Map values: the sheet's values to destination values, such as Asset Type.",
+     "ev": [
+      "images/ux/assets/bulk-import-assets--04.png"
+     ]
+    },
+    {
+     "n": 4,
+     "rec": 10,
+     "title": "Red blocks, amber updates",
+     "text": "24 real WS-X90 rows; red cells (AU-6(40) and SC-7(52) not in the baseline, two empty owners) keep Next disabled and are fixed in place; amber cells say which implementation changes.",
+     "drata": "Red cells are errors and keep Submit disabled; yellow cells warn the row updates an existing item.",
+     "ev": [
+      "images/ux/assets/bulk-import-assets--06.png",
+      "images/ux/assets/bulk-import-assets--08.png",
+      "images/ux/evidence/bulk-import-evidence--08.jpg"
+     ]
+    },
+    {
+     "n": 5,
+     "rec": 27,
+     "title": "Counts before it runs",
+     "text": "Created 6, updated 2, no change 14 and skipped 2 (locked), Moving 8 · Not moving 16; all or nothing; it says the prototype saves nothing.",
+     "drata": "A confirmation counts what will be created and updated before Import runs.",
+     "ev": [
+      "images/ux/assets/bulk-import-assets--12.png"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "b-import-poam",
+   "title": "Import a POA&M spreadsheet",
+   "group": "evidence",
+   "new": true,
+   "current": {
+    "route": "findings-poam",
+    "note": "POA&M items are created one at a time under Findings; nothing imports a POA&M sheet"
+   },
+   "after": {
+    "route": "dr-import--poam"
+   },
+   "changes": [
+    {
+     "n": 1,
+     "rec": 10,
+     "title": "The POA&M's own columns",
+     "text": "Map columns lists a POA&M sheet's headers (item ID, weakness, security control number, milestones, scheduled completion, status, POC, severity) with WS-X90's first three items as their values and the preview.",
+     "drata": "Bulk import maps each incoming column to a destination field, with a preview.",
+     "ev": [
+      "images/ux/assets/bulk-import-assets--03.png"
+     ]
+    },
+    {
+     "n": 2,
+     "rec": 10,
+     "title": "Its status words become ours",
+     "text": "Ongoing, Completed, Risk Accepted and Not Applicable map to WS-X90's POA&M statuses; Not Applicable rows are skipped unless mapped.",
+     "drata": "Value mapping turns the sheet's words into the product's options.",
+     "ev": [
+      "images/ux/tasks/bulk-import-custom-tasks--04.png"
+     ]
+    },
+    {
+     "n": 3,
+     "rec": 10,
+     "title": "Red blocks, amber updates",
+     "text": "21 of WS-X90's POA&M items and three open CAT I STIG rules not on it yet: unknown control codes and missing completion dates are red; a changed status or date is amber.",
+     "drata": "Invalid cells are red and block Submit; a yellow cell updates a record that exists.",
+     "ev": [
+      "images/ux/assets/bulk-import-assets--06.png",
+      "images/ux/assets/bulk-import-assets--08.png"
+     ]
+    },
+    {
+     "n": 4,
+     "rec": 27,
+     "title": "Counts before it runs",
+     "text": "Confirm counts the POA&M items it creates and updates, and the rows it leaves alone, before Import.",
+     "drata": "The confirmation states the create and update counts.",
+     "ev": [
+      "images/ux/assets/bulk-import-assets--12.png"
+     ]
+    }
+   ]
+  }
+ ],
+ "components": [
+  {
+   "id": "stats",
+   "rec": [
+    26
+   ],
+   "used": "dr-evidence: the four lifecycle tiles, each a filter"
+  },
+  {
+   "id": "drawer",
+   "rec": [
+    23
+   ],
+   "used": "dr-evidence and dr-evidence-pick: the eye's walkable preview (D.panel drb-ev, D.walkable over the filtered list)"
+  },
+  {
+   "id": "head",
+   "rec": [
+    20
+   ],
+   "used": "dr-evidence--<id> and dr-evidence-pick: trail, title, ⋯, secondary, facts strip with a pencil"
+  },
+  {
+   "id": "idChip",
+   "rec": [
+    2
+   ],
+   "used": "dr-evidence--<id>: linked controls; drawer chips; picker's control"
+  },
+  {
+   "id": "sunken",
+   "rec": [
+    19
+   ],
+   "used": "dr-evidence--<id>: the record's body, with D.box cards"
+  },
+  {
+   "id": "card",
+   "rec": [
+    25
+   ],
+   "used": "dr-evidence--<id>: Details, its own Edit for the evidence owner"
+  },
+  {
+   "id": "steps",
+   "rec": [
+    10
+   ],
+   "used": "dr-import: the five-step flow, with each sheet's own columns and values"
+  },
+  {
+   "id": "sheet",
+   "rec": [
+    10
+   ],
+   "used": "dr-import, Review: All / Valid / Invalid with red and amber cells, for an SCTM and for a POA&M"
+  },
+  {
+   "id": "moving",
+   "rec": [
+    27
+   ],
+   "used": "dr-import, Confirm: created, updated, locked no-change and skipped"
+  }
+ ],
+ "derived": [
+  "Assessment frequency per control: the prototype holds none; WS-X90's parameters RA-05_ODP[01], CM-08_ODP[02] and CA-07_ODP[02] exist and are not set. Default: RA-5, SI-2, SI-3, SI-7, CM-6, CM-8 every 30 days; AU-6, SI-4, CA-7, AC-6 at least quarterly; every other control at least annually.",
+  "Renewal date = collected date + the shortest frequency among the evidence's controls (annual when it has none); an automated item renews at its source's 30-day import cadence.",
+  "Upcoming renewal window: within 60 days of the renewal date, or within a third of a shorter period (30 days for quarterly, 10 for monthly).",
+  "Lifecycle: Needs artifact when nothing is collected (66 requirement citations with no artifact) or the reviewer sent it back (To revise); Error when an automated item's last run was sent back; else Needs renewal / Upcoming renewal / Ready by the renewal date against Nov 17, 2026.",
+  "Source from the artifact's kind: Scan result → Scan import; Dataset → Link; a title naming an approval, exceptions, worksheet or manifest → Ticket; else File; no artifact → none.",
+  "Automated source name from the title: a monitoring log extract → Audit log collection; firmware, integrity or scan → ACAS vulnerability scan.",
+  "An automated item's earlier versions: one run every 30 days back from its collection, at most four, none before Jul 1, 2026.",
+  "Control readiness: a control is ready when its V3 status is Satisfied.",
+  "Picker period: the expanded control set assessment's window, Sep 14 – Nov 20, 2026 (PA.data.CAMPAIGNS). Current = collected inside it, not sent back, renewal date after it opened.",
+  "Import sample: 24 of WS-X90's controls (the first two of each of twelve families), each with its first mapping requirement, a component and owner; four cells broken on purpose; a row whose status differs from the SSP's updates it, a placeholder narrative is created, N/A is skipped.",
+  "STIG checklists as evidence: V3's seven checklists, read as V3's evidence register reads them (the old STIG register's rows and each checklist's preview); renewal date = the next import V3 schedules; a finished run of its source on lane C's screens renews it; its controls are its source's (lane C).",
+  "POA&M sample: 21 of WS-X90's open POA&M items that name a weakness and a control, each with a team member as POC (the items record none); three new rows from the RHEL 9 and Windows 11 checklists' open CAT I rules (CM-6, due 30 days after import); one row each Completed, Risk Accepted and Not Applicable; every fifth date 60 days later; four cells wrong on purpose.",
+  "PA.drB.renewalCheck counts evidence with an artifact (not an automated item in error): failing = past renewal or inside its upcoming window. 56 of 297 at reset (V3's own test says 54)."
+ ],
+ "conflicts": [
+  "Drata's green Ready met the prototype's rule that a status word has one tone everywhere: Ready is a neutral word there, so it stays grey and only the two problem words carry colour.",
+  "Drata's pale red Needs artifact banner met 'no tinted banners': the record's one next step (K.next) on a white card says it, with the button.",
+  "Drata's left filter panel met the one-row toolbar: Status, Source, Owner and Control family are filters in K.toolbar with saved views; the tiles set the Status filter.",
+  "Drata's five evidence states met four stat tiles and calm: Error has no tile and no rows by default (it counts neither way); one line over the table names it in warning words, with Show them.",
+  "Drata's row Update button and red Fix Now met 'Leave behind': rows carry no buttons; the record holds Add new artifact or Renew.",
+  "Drata's import is a near-full-screen modal; here it is a page with the kit's vertical stepper, so the steps are in the address and the menu stays."
+ ],
+ "open": [],
+ "added": [
+  {
+   "text": "STIG checklists are evidence: fixed versions, open rules by CAT, renewal at the next import",
+   "pair": "b-evidence-checklist",
+   "route": "dr-evidence--ckl-mission-computer-rhel9"
+  },
+  {
+   "text": "The seven checklists in the evidence register, Source STIG checklist",
+   "pair": "b-evidence-register",
+   "route": "dr-evidence"
+  },
+  {
+   "text": "Importing a POA&M: its own columns, status words and WS-X90's own items",
+   "pair": "b-import-poam",
+   "route": "dr-import--poam"
+  },
+  {
+   "text": "One store for links and renewals: the control record and the renewal check show them",
+   "pair": "b-evidence-record",
+   "route": "dr-evidence--v3x-ev-270"
+  }
+ ]
+}

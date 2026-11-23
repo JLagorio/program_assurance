@@ -1,0 +1,26 @@
+{
+ "lane": "P2",
+ "shots": [
+  {
+   "id": "P2-s1",
+   "title": "Requirements at 1728",
+   "caption": "Version 21 stopped at 1280px and gave each requirement three lines. Now the page takes the window and a requirement is one line: its code, its name, then its statement in grey.",
+   "was": "v3r/P2/shots/P2-s1-was.jpg",
+   "now": "v3r/P2/shots/P2-s1-now.jpg"
+  },
+  {
+   "id": "P2-s2",
+   "title": "System at 1728",
+   "caption": "Components, one line each.",
+   "was": "v3r/P2/shots/P2-s2-was.jpg",
+   "now": "v3r/P2/shots/P2-s2-now.jpg"
+  },
+  {
+   "id": "P2-s3",
+   "title": "Risks at 1728",
+   "caption": "The register, one line a risk.",
+   "was": "v3r/P2/shots/P2-s3-was.jpg",
+   "now": "v3r/P2/shots/P2-s3-now.jpg"
+  }
+ ]
+}

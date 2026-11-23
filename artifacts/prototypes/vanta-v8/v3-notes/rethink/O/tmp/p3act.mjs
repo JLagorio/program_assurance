@@ -1,0 +1,6 @@
+import { open, SP } from "../../../v3/P/lib.mjs";
+const H = await open({ build: process.argv[2], v3: true, start: "overview-activity" });
+const r = await H.p.evaluate(() => { const out = {}; for (const k of ["activity", "activity-reviews", "activity-imports", "activity-decisions", "activity-system"]) { const html = PA.v3.force(true, () => PA.S[k]()); const t = document.createElement("template"); t.innerHTML = html; const tb = t.content.querySelector('table[aria-label="Events"]'); out[k] = { rows: tb ? tb.querySelectorAll("tbody tr").length : -1, pager: (t.content.querySelector(".pager") || {}).textContent, tabs: [...t.content.querySelectorAll("[role=tab]")].map((x) => x.textContent.trim()), tr0: tb ? tb.querySelector("tbody tr").outerHTML.slice(0, 700) : "", trX: tb ? [...tb.querySelectorAll("tbody tr")].filter((x) => x.attributes.length).slice(0, 2).map((x) => x.outerHTML.slice(0, 500)) : [], tools: (t.content.querySelector(".toolbar, .tools, input") || {}).outerHTML }; } return out; });
+console.log(JSON.stringify(r, null, 1).slice(0, 5000));
+console.log("panel w", await H.p.evaluate(() => { PA.v3k.openPanel("k3o-gate", "pdr-2"); return new Promise((res) => setTimeout(() => { const pn = document.querySelector("#panel .k3-pn"); res(pn ? pn.clientWidth : -1); }, 400)); }));
+await H.b.close();

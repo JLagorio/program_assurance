@@ -1,0 +1,79 @@
+/* Drata round, lane C (drc-): sources after Drata. Ledger pushed toward Vanta: plain words, one tone a status, no tinted banners. */
+.drc-warnw { display: inline-flex; align-items: center; gap: 4px; color: var(--bad); font-weight: 500; white-space: nowrap; }
+.drc-warnw .drc-wg { flex: none; }
+.drc-mono { font-family: var(--mono); font-size: 12.5px; }
+.drc-ell { max-width: 0; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.drc-ell-i { display: block; max-width: 520px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.drc-p { margin: 0; font-size: 13px; line-height: 20px; }
+.drc-dot { color: var(--ink-4); margin-inline: 8px; }
+
+/* Register */
+.drc-sum { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 0; margin: 0 0 12px; font-size: 13.5px; line-height: 20px; color: var(--ink-2); }
+.drc-sum b { color: var(--ink); font-weight: 600; }
+.drc-srcs td { white-space: nowrap; }
+.drc-srcs tr.drc-ret td { color: var(--ink-3); }
+.drc-addl { margin: 8px 0 0; padding: 0; list-style: none; display: grid; gap: 8px; font-size: 13.5px; }
+
+/* Record: the well's two-up rows */
+.drc-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; min-width: 0; }
+.drc-grid > :only-child { grid-column: 1 / -1; }
+@media (max-width: 900px) { .drc-grid { grid-template-columns: minmax(0, 1fr); } }
+.drc-cons { margin: 0 0 10px; font-size: 13px; line-height: 20px; color: var(--ink-2); display: flex; flex-wrap: wrap; gap: 4px 6px; align-items: baseline; }
+.drc-box-gap { margin-top: 4px; }
+
+/* Sync steps: a short ordered row, each step with its state in a word */
+.drc-sync { margin: 0; padding: 0; list-style: none; display: grid; gap: 0; }
+.drc-sy { display: grid; grid-template-columns: 22px minmax(90px, auto) auto minmax(0, 1fr); align-items: center; gap: 8px; min-height: 34px; border-top: 1px solid var(--line); font-size: 13px; }
+.drc-sy:first-child { border-top: 0; }
+.drc-sy-d { width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--line-strong); display: inline-grid; place-items: center; color: var(--canvas); }
+.drc-sy-d svg { width: 12px; height: 12px; }
+.drc-sy-done .drc-sy-d { background: var(--ok); border-color: var(--ok); }
+.drc-sy-bad .drc-sy-d { background: var(--bad); border-color: var(--bad); }
+.drc-sy-run .drc-sy-d { border-color: var(--info); border-top-color: transparent; }
+.drc-sy-wait .drc-sy-d, .drc-sy-later .drc-sy-d { border-style: dashed; }
+.drc-sy-l { font-weight: 500; color: var(--ink); white-space: nowrap; }
+.drc-sy-w { color: var(--ink-3); white-space: nowrap; }
+.drc-sy-bad .drc-sy-w { color: var(--bad); font-weight: 500; }
+.drc-sy-x { color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.drc-sy-later .drc-sy-l { color: var(--ink-3); font-weight: 400; }
+
+/* Scope */
+.drc-live { display: flex; flex-wrap: wrap; gap: 8px 32px; padding: 10px 0 4px; }
+.drc-live-n { display: grid; gap: 2px; }
+.drc-live-l { font-size: 12px; color: var(--ink-3); }
+.drc-live-n b { font-size: 24px; line-height: 28px; font-weight: 600; color: var(--ink); }
+.drc-live-d { font-size: 12.5px; color: var(--ink-2); margin-inline-start: 6px; }
+.drc-h4 { margin: 8px 0 0; font-size: 12.5px; font-weight: 600; color: var(--ink-2); }
+.drc-rules, .drc-mini { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: auto; }
+.drc-rules th, .drc-mini th { text-align: start; font-weight: 500; font-size: 12px; color: var(--ink-3); padding: 6px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.drc-rules td, .drc-mini td { padding: 0 8px; height: 40px; border-bottom: 1px solid var(--line); white-space: nowrap; vertical-align: middle; }
+.drc-mini td { height: 34px; }
+.drc-rules .end, .drc-mini .end { text-align: end; }
+.drc-mini tfoot td { color: var(--ink-2); font-weight: 500; border-bottom: 0; }
+.drc-sel { height: 28px; padding: 0 8px; border: 1px solid var(--line-strong); border-radius: 6px; background: var(--canvas); color: var(--ink); font: inherit; font-size: 13px; max-width: 100%; }
+.drc-acts { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; padding-top: 4px; }
+
+/* Matching: an unmatched row has a red edge and a picker in its cell */
+.drc-match tr.drc-un td:first-child { box-shadow: inset 3px 0 0 var(--bad); }
+.drc-pick { width: 240px; }
+.drc-match td { white-space: nowrap; }
+
+@media (max-width: 600px) {
+  .drc-sy { grid-template-columns: 22px auto auto; }
+  .drc-sy-x { grid-column: 2 / -1; padding-bottom: 6px; }
+  .drc-rules th:nth-child(3), .drc-rules td:nth-child(3) { display: none; }
+  .drc-pick { width: 170px; }
+}
+.drc-srcs td:first-child { max-width: 0; width: 38%; }
+.drc-wc { color: var(--ink-2); }
+.drc-wc b { color: var(--ink); font-weight: 600; }
+.drc-wc.off, .drc-wc.off b { color: var(--ink-3); font-weight: 500; }
+.drc-chips { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 6px; }
+.drc-g2 { grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); }
+@media (max-width: 1100px) { .drc-g2 { grid-template-columns: minmax(0, 1fr); } }
+[data-drc-src] > .drc-cons { margin-bottom: 12px; }
+.drc-tw { position: relative; overflow-x: auto; min-width: 0; max-width: 100%; }
+.drc-srcs td:first-child { width: 46%; }
+.drc-cons { display: block; }
+.drc-cons .drc-warnw { display: inline-flex; vertical-align: baseline; margin-inline-end: 4px; }
+.drc-ink { color: var(--ink); font-weight: 600; }

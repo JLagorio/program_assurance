@@ -1,0 +1,77 @@
+/* Drata round, lane F (drf-): checks and findings after Drata. Every rule is scoped to .drf or a drf- class. */
+.drf-warnw { color: var(--bad); font-weight: 500; }
+.drf-draft { color: var(--ink); font-weight: 500; }
+.drf-unused { color: var(--bad); font-weight: 500; }
+.drf-new { color: var(--ink); font-weight: 500; }
+.drf-ess { color: var(--ink); font-weight: 500; }
+.drf-dec { color: var(--ink); font-weight: 500; white-space: nowrap; }
+.drf-src { white-space: nowrap; }
+.drf-item { display: inline-block; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: bottom; }
+.drf-why { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.drf .drf-line { margin: 0; color: var(--ink-3); font-size: 13px; line-height: 1.45; }
+.drf .drf-line .k3-link { margin-left: 4px; }
+.drf .drf-p { margin: 0; color: var(--ink-2); font-size: 13.5px; line-height: 1.5; }
+.drf .drf-cap { margin: 0; color: var(--ink-3); font-size: 12.5px; }
+/* register */
+.drf-cks td:first-child { max-width: 0; width: 44%; }
+.drf-cks .k3-nm { min-width: 0; }
+.drf tr.drf-off td:first-child .k3-nm-t { color: var(--ink-2); }
+.drf-fs td:first-child, .drf-lib td:nth-child(2), .drf-ds td:first-child, .drf-cs td:first-child { max-width: 0; width: 42%; }
+.drf-ds td:nth-child(3) { max-width: 0; width: 34%; }
+.drf-rs td:nth-child(4) { max-width: 0; width: 70%; }
+.drf tr.drf-cur td { background: var(--page); }
+/* the library's tick */
+.drf-tick { width: 18px; height: 18px; border-radius: 4px; border: 1.5px solid var(--line-strong); background: var(--canvas); display: inline-grid; place-items: center; padding: 0; cursor: pointer; color: #fff; vertical-align: middle; }
+.drf-tick.on { background: var(--ink); border-color: var(--ink); }
+.drf-tick svg { width: 12px; height: 12px; }
+.drf-tick:focus-visible { outline: 2px solid var(--focus, var(--ink)); outline-offset: 2px; }
+/* record grid */
+.drf .drf-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: 16px; align-items: start; }
+.drf .drf-nx .k3-next { background: var(--canvas); margin: 0; }
+.drf .drf-acts { display: inline-flex; gap: 6px; }
+.drf-chips, .drf-pl { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; margin: 0; padding: 0; }
+.drf-pl { flex-direction: column; gap: 6px; font-size: 13px; }
+.drf-pl li { display: flex; gap: 8px; align-items: center; min-width: 0; }
+.drf-pl li > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+/* history strip: one cell a month, the last run's result */
+.drf-strip { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 6px; }
+.drf-mo { display: grid; gap: 4px; justify-items: center; align-content: start; min-width: 0; }
+.drf-mo-b { width: 100%; height: 22px; border-radius: 4px; background: var(--track); }
+.drf-mo.t-ok .drf-mo-b { background: var(--ok); }
+.drf-mo.t-bad .drf-mo-b { background: var(--bad); }
+.drf-mo.t-warn .drf-mo-b { background: var(--warn); }
+.drf-mo.t-none .drf-mo-b { background: var(--ink-4); }
+.drf-mo-l { font-size: 11.5px; color: var(--ink-3); }
+.drf-mo-n { font-size: 11.5px; color: var(--ink-2); }
+/* docked panes */
+.drf-pane-l { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 10px; }
+.drf-pane-l li { display: grid; gap: 4px; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+.drf-pane-l p { margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--ink); }
+.drf-pane-m { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--ink-2); min-width: 0; }
+.drf-pane-e { margin: 0 0 12px; color: var(--ink-3); font-size: 13px; }
+.drf-pane-f { display: grid; gap: 8px; justify-items: start; }
+.drf-pane-f textarea { width: 100%; box-sizing: border-box; font: inherit; font-size: 13.5px; padding: 8px 10px; border: 1px solid var(--line-strong); border-radius: 8px; resize: vertical; background: var(--canvas); color: var(--ink); }
+@media (max-width: 720px) {
+  .drf-strip { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .drf-item { max-width: 160px; }
+}
+.drf .drf-grid > .drf-wide { grid-column: 1 / -1; }
+.drf .drf-rowact { opacity: 0; transition: opacity .12s; }
+.drf tr:hover .drf-rowact, .drf tr:focus-within .drf-rowact { opacity: 1; }
+@media (hover: none) { .drf .drf-rowact { opacity: 1; } }
+/* version 24: what a check checks, and the rule in the drawer and on the finding */
+.drf-rule { display: grid; gap: 14px; margin-top: 4px; }
+.drf-rt { display: grid; gap: 6px; min-width: 0; }
+.drf-rt h5 { margin: 0; font-size: 12.5px; font-weight: 600; color: var(--ink-2); letter-spacing: .01em; }
+.drf-rt-p { margin: 0; font-size: 13.5px; line-height: 1.5; color: var(--ink); }
+.drf-pre { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; font: 12.5px/19px var(--mono, ui-monospace, SFMono-Regular, Menlo, monospace); color: var(--ink-2); background: var(--page, var(--band)); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; max-height: 280px; overflow-y: auto; }
+.drf-rule2 .drf-rule-c { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 14px; }
+.drf-rule2 .drf-pre { max-height: 240px; }
+.drf-rl { list-style: none; margin: 10px 0 8px; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px; min-width: 0; max-width: 100%; overflow: hidden; }
+.drf .drf-grid > * { min-width: 0; }
+.drf-rl li { min-width: 0; }
+.drf-rl-b { display: grid; grid-template-columns: 64px minmax(0, 1fr); align-items: center; gap: 8px; width: 100%; max-width: 100%; box-sizing: border-box; min-width: 0; padding: 6px 6px; margin: 0; border: 0; border-radius: 6px; background: transparent; font: inherit; font-size: 13px; color: var(--ink); text-align: left; cursor: pointer; }
+.drf-rl-b:hover { background: var(--page); }
+.drf-rl-b:focus-visible { outline: 2px solid var(--focus, var(--ink)); outline-offset: -2px; }
+.drf-rl-b > :first-child { justify-self: start; }
+.drf-rl-t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }

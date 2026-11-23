@@ -104,7 +104,7 @@
     }
     if (d.name === "Interconnections") {
       const names = connsOpen(), n = names.length;
-      return Object.assign(d, { name: "Connections", kind: "conns", names, ok: !n, n, why: n ? `${n === 1 ? "connection" : "connections"} without a current agreement` : "Every agreement is current", btn: `Open ${plural(n, "connection")}` });
+      return Object.assign(d, { name: "Connections", kind: "conns", names, ok: !n, n, why: n ? `${n === 1 ? "connection" : "connections"} with no current agreement` : "Every agreement is current", btn: `Open ${plural(n, "connection")}` });
     }
     if (d.name === "Boundary" && !d.ok) return Object.assign(d, { kind: "boundary", n: 1, why: /not requested/.test(d.why) ? "SCA review to request" : /requested/.test(d.why) ? "SCA review waiting on D. Okafor" : "change the SCA asked for", btn: "Open the boundary" });
     if (/^SSP revision/.test(d.name) && !d.ok) { const m = /([\d,]+) placeholder/.exec(d.why); return Object.assign(d, m ? { n: +m[1].replace(/,/g, ""), why: "placeholder narratives to write" } : {}, { btn: "Open the SSP" }); }
@@ -261,61 +261,80 @@
     ? [["Decision", `${stat(g)} <span class="num">${esc(md(g.decided))}</span>`], ["Decided by", K.owner((g.chain[g.chain.length - 1] || {}).who || who.name)], K.get(`why.${safe(g.prog + "." + g.id)}`, "") ? ["Rationale", esc(K.get(`why.${safe(g.prog + "." + g.id)}`, ""))] : null]
     : [["Decides", `${K.owner(who.name)}<span class="k3-muted"> · ${esc(who.role)}</span>`], g.chain.length > 1 ? ["Reviews first", esc(list(g.chain.slice(0, -1).map((c) => `${c.who}, ${c.role}`)))] : null, ["Requested", asked ? esc(g.requested.replace(/^Requested /, "")) : '<span class="k3-none">Not requested yet</span>']]);
   const condsOf = (g) => (fact("conditions", g.prog) || []).filter((c) => c.step === g.id);
+  // Pass 3: the gate's three lists, one line a row. The page draws them whole; the preview draws the same rows short (the
+  // kit keeps the name and the status). On the page a criterion's sentence is the content, so it is the one cell that wraps; its
+  // life cycle process (SP 800-160 Vol. 1) is on its code, which already names it (AR, SR, SN).
+  const whyOf = (d) => `${d.n != null && !d.ok ? fmt(d.n) + " " : ""}${d.why || ""}`;
+  // Ready and Not ready are the checklist's own mark (the shared pill reads both words as neutral): a filled tick or an open ring.
+  const dlStat = (d) => (d.out ? '<span class="k3-muted">With the decision</span>' : `<span class="k3o-rs${d.ok ? " ok" : ""}"><i class="k3o-dl-s" aria-hidden="true"></i>${d.ok ? "Ready" : "Not ready"}</span>`);
+  const recOf = (d) => (d.kind === "noreq" ? "controls" : d.kind === "conns" ? (has("system-connections") ? "system-connections" : "interconnections") : d.route);
+  const dlHit = (g, d, i) => (!d.ok && !d.out && d.btn ? { act: "ov.dl", arg: { g: g.id, i, p: 1 } } : d.panel && PA.P[d.panel] ? { panel: d.panel, id: d.pid } : recOf(d) && !d.out ? { go: recOf(d) } : {});
+  const DL_COLS = [{ label: "Deliverable", cls: "nw" }, { label: "Status", cls: "nw", peek: true }, { label: "What holds it back", cls: "main" }, { label: "Owner", cls: "nw" }, { label: "", cls: "tight" }];
+  const dlRows = (g, short) => g.dls.map((d, i) => {
+    const hit = dlHit(g, d, i), why = whyOf(d);
+    if (short) return Object.assign({ cells: [K.name(d.name, why), dlStat(d)] }, hit);
+    return Object.assign({ cells: [K.name(d.name), dlStat(d), `<span class="${d.ok || d.out ? "k3-muted" : "k3o-why"}" title="${esc(why)}">${d.n != null && !d.ok ? `<b class="num">${fmt(d.n)}</b> ` : ""}${esc(d.why)}</span>`, d.owner ? K.owner(d.owner) : '<span class="k3-none">—</span>', hit.act ? K.btn("Open", { sm: true, act: "ov.dl", arg: hit.arg, title: d.btn }) : ""] }, hit);
+  });
+  const critCode = (c) => (c.code ? `<span class="k3-nm-c"${c.proc ? ` title="${esc(c.proc)}"` : ""}>${esc(c.code)}</span> ` : "");
+  const critCell = (c, short) => (short ? `<span class="k3-nm" title="${esc(c.text)}">${critCode(c)}<span class="k3-nm-t">${esc(c.text)}</span></span>` : `<span class="k3o-crt">${critCode(c)}${esc(c.text)}</span>`);
+  const critStat = (c) => { const [tone, word] = critWord[c.state] || critWord.na; return c.out ? K.status("With the decision", "none") : K.status(word, tone); };
+  const critCols = (g) => [{ label: "Criterion", cls: "wrap" }, { label: "Status", cls: "nw", peek: true }].concat(g.crit.some((c) => c.note) ? [{ label: "What meets it" }] : [], [{ label: "", cls: "tight" }]);
+  const critRows = (g, short) => g.crit.map((c) => {
+    if (short) return { cells: [critCell(c, true), critStat(c)] };
+    const a = { id: g.id, code: c.code, text: c.text, own: c.own || null }, notes = g.crit.some((x) => x.note);
+    return { cells: [critCell(c), critStat(c)].concat(notes ? [c.note ? `<span title="${esc(c.note)}">${esc(c.note)}</span>` : '<span class="k3-none">—</span>'] : [],
+      [c.out || g.done ? "" : `<span class="k3o-acts">${K.btn("Assess", { sm: true, act: "ov.crit", arg: a })}${c.own || c.added ? K.btn("Remove", { sm: true, quiet: true, act: "ov.critrm", arg: a }) : ""}</span>`]) };
+  });
+  const ACT_COLS = [{ label: "Action" }, { label: "Owner", cls: "nw" }, { label: "Due", cls: "nw" }, { label: "Status", cls: "nw", peek: true }];
+  const actRows = (conds) => conds.map((c) => ({ cells: [`<span class="k3-nm"><span class="k3-nm-t" title="${esc(c.t)}">${esc(c.t)}</span></span>`, K.owner(c.owner || null), `<span class="num">${esc(md(c.due))}</span>`, K.status(c.closed ? "Closed" : "Open", c.closed ? "ok" : "none")] }));
+  // What holds the gate back, with the button that opens it: the page's first line and the preview's.
+  function nextLine(g) {
+    if (g.done) return "";
+    const who = decider(g), open = g.dls.map((d, i) => [d, i]).filter(([d]) => !d.ok && !d.out), unmet = g.crit.filter((c) => !c.out && c.state !== "met");
+    return open.length ? K.next({ text: `${plural(open.length, "deliverable")} ${open.length === 1 ? "holds" : "hold"} ${esc(g.short)} back. Start with ${esc(open[0][0].name)}: ${open[0][0].n != null ? fmt(open[0][0].n) + " " : ""}${esc(open[0][0].why)}.`, action: K.btn(open[0][0].btn || "Open", { sm: true, act: "ov.dl", arg: { g: g.id, i: open[0][1], p: 1 } }) })
+      : g.total > g.ready ? K.next({ text: `${plural(g.total - g.ready, "deliverable")} of ${fmt(g.total)} not ready.`, action: "" })
+      : unmet.length ? K.next({ text: `Every deliverable is ready. ${plural(unmet.length, "criterion", "criteria")} not met${unmet.some((c) => c.code) ? ` (${esc(unmet.map((c) => c.code).filter(Boolean).join(", "))})` : ""}: assess ${unmet.length === 1 ? "it" : "them"}, or pass with actions.`, action: "" })
+      : K.next({ text: `Every deliverable is ready and every criterion met. ${who.name ? `${esc(who.name)} decides.` : `Nobody holds ${esc(who.role)} yet.`}`, action: "" });
+  }
   // The page. One primary in the header: the decision (the holder's Record decision; anyone else's Request decision, and
   // "Record as <holder>", which is the prototype acting as that person and says so).
   function gatePage(g) {
     const who = decider(g), mine = who.name === ME, asked = /^Requested/.test(g.requested), arg = { id: g.id };
-    const open = g.dls.map((d, i) => [d, i]).filter(([d]) => !d.ok && !d.out), unmet = g.crit.filter((c) => !c.out && c.state !== "met"), conds = condsOf(g);
+    const conds = condsOf(g);
     const asWho = who.name && !mine ? K.btn(`Record as ${who.name}`, { primary: asked, act: "ov.decide", arg, title: `The prototype acts as ${who.name}, who decides this step` }) : "";
     const primary = g.done ? "" : mine ? K.btn("Record decision", { primary: true, act: "ov.decide", arg })
       : !who.name ? K.btn("Assign the role", { primary: true, act: "ov.assign", arg: who.role })
       : asked ? asWho : `${asWho}${K.btn("Request decision", { primary: true, act: "ov.request", arg })}`;
-    const next = g.done ? ""
-      : open.length ? K.next({ text: `${plural(open.length, "deliverable")} ${open.length === 1 ? "holds" : "hold"} ${esc(g.short)} back. Start with ${esc(open[0][0].name)}: ${open[0][0].n != null ? fmt(open[0][0].n) + " " : ""}${esc(open[0][0].why)}.`, action: K.btn(open[0][0].btn || "Open", { sm: true, act: "ov.dl", arg: { g: g.id, i: open[0][1], p: 1 } }) })
-      : g.total > g.ready ? K.next({ text: `${plural(g.total - g.ready, "deliverable")} of ${fmt(g.total)} not ready.`, action: "" })
-      : unmet.length ? K.next({ text: `Every deliverable is ready. ${plural(unmet.length, "criterion", "criteria")} not met${unmet.some((c) => c.code) ? ` (${esc(unmet.map((c) => c.code).filter(Boolean).join(", "))})` : ""}: assess ${unmet.length === 1 ? "it" : "them"}, or pass with actions.`, action: "" })
-      : K.next({ text: `Every deliverable is ready and every criterion met. ${who.name ? `${esc(who.name)} decides.` : `Nobody holds ${esc(who.role)} yet.`}`, action: "" });
-    const recOf = (d) => (d.kind === "noreq" ? "controls" : d.kind === "conns" ? (has("system-connections") ? "system-connections" : "interconnections") : d.route);
-    const dlRows = g.dls.map((d, i) => {
-      const a = { g: g.id, i, p: 1 }, live = !d.ok && !d.out && d.btn;
-      const cells = [K.name(d.name), d.out ? '<span class="k3-muted">With the decision</span>' : `<span class="k3o-rs${d.ok ? " ok" : ""}"><i class="k3o-dl-s" aria-hidden="true"></i>${d.ok ? "Ready" : "Not ready"}</span>`, `<span class="${d.ok || d.out ? "k3-muted" : "k3o-why"}">${d.n != null && !d.ok ? `<b class="num">${fmt(d.n)}</b> ` : ""}${esc(d.why)}</span>`, d.owner ? K.owner(d.owner) : '<span class="k3-none">—</span>', live ? K.btn(d.btn, { sm: true, act: "ov.dl", arg: a }) : ""];
-      return Object.assign({ cells }, live ? { act: "ov.dl", arg: a } : d.panel && PA.P[d.panel] ? { panel: d.panel, id: d.pid } : recOf(d) && !d.out ? { go: recOf(d) } : {});
-    });
-    const critRows = g.crit.map((c) => {
-      const [tone, word] = critWord[c.state] || critWord.na, a = { id: g.id, code: c.code, text: c.text, own: c.own || null };
-      return { cells: [K.name(c.text, c.proc || "", c.code || ""), c.out ? '<span class="k3-muted">With the decision</span>' : K.status(word, tone), c.note ? esc(c.note) : '<span class="k3-none">—</span>',
-        c.out || g.done ? "" : `<span class="k3o-acts">${K.btn("Assess", { sm: true, act: "ov.crit", arg: a })}${c.own || c.added ? K.btn("Remove", { sm: true, quiet: true, act: "ov.critrm", arg: a }) : ""}</span>`] };
-    });
     return {
       label: "Gate", title: g.title, chip: stat(g), sub: esc(g.desc || ""), crumbs: [["Overview", "overview"], [g.title]],
       actions: `${K.menu("More", [{ label: "Export the gate", act: "ov.gexport", arg: g.id }, !g.done && mine && !asked ? { label: "Request a review first", act: "ov.request", arg } : null])}${primary}`,
       facts: [["Kind", esc(g.kind)], ["Increment", esc(incName(g.n))], ["Phase", esc(`${g.phase} · ${(PHASES.find((x) => x[0] === g.phase) || ["", ""])[1]}`)], g.decided && g.done ? ["Decided", `<span class="num">${esc(md(g.decided))}</span>`] : ["Due", g.due ? dueLine(g) : null]],
       side: [K.details("Decision", decFacts(g, who, asked).concat(g.done ? [] : [["Recorded by", `<span class="k3-muted">${mine ? `You hold ${esc(who.role)}: the decision is yours.` : who.name ? `${esc(who.name)} alone; anyone else requests it. "Record as ${esc(who.name)}" is the prototype acting as that person.` : `Nobody holds ${esc(who.role)} yet.`}</span>`]]), g.done ? "" : K.link("Team", "overview-team"))],
       sections: [
-        next,
-        g.dls.length ? K.section({ title: "Deliverables", count: g.total ? `${g.ready} of ${g.total} ready` : null, body: K.table({ label: "Deliverables", cols: [{ label: "Deliverable" }, { label: "Status", cls: "nw" }, { label: "What holds it back" }, { label: "Owner", cls: "nw" }, { label: "", cls: "tight" }], rows: dlRows }) })
+        nextLine(g),
+        g.dls.length ? K.section({ title: "Deliverables", count: g.total ? `${g.ready} of ${g.total} ready` : null, body: K.table({ label: "Deliverables", cols: DL_COLS, rows: dlRows(g) }) })
           : g.total ? K.section({ title: "Deliverables", count: `${g.ready} of ${g.total} ready`, body: K.note("This program's deliverables are counted from its records but not listed yet.") }) : "",
-        K.related({ id: "k3o-crit", title: "Criteria", count: g.criteria ? `${g.met} of ${g.criteria} met` : 0, add: g.done ? null : { label: "Add criterion", act: "ov.critadd", arg: g.id }, cols: [{ label: "Criterion" }, { label: "Status", cls: "nw" }, { label: "What meets it" }, { label: "", cls: "tight" }], rows: critRows, empty: "No criteria on this gate yet" }),
-        conds.length ? K.section({ title: "Actions", count: conds.length, body: K.table({ label: "Actions", cols: [{ label: "Action" }, { label: "Owner", cls: "nw" }, { label: "Due", cls: "nw" }, { label: "Status", cls: "nw" }], rows: conds.map((c) => ({ cells: [K.name(c.t), K.owner(c.owner || null), `<span class="num">${esc(md(c.due))}</span>`, K.status(c.closed ? "Closed" : "Open", c.closed ? "ok" : "none")] })) }) }) : "",
+        K.related({ id: "k3o-crit", title: "Criteria", count: g.criteria ? `${g.met} of ${g.criteria} met` : 0, add: g.done ? null : { label: "Add criterion", act: "ov.critadd", arg: g.id }, cols: critCols(g), rows: critRows(g), empty: "No criteria on this gate yet" }),
+        conds.length ? K.section({ title: "Actions", count: conds.length, body: K.table({ label: "Actions", cols: ACT_COLS, rows: actRows(conds) }) }) : "",
       ],
     };
   }
-  // The preview: the short form, with Open gate. What it lists is still doable from it.
+  // The preview: the page's facts and its three lists in short form (five rows, the name and the status, then View all),
+  // with Open gate. A row that is not ready opens exactly the records that hold it back, as on the page.
   function gatePeek(g) {
-    const who = decider(g), mine = who.name === ME, asked = /^Requested/.test(g.requested);
-    const cr = g.crit.filter((c) => !c.out), crOut = g.crit.filter((c) => c.out), conds = condsOf(g);
-    const critRows = g.crit.map((c) => { const [tone, word] = critWord[c.state] || critWord.na; return `<li class="k3o-cr"><span class="k3o-cr-b"><span class="k3o-cr-t">${esc(c.text)}</span><span class="k3o-cr-m">${c.code ? `<span class="k3-code">${esc(c.code)}</span> ` : ""}${esc(c.proc || "")}</span></span>${c.out ? `<span class="k3-muted">With the decision</span>` : `${K.status(word, tone)}${g.done ? "" : K.btn("Assess", { sm: true, quiet: true, act: "ov.crit", arg: { id: g.id, code: c.code, text: c.text, own: c.own || null } })}`}</li>`; }).join("");
+    const who = decider(g), mine = who.name === ME, asked = /^Requested/.test(g.requested), conds = condsOf(g), page = gateRoute(g.id);
+    const cr = g.crit.filter((c) => !c.out), crOut = g.crit.filter((c) => c.out);
     const act = g.done ? "" : mine ? K.btn("Record decision", { sm: true, primary: true, act: "ov.decide", arg: { id: g.id } })
       : !who.name ? K.btn("Assign the role", { sm: true, act: "ov.assign", arg: who.role })
       : `${asked ? "" : K.btn("Request decision", { sm: true, primary: true, act: "ov.request", arg: { id: g.id } })}${K.btn(`Record as ${who.name}`, { sm: true, act: "ov.decide", arg: { id: g.id }, title: `The prototype acts as ${who.name}, who decides this step` })}`;
     return {
-      label: "Gate preview", title: g.title, chip: stat(g), page: gateRoute(g.id), open: "Open gate", actions: act,
+      label: "Gate preview", title: g.title, chip: stat(g), page, open: "Open gate", actions: act,
       facts: [["Kind", esc(g.kind)], ["Increment", esc(`${incName(g.n)} · ${g.phase}`)], g.decided && g.done ? null : ["Due", g.due ? dueLine(g) : null]].concat(decFacts(g, who, asked)),
       sections: [
-        nextOf(g, true),
-        g.dls.length ? K.section({ title: "Deliverables", count: g.total ? `${g.ready} of ${g.total} ready` : null, body: dlList(g, true) }) : "",
-        g.crit.length ? K.section({ title: "Criteria", count: cr.length ? `${g.met} of ${g.criteria} met` : crOut.length ? null : 0, body: `<ul class="k3o-crs">${critRows}</ul>` }) : "",
-        conds.length ? K.section({ title: "Actions", count: conds.length, body: `<ul class="k3o-crs">${conds.map((c) => `<li class="k3o-cr"><span class="k3o-cr-b"><span class="k3o-cr-t">${esc(c.t)}</span><span class="k3o-cr-m">${esc(c.owner || "No owner")} · due ${esc(md(c.due))}</span></span>${K.status(c.closed ? "Closed" : "Open", c.closed ? "ok" : "none")}</li>`).join("")}</ul>` }) : "",
+        nextLine(g),
+        g.dls.length ? K.section({ title: "Deliverables", count: g.total ? `${g.ready} of ${g.total} ready` : null, body: K.table({ label: "Deliverables", cols: [{ label: "Deliverable" }, { label: "Status", peek: true }], rows: dlRows(g, true), total: g.dls.length, all: { go: page } }) }) : "",
+        g.crit.length ? K.section({ title: "Criteria", count: cr.length ? `${g.met} of ${g.criteria} met` : crOut.length ? null : 0, body: K.table({ label: "Criteria", cols: [{ label: "Criterion" }, { label: "Status", peek: true }], rows: critRows(g, true), total: g.crit.length, all: { go: page } }) }) : "",
+        conds.length ? K.section({ title: "Actions", count: conds.length, body: K.table({ label: "Actions", cols: ACT_COLS, rows: actRows(conds), total: conds.length, all: { go: page } }) }) : "",
       ],
     };
   }
@@ -417,7 +436,7 @@
   const more = () => K.menu("More", [{ label: "Program settings", go: has("program-settings") ? "program-settings" : "settings" }, { label: "Export the lifecycle", act: "ov.export" }]);
   K.on("ov.export", () => K.save(`${prog()}-lifecycle.csv`, csv([["Increment", "Phase", "Step", "Kind", "Due", "Decided", "Status", "Deliverables ready", "Deliverables"]].concat(incs().flatMap((n) => steps(n).map((x) => { const g = x.status === "Not required" ? null : gate(x.id); return [incName(n), x.phase, x.title, x.kind, x.due || "", x.decided || "", x.status, g ? g.ready : "", g ? g.total : ""]; }))))));
   K.on("ov.texport", () => { const t = team(); K.save(`${prog()}-team.csv`, csv([["Role", "RMF role", "Held by", "Decides"]].concat(t.roles.map((r) => [r.role, r.rmf || "", r.holder || "", r.decides || ""]), [[], ["Person", "Organization", "Roles"]], t.people.map((x) => [x.name, x.org || "", x.roles.map((r) => r.role).join("; ")])))); });
-  K.on("ov.aexport", () => { const rows = [...document.querySelectorAll("#main table.k3o-log tr")].map((tr) => [...tr.cells].map((c) => txt(c))); if (rows.length) K.save(`${prog()}-activity.csv`, csv(rows)); });
+  K.on("ov.aexport", () => { const rows = [...document.querySelectorAll("#main .k3o-log table tr")].map((tr) => [...tr.cells].map((c) => txt(c))); if (rows.length) K.save(`${prog()}-activity.csv`, csv(rows)); });
   const goAct = (route, q) => ({ act: "ov.go", arg: { r: route, q: q || null } });
   // A count opens its list on exactly those records: the new pages keep their filters as kit data (lanes C, D, E document the
   // shapes), set before going; where a lane is not in the build the old page's question stands.
@@ -509,13 +528,14 @@
   });
   function teamPage() {
     const t = team(), rmf = t.roles.filter((r) => r.rmf), other = t.roles.filter((r) => !r.rmf);
-    const roleRow = (r) => ({ cells: [K.name(r.role, r.decides ? `Decides: ${r.decides}` : "", r.rmf || ""), r.holder ? `<span class="k3o-pers" role="button" tabindex="0" data-panel="a-people-person" data-id="${esc(r.holder)}">${personCell(r.holder)}</span>` : personCell(null), K.btn(r.holder ? "Reassign" : "Assign", { sm: true, quiet: !!r.holder, act: "ov.assign", arg: r.role })] });
-    const rolesT = K.table({ label: "Roles", cols: [{ label: "Role" }, { label: "Held by" }, { label: "", cls: "tight" }], rows: [].concat(rmf.map(roleRow), other.length ? [{ group: "Other responsibilities" }] : [], other.map(roleRow)) });
+    // Pass 3: one line a role. What its holder decides is a column of its own (it was a second line under the role's name).
+    const roleRow = (r) => ({ cells: [K.name(r.role, "", r.rmf || ""), r.holder ? `<span class="k3o-pers" role="button" tabindex="0" data-panel="a-people-person" data-id="${esc(r.holder)}">${personCell(r.holder)}</span>` : personCell(null), r.decides ? `<span title="${esc(r.decides)}">${esc(r.decides)}</span>` : '<span class="k3-none">—</span>', K.btn(r.holder ? "Reassign" : "Assign", { sm: true, quiet: !!r.holder, act: "ov.assign", arg: r.role })] });
+    const rolesT = K.table({ label: "Roles", cols: [{ label: "Role" }, { label: "Held by", cls: "nw" }, { label: "Decides" }, { label: "", cls: "tight" }], rows: [].concat(rmf.map(roleRow), other.length ? [{ group: "Other responsibilities" }] : [], other.map(roleRow)) });
     const known = (n) => !!(PA.P["a-people-person"] && wsx() && !t.people.find((p) => p.name === n).added);
-    const peopleT = K.table({ label: "People", cols: [{ label: "Person" }, { label: "Roles" }, { label: "Organization" }, { label: "SSP access" }], rows: t.people.map((p) => Object.assign({ cells: [personCell(p.name), p.roles.length ? esc(p.roles.map(roleShort).join(" · ")) : '<span class="k3-none">No role held</span>', esc(p.org || ""), p.ssp ? esc(p.ssp) : '<span class="k3-none">—</span>'] }, known(p.name) ? { panel: "a-people-person", id: p.name } : {})), empty: { title: "Nobody on the program yet", line: "Add the first person.", action: K.btn("Add a person", { sm: true, act: "ov.person" }) } });
+    const peopleT = K.table({ label: "People", cols: [{ label: "Person" }, { label: "Roles", cls: "nw" }, { label: "Organization", cls: "nw" }, { label: "SSP access", cls: "nw" }], rows: t.people.map((p) => Object.assign({ cells: [personCell(p.name), p.roles.length ? `<span title="${esc(p.roles.map((r) => r.role).join(", "))}">${esc(roleShort(p.roles[0]))}${p.roles.length > 1 ? `<span class="k3-muted num"> +${p.roles.length - 1}</span>` : ""}</span>` : '<span class="k3-none">No role held</span>', esc(p.org || ""), p.ssp ? esc(p.ssp) : '<span class="k3-none">—</span>'] }, known(p.name) ? { panel: "a-people-person", id: p.name } : {})), empty: { title: "Nobody on the program yet", line: "Add the first person.", action: K.btn("Add a person", { sm: true, act: "ov.person" }) } });
     const moreM = wsx() ? K.menu("More", [has("people-8140") ? { label: "DoD 8140 qualifications", go: "people-8140" } : null, has("people-access") ? { label: "Privileged access reviews", go: "people-access" } : null, has("people-task-sets") ? { label: "Role task sets", go: "people-task-sets" } : null, { label: "Export the team", act: "ov.texport" }]) : "";
     return K.page({ cls: "k3o", head: head(moreM), tabs: tabs("team"), body: [
-      K.section({ title: "Roles", count: t.roles.length, actions: K.btn("Assign a role", { sm: true, icon: "plus", act: "ov.assign", arg: "" }), sub: "Who holds each role today. A gate names the holder of its deciding role, and only that person records its decision.", body: rolesT }),
+      K.section({ title: "Roles", count: t.roles.length, actions: K.btn("Assign a role", { sm: true, icon: "plus", act: "ov.assign", arg: "" }), body: rolesT }),
       K.section({ title: "People", count: t.people.length, actions: K.btn("Add a person", { sm: true, icon: "plus", act: "ov.person" }), body: peopleT })] });
   }
   K.screen("overview-team", teamPage, "overview");
@@ -528,15 +548,33 @@
   // ════════════════ Activity ════════════════
   const ACT_KINDS = [["", "All", "activity"], ["reviews", "Evidence reviews", "activity-reviews"], ["imports", "Imports", "activity-imports"], ["decisions", "Decisions and publications", "activity-decisions"], ["system", "Daily job", "activity-system"]];
   K.on("ov.act", (k) => { K.set("ov.act", k || ""); K.redraw(); });
+  K.on("ov.actq", (v) => { K.set("ov.actq", String(v || "")); K.redraw(); });
+  K.on("ov.actwho", (v) => { K.set("ov.actwho", v || ""); K.redraw(); });
+  // Pass 3: one row over the log (search, the view, Kind, Who, then More), and each event one line: when, who, what, the record
+  // (the column that takes the room) and the reviewer's or the job's words, whole on hover.
+  const cutCell = (t) => (t ? `<span title="${esc(t)}">${esc(t)}</span>` : '<span class="k3-none">—</span>');
   function activityPage() {
-    const kind = K.get("ov.act", "") || "", cur = ACT_KINDS.find((x) => x[0] === kind) || ACT_KINDS[0];
+    const kind = K.get("ov.act", "") || "", cur = ACT_KINDS.find((x) => x[0] === kind) || ACT_KINDS[0], q = K.get("ov.actq", "") || "", who = K.get("ov.actwho", "") || "";
     let c = null;
     try { c = tpl(V3.force(true, () => (S[cur[2]] ? S[cur[2]]() : ""))); } catch (e) { c = null; }
     const counts = {};
     if (c) for (const el of c.querySelectorAll("[role='tab']")) { const n = el.querySelector(".ct, .num"); if (n) counts[txt(el).replace(txt(n), "").trim()] = +txt(n).replace(/,/g, "") || 0; }
     const tbl = c && c.querySelector('table[aria-label="Events"]');
-    const body = tbl ? `<div class="frame k3-frame"><div class="tablebox"><table class="k3-table k3o-log" aria-label="Activity">${tbl.querySelector("thead").outerHTML}${tbl.querySelector("tbody").outerHTML}</table></div>${c.querySelector(".pager .num") ? `<div class="pager"><span class="num">${esc(txt(c.querySelector(".pager .num")))}</span></div>` : ""}</div>` : K.empty({ title: "No activity yet", line: "What is decided, reviewed, imported and published in this program is listed here, newest first." });
-    return K.page({ cls: "k3o", head: head(K.menu("More", [{ label: "Export the activity as CSV", act: "ov.aexport" }])), tabs: tabs("activity"), body: [tbl ? K.chips(ACT_KINDS.map(([id, label]) => ({ id, label, count: counts[label], on: id === kind })), "ov.act", "Kind of activity") : "", body] });
+    if (!tbl) return K.page({ cls: "k3o", head: head(""), tabs: tabs("activity"), body: K.empty({ title: "No activity yet", line: "What is decided, reviewed, imported and published in this program is listed here, newest first." }) });
+    const evs = [...tbl.querySelectorAll("tbody tr")].map((tr) => { const td = [...tr.cells]; return { panel: tr.getAttribute("data-panel"), id: tr.getAttribute("data-id"), go: tr.getAttribute("data-go"), when: txt(td[0]), whoH: td[1] ? td[1].innerHTML : "", who: txt(td[1]).replace(/^[A-Z]{2}(?=[A-Z])/, ""), action: txt(td[2]), record: txt(td[3]), details: txt(td[4]).replace(/^—$/, "") }; });
+    evs.forEach((e) => { const nm = tpl(e.whoH).querySelector(".nm"); if (nm) e.who = txt(nm); });
+    const whos = [...new Set(evs.map((e) => e.who).filter(Boolean))], needle = q.trim().toLowerCase();
+    const shown = evs.filter((e) => (!who || e.who === who) && (!needle || `${e.when} ${e.who} ${e.action} ${e.record} ${e.details}`.toLowerCase().includes(needle)));
+    const total = counts[cur[1]] != null ? counts[cur[1]] : evs.length, narrowed = !!(who || needle);
+    const table = K.table({ label: "Activity", cls: "k3o-log", cols: [{ label: "When", cls: "nw" }, { label: "Who", cls: "nw" }, { label: "Action", cls: "nw" }, { label: "Record", cls: "main" }, { label: "Details" }],
+      rows: shown.map((e) => Object.assign({ cells: [`<span class="num">${esc(e.when)}</span>`, e.whoH, esc(e.action), cutCell(e.record), cutCell(e.details)] }, e.panel ? { panel: e.panel, id: e.id } : e.go ? { go: e.go } : {})),
+      empty: { title: "No event matches", line: narrowed ? `None of the latest ${fmt(evs.length)} ${kind ? cur[1].toLowerCase() + " " : ""}events matches. Clear the search or the filters.` : "Nothing of this kind has happened yet." },
+      foot: `<span class="num">${narrowed ? `${fmt(shown.length)} of the latest ${fmt(evs.length)}` : `1–${fmt(evs.length)} of ${fmt(total)}`}</span>` });
+    return K.page({ cls: "k3o", head: head(K.menu("More", [{ label: "Export the activity as CSV", act: "ov.aexport" }])), tabs: tabs("activity"), body: [
+      K.chips(ACT_KINDS.map(([id, label]) => ({ id, label, count: counts[label], on: id === kind })), "ov.act", "Kind", { key: "kind" }),
+      K.toolbar({ id: "activity", noun: "activity", search: { act: "ov.actq", value: q, placeholder: "Search activity" }, filters: [{ label: "Who", key: "who", act: "ov.actwho", value: who, options: whos.concat(who && !whos.includes(who) ? [who] : []).map((n) => [n, n]) }],
+        views: { total: counts.All, all: "All activity", seed: [{ name: "Evidence sent back", state: { kind: "reviews", q: "sent back" }, by: ME }] } }),
+      table] });
   }
   const activityAny = () => (wsx() ? activityPage() : K.page({ cls: "k3o", head: head(""), tabs: tabs("activity"), body: K.empty({ title: "No activity yet", line: "What is decided, reviewed, imported and published in this program is listed here, newest first." }) }));
   K.screen("overview-activity", activityAny, "overview");

@@ -1,0 +1,94 @@
+/* Drata round, lane B (drb-): evidence after Drata. Every rule is scoped to .drb or a drb- class. */
+.drb-warnw { color: var(--bad); font-weight: 500; }
+.drb-late { color: var(--bad); font-weight: 500; white-space: nowrap; }
+.drb-src { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+.drb-src svg { width: 13px; height: 13px; color: var(--ink-3); }
+/* "k of n ready": one compact mark, a dot a control in the kit's tones */
+.drb-cm { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; }
+.drb-cm .num { margin-left: 4px; }
+.drb-cm-w { color: var(--ink-3); margin-left: 3px; }
+.drb-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--line-strong); flex: none; }
+.drb-dot.t-ok { background: var(--ok); }
+.drb-dot.t-bad { background: var(--bad); }
+.drb-dot.t-warn { background: var(--warn); }
+.drb-dot.t-none { background: transparent; box-shadow: inset 0 0 0 1.5px var(--ink-4); }
+.drb-dot.more { background: transparent; box-shadow: inset 0 0 0 1.5px var(--line-strong); width: 6px; height: 6px; }
+.drb .drb-pg { display: inline-flex; gap: 6px; margin-left: auto; }
+.drb .k3-frame .pager { display: flex; align-items: center; gap: 8px; }
+.drb-evs td:first-child { max-width: 0; width: 46%; }
+.drb-evs .k3-nm { min-width: 0; }
+/* the record */
+.drb .drb-grid { display: grid; grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr); gap: 16px; align-items: start; }
+.drb .drb-main, .drb .drb-side { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.drb .drb-sunk-next { margin-bottom: 16px; }
+.drb .drk-sunken > .k3-next { margin-bottom: 16px; background: #fff; }
+.drb .drb-cc { display: inline-flex; align-items: center; gap: 8px; min-width: 0; max-width: 100%; }
+.drb .drb-ct { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.drb .drb-ctls td:first-child { max-width: 0; width: 44%; }
+.drb .drb-bx-m { color: var(--ink-3); font-size: 13px; margin-right: 8px; white-space: nowrap; }
+.drb .drb-file { font-family: var(--mono); font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; }
+.drb .drb-vers td:nth-child(2) { max-width: 0; width: 48%; }
+.drb-fixed { display: inline-flex; align-items: center; gap: 4px; color: var(--ink-2); font-size: 12.5px; white-space: nowrap; }
+.drb-fixed svg { width: 12px; height: 12px; }
+.drb .drb-auto { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); font-size: 13.5px; color: var(--ink-2); }
+.drb .drb-auto > span:first-child { display: inline-flex; align-items: center; gap: 6px; flex: 1 1 280px; }
+.drb .drb-auto svg { width: 13px; height: 13px; flex: none; }
+.drb .drb-auto-a { display: inline-flex; gap: 6px; flex-wrap: wrap; }
+.drb-chips { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; margin: 0; padding: 0; }
+.drb-vl, .k3-pn .drb-vl { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; font-size: 13px; }
+.drb-vl li { display: flex; gap: 8px; align-items: center; min-width: 0; }
+.drb-vl li > span:nth-child(2) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; flex: 1; font-family: var(--mono); font-size: 12px; }
+.drb-chips { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; margin: 0; padding: 0; }
+/* the picker */
+.drb .drb-obj { display: inline-block; max-width: 520px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: bottom; }
+.drb .drb-hid { margin: 8px 0; font-size: 13.5px; color: var(--ink-2); }
+.drb .drb-pk td:first-child input { margin: 0; }
+.drb .drb-pk td:nth-child(2) { max-width: 0; width: 46%; }
+.drb .drb-pk tr.drb-off td { color: var(--ink-3); }
+.drb .drb-pk tr.drb-on td { background: var(--canvas); }
+.drb .drb-oop { color: var(--ink-3); white-space: nowrap; }
+.drb .drb-pkbar { position: sticky; bottom: 0; z-index: 3; display: flex; align-items: center; gap: 10px; margin-top: 12px; padding: 10px 14px; background: var(--page, #fff); border: 1px solid var(--line); border-radius: 10px; box-shadow: var(--shadow-panel); }
+.drb .drb-pkbar-n { flex: 1; min-width: 0; display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 14px; }
+/* the import */
+.drb .drb-drop { border: 1.5px dashed var(--line-strong); border-radius: 12px; padding: 28px 20px; text-align: center; background: var(--canvas); }
+.drb .drb-drop p { margin: 0 0 4px; }
+.drb .drb-drop-a { display: inline-flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 12px; }
+.drb .drb-file-card { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px; }
+.drb .drb-file-card svg { width: 18px; height: 18px; color: var(--ink-3); }
+.drb .drb-fc-t { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.drb .drb-sel { font: inherit; font-size: 13px; height: 28px; padding: 0 6px; border: 1px solid var(--line-strong); border-radius: 6px; background: var(--page, #fff); color: var(--ink); max-width: 240px; }
+.drb .drb-fixsel { border-color: var(--bad); }
+/* the column map: fixed layout so First values gets its share instead of what the names leave */
+.drb .drb-map table { table-layout: fixed; }
+.drb .drb-map th:nth-child(2) { width: 45%; }
+.drb .drb-map th:nth-child(3) { width: 200px; }
+@media (max-width: 760px) { .drb .drb-map table { table-layout: auto; } .drb .drb-map th:nth-child(2), .drb .drb-map th:nth-child(3) { width: auto; } }
+.drb .drb-map td:nth-child(2) { max-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.drb .drb-legend { margin: 10px 0 0; font-size: 13px; color: var(--ink-2); }
+.drb .drb-done { padding: 8px 0; }
+.drb .drb-done h3 { margin: 0 0 8px; font-size: 16px; }
+.drb .drb-done p { margin: 0 0 6px; }
+@media (max-width: 900px) {
+  .drb .drb-grid { grid-template-columns: minmax(0, 1fr); }
+  .drb .drb-obj { max-width: 260px; }
+}
+.drb .drb-grp-m { margin-left: 10px; font-weight: 400; color: var(--ink-3); }
+.drb .drb-fixes { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin-top: 12px; }
+.drb .drb-fixes-t { margin-right: 4px; }
+.drb .drb-legend svg { width: 14px; height: 14px; vertical-align: -2px; margin-right: 4px; color: var(--ok); }
+.drb .drb-kind-w { margin-left: 10px; font-size: 13.5px; }
+.drb [data-drk-sheet="drb-imp"] td.err { cursor: pointer; }
+.drb .drk-head-t { flex: 1 1 0; }
+.drb .drk-title { max-width: none; } /* core's h1 { max-width: 18ch } otherwise cuts a long evidence name at 270px */
+/* round 2: STIG checklists as evidence */
+.drb-cat { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+.drb-cat i { font-style: normal; color: var(--ink-4); }
+.drb-c1 { color: var(--bad); font-weight: 600; }
+.drb .drb-rules td:last-child { max-width: 0; width: 70%; }
+.drb-rl li > span:first-child { flex: none; width: 52px; color: var(--ink-2); font-size: 12.5px; }
+.drb-rl li > span:nth-child(2) { flex: none; overflow: visible; }
+.drb-rl .drb-rt { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink-2); }
+.drb-more { margin: 10px 0 0; font-size: 13px; }
+/* round 2: the POA&M import */
+.drb .drb-ell { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.drb .drb-prev-p td:nth-child(3) { max-width: 0; width: 44%; }

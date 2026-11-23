@@ -1,11 +1,15 @@
-// Lane E's walk (pass 2): with V3 on, through the UI, on the whole build. A row goes to the record's page, the eye opens its
-// preview, kinds are horizontal tabs. Asserts what a person would see. node walk.mjs [build]   WIDTH=390 node walk.mjs [build]
+// Lane E's walk (pass 3): with V3 on, through the UI, on the whole build. One row over every table: search, the view, the
+// filters (a list's kinds and states are filters there), then the list's actions. A row goes to the record's page, the eye opens
+// its preview, and a preview lists what its page lists. node walk.mjs <build>   WIDTH=390 node walk.mjs <build>
 import { open, createSP70, SP } from "../../v3/P/lib.mjs";
-const build = process.argv[2] || SP + "/vanta/proto/out/v3r2-E.html";
+const path = await import("path");
+const build = path.resolve(process.argv[2] || SP + "/vanta/proto/out/v3r3-E.html");
+console.log("walk E on", path.basename(build), "at", +(process.env.WIDTH || 1440));
 const WIDTH = +(process.env.WIDTH || 1440), NARROW = WIDTH < 700;
 const H = await open({ build, start: "overview", width: WIDTH }), p = H.p;
-p.setDefaultTimeout(6000);
-setTimeout(() => { console.log("WATCHDOG: the walk ran over 8 minutes"); process.exit(2); }, 480000);
+// Generous limits: several lanes' walks may run at once, and a click that waits on a busy machine is not a failure.
+p.setDefaultTimeout(15000);
+setTimeout(() => { console.log("WATCHDOG: the walk ran over 15 minutes"); process.exit(2); }, 900000);
 let fails = 0, n = 0;
 const ok = (c, name, extra) => { n++; if (!c) fails++; console.log(c ? "ok  " : "FAIL", name, c || extra === undefined ? "" : JSON.stringify(extra)); };
 const ev = (fn, a) => p.evaluate(fn, a);
@@ -13,8 +17,19 @@ const w = (ms = 350) => p.waitForTimeout(ms);
 const flat = (s) => String(s || "").replace(/\s+/g, " ").trim();
 const hash = () => ev(() => { try { return decodeURIComponent(location.hash.slice(1)); } catch (e) { return location.hash.slice(1); } });
 const rows = (sel = "#main") => ev((sel) => [...document.querySelectorAll(sel + " .k3-table tbody tr:not(.k3-grow)")].map((tr) => tr.innerText.replace(/\s+/g, " ").trim()), sel);
-const rail = () => ev(() => [...document.querySelectorAll("#main .k3-rail-i")].map((x) => ({ t: x.querySelector(".x").innerText.replace(/\s+/g, " "), n: +(x.querySelector(".num") || { innerText: "-1" }).innerText.replace(/,/g, ""), on: x.classList.contains("on"), top: Math.round(x.getBoundingClientRect().top) })));
-const chip = (label) => ev((l) => { const c = [...document.querySelectorAll("#main .k3-chip")].find((x) => x.innerText.startsWith(l)); return c ? +c.querySelector(".num").innerText.replace(/,/g, "") : -1; }, label);
+// A folded filter (a list's kinds, its states) is a select in the row: its options with their counts, the chosen one on.
+const fopts = (key) => ev((key) => { const s = document.querySelector(`#main .k3-tb select[data-k3-fkey="${key}"]`); return s ? [...s.options].map((o) => { const t = o.textContent.replace(/\s+/g, " ").trim(), m = /^(.*) \(([\d,]+)\)$/.exec(t); return { t: m ? m[1] : t.replace(/^[^:]+: /, ""), n: m ? +m[2].replace(/,/g, "") : -1, on: o.selected }; }) : []; }, key);
+const rail = async () => { for (const k of ["source", "kind", "control"]) { const o = await fopts(k); if (o.length) return o; } return []; };
+const footN = () => ev(() => { const t = ((document.querySelector("#main .pager .num") || {}).textContent || "").replace(/,/g, ""); const m = /of (\d+)/.exec(t) || /(\d+)/.exec(t); return m ? +m[1] : -1; });
+// A state's count: beside its option, or the list's own count while it is the state chosen. "Open" and "All" are the filter at rest.
+const chip = async (label) => { const o = await fopts("state"), i = o.findIndex((x, k) => x.t === label || (k === 0 && /^(Open|All)$/.test(label))); if (i < 0) return -1; return o[i].on ? footN() : o[i].n; };
+const stateOn = async () => { const o = await fopts("state"), i = o.findIndex((x) => x.on); return i <= 0 ? "" : o[i].t; };
+const pick = async (key, text) => { const r = await ev(([key, text]) => { const s = document.querySelector(`#main .k3-tb select[data-k3-fkey="${key}"]`); if (!s) return false; const i = text === "" ? 0 : [...s.options].findIndex((o) => o.textContent.replace(/\s+/g, " ").trim().replace(/^[^:]+: /, "").startsWith(text)); if (i < 0) return false; s.selectedIndex = i; s.dispatchEvent(new Event("input", { bubbles: true })); return true; }, [key, text]); await w(550); return r; };
+const bar = () => ev(() => { const t = document.querySelector("#main .k3-tb"); if (!t) return null; const kids = [...t.children].flatMap((c) => (c.classList.contains("k3-fs") ? [...c.children] : [c])).filter((e) => e.getClientRects().length); return { rows: new Set(kids.map((e) => Math.round((e.getBoundingClientRect().top + e.getBoundingClientRect().height / 2) / 10))).size, list: t.getAttribute("data-k3-list") || "", filters: [...t.querySelectorAll(".k3-flt select")].map((x) => x.getAttribute("aria-label")), acts: [...t.querySelectorAll(".k3-tools-r .btn, .k3-tools-r summary")].map((e) => e.textContent.trim()), view: (t.querySelector(".k3-vname") || {}).textContent || "", edited: !!t.querySelector(".k3-vedit"), strips: document.querySelectorAll("#main .k3-chips, #main .k3-rtabs, #main .k3-rail").length, headA: document.querySelectorAll("#main .k3-head-a").length }; });
+const viewMenu = async (label) => { await p.click("#main .k3-vbtn"); await w(120); const r = await ev((l) => { const x = [...document.querySelectorAll("#main .k3-vlist .k3-menu-i")].find((e) => e.textContent.trim().startsWith(l)); if (!x) return false; x.click(); return true; }, label); await w(500); return r; };
+const viewItems = async () => { await p.click("#main .k3-vbtn"); await w(120); const r = await ev(() => [...document.querySelectorAll("#main .k3-vlist .k3-vi")].map((e) => e.textContent.replace(/\s+/g, " ").trim())); await ev(() => document.querySelectorAll("#main details[open]").forEach((d) => (d.open = false))); return r; };
+const psecs = () => ev(() => [...document.querySelectorAll("#panel .k3-pn .k3-sec h2")].map((h) => { const c = h.cloneNode(true); c.querySelectorAll(".k3-ct").forEach((x) => x.remove()); return c.textContent.replace(/\s+/g, " ").trim(); }));
+const msecs = () => ev(() => [...document.querySelectorAll("#main .k3-sec h2")].map((h) => { const c = h.cloneNode(true); c.querySelectorAll(".k3-ct").forEach((x) => x.remove()); return c.textContent.replace(/\s+/g, " ").trim(); }).concat([...document.querySelectorAll("#main .k3-tabs .k3-tab")].map((h) => { const c = h.cloneNode(true); c.querySelectorAll(".k3-ct").forEach((x) => x.remove()); return c.textContent.replace(/\s+/g, " ").trim(); })));
 const tabN = (label) => ev((l) => { const c = [...document.querySelectorAll("#main .k3-tabs .k3-tab")].find((x) => x.innerText.trim().startsWith(l)); const n = c && c.querySelector(".k3-ct"); return n ? +n.innerText.replace(/,/g, "") : -1; }, label);
 const search = async (q) => { await p.fill("#main .k3-search input", q); await w(500); };
 const panel = () => ev(() => { const e = document.querySelector("#panel"); return e && !e.hidden ? e.innerText.replace(/[ \t]+/g, " ") : ""; });
@@ -33,8 +48,10 @@ const navItems = () => ev(() => [...document.querySelectorAll("#nav a.item")].ma
 const clickRow = async (text, scope = "#main") => { const r = await ev(([text, scope]) => { const tr = [...document.querySelectorAll(scope + " .k3-table tbody tr")].find((t) => t.innerText.includes(text)); if (!tr) return false; tr.scrollIntoView({ block: "center" }); tr.click(); return true; }, [text, scope]); await w(550); return r; };
 const eye = async (text, scope = "#main") => { const r = await ev(([text, scope]) => { const tr = [...document.querySelectorAll(scope + " .k3-table tbody tr")].find((t) => t.innerText.includes(text)); const b = tr && tr.querySelector(".k3-eye"); if (!b) return false; b.scrollIntoView({ block: "center" }); b.click(); return true; }, [text, scope]); await w(500); return r; };
 const inMain = (text, opts) => H.click(text, "#main", Object.assign({ exact: true }, opts || {}));
-const headMenu = async (item) => { await p.click("#main .k3-head details.k3-menu summary"); await w(150); return H.click(item, "#main .k3-head .k3-menu-l", { exact: true }); };
-const railPick = async (text) => { const i = await ev((text) => { const s = document.querySelector("#main select[data-k3-railsel]"); return s ? [...s.options].findIndex((o) => o.textContent.includes(text)) : -1; }, text); if (i < 0) return H.click(text, "#main .k3-rail"); await p.selectOption("#main select[data-k3-railsel]", { index: i }); await w(450); return "selected"; };
+// A list's actions stand at the end of its row; a record's stay in its header.
+const acts = async () => ((await ev(() => !!document.querySelector("#main .k3-head details.k3-menu summary, #main .k3-head .k3-head-a .btn"))) ? "#main .k3-head" : "#main .k3-tb .k3-tools-r");
+const headMenu = async (item) => { const sel = await acts(); await p.click(sel + " details.k3-menu summary"); await w(150); return H.click(item, sel + " .k3-menu-l", { exact: true }); };
+const railPick = async (text) => { for (const k of ["control", "source", "kind"]) if (await pick(k, text)) return "selected"; return false; };
 const later = (days) => { const d = new Date("2026-11-17T12:00:00"); d.setDate(d.getDate() + days); return d.toISOString().slice(0, 10); };
 const fid = "af:exp:AC-2(7):0";
 
@@ -44,21 +61,22 @@ await H.go("overview");
 const att0 = await ev(() => [...document.querySelectorAll("#main .k3-att-r")].map((x) => x.innerText.replace(/\s+/g, " ").trim()));
 ok(att0.includes("Operational issues 43") && att0.includes("Risks without an owner 40"), "0 the Overview prints 43 operational issues and 40 risks without an owner", att0);
 await H.click("Operational issues", "#main .k3-att");
-ok((await hash()) === "findings-issues" && (await chip("Open")) === 43 && /of 43$/.test(flat(await H.txt("#main .pager .num"))) && (await ev(() => (document.querySelector("#main .k3-chip.on") || {}).innerText || "")).startsWith("Open"), "0 its count opens Findings on exactly those 43", [await hash(), await chip("Open"), await H.txt("#main .pager .num")]);
+ok((await hash()) === "findings-issues" && (await chip("Open")) === 43 && /of 43$/.test(flat(await H.txt("#main .pager .num"))) && (await stateOn()) === "", "0 its count opens Findings on exactly those 43", [await hash(), await chip("Open"), await H.txt("#main .pager .num")]);
 await H.go("overview"); await H.click("Risks without an owner", "#main .k3-att");
-ok((await hash()) === "risks" && (await chip("No owner")) === 40 && (await rows()).length === 40 && (await ev(() => (document.querySelector("#main .k3-chip.on") || {}).innerText || "")).startsWith("No owner"), "0 and Risks on exactly those 40", [await hash(), await chip("No owner"), (await rows()).length]);
-await H.click("Open", "#main .k3-chips");
+ok((await hash()) === "risks" && (await chip("No owner")) === 40 && (await rows()).length === 40 && (await stateOn()) === "No owner", "0 and Risks on exactly those 40", [await hash(), await chip("No owner"), (await rows()).length]);
+await pick("state", "");
 
 // ——— 1. Assessments: kinds are horizontal tabs; a row opens the assessment's page with the program menu still there ———
 await H.go("assessments");
 const allN = (await rows()).length, r1 = await rail();
 ok((await navOn()) === "Assessments" && allN >= 15 && r1.length === 4, "1 Assessments lists every assessment under four kinds", [allN, r1]);
-ok((await ev(() => !!document.querySelector("#main nav.k3-rail.k3-rtabs") && !document.querySelector("#main .k3-rail:not(.k3-rtabs)"))) && (NARROW || new Set(r1.map((x) => x.top)).size === 1), "1 the kinds run across the page as tabs, not down its side", r1.map((x) => x.top));
-await H.click("Control assessments", "#main .k3-rail");
+const b1 = await bar();
+ok(b1.strips === 0 && b1.filters[0] === "Kind" && b1.list === "assessments" && (NARROW || b1.rows === 1) && /Plan an assessment/.test(b1.acts.join("|")) && !b1.headA, "1 one row over the table: search, view, Kind and the other filters, then Plan an assessment; no strip of tabs", b1);
+await pick("kind", "Control assessments");
 ok((await hash()) === "assessments-control" && (await rows()).length === 3 && (await rail())[1].on && /^Assessments/.test(flat(await H.txt("#main .k3-title"))), "1 a kind filters in place", [await hash(), (await rows()).length]);
-await H.click("Monitoring checks", "#main .k3-rail");
+await pick("kind", "Monitoring checks");
 ok((await rows()).length === 12 && /Monthly/.test((await rows())[0]), "1 monitoring checks are assessments with a cadence and a next run", (await rows())[0]);
-await H.click("Control assessments", "#main .k3-rail");
+await pick("kind", "Control assessments");
 await clickRow("Expanded control set assessment");
 ok((await hash()) === "assessment--exp" && (await navOn()) === "Assessments" && (await navItems()).includes("Findings") && (await navItems()).includes("Overview") && (await navItems()).length === 10, "1 the campaign's row opens its page; the program menu stays, Assessments marked", [await hash(), await navItems()]);
 ok(/Plan\s*Objectives\s*\d+\s*Requests\s*\d+\s*Results\s*\d+\s*Findings\s*\d+/.test(flat(await H.txt("#main .k3-tabs"))), "1 its tabs: Plan, Objectives, Requests, Results, Findings", flat(await H.txt("#main .k3-tabs")));
@@ -85,7 +103,7 @@ await p.fill("#k3f-note", "The role table lists two maintainer accounts with no 
 const comp = await ev(() => { const s = document.querySelector("#k3f-comp"); const o = s && [...s.options].find((x) => x.value); if (o) { s.value = o.value; return o.value; } return null; });
 await submit();
 ok(!(await modalOpen()) && !(await panel()) && (await hash()) === "assessment--exp--objectives" && /a finding is open/.test(await H.toast()) && /Open finding/.test(await H.toast()), "2 the finding opens at once; the assessor stays on the objectives", await H.toast());
-ok((await tabN("Findings")) === f0tab + 1 && /Other than satisfied/.test((await rows())[0]) && /draft/.test((await rows())[0]) && /Its finding/.test((await rows())[0]), "2 the objective reads Other than satisfied, a draft, and names its finding; the Findings tab counts one more", [(await rows())[0], f0tab, await tabN("Findings")]);
+ok((await tabN("Findings")) === f0tab + 1 && /Other than satisfied/.test((await rows())[0]) && /draft/.test((await rows())[0]) && /Finding/.test((await rows())[0]), "2 the objective reads Other than satisfied, a draft, and names its finding; the Findings tab counts one more", [(await rows())[0], f0tab, await tabN("Findings")]);
 await ev(() => document.querySelector("#v2-toast .v2-toast-link").click()); await w(550);
 ok((await hash()) === "finding--" + fid && (await navOn()) === "Findings" && /AC-02\(07\)\(a\) judged other than satisfied/.test(await head()) && /Draft results/.test(await head()), "2 Open finding goes to the finding's own page, Findings marked", [await hash(), await head()]);
 ok(/Findings\s*›\s*Assessment findings/.test(await head()) && /maintainer accounts/.test(await H.main()) && /recorded as/i.test(await H.main()) && /Create plan/.test(await H.main()), "2 the page says what was found, who recorded it, and offers Create plan");
@@ -95,8 +113,9 @@ await clickRow("AC-02(07)(a)");
 ok((await hash()) === "finding--" + fid, "2 its row there goes to the same page", await hash());
 await H.go("findings-assessment");
 const srcA = (await fact("findingCounts")).bySource;
-ok((await rail())[2].on && (await rail())[2].n === src0.af + 1 && srcA.af === src0.af + 1, "2 it is under Assessment findings, counted", [src0.af, (await rail())[2]]);
-ok((await ev(() => !!document.querySelector("#main nav.k3-rail.k3-rtabs") && !document.querySelector("#main .k3-rail:not(.k3-rtabs)"))) && (await rail()).length === 5 && (NARROW || new Set((await rail()).map((x) => x.top)).size === 1), "2 Findings' sources are horizontal tabs");
+ok((await rail())[2].on && (await footN()) === src0.af + 1 && srcA.af === src0.af + 1, "2 it is under Assessment findings, counted", [src0.af, (await rail())[2]]);
+const b2 = await bar();
+ok(b2.strips === 0 && b2.list === "findings" && b2.filters.join() === "Source,State,Severity,Component,Control" && (await rail()).length === 5 && (NARROW || b2.rows === 1) && /Add finding/.test(b2.acts.join("|")) && !b2.headA, "2 Findings' sources are one filter in the list's one row, with State and the rest; the list's actions end the row", b2);
 await search("AC-02(07)(a)");
 ok((await rows()).length === 1, "2 the list finds it", await rows());
 await eye("AC-02(07)(a)");
@@ -107,7 +126,7 @@ await closePanel();
 // ——— 3. On the finding's page: a plan (the POA&M item), then a risk ———
 await search("");
 await H.go("findings"); const poam0 = await chip("On the POA&M");
-await p.click("#main .k3-head details.k3-menu summary"); await w(150); await H.click("Export POA&M", "#main .k3-head .k3-menu-l", { exact: true });
+await headMenu("Export POA&M");
 ok(/PRG-1090-poam-2026-11-17\.csv (downloaded|saved)/.test(await H.toast()) || /Copy PRG-1090-poam/.test(await H.modal()), "3 More holds Export POA&M: the kit saves the file", [await H.toast(), (await H.modal()).slice(0, 60)]);
 if (await modalOpen()) { await ev(() => document.querySelector("#modal [data-k3-close]").click()); await w(200); }
 await H.go("findings-assessment"); await clickRow("AC-02(07)(a)");
@@ -124,7 +143,7 @@ ok(((await msec("Plan")) || {}).n === 2 && /Retest AC-02\(07\)\(a\)/.test((await
 await H.go("findings");
 ok((await chip("On the POA&M")) === poam0 + 1, "3 On the POA&M counts one more", [poam0, await chip("On the POA&M")]);
 await H.go("findings-poam");
-ok((await ev(() => (document.querySelector("#main .k3-chip.on") || {}).innerText || "")).startsWith("On the POA&M") && /Planned completion\s*Milestones\s*Resources/.test(flat(await H.txt("#main .k3-table thead"))), "3 the POA&M is the same list with the plan's columns", flat(await H.txt("#main .k3-table thead")));
+ok((await stateOn()) === "On the POA&M" && /Planned completion\s*Milestones\s*Resources/.test(flat(await H.txt("#main .k3-table thead"))), "3 the POA&M is the same list with the plan's columns", flat(await H.txt("#main .k3-table thead")));
 await search("AC-02(07)(a)");
 ok((await rows()).length === 1 && /40 engineering hours/.test((await rows())[0]) && /0\/2/.test((await rows())[0]), "3 the finding is on the POA&M with its date, milestones and resources", await rows());
 await search(""); await clickRow("AC-02(07)(a)");
@@ -186,9 +205,10 @@ await H.go("finding--" + encodeURIComponent(fid));
 ok(!/Draft results/.test(await head()) && /Other than satisfied/.test(await head()), "5 the finding is no longer a draft", await head());
 
 // ——— 6. An operational issue on its page: planned date, milestone, deactivate; each kept after a reload ———
+await H.go("findings"); const issN = (await rail())[1].n;
 await H.go("findings-issues");
 const open0 = await chip("Open"), iss0 = (await fact("issues", "PRG-1090")).open;
-ok((await rail())[1].on && open0 === (await rail())[1].n && open0 === iss0, "6 Operational issues: the tab's count, the Open chip and fact(issues) are one number", [open0, (await rail())[1], iss0]);
+ok((await rail())[1].on && open0 === issN && open0 === iss0, "6 Operational issues: the Source filter's count, the list's own count and fact(issues) are one number", [open0, issN, iss0]);
 await search("Session-table occupancy"); await clickRow("Session-table occupancy");
 const issRoute = await hash();
 ok(/^finding--/.test(issRoute) && /Session-table occupancy/.test(await head()) && /Operational issues/.test(await head()) && (await ev(() => document.querySelectorAll("#main .k3-head .btn.ink").length)) === 1, "6 an operational issue's row goes to its page: a short title, one primary in the header", [issRoute, await head()]);
@@ -202,7 +222,7 @@ await submit();
 ok((await bad()) === 1, "6 a new date needs its reason");
 const moved = later(120);
 await p.fill("#k3f-to", moved); await p.fill("#k3f-reason", "The gateway firmware that restores the counter ships with Block 1.1."); await submit();
-ok(!(await modalOpen()) && /Mar 17, 2027/.test((await msec("Plan")).text) && /Moved once/.test((await msec("Plan")).text), "6 the planned date moved, with its reason", (await msec("Plan")).text.slice(0, 260));
+ok(!(await modalOpen()) && /Mar 17, 2027/.test((await msec("Plan")).text) && /Moved\s*Once/.test((await msec("Plan")).text), "6 the planned date moved, with its reason", (await msec("Plan")).text.slice(0, 260));
 await inMain("Add milestone", { sel: "button" });
 await p.fill("#k3f-title", "Flight test the restored counter export"); await submit();
 ok(/Flight test the restored counter export/.test((await msec("Plan")).text) && (await msec("Plan")).n === 5, "6 the milestone is on the plan");
@@ -220,11 +240,13 @@ await H.go("findings-issues");
 ok(flat(await H.val("#main .k3-search input")) === "Session-table occupancy", "6 back on the list, the search the reader typed is still there");
 await search("");
 ok((await chip("Open")) === open0 - 1 && (await chip("Deactivated")) === 1 && (await fact("issues", "PRG-1090")).open === iss0 - 1, "6 one fewer open here and in fact(issues), one under Deactivated", [open0, await chip("Open"), await chip("Deactivated")]);
-await H.click("Deactivated", "#main .k3-chips");
+await pick("state", "Deactivated");
 ok((await rows()).length === 1 && /Session-table occupancy/.test((await rows())[0]), "6 the Deactivated chip lists it");
 await p.reload(); await w(900); await H.go("overview"); await H.go("findings-issues");
-ok((await chip("Open")) === open0 - 1 && (await chip("Deactivated")) === 1, "6 still deactivated after a reload");
-await H.click("Open", "#main .k3-chips");
+ok((await stateOn()) === "Deactivated" && (await rows()).length === 1, "6 still deactivated after a reload, and the list still asks for the deactivated ones", [await stateOn(), (await rows()).length]);
+await pick("state", "");
+ok((await chip("Open")) === open0 - 1 && (await chip("Deactivated")) === 1, "6 the open findings are one fewer");
+await pick("state", "");
 await H.go("overview");
 ok((await ev(() => [...document.querySelectorAll("#main .k3-att-r")].map((x) => x.innerText.replace(/\s+/g, " ").trim()))).includes(`Operational issues ${open0 - 1}`), "6 the Overview prints the same number");
 
@@ -255,9 +277,9 @@ await H.go("technique--T1200");
 ok(/A password on its own reaches WS-X90/.test((await msec("Risks that name it")).text), "7 and the technique now lists that risk");
 await H.go("risks");
 ok((await chip("No owner")) === (await chip("Open")) - 1, "7 the register's No owner chip follows the one risk that has an owner", [await chip("Open"), await chip("No owner")]);
-await H.click("No owner", "#main .k3-chips");
+await pick("state", "No owner");
 ok((await rows()).length === (await chip("No owner")), "7 a chip shows exactly what it counts");
-await H.click("Open", "#main .k3-chips");
+await pick("state", "");
 
 // ——— 8. Authorization: the package reads its records; a condition is closed in place; Sharing adds a person ———
 await H.go("findings"); const poamN = await chip("On the POA&M");
@@ -319,15 +341,15 @@ if (await ev(() => typeof PA.v3.facts.cveFixed === "function" && !!document.quer
 const on1 = (await fact("findingsOn", mc)).filter((f) => f.kind === "vuln").length;
 ok(on0 >= 1 && on1 === on0 - 1, "10 once lane S says the version fixes it, the CVE leaves the component's findings", [on0, on1]);
 ok((await chip("Open")) === vOpen0 - 1 && (await chip("Fixed")) === 1 && !(await rows()).some((r) => /CVE-2024-6387/.test(r)), "10 it leaves the open vulnerabilities; a Fixed chip counts it", [vOpen0, await chip("Open"), await chip("Fixed")]);
-await H.click("Fixed", "#main .k3-chips");
-ok((await rows()).length === 1 && /CVE-2024-6387/.test((await rows())[0]) && /Fixed in a newer version/.test((await rows())[0]), "10 the Fixed chip lists it, marked fixed", await rows());
+await pick("state", "Fixed");
+ok((await rows()).length === 1 && /CVE-2024-6387/.test((await rows())[0]) && (await stateOn()) === "Fixed", "10 the Fixed state lists it", await rows());
 await clickRow("CVE-2024-6387");
 ok(/Fixed in a newer version/.test(await head()) && /Mission Computer took a version that fixes it/.test(flat(await H.main())), "10 its page says which component's version fixed it", await head());
 await H.go("component--" + mc + "--findings", 600);
 ok(!(await rows()).some((r) => /CVE-2024-6387/.test(r)), "10 lane S's Findings tab no longer lists it", // lead: the rows, not the page: the back link names the finding the reader came from
   await ev(() => { const t = document.getElementById("main").innerText, i = t.indexOf("CVE-2024-6387"); return [location.hash, i < 0 ? null : t.slice(Math.max(0, i - 200), i + 100).replace(/\s+/g, " ")]; }));
 await ev(() => { PA.v3.facts.cveFixed = window.__cve0; if (!window.__cve0) delete PA.v3.facts.cveFixed; PA.v3k.set("e.walk", 2); });
-await H.go("findings-vulns"); await H.click("Open", "#main .k3-chips");
+await H.go("findings-vulns"); await pick("state", "");
 ok((await chip("Open")) === vOpen0, "10 (the walk's stand-in for lane S's fact is taken back)");
 
 // ——— Widths: every route at this width; no list of kinds down the side; a tabbed page has one row of tabs ———
@@ -348,7 +370,7 @@ for (const r of ["findings", "assessments", "risks", "authorization", "authoriza
 const leak = Object.entries(other).filter(([, t]) => /WS-X90|Payload arm|Expanded control set|ACAS|R\. Calloway.*Sep 18|T1078|CVE-2024/.test(t)).map(([r]) => r);
 ok((await H.cur()) === seen.code && !leak.length, "11 a created program's pages show none of WS-X90's records", [seen.code, leak]);
 ok(/No finding yet/.test(other.findings) && /Add finding/.test(other.findings) && /No assessment yet/.test(other.assessments) && /Plan an assessment/.test(other.assessments) && /No risk yet/.test(other.risks) && /No decision yet/.test(other.authorization), "11 each is an empty register with its working Add", Object.fromEntries(Object.entries(other).map(([k, v]) => [k, v.slice(0, 90)])));
-await H.go("findings"); await H.click("Add finding", "#main .k3-head", { exact: true });
+await H.go("findings"); await H.click("Add finding", await acts(), { exact: true });
 await p.fill("#k3f-title", "Pod stores interface accepts an unsigned mission load"); await p.selectOption("#k3f-sev", "high"); await submit();
 ok(/^finding--fnd-/.test(await hash()) && /Pod stores interface/.test(await head()) && !/WS-X90/.test(await H.main()), "11 Add finding works there and goes to the finding's page", await hash());
 await inMain("Create plan", { sel: "button" }); await p.fill("#k3f-title", "Verify the mission load signature at the stores interface"); await submit();
@@ -356,16 +378,82 @@ await H.go("findings");
 ok((await rows()).length === 1 && (await chip("On the POA&M")) === 1, "11 its plan puts it on that program's POA&M", [await rows(), await chip("On the POA&M")]);
 await H.go("overview");
 ok((await ev(() => [...document.querySelectorAll("#main .k3-att-r")].map((x) => x.innerText.replace(/\s+/g, " ").trim()))).some((x) => /^Operational issues 1$/.test(x)) || !(await ev(() => !!document.querySelector("#main .k3-att-r"))), "11 that program's Overview counts its one finding", await ev(() => [...document.querySelectorAll("#main .k3-att-r")].map((x) => x.innerText.replace(/\s+/g, " ").trim())));
-await H.go("risks"); await H.click("Create risk", "#main .k3-head", { exact: true });
+await H.go("risks"); await H.click("Create risk", await acts(), { exact: true });
 await p.fill("#k3f-title", "A tampered mission load reaches the weapon"); await p.selectOption("#k3f-resp", "mitigate"); await submit();
 ok(/^risk--/.test(await hash()) && /A tampered mission load/.test(await head()), "11 Create risk works there and goes to the risk's page", await hash());
 await H.go("risks");
 ok((await rows()).length === 1 && /A tampered mission load/.test((await rows())[0]), "11 the risk is in that program's register", await rows());
-await H.go("assessments"); await H.click("Plan an assessment", "#main .k3-head", { exact: true });
+await H.go("assessments"); await H.click("Plan an assessment", await acts(), { exact: true });
 await p.fill("#k3f-name", "SP-70 initial control assessment"); await submit();
 ok(/^assessment--asm-/.test(await hash()) && /SP-70 initial control assessment/.test(await H.txt("#main .k3-title")), "11 Plan an assessment works there and opens the assessment's page", await hash());
 await ev(() => PA.v2hubs.setCur("PRG-1090")); await H.go("overview"); await H.go("findings", 700);
 ok((await fact("findingCounts")).open === wsxOpen && !/Pod stores interface/.test(await H.main()), "11 back on WS-X90: its own findings, none of the other program's", [wsxOpen, (await fact("findingCounts")).open]);
+
+// ——— 12. Pass 3: one row over every table, one line a row, views, and previews that list what their pages list ———
+const clearRow = async () => { await ev(() => { const c = document.querySelector("#main .k3-clear"); if (c) c.click(); }); await w(550); };
+const tallRows = () => ev(() => [...document.querySelectorAll("#main .k3-table tbody tr")].filter((tr) => tr.getClientRects().length && tr.getBoundingClientRect().height > 44).length);
+for (const [r, list, first] of [["findings", "findings", "Source"], ["findings-poam", "findings", "Source"], ["assessments", "assessments", "Kind"], ["risks", "risks", "State"], ["risks-threats", "techniques", "Matrix"], ["assessment--exp--objectives", "assessment-objectives", "Control"]]) {
+  await H.go(r, 550); const b = await bar(), tall = await tallRows();
+  ok(!!b && b.list === list && b.filters[0] === first && b.strips === 0 && (NARROW || b.rows === 1) && tall === 0 && !!b.view, `12 ${r}: one row (search, view, filters, actions) and every row one line`, [b, tall]);
+}
+await H.go("findings", 550); await clearRow();
+const vAll = await footN(), items0 = await viewItems();
+ok(/^All findings/.test(items0[0]) && ["Past due", "On the POA&M", "No owner", "Operational issues", "STIG rules"].every((l) => items0.some((x) => x.startsWith(l))) && items0.some((x) => /^High, past due/.test(x) && /Shared/.test(x)), "12 the view menu: All findings, the built-in views (its states and its sources) and a shared saved view", items0);
+await pick("state", "Past due"); await p.selectOption('#main select[data-k3-input="k3e.f.sev"]', "high"); await w(600);
+const seedN = await footN(), bSeed = await bar();
+ok(seedN > 0 && seedN < vAll && bSeed.view === "High, past due" && !bSeed.edited && (await stateOn()) === "Past due", "12 Past due and High are the saved view High, past due: the row names it", [seedN, vAll, bSeed.view, bSeed.edited]);
+await search("REQ");
+const mineN = await footN(), mineRows = (await rows()).slice(0, 6), bEd = await bar();
+ok(mineN > 0 && mineN < seedN && bEd.edited, "12 a search on top of it: the view reads as edited", [mineN, seedN, bEd.view, bEd.edited]);
+ok(await viewMenu("Save as new view"), "12 Save as new view is in the menu");
+await p.fill("#modal input[name=name]", "Walk: late high requirements"); await p.selectOption("#modal select[name=shared]", "team"); await submit();
+const bSaved = await bar();
+ok(bSaved.view === "Walk: late high requirements" && !bSaved.edited && (await footN()) === mineN, "12 saved: it is the row's view", bSaved);
+await viewMenu("All findings");
+ok((await footN()) === vAll && (await stateOn()) === "" && (await H.val("#main .k3-search input")) === "" && !(await bar()).edited, "12 All findings clears the search and every filter", [await footN(), vAll]);
+await viewMenu("STIG rules");
+ok((await hash()) === "findings-stig" && (await bar()).view === "STIG rules" && (await rail())[4].on && (await bar()).list === "findings", "12 a source is a view too: STIG rules is the same list at its own address", [await hash(), (await bar()).view]);
+await H.go("risks", 500); await H.go("findings-stig", 550);
+await viewMenu("Walk: late high requirements");
+ok((await hash()) === "findings" && (await bar()).view === "Walk: late high requirements" && !(await bar()).edited && (await footN()) === mineN && JSON.stringify((await rows()).slice(0, 6)) === JSON.stringify(mineRows) && (await H.val("#main .k3-search input")) === "REQ" && (await stateOn()) === "Past due", "12 left and picked again from another address, the saved view asks the same question: the same rows", [await hash(), await footN(), mineN]);
+await viewMenu("Manage views"); await w(200);
+ok(await ev(() => [...document.querySelectorAll("#modal .k3-vm-r .k3-vm-n")].map((x) => x.value).join("|") === "High, past due|Walk: late high requirements"), "12 Manage views lists the saved views, each renamed, shared or deleted there", await ev(() => [...document.querySelectorAll("#modal .k3-vm-r .k3-vm-n")].map((x) => x.value)));
+await ev(() => { const r = [...document.querySelectorAll("#modal .k3-vm-r")].find((x) => (x.querySelector(".k3-vm-n") || {}).value === "Walk: late high requirements"); [...r.querySelectorAll(".btn")].find((b) => /Delete/.test(b.textContent)).click(); }); await w(200);
+await ev(() => [...document.querySelectorAll("#modal .k3-vm-r.ask .btn")].find((b) => /Delete view/.test(b.textContent)).click()); await w(300);
+ok(await ev(() => [...document.querySelectorAll("#modal .k3-vm-r .k3-vm-n")].map((x) => x.value).join("|") === "High, past due"), "12 deleted there, after it asked");
+await ev(() => document.querySelector("#modal [data-k3-close]").click()); await w(250);
+ok(!(await viewItems()).some((x) => /^Walk:/.test(x)), "12 and the menu no longer lists it");
+await clearRow();
+// previews: what the page lists, in another format
+const facts = () => ev(() => [...document.querySelectorAll("#panel .k3-pn .k3-facts dt")].map((x) => x.textContent.trim()));
+const fullOf = () => ev(() => { const x = document.querySelector("#panel .k3-pn"); return x ? decodeURIComponent(x.getAttribute("data-v2r-full") || "") : ""; });
+const shortLists = () => ev(() => { const pn = document.querySelector("#panel .k3-pn"); return !!pn && [...pn.querySelectorAll("table")].every((t) => t.scrollWidth <= t.parentElement.clientWidth + 2 && t.querySelectorAll("tbody tr").length <= 5) && [...pn.querySelectorAll("tbody tr")].every((tr) => tr.getBoundingClientRect().height <= 44); });
+const lacks = async (ps, pf) => (await msecs()).filter((t) => !/^(Overview|Details|Status|Summary)$/.test(t) && !ps.includes(t) && !pf.includes(t));
+await H.go("assessments", 550); await eye("Expanded control set assessment");
+const aS = await psecs(), aF = await facts();
+ok(/Control assessment/.test(await plabel()) && ["Plan approval", "Controls in the plan", "Objectives", "Requests", "Results", "Findings"].every((x) => aS.includes(x)) && aF.includes("Plan") && (await fullOf()) === "assessment--exp", "12 an assessment's eye opens a preview of its own: its facts, then every tab and section of its page", [await plabel(), aS, aF]);
+ok((await shortLists()) && (await ev(() => [...document.querySelectorAll("#panel .k3-pk-all")].map((a) => a.getAttribute("href")))).includes("#assessment--exp--objectives"), "12 each as a short list: five rows at most, one line each, no wider than the panel, with a way to all of them");
+await closePanel(); await clickRow("Expanded control set assessment");
+ok((await hash()) === "assessment--exp" && !(await lacks(aS, aF)).length, "12 its row goes to the page, which lists nothing the preview lacks", await lacks(aS, aF));
+await H.go("assessments-checks", 550); await ev(() => document.querySelector("#main .k3-eye").click()); await w(500);
+const cS = await psecs();
+ok(/Monitoring check/.test(await plabel()) && ["What it covers", "Runs", "Findings"].every((x) => cS.includes(x)), "12 a monitoring check's preview lists what it covers, its runs and its findings", cS);
+await closePanel();
+await H.go("findings", 550); await ev(() => document.querySelector("#main .k3-eye").click()); await w(500);
+const fS = await psecs(), fF = await facts(), fFull = await fullOf();
+ok(["Plan", "Risk", "Control"].every((x) => fS.includes(x)) && fS.some((x) => /^Components/.test(x)) && (await shortLists()), "12 a finding's preview lists its plan, its risk, its control and its components", fS);
+await closePanel(); await H.go(fFull, 550);
+ok(/^finding--/.test(fFull) && !(await lacks(fS, fF)).length, "12 and its page lists nothing the preview lacks", [fFull, await lacks(fS, fF)]);
+await H.go("risks", 550); await clearRow(); await ev(() => document.querySelector("#main .k3-eye").click()); await w(500);
+const rS = await psecs(), rF = await facts(), rFull = await fullOf();
+ok(["Findings behind it", "ATT&CK techniques"].every((x) => rS.includes(x)) && (await shortLists()), "12 a risk's preview lists the findings behind it and its techniques", rS);
+await closePanel(); await H.go(rFull, 550);
+ok(/^risk--/.test(rFull) && !(await lacks(rS, rF)).length, "12 and its page lists nothing the preview lacks", [rFull, await lacks(rS, rF)]);
+await H.go("authorization-monitoring", 550);
+ok(await ev(() => { const trs = [...document.querySelectorAll('#main .k3-table tbody tr[data-go^="assessment--"]')]; return trs.length > 0 && trs.every((tr) => !!tr.querySelector(".k3-eye")); }), "12 on Authorization, every row that goes to an assessment has its eye");
+await ev(() => document.querySelector('#main tr[data-go^="assessment--"] .k3-eye').click()); await w(500);
+ok(/Monitoring check/.test(await plabel()) && (await psecs()).includes("Runs"), "12 and it opens the check's preview", await plabel());
+await closePanel();
 
 // ——— V3 off ———
 await ev(() => PA.v3.set(false)); await w(400); await H.go("findings", 600);

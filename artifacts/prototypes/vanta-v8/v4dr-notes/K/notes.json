@@ -1,0 +1,398 @@
+{
+ "lane": "K",
+ "pairs": [
+  {
+   "id": "k-components",
+   "title": "New components",
+   "group": "ui",
+   "new": true,
+   "after": {
+    "route": "dr-components"
+   },
+   "changes": [
+    {
+     "n": 1,
+     "rec": 2,
+     "title": "The control code is the status",
+     "text": "Identifier chip: the code in monospace inside a round pill tinted by status, glyph in front. A register drops its status column; used only where the status varies on the page.",
+     "drata": "Drata puts the control code in a tinted pill, green with a check when ready, pink with a crossed circle when not.",
+     "ev": [
+      "images/ux/controls/manage-required-approval-and-control-readiness--06.png"
+     ]
+    },
+    {
+     "n": 2,
+     "rec": 20,
+     "title": "One header shape on every record",
+     "text": "Trail, id chip before a 26px title, then ⋯, secondary, primary at the right; a facts strip of label-over-value pairs with a pencil where editable; line tabs under it.",
+     "drata": "Every Drata record opens on the same header: crumb, identifier chip, title, actions, a facts row and tabs.",
+     "ev": [
+      "images/ux/controls/annotate-a-control--01.png"
+     ]
+    },
+    {
+     "n": 3,
+     "rec": 3,
+     "title": "Tabs count problems, not sizes",
+     "text": "A tab's problem count is a pale red badge; a plain count is grey; a tab with nothing wrong shows nothing.",
+     "drata": "Drata shows Monitoring 1 or Policies 3 as pale red counts on a control's tabs.",
+     "ev": [
+      "images/ux/controls/create-edit-and-manage-controls--03.png"
+     ]
+    },
+    {
+     "n": 4,
+     "rec": 1,
+     "title": "Readiness as a readable sum",
+     "text": "A slim bar (judged of objectives) whose tooltip breaks the total down, over four stage cards: a state word after a tinted glyph, a legend of counts, or one line and an outlined verb.",
+     "drata": "Drata's control page shows a 6 of 11 bar with a breakdown tooltip and four readiness cards.",
+     "ev": [
+      "images/ux/controls/create-edit-and-manage-controls--03.png",
+      "images/ux/controls/manage-required-approval-and-control-readiness--01.png"
+     ]
+    },
+    {
+     "n": 5,
+     "rec": 26,
+     "title": "Plain stat tiles, one loud",
+     "text": "Four equal tiles, a label over a 32px ink figure. Only a problem tile leads with a warning glyph; nothing else is coloured.",
+     "drata": "Drata's overview tiles are a label over a big number; a problem tile carries the warning mark.",
+     "ev": [
+      "images/ux/policies/view-and-edit-a-policy--01.png",
+      "images/ux/risk/risk-insights-overview--01.png"
+     ]
+    },
+    {
+     "n": 6,
+     "rec": 12,
+     "title": "Track, Fix, Manage on a record",
+     "text": "Three tiles: a label, the metric, a big figure in its tone, a since line and the link that works it (history, findings, POA&M).",
+     "drata": "Drata's test page opens on Days failed, Failing resources and Tickets in progress, each with its link.",
+     "ev": [
+      "images/ux/monitoring/integrate-multiple-identity-and-hris-connections--04.png"
+     ]
+    },
+    {
+     "n": 7,
+     "rec": 11,
+     "title": "A source says what it is worth",
+     "text": "A row of count links, 167 objectives · 43 controls · 20 components; each opens its list.",
+     "drata": "Drata's integration cards say how many impact areas, controls and tests a connection covers.",
+     "ev": [
+      "images/ux/connections/understanding-connections-in-drata--01.png"
+     ]
+    },
+    {
+     "n": 8,
+     "rec": 21,
+     "title": "Filter panel beside the table",
+     "text": "A 280px card of collapsible groups, each with its applied count and option counts. The toolbar's Filter button opens and closes it; closed by default under 1180px.",
+     "drata": "Drata's long lists sit beside a filter panel with radio and checkbox groups and a Filters applied row.",
+     "ev": [
+      "images/ux/monitoring/test-library-new-experience--01.png",
+      "images/ux/access-review/atlassian-integration-guide--03.png"
+     ]
+    },
+    {
+     "n": 9,
+     "rec": 22,
+     "title": "Floating selection bar",
+     "text": "Chosen rows raise a bar at the foot of the window: N selected · Select all M, the verbs as text buttons, and Clear.",
+     "drata": "Drata floats 50 selected · Select all 1379 with the bulk verbs at the bottom of the list.",
+     "ev": [
+      "images/ux/vendors/bulk-actions-for-current-vendors-new-experience--02.png",
+      "images/ux/controls/create-edit-and-manage-controls--01.png"
+     ]
+    },
+    {
+     "n": 10,
+     "rec": 23,
+     "title": "A preview you can walk",
+     "text": "The preview's top row reads 2 of 10 with Previous ↑, Next ↓ and ✕; then status, title, Open and facts. Arrow keys walk the list in its order.",
+     "drata": "Drata's evidence preview pages through the list with Previous and Next beside a counter.",
+     "ev": [
+      "images/ux/controls/introducing-the-new-drata-experience--02.png"
+     ]
+    },
+    {
+     "n": 11,
+     "rec": 24,
+     "title": "Panes dock, the page narrows",
+     "text": "A 40px rail of icon buttons at the record's right edge; a pane docks at 380px and the main column narrows. At 390 the rail is a row of icons.",
+     "drata": "Drata's control utilities rail opens Notes, Tickets and Tasks beside the page.",
+     "ev": [
+      "images/ux/controls/introducing-the-new-drata-experience--03.png",
+      "images/ux/tickets/create-and-manage-workspace-tickets--02.png"
+     ]
+    },
+    {
+     "n": 12,
+     "rec": 25,
+     "title": "Each card owns its Edit",
+     "text": "Edit on a card swaps its facts for inputs; Save (small, solid) and Cancel under them; Save keeps the values and redraws only that card.",
+     "drata": "Drata edits a control's Info section in place with its own Save and Cancel.",
+     "ev": [
+      "images/ux/controls/revert-a-control-to-drata-s-latest-dcf-template--01.png"
+     ]
+    },
+    {
+     "n": 13,
+     "rec": 19,
+     "title": "A sunken page, raised cards",
+     "text": "Record and overview bodies sit in a grey well with white bordered cards, radius 10px. Registers stay one surface.",
+     "drata": "Drata's newer pages put white cards on a grey page; lists stay flat.",
+     "ev": [
+      "images/ux/audits/audits-page-overview-new-experience--02.png"
+     ]
+    },
+    {
+     "n": 14,
+     "rec": 10,
+     "title": "A flow with a vertical stepper",
+     "text": "Back link, title, a vertical stepper (done filled with a check, current a ring, later grey), a form column about 880px wide, Back left and the primary right.",
+     "drata": "Drata's long setup flows put a vertical stepper at the left of the form.",
+     "ev": [
+      "images/ux/settings/change-your-company-s-email-domain--05.png",
+      "images/ux/policies/create-a-policy--03.png"
+     ]
+    },
+    {
+     "n": 15,
+     "rec": 10,
+     "title": "A validation sheet before import",
+     "text": "Imported rows in a compact grid: red cells block with their message on hover, amber cells warn; a segmented All · Valid · Invalid control filters the rows.",
+     "drata": "Drata's import sheet marks invalid cells red, warnings yellow, with All, Valid and Invalid counts.",
+     "ev": [
+      "images/ux/assets/bulk-import-assets--09.png",
+      "images/ux/assets/bulk-import-assets--06.png"
+     ]
+    },
+    {
+     "n": 16,
+     "rec": 27,
+     "title": "Show what will change first",
+     "text": "A short table of counted rows, locked rows ticked and disabled, then Moving N · Not moving M and one consequence line.",
+     "drata": "Drata shows counts before a bulk command and keeps required groups locked.",
+     "ev": [
+      "images/ux/assets/bulk-import-assets--12.png"
+     ]
+    },
+    {
+     "n": 17,
+     "rec": 5,
+     "title": "Compare back to the template",
+     "text": "A dialog of three columns, Current, Template, Selections; differences tinted (current pale red, template pale green); each changed field is one switch, Keep current or Use template, with Use template for all at the top.",
+     "drata": "Drata's Compare with template shows current against the template with Apply or Reject per field.",
+     "ev": [
+      "images/ux/controls/revert-a-control-to-drata-s-latest-dcf-template--01.png"
+     ]
+    },
+    {
+     "n": 18,
+     "rec": 28,
+     "title": "AI suggests, with its reasons",
+     "text": "A card marked AI (the prototype's sparkle in the brand tint), a confidence word, the suggestion, one rationale line, its source in grey, then Map and Dismiss with Undo.",
+     "drata": "Drata's mapping agent shows each recommendation with a confidence level and a rationale.",
+     "ev": [
+      "images/ux/frameworks/framework-mapping-agent-ai-assisted-control-mapping-for-custom-frameworks--03.png",
+      "images/ux/home/ai-assisted-custom-control-mapping-to-grc-objects--06.png"
+     ]
+    },
+    {
+     "n": 19,
+     "rec": 28,
+     "title": "An agent's proposal ends in a sign",
+     "text": "A bordered card: one bold line naming the change, a collapsed Why, then Approve and Decline. Approve is filled only when it is the page's one primary; otherwise it is a secondary and Decline a quiet text button.",
+     "drata": "Drata's agent ends its answer in an action card with Approve and Decline.",
+     "ev": [
+      "images/ux/ai/getting-started-with-the-tprm-agent--03.png"
+     ]
+    },
+    {
+     "n": 20,
+     "rec": 24,
+     "title": "The open pane is in the address",
+     "text": "A page dock writes its open pane into the address as --dock-notes, with no history entry. The link opens with Notes docked; closing takes the suffix off. Lanes change nothing.",
+     "drata": "Drata keeps a record's utility pane open beside the page; we also keep it in the link, as Ledger's addresses hold every view.",
+     "ev": [
+      "images/ux/controls/introducing-the-new-drata-experience--03.png"
+     ]
+    },
+    {
+     "n": 21,
+     "rec": 23,
+     "title": "Every preview walks its list",
+     "text": "Where a lane gave no order, the preview walks the rows of the list it was opened from, in their drawn order: 2 of 9, Previous, Next and the arrow keys.",
+     "drata": "Drata's preview pages through whatever list it was opened from, with a counter and Previous and Next.",
+     "ev": [
+      "images/ux/controls/introducing-the-new-drata-experience--02.png"
+     ]
+    }
+   ]
+  }
+ ],
+ "components": [
+  {
+   "id": "idchip",
+   "rec": [
+    2
+   ],
+   "used": "dr-controls rows, dr-control--<code> header, dr-evidence controls, dr-finding--<id>"
+  },
+  {
+   "id": "head",
+   "rec": [
+    20
+   ],
+   "used": "dr-control--<code>, dr-evidence--<id>, dr-source--<id>, dr-check--<id>, dr-finding--<id>"
+  },
+  {
+   "id": "tabs",
+   "rec": [
+    3
+   ],
+   "used": "dr-control--<code>, dr-check--<id>, dr-finding--<id>"
+  },
+  {
+   "id": "stages",
+   "rec": [
+    1
+   ],
+   "used": "dr-control--<code> Overview"
+  },
+  {
+   "id": "stats",
+   "rec": [
+    26
+   ],
+   "used": "dr-evidence, dr-sources"
+  },
+  {
+   "id": "numbers",
+   "rec": [
+    12
+   ],
+   "used": "dr-check--<id>, dr-finding--<id>"
+  },
+  {
+   "id": "worth",
+   "rec": [
+    11
+   ],
+   "used": "dr-source--<id>, dr-sources"
+  },
+  {
+   "id": "facets",
+   "rec": [
+    21
+   ],
+   "used": "dr-controls"
+  },
+  {
+   "id": "selbar",
+   "rec": [
+    22
+   ],
+   "used": "dr-controls, dr-evidence"
+  },
+  {
+   "id": "drawer",
+   "rec": [
+    23
+   ],
+   "used": "dr-evidence preview, dr-controls preview"
+  },
+  {
+   "id": "dock",
+   "rec": [
+    24
+   ],
+   "used": "dr-check--<id>, dr-finding--<id>"
+  },
+  {
+   "id": "card",
+   "rec": [
+    25
+   ],
+   "used": "dr-control--<code>"
+  },
+  {
+   "id": "sunken",
+   "rec": [
+    19
+   ],
+   "used": "every after record: control, evidence, source, check, finding"
+  },
+  {
+   "id": "steps",
+   "rec": [
+    10
+   ],
+   "used": "dr-import"
+  },
+  {
+   "id": "sheet",
+   "rec": [
+    10
+   ],
+   "used": "dr-import"
+  },
+  {
+   "id": "moving",
+   "rec": [
+    27
+   ],
+   "used": "dr-import confirm, dr-source--<id> scope"
+  },
+  {
+   "id": "compare",
+   "rec": [
+    5
+   ],
+   "used": "dr-control--<code> (Compare with library)"
+  },
+  {
+   "id": "suggest",
+   "rec": [
+    28
+   ],
+   "used": "dr-control--<code>"
+  },
+  {
+   "id": "proposal",
+   "rec": [
+    28
+   ],
+   "used": "dr-control--<code>"
+  }
+ ],
+ "derived": [
+  "Every demo reads WS-X90's controls from PA.SSP (codes, titles, statuses, objectives mapped, evidenced and judged); the stage and tab demos use the first control in catalog order that is part way along (AC-3(4) style), so the choice is deterministic.",
+  "Track · Fix · Manage reads the first failing check from V3's checks (name, failing count, due date); days failing is the days from its due date to the prototype's clock (2026-11-17). POA&M items in progress is 0: the prototype records none on that check.",
+  "What a source is worth counts WS-X90's CM-family controls and their objectives as what an ACAS feed could evidence, and its components from the system tree's LRUs; the feed's real coverage is not in the prototype.",
+  "The sheet, steps, moving, compare, suggest, proposal and dock demos use short illustrative rows (an SCTM import, CM-8 against its library implementation, REQ-112 to SI-2(2), notes and tasks) written for the demo; they name real controls and are not saved as records.",
+  "Inherited takes the info blue (--info, --info-soft), the hue the prototype uses beside ok/warn/bad for a status that is not the program's own; V3 has no separate inherited token."
+ ],
+ "conflicts": [
+  "Filter panel (rec 21) against the one-row toolbar: the toolbar row stays; D.facetToggle sits in K.toolbar's right and opens and closes the panel beside the table; there is no Filters applied chip row, and Clear all lives in the panel's header.",
+  "Drata's pink crossed-circle Not ready against our ladder: the chip takes the ladder's tone (satisfied green, not assessed and partial amber, other than satisfied red, no requirement and no evidence neutral grey), so an absence stays silent.",
+  "Drata's blue-outlined secondaries: the outlined small action on an empty stage and Decline use a neutral grey outline, and the selection bar's verbs are text buttons.",
+  "Drata's drawer has its own chrome; ours sits in V3's preview panel (#panel): the panel's bar is hidden while a drawer shows and the drawer's top row carries the position, Previous, Next and ✕.",
+  "The gallery shows one header per demo, so it holds more than one primary on a page; every after screen keeps one primary.",
+  "Drata's docked panes count their items on the rail; we keep a small grey count on the rail icons (not in the menu), never a red badge."
+ ],
+ "open": [],
+ "added": [
+  {
+   "text": "The dock's open pane is in the address: this link opens the finding with Notes docked.",
+   "pair": "k-components",
+   "route": "dr-finding--c0fdce4e--dock-notes"
+  },
+  {
+   "text": "A preview walks the list it was opened from, even where its lane gave no order.",
+   "pair": "k-components",
+   "route": "dr-control--AC-2--evidence",
+   "click": "#main [data-panel=drb-ev]"
+  }
+ ]
+}

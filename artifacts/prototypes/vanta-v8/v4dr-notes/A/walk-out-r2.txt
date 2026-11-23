@@ -1,0 +1,14 @@
+build /private/tmp/claude-501/-Users-joseflagorio-Development-program-assurance-design-system/594d4d59-1431-4a4a-b8c7-702716989aa1/scratchpad/vanta/proto/out/v4dr-KA.html
+ok B4: the default view folds Rationale, and Owner while no control has one
+ok choose three rows, then Select all
+ok mark two controls out of scope; they stay listed with the reason
+ok Compare: apply the statement, and the statement changes
+ok Send to reviewers moves the stage
+ok map a suggestion, then undo it
+ok v24: the Judged in part facet lists AU-14 at 3/5
+ok v24: the Parameters set facet lists AC-2(3) and SA-24
+ok v24: AU-14 reads 3 of 5 judged with 2 to plan; planning moves them into the campaign
+ok v24: Compare on AC-2(3) shows Parameters beside the other two, and Use template writes it
+ok v24: the control's evidence is lane B's; Link evidence writes through PA.drB and the evidence record shows it
+ok v24: the evidence drawer walks the control's list (lane A calls no D.walkable)
+routes 28 (2 widths) · cells 720 · clicked 285 · failures 0

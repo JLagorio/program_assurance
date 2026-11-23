@@ -1,7 +1,8 @@
 // Lane O's walk: with V3 on, through the UI, every flow of the brief, asserting what a person would see.
 //   node walk.mjs [build]        (default: SP/vanta/proto/out/v3r-O.html)
 import { open, createSP70, SP } from "../../v3/P/lib.mjs";
-const BUILD = process.argv[2] && !process.argv[2].startsWith("--") ? process.argv[2] : SP + "/vanta/proto/out/v3r2-O.html";
+const BUILD = process.argv[2] && !process.argv[2].startsWith("--") ? process.argv[2] : SP + "/vanta/proto/out/v3r3-O.html";
+console.log("build: " + BUILD);
 const H = await open({ build: BUILD, v3: true, start: "overview" });
 const p = H.p;
 p.setDefaultTimeout(6000);
@@ -20,6 +21,15 @@ const dlBtn = (name) => p.click(`#main .k3o-dl:has(.k3o-dl-n:has-text("${name}")
 const ring = () => T("#k3o-next .k3o-gate-r");
 const back = () => p.click("#k3task .k3-task-b").then(() => H.wait(550));
 const form = async (vals, submit = true) => { for (const [k, v] of Object.entries(vals)) { const tag = await ev((k) => { const e = document.getElementById("k3f-" + k); return e ? e.tagName : ""; }, k); if (tag === "SELECT") await p.selectOption("#k3f-" + k, v); else await p.fill("#k3f-" + k, v); } if (submit) { await p.click("#modal [data-k3-submit]"); await H.wait(450); } };
+
+// Pass 3: a list's filters are selects in its one row. onFlt: the filters that are set; pick: choose one by its option's text.
+const onFlt = () => ev(() => [...document.querySelectorAll("#main .k3-tb .k3-flt.on select")].map((s) => s.options[s.selectedIndex].text).join(" | "));
+const viewName = () => T("#main .k3-tb .k3-vname");
+const pick = async (key, text) => { const done = await ev(([key, text]) => { const s = document.querySelector(`#main .k3-tb select[data-k3-fkey="${key}"], #main .k3-tb select[data-k3-input="${key}"]`); if (!s) return "no select " + key; const i = [...s.options].findIndex((o) => o.text.replace(/\s*\(\d[\d,]*\)$/, "").trim() === text || (!text && o === s.options[0])); if (i < 0) return "no option " + text; s.selectedIndex = i; s.dispatchEvent(new Event("input", { bubbles: true })); s.dispatchEvent(new Event("change", { bubbles: true })); return ""; }, [key, text]); await H.wait(450); return done; };
+const viewMenu = async (label) => { await p.click("#main .k3-vbtn"); await H.wait(100); await ev((l) => { const x = [...document.querySelectorAll("#main .k3-vlist .k3-menu-i")].find((e) => e.textContent.trim().startsWith(l)); if (!x) throw new Error("no view menu item " + l); x.click(); }, label); await H.wait(400); };
+const oneRow = () => ev(() => { const t = document.querySelector("#main .k3-tb"); if (!t) return { bars: 0 }; const kids = [...t.children].flatMap((c) => (c.classList.contains("k3-fs") ? [...c.children] : [c])).filter((e) => e.getClientRects().length); return { bars: document.querySelectorAll("#main .k3-tb").length, lines: new Set(kids.map((e) => Math.round((e.getBoundingClientRect().top + e.getBoundingClientRect().height / 2) / 10))).size, strips: document.querySelectorAll("#main .k3-chips, #main .k3-rtabs").length, headA: document.querySelectorAll("#main .k3-head-a .btn").length, tail: [...t.querySelectorAll(".k3-tools-r .btn, .k3-tools-r summary")].map((b) => b.innerText.replace(/[\s⌄]+/g, " ").trim()).join(","), list: t.getAttribute("data-k3-list") }; });
+const tall = () => ev(() => [...document.querySelectorAll("#main table")].filter((t) => t.getClientRects().length).flatMap((t) => [...t.querySelectorAll("tbody tr")].filter((r) => r.getBoundingClientRect().height > 44 && !r.querySelector("td.k3-cw")).map((r) => (t.getAttribute("aria-label") || "") + ": " + r.innerText.replace(/\s+/g, " ").trim().slice(0, 60))));
+const cutAway = (label, col) => ev(([label, col]) => { const t = document.querySelector(`#main table[aria-label="${label}"]`); if (!t) return ["no table " + label]; return [...t.querySelectorAll("tbody tr:not(.k3-grow)")].map((r) => r.cells[col]).filter((td) => td && [td, ...td.querySelectorAll("*")].some((e) => e.scrollWidth > e.clientWidth + 1 && getComputedStyle(e).overflow !== "visible")).map((td) => td.innerText.trim().slice(0, 50)); }, [label, col]);
 
 // ——— 1. The strip opens in place ———
 ok((await H.hash()) === "overview", "starts on the Overview", await H.hash());
@@ -48,7 +58,7 @@ ok(flat(await T("#k3o-life .k3o-ph.on")).startsWith("TMRR") && (await stepRows()
 const card0 = await T("#k3o-next");
 ok(/Next gate PDR · Preliminary design review/i.test(card0) && /Marcus Ryde decides/.test(card0), "3 the next gate is opened up under the strip", card0.slice(0, 200));
 let c = await dl("Connections"), r = await dl("Requirements"), bd = await dl("Boundary");
-ok(c && !c.ok && /4 connections without a current agreement/.test(c.text) && c.btn === "Open 4 connections", "3 Connections says why it is not ready as a number, with one button", JSON.stringify(c));
+ok(c && !c.ok && /4 connections with no current agreement/.test(c.text) && c.btn === "Open 4 connections", "3 Connections says why it is not ready as a number, with one button", JSON.stringify(c));
 ok(r && /14 controls with no requirement/.test(r.text) && bd && /1 SCA review to request/.test(bd.text), "3 Requirements and Boundary say theirs", JSON.stringify([r, bd]));
 ok((await dl("PDR package")).ok && !(await dl("PDR package")).btn, "3 a ready deliverable is quiet: no button", JSON.stringify(await dl("PDR package")));
 const notReady = await ev(() => document.querySelectorAll("#k3o-next .k3o-dl:not(.ok)").length);
@@ -57,7 +67,7 @@ ok(/^2\/5/.test(await ring()) && notReady === 3 && /2 of 5 ready/.test(await nav
   "3 one count of readiness: the card, its 3 open rows, the steps table, the line under the switcher and the facts all say 2 of 5", `${await ring()} | open ${notReady} | ${await navLine()} | ${JSON.stringify(fg)}`);
 await dlBtn("Connections");
 ok(["interconnections", "system-connections"].includes(await H.hash()) && (await rows()) === 4, "3 the button lands on exactly those records: 4 rows", `${await H.hash()} rows ${await rows()}`);
-ok(/Back to PDR/.test(await T("#k3task")) && /4 connections without a current agreement/.test(await T("#k3task")), "3 with the return bar", await T("#k3task"));
+ok(/Back to PDR/.test(await T("#k3task")) && /4 connections with no current agreement/.test(await T("#k3task")), "3 with the return bar", await T("#k3task"));
 await back();
 ok((await H.hash()) === "overview" && !(await ev(() => !!document.getElementById("k3task"))) && (await T("#k3o-next")) === card0, "3 Back returns to the Overview with the checklist as it was", (await H.hash()) + " " + (await T("#k3o-next")).slice(0, 160));
 await dlBtn("Requirements");
@@ -187,11 +197,11 @@ const att = await ev(() => [...document.querySelectorAll("#main .k3-att-r")].map
 ok(att.length === 4 && /Risks without an owner 40/.test(att.join("|")) && /Evidence waiting on review 88/.test(att.join("|")), "6 one needs-attention card, four rows", att.join(" | "));
 await p.click('#main .k3-att-r:has-text("Risks without an owner")'); await H.wait(700);
 // On the whole build Risks and Evidence are the new pages (lanes E and D): the count sets their chip; alone, v2's saved view.
-if (await ev(() => typeof PA.v3.facts.findingCounts === "function")) ok((await H.hash()) === "risks" && /No owner/.test(await T("#main .k3-chip.on")) && (await rows()) === 40, "6 Risks without an owner opens Risks on its 40 records", `${await H.hash()} | ${await T("#main .k3-chip.on")} | rows ${await rows()}`);
+if (await ev(() => typeof PA.v3.facts.findingCounts === "function")) ok((await H.hash()) === "risks" && /No owner/.test(await onFlt()) && (await rows()) === 40, "6 Risks without an owner opens Risks on its 40 records", `${await H.hash()} | ${await onFlt()} | rows ${await rows()}`);
 else ok((await H.hash()) === "risks" && /No owner/.test(await T("#main .qv.on")) && /of 40/.test(await T("#main .pager")), "6 Risks without an owner opens Risks on its 40 records", `${await H.hash()} | ${await T("#main .qv.on")} | ${await T("#main .pager")}`);
 await H.go("overview");
 await p.click('#main .k3-att-r:has-text("Evidence waiting on review")'); await H.wait(700);
-if (await ev(() => typeof PA.v3.facts.evPanel === "function")) ok((await H.hash()) === "evidence" && /review/i.test(await T("#main .k3-chip.on")) && /of 88/.test(await T("#main .k3-table-foot, #main .k3-foot, #main tfoot, #main .k3d-foot") || await H.main()), "6 Evidence waiting on review opens Evidence on its 88", `${await H.hash()} | ${await T("#main .k3-chip.on")} | rows ${await rows()}`);
+if (await ev(() => typeof PA.v3.facts.evPanel === "function")) ok((await H.hash()) === "evidence" && /review/i.test(await onFlt()) && /of 88/.test(await T("#main .pager") || await H.main()), "6 Evidence waiting on review opens Evidence on its 88", `${await H.hash()} | ${await onFlt()} | rows ${await rows()}`);
 else ok((await H.hash()) === "evidence" && /Pending review/.test(await T("#main .qv.on")) && /of 88/.test(await T("#main .pager")), "6 Evidence waiting on review opens Evidence on its 88", `${await H.hash()} | ${await T("#main .qv.on")} | ${await T("#main .pager")}`);
 await H.go("overview");
 ok((await ev(() => document.querySelectorAll("#main .k3-comp").length)) === 1 && /Controls satisfied\s*↗?\s*41%/.test(await T("#main .k3-comp")) && !/Plans, assessments and setup/.test(await H.main()), "6 one completion card; nothing that only repeats the menu", (await T("#main .k3-comp")).slice(0, 100));
@@ -244,8 +254,10 @@ L = await land("activity");
 ok(L.hash === "overview-activity" && L.on === "Overview" && (await rows()) >= 30, "8 activity opens the Activity tab", JSON.stringify(L) + " rows " + (await rows()));
 ok(/Gate decided/.test(await H.main()) && /PDR-2 · Approved with conditions/.test(await H.main()), "8 the decision recorded above is the newest activity", (await T("#main tbody tr")).slice(0, 200));
 const actAll = await rows();
-await p.click('#main .k3-chip:has-text("Decisions and publications")'); await H.wait(350);
-ok((await H.hash()) === "overview-activity" && /Decisions and publications/.test(await T("#main .k3-chip.on")) && (await rows()) < actAll, "8 Activity's chips filter in place", `${await T("#main .k3-chip.on")} rows ${await rows()} of ${actAll}`);
+const pk = await pick("kind", "Decisions and publications");
+ok(!pk && (await H.hash()) === "overview-activity" && /Kind: Decisions and publications/.test(await onFlt()) && (await rows()) < actAll && (await viewName()) === "Decisions and publications", "8 Activity's Kind filters in place, in the row, and is one of its views", `${pk} ${await onFlt()} rows ${await rows()} of ${actAll} view ${await viewName()}`);
+await pick("kind", "");
+ok((await rows()) === actAll && (await viewName()) === "All activity", "8 Kind cleared: every event again", `${await rows()} ${await viewName()}`);
 L = await land("getting-started");
 ok(L.hash === "overview" && L.on === "Overview", "8 getting-started opens the Overview", JSON.stringify(L));
 await p.click("#nav .v2g-head"); await H.wait(500);
@@ -268,6 +280,60 @@ await H.go("overview-team");
 ok(/R\. Calloway/.test(await H.main()) && /Joel Barrantes/.test(await H.main()) && !/Capt\. T\. Abara/.test(await H.main()), "9 its Team is the wizard's roles", flat(await H.main()).slice(0, 300));
 await H.go("overview-activity");
 ok(/No activity yet/.test(await H.main()), "9 its Activity starts empty", flat(await H.main()).slice(0, 200));
+
+// ——— Pass 3 (21 Nov): one row over a table with its views, one line a row, a preview that lists what the page lists ———
+await ev(() => { PA.v2.reset(); PA.v3.set(true); }); await H.wait(400);
+await H.go("overview-activity");
+let bar = await oneRow();
+ok(bar.bars === 1 && bar.lines === 1 && bar.strips === 0 && bar.headA === 0 && /More/.test(bar.tail) && bar.list === "activity", "P3 Activity: one row (search, view, Kind, Who, More at its end), no strip, no header actions", JSON.stringify(bar));
+const actN = await rows();
+await viewMenu("Evidence sent back");
+let sent = await ev(() => [...document.querySelectorAll('#main table[aria-label="Activity"] tbody tr')].map((r) => r.cells[2].innerText.trim()));
+ok(sent.length > 0 && sent.length < actN && sent.every((a) => a === "Evidence sent back") && /Kind: Evidence reviews/.test(await onFlt()) && (await ev(() => document.querySelector("#main .k3-tb input[type=search]").value)) === "sent back" && (await viewName()) === "Evidence sent back", "P3 Activity starts with a saved view, Evidence sent back: it sets Kind and the search", `${sent.length} of ${actN} | ${await onFlt()} | ${await viewName()}`);
+await viewMenu("All activity");
+ok((await rows()) === actN && !(await onFlt()), "P3 All activity clears the row", `${await rows()} | ${await onFlt()}`);
+await pick("kind", "Evidence reviews"); await pick("ov.actwho", "Nadia Fournier");
+const mineRows = await ev(() => [...document.querySelectorAll('#main table[aria-label="Activity"] tbody tr')].map((r) => r.innerText.replace(/\s+/g, " ").trim()));
+ok(mineRows.length > 0 && mineRows.every((r) => /Nadia Fournier/.test(r)) && /Edited/.test(await T("#main .k3-vbtn")), "P3 Kind and Who narrow the log; the view says it was edited", `${mineRows.length} | ${await T("#main .k3-vbtn")}`);
+await viewMenu("Save as new view"); await p.fill("#modal input[name=name]", "Nadia's reviews"); await p.click("#modal [data-k3-submit]"); await H.wait(400);
+ok((await viewName()) === "Nadia's reviews" && !/Edited/.test(await T("#main .k3-vbtn")), "P3 the question is saved as a view and is the current one", await T("#main .k3-vbtn"));
+await viewMenu("All activity"); await H.go("overview"); await H.go("overview-activity");
+ok((await rows()) === actN && (await viewName()) === "All activity", "P3 left for All activity, and the page left and reopened", `${await rows()} ${await viewName()}`);
+await viewMenu("Nadia's reviews");
+const again = await ev(() => [...document.querySelectorAll('#main table[aria-label="Activity"] tbody tr')].map((r) => r.innerText.replace(/\s+/g, " ").trim()));
+ok(again.length === mineRows.length && again.join("|") === mineRows.join("|") && /Kind: Evidence reviews \| Who: Nadia Fournier/.test(await onFlt()), "P3 picked again, the saved view gives the same rows", `${again.length} vs ${mineRows.length} | ${await onFlt()}`);
+await p.fill("#main .k3-tb input[type=search]", "zzzz"); await H.wait(500);
+ok((await rows()) === 0 && /No event matches/.test(await H.main()), "P3 a search nothing matches says so, with the row still there", (await H.main()).slice(-200));
+await ev(() => { const c = document.querySelector("#main .k3-clear"); c && c.click(); }); await H.wait(400);
+ok((await rows()) === actN, "P3 Clear asks for every event again", await rows());
+const logW = await ev(() => { const t = document.querySelector('#main table[aria-label="Activity"]'); return { w: [...t.querySelectorAll("thead th")].map((th) => Math.round(th.getBoundingClientRect().width)), untitled: [...t.querySelectorAll("tbody tr")].flatMap((r) => [r.cells[3], r.cells[4]]).filter((td) => td.scrollWidth > td.clientWidth + 1 && (td.firstElementChild || {}).title !== td.innerText.trim()).length }; });
+ok(logW.w[3] > logW.w[0] * 2 && logW.w[3] > logW.w[4] && logW.untitled === 0, "P3 an event's record takes the room (When no longer does); a cell that is cut says the whole on hover", JSON.stringify(logW));
+await p.click('#main table[aria-label="Activity"] tbody tr:first-child td:nth-child(4)'); await H.wait(400);
+ok(/Snapshot taken|Control status/.test(await H.panel()), "P3 an event's row still opens the event", (await H.panel()).slice(0, 120));
+await ev(() => document.getElementById("closePanel") && document.getElementById("closePanel").click());
+// rows: one line each on every table of the lane; what was a second line is a column
+for (const rt of ["overview", "overview-team", "overview-activity", "gate--pdr-2", "gate--srr-2"]) { await H.go(rt); const t = await tall(); ok(t.length === 0, `P3 ${rt}: every row is one line (a criterion's sentence alone may wrap)`, t.join(" | ")); }
+await H.go("overview-team");
+const roleHead = await ev(() => [...document.querySelectorAll('#main table[aria-label="Roles"] thead th')].map((th) => th.innerText.trim()).join("|"));
+ok(roleHead === "Role|Held by|Decides|" && /Chief engineer MR Marcus Ryde Engineering reviews: SRR, SFR, PDR, CDR/.test(await trOf("Chief engineer")) && (await cutAway("Roles", 0)).length === 0 && (await cutAway("Roles", 2)).length === 0, "P3 Team: what a role decides is a column, and nothing of a role is cut", `${roleHead} | ${await trOf("Chief engineer")} | ${(await cutAway("Roles", 2)).join(",")}`);
+ok((await oneRow()).bars === 0 && (await ev(() => document.querySelectorAll("#main .k3-chips, #main .k3-rtabs").length)) === 0, "P3 Team and Overview have no table toolbar; their header keeps its More", "");
+await H.go("gate--pdr-2");
+const dlHead = await ev(() => [...document.querySelectorAll('#main table[aria-label="Deliverables"] thead th')].map((th) => th.innerText.trim()).join("|"));
+ok(dlHead === "Deliverable|Status|What holds it back|Owner|" && (await cutAway("Deliverables", 2)).length === 0 && /Requirements Not ready 14 controls with no requirement IS Ingrid Solberg Open/.test(await rowOf("Deliverables", "Requirements")), "P3 the gate's deliverables: ready or not, what holds each back whole on its line, its owner, Open", `${dlHead} | ${await rowOf("Deliverables", "Requirements")} | cut ${(await cutAway("Deliverables", 2)).join(",")}`);
+const crit = await ev(() => [...document.querySelectorAll("#k3o-crit tbody tr")].map((r) => ({ h: Math.round(r.getBoundingClientRect().height), wrap: !!r.querySelector("td.k3-cw"), cut: r.cells[0].scrollWidth > r.cells[0].clientWidth + 1, t: r.cells[0].innerText.trim().length })));
+ok(crit.length === 4 && crit.every((c) => c.wrap && !c.cut && c.h <= 84), "P3 a criterion's sentence is read whole (the one cell that wraps), in three lines at most", JSON.stringify(crit));
+// the preview lists what the page lists, short
+const pageSecs = await ev(() => [...document.querySelectorAll("#main .k3-sec h2")].map((h) => { const c = h.cloneNode(true); c.querySelectorAll(".k3-ct").forEach((x) => x.remove()); return c.textContent.trim(); }));
+await H.go("overview");
+await p.hover('#k3o-life tbody tr:has-text("PDR")'); await p.click('#k3o-life tbody tr:has-text("PDR") .k3-eye'); await H.wait(450);
+const pv = await ev(() => { const pn = document.querySelector("#panel .k3-pn"); if (!pn) return null; return { secs: [...pn.querySelectorAll(".k3-sec h2")].map((h) => { const c = h.cloneNode(true); c.querySelectorAll(".k3-ct").forEach((x) => x.remove()); return c.textContent.trim(); }), tables: pn.querySelectorAll("table").length, wide: [...pn.querySelectorAll("table")].filter((t) => t.scrollWidth > t.parentElement.clientWidth + 2).length, tall: [...pn.querySelectorAll("tbody tr")].filter((r) => r.getBoundingClientRect().height > 44).length, dl: [...pn.querySelectorAll('table[aria-label="Deliverables"] tbody tr')].map((r) => r.innerText.replace(/\s+/g, " ").trim()), cr: [...pn.querySelectorAll('table[aria-label="Criteria"] tbody tr')].map((r) => r.innerText.replace(/\s+/g, " ").trim()), next: (pn.querySelector(".k3-next") || {}).innerText || "" }; });
+ok(pv && pageSecs.length >= 2 && pageSecs.every((x) => pv.secs.includes(x)) && pv.tables === pageSecs.length, "P3 the gate's preview lists every section its page lists (Deliverables, Criteria)", JSON.stringify([pageSecs, pv && pv.secs]));
+ok(pv && pv.wide === 0 && pv.tall === 0 && pv.dl.length === 5 && pv.dl.some((r) => /^Requirements 14 controls with no requirement Not ready$/.test(r)) && pv.cr.length === 4 && pv.cr.some((r) => /^SR\.6 .* Not met$/.test(r)), "P3 its rows are one line: the name, why as a number, the status; nothing wider than the panel", JSON.stringify(pv && [pv.dl, pv.cr.map((r) => r.slice(0, 30) + "…" + r.slice(-10))]));
+ok(pv && /Start with Requirements: 14 controls with no requirement/.test(pv.next), "P3 the preview says what holds the gate back, with its button", pv && pv.next);
+await p.click('#panel table[aria-label="Deliverables"] tbody tr:has-text("Connections")'); await H.wait(700);
+ok(/^system-connections|^interconnections/.test(await H.hash()) && /Back to PDR/.test(await T("#k3task")) && /4 connections with no current agreement/.test(await T("#k3task")), "P3 a deliverable's row in the preview opens exactly the records that hold it back, with the way back", `${await H.hash()} | ${await T("#k3task")}`);
+await back();
+ok((await H.hash()) === "gate--pdr-2", "P3 and Back returns to the gate's page", await H.hash());
 
 // ——— Pass 2's three changes, on every page of this lane, at 1440 and at 390 ———
 await ev(() => { PA.v2.reset(); PA.v3.set(true); }); await H.wait(400);

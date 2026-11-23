@@ -5,7 +5,7 @@ const fs = await import("fs");
 const build = process.argv[2], out = process.argv[3], PUB = process.argv[4];
 const b = await chromium.launch(); const p = await b.newPage({ viewport: { width: 1440, height: 900 } });
 const errs = []; p.on("pageerror", (e) => errs.push(e.message));
-await p.route("**/v3/*.png", (r) => { const f = PUB + "/" + r.request().url().split("/v3/").pop(); fs.existsSync(f) ? r.fulfill({ path: f }) : r.abort(); });
+await p.route(/\/v3\/[^\/]+\.(png|jpg)$/, (r) => { const f = PUB + "/" + r.request().url().split("/v3/").pop(); fs.existsSync(f) ? r.fulfill({ path: f }) : r.abort(); });
 await p.goto("file://" + build + "#before-after-v3"); await p.waitForTimeout(900);
 await p.evaluate(() => { sessionStorage.clear(); PA.v2.reset(); }); await p.waitForTimeout(400);
 await p.screenshot({ path: `${out}/ba-1.jpg`, type: "jpeg", quality: 60, fullPage: false });

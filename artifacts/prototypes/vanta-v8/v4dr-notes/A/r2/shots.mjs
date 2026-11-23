@@ -1,0 +1,25 @@
+// Version 24 shots of lanes K and A at 1440: node shots.mjs <build>
+import { createRequire } from "module";
+const require = createRequire("/Users/joseflagorio/Development/program_assurance-ux-proposal/package.json");
+const { chromium } = require("playwright");
+const B = process.argv[2], DIR = new URL(".", import.meta.url).pathname, KDIR = DIR.replace(/\/A\/r2\/$/, "/K/");
+console.log("build", B);
+const b = await chromium.launch();
+const p = await b.newPage({ viewport: { width: 1440, height: 900 } });
+p.on("pageerror", (e) => console.log("ERR", e.message));
+await p.route(/fonts\.(googleapis|gstatic)\.com/, (r) => r.abort());
+await p.goto("file://" + B + "#overview"); await p.waitForTimeout(700);
+await p.evaluate(() => { sessionStorage.clear(); PA.v2.reset(); PA.v3.set(true); }); await p.waitForTimeout(300);
+const go = async (r) => { await p.evaluate((r) => { const t = document.getElementById("v2-toast"); if (t) t.hidden = true; location.hash = r; }, r); await p.waitForTimeout(550); };
+const shot = (name, dir = DIR) => p.screenshot({ path: dir + name, type: "jpeg", quality: 60 });
+await go("dr-controls"); await p.click('input[data-drk-key="jd"][value="part"]'); await p.waitForTimeout(400); await p.evaluate(() => document.getElementById("main").scrollTo(0, 0)); await shot("v24-register-part.jpg");
+await p.click('input[data-drk-key="jd"][value=""]'); await p.waitForTimeout(300);
+await go("dr-control--AU-14"); await shot("v24-au14.jpg");
+await go("dr-control--AU-14--assessment"); await shot("v24-au14-assessment.jpg");
+await go("dr-control--AC-2(3)"); await p.click(".dra-impl tbody button"); await p.waitForTimeout(400); await shot("v24-compare-params.jpg");
+await p.evaluate(() => PA.v3k.close()); await p.waitForTimeout(200);
+await go("dr-control--AU-14--evidence"); await shot("v24-au14-evidence.jpg");
+await go("dr-finding--c0fdce4e--dock-notes"); await shot("v24-dock-address.jpg", KDIR);
+console.log("dock address", await p.evaluate(() => location.hash));
+await go("dr-control--AC-2--evidence"); const e = await p.$("#main [data-panel=drb-ev]"); if (e) { await e.click({ force: true }); await p.waitForTimeout(400); } await shot("v24-walk-anylist.jpg", KDIR);
+await b.close();

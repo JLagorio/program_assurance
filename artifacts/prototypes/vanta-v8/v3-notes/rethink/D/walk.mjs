@@ -3,7 +3,9 @@
 // Pass 2 (Josef, 20 Nov): the categories are horizontal tabs, a row goes to the record's page, the eye opens its preview.
 // Flows that need lane S (the component's page) run when it is in the build, and say so when it is not.
 import { open, createSP70, SP } from "../../v3/P/lib.mjs";
-const BUILD = process.argv[2] || process.env.BUILD || SP + "/vanta/proto/out/v3r2-D.html"; // lead: the build named on the command line first, as the other walks take it
+import { resolve } from "path";
+const BUILD = resolve(process.argv[2] || process.env.BUILD || SP + "/vanta/proto/out/v3r3-D.html");
+console.log("walk D on " + BUILD); // lead: the build named on the command line first, as the other walks take it
 const H = await open({ build: BUILD, v3: true, start: "overview" });
 const { p } = H;
 let fails = 0, n = 0;
@@ -14,17 +16,30 @@ const hash = () => H.hash();
 const fact = (name, ...a) => ev(([name, a]) => PA.v3.fact(name, ...a), [name, a]);
 const count = (sel) => p.locator(sel).count();
 const text = async (sel) => { const l = p.locator(sel).first(); return (await l.count()) ? ((await l.innerText()) || "").replace(/\s+/g, " ").trim() : ""; };
-const rail = (label) => ev((l) => { const b = [...document.querySelectorAll("#main .k3-rail-i")].find((x) => x.querySelector(".x").innerText.trim() === l); return b ? +b.querySelector(".num").innerText.replace(/\D/g, "") : null; }, label);
-const chip = (label) => ev((l) => { const b = [...document.querySelectorAll("#main .k3-chip")].find((x) => x.childNodes[0].textContent.trim() === l); return b ? +b.querySelector(".num").innerText.replace(/\D/g, "") : null; }, label);
-const clickRail = async (label) => { await ev((l) => { const b = [...document.querySelectorAll("#main .k3-rail-i")].find((x) => x.querySelector(".x").innerText.trim() === l); if (b) b.click(); }, label); await w(300); };
-const clickChip = async (label) => { await ev((l) => { const b = [...document.querySelectorAll("#main .k3-chip")].find((x) => x.childNodes[0].textContent.trim() === l); if (b) b.click(); }, label); await w(300); };
+// Pass 3 (Josef, 21 Nov): a list's kinds and states are filters in its one row. A filter is select[data-k3-fkey]: its options read
+// "Plans (4)", the chosen one "Kind: Plans", the first one the filter's own name (nothing chosen). "All …" is the views menu's count.
+const optOf = (label) => ev((l) => { for (const s of document.querySelectorAll("#main .k3-tb select[data-k3-fkey]")) { const name = s.getAttribute("aria-label"); for (let i = 0; i < s.options.length; i++) { const o = s.options[i]; let t = o.textContent.trim(); if (t.indexOf(name + ": ") === 0) t = t.slice(name.length + 2); const m = /^(.*?)(?:\s\(([\d,]+)\))?$/.exec(t); if (m && m[1].trim() === l) return { key: s.getAttribute("data-k3-fkey"), i, on: o.selected, n: m[2] ? +m[2].replace(/,/g, "") : null }; } } return null; }, label);
+const viewsTotal = () => ev(() => { const c = document.querySelector("#main .k3-vlist .k3-vi .k3-vi-ct"); return c ? +c.textContent.replace(/\D/g, "") : null; });
+const rail = async (label) => { if (/^All /.test(label)) return viewsTotal(); const o = await optOf(label); return o ? o.n : null; };
+const chip = rail;
+// choose a filter's option by its words (chosen already: back to none); "All …" clears the filter named by key
+const pick = async (label, key) => { await ev(([l, key]) => { let s = null, i = 0; if (/^All /.test(l)) s = document.querySelector(`#main .k3-tb select[data-k3-fkey="${key}"]`); else for (const x of document.querySelectorAll("#main .k3-tb select[data-k3-fkey]")) { const name = x.getAttribute("aria-label"); for (let k = 0; k < x.options.length; k++) { let t = x.options[k].textContent.trim(); if (t.indexOf(name + ": ") === 0) t = t.slice(name.length + 2); if (t.replace(/\s\([\d,]+\)$/, "") === l) { s = x; i = x.options[k].selected ? 0 : k; } } } if (!s) throw new Error("no filter option " + l); s.selectedIndex = i; s.dispatchEvent(new Event("input", { bubbles: true })); }, [label, key || ""]); await w(350); };
+const clickRail = (label) => pick(label, /requirement/.test(label) ? "source" : "kind");
+const clickChip = (label) => pick(label);
+const onOf = (key) => ev((k) => { const s = document.querySelector(`#main .k3-tb select[data-k3-fkey="${k}"]`); if (!s || !s.closest(".k3-flt").classList.contains("on")) return ""; const name = s.getAttribute("aria-label"), t = s.selectedOptions[0].textContent.trim(); return t.indexOf(name + ": ") === 0 ? t.slice(name.length + 2) : t; }, key);
+// one row over the table: every control of the list's toolbar on one line, no strip of tabs or chips, no actions left in the header
+const oneRow = () => ev(() => { const t = document.querySelector("#main .k3-tb[data-k3-list]"); if (!t) return false; const kids = [...t.children].flatMap((c) => (c.classList.contains("k3-fs") ? [...c.children] : [c])).filter((e) => e.getClientRects().length); const tops = new Set(kids.map((e) => Math.round((e.getBoundingClientRect().top + e.getBoundingClientRect().height / 2) / 8))); return tops.size === 1 && document.querySelectorAll("#main .k3-tb").length === 1 && !document.querySelector("#main .k3-chips, #main .k3-rtabs, #main .k3-head-a"); });
+const viewMenu = async (label) => { await p.click("#main .k3-vbtn"); await w(120); await ev((l) => { const x = [...document.querySelectorAll("#main .k3-vlist .k3-menu-i")].find((e) => e.querySelector(".k3-vi-n") ? e.querySelector(".k3-vi-n").textContent.trim() === l : e.textContent.trim().indexOf(l) === 0); if (!x) throw new Error("no view " + l); x.click(); }, label); await w(400); };
+const viewName = () => text("#main .k3-vbtn .k3-vname");
+const secNames = (sc) => ev((sc) => [...document.querySelectorAll(sc + " .k3-sec h2")].map((h) => h.childNodes[0].textContent.trim()), sc);
+const cuts = () => ev(() => [...document.querySelectorAll("#main .k3-table tbody tr")].filter((r) => r.getBoundingClientRect().height > 44).length);
 const rows = () => count("#main .k3-table tbody tr");
 const foot = () => ev(() => { const f = document.querySelector("#main .pager"); const m = f && /of ([\d,]+)/.exec(f.innerText); return m ? +m[1].replace(/,/g, "") : null; });
 const panelOpen = () => ev(() => { const e = document.getElementById("panel"); return !!e && !e.hidden && !!e.innerText.trim(); });
 const panelText = () => H.panel();
 const scope = async () => ((await panelOpen()) ? "#panel" : "#main");
 const sect = async (title) => ev(([sc, t]) => { const s = [...document.querySelectorAll(sc + " .k3-sec")].find((x) => (x.querySelector("h2") || {}).childNodes[0].textContent.trim() === t); if (!s) return null; const c = s.querySelector("h2 .k3-ct"); return { count: c ? +c.innerText : null, rows: [...s.querySelectorAll("tbody tr")].map((r) => r.innerText.replace(/\s+/g, " ").trim()) }; }, [await scope(), title]);
-const sectAdd = async (title) => { await ev(([sc, t]) => { const s = [...document.querySelectorAll(sc + " .k3-sec")].find((x) => (x.querySelector("h2") || {}).childNodes[0].textContent.trim() === t); const b = s && s.querySelector(".k3-sec-a .btn, .k3-none-row .k3-link"); if (b) b.click(); }, [await scope(), title]); await w(300); };
+const sectAdd = async (title) => { await ev(([sc, t]) => { const s = [...document.querySelectorAll(sc + " .k3-sec")].find((x) => (x.querySelector("h2") || {}).childNodes[0].textContent.trim() === t); const b = s && s.querySelector(".k3-sec-a .btn, .k3-sec-a .k3-link, .k3-none-row .k3-link"); if (b) b.click(); }, [await scope(), title]); await w(300); };
 const rowAct = async (title, rowText, label) => { await ev(([sc, t, r, l]) => { const s = [...document.querySelectorAll(sc + " .k3-sec")].find((x) => (x.querySelector("h2") || {}).childNodes[0].textContent.trim() === t); const tr = s && [...s.querySelectorAll("tbody tr")].find((x) => x.innerText.includes(r)); const b = tr && [...tr.querySelectorAll("button")].find((x) => x.innerText.trim() === l); if (b) b.click(); }, [await scope(), title, rowText, label]); await w(300); };
 const eye = async (rowSel = "#main .k3-table tbody tr") => { await p.hover(rowSel); await p.click(rowSel + " .k3-eye"); await w(400); };
 const openRow = async (rowSel = "#main .k3-table tbody tr") => { await p.click(rowSel + " td:nth-child(2)"); await w(500); };
@@ -47,7 +62,7 @@ await H.go("overview", 600);
   const n0 = (await fact("evidence")).pending;
   const via = await ev(() => { const r = [...document.querySelectorAll("#main .k3-att-r, #main .k3-mini")].find((x) => /waiting on review/i.test(x.innerText)); if (r) r.click(); return r ? r.innerText.replace(/\s+/g, " ").trim() : ""; }); await w(600);
   if (!via) { await ev(() => PA.v3k.set("evd.view", { rail: "", chip: "pending" })); await H.go("evidence"); }
-  ok("0 the Overview's Evidence waiting on review 88 opens Evidence on exactly 88", n0 === 88 && (await hash()) === "evidence" && (await foot()) === 88 && (await chip("Waiting on review")) === 88 && (await ev(() => (document.querySelector("#main .k3-chip.on") || {}).childNodes[0].textContent.trim())) === "Waiting on review", [via, n0, await hash(), await foot()]);
+  ok("0 the Overview's Evidence waiting on review 88 opens Evidence on exactly 88", n0 === 88 && (await hash()) === "evidence" && (await foot()) === 88 && (await onOf("review")) === "Waiting on review" && (await viewName()) === "Waiting on review", [via, n0, await hash(), await foot()]);
   await clickChip("Waiting on review");
 }
 
@@ -59,9 +74,15 @@ ok("1 the menu's Documents opens Documents", (await hash()) === "documents" && (
 ok("1 its menu entry is marked", (await text("#nav a.item.on")) === "Documents", await text("#nav a.item.on"));
 const docN = await rail("All documents");
 ok("1 every document is one row: the SSP, three plans, the policies, the ITCSC", docN >= 23 && (await rows()) === docN && (await rail("Plans")) === 4 && (await rail("Policies")) === 18 && (await rail("Categorization")) === 1, [docN, await rows()]);
-ok("1 the kinds are horizontal tabs over the list, not a list down the side", (await count("#main nav.k3-rail.k3-rtabs")) === 1 && (await count("#main .k3-rsel")) === 0 && (await ev(() => { const t = document.querySelector("#main nav.k3-rtabs"), f = document.querySelector("#main .k3-frame"); return !!t && !!f && t.getBoundingClientRect().bottom <= f.getBoundingClientRect().top && Math.abs(t.getBoundingClientRect().left - f.getBoundingClientRect().left) < 4; })) && (await ev(() => (document.querySelector("#main nav.k3-rtabs .k3-rail-i.on .x") || {}).innerText)) === "All documents");
-ok("1 the SSP's row has no preview to open: it goes straight to its editor", (await count('#main tr.k3d-doc[data-go="ssp"] .k3-eye')) === 0 && (await count('#main tr.k3d-doc[data-go="ssp"]')) === 1);
-ok("1 the SSP's row says which revision is the draft", /revision 3 is the draft/.test(await text("#main tr.k3d-doc")), await text("#main tr.k3d-doc"));
+ok("1 one row over the list: search, the view, Kind and State as filters, then the page's actions", (await oneRow()) && (await count('#main .k3-tb select[data-k3-fkey="kind"]')) === 1 && (await count('#main .k3-tb select[data-k3-fkey="state"]')) === 1 && /New document/.test(await text("#main .k3-tb .k3-tools-r")) && (await cuts()) === 0, await text("#main .k3-tb"));
+ok("1 the SSP's row goes to its editor, and its eye previews it", (await count('#main tr.k3d-doc[data-go="ssp"] .k3-eye[data-panel="k3d-doc"]')) === 1 && (await count('#main tr.k3d-doc[data-go="ssp"]')) === 1);
+ok("1 the SSP's row says its revision, its state and which revision is published", /revision 2 is published/.test(await text("#main tr.k3d-doc")) && (await text("#main tr.k3d-doc td:nth-child(2)")) === "3" && (await text("#main tr.k3d-doc td:nth-child(3)")) === "Draft", await text("#main tr.k3d-doc"));
+await eye('#main tr.k3d-doc[data-go="ssp"]');
+{ const s = await secNames("#panel"); ok("1 the SSP's preview lists what its editor lists: its sections, the placeholder narratives, its revisions", (await panelOpen()) && s.join("|") === "Sections|Placeholder narratives|Revisions" && (await sect("Sections")).count === 16 && (await sect("Sections")).rows.length === 5 && (await sect("Revisions")).count === 3 && /Open the editor/.test(await panelText()) && (await hash()) === "documents", [s, (await panelText()).slice(0, 120)]); }
+await ev(() => { const r = [...document.querySelectorAll("#panel .k3-sec tbody tr")].find((x) => /Hardware and software inventory/.test(x.innerText)); if (r) r.click(); }); await w(300);
+await ev(() => { const a = [...document.querySelectorAll("#panel a.k3-pk-all")].find((x) => /View all 16/.test(x.textContent)); if (a) a.click(); }); await w(1200);
+ok("1 its View all opens the editor", (await hash()) === "ssp" && (await count("#se-app")) === 1, await hash());
+await closePanel(); await H.go("documents");
 await p.click('#main tr.k3d-doc:has-text("System security plan") td:first-child'); await w(900);
 ok("1 the SSP's row opens the editor at once: no preview", (await hash()) === "ssp" && (await count("#se-app")) === 1 && !(await panelOpen()), [await hash(), await panelOpen()]);
 await p.click("#se-c-AC-1 .se-n"); await p.keyboard.press("End"); await p.keyboard.type(" Typed in the walk."); await ev(() => document.activeElement.blur()); await w(250);
@@ -140,7 +161,7 @@ if (hasC) {
 console.log("\n5. New document");
 await H.go("documents");
 const d0 = await rail("All documents");
-await H.click("New document", "#main .k3-head-a"); await w(250);
+await H.click("New document", "#main .k3-tb .k3-tools-r"); await w(250);
 await p.fill("#k3f-title", "Walk security assessment plan"); await submit();
 ok("5 New document creates one and opens it", /^document--/.test(await hash()) && (await text("#main .k3-title")) === "Walk security assessment plan" && /Draft/.test(await text("#main .k3-head")), await hash());
 await p.click("#main .k3d-ed"); await p.keyboard.type("Scope: the mission computing subsystem."); await ev(() => document.activeElement.blur()); await w(200);
@@ -148,20 +169,20 @@ await p.click('#main .k3-crumbs a[href="#documents"]'); await w(450);
 ok("5 it is listed on Documents, with the count", (await rail("All documents")) === d0 + 1 && /Walk security assessment plan/.test(await H.main()), [d0, await rail("All documents")]);
 await p.click('#main tr.k3d-doc:has-text("Walk security assessment plan") td:first-child'); await w(450);
 ok("5 its row opens it again with what was written", /^document--/.test(await hash()) && /Scope: the mission computing subsystem\./.test(await text("#main .k3d-ed")));
-await H.go("documents"); await H.click("New document", "#main .k3-head-a"); await w(250);
+await H.go("documents"); await H.click("New document", "#main .k3-tb .k3-tools-r"); await w(250);
 await p.selectOption("#k3f-from", "x:scrm"); await submit(); await w(300);
 ok("5 a template's plan is created and opened in its editor", (await hash()) === "plan-scrm" && /Supply chain risk management plan/.test(await H.main()), await hash());
 await H.go("documents");
 ok("5 and listed as a draft", (await rail("All documents")) === d0 + 2 && /Supply chain risk management plan/.test(await H.main()));
-await clickChip("Changes requested");
-ok("5 a state chip narrows, and its count equals the rows", (await chip("Changes requested")) === (await rows()) && (await rows()) > 0, [await chip("Changes requested"), await rows()]);
-await clickChip("Changes requested"); await clickRail("Policies");
-ok("5 the Policies tab shows the policies", (await rows()) === (await rail("Policies")) && (await rail("Policies")) === 18);
+const crN = await chip("Changes requested"); await clickChip("Changes requested");
+ok("5 the State filter narrows, and its count equals the rows", crN === (await rows()) && crN > 0 && (await onOf("state")) === "Changes requested" && (await viewName()) === "Changes requested", [crN, await rows()]);
+await clickChip("Changes requested"); const polN = await rail("Policies"); await clickRail("Policies");
+ok("5 Kind: Policies shows the policies", (await rows()) === polN && polN === 18 && (await onOf("kind")) === "Policies", [polN, await rows()]);
 ok("5 every policy's row goes to a page, none to a preview", (await count("#main tr.k3d-doc[data-panel]")) === 0 && (await count("#main tr.k3d-doc[data-go]")) === 18);
 await p.click('#main tr.k3d-doc:has-text("Access control policy") td:first-child'); await w(500);
 ok("5 a policy's row opens its page", /policy-page-ac-1$/.test(await hash()) && !(await panelOpen()) && /Access control policy and procedures/.test(await H.main()) && (await text("#nav a.item.on")) === "Documents", await hash());
-await H.go("documents"); await clickRail("Plans");
-ok("5 a plan the policy register listed beside the policies is the plan's own row", /implements IR-8/.test(await text('#main tr.k3d-doc:has-text("Incident response plan")')) && (await rows()) === (await rail("Plans")), await text('#main tr.k3d-doc:has-text("Incident response plan")'));
+await H.go("documents"); const planN = await rail("Plans"); await clickRail("Plans");
+ok("5 a plan the policy register listed beside the policies is the plan's own row", /Implements IR-8/.test(await text('#main tr.k3d-doc:has-text("Incident response plan")')) && (await rows()) === planN, await text('#main tr.k3d-doc:has-text("Incident response plan")'));
 await clickRail("All documents");
 await p.click('#main tr.k3d-doc:has-text("Contingency plan") .k3d-rowact summary'); await w(200);
 ok("5 a row's More opens without opening the row", (await hash()) === "documents" && (await count('#main tr.k3d-doc:has-text("Contingency plan") details[open]')) === 1 && /Version history/.test(await text('#main tr.k3d-doc:has-text("Contingency plan") .k3-menu-l')), await hash());
@@ -171,9 +192,9 @@ ok("5 its Version history opens the plan's history", (await hash()) === "plan-cp
 // ——— 6. Create requirement ———
 console.log("\n6. Create requirement");
 await H.go("requirements");
-const all0 = await rail("All requirements"), eng0 = await rail("Engineering requirements"), mcReq0 = hasS ? (await fact("requirementsOf", "CN-109101")).length : null;
+const all0 = await rail("All requirements"), eng0 = await rail("Engineering"), mcReq0 = hasS ? (await fact("requirementsOf", "CN-109101")).length : null;
 ok("6 the register counts every requirement: 640 engineering and the customer's 14", eng0 === 640 && all0 === 654 && (await foot()) === 654, [eng0, all0, await foot()]);
-await H.click("Create requirement", "#main .k3-head-a"); await w(250);
+await H.click("Create requirement", "#main .k3-tb .k3-tools-r"); await w(250);
 await p.fill("#k3f-title", "Maintenance accounts are disabled between sorties"); await p.fill("#k3f-statement", "The Mission Computer shall disable every maintenance account when the maintenance session closes.");
 await p.selectOption("#k3f-type", "Enforcement"); await p.fill("#k3f-ctl", "ac-2");
 await ev(() => { const b = [...document.querySelectorAll("#modal .k3-checks label")].find((x) => x.innerText.trim() === "Mission Computer"); b.querySelector("input").click(); }); await submit(); await w(300);
@@ -183,8 +204,8 @@ ok("6 Create requirement creates one, with the next code", /^REQ-\d+$/.test(code
 ok("6 it opens on its own page, with its control and its component", (await hash()) === "requirement--" + code && (await text("#main .k3-title")) === "Maintenance accounts are disabled between sorties" && (await sect("Controls")).count === 1 && (await sect("Components")).count === 1 && /Mission Computer/.test((await sect("Components")).rows[0]) && /CN-109101/.test((await sect("Components")).rows[0]) && /Hardware/.test((await sect("Components")).rows[0]), [await hash(), await sect("Components")]);
 ok("6 the page holds one primary, in its header", (await count("#main .k3-head-a .btn.ink")) === 1 && (await text("#main .k3-head-a .btn.ink")) === "Edit requirement" && (await count("#main .k3-sec .btn.ink")) === 0);
 await p.click('#main .k3-crumbs a[href="#requirements"]'); await w(450);
-ok("6 it is in the register at once, first, and the counts follow", (await rail("All requirements")) === all0 + 1 && (await rail("Engineering requirements")) === eng0 + 1 && new RegExp(code).test(await text("#main .k3-table tbody tr")) && /AC-2/.test(await text("#main .k3-table tbody tr")) && /Mission Computer/.test(await text("#main .k3-table tbody tr")), await text("#main .k3-table tbody tr"));
-ok("6 the sources are horizontal tabs: All, Engineering, the customer's document", (await count("#main nav.k3-rail.k3-rtabs .k3-rail-i")) === 3 && (await count("#main .k3-rsel")) === 0);
+ok("6 it is in the register at once, first, and the counts follow", (await rail("All requirements")) === all0 + 1 && (await rail("Engineering")) === eng0 + 1 && new RegExp(code).test(await text("#main .k3-table tbody tr")) && /AC-2/.test(await text("#main .k3-table tbody tr")) && /Mission Computer/.test(await text("#main .k3-table tbody tr")), await text("#main .k3-table tbody tr"));
+ok("6 the sources are one filter of the list's one row: All, Engineering, the customer's document", (await ev(() => document.querySelector('#main .k3-tb select[data-k3-fkey="source"]').options.length)) === 3 && (await oneRow()) && (await cuts()) === 0);
 if (hasS) {
   await H.go("component--CN-109101--requirements", 700);
   ok("6 it is on Mission Computer's Requirements tab", new RegExp(code).test(await H.main()) && (await fact("requirementsOf", "CN-109101")).length === mcReq0 + 1, [(await fact("requirementsOf", "CN-109101")).length, mcReq0]);
@@ -203,8 +224,11 @@ ok("6 it survives a redraw and a return to the page", new RegExp(code).test(awai
 console.log("\n7. The requirement's panel");
 await eye();
 ok("7 the eye previews the requirement beside the list", (await panelOpen()) && new RegExp(code).test(await panelText()) && (await sect("Controls")).count === 1 && (await hash()) === "requirements", await hash());
+const pvSecs = await secNames("#panel");
 await closePanel(); await openRow();
 ok("7 a row opens the requirement's page: its statement, controls, components and evidence", (await hash()) === "requirement--" + code && /Requirements/.test(await text("#main .k3-crumbs")) && (await text("#main .k3-title")) === "Maintenance accounts are disabled between sorties" && (await sect("Controls")).count === 1 && (await sect("Components")).count === 1 && (await sect("Evidence")).count === 0 && (await text("#nav a.item.on")) === "Requirements", [await hash(), await text("#main .k3-crumbs")]);
+ok("7 the preview lists what the page lists: the statement, controls, components, evidence", JSON.stringify(pvSecs) === JSON.stringify(await secNames("#main")) && pvSecs.join("|") === "Statement|Controls|Components|Evidence", [pvSecs, await secNames("#main")]);
+if (hasS) ok("7 a component's row there goes to its page and has an eye for its preview", (await count('#main .k3-sec tr[data-go^="component--"] .k3-eye[data-panel="k3s-comp"]')) === 1);
 await p.click("#main [data-k3d-st]"); await p.keyboard.press("End"); await p.keyboard.type(" The event is logged."); await ev(() => document.activeElement.blur()); await w(250);
 ok("7 the statement is edited in place", /The event is logged\.$/.test((await fact("requirement", code)).statement), (await fact("requirement", code)).statement);
 await sectAdd("Components"); await pickSearch("Secure Boot"); await pickFirst(); await submit();
@@ -242,6 +266,12 @@ ok("7 a register requirement's control is unmapped", (await sect("Controls")).co
 await sectAdd("Controls"); await pickSearch("AC-7"); await pickFirst(); await submit();
 ok("7 and mapped again", (await sect("Controls")).count === c001 && (await fact("requirementsOfControl", "AC-7")).includes("REQ-001"));
 await H.go("requirements"); await p.fill("#main .k3-search input", ""); await w(500);
+await p.fill("#main .k3-search input", "REQ-015"); await w(500); await eye();
+const chain = await secNames("#panel");
+ok("7 a requirement's preview lists its chain too: findings, issues, risks, remediation", ["Controls", "Evidence", "Assessment findings", "Operational issues", "Risks", "Remediation"].every((x) => chain.includes(x)) && /Partially satisfied/.test((await sect("Assessment findings")).rows.join(" ")), chain);
+await closePanel(); await openRow();
+ok("7 and its page lists the same, each row of the chain with its own eye", JSON.stringify(await secNames("#main")) === JSON.stringify(chain) && (await count('#main .k3-sec tr[data-go^="finding--"] .k3-eye')) >= 1 && (await count('#main .k3-sec tr[data-go^="risk--"] .k3-eye')) >= 1 && (await cuts()) === 0, await secNames("#main"));
+await H.go("requirements"); await p.fill("#main .k3-search input", ""); await w(500);
 
 // ——— 8. The customer's document, chips and counts ———
 console.log("\n8. Rail and chips");
@@ -250,8 +280,8 @@ await clickRail("CUSA-SSRD");
 ok("8 the rail's customer document shows its requirements with the program's answers", custN === 14 && (await rows()) === 14 && /Customer A System Security Requirements Document/.test(await H.main()) && /Compliant/.test(await text("#main .k3-table tbody tr")), [custN, await rows()]);
 const cmp = await chip("Compliant"); await clickChip("Compliant");
 ok("8 a chip narrows, and its count equals the rows", cmp > 0 && (await rows()) === cmp, [cmp, await rows()]);
-await clickRail("Engineering requirements");
-for (const [label, key] of [["No control mapped", "noctl"], ["Cites no evidence", "noev"], ["Not allocated", "noalloc"]]) { const c = await chip(label); await clickChip(label); ok(`8 ${label}: the chip's count is the list's total`, c > 0 && (await foot()) === c, [c, await foot()]); await clickChip(label); }
+await clickRail("Engineering");
+for (const [label, key] of [["No control", "noctl"], ["No evidence", "noev"], ["Not allocated", "noalloc"]]) { const c = await chip(label); await clickChip(label); ok(`8 ${label}: the Gap filter's count is the list's total`, c > 0 && (await foot()) === c, [c, await foot()]); await clickChip(label); }
 await p.selectOption('#main .k3-flt select[data-k3-input="k3d.req.comp"]', "CN-109101"); await w(400);
 ok("8 the Component filter shows what is allocated there", (await foot()) === (await ev(() => PA.v3.fact("requirementsOfComponent", "CN-109101").length)) && (await foot()) > 1, await foot());
 await ev(() => PA.v2.redraw()); await w(300);
@@ -259,6 +289,24 @@ ok("8 the filter survives a redraw", (await ev(() => document.querySelector('#ma
 await p.selectOption('#main .k3-flt select[data-k3-input="k3d.req.comp"]', ""); await clickRail("All requirements");
 await ev(() => { const b = [...document.querySelectorAll("#main .k3d-pg button")].find((x) => x.innerText.trim() === "Next"); b.click(); }); await w(350);
 ok("8 the register pages 50 at a time", (await rows()) === 50 && /^51–100 of/.test(await text("#main .pager")), await text("#main .pager"));
+// a view saved, left and picked again asks the same question
+await clickRail("All requirements"); await clickChip("Not allocated"); await p.selectOption('#main .k3-flt select[data-k3-input="k3d.req.fam"]', "AU"); await w(400);
+const vq = { rows: await rows(), foot: await foot() };
+ok("8 two filters set: the row says the view was edited, and stays one row", (await count("#main .k3-vbtn .k3-vedit")) === 1 && vq.foot > 0 && (await oneRow()), [await viewName(), vq]);
+await viewMenu("Save as new view"); await p.fill("#modal input[name=name]", "Walk view"); await submit();
+ok("8 Save as new view names the question", (await viewName()) === "Walk view" && (await count("#main .k3-vbtn .k3-vedit")) === 0, await viewName());
+await viewMenu("CUSA-SSRD requirements");
+ok("8 a built-in view leaves it: the customer's document, its own columns", (await rows()) === 14 && (await onOf("source")) === "CUSA-SSRD" && (await onOf("gap")) === "" && /Answer/.test(await text("#main .k3-table thead")), [await rows(), await onOf("source")]);
+await viewMenu("Walk view");
+ok("8 picked again from there, the saved view gives the same rows", (await rows()) === vq.rows && (await foot()) === vq.foot && (await onOf("gap")) === "Not allocated" && (await onOf("source")) === "" && (await ev(() => document.querySelector('#main .k3-flt select[data-k3-input="k3d.req.fam"]').value)) === "AU" && (await viewName()) === "Walk view", [await rows(), await foot(), vq]);
+await viewMenu("AC with no evidence");
+ok("8 the list starts with a saved view an engineer would keep", (await onOf("gap")) === "No evidence" && (await foot()) > 0 && (await viewName()) === "AC with no evidence", [await foot(), await viewName()]);
+await viewMenu("Manage views");
+await ev(() => { const r = [...document.querySelectorAll("#modal .k3-vm-r")].find((x) => x.querySelector(".k3-vm-n").value === "Walk view"); [...r.querySelectorAll(".btn")].find((b) => /Delete/.test(b.textContent)).click(); }); await w(200);
+await ev(() => [...document.querySelectorAll("#modal .k3-vm-r.ask .btn")].find((b) => /Delete view/.test(b.textContent)).click()); await w(300);
+ok("8 Manage views deletes a saved view, after asking", (await ev(() => [...document.querySelectorAll("#modal .k3-vm-n")].map((x) => x.value).join("|"))) === "AC with no evidence");
+await p.click("#modal [data-k3-close]"); await w(200); await viewMenu("All requirements");
+ok("8 All requirements clears every filter", (await foot()) === (await rail("All requirements")) && (await onOf("gap")) === "" && (await count("#main .k3-clear")) === 0, await foot());
 
 // ——— 9. Evidence ———
 console.log("\n9. Evidence");
@@ -267,16 +315,16 @@ await H.go("overview", 600);
 const wait0 = (await fact("evidence")).pending;
 const viaOv = await ev(() => { const r = [...document.querySelectorAll("#main .k3-att-r, #main .k3-mini")].find((x) => /waiting on review/i.test(x.innerText)); if (r) r.click(); return !!r; }); await w(600);
 if (!viaOv) { await ev(() => PA.v3k.set("evd.view", { rail: "", chip: "pending" })); await H.go("evidence"); }
-ok("9 after an artifact was added, the Overview's count still opens exactly those", (await hash()) === "evidence" && (await foot()) === wait0 && wait0 === 89 && (await ev(() => (document.querySelector("#main .k3-chip.on") || {}).childNodes[0].textContent.trim())) === "Waiting on review", [viaOv, await hash(), await foot(), wait0]);
+ok("9 after an artifact was added, the Overview's count still opens exactly those", (await hash()) === "evidence" && (await foot()) === wait0 && wait0 === 89 && (await onOf("review")) === "Waiting on review", [viaOv, await hash(), await foot(), wait0]);
 await clickChip("Waiting on review");
-ok("9 the kinds are a switch under the page's tabs, not a second row of tabs or a side list", (await count("#main nav.k3-tabs")) === 1 && (await count("#main nav.k3-rail.k3-rtabs")) === 1 && (await count("#main .k3-rsel")) === 0);
+ok("9 one strip of tabs (Evidence, Sources) and one row over the list: the kinds are a filter in it", (await count("#main nav.k3-tabs")) === 1 && (await oneRow()) && (await count('#main .k3-tb select[data-k3-fkey="kind"]')) === 1 && (await cuts()) === 0);
 await H.go("evidence");
 const evAll = await rail("All evidence"), kinds = [await rail("Documents"), await rail("Test records"), await rail("Datasets"), await rail("Scan results")];
 ok("9 the register counts every artifact, and the kinds add up", evAll === (await fact("artifacts")).length && kinds.reduce((a, b) => a + b, 0) === evAll && (await fact("evidence")).total === evAll, [evAll, kinds]);
 await clickRail("Test records");
 ok("9 a rail kind filters", (await foot()) === kinds[1] && (await ev(() => [...document.querySelectorAll("#main .k3-table tbody tr td:nth-child(2)")].every((x) => x.innerText.trim() === "Test record"))), [await foot(), kinds[1]]);
-await clickRail("STIG checklists");
-ok("9 STIG checklists are a kind of evidence", (await rows()) === (await rail("STIG checklists")) && (await rows()) === 7);
+const stigN = await rail("STIG checklists"); await clickRail("STIG checklists");
+ok("9 STIG checklists are a kind of evidence", (await rows()) === stigN && (await onOf("kind")) === "STIG checklists" && (await oneRow()) && (await rows()) === 7);
 await p.click("#main .k3-table tbody tr td:first-child"); await w(500);
 ok("9 a checklist's row opens the checklist's own page", /^stigs-/.test(await hash()), await hash());
 await H.go("evidence"); await clickRail("All evidence");
@@ -296,10 +344,12 @@ ok("9 and so does its row on Requirements", /Supported/.test(await text("#main .
 await p.fill("#main .k3-search input", ""); await w(500); await H.go("evidence"); await ev((id) => PA.v3k.openPanel("k3d-ev", id), pk.id); await w(400);
 await sectAdd("Cited by"); await pickSearch("REQ-005"); await pickFirst(); await submit();
 ok("9 Link to a requirement, from the artifact", (await sect("Cited by")).count === 2 && (await fact("requirement", "REQ-005")).evidence.includes(pk.id), await sect("Cited by"));
+const evPv = await secNames("#panel"); await closePanel(); await H.go("artifact--" + pk.id, 500);
+ok("9 the artifact's preview lists what its page lists", JSON.stringify(evPv) === JSON.stringify(await secNames("#main")) && evPv.includes("Cited by") && evPv.includes("Versions"), [evPv, await secNames("#main")]);
 await rowAct("Cited by", "REQ-005", "Unlink"); await submit();
 ok("9 and unlinked again", (await sect("Cited by")).count === 1);
-await closePanel();
-await H.click("Add evidence", "#main .k3-head-a"); await w(250);
+await closePanel(); await H.go("evidence");
+await H.click("Add evidence", "#main .k3-tb .k3-tools-r"); await w(250);
 await p.fill("#k3f-title", "Walk scan of the mission network"); await p.selectOption("#k3f-kind", "Scan result"); await p.fill("#k3f-renew", "2026-12-01"); await p.fill("#k3f-req", "req-250"); await submit();
 ok("9 Add evidence adds an artifact, linked to the requirement named, waiting on review", (await rail("All evidence")) === evAll + 1 && (await rail("Scan results")) === kinds[3] + 1 && (await chip("Waiting on review")) === pend0 && (await chip("Expiring")) === 1 && (await fact("requirement", "REQ-250")).evidence.length >= 1, [await rail("All evidence"), await chip("Waiting on review"), await chip("Expiring")]);
 await p.fill("#main .k3-search input", "Walk scan"); await w(500); await openRow();
@@ -316,13 +366,13 @@ for (const [from, to, see] of [["ssps", "documents", "Documents"], ["ssps-drafts
   await H.go("overview", 250); await H.go(from, 500);
   ok(`10 ${from} opens ${to}`, (await hash()) === to && (!see || (await text("#main .k3-title")) === see), await hash());
 }
-await H.go("overview", 250); await H.go("policies", 500); ok("10 policies lands on the Policies of Documents", (await ev(() => (document.querySelector("#main .k3-rail-i.on .x") || {}).innerText)) === "Policies");
-await H.go("overview", 250); await H.go("stigs", 500); ok("10 stigs lands on the STIG checklists of Evidence", (await ev(() => (document.querySelector("#main .k3-rail-i.on .x") || {}).innerText)) === "STIG checklists" && (await rows()) === 7);
-await H.go("overview", 250); await H.go("requirements-compliance", 500); ok("10 requirements-compliance lands on the customer's document", (await ev(() => (document.querySelector("#main .k3-rail-i.on .x") || {}).innerText)) === "CUSA-SSRD" && (await rows()) === 14);
+await H.go("overview", 250); await H.go("policies", 500); ok("10 policies lands on the Policies of Documents", (await onOf("kind")) === "Policies");
+await H.go("overview", 250); await H.go("stigs", 500); ok("10 stigs lands on the STIG checklists of Evidence", (await onOf("kind")) === "STIG checklists" && (await rows()) === 7);
+await H.go("overview", 250); await H.go("requirements-compliance", 500); ok("10 requirements-compliance lands on the customer's document", (await onOf("source")) === "CUSA-SSRD" && (await rows()) === 14);
 await H.go("overview", 250); await H.go("rec--v7p-req--REQ-002", 800); ok("10 a requirement's old record address opens the requirement (its page, or Requirements with it open)", ((await hash()) === "requirement--REQ-002" && (await count("#main [data-k3d-st]")) === 1) || ((await hash()) === "requirements" && (await panelOpen()) && /REQ-002/.test(await panelText()) && (await count("#panel [data-k3d-st]")) === 1), await hash()); await closePanel();
 await ev(() => PA.v3k.openPanel("v7p-req", "REQ-003")); await w(400); ok("10 the old requirement preview draws the new panel", (await count("#panel [data-k3d-st]")) === 1 && /REQ-003/.test(await panelText())); await closePanel();
 await ev(() => PA.v2.go("requirements", { open: { kind: "v7p-req", id: "REQ-004" } })); await w(700); ok("10 a link that opens Requirements on a requirement lands on the requirement's page", (await hash()) === "requirement--REQ-004" && /REQ-004/.test(await text("#main .k3-head")), await hash());
-await ev(() => PA.v2.go("evidence", { filter: { qv: "Needs revision" } })); await w(600); ok("10 a link that opens Evidence on a review state lands on its chip", (await hash()) === "evidence" && (await ev(() => (document.querySelector("#main .k3-chip.on") || {}).childNodes[0].textContent.trim())) === "To revise" && (await foot()) === (await chip("To revise")), await foot()); await clickChip("To revise");
+await ev(() => PA.v2.go("evidence", { filter: { qv: "Needs revision" } })); await w(600); ok("10 a link that opens Evidence on a review state lands on its chip", (await hash()) === "evidence" && (await onOf("review")) === "To revise" && (await foot()) === (await fact("evidence")).revise && (await foot()) > 0, await foot()); await clickChip("To revise");
 await H.go("itcsc", 500); ok("10 the ITCSC keeps its own page, under Documents in the menu", (await text("#nav a.item.on")) === "Documents" && /IT categorization/.test(await H.main()), await text("#nav a.item.on"));
 await H.go("documents"); await clickRail("All documents"); await p.click('#main tr.k3d-doc:has-text("IT categorization") td:first-child'); await w(500); ok("10 the ITCSC's row opens it", (await hash()) === "itcsc");
 // a reload of the address keeps what was done
@@ -331,7 +381,7 @@ ok("10 after a reload, the created requirement, its links and the accepted revie
 // V3 off: the pages only V3 has say so; v2's own pages are v2's
 await ev(() => PA.v3.set(false)); await H.go("documents", 500);
 ok("10 with V3 off, Documents says it belongs to V3", /Part of V3/.test(await H.main()));
-await H.go("requirements", 500); ok("10 with V3 off, Requirements is v2's page", (await count("#main .k3-rail")) === 0 && /Requirements/.test(await H.main()));
+await H.go("requirements", 500); ok("10 with V3 off, Requirements is v2's page", (await count("#main .k3-tb")) === 0 && /Requirements/.test(await H.main()));
 await ev(() => PA.v3.set(true)); await w(300);
 // another program
 const seen = await createSP70(H, { nss: true });
@@ -344,7 +394,7 @@ await H.go("requirements", 500); await H.click("Create requirement", "#main"); a
 ok("10 its Create requirement works (the program's own form)", /Create requirement/.test(await H.modal()), (await H.modal()).slice(0, 80));
 await ev(() => { const x = document.querySelector("#modal [data-close-modal]"); if (x) x.click(); });
 await ev(() => PA.v2hubs.setCur("PRG-1090")); await H.go("overview"); await H.go("requirements", 600);
-ok("10 back on WS-X90, its register is whole again", (await rail("Engineering requirements")) === eng0 + 1, await rail("Engineering requirements"));
+ok("10 back on WS-X90, its register is whole again", (await rail("Engineering")) === eng0 + 1, await rail("Engineering"));
 
 // ——— 11. One fact across the lanes ———
 console.log("\n11. With the other lanes");
@@ -357,12 +407,12 @@ if (hasC) {
   ok("11 a requirement created in a control's panel is a requirement of the register", !!cm && cm.controls.includes("AC-4") && /^REQ-\d+$/.test(cm.code) && cm.code !== code, cm);
   await closePanel(); await H.go("requirements"); await clickRail("All requirements");
   ok("11 and is listed on Requirements with its control", !!cm && (await H.main()).includes(cm.code) && /Flow rules are reviewed each release/.test(await H.main()), (await text("#main .k3-table tbody tr")));
-  await H.go("controls", 600); await ev(() => PA.v3k.openPanel("k3c-control", "AC-4")); await w(500);
+  await H.go("control--AC-4", 700); // pass 3: a preview lists, the page is where a row is unmapped
   const had = (await fact("requirement", "REQ-003")).controls.includes("AC-4");
-  await ev(() => { const b = [...document.querySelectorAll('#panel [data-k3="k3c.req.rm"]')].find((x) => /REQ-003/.test(x.getAttribute("data-k3a") || "")); if (b) b.click(); }); await w(300); await submit();
-  ok("11 a requirement unmapped in the control's panel loses the control on Requirements", had && !(await fact("requirement", "REQ-003")).controls.includes("AC-4") && (await fact("requirement", "REQ-003")).state === "No control mapped", (await fact("requirement", "REQ-003")));
-  await ev(() => PA.v3k.openPanel("k3c-control", "AC-22")); await w(500);
-  await ev(() => { const b = [...document.querySelectorAll("#panel .k3-menu-i")].find((x) => /Remove from the baseline/.test(x.textContent)); if (b) b.click(); }); await w(300);
+  await ev(() => { const b = [...document.querySelectorAll('#main [data-k3="k3c.req.rm"]')].find((x) => /REQ-003/.test(x.getAttribute("data-k3a") || "")); if (b) b.click(); }); await w(300); await submit();
+  ok("11 a requirement unmapped on the control's page loses the control on Requirements", had && !(await fact("requirement", "REQ-003")).controls.includes("AC-4") && (await fact("requirement", "REQ-003")).state === "No control mapped", (await fact("requirement", "REQ-003")));
+  await H.go("control--AC-22", 700);
+  await ev(() => { const b = [...document.querySelectorAll("#main .k3-menu-i")].find((x) => /Remove from the baseline/.test(x.textContent)); if (b) b.click(); }); await w(300);
   await p.fill("#k3f-why", "Not applicable to an embedded mission system."); await submit(); await closePanel();
   await H.go("ssp--s10", 1600);
   ok("11 section 10 says what Controls tailored since", /1 control removed \(AC-22\)/.test(await text("#se-s-s10 .k3d-bl")) && new RegExp(`holds ${(await fact("baseline")).total} controls`).test(await text("#se-s-s10 .k3d-bl")), await text("#se-s-s10 .k3d-bl"));

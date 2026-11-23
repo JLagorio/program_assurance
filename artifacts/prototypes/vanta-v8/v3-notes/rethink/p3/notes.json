@@ -1,0 +1,26 @@
+{
+ "lane": "P3",
+ "shots": [
+  {
+   "id": "P3-s1",
+   "title": "A component's preview",
+   "caption": "Version 21 showed seven counts. Now it lists the component's software and firmware, connections, controls, requirements and findings, five rows each with View all.",
+   "was": "v3r/P3/shots/P3-s1-was.jpg",
+   "now": "v3r/P3/shots/P3-s1-now.jpg"
+  },
+  {
+   "id": "P3-s2",
+   "title": "A finding's preview",
+   "caption": "Its plan, its risk, the control it judges and the components it stands on.",
+   "was": "v3r/P3/shots/P3-s2-was.jpg",
+   "now": "v3r/P3/shots/P3-s2-now.jpg"
+  },
+  {
+   "id": "P3-s3",
+   "title": "A document's preview",
+   "caption": "Version 21 had no eye on a document. Now the row has one.",
+   "was": "v3r/P3/shots/P3-s3-was.jpg",
+   "now": "v3r/P3/shots/P3-s3-now.jpg"
+  }
+ ]
+}

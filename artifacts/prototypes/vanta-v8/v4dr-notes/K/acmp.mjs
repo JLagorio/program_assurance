@@ -1,0 +1,35 @@
+// Lane A's Compare on dr-control--AC-17(4) still applies through the kit; then a shot of the proposal demo.
+import { createRequire } from "module";
+const require = createRequire("/Users/joseflagorio/Development/program_assurance-ux-proposal/package.json");
+const { chromium } = require("playwright");
+const B = (await import("path")).resolve(process.argv[2]);
+const b = await chromium.launch();
+const p = await b.newPage({ viewport: { width: 1440, height: 900 } });
+const errs = [];
+p.on("pageerror", (e) => errs.push(e.message));
+await p.route(/fonts\.(googleapis|gstatic)\.com/, (r) => r.abort());
+await p.goto("file://" + B + "#overview");
+await p.waitForTimeout(700);
+await p.evaluate(() => { sessionStorage.clear(); PA.v2.reset(); PA.v3.set(true); });
+await p.evaluate(() => { location.hash = "dr-control--AC-17(4)"; });
+await p.waitForTimeout(800);
+const names = await p.evaluate(() => [...document.querySelectorAll("#main button")].filter((x) => /compare/i.test(x.textContent)).map((x) => x.textContent.trim()));
+console.log("compare triggers:", names);
+const h = await p.evaluateHandle(() => [...document.querySelectorAll("#main button")].find((x) => /compare/i.test(x.textContent) && x.checkVisibility()) || null);
+const el = h.asElement();
+if (el) { await el.scrollIntoViewIfNeeded(); await el.click(); await p.waitForTimeout(300); }
+console.log("dialog:", await p.evaluate(() => !!document.querySelector("#modal .drk-cmp")), "switches:", await p.evaluate(() => document.querySelectorAll("#modal .drk-cmp-seg").length));
+await p.click('#modal [data-drk-cmp="apply"][data-i="0"]').catch((e) => console.log("no switch on row 0:", e.message.split("\n")[0]));
+await p.waitForTimeout(150);
+const before = await p.evaluate(() => document.getElementById("main").innerHTML);
+await p.click("#modal [data-k3-submit]");
+await p.waitForTimeout(400);
+const after = await p.evaluate(() => document.getElementById("main").innerHTML);
+console.log("closed:", await p.evaluate(() => document.getElementById("modal").hidden), "toast:", await p.evaluate(() => (document.getElementById("v2-toast") || {}).textContent), "main changed:", before !== after, errs);
+await p.evaluate(() => { location.hash = "dr-components"; });
+await p.waitForTimeout(700);
+await p.evaluate(() => document.querySelector("#drk-c-proposal").scrollIntoView());
+await p.waitForTimeout(200);
+const r = await p.evaluate(() => { const b = document.querySelector("#drk-c-proposal").getBoundingClientRect(); return { x: b.x, y: b.y, width: b.width, height: b.height }; });
+await p.screenshot({ path: "proposal.jpg", type: "jpeg", quality: 60, clip: r });
+await b.close();
