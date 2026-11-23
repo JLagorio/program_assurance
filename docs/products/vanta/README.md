@@ -14,7 +14,7 @@ Researched 2026-11-17 from Vanta's public help center (the Navigation collection
   - `images/`: 2,724 images (784 MB).
   - `notes/`: every article in a line, plus each product surface in depth, in four notes: `integrations.md`, `optimizing-your-workflow.md`, `grc-core.md`, `platform-trust-team-risk.md`.
 
-The whole folder is gitignored and the repository is public: Vanta's images stay on this machine, never committed. To look at a screenshot, open the note that names it.
+Vanta's images are committed in `images/`. To look at a screenshot, open the note that names it.
 
 ## What makes it feel simple
 
