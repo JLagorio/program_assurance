@@ -21,7 +21,7 @@ This was researched on 2026-11-22 from Drata's public help center (https://help.
 - **`journey.md`**: the end-to-end path from sign-up to a completed audit.
 - **`style.md`**: Drata's visual language, set beside Vanta's, and what it adds for Ledger.
 
-The `images/` folder is gitignored, because the repository is public: Drata's screenshots stay on this machine and are never committed. The notes are in our own words, quoting only on-screen labels. To look at a screenshot, open the note or article that names it.
+Drata's screenshots are committed in `images/`. The notes are in our own words, quoting only on-screen labels. To look at a screenshot, open the note or article that names it.
 
 ## What defines Drata's product
 
