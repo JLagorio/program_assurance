@@ -48,6 +48,11 @@
     "Not assessed": ["neu", "dot"], "No evidence": ["neu", "dot"], "Not started": ["neu", "dot"], "Not judged": ["neu", "dot"],
     Critical: ["crit", "alert"], High: ["crit", "alert"], "CAT I": ["crit", "alert"], Low: ["neu", "dot"],
     "ATO with conditions": ["cau", "award"],
+    Supported: ["pos", "check"], Published: ["pos", "check"], Approved: ["pos", "check"], "On schedule": ["pos", "check"],
+    "To review": ["cau", "dot"], "Changes requested": ["cau", "edit"], "Due soon": ["cau", "dot"],
+    "Other than satisfied": ["crit", "alert"], Overdue: ["crit", "alert"],
+    Active: ["info", "dot"], Open: ["info", "dot"],
+    "Not claimed": ["neu", "dot"], Planned: ["neu", "dot"], Proposed: ["neu", "dot"], Draft: ["neu", "edit"], "Not ready": ["neu", "dot"],
   };
   const status = (t) => { const [k, i] = SI[t] || ["neu", "dot"]; return `<span class="ck-si ck-si-${k}">${ic(i)}${esc(t)}</span>`; };
   const pill = (t, n) => `<span class="ck-pill">${esc(t)}${n != null ? `<span class="ck-pill-n">${esc(n)}</span>` : ""}</span>`;
@@ -69,12 +74,12 @@
   const card = (title, body, extra, cls) => `<section class="ck-card${cls ? " " + cls : ""}">${title ? `<div class="ck-card-h"><h3>${esc(title)}</h3>${extra || ""}</div>` : ""}${body}</section>`;
   function table(cols, rows, opt) {
     const o = opt || {};
-    return `<div class="ck-table-w"><table class="ck-table"><thead><tr>${cols.map((c) => `<th${c.n ? ' class="n"' : ""}${c.w ? ` style="width:${c.w}"` : ""}>${esc(c.t)}</th>`).join("")}</tr></thead>
+    return `<div class="ck-table-w"><table class="ck-table"><thead><tr>${cols.map((c, i) => `<th${c.n ? ' class="n"' : ""}${c.w ? ` style="width:${c.w}"` : ""}>${i === 0 && o.head ? o.head : esc(c.t)}</th>`).join("")}</tr></thead>
       <tbody>${rows.map((r) => `<tr>${r.map((v, i) => `<td${cols[i].n ? ' class="n"' : ""}>${v}</td>`).join("")}</tr>`).join("")}</tbody></table>
       ${o.foot ? `<div class="ck-table-f">${o.foot}</div>` : ""}</div>`;
   }
   const pager = (a, b, n) => `<span>${a}–${b} of ${n}</span><span class="ck-pager">${iconBtn("left", "Previous page")}<span class="ck-pg on">1</span><span class="ck-pg">2</span><span class="ck-pg">3</span><span class="ck-pg-gap">…</span>${iconBtn("right", "Next page")}</span>`;
-  const toolbar = (ph, filters, primary) => `<div class="ck-toolbar">${search(ph)}<span class="ck-btn ck-btn-tertiary ck-btn-sm">${ic("filter")}<span>All</span>${ic("chev")}</span>${filters.map(select).join("")}<span class="ck-sp"></span>${btn("More", "tertiary", "more", "sm")}${btn(primary, "primary", "plus", "sm")}</div>`;
+  const toolbar = (ph, filters, primary) => `<div class="ck-toolbar">${search(ph)}<span class="ck-btn ck-btn-tertiary ck-btn-sm">${ic("filter")}<span>All</span>${ic("chev")}</span>${filters.map(select).join("")}<span class="ck-sp"></span>${btn("More", "tertiary", "more", "sm")}${primary ? btn(primary, "primary", "plus", "sm") : ""}</div>`;
   const code = (t) => `<span class="ck-code">${esc(t)}</span>`;
   const muted = (t) => `<span class="ck-muted">${esc(t)}</span>`;
   const late = (t) => `<span class="ck-late">${esc(t)}</span>`;
@@ -82,17 +87,18 @@
 
   // ——— The app frame: Canvas global header, side panel navigation, page header ———
   const NAV = [["Overview", "home"], ["System", "sys"], ["Controls", "shield"], ["Requirements", "list"], ["Evidence", "clip"], ["Documents", "doc"], ["Assessments", "clip2"], ["Findings", "flag"], ["Risks", "alert"], ["Authorization", "award"]];
-  function frame(on, main) {
+  // The side panel is the program's by default; the workspace and the product library have their own (kind).
+  function frame(on, main, nav, kind) {
     return `<div class="ck-app" style="width:${W}px">
       <header class="ck-top"><span class="ck-menu">${ic("grid")}</span><span class="ck-logo"><b>PA</b><span>Program Assurance</span></span>
         <span class="ck-gsearch">${ic("search")}<span>Search controls, evidence, findings</span><kbd>⌘K</kbd></span>
         <span class="ck-sp"></span>${iconBtn("bell", "Notifications")}<span class="ck-av ck-av-me">IS</span></header>
       <div class="ck-body">
         <nav class="ck-side" aria-label="Program">
-          <span class="ck-back">${ic("left")}Workspace</span>
+          ${kind === "workspace" ? `<div class="ck-side-t">Workspace</div>` : kind === "products" ? `<span class="ck-back">${ic("left")}Workspace</span><div class="ck-side-t">Products</div>` : `<span class="ck-back">${ic("left")}Workspace</span>
           <div class="ck-prog"><div><b>WS-X90</b><span>Sentinel Mission System</span></div>${ic("chev")}</div>
-          <div class="ck-prog-m">PRG-1090 · Impact High<br>Increment 2 · TMRR · PDR Nov 24</div>
-          <div class="ck-side-l">${NAV.map(([t, i]) => `<span class="ck-nav${t === on ? " on" : ""}">${ic(i)}${esc(t)}</span>`).join("")}</div>
+          <div class="ck-prog-m">PRG-1090 · Impact High<br>Increment 2 · TMRR · PDR Nov 24</div>`}
+          <div class="ck-side-l">${(nav || NAV).map(([t, i]) => `<span class="ck-nav${t === on ? " on" : ""}">${ic(i)}${esc(t)}</span>`).join("")}</div>
         </nav>
         <main class="ck-main">${main}</main>
       </div></div>`;
@@ -189,6 +195,187 @@
     return frame("Risks", main);
   }
 
+  // ——— More screens (version 2 of the tab): registers, records and the workspace ———
+  const cb = (on, part) => `<span class="ck-cb${on ? " on" : ""}${part ? " part" : ""}">${on ? ic("check") : part ? '<i></i>' : ""}</span>`;
+  const avs = (names) => `<span class="ck-avs">${names.map((n) => `<span class="ck-av" title="${esc(n)}">${esc(n.split(/\s+/).map((x) => x[0]).join("").slice(0, 2).toUpperCase())}</span>`).join("")}</span>`;
+  const plus = (n) => (n ? ` <span class="ck-more">+${n}</span>` : "");
+  const tiles = (xs, cls) => `<div class="ck-tiles${cls ? " " + cls : ""}">${xs.map(([k, v, tone]) => `<div class="ck-tile${tone ? " ck-tile-" + tone : ""}"><b${tone === "late" ? ' class="ck-late"' : ""}>${v}</b><span>${k}</span></div>`).join("")}</div>`;
+  const facts = (xs) => `<dl class="ck-facts">${xs.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${v}</dd></div>`).join("")}</dl>`;
+
+  function requirements() {
+    const rows = [["REQ-001", "AC Enforcement Requirement 001", "AC-2, AC-7", "Navigation & Timing Subsystem", 1, 1, "Supported", true], ["REQ-002", "AC Verification Requirement 002", "AC-3", "Protected Network Gateway", 1, 1, "Supported", true], ["REQ-003", "AC Configuration Requirement 003", "AC-4", "Platform Management Controller", 2, 1, "Supported"], ["REQ-004", "AC Monitoring Requirement 004", "AC-5", "Navigation & Timing Subsystem", 1, 0, "No evidence"], ["REQ-005", "AC Enforcement Requirement 005", "AC-6", "Mission Computer", 1, 1, "Supported"], ["REQ-006", "AC Verification Requirement 006", "AC-7", "Mission Computer", 2, 1, "Supported"], ["REQ-007", "AC Configuration Requirement 007", "AC-8", "Protected Network Gateway", 0, 1, "Supported"], ["REQ-008", "AC Monitoring Requirement 008", "AC-11, AU-4", "Platform Management Controller", 1, 0, "No evidence"], ["REQ-009", "AC Enforcement Requirement 009", "AC-12", "Mission Computer", 2, 1, "Supported"]];
+    const main = `<div class="ck-ph"><div class="ck-ph-t"><h1>Requirements</h1></div><div class="ck-ph-a">${btn("Import requirements", "secondary")}${btn("Open workbook", "secondary")}</div></div>
+      ${tabs([["All", 654], ["Engineering", 640], ["CUSA-SSRD", 14]], "All")}
+      <div class="ck-chips"><span class="ck-chip-k">Gaps</span>${pill("No control", 17)}${pill("No evidence", 286)}${pill("Not allocated", 598)}${pill("Mapping to review", 1)}</div>
+      ${toolbar("Search requirements", ["Component", "Family", "State"], "Create requirement")}
+      <div class="ck-sel-w">${table([{ t: "", w: "52px" }, { t: "Requirement" }, { t: "Controls", w: "130px" }, { t: "Components", w: "290px" }, { t: "Evidence", n: true, w: "100px" }, { t: "State", w: "150px" }, { t: "Owner", w: "160px" }], rows.map(([id, t, c, comp, more, ev, s, on]) => [cb(on), title2(id, t), `<span class="ck-mono">${esc(c)}</span>`, `<span class="ck-ell">${esc(comp)}${plus(more)}</span>`, ev ? String(ev) : muted("—"), status(s), avatar("")]), { foot: pager(1, 9, 654), head: cb(false, true) })}
+      <div class="ck-actionbar"><b>2 selected</b><span class="ck-link">Clear</span><span class="ck-sp"></span>${btn("Map control", "secondary", null, "sm")}${btn("Allocate", "secondary", null, "sm")}${btn("Assign owner", "primary", null, "sm")}</div></div>`;
+    return frame("Requirements", main);
+  }
+
+  function requirement() {
+    const main = `${crumbs(["Requirements", "REQ-470"])}
+      <div class="ck-ph"><div class="ck-ph-t"><h1>Remote privileged maintenance commands pass three admission checks</h1>${pill("REQ-470")}${status("Supported")}</div><div class="ck-ph-a">${btn("More", "secondary")}${btn("Edit requirement", "primary")}</div></div>
+      <div class="ck-banner ck-banner-cau">${ic("alert")}<div><b>It is allocated to no component.</b> Nobody builds it until a component takes it.</div><span class="ck-sp"></span>${btn("Allocate", "secondary", null, "sm")}</div>
+      <div class="ck-grid ck-grid-side">
+        <div class="ck-stack">
+          ${card("Statement", `<p class="ck-prose">A privileged command that reaches the system over the maintenance path executes only when the command is on the approved remote-privileged list, the maintenance laptop presents a current device attestation, and the session falls inside a scheduled maintenance window. A command that fails any of the three checks is refused and logged.</p>`, `<span class="ck-meta">Engineering requirement</span>`)}
+          ${card("Controls", table([{ t: "Control" }, { t: "Status", w: "170px" }, { t: "", w: "90px" }], [[`<span class="ck-ctl">${code("AC-17(4)")}<span class="ck-link">Privileged Commands and Access</span></span>`, status("Not assessed"), `<span class="ck-link">Unmap</span>`]]), `${count(1)}<span class="ck-sp"></span>${btn("Map control", "secondary", "plus", "sm")}`)}
+          ${card("Evidence", table([{ t: "Artifact" }, { t: "Kind", w: "120px" }, { t: "Review", w: "150px" }, { t: "Collected", w: "100px" }], [[`<span class="ck-link ck-ell">Remote privileged command admission test report, approved list, attestation and window checks</span>`, "Test record", status("To revise"), "Nov 10"], [`<span class="ck-link ck-ell">Remote privileged command admission test report, approved list, attestation and window checks</span>`, "Document", status("Accepted"), muted("—")]]), `${count(2)}<span class="ck-sp"></span>${btn("Link evidence", "secondary", "plus", "sm")}`)}
+          ${card("What it leads to", `<div class="ck-list">${[["Operational issue", "Out-of-window remote privileged commands logged and then admitted by the Maintenance Access Gateway", "Low", "Closed"], ["Risk", "Out-of-window privileged maintenance was recorded rather than refused", "Low", "Open"], ["Remediation item", "Block out-of-window privileged commands at the maintenance gateway", "Completed", "Planned Dec 7"]].map(([k, t, s, st]) => `<div class="ck-li"><span class="ck-li-k">${esc(k)}</span><span class="ck-link ck-ell">${esc(t)}</span>${status(s)}<span class="ck-muted ck-li-r">${esc(st)}</span></div>`).join("")}</div>`, count(3))}
+        </div>
+        <div class="ck-stack">
+          ${card("Details", `<dl class="ck-dl">${[["Source", "Engineering requirement"], ["Owner", `${avatar("")} <span class="ck-link">Assign</span>`], ["Controls", "1"], ["Components", '0 <span class="ck-link">Allocate</span>'], ["Evidence", "2 · 1 accepted"], ["Revision", "3 · Nov 10"]].map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("")}</dl>`)}
+          ${card("", `<div class="ck-exp">${ic("right")}<b>Edit history</b><span class="ck-sp"></span>${count(3)}</div><div class="ck-exp">${ic("right")}<b>Comments</b><span class="ck-sp"></span>${count(0)}</div>`, "", "ck-card-tight")}
+        </div>
+      </div>`;
+    return frame("Requirements", main);
+  }
+
+  function system() {
+    const rows = [[0, "WS-X90 Sentinel Mission System", "CN-109000", "System", "", "31 items", 543, 42, 140, true], [1, "Mission Computing Subsystem", "CN-109001", "Subsystem", "", "6 items", 145, 18, 61, true], [2, "Mission Computer", "CN-109101", "Hardware", "behind", "MC-FW 4.2.1 → 4.3.0 +1", 74, 13, 54], [2, "Secure Boot Controller", "CN-109102", "Hardware", "", "SBC-FW 2.0.7 → 2.1.0", 40, 3, 5], [2, "Cryptographic Services Module", "CN-109103", "Hardware", "", "CSM-FW 3.4.2", 55, 5, 6], [1, "Navigation & Timing Subsystem", "CN-109002", "Subsystem", "", "3 items", 49, 2, 2], [1, "Communications Subsystem", "CN-109003", "Subsystem", "", "5 items", 102, 6, 27, true], [2, "Protected Network Gateway", "CN-109107", "Hardware", "", "PNG-FW 6.0.4 → 6.1.1", 77, 6, 18], [2, "Tactical Data Radio", "CN-109108", "Hardware", "", "TDR-FW 8.2.0 → 8.3.0", 36, 1, 3], [2, "Internal Ethernet Switch", "CN-109109", "Hardware", "", "IES-OS 15.2(7)", 31, 0, 11], [1, "Payload Interface Subsystem", "CN-109004", "Subsystem", "", "3 items", 66, 1, 4], [1, "Ground Support Subsystem", "CN-109006", "Subsystem", "", "8 items", 319, 25, 53]];
+    const main = `<div class="ck-ph"><div class="ck-ph-t"><h1>System</h1>${pill("SYS-WSX90")}</div><div class="ck-ph-a">${btn("Boundary diagram", "secondary")}</div></div>
+      ${tabs([["Components", 27], ["Host and providers", 3], ["Connected systems", 8], ["Connections", 18]], "Components")}
+      <div class="ck-grid ck-grid-2">
+        ${card("Authorization in force", `<div class="ck-row">${status("ATO with conditions")}<span class="ck-muted">until Sep 17, 2029</span></div><p class="ck-p">Increment 1 · Block 1, the six subsystems as fielded</p>${facts([["In the boundary", "27 components"], ["Conditions", '<span class="ck-link">3 open</span>'], ["Signed", "Sep 18, 2026 · R. Calloway"]])}`)}
+        ${card("Needs attention", tiles([["Behind its library version", 1], ["Provider with no authorization", 1], ["Connections without an agreement", 4, "late"]], "ck-tiles-3"))}
+      </div>
+      ${toolbar("Search components", ["Subsystem", "Kind", "Library"], "Add component")}
+      ${table([{ t: "Component" }, { t: "Kind", w: "110px" }, { t: "Library", w: "160px" }, { t: "Software & firmware", w: "230px" }, { t: "Controls", n: true, w: "100px" }, { t: "Requirements", n: true, w: "130px" }, { t: "Findings", n: true, w: "100px" }], rows.map(([lv, t, c, k, lib, sw, ctl, req, f, open]) => [`<span class="ck-tree" style="padding-left:${lv * 24}px">${lv < 2 ? `<span class="ck-tw${open ? " open" : ""}">${ic(open ? "chev" : "right")}</span>` : '<span class="ck-tw"></span>'}<span class="ck-t2 ck-tree-n"><span class="${lv < 2 ? "ck-strong" : "ck-link"} ck-ell">${esc(t)}</span><span class="ck-code ck-t2b">${esc(c)}</span></span></span>`, esc(k), lib === "behind" ? `<span class="ck-si ck-si-cau">${ic("alert")}1 version behind</span>` : lib === "current" ? `<span class="ck-si ck-si-pos">${ic("check")}Current</span>` : muted("—"), `<span class="ck-mono ck-ell">${esc(sw)}</span>`, String(ctl), req ? String(req) : muted("0"), f ? String(f) : muted("0")]), { foot: pager(1, 12, 27) })}`;
+    return frame("System", main);
+  }
+
+  const PNAV = [["Products", "grid"], ["Components", "sys"], ["Suppliers", "user"]];
+  function component() {
+    const used = [["X800 Missile", "GS-MC · Product", "Product", "Version 1 · behind", "—"], ["WS-X90 Sentinel Mission System", "LRU-001 · PRG-1090", "50 of 54", "Version 1 · behind", "Not reminded yet"], ["Customer A · X800 Rail Integration", "CA-GS-MC · PRG-2101", "53 of 54", "Version 1 · behind", "Not reminded yet"], ["Customer B · X800 Palletized Integration", "CB-GS-MC · PRG-2102", "54 of 54", "Version 1 · behind", "Not reminded yet"]];
+    const main = `${crumbs(["Components", "Mission Computer"])}
+      <div class="ck-ph"><div class="ck-ph-t"><h1>Mission Computer</h1>${status("Published")}</div><div class="ck-ph-a">${select("Version 2")}${btn("Create task", "secondary")}${btn("Review offer", "primary")}</div></div>
+      ${facts([["Owner", avatar("Priya Raghavan")], ["Version", "2 · Nov 12"], ["Business line", "Air Defense"], ["Component set", '<span class="ck-link">X800 Missile component set</span>'], ["Reassess", "Yearly"]])}
+      ${tabs([["Overview"], ["Assessment", 61], ["Where used", 4], ["Findings", 1], ["SBOM", 13], ["Versions", 2]], "Overview")}
+      <div class="ck-grid ck-grid-side">
+        <div class="ck-stack">
+          ${card("What changed in version 2", `<p class="ck-prose">The maintenance image carries OpenSSH server 9.8p1 in place of 9.6p1, which fixes CVE-2024-6387 (regreSSHion). Nothing else in the image changes.</p>
+            <div class="ck-list">${[["AC-17(2)", "Protection of Confidentiality and Integrity Using Encryption", "To review"], ["SC-23", "Session Authenticity", "To review"], ["RA-5", "Vulnerability Monitoring and Scanning", "Not claimed"], ["SI-2", "Flaw Remediation", "Not claimed"]].map(([c, t, s]) => `<div class="ck-li">${code(c)}<span class="ck-ell">${esc(t)}</span>${status(s)}</div>`).join("")}</div>`, pill("Software"))}
+          ${card("Where used", table([{ t: "Consumer" }, { t: "Controls inherited", w: "150px" }, { t: "Version", w: "170px" }, { t: "Reminder", w: "150px" }], used.map(([a, b, c, v, r]) => [title2(a, b), esc(c), `<span class="ck-si ck-si-cau">${ic("alert")}${esc(v)}</span>`, r === "—" ? muted("—") : muted(r)])), `${count(4)}<span class="ck-sp"></span>${btn("Send reminder", "secondary", "bell", "sm")}`)}
+        </div>
+        <div class="ck-stack">
+          ${card("Details", `<dl class="ck-dl">${[["Version", "2 · published Nov 12"], ["Previous", "1 · assessed Sep 30"], ["Assessor", avatar("Elena Vasquez")], ["Determinations", "52 carried · 2 to review"], ["SBOM", "CycloneDX 1.5 · 13 components"], ["Open CVEs", '0 on version 2 · <span class="ck-late">1 on version 1</span>']].map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("")}</dl>`)}
+          ${card("Controls", `<div class="ck-list ck-list-n">${[["Satisfied", 42], ["Partially satisfied", 6], ["Other than satisfied", 4], ["Not assessed", 7], ["To review", 2]].map(([s, n]) => `<div class="ck-li">${status(s)}<span class="ck-sp"></span><b>${n}</b></div>`).join("")}</div>`, count(61))}
+          ${card("Offer waiting", `<div class="ck-hl"><b>CVE-2024-6387 · high, 8.1</b><span>Offered by Ingrid Solberg from LRU-001. Accepting opens an issue in Customer A and Customer B.</span></div>`, "")}
+        </div>
+      </div>`;
+    return frame("Components", main, PNAV, "products");
+  }
+
+  function assessments() {
+    const rows = [["Expanded control set assessment", "Control assessment", "Active", "Sep 14 – Nov 20", [56, 81], "35", "D. Okafor"], ["Continuous monitoring FY2027", "Control assessment", "Active", "Oct 1 – Sep 30, 2027", [0, 10], "—", "D. Okafor"], ["Initial authorization assessment", "Control assessment", "Completed", "Aug 3 – Aug 21", null, "17", "D. Okafor"], ["Cooperative vulnerability identification — FY2027", "Cyber test", "Planned", "Jan 11 – Feb 5, 2027", null, "—", "Ingrid Solberg"], ["Adversarial cybersecurity DT&E — FY2027", "Cyber test", "Proposed", "Jun 8 – Jul 3, 2027", null, "—", "Wes Duarte"], ["ACAS vulnerability scan, mission network", "Monitoring check", "Overdue", "Monthly · next Nov 15", "2 runs", "4", "Joel Barrantes"], ["STIG compliance scan", "Monitoring check", "Overdue", "Monthly · next Nov 11", "2 runs", "75", "Joel Barrantes"], ["POA&M review", "Monitoring check", "Due soon", "Monthly · next Nov 21", "2 runs", "—", "Priya Raghavan"], ["Audit log review sampling", "Monitoring check", "On schedule", "Quarterly · next Dec 23", "1 run", "—", "Nadia Fournier"]];
+    const main = `<div class="ck-ph"><div class="ck-ph-t"><h1>Assessments</h1></div><div class="ck-ph-a">${btn("Calendar", "secondary")}</div></div>
+      <div class="ck-grid ck-grid-2">
+        ${card("Under way", `<div class="ck-big"><b>62%</b><span>Objectives judged · 56 objectives</span></div>${bar(62)}<p class="ck-muted ck-p0">2 active control assessments</p>`)}
+        ${card("Needs attention", tiles([["Results waiting to be published", 1], ["Monitoring checks overdue", 3, "late"], ["Windows ending within two weeks", 1]], "ck-tiles-3"))}
+      </div>
+      <div class="ck-seg" role="presentation"><span class="on">All 19</span><span>Control assessments 3</span><span>Cyber tests 4</span><span>Monitoring checks 12</span></div>
+      ${toolbar("Search assessments", ["Status", "Needs", "Lead"], "Plan an assessment")}
+      ${table([{ t: "Assessment" }, { t: "Kind", w: "150px" }, { t: "Status", w: "130px" }, { t: "Window or cadence", w: "180px" }, { t: "Progress", w: "100px" }, { t: "Findings", n: true, w: "90px" }, { t: "Lead", w: "160px" }], rows.map(([a, k, s, w, p, f, l]) => [`<span class="ck-link ck-ell">${esc(a)}</span>`, esc(k), status(s), s === "Overdue" ? late(w) : esc(w), Array.isArray(p) ? ring(p[0], p[1]) : p ? esc(p) : muted("—"), f === "—" ? muted("—") : f, avatar(l)]), { foot: pager(1, 9, 19) })}`;
+    return frame("Assessments", main);
+  }
+
+  function documents() {
+    const rows = [["SSP", "System security plan", "For Increment 2 · Block 1.1 · revision 2 is published", "3", "Draft", "Priya Raghavan", ["Priya Raghavan", "Marcus Ryde"], "10:42 AM"], ["CP", "Contingency plan", "Implements CP-2 · version 3 in review", "4", "Draft", "Amara Bell", ["Amara Bell"], "9:48 AM"], ["IRP", "Incident response plan", "Implements IR-8 · version 2 approved", "4", "Changes requested", "Priya Raghavan", ["Priya Raghavan"], "8:40 AM"], ["CMP", "Configuration management plan", "Implements CM-9 · version 1.4 approved", "5", "Draft", "Ingrid Solberg", ["Marcus Ryde"], "10:05 AM"], ["AC-1", "Access control policy", "Renew by Mar 18", "3.2", "Changes requested", "Wes Duarte", [], "—"], ["AT-1", "Awareness and training policy", "No document yet", "—", "Not started", "", [], "—"], ["AU-1", "Audit and accountability policy", "Renew by Mar 15", "4.2", "Changes requested", "", [], "—"], ["CA-1", "Assessment, authorization and monitoring policy", "Renew by Apr 8", "2.4", "Approved", "", [], "—"]];
+    const main = `<div class="ck-ph"><div class="ck-ph-t"><h1>Documents</h1></div></div>
+      ${tiles([["Placeholder narratives in the SSP", 74], ["Changes requested", 9], ["In review, waiting on an approver", 1], ["Policies not started", 6], ["Agreements expired", 2, "late"]], "ck-tiles-row ck-tiles-5")}
+      ${tabs([["All", 30], ["Plans", 4], ["Policies", 18], ["Categorization", 1], ["Agreements", 7]], "All")}
+      ${toolbar("Search documents", ["State", "Owner"], "New document")}
+      ${table([{ t: "Document" }, { t: "Revision", w: "100px" }, { t: "State", w: "190px" }, { t: "Owner", w: "180px" }, { t: "Editing now", w: "130px" }, { t: "Last edited", w: "120px" }, { t: "", w: "64px" }], rows.map(([c, t, sub, r, s, o, ed, at]) => [`<span class="ck-doc"><span class="ck-doc-c">${esc(c)}</span>${title2(t, sub)}</span>`, r === "—" ? muted("—") : r, status(s), avatar(o), ed.length ? `<span class="ck-live">${avs(ed)}</span>` : muted("—"), at === "—" ? muted("—") : at, iconBtn("more", "Actions")]), { foot: pager(1, 8, 30) })}`;
+    return frame("Documents", main);
+  }
+
+  function authorization() {
+    const parts = [["System security plan", "Revision 3, Increment 2", "A draft", "SSP"], ["Security assessment report", "3 control assessments", "1 assessment with results in draft", "SAR"], ["Plan of action and milestones", "48 findings with a plan", "12 plans past the planned date", "POA&M"], ["Risk assessment", "40 open risks", "40 risks without an owner", "Risk assessment"]];
+    const conds = [["Complete the expanded control set assessment", "The campaign ends Nov 20", "D. Okafor", "Nov 20"], ["Close the high-severity remediation items within 90 days", "11 high issues open", "Priya Raghavan", "Dec 17"], ["Report the SA-24 design review at the annual authorization review", "Annual review", "Ingrid Solberg", "Sep 18, 2027"]];
+    const main = `<div class="ck-ph"><div class="ck-ph-t"><h1>Authorization</h1>${status("ATO with conditions")}</div><div class="ck-ph-a">${btn("More", "secondary")}${btn("Open the SSP", "primary")}</div></div>
+      <p class="ck-muted ck-sub">In force since Sep 18, 2026, signed by R. Calloway · ends Sep 17, 2029 · Increment 1 · Block 1, the six subsystems as fielded</p>
+      ${tabs([["Package"], ["Decisions", 4], ["Conditions", 3], ["Monitoring"], ["Sharing", 7]], "Package")}
+      <div class="ck-grid ck-grid-side">
+        <div class="ck-stack">
+          ${card("Package readiness", `<div class="ck-steps">${parts.map(([, , , a], i) => `<div class="ck-step${i === 0 ? " on" : ""}"><span class="ck-step-n">${i + 1}</span><span>${esc(a)}</span></div>`).join('<span class="ck-step-l"></span>')}</div>
+            <div class="ck-banner">${ic("dot")}<div><b>Next step:</b> 0 of 4 parts are ready. The system security plan is a draft.</div></div>`, `<span class="ck-meta">${ring(0, 4)} parts ready</span>`)}
+          ${card("What the package holds", table([{ t: "Part" }, { t: "Holds", w: "200px" }, { t: "Ready", w: "125px" }, { t: "State", w: "250px" }], parts.map(([a, b, c]) => [`<b class="ck-strong">${esc(a)}</b>`, esc(b), status("Not ready"), muted(c)])), count(4))}
+          ${card("Conditions", table([{ t: "Condition" }, { t: "Owner", w: "170px" }, { t: "Due", w: "120px" }, { t: "State", w: "100px" }], conds.map(([a, b, o, d]) => [title2(a, b), avatar(o), esc(d), status("Open")])), `${count(3)}<span class="ck-sp"></span>${btn("Add condition", "secondary", "plus", "sm")}`)}
+        </div>
+        <div class="ck-stack">
+          ${card("Decision in force", `<dl class="ck-dl">${[["Decision", "ATO with conditions"], ["Signed", "Sep 18, 2026"], ["By", avatar("R. Calloway")], ["Ends", "Sep 17, 2029"], ["Covers", "Increment 1 · Block 1, the six subsystems as fielded"], ["Conditions", '<span class="ck-link">3 open</span>']].map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("")}</dl>`)}
+          ${card("Shared with", `<div class="ck-list">${[["R. Calloway", "Authorizing official"], ["D. Okafor", "Lead assessor"], ["Joel Barrantes", "ISSM"]].map(([n, r]) => `<div class="ck-li">${avatar(n)}<span class="ck-sp"></span><span class="ck-muted">${esc(r)}</span></div>`).join("")}</div>`, `${count(7)}<span class="ck-sp"></span>${btn("Share", "tertiary", "plus", "sm")}`)}
+        </div>
+      </div>`;
+    return frame("Authorization", main);
+  }
+
+  const WNAV = [["Home", "home"], ["My work", "check"], ["Review queue", "list"], ["Programs", "shield"], ["Products", "grid"], ["Library", "doc"], ["AI agents", "dot"]];
+  function mywork() {
+    const group = (icon, tone, t, n, items, open) => `<section class="ck-grp"><div class="ck-grp-h">${ic(open ? "chev" : "right")}<span class="ck-grp-i ck-grp-${tone}">${ic(icon)}</span><b>${esc(t)}</b>${count(n)}</div>${open ? `<div class="ck-grp-b">${items.map(([a, b, who, k]) => `<div class="ck-task">${cb(false)}<span class="ck-task-t"><span class="ck-strong">${esc(a)}</span><span class="ck-muted">${esc(b)}</span></span>${k ? `<span class="ck-pill">${esc(k)}</span>` : ""}${who === "-" ? avatar("") : avatar(who)}</div>`).join("")}</div>` : ""}</section>`;
+    const main = `<div class="ck-ph"><div class="ck-ph-t"><h1>My work</h1></div><div class="ck-ph-a">${select("Type")}</div></div>
+      <div class="ck-seg" role="presentation"><span class="on">All 25</span><span>Assigned to me 4</span><span>Needs my approval 8</span><span>Waiting on others 2</span></div>
+      <div class="ck-card ck-card-flush">
+        ${group("alert", "crit", "Urgent", 3, [["Remediate CVE-2024-6387 on the Mission Computer", "WSX-409 · High · due Nov 9 · 8 days late", "Ingrid Solberg", "Task"], ["Resolve 17 operational issues past their remediation date", "1 critical · 9 high · 7 moderate", "-", "Findings"], ["Treat 2 critical risks", "A password alone reaches WS-X90 · unverifiable arm and release records", "-", "Risks"]], true)}
+        ${group("dot", "info", "Needs my approval", 8, [["Narrative drafter: 10 implementation narratives for AC in SSP 3", "AI agent run · started by you · Today 9:12 · 10 narratives waiting", "Ingrid Solberg", "AI run"], ["Evidence mapper: Link 6 artifacts to 11 controls", "AI agent run · started by Priya Raghavan · Today 8:40 · 11 links waiting", "Priya Raghavan", "AI run"], ["POA&M milestone writer: Milestones for 3 POA&M items", "AI agent run · started by Joel Barrantes · Today 8:02 · 9 milestones waiting", "Joel Barrantes", "AI run"], ["Package access: Cooperative vulnerability identification test lead", "Asked Nov 16 · wants SSP and POA&M · Planning the Jan 11 event", "Ingrid Solberg", "Access"]], true)}
+        ${group("award", "cau", "Conditions to close", 3, [], false)}
+        ${group("flag", "neu", "Due for PDR · Nov 24", 3, [], false)}
+        ${group("dot", "neu", "Coming soon", 4, [], false)}
+      </div><div class="ck-pad-toast"></div>
+      <div class="ck-toast">${ic("check")}<div><b>Narrative drafter run approved</b><span>10 narratives saved to SSP revision 3.</span></div><span class="ck-link">Undo</span></div>`;
+    return frame("My work", main, WNAV, "workspace");
+  }
+
+  function reviewq() {
+    const rows = [["PDR · Preliminary design review · Increment 2", "Gate to decide", "WS-X90", "Marcus Ryde", "Nov 10 · 7d", "Ray Colston"], ["Customer B security plan approval package · version 1", "Package to decide", "Customer B · X800 Palletized", "", "Nov 3 · 14d", "Joel Barrantes"], ["Sanitisation and contamination-trace procedure, LRU-015 region clearing", "Evidence to accept", "WS-X90", "Nadia Fournier", "Nov 12 · 5d", "Ingrid Solberg"], ["Account-issue gate configuration export, LRU-017 to LRU-013", "Evidence to accept", "WS-X90", "Nadia Fournier", "Nov 13 · 4d", "Wes Duarte"], ["Approved portable-storage registry export, LRU-020 revision 11", "Evidence to accept", "WS-X90", "Nadia Fournier", "Nov 13 · 4d", "Joel Barrantes"], ["Flight program function list, customer build", "Evidence to accept", "Customer A · X800 Rail", "Elena Vasquez", "Nov 13 · 4d", "Nadia Fournier"], ["Paragraph as received", "Discussion to resolve", "Customer B · X800 Palletized", "", "Nov 13 · 4d", "Local developer"], ["System Requirements Review", "Gate to decide", "Legacy billing gateway", "", "Sep 12 · 66d", ""]];
+    const KIND = { "Gate to decide": "award", "Package to decide": "doc", "Evidence to accept": "clip", "Discussion to resolve": "list" };
+    const main = `<div class="ck-ph"><div class="ck-ph-t"><h1>Review queue</h1></div></div>
+      ${tabs([["All", 32], ["Needs my approval", 8]], "All")}
+      <div class="ck-toolbar">${search("Search the queue")}${["Kind", "Program", "Waiting on", "Waiting longer than"].map(select).join("")}${btn("Add filter", "tertiary", "plus", "sm")}<span class="ck-sp"></span>${iconBtn("filter", "Columns")}</div>
+      ${table([{ t: "Record" }, { t: "Kind", w: "190px" }, { t: "Program", w: "220px" }, { t: "Waiting on", w: "170px" }, { t: "Waiting since", w: "130px" }, { t: "Requested by", w: "170px" }], rows.map(([a, k, p, w, s, r]) => [`<span class="ck-link ck-ell">${esc(a)}</span>`, `<span class="ck-kind">${ic(KIND[k])}${esc(k)}</span>`, `<span class="ck-ell">${esc(p)}</span>`, w ? avatar(w) : muted("Anyone"), /66d/.test(s) ? late(s) : esc(s), r ? avatar(r) : muted("—")]), { foot: pager(1, 8, 32) })}`;
+    return frame("Review queue", main, WNAV, "workspace");
+  }
+
+  // ——— The component gallery: the Canvas Kit parts these screens would use, each drawn in place ———
+  Object.assign(P, {
+    x: '<path d="M6 6l12 12M18 6 6 18"/>',
+    trash: '<path d="M5 7h14M9 7V4.5h6V7M7 7l1 13h8l1-13"/>',
+    edit: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/>',
+    copy: '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V4H4v12h4"/>',
+    info: '<circle cx="12" cy="12" r="8.5"/><path d="M12 11v5.5M12 7.8h.01"/>',
+    cal: '<rect x="4" y="5.5" width="16" height="14.5" rx="2"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/>',
+  });
+  const field = (label, ctl, o) => { const x = o || {}; return `<div class="ck-field${x.err ? " err" : ""}"><label>${esc(label)}${x.req ? '<span class="ck-req">*</span>' : ""}</label>${ctl}${x.hint ? `<span class="ck-hint">${x.err ? ic("alert") : ""}${esc(x.hint)}</span>` : ""}</div>`; };
+  const tinput = (v, o) => `<span class="ck-input ck-tin${o && o.err ? " err" : ""}${o && o.focus ? " focus" : ""}">${v ? esc(v) : `<span class="ck-muted">${esc((o && o.ph) || "")}</span>`}${o && o.icon ? ic(o.icon) : ""}</span>`;
+  const radio = (t, on) => `<span class="ck-opt"><span class="ck-rd${on ? " on" : ""}"></span>${esc(t)}</span>`;
+  const check = (t, on, part) => `<span class="ck-opt">${cb(on, part)}${esc(t)}</span>`;
+  const sw = (t, on) => `<span class="ck-opt"><span class="ck-sw${on ? " on" : ""}"><i></i></span>${esc(t)}</span>`;
+  const menu = (items) => `<div class="ck-menu-p">${items.map((x) => (x === "-" ? '<hr>' : `<span class="ck-mi${x[2] ? " " + x[2] : ""}">${x[1] ? ic(x[1]) : '<span class="ck-ic"></span>'}${esc(x[0])}</span>`)).join("")}</div>`;
+  const gc = (name, line, body) => `<section class="ck-gc"><div class="ck-gc-h"><b>${esc(name)}</b><span>${esc(line)}</span></div><div class="ck-gc-b">${body}</div></section>`;
+  const GALLERY = [
+    ["Buttons", "PrimaryButton, SecondaryButton, TertiaryButton, DeleteButton", `<div class="ck-wrap">${btn("Plan an assessment", "primary")}${btn("Export SCTM", "secondary")}${btn("Open campaign", "tertiary")}<span class="ck-btn ck-btn-delete"><span>Delete draft</span></span></div><div class="ck-wrap">${btn("Add control", "primary", "plus", "sm")}${btn("Send reminder", "secondary", "bell", "sm")}<span class="ck-btn ck-btn-secondary ck-btn-sm ck-dis"><span>Publish</span></span>${iconBtn("more", "More")}${iconBtn("edit", "Edit")}</div>`],
+    ["Text input", "FormField with TextInput: label, hint and error", `${field("Title", tinput("Expanded control set assessment", { focus: true }), { req: true })}${field("Due date", tinput("", { ph: "MM/DD/YYYY", icon: "cal" }), { hint: "A calendar day, in your time zone." })}${field("Owner", tinput("", { err: true, ph: "Choose a person", icon: "chev" }), { req: true, err: true, hint: "Choose an owner before you assign." })}`],
+    ["Text area", "FormField with TextArea and a character count", `${field("Rationale", `<span class="ck-input ck-ta">Required where the determination is short of satisfied: the gateway logs out-of-window commands but still admits them.</span>`, { req: true })}<span class="ck-hint ck-hint-r">118 / 500</span>`],
+    ["Select", "Select, open, with its listbox", `${field("Status", `<span class="ck-select ck-select-open">Partially satisfied${ic("chev")}</span>`)}${menu([["Satisfied"], ["Partially satisfied", "check", "on"], ["Other than satisfied"], ["Not assessed"]])}`],
+    ["Choices", "Checkbox, RadioGroup and Switch", `<div class="ck-cols"><div class="ck-col"><b class="ck-gl">Kinds</b>${check("Control assessments", true)}${check("Cyber tests", false)}${check("Monitoring checks", false, true)}</div><div class="ck-col"><b class="ck-gl">Objectives</b>${radio("Whole control", true)}${radio("Chosen objectives", false)}</div></div><div class="ck-col">${sw("Show controls not in the baseline", true)}${sw("Email me when results publish", false)}</div>`],
+    ["Segmented control", "SegmentedControl for 2 to 5 states", `<div class="ck-seg"><span class="on">Families</span><span>List</span></div><div class="ck-seg"><span class="on">All 368</span><span>Waiting 88</span><span>Accepted 226</span></div>`],
+    ["Pills", "Pill: read-only, removable, with an avatar, with a count", `<div class="ck-wrap">${pill("REQ-470")}<span class="ck-pill ck-pill-rm">Severity: High${ic("x")}</span><span class="ck-pill ck-pill-rm">Owner: none${ic("x")}</span><span class="ck-pill"><span class="ck-av ck-av-xs">PR</span>Priya Raghavan</span>${pill("Past due", 27)}${count(560)}</div>`],
+    ["Status indicators", "StatusIndicator, low and high emphasis, with icons", `<div class="ck-wrap">${["Satisfied", "Partially satisfied", "Other than satisfied", "Not assessed", "In review"].map(status).join("")}</div><div class="ck-wrap">${[["pos", "check", "Satisfied"], ["cau", "dot", "Partially satisfied"], ["crit", "alert", "Critical"], ["info", "dot", "Active"], ["neu", "dot", "Draft"]].map(([k, i, t]) => `<span class="ck-si ck-si-hi ck-si-hi-${k}">${ic(i)}${esc(t)}</span>`).join("")}</div>`],
+    ["Banners", "Banner: info, caution and error, with an action", `<div class="ck-banner">${ic("dot")}<div><b>Expanded control set assessment holds it.</b> Results in draft.</div><span class="ck-sp"></span><span class="ck-link">Open</span></div><div class="ck-banner ck-banner-cau">${ic("alert")}<div><b>Version 2 is published.</b> This program is on version 1.</div><span class="ck-sp"></span><span class="ck-link">Take version 2</span></div><div class="ck-banner ck-banner-err">${ic("alert")}<div><b>3 errors.</b> Fix them before you save.</div><span class="ck-sp"></span><span class="ck-link">View all</span></div>`],
+    ["Toast", "Toast after an action, with Undo", `<div class="ck-toast ck-toast-in">${ic("check")}<div><b>26 objectives of AC-2 added</b><span>To Continuous monitoring FY2027.</span></div><span class="ck-link">Undo</span>${iconBtn("x", "Close")}</div><div class="ck-toast ck-toast-in ck-toast-err">${ic("alert")}<div><b>Could not publish the results</b><span>Another session changed them since you opened them.</span></div><span class="ck-link">Reload</span></div>`],
+    ["Modal", "Modal with a heading, fields, Cancel and the one primary", `<div class="ck-scrim"><div class="ck-modal"><div class="ck-modal-h"><b>Plan an assessment</b>${iconBtn("x", "Close")}</div><p class="ck-muted ck-p0">Plans AC-2's 26 assessment objectives.</p>${field("Title", tinput("AC-2 assessment"), { req: true })}${field("SSP", `<span class="ck-select">SSP revision 2 · WS-X90${ic("chev")}</span>`)}<div class="ck-modal-f">${btn("Cancel", "secondary")}${btn("Plan an assessment", "primary")}</div></div></div>`],
+    ["Menu", "Popup menu of actions, the destructive one last", `<div class="ck-wrap ck-top-a">${btn("Actions", "secondary", null)}</div>${menu([["Edit control implementation", "edit"], ["Copy link", "copy"], ["Add to assessment campaign", "plus"], "-", ["Inspect record", "info"], ["Remove from baseline", "trash", "danger"]])}`],
+    ["Tooltip", "Tooltip on an icon button, on hover and focus", `<div class="ck-tip-w">${iconBtn("info", "About Objectives mapped")}<span class="ck-tip">Objectives a requirement maps on every system that selects the control</span></div>`],
+    ["Expandable", "Expandable sections for provenance and history", `<div class="ck-exp-c"><div class="ck-exp open">${ic("chev")}<b>Where the baseline comes from</b></div><p class="ck-muted ck-p0 ck-exp-body">NIST SP 800-53 Rev 5 High, then CNSSI 1253 and two overlays, then the F-16 SPO and program tailoring.</p><div class="ck-exp">${ic("right")}<b>Edit history</b><span class="ck-sp"></span>${count(3)}</div></div>`],
+    ["Information highlight", "InformationHighlight for a fact that needs a second look", `<div class="ck-hl"><b>CVE-2024-6387 · high, 8.1</b><span>Open on version 1: 3 programs use it, 2 hold no issue for it yet.</span><span class="ck-link">Open findings</span></div>`],
+    ["Loading", "LoadingDots and Skeleton while a register loads", `<span class="ck-dots"><i></i><i></i><i></i></span><div class="ck-skel"><i style="width:62%"></i><i style="width:88%"></i><i style="width:74%"></i><i style="width:40%"></i></div>`],
+    ["Avatars", "Avatar in sizes, and a group", `<div class="ck-wrap"><span class="ck-av ck-av-xs">PR</span><span class="ck-av">PR</span><span class="ck-av ck-av-me">PR</span><span class="ck-av ck-av-lg">PR</span>${avs(["Priya Raghavan", "Marcus Ryde", "Ingrid Solberg", "Joel Barrantes"])}<span class="ck-more">+3</span></div>`],
+    ["Action bar", "ActionBar while rows are chosen", `<div class="ck-actionbar ck-actionbar-in"><b>2 selected</b><span class="ck-link">Clear</span><span class="ck-sp"></span>${btn("Allocate", "secondary", null, "sm")}${btn("Assign owner", "primary", null, "sm")}</div>`],
+    ["Breadcrumbs and pagination", "Breadcrumbs above a title; Pagination at a table's foot", `${crumbs(["Programs", "WS-X90", "Controls", "AC-17(4)"])}<div class="ck-table-f ck-flat">${pager(1, 25, 560)}</div>`],
+  ];
+  const gallery = () => `<div class="ck-app ck-gal">${GALLERY.map(([n, l, b]) => gc(n, l, b)).join("")}</div>`;
+
   const SCREENS = [
     { id: "overview", title: "Program overview", draw: overview, route: "overview", notes: ["The global header and a side panel replace the bare top bar and list: the program's places get icons and the selected one takes the brand tint.", "Status reads as Canvas StatusIndicators (soft fill, strong text, an icon), so 'Passed' and 'In review' never rely on colour alone.", "One primary button per screen (Canvas rule): Open the PDR package. Everything else is Secondary or Tertiary.", "Cards take Canvas's container border, 8px corners and card padding; the attention numbers become tiles."] },
     { id: "controls", title: "Controls register", draw: controls, route: "controls", notes: ["Tabs carry their counts in Canvas count badges.", "The toolbar is one row: search input, an All filter, Selects, then More and the one primary action, all pill-shaped.", "The Canvas Table: raised header row, 1px dividers, roomier rows; Pagination at the foot instead of an endless list.", "Control IDs keep their monospace, in Roboto Mono."] },
@@ -196,6 +383,15 @@
     { id: "evidence", title: "Evidence register", draw: evidence, route: "evidence", notes: ["The review states become a Segmented Control above the table, the quickest filter on this page.", "Owners show as Canvas Avatars with the name beside them.", "Requirement IDs that open a record are Hyperlinks (blue), following Canvas's 'buttons act, hyperlinks navigate'."] },
     { id: "findings", title: "Findings register", draw: findings, route: "findings", notes: ["Sources become tabs (All, Assessment, Operational, STIG rules, Vulnerabilities) instead of a filter menu.", "Saved states (Past due, On the POA&M, No owner) are Canvas Pills with counts.", "Severity uses the critical and caution StatusIndicators with an icon; past-due dates use Canvas's critical text colour."] },
     { id: "risks", title: "Risks register", draw: risks, route: "risks", notes: ["A row of tiles over the table counts risks by severity, without an owner, and past due.", "Technique IDs set in Roboto Mono.", "Create risk stays the one primary action."] },
+    { id: "requirements", title: "Requirements register", draw: requirements, route: "requirements", notes: ["Sources become tabs (All, Engineering, CUSA-SSRD); the gap filters become Pills with counts.", "Rows are chosen with Checkboxes, and an ActionBar takes the foot of the table with Map control, Allocate and Assign owner.", "Each requirement reads as its ID in link blue over its title, so the code is never the only name."] },
+    { id: "requirement", title: "Requirement record (REQ-470)", draw: requirement, route: "requirement--REQ-470", notes: ["The next step (nobody builds it) is a caution Banner with its action, not a line inside the page.", "Controls and evidence are cards with their counts and a Secondary add; Unmap is a Hyperlink-style tertiary action in the row.", "What the requirement leads to (issue, risk, remediation) is one compact list, each with its status.", "Edit history and comments fold into Expandables under Details."] },
+    { id: "system", title: "System components", draw: system, route: "system", notes: ["The boundary's parts read as a tree table: subsystems open and close with a chevron, parts link to their records.", "A component behind its library version carries a caution StatusIndicator in the Library column.", "The authorization in force and what needs attention sit as two cards above the table."] },
+    { id: "component", title: "Library component (Mission Computer)", draw: component, route: "component-mc", notes: ["The product library has its own side panel (Products, Components, Suppliers).", "The record's facts sit in one row under the title: owner Avatar, version, business line, set, cadence.", "Where used marks each consumer one version behind with a caution StatusIndicator; Send reminder is a Secondary with an icon.", "The waiting CVE offer is an InformationHighlight beside the control counts."] },
+    { id: "assessments", title: "Assessments register", draw: assessments, route: "assessments", notes: ["Kinds become a Segmented Control (All, control assessments, cyber tests, monitoring checks).", "Progress is a ring with its count; an overdue cadence reads in critical text.", "Plan an assessment is the one primary; its form is a Canvas Modal (see Components)."] },
+    { id: "documents", title: "Documents", draw: documents, route: "ssps", notes: ["Five attention tiles head the page; the expired agreements count in critical text.", "Each document's short code sits in a tile beside its title and what it implements.", "Editing now shows an Avatar group with a live dot; row actions are an IconButton that opens a Menu."] },
+    { id: "authorization", title: "Authorization package", draw: authorization, route: "authorization", notes: ["Package readiness is a four-step stepper over the parts, with the next step in an info Banner.", "Every part's Not ready state is a StatusIndicator with an icon; the reason beside it is muted text.", "Conditions move onto the Package tab as a card, and who the package is shared with sits under the decision."] },
+    { id: "mywork", title: "My work", draw: mywork, route: "my-work", notes: ["The workspace has its own side panel; My work is the selected item.", "Groups (Urgent, Needs my approval, Conditions to close…) are Expandables with Count badges, each with a toned icon.", "Every item can be ticked with a Checkbox, carries a Pill for its kind and an Avatar for who holds it.", "Finishing an item raises a Toast with Undo, bottom left."] },
+    { id: "review", title: "Review queue", draw: reviewq, route: "review-queue", notes: ["Filters are Selects in one row with a tertiary Add filter; the register has no create action, as today.", "Each kind (gate, package, evidence, discussion) carries its own icon in the Kind column.", "Nobody named reads as Anyone, muted; a wait over 60 days turns critical."] },
   ];
 
   const KIT = [
@@ -216,6 +412,14 @@
     ["Table", "Table, with Pagination at its foot"],
     ["Owner chip", "Avatar"],
     ["Inline notice", "Banner"],
+    ["Row selection", "Checkbox in the first column, and an ActionBar with the verbs"],
+    ["Create and edit forms", "Modal with FormField, TextInput, TextArea and Select"],
+    ["Toasts after a save", "Toast, with Undo where the change can be taken back"],
+    ["Overflow menus", "IconButton opening a Menu; destructive items last, in red"],
+    ["Provenance and history", "Expandable"],
+    ["A fact that needs a second look", "InformationHighlight"],
+    ["Loading rows", "Skeleton, and LoadingDots inside a button"],
+    ["Collaborators", "Avatar group"],
   ];
 
   function kitSheet() {
@@ -246,16 +450,19 @@
   }
   function draw() {
     const tabsHtml = S["before-after"] ? (() => { const t = document.createElement("template"); t.innerHTML = S["before-after"](); const el = t.content.querySelector(".ba-tabs"); if (el) el.querySelectorAll('[role="tab"]').forEach((x) => { const sel = x.dataset.go === ROUTE; x.setAttribute("aria-selected", String(sel)); x.classList.toggle("on", sel); }); return el ? el.outerHTML : ""; })() : "";
-    const facts = `<span class="num">${SCREENS.length} screens</span><span>Canvas Kit tokens 4.x</span><span>Mockups only</span>`;
+    const facts = `<span class="num">${SCREENS.length} screens</span><span>${GALLERY.length} components</span><span>Canvas Kit tokens 4.x</span><span>Mockups only</span>`;
     setTimeout(fit, 0);
     return `<div class="main ba ckba">${header("Before, v1, v2 and V3", facts, "")}${tabsHtml}
       <section class="drba-hero"><h2>Canvas Kit: the same screens, refreshed</h2>
         <p class="ba-lede">What the Vanta flow study would look like if the prototype adopted Workday's <b>Canvas Kit</b>: its type, colour, shape and depth tokens and its components. Each block is one screen with WS-X90's own data. <b>Canvas Kit</b> is the mockup; <b>Today</b> is the screen as it is now, with V3 on.</p>
         <p class="ba-lede drba-small">These are static mockups drawn on this page. Nothing in the prototype changes; Open today's screen takes you to the working one.</p>
-        <nav class="drba-jump" aria-label="On this page"><a href="#${ROUTE}" data-ckba-jump="ckba-kit">What changes</a>${SCREENS.map((s) => `<a href="#${ROUTE}" data-ckba-jump="ckba-${s.id}">${esc(s.title)}</a>`).join("")}<a href="#${ROUTE}" data-ckba-jump="ckba-map">Component map</a></nav>
+        <nav class="drba-jump" aria-label="On this page"><a href="#${ROUTE}" data-ckba-jump="ckba-kit">What changes</a><a href="#${ROUTE}" data-ckba-jump="ckba-gal">Components</a>${SCREENS.map((s) => `<a href="#${ROUTE}" data-ckba-jump="ckba-${s.id}">${esc(s.title)}</a>`).join("")}<a href="#${ROUTE}" data-ckba-jump="ckba-map">Component map</a></nav>
       </section>
       <h3 class="ba-sub" id="ckba-kit">What changes</h3>
       <div class="ckba-kit"><dl class="ckba-dl">${KIT.map(([k, v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join("")}</dl>${kitSheet()}</div>
+      <h3 class="ba-sub" id="ckba-gal">Components</h3>
+      <p class="ba-lede drba-small">The Canvas Kit parts the screens below use, each drawn with WS-X90's words: forms, overlays, feedback and selection as well as the buttons and statuses above.</p>
+      ${gallery()}
       <h3 class="ba-sub">Screens</h3>
       ${SCREENS.map(block).join("")}
       <h3 class="ba-sub" id="ckba-map">Component map</h3>
