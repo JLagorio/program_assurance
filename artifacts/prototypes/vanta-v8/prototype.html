@@ -8657,7 +8657,8 @@ td.err .drk-sh-g { color: var(--bad); } td.warn .drk-sh-g { color: var(--warn); 
 .ckp-b .ck-card-h h3 { font-size: var(--cnvs-base-font-size-100); }
 .ckp-b .ck-crumbs { margin: 0; }
 .ckp-h1 { font-size: var(--cnvs-base-font-size-150); line-height: var(--cnvs-base-line-height-200); font-weight: var(--cnvs-sys-font-weight-bold); }
-.ckp-tabs { overflow: hidden; }
+.ckp-tabs { overflow-x: auto; scrollbar-width: none; }
+.ckp-tabs::-webkit-scrollbar { display: none; }
 .ckp-tabs .ck-tab { padding: 0 var(--cnvs-sys-space-x3); flex: none; }
 .ckp-more { margin-left: auto; }
 .ckp-more .ck-ic { width: 16px; height: 16px; }
@@ -8671,6 +8672,13 @@ td.err .drk-sh-g { color: var(--bad); } td.warn .drk-sh-g { color: var(--warn); 
 .ckp-li.on { background: var(--cnvs-sys-color-surface-info-default); }
 .ckp-li .ck-t2 { min-width: 0; }
 .ckp-li .ck-t2b { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ckp-li { flex-wrap: wrap; }
+.ckp-li > .ck-t2 { flex: 1 1 0; }
+.ckp-mf { display: inline-flex; align-items: center; justify-content: center; min-width: 32px; height: 24px; padding: 0 var(--cnvs-sys-space-x1); border-radius: var(--cnvs-sys-shape-round); border: 1px solid var(--cnvs-sys-color-border-default); color: var(--cnvs-sys-color-fg-default); font-size: var(--cnvs-base-font-size-50); font-weight: var(--cnvs-sys-font-weight-medium); }
+.ckp-mf.open { background: var(--cnvs-sys-color-surface-alt-default); }
+.ckp-mfd { flex-basis: 100%; display: grid; grid-template-columns: auto 1fr; gap: var(--cnvs-sys-space-x1) var(--cnvs-sys-space-x3); margin: 0 0 0 var(--cnvs-sys-space-x8); font-size: var(--cnvs-base-font-size-75); }
+.ckp-mfd dt { color: var(--cnvs-sys-color-fg-muted-default); }
+.ckp-mfd dd { margin: 0; color: var(--cnvs-sys-color-fg-strong); }
 .ckp-ab { display: flex; align-items: center; gap: var(--cnvs-sys-space-x3); flex: none; padding: var(--cnvs-sys-space-x3) var(--cnvs-sys-space-x4) var(--cnvs-sys-space-x6); background: var(--cnvs-sys-color-surface-default); box-shadow: var(--cnvs-sys-depth-3); }
 .ckp-ab b { color: var(--cnvs-sys-color-fg-stronger); }
 .ckp-b .ck-cm-a { gap: var(--cnvs-sys-space-x4); }
@@ -50715,7 +50723,7 @@ window.PA.DRBA = {
   function control() {
     const comps = [["The system as a whole", "Remote privileged access exists on two paths, both bounded. On the maintenance path the Maintenance Access Gateway (LRU-014) admits a privileged command from a Maintenance Laptop (LRU-019) only when the command is on the approved remote-privileged list, the laptop presents a current device attestation, and the session falls inside a scheduled maintenance window…"], ["Mission Computer", "In the system's text"], ["Protected Network Gateway", "In the system's text"], ["Maintenance Access Gateway", "In the system's text"], ["Maintenance Laptop", "In the system's text"]];
     const objs = [["AC-17(04)(a)[01]", "the execution of privileged commands via remote access is authorized only in a format that provides assessable evidence"], ["AC-17(04)(a)[02]", "access to security-relevant information via remote access is authorized only in a format that provides assessable evidence"], ["AC-17(04)(a)[03]", "the execution of privileged commands via remote access is authorized only for the following needs: [needs]"], ["AC-17(04)(a)[04]", "access to security-relevant information via remote access is authorized only for the following needs: [needs]"], ["AC-17(04)(b)", "the rationale for remote access is documented in the security plan for the system"]];
-    const main = `${crumbs(["Controls", "AC-17(4)"])}
+    const main = `${crumbs(["Programs", "WS-X90", "Controls", "AC-17(4)"])}
       <div class="ck-ph"><div class="ck-ph-t"><h1>Privileged Commands and Access</h1>${pill("AC-17(4)")}${status("Not assessed")}</div><div class="ck-ph-a">${btn("More", "secondary")}${btn("Open assessment campaign", "primary")}</div></div>
       <div class="ck-pn"><span class="ck-muted">44 of 560 controls</span><span class="ck-btn ck-btn-tertiary ck-btn-sm">${ic("left")}<span>Previous</span></span><span class="ck-btn ck-btn-tertiary ck-btn-sm"><span>Next: AC-17(6)</span>${ic("right")}</span></div>
       <div class="ck-banner">${ic("dot")}<div><b>Expanded control set assessment holds it.</b> 5 of 5 objectives judged, in draft results. Draft determination: Partially satisfied, which decides nothing until the results are published.</div><span class="ck-sp"></span><span class="ck-btn ck-btn-tertiary ck-btn-sm"><span>Open campaign</span></span></div>
@@ -50782,7 +50790,7 @@ window.PA.DRBA = {
   }
 
   function requirement() {
-    const main = `${crumbs(["Requirements", "REQ-470"])}
+    const main = `${crumbs(["Programs", "WS-X90", "Requirements", "REQ-470"])}
       <div class="ck-ph"><div class="ck-ph-t"><h1>Remote privileged maintenance commands pass three admission checks</h1></div><div class="ck-ph-a">${btn("More", "secondary")}${btn("Edit requirement", "primary")}</div></div>
       <div class="ck-banner ck-banner-cau">${ic("alert")}<div><b>It is allocated to no component.</b> Nobody builds it until a component takes it.</div><span class="ck-sp"></span>${btn("Allocate", "secondary", null, "sm")}</div>
       <div class="ck-grid ck-grid-side">
@@ -51115,7 +51123,7 @@ window.PA.DRBA = {
     const act = [["Ingrid Solberg", "completed the task Confirm the flightline laptop inventory", "Nov 14 · 3:15 PM", "check"], ["Priya Raghavan", "raised the severity from High to Critical", "Nov 14 · 10:42 AM", "edit"], ["D. Okafor", "linked the assessment finding IA-2(2), Other than satisfied", "Nov 13 · 5:52 PM", "flag"], ["Joel Barrantes", "set the response to Mitigate, due Dec 13", "Nov 13 · 5:40 PM", "edit"], ["Priya Raghavan", "created the risk from the operational issue Disconnected Maintenance Laptop still offers a password-only logon", "Nov 13 · 5:20 PM", "plus"]];
     const cm = (who, when, text, o) => `<div class="ck-cm${o && o.reply ? " ck-cm-r" : ""}"><span class="ck-av">${esc(who.split(/\s+/).map((x) => x[0]).join("").slice(0, 2).toUpperCase())}</span><div class="ck-cm-b"><div class="ck-row"><b class="ck-strong">${esc(who)}</b><span class="ck-muted">${esc(when)}</span>${o && o.tag ? pill(o.tag) : ""}</div><p>${text}</p>${o && o.reply ? "" : `<div class="ck-row ck-cm-a"><span class="ck-link">Reply</span><span class="ck-link">Resolve</span>${iconBtn("more", "More actions")}</div>`}</div></div>`;
     const main = `${crumbs(["Risks", "Register", "A password on its own reaches WS-X90 at the flightline"])}
-      <div class="ck-ph"><div class="ck-ph-t"><h1>A password on its own reaches WS-X90 at the flightline</h1>${status("Critical")}</div><div class="ck-ph-a">${btn("More", "secondary")}${btn("Edit risk", "primary")}</div></div>
+      <div class="ck-ph"><div class="ck-ph-t"><h1>A password on its own reaches WS-X90 at the flightline</h1></div><div class="ck-ph-a">${btn("More", "secondary")}${btn("Edit risk", "primary")}</div></div>
       ${tabs([["Overview"], ["Assessments", 2], ["Remediation", 1]], "Overview")}
       <div class="ck-grid ck-grid-side">
         <div class="ck-stack">
@@ -51127,7 +51135,7 @@ window.PA.DRBA = {
             <div class="ck-exp">${ic("right")}<b>2 resolved comments</b></div>`, count(5))}
         </div>
         <div class="ck-stack">
-          ${card("Details", `<dl class="ck-dl">${[["Owner", `${avatar("")} <span class="ck-link">Assign</span>`], ["Likelihood", "Moderate"], ["Impact", "High"], ["Response", "Mitigate"], ["Response due", `<span>Dec 13</span>`], ["Techniques", '<span class="ck-mono">T1078, T1110</span>'], ["Program", '<span class="ck-link">WS-X90</span>']].map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("")}</dl>`)}
+          ${card("Details", `<dl class="ck-dl">${[["Severity", status("Critical")], ["Owner", `${avatar("")} <span class="ck-link">Assign</span>`], ["Likelihood", "Moderate"], ["Impact", "High"], ["Response", "Mitigate"], ["Response due", `<span>Dec 13</span>`], ["Techniques", '<span class="ck-mono">T1078, T1110</span>'], ["Program", '<span class="ck-link">WS-X90</span>']].map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("")}</dl>`)}
           ${card("Activity", `<div class="ck-seg ck-seg-sm"><span class="on">All</span><span>Changes</span><span>Comments</span></div><ol class="ck-feed">${act.map(([who, what, when, i]) => `<li><span class="ck-feed-i">${ic(i)}</span><div><span><b class="ck-strong">${esc(who)}</b> ${esc(what)}</span><span class="ck-muted">${esc(when)}</span></div></li>`).join("")}</ol><span class="ck-link">Show all 14 events</span>`)}
         </div>
       </div>`;
@@ -51247,22 +51255,23 @@ window.PA.DRBA = {
   function phones() {
     const top = `<div class="ckp-top">${ic("menu")}<span class="ck-logo"><b>PA</b></span><span class="ck-sp"></span>${iconBtn("search", "Search")}<span class="ck-av">IS</span></div>`;
     const phone = (cap, body, foot) => `<figure class="ckp"><div class="ckp-dev">${top}<div class="ckp-b">${body}</div>${foot || ""}</div><figcaption>${esc(cap)}</figcaption></figure>`;
-    const ovtabs = (xs, on) => `<div class="ck-tabs ckp-tabs">${xs.map(([t, n]) => `<span class="ck-tab${t === on ? " on" : ""}">${esc(t)}${n != null ? count(n) : ""}</span>`).join("")}<span class="ck-tab ckp-more">More${ic("chev")}</span></div>`;
+    const ovtabs = (xs, on) => `<div class="ck-tabs ckp-tabs">${xs.map(([t, n]) => `<span class="ck-tab${t === on ? " on" : ""}">${esc(t)}${n != null ? count(n) : ""}</span>`).join("")}</div>`;
     const a = phone("Requirement record", `<div class="ck-crumbs"><span class="ck-link">…</span>${ic("right")}<span class="ck-link">Requirements</span>${ic("right")}<span>REQ-008</span></div>
       <h1 class="ckp-h1">AC Monitoring Requirement 008</h1>
       <div class="ck-row">${btn("Edit requirement", "primary", null, "sm")}${iconBtn("more", "More actions")}</div>
-      ${ovtabs([["Overview"], ["Controls", 2]], "Overview")}
+      ${ovtabs([["Overview"], ["Controls", 2], ["Evidence", 0], ["Components", 2], ["History", 3]], "Overview")}
       ${card("", `<div class="ck-exp">${ic("right")}<b>Details</b><span class="ck-sp"></span>${status("No evidence")}</div>`, "", "ck-card-tight")}
       ${card("Statement", `<p class="ck-p0">The assigned component shall produce or support telemetry sufficient to monitor the behavior governed by AC-11.</p>`)}`);
-    const reqs = [[true, "REQ-004", "AC Monitoring Requirement 004", "No evidence"], [false, "REQ-005", "AC Enforcement Requirement 005", "Supported"], [true, "REQ-008", "AC Monitoring Requirement 008", "No evidence"], [false, "REQ-009", "AC Enforcement Requirement 009", "Supported"], [false, "REQ-012", "AU Monitoring Requirement 012", "No evidence"]];
+    const reqs = [[true, "REQ-004", "AC Monitoring Requirement 004", "No evidence", ["AC-5", "Navigation & Timing Subsystem +1", ""]], [false, "REQ-005", "AC Enforcement Requirement 005", "Supported", ["AC-6", "Mission Computer +1", "1"]], [true, "REQ-008", "AC Monitoring Requirement 008", "No evidence", ["AC-11, AU-4", "Platform Management Controller +1", ""], true], [false, "REQ-009", "AC Enforcement Requirement 009", "Supported", ["AC-12", "Mission Computer +2", "1"]], [false, "REQ-012", "AU Monitoring Requirement 012", "No evidence", ["AU-3", "Mission Computer +2", ""]]];
     const b = phone("Requirements register", `<div class="ck-row"><h1 class="ckp-h1">Requirements</h1><span class="ck-sp"></span>${count(654)}</div>
       <span class="ck-input ck-input-search ckp-full">${ic("search")}<span>Search requirements</span></span>
       <div class="ck-row">${btn("Filters", "secondary", "filter", "sm")}${pill("No evidence", 286)}</div>
-      <div class="ckp-list">${reqs.map(([on, id, t, s]) => `<div class="ckp-li${on ? " on" : ""}">${cb(on)}<span class="ck-t2"><span class="ck-t2a">${esc(id)}</span><span class="ck-t2b">${esc(t)}</span></span><span class="ck-sp"></span>${status(s)}</div>`).join("")}</div>`,
+      <div class="ckp-list">${reqs.map(([on, id, t, s, [ctl, comp, ev], open]) => `<div class="ckp-li${on ? " on" : ""}">${cb(on)}<span class="ck-t2"><span class="ck-t2a">${esc(id)}</span><span class="ck-t2b">${esc(t)}</span></span><span class="ck-sp"></span>${status(s)}<span class="ckp-mf${open ? " open" : ""}" role="button" aria-expanded="${open ? "true" : "false"}" aria-label="Show 4 more fields for ${esc(id)}">+4</span>${open ? `<dl class="ckp-mfd">${[["Controls", esc(ctl)], ["Components", esc(comp)], ["Evidence", ev || muted("None")], ["Owner", muted("Unassigned")]].map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("")}</dl>` : ""}</div>`).join("")}</div>`,
       `<div class="ckp-ab"><b>2 selected</b><span class="ck-sp"></span>${btn("Map control", "primary", null, "sm")}${iconBtn("more", "More actions")}</div>`);
     const c = phone("Risk record, comments", `<div class="ck-crumbs"><span class="ck-link">…</span>${ic("right")}<span class="ck-link">Risks</span></div>
-      <h1 class="ckp-h1">A password on its own reaches WS&#8209;X90 at the flightline</h1><div class="ck-row">${status("Critical")}${avatar("")}</div>
-      ${ovtabs([["Tasks", 4], ["Comments", 5]], "Comments")}
+      <h1 class="ckp-h1">A password on its own reaches WS&#8209;X90 at the flightline</h1>
+      ${ovtabs([["Overview"], ["Tasks", 4], ["Comments", 5], ["Assessments", 2], ["Remediation", 1]], "Comments")}
+      ${card("", `<div class="ck-exp">${ic("right")}<b>Details</b><span class="ck-sp"></span>${status("Critical")}</div>`, "", "ck-card-tight")}
       <div class="ck-compose"><span class="ck-av">IS</span><div class="ck-compose-i"><span class="ck-muted">Write a comment</span></div></div>
       ${[["Ingrid Solberg", "Nov 14", "The squadron counts 6 laptops on the flightline. Two still run the older image without the CAC middleware."], ["Marcus Ryde", "Nov 15", "Does this block PDR on the 24th, or can it go to the POA&amp;M with a date?"]].map(([w, d, t]) => `<div class="ck-cm"><span class="ck-av">${esc(w.split(/\s+/).map((x) => x[0]).join(""))}</span><div class="ck-cm-b"><div class="ck-row"><b class="ck-strong">${esc(w)}</b><span class="ck-muted">${d}</span></div><p>${t}</p><div class="ck-row ck-cm-a"><span class="ck-link">Reply</span><span class="ck-link">Resolve</span></div></div></div>`).join("")}`);
     return `<div class="ck-app ckp-stage" style="width:${W}px">${a}${b}${c}</div>`;
@@ -51305,7 +51314,7 @@ window.PA.DRBA = {
     { id: "tablestates", title: "Table features and empty states", draw: tablestates, now: false, route: "evidence", notes: ["Every column header is a sort button; the sorted one (Last version, newest first) is marked with its arrow and in bold.", "The header stays at the top as the table scrolls, with a shadow under it.", "Chosen rows take the brand tint; the ActionBar takes the toolbar's place while they are chosen, counting them and offering Select all 368, Clear and the verbs.", "An empty register shows an illustration, a title, one line and the same create action as its toolbar.", "A search with no results says what was asked, how many records the filter alone finds, and offers Clear filters, a different state from an empty register."] },
     { id: "states", title: "Loading and failure", draw: states, now: false, route: "overview", notes: ["While a card loads its rows are Skeleton bars in the table's own columns, with LoadingDots beside the card's heading.", "A part that fails says so once, in an error Banner at the top with Retry, and the rest of the page stays usable.", "The card that failed keeps its place and says Could not load; its counts are never shown as zero."] },
     { id: "search", title: "Global search", draw: gsearch, now: false, route: "controls", notes: ["The header's search opens a results panel over a dimmed page as you type (Canvas's SearchForm with a listbox).", "Results are grouped (Controls, Findings, Evidence, Saved views and commands), each with its icon, where it sits, its status and the match highlighted.", "A command (Plan an assessment for AC-17(4)) runs from the same list; the foot shows the keys and See all 5 records."] },
-    { id: "phones", title: "Phone layouts", draw: phones, now: false, notes: ["At 390px the side panel folds into the header's menu; search and the avatar stay in the header.", "Breadcrumbs collapse to an ellipsis and the last two levels; tabs that do not fit fold into More. Details is a closed disclosure under the tabs, with the status in its row.", "A register becomes a list of rows with Checkboxes, and the ActionBar sits at the bottom of the screen with the one primary and More.", "Comments keep the composer at the top and Reply and Resolve under each comment."] },
+    { id: "phones", title: "Phone layouts", draw: phones, now: false, notes: ["At 390px the side panel folds into the header's menu; search and the avatar stay in the header.", "Breadcrumbs collapse to an ellipsis and the last two levels; every tab stays in one strip that scrolls sideways. Details is a closed disclosure under the tabs, with the status in its row.", "A register becomes a list of rows with Checkboxes, each with a +4 that opens the fields the row leaves out, and the ActionBar sits at the bottom of the screen with the one primary and More.", "Comments keep the composer at the top and Reply and Resolve under each comment."] },
     { id: "theme", title: "Theming: one brand colour", draw: theme, now: false, route: "overview", notes: ["Canvas themes by its brand tokens: the program overview with the primary palette set to Canvas indigo, and nothing else changed.", "The primary button, the selected navigation item, the selected tab and its count, and the logo all take the brand colour.", "Links and status colours keep Canvas's own (the kit does not let a tenant theme them), so Satisfied stays green and a link stays a link."] },
   ];
 
