@@ -436,7 +436,7 @@
 .ck-toast-in { position: static; width: auto; }
 
 /* ——— The component gallery (drawn at the page's width, not zoomed) ——— */
-.ck-gal { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; padding: 16px; border: 1px solid var(--line); border-radius: 12px; }
+.ck-gal { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(340px, 100%), 1fr)); gap: 16px; padding: 16px; border: 1px solid var(--line); border-radius: 12px; }
 .ck-gc { display: grid; grid-template-rows: auto 1fr; border-radius: var(--cnvs-sys-shape-x2); background: var(--cnvs-sys-color-surface-default); border: 1px solid var(--cnvs-sys-color-border-container); box-shadow: var(--cnvs-sys-depth-1); min-width: 0; }
 .ck-gc-h { display: grid; gap: 2px; padding: var(--cnvs-sys-space-x4) var(--cnvs-sys-space-x5) var(--cnvs-sys-space-x3); border-bottom: 1px solid var(--cnvs-sys-color-border-divider); }
 .ck-gc-h b { color: var(--cnvs-sys-color-fg-stronger); font-size: var(--cnvs-base-font-size-100); }
@@ -610,3 +610,9 @@
 .ck-cat-3 { background: var(--cnvs-sys-color-surface-alt-strong); color: var(--cnvs-sys-color-fg-muted-strong); }
 .ck-cat.z { background: transparent; color: var(--cnvs-sys-color-fg-disabled); border: 1px solid var(--cnvs-sys-color-border-divider); }
 .ck-grid-t { width: auto; }
+
+/* The gallery is drawn at the page's width: on a phone its cards hold their parts inside them. */
+.ck-gc > * { min-width: 0; }
+.ck-gal .ck-scrim, .ck-gal .ck-modal { min-width: 0; max-width: 100%; }
+.ck-gal .ck-modal * { min-width: 0; overflow-wrap: anywhere; }
+.ck-actionbar-in { flex-wrap: wrap; }
