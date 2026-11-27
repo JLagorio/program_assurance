@@ -1,6 +1,7 @@
-# Canvas Kit: every flow (2026-11-27, artifact version 46)
+# Canvas Kit: every flow (2026-11-27, artifact version 46, 1795823788-c787)
 
 - **About › Before & after › Canvas Kit** now mocks up all 82 screens: the 49 added cover the rest of the prototype (gate, providers, connections, coverage, artifact, policy, plan, ISA, cyber test, SAR, finding, risk, threats, authorization decisions, conditions, monitoring and sharing, POA&M, SSP history, home, AI runs and agents, deadlines, workspace setup, notifications, permissions, enclaves, common controls, event log, components, suppliers, product delta, integrations, data calls, reports, overlays, baseline, approvals). Data comes from today's screens (`ck/today.json`, `ck/read-today.mjs`), specs from `ck/gen-ck2.py` → `src/mod-zzzz-v5-ck2-data.js`, drawing in `src/mod-zzzz-v5-ck2.js`. Each shows in Review all beside v2, V3 and Drata.
+- **Screenshot packs**: one artifact version holds at most 512 files, so `ck/*.jpg` and `rv/*.jpg` are published as eight `pk/pack-<n>.jpg` files (JPEGs end to end). After any shot changes: `python3 -I rv/pack.py`, rebuild, publish `index.html` and `src/out/pk/*.jpg` as `pk/…`. `src/mod-zzzz-v7-pack.js` gives each packed `<img>` its bytes; opened from the file, the images load from `ck/` and `rv/` as before.
 
 # Review all and in-prototype feedback (2026-11-27)
 
