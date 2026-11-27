@@ -107,8 +107,9 @@
     });
     return out.concat(extra);
   }
-  const imgV2 = (s) => (shots()["v2-" + safeId(s.key)] ? `rv/v2-${safeId(s.key)}.jpg` : null);
-  const imgV3 = (s) => (s.ck && !s.pattern && !shots()["v3-" + safeId(s.key)] ? `ck/cur-${s.ck}.jpg` : shots()["v3-" + safeId(s.key)] ? `rv/v3-${safeId(s.key)}.jpg` : s.v3img || null);
+  const fileId = (k) => String(k).replace(/[^A-Za-z0-9_-]/g, "_");
+  const imgV2 = (s) => (shots()["v2-" + fileId(s.key)] ? `rv/v2-${fileId(s.key)}.jpg` : null);
+  const imgV3 = (s) => (s.ck && !s.pattern && !shots()["v3-" + fileId(s.key)] ? `ck/cur-${s.ck}.jpg` : shots()["v3-" + fileId(s.key)] ? `rv/v3-${fileId(s.key)}.jpg` : s.v3img || null);
   const has = (s, v) => (v === "ck" ? !!s.ck : v === "dr" ? s.dr.length > 0 : !s.pattern && !!s.route);
   const reviewed = (s) => votes(s.key).length > 0 || !!keep(s.key) || notes(s.key).length > 0;
 

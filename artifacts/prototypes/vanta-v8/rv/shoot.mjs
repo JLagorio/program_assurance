@@ -19,7 +19,7 @@ await page.evaluate(() => { sessionStorage.clear(); if (PA.v2 && PA.v2.reset) PA
 await page.waitForTimeout(4500);
 await page.addStyleTag({ content: "#v2-toast, #rv-fab, .rv-toast { display: none !important; }" });
 const list = await page.evaluate(() => PA.rv.screens().map((s) => ({ key: s.key, route: s.route, pattern: s.pattern, ck: s.ck, v3img: s.v3img || null })));
-const safe = (s) => String(s).replace(/[^A-Za-z0-9_\-.~:@+]/g, "_").slice(0, 180);
+const safe = (s) => String(s).replace(/[^A-Za-z0-9_-]/g, "_");
 const ckDir = path.join(path.dirname(path.resolve(build)), "..", "..", "ck");
 const ckHere = (id) => [path.join(path.resolve(out), "..", "ck", `cur-${id}.jpg`), path.join(ckDir, `cur-${id}.jpg`)].some((f) => fs.existsSync(f));
 let shots = {};
