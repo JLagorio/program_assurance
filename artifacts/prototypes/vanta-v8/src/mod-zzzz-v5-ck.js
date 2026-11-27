@@ -98,7 +98,7 @@
           ${kind === "workspace" ? `<div class="ck-side-t">Workspace</div>` : kind === "products" ? `<span class="ck-back">${ic("left")}Workspace</span><div class="ck-side-t">Products</div>` : `<span class="ck-back">${ic("left")}Workspace</span>
           <div class="ck-prog"><div><b>WS-X90</b><span>Sentinel Mission System</span></div>${ic("chev")}</div>
           <div class="ck-prog-m">PRG-1090 · Impact High<br>Increment 2 · TMRR · PDR Nov 24</div>`}
-          <div class="ck-side-l">${(nav || NAV).map(([t, i]) => `<span class="ck-nav${t === on ? " on" : ""}">${ic(i)}${esc(t)}</span>`).join("")}</div>
+          <div class="ck-side-l">${(nav || NAV).map(([t, i, n]) => `<span class="ck-nav${t === on ? " on" : ""}">${ic(i)}${esc(t)}${n != null ? count(n) : ""}</span>`).join("")}</div>
         </nav>
         <main class="ck-main">${main}</main>
       </div></div>`;
@@ -311,7 +311,7 @@
     return frame("Authorization", main);
   }
 
-  const WNAV = [["Home", "home"], ["My work", "check"], ["Review queue", "list"], ["Programs", "shield"], ["Products", "grid"], ["Library", "doc"], ["AI agents", "dot"]];
+  const WNAV = [["Home", "home"], ["My work", "check", 21], ["Review queue", "list", 32], ["Programs", "shield"], ["Products", "grid"], ["Library", "doc"], ["AI agents", "dot"]];
   function mywork() {
     const group = (icon, tone, t, n, items, open) => `<section class="ck-grp"><div class="ck-grp-h">${ic(open ? "chev" : "right")}<span class="ck-grp-i ck-grp-${tone}">${ic(icon)}</span><b>${esc(t)}</b>${count(n)}</div>${open ? `<div class="ck-grp-b">${items.map(([a, b, who, k]) => `<div class="ck-task">${cb(false)}<span class="ck-task-t"><span class="ck-strong">${esc(a)}</span><span class="ck-muted">${esc(b)}</span></span>${k ? `<span class="ck-pill">${esc(k)}</span>` : ""}${who === "-" ? avatar("") : avatar(who)}</div>`).join("")}${n > items.length ? `<div class="ck-task"><span class="ck-link">Show ${n - items.length} more</span></div>` : ""}</div>` : ""}</section>`;
     const main = `<div class="ck-ph"><div class="ck-ph-t"><h1>My work</h1></div><div class="ck-ph-a">${select("Type")}</div></div>
@@ -374,6 +374,11 @@
     ["Action bar", "ActionBar while rows are chosen", `<div class="ck-actionbar ck-actionbar-in"><b>2 selected</b><span class="ck-link">Clear</span><span class="ck-sp"></span>${btn("Allocate", "secondary", null, "sm")}${btn("Assign owner", "primary", null, "sm")}</div>`],
     ["Breadcrumbs and pagination", "Breadcrumbs above a title; Pagination at a table's foot", `${crumbs(["Programs", "WS-X90", "Controls", "AC-17(4)"])}<div class="ck-table-f ck-flat">${pager(1, 25, 560)}</div>`],
   ];
+  GALLERY.push(
+    ["Count badges", "CountBadge on navigation items and tabs", `<div class="ck-side-l ck-gal-nav">${[["My work", "check", 21, true], ["Review queue", "list", 32], ["Programs", "shield"]].map(([t, i, n, on]) => `<span class="ck-nav${on ? " on" : ""}">${ic(i)}${esc(t)}${n != null ? count(n) : ""}</span>`).join("")}</div>${tabs([["All", 174], ["Assessment", 52]], "All")}`],
+    ["Theme", "The brand palette through the tokens: Canvas blue, then indigo", `<div class="ck-wrap">${btn("Plan an assessment", "primary")}${tabs([["Plan"], ["Objectives", 81]], "Objectives")}</div><div class="ck-wrap ck-theme-indigo">${btn("Plan an assessment", "primary")}${tabs([["Plan"], ["Objectives", 81]], "Objectives")}</div>`],
+    ["Combobox", "Combobox: type to filter, the match highlighted", `${field("Owner", `<span class="ck-input ck-tin focus">pri<span class="ck-caret"></span>${ic("chev")}</span>`)}<div class="ck-lb"><span class="ck-opt-r hl"><span class="ck-av ck-av-xs">PR</span><span class="ck-t2"><span><mark>Pri</mark>ya Raghavan</span><span class="ck-t2b">ISSO · WS-X90</span></span></span><span class="ck-opt-r"><span class="ck-av ck-av-xs">PI</span><span class="ck-t2"><span><mark>Pri</mark>me Integration Services</span><span class="ck-t2b">Organization</span></span></span></div>`],
+  );
   const gallery = () => `<div class="ck-app ck-gal">${GALLERY.map(([n, l, b]) => gc(n, l, b)).join("")}</div>`;
 
   // ——— Version 3: the rest of the study's screens ———
@@ -507,6 +512,198 @@
     return frame("Evidence", main);
   }
 
+  // ——— Version 4: patterns and states (tasks, comments and activity; the side panel; forms; pickers; table states;
+  // loading and failure; global search; phone layouts; theming) ———
+  Object.assign(P, {
+    eye: '<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.8"/>',
+    send: '<path d="M4 12 20 4l-5 16-3-7z"/><path d="m12 13 8-9"/>',
+    at: '<circle cx="12" cy="12" r="3.5"/><path d="M15.5 12v1.5a2.5 2.5 0 0 0 5 0V12a8.5 8.5 0 1 0-3.3 6.7"/>',
+    up: '<path d="m7 14 5-5 5 5"/>',
+    down: '<path d="m7 10 5 5 5-5"/>',
+    menu: '<path d="M4 7h16M4 12h16M4 17h16"/>',
+    empty: '<rect x="3.5" y="6" width="17" height="13" rx="2"/><path d="M3.5 10h17M8 14h8"/>',
+    refresh: '<path d="M19 8a7.5 7.5 0 1 0 1 5"/><path d="M19.5 3.5V8H15"/>',
+    bolt: '<path d="M13 3 5 13h6l-1 8 8-10h-6z"/>',
+  });
+  // frame() with what these screens add: a side panel beside Main, an overlay over the page, the search opened,
+  // the theme class. The plain screens above keep calling frame() as they did.
+  function frameX(on, main, nav, kind, o) {
+    let html = frame(on, main, nav, kind);
+    if (o.panel) html = html.replace(/<\/main>\s*<\/div>/, `</main>${o.panel}</div>`);
+    if (o.search) html = html.replace(/<span class="ck-gsearch">[\s\S]*?<\/kbd><\/span>/, o.search);
+    if (o.theme) html = html.replace('class="ck-app"', `class="ck-app ${o.theme}"`);
+    if (o.over) html = html.replace(/<\/div>\s*$/, `${o.over}</div>`);
+    return html;
+  }
+  const mark = (t, q) => { const i = t.toLowerCase().indexOf(q.toLowerCase()); return i < 0 ? esc(t) : `${esc(t.slice(0, i))}<mark>${esc(t.slice(i, i + q.length))}</mark>${esc(t.slice(i + q.length))}`; };
+  const due = (d, s) => `<span class="ck-due">${ic("cal")}${esc(d)}${s ? " " + status(s) : ""}</span>`;
+  const sk = (w) => `<i class="ck-sk" style="width:${w}"></i>`;
+
+  // Tasks, comments and activity on a record (the risk record)
+  function collab() {
+    const tasks = [[true, "Confirm the flightline laptop inventory with the squadron", "Ingrid Solberg", "Nov 8", "Completed"], [false, "Draft the CAC requirement for the Maintenance Laptop (IA-2(1))", "Priya Raghavan", "Nov 19", "Due soon"], [false, "Request the SCA review of the CAC reader change", "Joel Barrantes", "Dec 6", "Not started"], [false, "Record the residual risk once IA-2(1) is assessed", "", "Dec 13", "Not started"]];
+    const act = [["Priya Raghavan", "raised the severity from High to Critical", "Nov 12 · 10:42 AM", "edit"], ["Ingrid Solberg", "completed the task Confirm the flightline laptop inventory", "Nov 8 · 3:15 PM", "check"], ["D. Okafor", "linked the assessment finding AC-17(4) [03], Other than satisfied", "Nov 5 · 9:02 AM", "flag"], ["Joel Barrantes", "set the response to Mitigate, due Dec 13", "Oct 31 · 4:40 PM", "edit"], ["Priya Raghavan", "created the risk from the operational issue Shared maintenance password", "Oct 30 · 11:20 AM", "plus"]];
+    const cm = (who, when, text, o) => `<div class="ck-cm${o && o.reply ? " ck-cm-r" : ""}"><span class="ck-av">${esc(who.split(/\s+/).map((x) => x[0]).join("").slice(0, 2).toUpperCase())}</span><div class="ck-cm-b"><div class="ck-row"><b class="ck-strong">${esc(who)}</b><span class="ck-muted">${esc(when)}</span>${o && o.tag ? pill(o.tag) : ""}</div><p>${text}</p>${o && o.reply ? "" : `<div class="ck-row ck-cm-a"><span class="ck-link">Reply</span><span class="ck-link">Resolve</span>${iconBtn("more", "More actions")}</div>`}</div></div>`;
+    const main = `${crumbs(["Risks", "Register", "A password on its own reaches WS-X90 at the flightline"])}
+      <div class="ck-ph"><div class="ck-ph-t"><h1>A password on its own reaches WS-X90 at the flightline</h1>${status("Critical")}</div><div class="ck-ph-a">${btn("More", "secondary")}${btn("Edit risk", "primary")}</div></div>
+      ${tabs([["Overview"], ["Assessments", 2], ["Remediation", 1]], "Overview")}
+      <div class="ck-grid ck-grid-side">
+        <div class="ck-stack">
+          ${card("Tasks", `<div class="ck-row ck-tk-p">${bar(25)}<span class="ck-muted">1 of 4 done</span></div><div class="ck-tks">${tasks.map(([done, t, who, d, s]) => `<div class="ck-tk${done ? " done" : ""}">${cb(done)}<span class="ck-tk-t">${esc(t)}</span>${avatar(who)}${done ? `<span class="ck-due">${ic("cal")}${esc(d)}</span>` : due(d, s === "Due soon" ? s : "")}</div>`).join("")}</div>`, `<span class="ck-row">${count(4)}${btn("Add task", "secondary", "plus", "sm")}</span>`)}
+          ${card("Comments", `<div class="ck-compose"><span class="ck-av">IS</span><div class="ck-compose-i"><span class="ck-muted">Write a comment. Type @ to mention someone.</span><div class="ck-row">${iconBtn("at", "Mention someone")}${iconBtn("clip", "Attach a file")}<span class="ck-sp"></span>${btn("Post comment", "secondary", "send", "sm")}</div></div></div>
+            ${cm("Ingrid Solberg", "Nov 12 · 10:31 AM", "The squadron counts 6 laptops on the flightline. Two still run the older image without the CAC middleware, so a password alone gets an operator in.")}
+            ${cm("Priya Raghavan", "Nov 12 · 11:05 AM", '<span class="ck-mention">@Ingrid Solberg</span> thanks. I raised it to Critical; the CAC requirement will cover both images and I\'ll have a draft by Wednesday.', { reply: true })}
+            ${cm("Marcus Ryde", "Nov 14 · 8:47 AM", "Does this block PDR on the 24th, or can it go to the POA&amp;M with a date?", { tag: "Gate reviewer" })}
+            <div class="ck-exp">${ic("right")}<b>2 resolved comments</b></div>`, count(5))}
+        </div>
+        <div class="ck-stack">
+          ${card("Details", `<dl class="ck-dl">${[["Owner", `${avatar("")} <span class="ck-link">Assign</span>`], ["Likelihood", "Moderate"], ["Impact", "High"], ["Response", "Mitigate"], ["Response due", `<span>Dec 13</span>`], ["Techniques", '<span class="ck-mono">T1078, T1110</span>'], ["Program", '<span class="ck-link">WS-X90</span>']].map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("")}</dl>`)}
+          ${card("Activity", `<div class="ck-seg ck-seg-sm"><span class="on">All</span><span>Changes</span><span>Comments</span></div><ol class="ck-feed">${act.map(([who, what, when, i]) => `<li><span class="ck-feed-i">${ic(i)}</span><div><span><b class="ck-strong">${esc(who)}</b> ${esc(what)}</span><span class="ck-muted">${esc(when)}</span></div></li>`).join("")}</ol><span class="ck-link">Show all 14 events</span>`)}
+        </div>
+      </div>`;
+    return frame("Risks", main);
+  }
+
+  // A register with the record preview open in a side panel
+  function preview() {
+    const rows = [["REQ-001", "AC Enforcement Requirement 001", "AC-2, AC-7", 1, "Supported"], ["REQ-002", "AC Verification Requirement 002", "AC-3", 1, "Supported"], ["REQ-003", "AC Configuration Requirement 003", "AC-4", 1, "Supported"], ["REQ-004", "AC Monitoring Requirement 004", "AC-5", 0, "No evidence"], ["REQ-005", "AC Enforcement Requirement 005", "AC-6", 1, "Supported"], ["REQ-006", "AC Verification Requirement 006", "AC-7", 1, "Supported"], ["REQ-007", "AC Configuration Requirement 007", "AC-8", 1, "Supported"], ["REQ-008", "AC Monitoring Requirement 008", "AC-11, AU-4", 0, "No evidence", true], ["REQ-009", "AC Enforcement Requirement 009", "AC-12", 1, "Supported"]];
+    const main = `<div class="ck-ph"><div class="ck-ph-t"><h1>Requirements</h1></div></div>
+      ${tabs([["All", 654], ["Engineering", 640], ["CUSA-SSRD", 14]], "All")}
+      <div class="ck-toolbar">${search("Search requirements")}${select("State")}<span class="ck-sp"></span>${btn("Create requirement", "primary", "plus", "sm")}</div>
+      <div class="ck-table-w"><table class="ck-table"><thead><tr><th>Requirement</th><th style="width:130px">Controls</th><th class="n" style="width:90px">Evidence</th><th style="width:140px">State</th></tr></thead><tbody>${rows.map(([id, t, c, ev, s, on]) => `<tr${on ? ' class="ck-tr-on"' : ""}><td><span class="ck-row ck-nw">${title2(id, t)}<span class="ck-eye${on ? " on" : ""}">${ic("eye")}</span></span></td><td><span class="ck-mono">${esc(c)}</span></td><td class="n">${ev ? ev : muted("—")}</td><td>${status(s)}</td></tr>`).join("")}</tbody></table><div class="ck-table-f">${pager(1, 9, 654)}</div></div>`;
+    const panel = `<aside class="ck-spanel" aria-label="Requirement preview">
+      <div class="ck-spanel-h"><b class="ck-spanel-n">Requirement preview</b><span class="ck-sp"></span>${iconBtn("left", "Previous requirement")}<span class="ck-muted">8 of 654</span>${iconBtn("right", "Next requirement")}${iconBtn("ext", "Open the full record")}${iconBtn("x", "Close Requirement preview")}</div>
+      <div class="ck-spanel-b">
+        <div class="ck-row">${pill("REQ-008")}${status("No evidence")}</div>
+        <div class="ck-row ck-spanel-t"><h3>AC Monitoring Requirement 008</h3><span class="ck-sp"></span>${btn("Edit", "primary", null, "sm")}${iconBtn("more", "More actions")}</div>
+        <dl class="ck-dl">${[["Owner", avatar("")], ["Source", "Engineering"], ["Components", "Platform Management Controller +1"], ["Revision", "3 · edited Oct 21"]].map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("")}</dl>
+        <div class="ck-spanel-s"><b class="ck-gl">Statement</b><p>The Platform Management Controller shall lock an operator session after 15 minutes of inactivity and record each lock in the audit log.</p></div>
+        <div class="ck-spanel-s"><div class="ck-row"><b class="ck-gl">Controls</b>${count(2)}</div>
+          <div class="ck-list">${[["AC-11", "Device Lock", "Mapped to control"], ["AU-4", "Audit Log Storage Capacity", "Mapped to objective AU-04.01"]].map(([c, t, m]) => `<div class="ck-li">${code(c)}<span class="ck-link">${esc(t)}</span><span class="ck-sp"></span>${muted(m)}</div>`).join("")}</div></div>
+        <div class="ck-banner ck-banner-cau">${ic("alert")}<div class="ck-banner-col"><span><b>No evidence cited.</b> AC-11 and AU-4 stay at No evidence until it has some.</span>${btn("Link evidence", "secondary", null, "sm")}</div></div>
+      </div></aside>`;
+    return frameX("Requirements", main, null, null, { panel });
+  }
+
+  // Create and edit forms, with their error and saving states
+  function forms() {
+    const over = `<div class="ck-over"><div class="ck-modal ck-modal-l" role="presentation">
+        <div class="ck-modal-h"><b>Create risk</b>${iconBtn("x", "Close")}</div>
+        <div class="ck-banner ck-banner-err">${ic("alert")}<div><b>2 fields need an answer.</b> <span class="ck-link">Likelihood</span> · <span class="ck-link">Owner</span></div></div>
+        ${field("Title", tinput("Maintenance laptops reach the mission computer over the service port"), { req: true })}
+        ${field("Threat", `<span class="ck-input ck-ta">An insider with a laptop on the flightline connects to the J3 service port and reaches the mission computer's maintenance shell.</span>`, { hint: "112 / 500 characters" })}
+        <div class="ck-cols">${field("Likelihood", `<span class="ck-select err">Choose a likelihood${ic("chev")}</span>`, { req: true, err: true, hint: "Choose how likely the threat is." })}${field("Impact", `<span class="ck-select">High${ic("chev")}</span>`, { req: true })}</div>
+        <div class="ck-cols">${field("Owner", tinput("", { err: true, ph: "Search people and organizations", icon: "search" }), { req: true, err: true, hint: "Choose who owns the risk." })}${field("Response due", tinput("12/13/2026", { icon: "cal" }), { hint: "A calendar day." })}</div>
+        <div class="ck-modal-f">${btn("Cancel", "tertiary")}${btn("Create risk", "primary")}</div>
+      </div>
+      <div class="ck-modal ck-modal-m ck-saving" role="presentation">
+        <div class="ck-modal-h"><b>Edit risk response</b>${iconBtn("x", "Close")}</div>
+        ${field("Response", `<span class="ck-select">Mitigate${ic("chev")}</span>`, { req: true })}
+        ${field("Response due", tinput("12/13/2026", { icon: "cal" }))}
+        ${field("Rationale", `<span class="ck-input ck-ta">CAC on both laptop images closes the password-only path; IA-2(1) is assessed in the next campaign.</span>`, { hint: "104 / 500 characters" })}
+        <div class="ck-modal-f">${btn("Cancel", "tertiary")}<span class="ck-btn ck-btn-primary ck-btn-busy"><span class="ck-dots"><i></i><i></i><i></i></span><span>Saving</span></span></div>
+      </div></div>`;
+    return frameX("Risks", risks().match(/<main class="ck-main">([\s\S]*)<\/main>/)[1], null, null, { over });
+  }
+
+  // Searchable pickers: Combobox and MultiSelect
+  function pickers() {
+    const opt = (q, a, b, o) => `<span class="ck-opt-r${o && o.on ? " on" : ""}${o && o.hl ? " hl" : ""}">${o && o.cb != null ? cb(o.cb) : ""}${o && o.av ? `<span class="ck-av ck-av-xs">${esc(a.split(/\s+/).map((x) => x[0]).join("").slice(0, 2))}</span>` : ""}<span class="ck-t2"><span>${mark(a, q)}</span>${b ? `<span class="ck-t2b">${esc(b)}</span>` : ""}</span>${o && o.on && o.cb == null ? `<span class="ck-sp"></span>${ic("check")}` : ""}</span>`;
+    const lb = (xs, foot) => `<div class="ck-lb">${xs.join("")}${foot ? `<div class="ck-lb-f">${foot}</div>` : ""}</div>`;
+    const main = `${crumbs(["Requirements", "REQ-008"])}
+      <div class="ck-ph"><div class="ck-ph-t"><h1>AC Monitoring Requirement 008</h1>${pill("REQ-008")}${status("No evidence")}</div><div class="ck-ph-a">${btn("More", "secondary")}${btn("Edit requirement", "primary")}</div></div>
+      <div class="ck-grid ck-grid-2e">
+        ${card("Owner", `${field("Owner", `<span class="ck-input ck-tin focus">pri<span class="ck-caret"></span>${ic("chev")}</span>`)}${lb([opt("pri", "Priya Raghavan", "ISSO · WS-X90", { av: true, hl: true }), opt("pri", "Prime Integration Services", "Organization · supplier", { av: true })], "2 matches")}`, muted("Combobox: one person or organization"))}
+        ${card("Map controls", `${field("Controls", `<span class="ck-input ck-tin ck-multi focus"><span class="ck-pill ck-pill-rm">AC-11${ic("x")}</span><span class="ck-pill ck-pill-rm">AU-4${ic("x")}</span>ac-1<span class="ck-caret"></span></span>`, { hint: "Only controls the program's baseline selects." })}${lb([opt("ac-1", "AC-1 Policy and Procedures", "Partially satisfied", { cb: false, hl: true }), opt("ac-1", "AC-11 Device Lock", "No evidence", { cb: true }), opt("ac-1", "AC-11(1) Pattern-hiding Displays", "Satisfied", { cb: false }), opt("ac-1", "AC-12 Session Termination", "Satisfied", { cb: false })], "12 controls match · 2 chosen")}`, muted("MultiSelect with search"))}
+        ${card("Filter the findings register", `<div class="ck-toolbar ck-toolbar-0">${search("Search findings")}<span class="ck-select ck-select-open">Severity · 2${ic("chev")}</span>${select("Control")}</div>${lb([opt("", "Critical", "3 findings", { cb: true }), opt("", "High", "41 findings", { cb: true }), opt("", "Moderate", "88 findings", { cb: false }), opt("", "Low", "42 findings", { cb: false })], `<span class="ck-link">Clear</span><span class="ck-sp"></span>${btn("Apply", "secondary", null, "sm")}`)}<div class="ck-chips">${`<span class="ck-pill ck-pill-rm">Severity: Critical, High${ic("x")}</span>`}${pill("44 findings")}</div>`, muted("MultiSelect in a toolbar"))}
+        ${card("Link evidence", `${field("Evidence", `<span class="ck-input ck-tin focus">${ic("search")}session lock<span class="ck-caret"></span></span>`)}${lb([opt("session lock", "PMC session lock configuration export", "Version 2 · Accepted · Platform Management Controller", { hl: true }), opt("session lock", "Session lock and screen saver test report", "Version 1 · Waiting on review · Mission Computer"), opt("session lock", "Operator session lock procedure, SOP-114", "Version 4 · Accepted · Program")], "Showing 3 of 9 · type more to narrow")}`, muted("Combobox over a server-paged register"))}
+      </div>`;
+    return frame("Requirements", main);
+  }
+
+  // Table features: sorting, selection, a sticky header, an empty register and a search with no results
+  function tablestates() {
+    const rows = [[true, "PMC session lock configuration export", "Platform Management Controller", "Nov 14", "Accepted", "Priya Raghavan"], [true, "Gateway counter export, October", "Protected Network Gateway", "Nov 13", "Waiting on review", "Ingrid Solberg"], [false, "Mission computer STIG checklist, RHEL 9", "Mission Computer", "Nov 12", "To revise", "Joel Barrantes"], [false, "Key rotation log, Cryptographic Services Module", "Cryptographic Services Module", "Nov 10", "Accepted", ""], [false, "Remote access session log export", "Protected Network Gateway", "Nov 9", "Waiting on review", "Priya Raghavan"]];
+    const th = (t, s, w) => `<th${w ? ` style="width:${w}"` : ""}${s ? ` aria-sort="${s}"` : ""}><span class="ck-th${s ? " on" : ""}">${esc(t)}${ic(s === "ascending" ? "up" : s === "descending" ? "down" : "sort")}</span></th>`;
+    const main = `<div class="ck-ph"><div class="ck-ph-t"><h1>Evidence</h1></div><div class="ck-ph-a">${btn("Add evidence", "primary", "plus")}</div></div>
+      <div class="ck-sel-w ck-table-w ck-scroll"><table class="ck-table ck-sticky"><thead><tr><th style="width:52px">${cb(false, true)}</th>${th("Evidence")}${th("Component", "", "250px")}${th("Last version", "descending", "140px")}${th("Review", "", "170px")}${th("Owner", "", "180px")}</tr></thead>
+        <tbody>${rows.map(([on, t, c, d, s, o]) => `<tr${on ? ' class="ck-tr-sel"' : ""}><td>${cb(on)}</td><td><span class="ck-link ck-ell">${esc(t)}</span></td><td><span class="ck-ell">${esc(c)}</span></td><td>${esc(d)}</td><td>${status(s)}</td><td>${avatar(o)}</td></tr>`).join("")}</tbody></table>
+        <div class="ck-actionbar"><b>2 selected</b><span class="ck-link">Select all 368</span><span class="ck-link">Clear</span><span class="ck-sp"></span>${btn("Assign owner", "secondary", null, "sm")}${btn("Request review", "secondary", null, "sm")}</div></div>
+      <div class="ck-grid ck-grid-2e">
+        ${card("Risks · a new program", `<div class="ck-empty"><span class="ck-empty-i">${ic("empty")}</span><b>No risks yet</b><span class="ck-muted">Risks you raise from findings, or create here, are listed here.</span>${btn("Create risk", "primary", "plus", "sm")}</div>`)}
+        ${card("Requirements · a search that finds nothing", `<div class="ck-toolbar ck-toolbar-0"><span class="ck-input ck-input-search">${ic("search")}<span class="ck-strong">gateway lock</span></span><span class="ck-pill ck-pill-rm">State: No evidence${ic("x")}</span></div><div class="ck-empty"><span class="ck-empty-i">${ic("search")}</span><b>No requirements match</b><span class="ck-muted">Nothing with No evidence matches "gateway lock". 286 requirements have No evidence.</span>${btn("Clear filters", "secondary", null, "sm")}</div>`)}
+      </div>`;
+    return frame("Evidence", main);
+  }
+
+  // Loading and failure: skeleton rows while a part loads, one page banner with Retry when a part fails
+  function states() {
+    const main = `${crumbs(["Programs", "PRG-1090"])}
+      <div class="ck-ph"><div class="ck-ph-t"><h1>WS-X90 Sentinel Mission System</h1>${pill("PRG-1090")}</div><div class="ck-ph-a">${btn("More", "secondary", null)}${btn("Open the PDR package", "primary")}</div></div>
+      <div class="ck-banner ck-banner-err">${ic("alert")}<div><b>Needs attention could not load.</b> The rest of the page is current.</div><span class="ck-sp"></span>${btn("Retry", "secondary", "refresh", "sm")}</div>
+      ${tabs([["Overview"], ["Team", 15], ["Activity"]], "Overview")}
+      <div class="ck-grid ck-grid-side">
+        <div class="ck-stack">
+          ${card("Lifecycle", `<div class="ck-phases">${Array.from({ length: 5 }, () => `<div class="ck-phase ck-phase-sk">${sk("40%")}${sk("90%")}${sk("60%")}</div>`).join("")}</div>
+            <div class="ck-table-w"><table class="ck-table"><thead><tr><th>Step</th><th style="width:150px">Kind</th><th style="width:170px">Due or decided</th><th style="width:130px">Status</th><th style="width:80px">Ready</th></tr></thead><tbody>${["72%", "64%", "48%", "80%", "56%"].map((w) => `<tr><td>${sk(w)}</td><td>${sk("70%")}</td><td>${sk("60%")}</td><td>${sk("80px")}</td><td>${sk("36px")}</td></tr>`).join("")}</tbody></table></div>`, `<span class="ck-row ck-muted"><span class="ck-dots"><i></i><i></i><i></i></span>Loading the lifecycle</span>`)}
+          ${card("Next gate", `${sk("50%")}<div class="ck-skel">${sk("92%")}${sk("84%")}${sk("88%")}</div>`)}
+        </div>
+        <div class="ck-stack">
+          ${card("Details", `<dl class="ck-dl">${[["System", '<span class="ck-link">SYS-WSX90 · Platform</span>'], ["Host system", '<span class="ck-link">F-16 Block 70</span>'], ["Categorization", "C High · I High · A Moderate"], ["Next gate", "PDR · Nov 24"]].map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("")}</dl>`)}
+          ${card("Needs attention", `<div class="ck-fail">${ic("alert")}<b>Could not load</b><span class="ck-muted">The counts are not shown as zero while they cannot be read.</span></div>`)}
+          ${card("Team", `<div class="ck-skel">${Array.from({ length: 4 }, () => `<span class="ck-row"><i class="ck-sk ck-sk-av"></i>${sk("60%")}</span>`).join("")}</div>`)}
+        </div>
+      </div>`;
+    return frame("Overview", main);
+  }
+
+  // The global search, opened over the page with results across records, saved views and commands
+  function gsearch() {
+    const q = "AC-17";
+    const grp = (t, n, rows) => `<div class="ck-sr-g"><div class="ck-sr-gh"><b>${esc(t)}</b><span class="ck-muted">${n}</span></div>${rows.join("")}</div>`;
+    const r = (icn, a, b, meta, on) => `<div class="ck-sr-r${on ? " on" : ""}"><span class="ck-sr-i">${ic(icn)}</span><span class="ck-t2"><span>${mark(a, q)}</span><span class="ck-t2b">${b}</span></span><span class="ck-sp"></span>${meta || ""}</div>`;
+    const panel = `<span class="ck-gsearch ck-gsearch-on">${ic("search")}<span class="ck-strong">${q}</span><span class="ck-caret"></span><span class="ck-sp"></span>${iconBtn("x", "Clear search")}
+      <div class="ck-sr" role="presentation">
+        ${grp("Controls", "3", [r("shield", "AC-17(4) Privileged Commands and Access", "WS-X90 · in the Expanded control set assessment", status("Partially satisfied"), true), r("shield", "AC-17(3) Managed Access Control Points", "WS-X90", status("Satisfied")), r("shield", "AC-17(9) Disconnect or Disable Access", "WS-X90", status("Not assessed"))])}
+        ${grp("Findings", "2", [r("flag", "AC-17(4) [03] privileged commands are authorized only for compelling needs", "Assessment finding · <mark>…</mark>out-of-window commands still admitted", status("Other than satisfied"))])}
+        ${grp("Evidence", "4", [r("clip", "Remote access session log export", "Cited by REQ-011 for <mark>AC-17</mark> · Protected Network Gateway", status("Waiting on review"))])}
+        ${grp("Saved views and commands", "", [r("list", "Controls in AC-17 with no evidence", "Saved view · Controls", ""), r("bolt", "Plan an assessment for AC-17(4)", "Command", `<kbd class="ck-kbd">↵</kbd>`)])}
+        <div class="ck-sr-f"><span class="ck-muted"><kbd class="ck-kbd">↑</kbd><kbd class="ck-kbd">↓</kbd> to move · <kbd class="ck-kbd">↵</kbd> to open · <kbd class="ck-kbd">Esc</kbd> to close</span><span class="ck-sp"></span><span class="ck-link">See all 9 records</span></div>
+      </div></span>`;
+    const main = controls().match(/<main class="ck-main">([\s\S]*)<\/main>/)[1];
+    return frameX("Controls", main, null, null, { search: panel, over: '<div class="ck-dim"></div>' });
+  }
+
+  // Three phone layouts at 390px: a record with overflow tabs, a register with an action bar, a record's comments
+  function phones() {
+    const top = `<div class="ckp-top">${ic("menu")}<span class="ck-logo"><b>PA</b></span><span class="ck-sp"></span>${iconBtn("search", "Search")}<span class="ck-av">IS</span></div>`;
+    const phone = (cap, body, foot) => `<figure class="ckp"><div class="ckp-dev">${top}<div class="ckp-b">${body}</div>${foot || ""}</div><figcaption>${esc(cap)}</figcaption></figure>`;
+    const ovtabs = (xs, on) => `<div class="ck-tabs ckp-tabs">${xs.map(([t, n]) => `<span class="ck-tab${t === on ? " on" : ""}">${esc(t)}${n != null ? count(n) : ""}</span>`).join("")}<span class="ck-tab ckp-more">More${ic("chev")}</span></div>`;
+    const a = phone("Requirement record", `<div class="ck-crumbs"><span class="ck-link">…</span>${ic("right")}<span class="ck-link">Requirements</span>${ic("right")}<span>REQ-008</span></div>
+      <h1 class="ckp-h1">AC Monitoring Requirement 008</h1><div class="ck-row">${pill("REQ-008")}${status("No evidence")}</div>
+      <div class="ck-row">${btn("Edit requirement", "primary", null, "sm")}${iconBtn("more", "More actions")}</div>
+      ${ovtabs([["Overview"], ["Controls", 2]], "Overview")}
+      ${card("Statement", `<p class="ck-p0">The Platform Management Controller shall lock an operator session after 15 minutes of inactivity and record each lock in the audit log.</p>`)}
+      ${card("Details", `<dl class="ckp-dl">${[["Owner", avatar("")], ["Source", "Engineering"], ["Components", "Platform Management Controller +1"]].map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("")}</dl>`)}`);
+    const reqs = [[true, "REQ-004", "AC Monitoring Requirement 004", "No evidence"], [false, "REQ-005", "AC Enforcement Requirement 005", "Supported"], [true, "REQ-008", "AC Monitoring Requirement 008", "No evidence"], [false, "REQ-009", "AC Enforcement Requirement 009", "Supported"], [false, "REQ-012", "AC Monitoring Requirement 012", "No evidence"]];
+    const b = phone("Requirements register", `<div class="ck-row"><h1 class="ckp-h1">Requirements</h1><span class="ck-sp"></span>${count(654)}</div>
+      <span class="ck-input ck-input-search ckp-full">${ic("search")}<span>Search requirements</span></span>
+      <div class="ck-row">${btn("Filters", "secondary", "filter", "sm")}${pill("No evidence", 286)}</div>
+      <div class="ckp-list">${reqs.map(([on, id, t, s]) => `<div class="ckp-li${on ? " on" : ""}">${cb(on)}<span class="ck-t2"><span class="ck-t2a">${esc(id)}</span><span class="ck-t2b">${esc(t)}</span></span><span class="ck-sp"></span>${status(s)}</div>`).join("")}</div>`,
+      `<div class="ckp-ab"><b>2 selected</b><span class="ck-sp"></span>${btn("Map control", "primary", null, "sm")}${iconBtn("more", "More actions")}</div>`);
+    const c = phone("Risk record, comments", `<div class="ck-crumbs"><span class="ck-link">…</span>${ic("right")}<span class="ck-link">Risks</span></div>
+      <h1 class="ckp-h1">A password on its own reaches WS&#8209;X90 at the flightline</h1><div class="ck-row">${status("Critical")}${avatar("")}</div>
+      ${ovtabs([["Tasks", 4], ["Comments", 5]], "Comments")}
+      <div class="ck-compose"><span class="ck-av">IS</span><div class="ck-compose-i"><span class="ck-muted">Write a comment</span></div></div>
+      ${[["Ingrid Solberg", "Nov 12", "The squadron counts 6 laptops on the flightline. Two still run the older image without the CAC middleware."], ["Marcus Ryde", "Nov 14", "Does this block PDR on the 24th, or can it go to the POA&amp;M with a date?"]].map(([w, d, t]) => `<div class="ck-cm"><span class="ck-av">${esc(w.split(/\s+/).map((x) => x[0]).join(""))}</span><div class="ck-cm-b"><div class="ck-row"><b class="ck-strong">${esc(w)}</b><span class="ck-muted">${d}</span></div><p>${t}</p><div class="ck-row ck-cm-a"><span class="ck-link">Reply</span><span class="ck-link">Resolve</span></div></div></div>`).join("")}`);
+    return `<div class="ck-app ckp-stage" style="width:${W}px">${a}${b}${c}</div>`;
+  }
+
+  // One brand colour across the tokens: the program overview with the primary palette set to Canvas indigo
+  function theme() {
+    return overview().replace('class="ck-app"', 'class="ck-app ck-theme-indigo"');
+  }
+
   const SCREENS = [
     { id: "overview", title: "Program overview", draw: overview, route: "overview", notes: ["The global header and a side panel replace the bare top bar and list: the program's places get icons and the selected one takes the brand tint.", "Status reads as Canvas StatusIndicators (soft fill, strong text, an icon), so 'Passed' and 'In review' never rely on colour alone.", "One primary button per screen (Canvas rule): Open the PDR package. Everything else is Secondary or Tertiary.", "Cards take Canvas's container border, 8px corners and card padding; the attention numbers become tiles."] },
     { id: "controls", title: "Controls register", draw: controls, route: "controls", notes: ["Tabs carry their counts in Canvas count badges.", "The toolbar is one row: search input, an All filter, Selects, then More and the one primary action, all pill-shaped.", "The Canvas Table: raised header row, 1px dividers, roomier rows; Pagination at the foot instead of an endless list.", "Control IDs keep their monospace, in Roboto Mono."] },
@@ -532,10 +729,19 @@
     { id: "sctm", title: "SCTM workbook", draw: sctm, route: "sctm", notes: ["The workbook is a full-screen surface with List and Workbook as a Segmented Control in its header.", "Sort, Filter, Freeze, Fit and Copy are tertiary buttons; Review changes stays the primary and waits, disabled, until a change is staged.", "Implementation states are StatusIndicators inside the grid's cells; the sheets are tabs with counts at the foot."] },
     { id: "boundary", title: "Authorization boundary", draw: boundary, route: "boundary", notes: ["List and Boundary are a Segmented Control beside Add component.", "Providers, subsystems and connected systems are Canvas cards; the boundary is a dashed brand-tinted container.", "A provider or connection with no authorization or agreement carries a critical StatusIndicator, not only a line of text."] },
     { id: "stigs", title: "STIG checklists", draw: stigs, route: "stigs", notes: ["STIG checklists is one segment of the evidence kinds, not a separate filter.", "A newer STIG release shows as an info StatusIndicator beside the version Pill.", "Open CAT I, II and III are three toned counts; compliance is a bar and its share."] },
+    { id: "collab", title: "Tasks, comments and activity (risk record)", draw: collab, now: false, route: "risks", notes: ["Tasks are a card on the record: a Checkbox to tick each one off, its assignee as an Avatar, its due day with a Due soon StatusIndicator, and progress as a bar (1 of 4 done).", "Comments start with a composer (Avatar, a text area that takes @ mentions, Mention and Attach icon buttons, Post comment); each comment has Reply and Resolve, replies sit indented under it, and resolved ones fold into an Expandable.", "Activity is a timeline in the side column: an icon a kind of change, who did what in a sentence, the moment in your time zone, and a Segmented Control for All, Changes or Comments.", "Edit risk stays the one primary; Post comment and Add task are secondary, so the page keeps one."] },
+    { id: "preview", title: "Record preview in a side panel", draw: preview, now: false, route: "requirements", notes: ["The eye on a row opens Canvas's SidePanel at the right of Main; the register stays where it was, narrower, with the shown row highlighted.", "The panel's own header holds only Previous, Next, where you are (8 of 654), Open the full record and Close.", "Under it the record's header: its code Pill and status, its name, one small primary (Edit) and an overflow icon button.", "A gap the record has is a caution Banner with its fix (Link evidence), not a sentence in the body."] },
+    { id: "forms", title: "Create and edit forms", draw: forms, now: false, route: "risks", notes: ["Create risk is a Canvas Modal over the register: FormFields with labels, a required star, hints and character counts.", "A submit with two answers missing shows an error Banner at the top naming each field as a link, and each field turns red with what fixes it under it.", "Likelihood and Impact are Selects; Owner is a search Combobox; Response due is a date input with its calendar icon.", "Edit risk response shows a save in flight: fields dimmed, the primary showing LoadingDots and Saving, and Cancel kept in place until it ends.", "Cancel is a tertiary button before the one primary, which repeats the operation (Create risk)."] },
+    { id: "pickers", title: "Searchable pickers", draw: pickers, now: false, route: "requirements", notes: ["Owner is a Combobox: typed letters filter people and organizations, the match is highlighted, and each option says the person's role.", "Map controls is a MultiSelect: chosen controls are removable Pills in the input, options carry Checkboxes and their control status, and the foot counts matches and choices.", "A toolbar filter is a MultiSelect too: Severity · 2 in the button, counts beside each value, and Apply and Clear in the menu's foot.", "Link evidence searches a register that is paged on the server: each option says its version, review state and component, and the foot says only some are shown."] },
+    { id: "tablestates", title: "Table features and empty states", draw: tablestates, now: false, route: "evidence", notes: ["Every column header is a sort button; the sorted one (Last version, newest first) is marked with its arrow and in bold.", "The header stays at the top as the table scrolls, with a shadow under it.", "Chosen rows take the brand tint; the ActionBar counts them and offers Select all 368, Clear and the verbs.", "An empty register shows an illustration, a title, one line and the same create action as its toolbar.", "A search with no results says what was asked, how many records the filter alone finds, and offers Clear filters, a different state from an empty register."] },
+    { id: "states", title: "Loading and failure", draw: states, now: false, route: "overview", notes: ["While a card loads its rows are Skeleton bars in the table's own columns, with LoadingDots beside the card's heading.", "A part that fails says so once, in an error Banner at the top with Retry, and the rest of the page stays usable.", "The card that failed keeps its place and says Could not load; its counts are never shown as zero."] },
+    { id: "search", title: "Global search", draw: gsearch, now: false, route: "controls", notes: ["The header's search opens a results panel over a dimmed page as you type (Canvas's SearchForm with a listbox).", "Results are grouped (Controls, Findings, Evidence, Saved views and commands), each with its icon, where it sits, its status and the match highlighted.", "A command (Plan an assessment for AC-17(4)) runs from the same list; the foot shows the keys and See all 9 records."] },
+    { id: "phones", title: "Phone layouts", draw: phones, now: false, notes: ["At 390px the side panel folds into the header's menu; search and the avatar stay in the header.", "Breadcrumbs collapse to an ellipsis and the last two levels; tabs that do not fit fold into More.", "A register becomes a list of rows with Checkboxes, and the ActionBar sits at the bottom of the screen with the one primary and More.", "Comments keep the composer at the top and Reply and Resolve under each comment."] },
+    { id: "theme", title: "Theming: one brand colour", draw: theme, now: false, route: "overview", notes: ["Canvas themes by its brand tokens: the program overview with the primary palette set to Canvas indigo, and nothing else changed.", "The primary button, the selected navigation item, the selected tab and its count, and the logo all take the brand colour.", "Links and status colours keep Canvas's own (the kit does not let a tenant theme them), so Satisfied stays green and a link stays a link."] },
   ];
 
   // The screens in the order a reader meets them, under a heading each.
-  const GROUPS = [["The program", ["overview", "team", "system", "boundary", "authorization"]], ["Controls and requirements", ["controls", "control", "sctm", "requirements", "requirement"]], ["Evidence, documents and assessments", ["evidence", "stigs", "documents", "ssp", "assessments", "campaign"]], ["Findings and risks", ["findings", "risks"]], ["Workspace and library", ["portfolio", "mywork", "review", "products", "component", "frameworks"]]];
+  const GROUPS = [["The program", ["overview", "team", "system", "boundary", "authorization"]], ["Controls and requirements", ["controls", "control", "sctm", "requirements", "requirement"]], ["Evidence, documents and assessments", ["evidence", "stigs", "documents", "ssp", "assessments", "campaign"]], ["Findings and risks", ["findings", "risks"]], ["Workspace and library", ["portfolio", "mywork", "review", "products", "component", "frameworks"]], ["Patterns and states", ["collab", "preview", "forms", "pickers", "tablestates", "states", "search", "phones", "theme"]]];
   const inGroup = (ids) => ids.map((id) => SCREENS.find((s) => s.id === id)).filter(Boolean);
   const KIT = [
     ["Type", "Roboto at Canvas's type scale: 28px title, 20px card headings, 14px body in tables, 12px subtext. Today: the prototype's own sans."],
@@ -582,11 +788,12 @@
     return `<button type="button" class="ba-img ckba-now" data-modal="v3b-zoom" data-id="${esc(src)}|${esc(alt)}" aria-label="Enlarge ${esc(alt)}"><img src="${esc(src)}" alt="${esc(alt)}" loading="lazy"></button>`;
   }
   function block(s) {
-    const v = view[s.id] || "ck";
+    // A pattern with no screen of its own today (now: false) has no Today view; its button opens the nearest screen.
+    const v = s.now === false ? "ck" : view[s.id] || "ck";
     return `<section class="ckba-pair" id="ckba-${s.id}">
-      <div class="ba-ph"><div class="ba-ph-t"><h3 tabindex="-1">${esc(s.title)}</h3><div class="facts"><span class="num">${s.notes.length} changes</span></div></div>
-        <div class="btns"><div class="ba-switch" role="group" aria-label="Show ${esc(s.title)}">${[["ck", "Canvas Kit"], ["now", "Today"]].map(([k, l]) => `<button type="button" data-ckba-view="${s.id}:${k}" aria-pressed="${k === v}">${l}</button>`).join("")}</div>
-        <button type="button" class="btn sm" data-ckba-open="${esc(s.route)}">Open today's screen</button></div></div>
+      <div class="ba-ph"><div class="ba-ph-t"><h3 tabindex="-1">${esc(s.title)}</h3><div class="facts"><span class="num">${s.notes.length} changes</span>${s.now === false ? "<span>New pattern</span>" : ""}</div></div>
+        <div class="btns">${s.now === false ? "" : `<div class="ba-switch" role="group" aria-label="Show ${esc(s.title)}">${[["ck", "Canvas Kit"], ["now", "Today"]].map(([k, l]) => `<button type="button" data-ckba-view="${s.id}:${k}" aria-pressed="${k === v}">${l}</button>`).join("")}</div>`}
+        ${s.route ? `<button type="button" class="btn sm" data-ckba-open="${esc(s.route)}">${s.now === false ? "Open the nearest screen today" : "Open today's screen"}</button>` : ""}</div></div>
       <div class="ckba-stage">${v === "ck" ? `<div class="ckba-fit" data-ckba-fit>${s.draw()}</div>` : shot(s)}</div>
       <ol class="ckba-notes">${s.notes.map((n) => `<li>${esc(n)}</li>`).join("")}</ol>
     </section>`;
@@ -597,7 +804,7 @@
     setTimeout(fit, 0);
     return `<div class="main ba ckba">${header("Before, v1, v2 and V3", facts, "")}${tabsHtml}
       <section class="drba-hero"><h2>Canvas Kit: the same screens, refreshed</h2>
-        <p class="ba-lede">What the Vanta flow study would look like if the prototype adopted Workday's <b>Canvas Kit</b>: its type, colour, shape and depth tokens and its components. Each block is one screen with WS-X90's own data. <b>Canvas Kit</b> is the mockup; <b>Today</b> is the screen as it is now, with V3 on.</p>
+        <p class="ba-lede">What the Vanta flow study would look like if the prototype adopted Workday's <b>Canvas Kit</b>: its type, colour, shape and depth tokens and its components. Each block is one screen with WS-X90's own data. <b>Canvas Kit</b> is the mockup; <b>Today</b> is the screen as it is now, with V3 on. Patterns and states shows what the kit adds that has no screen of its own today (tasks, comments and activity, the preview panel, forms, pickers, table and loading states, search, phones and theming), so those blocks have no Today view.</p>
         <p class="ba-lede drba-small">These are static mockups drawn on this page. Nothing in the prototype changes; Open today's screen takes you to the working one.</p>
         <nav class="drba-jump" aria-label="On this page"><a href="#${ROUTE}" data-ckba-jump="ckba-kit">What changes</a><a href="#${ROUTE}" data-ckba-jump="ckba-gal">Components</a><a href="#${ROUTE}" data-ckba-jump="ckba-map">Component map</a></nav>
         ${GROUPS.map(([g, ids]) => `<nav class="drba-jump ckba-jump-g" aria-label="${esc(g)}"><span class="ckba-jg">${esc(g)}</span>${inGroup(ids).map((s) => `<a href="#${ROUTE}" data-ckba-jump="ckba-${s.id}">${esc(s.title)}</a>`).join("")}</nav>`).join("")}
