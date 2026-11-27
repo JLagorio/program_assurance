@@ -676,3 +676,4 @@
 .ck-gal .ck-seg { flex-wrap: wrap; max-width: 100%; }
 .ck-tks, .ck-tk { min-width: 0; }
 .ck-actionbar-top { margin-top: var(--cnvs-sys-space-x2); }
+.ck-ibtn-off { color: var(--cnvs-sys-color-fg-disabled); }

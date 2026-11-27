@@ -78,7 +78,7 @@
       <tbody>${rows.map((r) => `<tr>${r.map((v, i) => `<td${cols[i].n ? ' class="n"' : ""}>${v}</td>`).join("")}</tr>`).join("")}</tbody></table>
       ${o.foot ? `<div class="ck-table-f">${o.foot}</div>` : ""}</div>`;
   }
-  const pager = (a, b, n) => `<span>${a}–${b} of ${n}</span>${b >= n ? "" : `<span class="ck-pager">${iconBtn("left", "Previous page")}<span class="ck-pg on">1</span><span class="ck-pg">2</span>${Math.ceil(n / (b - a + 1)) > 2 ? `<span class="ck-pg">3</span>` : ""}${Math.ceil(n / (b - a + 1)) > 3 ? `<span class="ck-pg-gap">…</span>` : ""}${iconBtn("right", "Next page")}</span>`}`;
+  const pager = (a, b, n) => `<span>${a}–${b} of ${n}</span>${b >= n ? "" : `<span class="ck-pager"><span class="ck-ibtn ck-ibtn-off" aria-disabled="true" title="Previous page" aria-label="Previous page">${ic("left")}</span><span class="ck-pg on">1</span><span class="ck-pg">2</span>${Math.ceil(n / (b - a + 1)) > 2 ? `<span class="ck-pg">3</span>` : ""}${Math.ceil(n / (b - a + 1)) > 3 ? `<span class="ck-pg-gap">…</span>` : ""}${iconBtn("right", "Next page")}</span>`}`;
   const toolbar = (ph, filters, primary) => `<div class="ck-toolbar">${search(ph)}<span class="ck-btn ck-btn-tertiary ck-btn-sm">${ic("filter")}<span>All</span>${ic("chev")}</span>${filters.map(select).join("")}<span class="ck-sp"></span>${btn("More", "tertiary", "more", "sm")}${primary ? btn(primary, "primary", "plus", "sm") : ""}</div>`;
   const code = (t) => `<span class="ck-code">${esc(t)}</span>`;
   const muted = (t) => `<span class="ck-muted">${esc(t)}</span>`;
