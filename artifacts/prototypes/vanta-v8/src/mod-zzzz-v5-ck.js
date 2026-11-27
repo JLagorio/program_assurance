@@ -869,5 +869,5 @@
   const g = function () { return draw(); }; g.__v2c = true; S[ROUTE] = g;
   // The tab joins the Before & after strip; mod-zz-compare.js puts it first.
   if (PA.BA2 && Array.isArray(PA.BA2.groups) && !PA.BA2.groups.some((x) => x.key === "canvas")) PA.BA2.groups.unshift({ key: "canvas", short: "Canvas Kit", label: "Canvas Kit: a refreshed UI", intro: "" });
-  PA.ckba = { count: () => SCREENS.length, screens: SCREENS.map((s) => s.id), draw: (id) => { const s = SCREENS.find((x) => x.id === id); return s ? s.draw() : ""; } };
+  PA.ckba = { count: () => SCREENS.length, get screens() { return SCREENS.map((s) => s.id); }, get meta() { return SCREENS.map((s) => ({ id: s.id, title: s.title, route: s.route || null, now: s.now, group: (GROUPS.find(([, ids]) => ids.includes(s.id)) || [""])[0] })); }, draw: (id) => { const s = SCREENS.find((x) => x.id === id); return s ? s.draw() : ""; } };
 })();

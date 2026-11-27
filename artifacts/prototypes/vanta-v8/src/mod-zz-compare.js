@@ -20,7 +20,7 @@
   function groups() {
     const added = B2().groups || [];
     // V3 (mod-zzzz-v3-9ba.js adds it) leads: it is what this round proposes.
-    return [...added.filter((g) => g.key === "canvas"), ...added.filter((g) => g.key === "drata"), ...added.filter((g) => g.key === "v3"), ...added.filter((g) => g.key === "v2new"), ...B().groups, ...added.filter((g) => g.key !== "v2new" && g.key !== "v3" && g.key !== "drata" && g.key !== "canvas")].map((g) => ({ ...g, short: SHORT[g.key] || g.short }));
+    return [...added.filter((g) => g.key === "review"), ...added.filter((g) => g.key === "canvas"), ...added.filter((g) => g.key === "drata"), ...added.filter((g) => g.key === "v3"), ...added.filter((g) => g.key === "v2new"), ...B().groups, ...added.filter((g) => g.key !== "v2new" && g.key !== "v3" && g.key !== "drata" && g.key !== "canvas" && g.key !== "review")].map((g) => ({ ...g, short: SHORT[g.key] || g.short }));
   }
   function pairs() {
     const b2 = B2();
@@ -93,7 +93,7 @@
   function tabs(on) {
     const ps = pairs();
     const v3n = () => (window.PA.v3ba ? (window.PA.v3ba.tabCount ? window.PA.v3ba.tabCount() : window.PA.v3ba.count()) : null);
-    const list = [["before-after", "Overview", null], ...groups().map((g) => ["before-after-" + g.key, g.short || g.label, g.key === "v3" ? v3n() : g.key === "drata" ? (window.PA.drba ? window.PA.drba.count() : null) : g.key === "canvas" ? (window.PA.ckba ? window.PA.ckba.count() : null) : ps.filter((p) => p.group === g.key).length])];
+    const list = [["before-after", "Overview", null], ...groups().map((g) => ["before-after-" + g.key, g.short || g.label, g.key === "v3" ? v3n() : g.key === "drata" ? (window.PA.drba ? window.PA.drba.count() : null) : g.key === "canvas" ? (window.PA.ckba ? window.PA.ckba.count() : null) : g.key === "review" ? (window.PA.rv ? window.PA.rv.count() : null) : ps.filter((p) => p.group === g.key).length])];
     return `<div class="ba-tabs" role="tablist" aria-label="Before, v1 and v2">${list.map(([r, l, n]) => `<span role="tab" tabindex="0" aria-selected="${r === on}" class="${r === on ? "on" : ""}" data-go="${r}">${esc(l)}${n !== null ? `<span class="ct num">${n}</span>` : ""}</span>`).join("")}</div>`;
   }
 

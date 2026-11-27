@@ -222,7 +222,7 @@
 
   PA.v3 = {
     on, set, refresh, force, S: S3, P: P3, M: M3, screen, redirect, redirectOf, wsx, prog, WSX, facts, fact, menu, FOLDED, MERGED,
-    lazyRoute, lazy, compareAs,
+    lazyRoute, lazy, compareAs, wasOf,
     rail: null, areaGroups: null, keepProgram: null, navDrawn, ready, compare,
     get toggling() { return toggling; },
     _afterNav(route) { if (!on()) return; for (const fn of afterNav) { try { fn(route); } catch (e) { console.error(e); } } },
