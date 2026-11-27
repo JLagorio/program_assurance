@@ -616,15 +616,23 @@
     </div>`;
   }
 
-  // Zoom each 1440px mockup to the width of its column.
+  // Scale each 1440px mockup to the width of its column, as the Today screenshot is: the mockup keeps its desktop
+  // layout and is drawn smaller, never reflowed. A transform (not CSS zoom, which mobile Safari lays out again and
+  // whose text it inflates) scales the drawing; the frame takes the scaled height.
+  const ro = typeof ResizeObserver === "function" ? new ResizeObserver(() => fit()) : null;
   function fit() {
     document.querySelectorAll("[data-ckba-fit]").forEach((el) => {
       const app = el.firstElementChild; if (!app) return;
       const z = Math.min(1, el.clientWidth / W);
-      app.style.zoom = String(z);
+      app.style.zoom = "";
+      app.style.transformOrigin = "0 0";
+      app.style.transform = z < 1 ? `scale(${z})` : "";
+      el.style.height = `${Math.ceil(app.offsetHeight * z)}px`;
+      if (ro && !app.dataset.ckbaObserved) { app.dataset.ckbaObserved = "1"; ro.observe(app); }
     });
   }
   window.addEventListener("resize", fit);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
   document.addEventListener("click", (e) => {
     const v = e.target.closest("[data-ckba-view]");
     if (v) {
