@@ -87,6 +87,8 @@
 
   // ——— The app frame: Canvas global header, side panel navigation, page header ———
   const NAV = [["Overview", "home"], ["System", "sys"], ["Controls", "shield"], ["Requirements", "list"], ["Evidence", "clip"], ["Documents", "doc"], ["Assessments", "clip2"], ["Findings", "flag"], ["Risks", "alert"], ["Authorization", "award"]];
+  // A side panel of its own, under Workspace: the product library, the reference library, settings and AI agents.
+  const SIDE_T = { products: "Products", library: "Library", settings: "Settings", ai: "AI agents" };
   // The side panel is the program's by default; the workspace and the product library have their own (kind).
   function frame(on, main, nav, kind) {
     return `<div class="ck-app" style="width:${W}px">
@@ -95,7 +97,7 @@
         <span class="ck-sp"></span>${iconBtn("bell", "Notifications")}<span class="ck-av ck-av-me">IS</span></header>
       <div class="ck-body">
         <nav class="ck-side" aria-label="Program">
-          ${kind === "workspace" ? `<div class="ck-side-t">Workspace</div>` : kind === "products" ? `<span class="ck-back">${ic("left")}Workspace</span><div class="ck-side-t">Products</div>` : `<span class="ck-back">${ic("left")}Workspace</span>
+          ${kind === "workspace" ? `<div class="ck-side-t">Workspace</div>` : SIDE_T[kind] ? `<span class="ck-back">${ic("left")}Workspace</span><div class="ck-side-t">${SIDE_T[kind]}</div>` : `<span class="ck-back">${ic("left")}Workspace</span>
           <div class="ck-prog"><div><b>WS-X90</b><span>Sentinel Mission System</span></div>${ic("chev")}</div>
           <div class="ck-prog-m">PRG-1090 · Impact High<br>Increment 2 · TMRR · PDR Nov 24</div>`}
           <div class="ck-side-l">${(nav || NAV).map(([t, i, n]) => `<span class="ck-nav${t === on ? " on" : ""}">${ic(i)}${esc(t)}${n != null ? count(n) : ""}</span>`).join("")}</div>
@@ -869,5 +871,14 @@
   const g = function () { return draw(); }; g.__v2c = true; S[ROUTE] = g;
   // The tab joins the Before & after strip; mod-zz-compare.js puts it first.
   if (PA.BA2 && Array.isArray(PA.BA2.groups) && !PA.BA2.groups.some((x) => x.key === "canvas")) PA.BA2.groups.unshift({ key: "canvas", short: "Canvas Kit", label: "Canvas Kit: a refreshed UI", intro: "" });
-  PA.ckba = { count: () => SCREENS.length, screens: SCREENS.map((s) => s.id), draw: (id) => { const s = SCREENS.find((x) => x.id === id); return s ? s.draw() : ""; } };
+  // Read at render time: mod-zzzz-v5-ck2.js adds the rest of the prototype's screens to SCREENS and GROUPS.
+  const groupOf = (id) => { const g = GROUPS.find(([, ids]) => ids.includes(id)); return g ? g[0] : ""; };
+  PA.ckba = {
+    count: () => SCREENS.length,
+    get screens() { return SCREENS.map((s) => s.id); },
+    get meta() { return SCREENS.map((s) => ({ id: s.id, title: s.title, route: s.route || null, now: s.now !== false, group: groupOf(s.id) })); },
+    draw: (id) => { const s = SCREENS.find((x) => x.id === id); return s ? s.draw() : ""; },
+  };
+  // The kit's pieces, for the screens drawn in mod-zzzz-v5-ck2.js.
+  PA.ckkit = { SCREENS, GROUPS, SI, ic, btn, iconBtn, status, pill, count, avatar, ring, bar, select, search, tabs, crumbs, card, table, pager, toolbar, code, muted, late, title2, frame, surface, NAV, PNAV, WNAV, esc };
 })();
