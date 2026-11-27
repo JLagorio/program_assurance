@@ -108,7 +108,7 @@
   function overview() {
     const phases = [["MSA", "Materiel solution analysis", 1, 1], ["TMRR", "Technology maturation and risk reduction", 3, 5, true], ["EMD", "Engineering and manufacturing development", 0, 3], ["Test", "Integration, test and production approval", 0, 3], ["Ops", "Production, deployment and operations", 0, 3]];
     const steps = [["SRR · System requirements review", "Engineering review", "Decided Sep 22", "Passed", [2, 2]], ["SFR · System functional review", "Engineering review", "Decided Oct 13", "Passed", [2, 2]], ["Select security controls", "RMF action", "Decided Oct 27", "Completed", [1, 1]], ["PDR · Preliminary design review", "Engineering review", "Due Nov 24 · in 7 days", "In review", [2, 5]], ["AO approval of the RMF strategy", "RMF action", "Due Dec 15", "Not started", null]];
-    const team = [["AO", "R. Calloway"], ["AODR", "Lena Marsh"], ["PM/SO", "Ray Colston"], ["Lead assessor", "D. Okafor"], ["Assessor", "Nadia Fournier"], ["ISSM", "Joel Barrantes"], ["ISSO", "Priya Raghavan"], ["ISSE", "Ingrid Solberg"]];
+    const team = [["AO", "R. Calloway"], ["AODR", "Lena Marsh"], ["PM/SO", "Ray Colston"], ["Lead assessor", "D. Okafor"], ["Assessor", "Nadia Fournier"], ["ISSM", "Joel Barrantes"], ["ISSO", "Priya Raghavan"], ["ISSE", "Ingrid Solberg"], ["User rep", "Capt. T. Abara"]];
     const main = `${crumbs(["Programs", "PRG-1090"])}
       <div class="ck-ph"><div class="ck-ph-t"><h1>WS-X90 Sentinel Mission System</h1>${pill("PRG-1090")}${status("ATO with conditions")}</div><div class="ck-ph-a">${btn("More", "secondary", null)}${btn("Open the PDR package", "primary")}</div></div>
       ${tabs([["Overview"], ["Team", 15], ["Activity"]], "Overview")}
@@ -149,7 +149,7 @@
     const main = `${crumbs(["Controls", "AC-17(4)"])}
       <div class="ck-ph"><div class="ck-ph-t"><h1>Privileged Commands and Access</h1>${pill("AC-17(4)")}${status("Not assessed")}</div><div class="ck-ph-a">${btn("More", "secondary")}${btn("Open assessment campaign", "primary")}</div></div>
       <div class="ck-pn"><span class="ck-muted">44 of 560 controls</span><span class="ck-btn ck-btn-tertiary ck-btn-sm">${ic("left")}<span>Previous</span></span><span class="ck-btn ck-btn-tertiary ck-btn-sm"><span>Next: AC-17(6)</span>${ic("right")}</span></div>
-      <div class="ck-banner">${ic("dot")}<div><b>Expanded control set assessment holds it.</b> 5 of 5 objectives judged, in draft results. Determination: none yet.</div><span class="ck-sp"></span><span class="ck-btn ck-btn-tertiary ck-btn-sm"><span>Open campaign</span></span></div>
+      <div class="ck-banner">${ic("dot")}<div><b>Expanded control set assessment holds it.</b> 5 of 5 objectives judged, in draft results. Draft determination: Partially satisfied, which decides nothing until the results are published.</div><span class="ck-sp"></span><span class="ck-btn ck-btn-tertiary ck-btn-sm"><span>Open campaign</span></span></div>
       <div class="ck-grid ck-grid-side">
         <div class="ck-stack">
           ${card("Implementation", table([{ t: "Where", w: "26%" }, { t: "Implementation statement" }, { t: "Status", w: "200px" }], comps.map(([a, b], i) => [`<b class="ck-strong">${esc(a)}</b>`, i ? muted(b) : `<span class="ck-clamp">${esc(b)}</span>`, status("Partially implemented")])), `${count(5)}<span class="ck-sp"></span>${btn("Add component", "secondary", "plus", "sm")}`)}
@@ -215,7 +215,7 @@
 
   function requirement() {
     const main = `${crumbs(["Requirements", "REQ-470"])}
-      <div class="ck-ph"><div class="ck-ph-t"><h1>Remote privileged maintenance commands pass three admission checks</h1>${pill("REQ-470")}${status("Supported")}</div><div class="ck-ph-a">${btn("More", "secondary")}${btn("Edit requirement", "primary")}</div></div>
+      <div class="ck-ph"><div class="ck-ph-t"><h1>Remote privileged maintenance commands pass three admission checks</h1>${pill("REQ-470")}${status("To revise")}</div><div class="ck-ph-a">${btn("More", "secondary")}${btn("Edit requirement", "primary")}</div></div>
       <div class="ck-banner ck-banner-cau">${ic("alert")}<div><b>It is allocated to no component.</b> Nobody builds it until a component takes it.</div><span class="ck-sp"></span>${btn("Allocate", "secondary", null, "sm")}</div>
       <div class="ck-grid ck-grid-side">
         <div class="ck-stack">
