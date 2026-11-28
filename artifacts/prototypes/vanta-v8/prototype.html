@@ -51980,12 +51980,12 @@ window.PA_CK2 = [{"id": "activity","title": "Program activity","group": "The pro
   NOTES.notifications = ["Each alert is a row with a Switch and a Select for its channel; CUI turns chat off, and the page says so under the title.", "My digest is its own card, with a preview of Monday's email drawn from WS-X90's counts today.", "Send a test is a secondary action in the header."];
   DRAW.permissions = () => {
     const roles = [["Owner", "Everything an admin does, and owns the workspace", "1", "Database"], ["Admin", "Manages members, settings and reference data; writes every record", "1", "Database"], ["Editor", "Creates and edits records; row-level security decides each write", "10", "Database"], ["Viewer", "Reads the workspace and writes nothing", "2", "Database"], ["Assessor", "An outside SCA: reads what a program shares, writes draft assessment results", "3", "Proposed"]];
-    const rmf = [["Authorizing official AO", "Records the authorization decision on WS-X90's packages", "R. Calloway", "One"], ["Authorizing official designated representative AODR", "Acts for the AO where the AO delegates", "Lena Marsh", "Several"], ["Program manager and system owner PM/SO", "Owns WS-X90 and signs its security plan", "Ray Colston", "Several"], ["Lead assessor SCA", "Publishes WS-X90's assessment results", "D. Okafor", "One"], ["Assessor SCA", "Judges controls in a draft of the results", "Nadia Fournier", "Several"]];
+    const rmf = [["Authorizing official AO", "Records the authorization decision on WS-X90's packages", "R. Calloway", "One"], ["Authorizing official designated representative AODR", "Acts for the AO where the AO delegates", "Lena Marsh", "Several"], ["Program manager and system owner PM/SO", "Owns WS-X90 and signs its security plan", "Ray Colston", "Several"], ["Lead assessor SCA", "Publishes WS-X90's assessment results", "D. Okafor", "One"], ["Assessor SCA", "Judges controls in a draft of the results", "Nadia Fournier", "Several"], ["Information system security manager ISSM", "Approves the security plan and the POA&M", "Joel Barrantes", "Several"], ["Information system security officer ISSO", "Runs day-to-day security: evidence, issues, risks", "Priya Raghavan", "Several"], ["Information system security engineer ISSE", "Engineers security into WS-X90's design", "Ingrid Solberg", "Several"], ["User representative User rep", "Speaks for the operating squadron", "Capt. T. Abara", "Several"]];
     const main = `${crumbs(["Settings"])}<div class="ck-ph"><div class="ck-ph-t"><h1>Roles & permissions</h1></div><div class="ck-ph-a">${btn("Export", "secondary")}${btn("Invite", "primary", "plus")}</div></div>
       <p class="ck2-sub"><span>Who can do what in the workspace, and the RMF roles each program records.</span></p>
       ${tabs([["Roles", 11], ["Permissions", 9], ["Members", 17], ["Changes", 14]], "Roles")}
       <div class="ck-stack">${card("Workspace roles", table([{ t: "Role" }, { t: "What it can do" }, { t: "Members", n: true }, { t: "Source", w: "130px" }], roles.map(([a, b, c, d]) => [`<span class="ck-link ck-strong">${a}</span>`, esc(b), c, d === "Proposed" ? status("Proposed") : pill(d)])), count(5), "ck-card-flush")}
-      ${card("RMF roles on WS-X90", table([{ t: "Role" }, { t: "Holds" }, { t: "Today" }, { t: "At a time", w: "110px" }], rmf.map(([a, b, c, d]) => [`<span class="ck-strong">${esc(a)}</span>`, esc(b), avatar(c), d])), count(6), "ck-card-flush")}</div>`;
+      ${card("RMF roles on WS-X90", table([{ t: "Role" }, { t: "Holds" }, { t: "Today" }, { t: "At a time", w: "110px" }], rmf.map(([a, b, c, d]) => [`<span class="ck-strong">${esc(a)}</span>`, esc(b), avatar(c), d])), count(rmf.length), "ck-card-flush")}</div>`;
     return frame("Roles & permissions", main, NAVS.settings[0], "settings");
   };
   NOTES.permissions = ["Roles, Permissions, Members and Changes are Tabs with counts.", "Workspace roles and the RMF roles on WS-X90 are two Tables in cards; who holds a role today is an Avatar.", "A role that is only proposed reads as a StatusIndicator; Invite is the one primary."];
@@ -52590,10 +52590,17 @@ window.PA_PACK = {"packs":["pk/pack-0.jpg","pk/pack-1.jpg","pk/pack-2.jpg","pk/p
     const [n, off, len] = P.files[path];
     return (urls[path] = pack(n).then((buf) => URL.createObjectURL(new Blob([buf.slice(off, off + len)], { type: "image/jpeg" }))));
   }
-  function fix(img) {
+  function load(img) {
     const src = img.getAttribute("src");
     if (!src || !P.files[src]) return;
     url(src).then((u) => { if (img.getAttribute("src") === src) img.src = u; }, () => {});
+  }
+  // Images keep their lazy loading: a pack is fetched only once one of its images nears the viewport.
+  const near = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { near.unobserve(e.target); load(e.target); } }), { rootMargin: "800px 0px" });
+  function fix(img) {
+    const src = img.getAttribute("src");
+    if (!src || !P.files[src]) return;
+    if (img.loading === "lazy") near.observe(img); else load(img);
   }
   const scan = (root) => { if (root.tagName === "IMG") fix(root); if (root.querySelectorAll) root.querySelectorAll("img[src]").forEach(fix); };
   new MutationObserver((ms) => ms.forEach((m) => { if (m.type === "attributes") fix(m.target); else m.addedNodes.forEach((x) => x.nodeType === 1 && scan(x)); }))

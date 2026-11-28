@@ -1,6 +1,6 @@
 import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs';
 import fs from 'fs';
-const R = Object.fromEntries(fs.readFileSync('routes.txt','utf8').trim().split('\n').map(l=>l.split(':')));
+const R = Object.fromEntries(fs.readFileSync(new URL('today-routes.txt', import.meta.url),'utf8').trim().split('\n').map(l=>l.split(':')));
 const b = await chromium.launch(); const p = await b.newPage({ viewport: { width: 1440, height: 900 } });
 await p.goto('file:///home/user/program_assurance/artifacts/prototypes/vanta-v8/prototype.html');
 await p.waitForTimeout(1500);

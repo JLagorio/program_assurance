@@ -11,10 +11,17 @@
     const [n, off, len] = P.files[path];
     return (urls[path] = pack(n).then((buf) => URL.createObjectURL(new Blob([buf.slice(off, off + len)], { type: "image/jpeg" }))));
   }
-  function fix(img) {
+  function load(img) {
     const src = img.getAttribute("src");
     if (!src || !P.files[src]) return;
     url(src).then((u) => { if (img.getAttribute("src") === src) img.src = u; }, () => {});
+  }
+  // Images keep their lazy loading: a pack is fetched only once one of its images nears the viewport.
+  const near = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { near.unobserve(e.target); load(e.target); } }), { rootMargin: "800px 0px" });
+  function fix(img) {
+    const src = img.getAttribute("src");
+    if (!src || !P.files[src]) return;
+    if (img.loading === "lazy") near.observe(img); else load(img);
   }
   const scan = (root) => { if (root.tagName === "IMG") fix(root); if (root.querySelectorAll) root.querySelectorAll("img[src]").forEach(fix); };
   new MutationObserver((ms) => ms.forEach((m) => { if (m.type === "attributes") fix(m.target); else m.addedNodes.forEach((x) => x.nodeType === 1 && scan(x)); }))
