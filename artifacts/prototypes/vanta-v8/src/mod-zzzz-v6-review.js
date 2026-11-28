@@ -50,17 +50,24 @@
   function useLocal() { if (mode === "db") return; mode = "local"; changed(); }
   // Each change made here goes up once; it leaves the queue only when its own write succeeds, so a rejected one is
   // kept (and shown as not saved) for the next time the page opens.
+  // Every write is numbered; a write that ends clears or replaces the queued change for its id only if no later write
+  // of that id has queued one since, so a slow older write never wipes a newer choice.
+  let seq = Date.now(); // above any number a queued change kept from an earlier visit holds
+  const newer = (id, n) => !pending[id] || (pending[id].n || 0) <= n;
+  const settle = (id, n) => { if (newer(id, n)) delete pending[id]; saveLocal(); };
+  const queue = (id, n, q) => { if (newer(id, n)) pending[id] = { ...q, n }; failed++; saveLocal(); changed(); };
   function sync() {
-    const done = (k) => { delete pending[k]; saveLocal(); };
-    const fail = (k, v) => { failed++; if (v) items.set(k, v); saveLocal(); changed(); };
     Object.entries(pending).forEach(([k, p]) => {
+      const n = (p.n = ++seq);
+      const done = () => settle(k, n);
+      const fail = (_k, v) => { if (newer(k, n) && v) items.set(k, v); queue(k, n, p); };
       const srv = items.get(k);
       if (p.op === "del") {
-        if (srv && String(srv.at || "") <= String(p.at || "")) { items.delete(k); col.doc(k).delete().then(() => done(k), () => fail(k)); }
+        if (srv && String(srv.at || "") <= String(p.at || "")) { items.delete(k); col.doc(k).delete().then(done, () => fail(k)); }
         else delete pending[k];
       } else {
         const v = p.v || local.get(k);
-        if (v && (!srv || String(v.at || "") > String(srv.at || ""))) { items.set(k, v); col.doc(k).set(v).then(() => done(k), () => fail(k, v)); }
+        if (v && (!srv || String(v.at || "") > String(srv.at || ""))) { items.set(k, v); col.doc(k).set(v).then(done, () => fail(k, v)); }
         else delete pending[k];
       }
     });
@@ -91,17 +98,19 @@
     id = safeId(id);
     items.set(id, doc); changed();
     if (mode === "db" && col) {
-      try { await col.doc(id).set(doc); delete pending[id]; saveLocal(); }
-      catch (e) { pending[id] = { op: "put", at: doc.at || "", v: doc }; failed++; saveLocal(); changed(); toast("Could not save to the artifact; kept on this device"); }
-    } else { pending[id] = { op: "put", at: doc.at || "", v: doc }; saveLocal(); }
+      const n = ++seq;
+      try { await col.doc(id).set(doc); settle(id, n); }
+      catch (e) { queue(id, n, { op: "put", at: doc.at || "", v: doc }); toast("Could not save to the artifact; kept on this device"); }
+    } else { pending[id] = { op: "put", at: doc.at || "", v: doc, n: ++seq }; saveLocal(); }
   }
   async function drop(id) {
     id = safeId(id);
     items.delete(id); changed();
     if (mode === "db" && col) {
-      try { await col.doc(id).delete(); delete pending[id]; saveLocal(); }
-      catch (e) { pending[id] = { op: "del", at: new Date().toISOString() }; failed++; saveLocal(); changed(); toast("Could not delete from the artifact; will retry next time"); }
-    } else { pending[id] = { op: "del", at: new Date().toISOString() }; saveLocal(); }
+      const n = ++seq;
+      try { await col.doc(id).delete(); settle(id, n); }
+      catch (e) { queue(id, n, { op: "del", at: new Date().toISOString() }); toast("Could not delete from the artifact; will retry next time"); }
+    } else { pending[id] = { op: "del", at: new Date().toISOString(), n: ++seq }; saveLocal(); }
   }
   const all = () => [...items.entries()].map(([id, v]) => ({ id, ...v }));
   const votes = (screen) => all().filter((x) => x.kind === "vote" && x.screen === screen);
