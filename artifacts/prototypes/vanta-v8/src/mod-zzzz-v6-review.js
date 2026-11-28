@@ -26,7 +26,7 @@
   const safeId = (s) => String(s).replace(/[^A-Za-z0-9_\-.~:@+]/g, "_").slice(0, 180);
   const newId = () => "n-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8);
   // This browser keeps a copy of the feedback (LKEY) and, apart, what was changed here and not yet saved to the
-  // artifact (PKEY: id -> {op: "put"|"del", at}). Only those changes go up on reconnect, so a note deleted on another
+  // artifact (PKEY: id -> {op: "put"|"del", at, v: the doc put}). Only those changes go up on reconnect, so a note deleted on another
   // device, or here while offline, is not brought back from the copy.
   const PKEY = "pa-rv-feedback-pending";
   let pending = {};
@@ -37,7 +37,7 @@
       const p = localStorage.getItem(PKEY);
       if (p != null) pending = JSON.parse(p) || {};
       // A copy written before changes were tracked: everything in it may be unsaved, so it goes up as before.
-      else items.forEach((v, k) => { pending[k] = { op: "put", at: v.at || "" }; });
+      else items.forEach((v, k) => { pending[k] = { op: "put", at: v.at || "", v }; });
     } catch (e) { pending = {}; }
   }
   function saveLocal() {
@@ -45,17 +45,22 @@
   }
   let localTimer = null;
   function useLocal() { if (mode === "db") return; mode = "local"; changed(); }
+  // Each change made here goes up once; it leaves the queue only when its own write succeeds, so a rejected one is
+  // kept (and shown as not saved) for the next time the page opens.
   function sync() {
+    const done = (k) => { delete pending[k]; saveLocal(); };
+    const fail = (k, v) => { failed++; if (v) items.set(k, v); saveLocal(); changed(); };
     Object.entries(pending).forEach(([k, p]) => {
       const srv = items.get(k);
       if (p.op === "del") {
-        if (srv && String(srv.at || "") <= String(p.at || "")) { items.delete(k); col.doc(k).delete().catch(() => {}); }
+        if (srv && String(srv.at || "") <= String(p.at || "")) { items.delete(k); col.doc(k).delete().then(() => done(k), () => fail(k)); }
+        else delete pending[k];
       } else {
-        const v = local.get(k);
-        if (v && (!srv || String(v.at || "") > String(srv.at || ""))) { items.set(k, v); col.doc(k).set(v).catch(() => {}); }
+        const v = p.v || local.get(k);
+        if (v && (!srv || String(v.at || "") > String(srv.at || ""))) { items.set(k, v); col.doc(k).set(v).then(() => done(k), () => fail(k, v)); }
+        else delete pending[k];
       }
     });
-    pending = {};
   }
   let local = new Map();
   async function init() {
@@ -84,8 +89,8 @@
     items.set(id, doc); changed();
     if (mode === "db" && col) {
       try { await col.doc(id).set(doc); saveLocal(); }
-      catch (e) { pending[id] = { op: "put", at: doc.at || "" }; failed++; saveLocal(); changed(); toast("Could not save to the artifact; kept on this device"); }
-    } else { pending[id] = { op: "put", at: doc.at || "" }; saveLocal(); }
+      catch (e) { pending[id] = { op: "put", at: doc.at || "", v: doc }; failed++; saveLocal(); changed(); toast("Could not save to the artifact; kept on this device"); }
+    } else { pending[id] = { op: "put", at: doc.at || "", v: doc }; saveLocal(); }
   }
   async function drop(id) {
     id = safeId(id);
