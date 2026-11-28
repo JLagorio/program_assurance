@@ -73,6 +73,7 @@
     });
   }
   let local = new Map();
+  let synced = false;
   async function init() {
     loadLocal();
     const c = window.claude;
@@ -87,9 +88,12 @@
       local = new Map(items);
       items.clear();
       snap.docs.forEach((d) => { const v = d.data(); if (v) items.set(d.id, v); });
-      const was = mode; mode = "db";
-      // What was changed on this device before the db answered goes up once, where it is newer than the server's.
-      if (was !== "db") sync();
+      mode = "db";
+      // What was changed on this device before the db answered goes up once, where it is newer than the server's,
+      // and only against the server's own answer, never a copy cached on this device, which may be older than
+      // another reviewer's change.
+      const cached = !!(snap.metadata && snap.metadata.fromCache);
+      if (!synced && !cached) { synced = true; sync(); }
       // A change still queued here (a write that failed) shows over the server's copy until it goes up.
       else Object.entries(pending).forEach(([k, p]) => { if (p.op === "del") items.delete(k); else if (p.v) items.set(k, p.v); });
       saveLocal();
@@ -160,7 +164,8 @@
   const fileId = (k) => String(k).replace(/[^A-Za-z0-9_-]/g, "_");
   const imgV2 = (s) => (shots()["v2-" + fileId(s.key)] ? `rv/v2-${fileId(s.key)}.jpg` : null);
   const imgV3 = (s) => (s.ck && !s.pattern && !shots()["v3-" + fileId(s.key)] ? `ck/cur-${s.ck}.jpg` : shots()["v3-" + fileId(s.key)] ? `rv/v3-${fileId(s.key)}.jpg` : s.v3img || null);
-  const has = (s, v) => (v === "ck" ? !!s.ck : v === "dr" ? s.dr.length > 0 : !s.pattern && !!s.route);
+  // v2 is not a version of a screen it has no page for (its shot recorded as 0 by rv/shoot.mjs).
+  const has = (s, v) => (v === "ck" ? !!s.ck : v === "dr" ? s.dr.length > 0 : !s.pattern && !!s.route && !(v === "v2" && shots()["v2-" + fileId(s.key)] === 0));
   const reviewed = (s) => votes(s.key).length > 0 || !!keep(s.key) || notes(s.key).length > 0;
 
   // ——— Open a version live ———
@@ -208,7 +213,7 @@
   function pane(s, ver) {
     const k = esc(s.key);
     if (!has(s, ver)) {
-      const why = ver === "ck" ? "No Canvas Kit mockup yet." : ver === "dr" ? "Drata's study did not redraw this screen." : "No screen for this today: it is a new Canvas Kit pattern.";
+      const why = ver === "ck" ? "No Canvas Kit mockup yet." : ver === "v2" && shots()["v2-" + fileId(s.key)] === 0 ? "v2 has no page for this screen. It is new in V3." : ver === "dr" ? "Drata's study did not redraw this screen." : "No screen for this today: it is a new Canvas Kit pattern.";
       return `<div class="rv-pane rv-pane-off" data-rv-pane="${k}|${ver}"><div class="rv-ph-h"><span class="rv-vt rv-${ver}">${VLABEL[ver]}</span></div><div class="rv-empty">${esc(why)}</div></div>`;
     }
     const subs = ver === "dr" ? s.dr : [null];
@@ -597,10 +602,11 @@
     if ((b = q("[data-rv-unarm]"))) { setArm(null); return; }
     if ((b = q("[data-rv-vote]"))) {
       const [k, ver, v] = b.dataset.rvVote.split("|"); const s = find(k); const c = liveCtx();
-      setVote(k, ver, v, { title: s ? s.title : c && c.title, route: s ? s.route : c && c.route }).then(() => {
-        const sh = document.querySelector("#rv-sheet:not([hidden]) .rv-sh-votes");
-        if (sh) sh.querySelectorAll("[data-rv-vote]").forEach((x) => { const vv = x.dataset.rvVote.split("|")[2], on = vote(k, ver) === vv; x.classList.toggle("on", on); x.classList.toggle(vv, on); x.setAttribute("aria-pressed", String(on)); });
-      });
+      // The store takes the vote at once (the write follows), so the sheet's buttons show it before the write ends
+      // and a second click reads the vote as it now is.
+      setVote(k, ver, v, { title: s ? s.title : c && c.title, route: s ? s.route : c && c.route });
+      const sh = document.querySelector("#rv-sheet:not([hidden]) .rv-sh-votes");
+      if (sh) sh.querySelectorAll("[data-rv-vote]").forEach((x) => { const vv = x.dataset.rvVote.split("|")[2], on = vote(k, ver) === vv; x.classList.toggle("on", on); x.classList.toggle(vv, on); x.setAttribute("aria-pressed", String(on)); });
       return;
     }
     if ((b = q("[data-rv-note]"))) { e.preventDefault(); showNote(b.dataset.rvNote, b); return; }
