@@ -339,7 +339,7 @@
   function openComposer(d) {
     draft = d;
     const el = sheet();
-    const where = d.x != null ? `📍 Pinned${d.el ? `: ${esc(d.el)}` : " to a spot"}` : "The whole screen";
+    const where = d.x != null || d.px != null ? `📍 Pinned${d.el ? `: ${esc(d.el)}` : " to a spot"}` : "The whole screen";
     const s = d.screen && screens().find((x) => x.key === d.screen);
     const prev = d.live ? notes(d.screen).filter((n) => n.ver === d.ver) : [];
     const v = vote(d.screen, d.ver);
@@ -523,7 +523,14 @@
       return;
     }
     if ((b = q("[data-rv-note]"))) { e.preventDefault(); showNote(b.dataset.rvNote, b); return; }
-    if ((b = q("[data-rv-del]"))) { drop(b.dataset.rvDel); hidePop(); const sh = document.querySelector("#rv-sheet:not([hidden])"); if (sh && draft) openComposer(draft); return; }
+    if ((b = q("[data-rv-del]"))) { drop(b.dataset.rvDel); hidePop(); const sh = document.querySelector("#rv-sheet:not([hidden])"); if (sh && draft) {
+        // Rebuild the sheet's list, keeping what was being typed and the tag chosen.
+        const ta = sh.querySelector("#rv-text"), txt = ta ? ta.value : "", tg = (sh.querySelector("[data-rv-tag][aria-pressed='true']") || {}).dataset;
+        openComposer(draft);
+        const ta2 = document.querySelector("#rv-sheet #rv-text"); if (ta2) { ta2.value = txt; ta2.focus(); }
+        if (tg && tg.rvTag) { const c = [...document.querySelectorAll("#rv-sheet [data-rv-tag]")].find((x) => x.dataset.rvTag === tg.rvTag); if (c) { c.setAttribute("aria-pressed", "true"); c.classList.add("on"); } }
+      }
+      return; }
     if ((b = q("[data-rv-zclose]"))) { closeZoom(); return; }
     if ((b = q("[data-rv-zfit]"))) { document.getElementById("rv-zoom").classList.toggle("fit"); return; }
     if ((b = q("[data-rv-arm]"))) { const a = b.dataset.rvArm; setArm(arm === a ? null : a); return; }
