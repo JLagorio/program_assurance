@@ -101,7 +101,7 @@
 .rv-toast.on { opacity: 1; transform: translate(-50%, 0); }
 
 /* Full-size viewer */
-.rv-zoom { position: fixed; inset: 0; z-index: 1000; background: var(--page); display: flex; flex-direction: column; }
+.rv-zoom { position: fixed; inset: 0; z-index: 990; background: var(--page); display: flex; flex-direction: column; }
 .rv-zoom[hidden] { display: none; }
 .rv-zh { display: flex; align-items: center; gap: 8px; padding: calc(8px + env(safe-area-inset-top)) 10px 8px; background: var(--canvas); border-bottom: 1px solid var(--line); }
 .rv-zh b { font: 600 14px/20px var(--font); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
@@ -109,3 +109,21 @@
 .rv-zstage { width: 1440px; max-width: none; border-radius: 0; border: 0; cursor: default; }
 .rv-zoom.fit .rv-zstage { width: 100%; }
 html.rv-noscroll, html.rv-noscroll body { overflow: hidden; }
+
+/* Viewer: a group's screens one at a time */
+.rv-zh .rv-ib[disabled] { opacity: 0.35; cursor: default; }
+.rv-zpos { font: 500 13px/20px var(--font); color: var(--ink-3); white-space: nowrap; }
+.rv-zg { font: 13px/20px var(--font); color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+@media (max-width: 700px) { .rv-zg { display: none; } }
+.rv-zbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 6px 10px; background: var(--canvas); border-bottom: 1px solid var(--line); }
+.rv-zbar .rv-vtabs { margin: 0; flex: 0 0 auto; max-width: 100%; }
+.rv-zbar .rv-vtab { flex: 0 0 auto; }
+.rv-keys { font: 12px/18px var(--font); color: var(--ink-3); }
+@media (hover: none), (max-width: 900px) { .rv-keys { display: none; } }
+.rv-zs:focus { outline: none; }
+.rv-zs .rv-sub { padding: 8px 12px 4px; }
+.rv-zstage { cursor: default; margin: 0 auto; }
+.rv-zstage.rv-st-ck { background: #fff; }
+.rv-znotes { max-width: 900px; margin: 12px auto 40px; padding: 0 12px; }
+.rv-g .rv-gplay { margin-inline-start: 10px; vertical-align: middle; }
+.rv-st-ck { cursor: zoom-in; }

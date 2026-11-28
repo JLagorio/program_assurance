@@ -8885,7 +8885,7 @@ td.err .drk-sh-g { color: var(--bad); } td.warn .drk-sh-g { color: var(--warn); 
 .rv-toast.on { opacity: 1; transform: translate(-50%, 0); }
 
 /* Full-size viewer */
-.rv-zoom { position: fixed; inset: 0; z-index: 1000; background: var(--page); display: flex; flex-direction: column; }
+.rv-zoom { position: fixed; inset: 0; z-index: 990; background: var(--page); display: flex; flex-direction: column; }
 .rv-zoom[hidden] { display: none; }
 .rv-zh { display: flex; align-items: center; gap: 8px; padding: calc(8px + env(safe-area-inset-top)) 10px 8px; background: var(--canvas); border-bottom: 1px solid var(--line); }
 .rv-zh b { font: 600 14px/20px var(--font); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
@@ -8893,6 +8893,24 @@ td.err .drk-sh-g { color: var(--bad); } td.warn .drk-sh-g { color: var(--warn); 
 .rv-zstage { width: 1440px; max-width: none; border-radius: 0; border: 0; cursor: default; }
 .rv-zoom.fit .rv-zstage { width: 100%; }
 html.rv-noscroll, html.rv-noscroll body { overflow: hidden; }
+
+/* Viewer: a group's screens one at a time */
+.rv-zh .rv-ib[disabled] { opacity: 0.35; cursor: default; }
+.rv-zpos { font: 500 13px/20px var(--font); color: var(--ink-3); white-space: nowrap; }
+.rv-zg { font: 13px/20px var(--font); color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+@media (max-width: 700px) { .rv-zg { display: none; } }
+.rv-zbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 6px 10px; background: var(--canvas); border-bottom: 1px solid var(--line); }
+.rv-zbar .rv-vtabs { margin: 0; flex: 0 0 auto; max-width: 100%; }
+.rv-zbar .rv-vtab { flex: 0 0 auto; }
+.rv-keys { font: 12px/18px var(--font); color: var(--ink-3); }
+@media (hover: none), (max-width: 900px) { .rv-keys { display: none; } }
+.rv-zs:focus { outline: none; }
+.rv-zs .rv-sub { padding: 8px 12px 4px; }
+.rv-zstage { cursor: default; margin: 0 auto; }
+.rv-zstage.rv-st-ck { background: #fff; }
+.rv-znotes { max-width: 900px; margin: 12px auto 40px; padding: 0 12px; }
+.rv-g .rv-gplay { margin-inline-start: 10px; vertical-align: middle; }
+.rv-st-ck { cursor: zoom-in; }
 
 </style>
 
@@ -52289,7 +52307,7 @@ window.PA.RVSHOTS = {"v2-overview":1,"v2-controls":1,"v2-control":0,"v2-evidence
   function card(s) {
     const k = esc(s.key);
     const avail = VERS.filter(([v]) => has(s, v)).map(([v]) => v);
-    return `<section class="rv-card" id="rv-${safeId(s.key)}" data-rv-card="${k}">
+    return `<section class="rv-card" id="rv-${safeId(s.key)}" data-rv-card="${k}" data-rv-group="${esc(s.group)}">
       <div class="rv-ch"><div><h3 tabindex="-1">${esc(s.title)}</h3><div class="facts rv-facts" data-rv-counts="${k}">${counts(s)}</div></div></div>
       <div class="rv-vtabs" role="tablist" aria-label="Versions of ${esc(s.title)}">${VERS.map(([v, l]) => `<button type="button" role="tab" class="rv-vtab rv-${v}${avail.includes(v) ? "" : " off"}" data-rv-goto="${k}|${v}">${l}</button>`).join("")}</div>
       <div class="rv-track" data-rv-track="${k}">${VERS.map(([v]) => pane(s, v)).join("")}</div>
@@ -52319,7 +52337,7 @@ window.PA.RVSHOTS = {"v2-overview":1,"v2-controls":1,"v2-control":0,"v2-evidence
     setTimeout(after, 0);
     return `<div class="main ba rv rv-${lay()}">${header("Before, v1, v2 and V3", `<span data-rv-sum>${summary()}</span>`, "")}${tabsHtml}
       <section class="rv-hero"><h2>Review all: every screen in every version</h2>
-        <p class="ba-lede">Each screen as it is in <b>v2</b>, in <b>V3</b>, after <b>Drata</b>'s patterns and as a <b>Canvas Kit</b> mockup. Swipe between them (or see them side by side on a wide screen), tap 👍 or 👎 on each, pick what to <b>Keep</b> for the screen, and leave notes: 💬 Note for the whole version, 📍 Pin then tap the spot you mean. Tap a screenshot to see it full size. The 💬 Feedback button works on every other screen of the prototype too.</p>
+        <p class="ba-lede">Each screen as it is in <b>v2</b>, in <b>V3</b>, after <b>Drata</b>'s patterns and as a <b>Canvas Kit</b> mockup. Swipe between them (or see them side by side on a wide screen), tap 👍 or 👎 on each, pick what to <b>Keep</b> for the screen, and leave notes: 💬 Note for the whole version, 📍 Pin then tap the spot you mean. Click any screenshot or mockup (or <b>▶ Step through</b> on a group) to view it full width and step through the group: ← → for screens, ↑ ↓ for versions, L or D to like or dislike, N for a note, P to pin, K to keep that version. The 💬 Feedback button works on every other screen of the prototype too.</p>
         <div class="rv-bar">
           <div class="ba-switch" role="group" aria-label="Show">${[["all", "All"], ["todo", "Not reviewed"], ["notes", "With notes"]].map(([k, l]) => `<button type="button" data-rv-filter="${k}" aria-pressed="${filter === k}">${l}</button>`).join("")}</div>
           <div class="ba-switch" role="group" aria-label="Layout">${[["swipe", "Swipe"], ["grid", "Side by side"]].map(([k, l]) => `<button type="button" data-rv-layout="${k}" aria-pressed="${lay() === k}">${l}</button>`).join("")}</div>
@@ -52328,7 +52346,7 @@ window.PA.RVSHOTS = {"v2-overview":1,"v2-controls":1,"v2-control":0,"v2-evidence
         <div class="rv-bar"><span data-rv-store>${storeLine()}</span><button type="button" class="btn sm" data-rv-export>Copy all feedback</button><button type="button" class="btn sm" data-rv-showjson>Show as text</button></div>
         <div class="rv-json" hidden><textarea readonly rows="8" aria-label="All feedback as JSON"></textarea></div>
       </section>
-      ${groups.map((g) => { const list = shown.filter((s) => s.group === g); return list.length ? `<h4 class="ckba-g rv-g">${esc(g)} <span class="num">${list.length}</span></h4>${list.map(card).join("")}` : ""; }).join("")}
+      ${groups.map((g) => { const list = shown.filter((s) => s.group === g); return list.length ? `<h4 class="ckba-g rv-g">${esc(g)} <span class="num">${list.length}</span><button type="button" class="btn sm rv-gplay" data-rv-play="${esc(list[0].key)}">▶ Step through these ${list.length}</button></h4>${list.map(card).join("")}` : ""; }).join("")}
       ${shown.length ? "" : `<p class="rv-quiet">Nothing here: every screen is reviewed.</p>`}
     </div>`;
   }
@@ -52349,7 +52367,7 @@ window.PA.RVSHOTS = {"v2-overview":1,"v2-controls":1,"v2-control":0,"v2-evidence
     el.style.height = `${Math.ceil(app.offsetHeight * z)}px`;
   }
   const fitAll = () => document.querySelectorAll(".rv [data-rv-fit]").forEach(fit);
-  window.addEventListener("resize", () => { if (document.querySelector(".rv")) fitAll(); });
+  window.addEventListener("resize", () => { if (document.querySelector(".rv")) fitAll(); document.querySelectorAll("#rv-zoom [data-rv-vfit]").forEach(fit); });
   function after() {
     document.querySelectorAll(".rv [data-rv-fit]").forEach((el) => { if (io) io.observe(el); else drawCk(el); });
     document.querySelectorAll(".rv [data-rv-track]").forEach(syncTabs);
@@ -52388,6 +52406,7 @@ window.PA.RVSHOTS = {"v2-overview":1,"v2-controls":1,"v2-control":0,"v2-evidence
     const zm = document.getElementById("rv-zoom"); if (zm && !zm.hidden && zm.dataset.stage) { const [k, ver, sub] = zm.dataset.stage.split("|"); const p = zm.querySelector(".rv-pins"); if (p) p.innerHTML = pinLayer(k, ver, Number(sub)); }
   }
   PA.fb.on(refresh);
+  PA.fb.on(() => { if (view && !document.querySelector("#rv-sheet:not([hidden])")) { const a = document.activeElement, sel = a && a.dataset && (a.dataset.rvVote ? `[data-rv-vote="${CSS.escape(a.dataset.rvVote)}"]` : a.dataset.rvKeep ? `[data-rv-keep="${CSS.escape(a.dataset.rvKeep)}"]` : null); const zs = document.querySelector("#rv-zoom .rv-zs"), top = zs ? zs.scrollTop : 0; drawViewer(sel); const z2 = document.querySelector("#rv-zoom .rv-zs"); if (z2) z2.scrollTop = top; } });
 
   // ——— Composer: a bottom sheet for a note ———
   let draft = null; // { screen, ver, sub, x, y, el, route, title, v3, live }
@@ -52416,7 +52435,7 @@ window.PA.RVSHOTS = {"v2-overview":1,"v2-controls":1,"v2-control":0,"v2-evidence
     setTimeout(() => { const t = document.getElementById("rv-text"); if (t) t.focus(); }, 30);
   }
   const noteListOf = (ns) => `<ul class="rv-nl">${ns.map((n) => `<li><span class="rv-pn">${n.x != null || n.px != null ? "📍" : "💬"}</span>${n.tag ? `<span class="rv-tag">${esc(n.tag)}</span>` : ""}<span class="rv-nt">${esc(n.text || "")}</span><button type="button" class="rv-x" data-rv-del="${esc(n.id)}" aria-label="Delete note">✕</button></li>`).join("")}</ul>`;
-  function closeComposer() { const el = sheet(); el.hidden = true; el.innerHTML = ""; draft = null; }
+  function closeComposer() { const el = sheet(); const was = !el.hidden; el.hidden = true; el.innerHTML = ""; draft = null; if (was && view) drawViewer(); }
   function saveDraft() {
     if (!draft) return;
     const t = document.getElementById("rv-text");
@@ -52456,19 +52475,79 @@ window.PA.RVSHOTS = {"v2-overview":1,"v2-controls":1,"v2-control":0,"v2-evidence
     return [head, txt].filter(Boolean).join(" › ");
   }
 
-  // ——— Full-size viewer ———
-  function zoom(stageEl) {
-    const img = stageEl.querySelector("img"); if (!img) return;
-    let z = document.getElementById("rv-zoom");
-    if (!z) { z = document.createElement("div"); z.id = "rv-zoom"; z.className = "rv-zoom"; z.hidden = true; document.body.appendChild(z); }
-    const [k, ver, sub] = stageEl.dataset.rvStage.split("|");
-    z.dataset.stage = stageEl.dataset.rvStage; z.dataset.arm = `${k}|${ver}`;
-    z.innerHTML = `<div class="rv-zh"><span class="rv-vt rv-${esc(ver)}">${esc(VLABEL[ver])}</span><b>${esc(img.alt)}</b><span class="rv-sp"></span><button type="button" class="rv-ib" data-rv-arm="${esc(k)}|${esc(ver)}" aria-pressed="false">${ICON.pin}<span>Pin</span></button><button type="button" class="rv-ib" data-rv-zfit>Fit</button><button type="button" class="rv-x" data-rv-zclose aria-label="Close">✕</button></div>
-      <div class="rv-zs"><div class="rv-stage rv-zstage" data-rv-stage="${esc(z.dataset.stage)}"><img src="${esc(img.getAttribute("src"))}" alt="${esc(img.alt)}"><div class="rv-pins">${pinLayer(k, ver, Number(sub))}</div></div></div>`;
-    z.hidden = false; z.classList.remove("fit");
+  // ——— Viewer: one screen at a time, full width, stepping through a group's screens and their versions ———
+  // ← → the previous and next screen, ↑ ↓ (or 1–4) the version, L like, D dislike, N note, P pin, K keep this version,
+  // F fit or actual size, Esc close. Opened by clicking any screenshot or mockup, or a group's "Step through".
+  let view = null; // { keys: [screen keys], i, ver, actual }
+  const verOf = (s, want) => (has(s, want) ? want : (VERS.find(([v]) => has(s, v)) || ["ck"])[0]);
+  function openViewer(keys, key, ver) {
+    const i = Math.max(0, keys.indexOf(key));
+    const s = find(keys[i]); if (!s) return;
+    const opener = document.activeElement;
+    view = { keys, i, ver: verOf(s, ver), want: ver, actual: false, opener };
+    drawViewer();
     document.documentElement.classList.add("rv-noscroll");
   }
-  function closeZoom() { const z = document.getElementById("rv-zoom"); if (z) { z.hidden = true; z.innerHTML = ""; } document.documentElement.classList.remove("rv-noscroll"); if (arm && arm !== "live") setArm(null); }
+  function viewStage(s, ver, sub) {
+    const k = esc(s.key);
+    const wrap = (inner, cls) => `<div class="rv-stage rv-zstage${cls ? " " + cls : ""}" data-rv-stage="${k}|${ver}|${sub || 0}">${inner}<div class="rv-pins">${pinLayer(s.key, ver, sub)}</div></div>`;
+    if (ver === "ck") return wrap(`<div class="rv-fit" data-rv-vfit data-rv-ck="${esc(s.ck)}"></div>`, "rv-st-ck");
+    const html = stage(s, ver, sub);
+    const t = document.createElement("template"); t.innerHTML = html.trim();
+    const img = t.content.querySelector("img");
+    if (!img) return wrap((t.content.querySelector(".rv-none") || { outerHTML: "" }).outerHTML);
+    img.removeAttribute("loading");
+    return wrap(img.outerHTML);
+  }
+  function drawViewer(focusSel) {
+    if (!view) return;
+    let z = document.getElementById("rv-zoom");
+    if (!z) { z = document.createElement("div"); z.id = "rv-zoom"; z.className = "rv-zoom"; z.hidden = true; z.setAttribute("role", "dialog"); z.setAttribute("aria-modal", "true"); z.setAttribute("aria-labelledby", "rv-z-t"); document.body.appendChild(z); }
+    const s = find(view.keys[view.i]); if (!s) { closeZoom(); return; }
+    const ver = view.ver, k = esc(s.key);
+    const avail = VERS.filter(([v]) => has(s, v));
+    const n = view.keys.length;
+    const kv = keep(s.key);
+    const subs = ver === "dr" ? s.dr : [null];
+    const ns = notes(s.key);
+    z.dataset.stage = `${s.key}|${ver}|0`; z.dataset.arm = `${s.key}|${ver}`;
+    z.classList.toggle("fit", !view.actual);
+    z.innerHTML = `<div class="rv-zh">
+        <button type="button" class="rv-ib" data-rv-vstep="-1" aria-label="Previous screen" ${view.i ? "" : "disabled"}>‹</button>
+        <span class="num rv-zpos">${view.i + 1} of ${n}</span>
+        <button type="button" class="rv-ib" data-rv-vstep="1" aria-label="Next screen" ${view.i < n - 1 ? "" : "disabled"}>›</button>
+        <b id="rv-z-t">${esc(s.title)}</b><span class="rv-zg">${esc(s.group)}</span><span class="rv-sp"></span>
+        <button type="button" class="rv-ib" data-rv-zfit aria-pressed="${view.actual}" title="F">${view.actual ? "Fit to width" : "Actual size"}</button>
+        <button type="button" class="rv-x" data-rv-zclose aria-label="Close (Esc)">✕</button></div>
+      <div class="rv-zbar">
+        <div class="rv-vtabs" role="tablist" aria-label="Versions of ${esc(s.title)}">${avail.map(([v, l], j) => `<button type="button" role="tab" class="rv-vtab rv-${v}${v === ver ? " on" : ""}" aria-selected="${v === ver}" data-rv-vver="${v}" title="${j + 1}">${l}</button>`).join("")}</div>
+        ${voteBtns(s.key, ver)}
+        <button type="button" class="rv-ib" data-rv-arm="${k}|${ver}" aria-pressed="${arm === `${s.key}|${ver}`}" title="P">${ICON.pin}<span>Pin</span></button>
+        <button type="button" class="rv-ib" data-rv-add="${k}|${ver}" title="N">${ICON.note}<span>Note</span></button>
+        <button type="button" class="rv-chip${kv === ver ? " on" : ""}" data-rv-keep="${k}|${ver}" aria-pressed="${kv === ver}" title="K">Keep ${esc(VLABEL[ver])}</button>
+        ${kv && kv !== ver ? `<span class="rv-kept">Keep: ${esc(kv === "mix" ? "Mix" : VLABEL[kv] || kv)}</span>` : ""}
+        <span class="rv-sp"></span><span class="rv-keys">← → screens · ↑ ↓ versions · L D like · N note · P pin · K keep</span>
+      </div>
+      <div class="rv-zs" tabindex="-1">${subs.map((d, j) => `${d && subs.length > 1 ? `<div class="rv-sub">${esc(d.title)}</div>` : ""}${viewStage(s, ver, j)}`).join("")}
+        <div class="rv-znotes">${ns.length ? noteList(s) : `<p class="rv-quiet">No notes on this screen yet. Press N to add one, or P and then click the spot you mean.</p>`}</div></div>`;
+    z.hidden = false;
+    z.classList.toggle("armed", !!arm && arm === z.dataset.arm);
+    z.querySelectorAll("[data-rv-vfit]").forEach((el) => { if (PA.ckba) { el.dataset.drawn = "1"; el.innerHTML = PA.ckba.draw(el.dataset.rvCk); requestAnimationFrame(() => fit(el)); } });
+    const f = (focusSel && z.querySelector(focusSel)) || z.querySelector(".rv-zs");
+    if (f) f.focus({ preventScroll: true });
+  }
+  function stepViewer(d) { if (!view) return; const i = view.i + d; if (i < 0 || i >= view.keys.length) return; if (arm) setArm(null); view.i = i; const s = find(view.keys[i]); view.ver = verOf(s, view.want); drawViewer(); const zs = document.querySelector("#rv-zoom .rv-zs"); if (zs) zs.scrollTop = 0; }
+  function verViewer(v) { if (!view) return; const s = find(view.keys[view.i]); if (!s || !has(s, v)) return; if (arm) setArm(null); view.ver = v; view.want = v; drawViewer(); }
+  function verStep(d) { if (!view) return; const s = find(view.keys[view.i]); const av = VERS.filter(([v]) => has(s, v)).map(([v]) => v); const j = av.indexOf(view.ver) + d; if (j >= 0 && j < av.length) verViewer(av[j]); }
+  // Screens of a card's group, as the page lists them now.
+  function groupKeys(key) {
+    const cards = [...document.querySelectorAll(".rv [data-rv-card]")];
+    const c = cards.find((x) => x.dataset.rvCard === key);
+    const g = c ? c.dataset.rvGroup : (find(key) || {}).group;
+    const keys = cards.filter((x) => x.dataset.rvGroup === g).map((x) => x.dataset.rvCard);
+    return keys.length ? keys : [key];
+  }
+  function closeZoom() { const z = document.getElementById("rv-zoom"); if (z) { z.hidden = true; z.innerHTML = ""; } document.documentElement.classList.remove("rv-noscroll"); if (arm && arm !== "live") setArm(null); const v = view; view = null; if (v) { const c = document.getElementById("rv-" + safeId(v.keys[v.i])); if (c && document.querySelector(".rv")) { c.scrollIntoView({ block: "start" }); const h3 = c.querySelector("h3"); if (h3) h3.focus({ preventScroll: true }); } else if (v.opener && v.opener.focus) v.opener.focus(); } }
 
   // ——— Floating Feedback button on every other screen ———
   const cur = () => (location.hash || "#home").slice(1);
@@ -52604,7 +52683,12 @@ window.PA.RVSHOTS = {"v2-overview":1,"v2-controls":1,"v2-control":0,"v2-evidence
       }
       return; }
     if ((b = q("[data-rv-zclose]"))) { closeZoom(); return; }
-    if ((b = q("[data-rv-zfit]"))) { document.getElementById("rv-zoom").classList.toggle("fit"); return; }
+    if ((b = q("[data-rv-zfit]"))) { if (view) { view.actual = !view.actual; drawViewer("[data-rv-zfit]"); } return; }
+    if ((b = q("[data-rv-vstep]"))) { stepViewer(Number(b.dataset.rvVstep)); return; }
+    if ((b = q("[data-rv-vver]"))) { verViewer(b.dataset.rvVver); return; }
+    if ((b = q("[data-rv-play]"))) { const k = b.dataset.rvPlay; openViewer(groupKeys(k), k, "ck"); return; }
+    // Inside the viewer a Canvas Kit mockup is a picture: its own buttons do nothing.
+    if (q("#rv-zoom .rv-zstage") && !q(".rv-pin")) { e.preventDefault(); return; }
     if ((b = q("[data-rv-arm]"))) { const a = b.dataset.rvArm; setArm(arm === a ? null : a); return; }
     if (!q(".rv") && !q("#rv-zoom")) return;
     if ((b = q("[data-rv-keep]"))) { const [k, v] = b.dataset.rvKeep.split("|"); const s = find(k); setKeep(k, v, { title: s && s.title }); return; }
@@ -52626,7 +52710,7 @@ window.PA.RVSHOTS = {"v2-overview":1,"v2-controls":1,"v2-control":0,"v2-evidence
     }
     if ((b = q("[data-rv-showjson]"))) { const w = document.querySelector(".rv-json"); if (w && !w.hidden) { w.hidden = true; return; } showJson(exportText()); return; }
     const st = q("[data-rv-stage]");
-    if (st && !arm && st.querySelector("img") && !q(".rv-zstage")) { zoom(st); return; }
+    if (st && !arm && !q(".rv-zstage") && (st.querySelector("img") || st.querySelector("[data-rv-fit]"))) { e.preventDefault(); const [k, ver] = st.dataset.rvStage.split("|"); openViewer(groupKeys(k), k, ver); return; }
   });
   function showJson(txt) { const w = document.querySelector(".rv-json"); if (!w) return; w.hidden = false; const ta = w.querySelector("textarea"); ta.value = txt; ta.focus(); ta.select(); }
   document.addEventListener("change", (e) => {
@@ -52634,10 +52718,28 @@ window.PA.RVSHOTS = {"v2-overview":1,"v2-controls":1,"v2-control":0,"v2-evidence
     if (s && s.value) { const el = document.getElementById(s.value); if (el) { el.scrollIntoView({ block: "start", behavior: "smooth" }); const hh = el.querySelector("h3"); if (hh) hh.focus({ preventScroll: true }); } s.value = ""; }
   });
   document.addEventListener("keydown", (e) => {
+    const z = document.getElementById("rv-zoom");
+    const sheetOpen = (() => { const sh = document.getElementById("rv-sheet"); return sh && !sh.hidden; })();
+    if (view && z && !z.hidden && !sheetOpen && e.key !== "Escape" && !e.metaKey && !e.ctrlKey && !e.altKey && !(e.target.closest && e.target.closest("input, textarea, select"))) {
+      const s = find(view.keys[view.i]); const key = e.key.toLowerCase();
+      const act = {
+        arrowright: () => stepViewer(1), arrowleft: () => stepViewer(-1), arrowdown: () => verStep(1), arrowup: () => verStep(-1),
+        l: () => setVote(s.key, view.ver, "up", { title: s.title, route: s.route }), d: () => setVote(s.key, view.ver, "down", { title: s.title, route: s.route }),
+        n: () => openComposer({ screen: s.key, ver: view.ver, title: s.title, route: s.route }), p: () => setArm(arm === `${s.key}|${view.ver}` ? null : `${s.key}|${view.ver}`),
+        k: () => setKeep(s.key, view.ver, { title: s.title }), f: () => { view.actual = !view.actual; drawViewer(); },
+      }[key] || (/^[1-4]$/.test(key) ? () => { const av = VERS.filter(([v]) => has(s, v)); if (av[Number(key) - 1]) verViewer(av[Number(key) - 1][0]); } : null);
+      if (act) { e.preventDefault(); act(); return; }
+    }
+    if (e.key === "Tab" && view && z && !z.hidden && !sheetOpen) {
+      // Keep Tab inside the viewer.
+      const fs = [...z.querySelectorAll("button:not([disabled]), [tabindex='-1'].rv-zs")].filter((x) => x.offsetParent !== null || x.classList.contains("rv-zs"));
+      if (fs.length) { const i = fs.indexOf(document.activeElement); if (e.shiftKey && i <= 0) { e.preventDefault(); fs[fs.length - 1].focus(); } else if (!e.shiftKey && i === fs.length - 1) { e.preventDefault(); fs[0].focus(); } }
+      return;
+    }
     if (e.key !== "Escape") return;
     if (arm) { setArm(null); return; }
-    const z = document.getElementById("rv-zoom"); if (z && !z.hidden) { closeZoom(); return; }
-    const sh = document.getElementById("rv-sheet"); if (sh && !sh.hidden) closeComposer();
+    const sh = document.getElementById("rv-sheet"); if (sh && !sh.hidden) { closeComposer(); return; }
+    if (z && !z.hidden) { closeZoom(); return; }
     hidePop();
   });
 
