@@ -100,7 +100,8 @@
     id = safeId(id);
     items.set(id, doc); changed();
     if (mode === "db" && col) {
-      const n = ++seq;
+      // Queued before the write, so a reload while it is in flight retries it.
+      const n = ++seq; pending[id] = { op: "put", at: doc.at || "", v: doc, n }; saveLocal();
       try { await col.doc(id).set(doc); settle(id, n); }
       catch (e) { queue(id, n, { op: "put", at: doc.at || "", v: doc }); toast("Could not save to the artifact; kept on this device"); }
     } else { pending[id] = { op: "put", at: doc.at || "", v: doc, n: ++seq }; saveLocal(); }
@@ -109,7 +110,7 @@
     id = safeId(id);
     items.delete(id); changed();
     if (mode === "db" && col) {
-      const n = ++seq;
+      const n = ++seq; pending[id] = { op: "del", at: new Date().toISOString(), n }; saveLocal();
       try { await col.doc(id).delete(); settle(id, n); }
       catch (e) { queue(id, n, { op: "del", at: new Date().toISOString() }); toast("Could not delete from the artifact; will retry next time"); }
     } else { pending[id] = { op: "del", at: new Date().toISOString(), n: ++seq }; saveLocal(); }
@@ -200,6 +201,7 @@
     if (ver === "v2") { img = imgV2(s); alt = `${s.title} in v2`; }
     if (ver === "v3") { img = imgV3(s); alt = `${s.title} in V3`; }
     if (ver === "dr") { const d = s.dr[sub || 0]; img = d && d.img; alt = `${d ? d.title : s.title}, after Drata`; }
+    if (!img && ver === "v2" && shots()["v2-" + fileId(s.key)] === 0) return wrap(`<div class="rv-none"><p>v2 has no page for this screen. It is new in V3.</p></div>`);
     if (!img) return wrap(`<div class="rv-none"><p>${ver === "v2" ? "No v2 screenshot yet." : "No screenshot yet."}</p><button type="button" class="btn sm" data-rv-open="${k}|${ver}|${sub || 0}">Open it live</button></div>`);
     return wrap(`<img src="${esc(img)}" alt="${esc(alt)}" loading="lazy" draggable="false">`);
   }
@@ -461,7 +463,8 @@
     if (!layer) { layer = document.createElement("div"); layer.className = "rv-livepins"; main.appendChild(layer); }
     layer.innerHTML = list.map((n, i) => `<button type="button" class="rv-pin" style="left:${Number(n.px)}%;top:${Number(n.py)}px" data-rv-note="${esc(n.id)}" aria-label="Note ${i + 1}: ${esc(n.text || "")}">${i + 1}</button>`).join("");
   }
-  window.addEventListener("hashchange", () => { closeComposer(); if (arm) setArm(null); setTimeout(() => { drawFab(); drawLivePins(); }, 60); });
+  // The card a live page was opened from holds only until the reader leaves that page.
+  window.addEventListener("hashchange", () => { if (origin) { if (cur() === origin.route) origin.seen = true; else if (origin.seen) origin = null; } closeComposer(); if (arm) setArm(null); setTimeout(() => { drawFab(); drawLivePins(); }, 60); });
   let fabTimer = null;
   window.addEventListener("scroll", () => { if (cur() !== "before-after-canvas" || fabTimer) return; fabTimer = setTimeout(() => { fabTimer = null; drawFab(); }, 200); }, { passive: true });
   window.addEventListener("v3change", () => setTimeout(() => { drawFab(); drawLivePins(); }, 60));
