@@ -31,6 +31,7 @@
   const PKEY = "pa-rv-feedback-pending";
   let pending = {};
   let failed = 0;
+  let storeOk = true; // false once this browser refuses to keep the copy (storage off or full)
   function loadLocal() {
     try { const all = JSON.parse(localStorage.getItem(LKEY) || "{}"); Object.entries(all).forEach(([k, v]) => items.set(k, v)); } catch (e) { /* storage off */ }
     try {
@@ -41,7 +42,9 @@
     } catch (e) { pending = {}; }
   }
   function saveLocal() {
-    try { localStorage.setItem(LKEY, JSON.stringify(Object.fromEntries(items))); localStorage.setItem(PKEY, JSON.stringify(pending)); } catch (e) { /* storage off */ }
+    const was = storeOk;
+    try { localStorage.setItem(LKEY, JSON.stringify(Object.fromEntries(items))); localStorage.setItem(PKEY, JSON.stringify(pending)); storeOk = true; } catch (e) { storeOk = false; }
+    if (was !== storeOk) changed();
   }
   let localTimer = null;
   function useLocal() { if (mode === "db") return; mode = "local"; changed(); }
@@ -88,7 +91,7 @@
     id = safeId(id);
     items.set(id, doc); changed();
     if (mode === "db" && col) {
-      try { await col.doc(id).set(doc); saveLocal(); }
+      try { await col.doc(id).set(doc); delete pending[id]; saveLocal(); }
       catch (e) { pending[id] = { op: "put", at: doc.at || "", v: doc }; failed++; saveLocal(); changed(); toast("Could not save to the artifact; kept on this device"); }
     } else { pending[id] = { op: "put", at: doc.at || "", v: doc }; saveLocal(); }
   }
@@ -96,7 +99,7 @@
     id = safeId(id);
     items.delete(id); changed();
     if (mode === "db" && col) {
-      try { await col.doc(id).delete(); saveLocal(); }
+      try { await col.doc(id).delete(); delete pending[id]; saveLocal(); }
       catch (e) { pending[id] = { op: "del", at: new Date().toISOString() }; failed++; saveLocal(); changed(); toast("Could not delete from the artifact; will retry next time"); }
     } else { pending[id] = { op: "del", at: new Date().toISOString() }; saveLocal(); }
   }
@@ -233,7 +236,7 @@
   const lay = () => layout || (window.innerWidth >= 1100 ? "grid" : "swipe");
   function storeLine() {
     const m = mode;
-    return m === "db" && failed ? `<span class="rv-store warn">${failed} change${failed > 1 ? "s" : ""} could not be saved to the artifact; kept on this device and sent next time it opens.</span>` : m === "db" ? `<span class="rv-store ok">Saved to the artifact. Claude can read it.</span>` : m === "local" ? `<span class="rv-store warn">Saved on this device only. Use Copy all feedback to send it.</span>` : `<span class="rv-store">Connecting…</span>`;
+    return m === "local" && !storeOk ? `<span class="rv-store warn">Not saved: this browser will not keep it and the artifact cannot be reached. Use Copy all feedback before you leave.</span>` : m === "db" && failed && !storeOk ? `<span class="rv-store warn">${failed} change${failed > 1 ? "s" : ""} could not be saved to the artifact, and this browser will not keep them. Use Copy all feedback before you leave.</span>` : m === "db" && failed ? `<span class="rv-store warn">${failed} change${failed > 1 ? "s" : ""} could not be saved to the artifact; kept on this device and sent next time it opens.</span>` : m === "db" ? `<span class="rv-store ok">Saved to the artifact. Claude can read it.</span>` : m === "local" ? `<span class="rv-store warn">Saved on this device only. Use Copy all feedback to send it.</span>` : `<span class="rv-store">Connecting…</span>`;
   }
   function summary() {
     const ss = screens(), r = ss.filter(reviewed).length, n = all().filter((x) => x.kind === "note").length;
