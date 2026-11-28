@@ -52098,8 +52098,9 @@ window.PA.RVSHOTS = {"v2-overview":1,"v2-controls":1,"v2-control":1,"v2-evidence
       items.clear();
       snap.docs.forEach((d) => { const v = d.data(); if (v) items.set(d.id, v); });
       const was = mode; mode = "db";
-      // Anything written on this device before the db answered goes up once.
-      if (was !== "db") local.forEach((v, k) => { if (!items.has(k)) { items.set(k, v); col.doc(k).set(v).catch(() => {}); } });
+      // Anything written on this device before the db answered goes up once, and wins where it is newer
+      // than the server's copy (a vote or Keep changed offline keeps its doc id).
+      if (was !== "db") local.forEach((v, k) => { const s = items.get(k); if (!s || String(v.at || "") > String(s.at || "")) { items.set(k, v); col.doc(k).set(v).catch(() => {}); } });
       changed();
     }, () => { clearTimeout(localTimer); col = null; mode = "local"; changed(); });
   }
