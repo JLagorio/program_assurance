@@ -25,14 +25,39 @@
   const changed = () => listeners.forEach((f) => { try { f(); } catch (e) { /* a view that went away */ } });
   const safeId = (s) => String(s).replace(/[^A-Za-z0-9_\-.~:@+]/g, "_").slice(0, 180);
   const newId = () => "n-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8);
+  // This browser keeps a copy of the feedback (LKEY) and, apart, what was changed here and not yet saved to the
+  // artifact (PKEY: id -> {op: "put"|"del", at}). Only those changes go up on reconnect, so a note deleted on another
+  // device, or here while offline, is not brought back from the copy.
+  const PKEY = "pa-rv-feedback-pending";
+  let pending = {};
+  let failed = 0;
   function loadLocal() {
     try { const all = JSON.parse(localStorage.getItem(LKEY) || "{}"); Object.entries(all).forEach(([k, v]) => items.set(k, v)); } catch (e) { /* storage off */ }
+    try {
+      const p = localStorage.getItem(PKEY);
+      if (p != null) pending = JSON.parse(p) || {};
+      // A copy written before changes were tracked: everything in it may be unsaved, so it goes up as before.
+      else items.forEach((v, k) => { pending[k] = { op: "put", at: v.at || "" }; });
+    } catch (e) { pending = {}; }
   }
   function saveLocal() {
-    try { localStorage.setItem(LKEY, JSON.stringify(Object.fromEntries(items))); } catch (e) { /* storage off */ }
+    try { localStorage.setItem(LKEY, JSON.stringify(Object.fromEntries(items))); localStorage.setItem(PKEY, JSON.stringify(pending)); } catch (e) { /* storage off */ }
   }
   let localTimer = null;
   function useLocal() { if (mode === "db") return; mode = "local"; changed(); }
+  function sync() {
+    Object.entries(pending).forEach(([k, p]) => {
+      const srv = items.get(k);
+      if (p.op === "del") {
+        if (srv && String(srv.at || "") <= String(p.at || "")) { items.delete(k); col.doc(k).delete().catch(() => {}); }
+      } else {
+        const v = local.get(k);
+        if (v && (!srv || String(v.at || "") > String(srv.at || ""))) { items.set(k, v); col.doc(k).set(v).catch(() => {}); }
+      }
+    });
+    pending = {};
+  }
+  let local = new Map();
   async function init() {
     loadLocal();
     const c = window.claude;
@@ -44,27 +69,31 @@
     col = db.collection("feedback");
     col.onSnapshot((snap) => {
       clearTimeout(localTimer);
-      const local = new Map(items);
+      local = new Map(items);
       items.clear();
       snap.docs.forEach((d) => { const v = d.data(); if (v) items.set(d.id, v); });
       const was = mode; mode = "db";
-      // Anything written on this device before the db answered goes up once, and wins where it is newer
-      // than the server's copy (a vote or Keep changed offline keeps its doc id).
-      if (was !== "db") local.forEach((v, k) => { const s = items.get(k); if (!s || String(v.at || "") > String(s.at || "")) { items.set(k, v); col.doc(k).set(v).catch(() => {}); } });
+      // What was changed on this device before the db answered goes up once, where it is newer than the server's.
+      if (was !== "db") sync();
+      saveLocal();
       changed();
     }, () => { clearTimeout(localTimer); col = null; mode = "local"; changed(); });
   }
   async function put(id, doc) {
     id = safeId(id);
     items.set(id, doc); changed();
-    if (mode === "db" && col) { try { await col.doc(id).set(doc); } catch (e) { saveLocal(); toast("Could not save to the artifact; kept on this device"); } }
-    else saveLocal();
+    if (mode === "db" && col) {
+      try { await col.doc(id).set(doc); saveLocal(); }
+      catch (e) { pending[id] = { op: "put", at: doc.at || "" }; failed++; saveLocal(); changed(); toast("Could not save to the artifact; kept on this device"); }
+    } else { pending[id] = { op: "put", at: doc.at || "" }; saveLocal(); }
   }
   async function drop(id) {
     id = safeId(id);
     items.delete(id); changed();
-    if (mode === "db" && col) { try { await col.doc(id).delete(); } catch (e) { toast("Could not delete"); } }
-    else saveLocal();
+    if (mode === "db" && col) {
+      try { await col.doc(id).delete(); saveLocal(); }
+      catch (e) { pending[id] = { op: "del", at: new Date().toISOString() }; failed++; saveLocal(); changed(); toast("Could not delete from the artifact; will retry next time"); }
+    } else { pending[id] = { op: "del", at: new Date().toISOString() }; saveLocal(); }
   }
   const all = () => [...items.entries()].map(([id, v]) => ({ id, ...v }));
   const votes = (screen) => all().filter((x) => x.kind === "vote" && x.screen === screen);
@@ -199,7 +228,7 @@
   const lay = () => layout || (window.innerWidth >= 1100 ? "grid" : "swipe");
   function storeLine() {
     const m = mode;
-    return m === "db" ? `<span class="rv-store ok">Saved to the artifact. Claude can read it.</span>` : m === "local" ? `<span class="rv-store warn">Saved on this device only. Use Copy all feedback to send it.</span>` : `<span class="rv-store">Connecting…</span>`;
+    return m === "db" && failed ? `<span class="rv-store warn">${failed} change${failed > 1 ? "s" : ""} could not be saved to the artifact; kept on this device and sent next time it opens.</span>` : m === "db" ? `<span class="rv-store ok">Saved to the artifact. Claude can read it.</span>` : m === "local" ? `<span class="rv-store warn">Saved on this device only. Use Copy all feedback to send it.</span>` : `<span class="rv-store">Connecting…</span>`;
   }
   function summary() {
     const ss = screens(), r = ss.filter(reviewed).length, n = all().filter((x) => x.kind === "note").length;
@@ -376,7 +405,8 @@
     const ver = isDr ? "dr" : v3 ? "v3" : "v2";
     let s = null, sub = 0;
     if (isDr) { for (const x of ss) { const i = x.dr.findIndex((d) => d.route === r); if (i >= 0) { s = x; sub = i; break; } } }
-    else s = ss.find((x) => x.route === r && !x.pattern);
+    // With V3 off, a V3 page shows as the v2 page it replaced (PA.v3.compareAs), so the screen is found by that too.
+    else s = ss.find((x) => x.route === r && !x.pattern) || (!v3 ? ss.find((x) => x.route && !x.pattern && v2route(x.route) === r) : null);
     const hd = document.querySelector("#main h1, #main h2");
     return { screen: s ? s.key : "route:" + r, ver, sub, title: s ? s.title : (hd ? hd.textContent.trim().slice(0, 80) : r), route: r, v3, live: true };
   }
