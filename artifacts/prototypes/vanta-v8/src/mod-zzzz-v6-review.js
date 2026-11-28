@@ -90,6 +90,8 @@
       const was = mode; mode = "db";
       // What was changed on this device before the db answered goes up once, where it is newer than the server's.
       if (was !== "db") sync();
+      // A change still queued here (a write that failed) shows over the server's copy until it goes up.
+      else Object.entries(pending).forEach(([k, p]) => { if (p.op === "del") items.delete(k); else if (p.v) items.set(k, p.v); });
       saveLocal();
       changed();
     }, () => { clearTimeout(localTimer); col = null; mode = "local"; changed(); });
@@ -416,7 +418,13 @@
     const r = cur();
     if (r === ROUTE) return null;
     const ss = screens();
-    if (r === "before-after-canvas") return { screen: "page:" + r, ver: "ck", title: "Canvas Kit tab", route: r };
+    if (r === "before-after-canvas") {
+      // The Canvas Kit tab lists every mockup: feedback goes to the mockup in view, as on its Review all card.
+      const mid = innerHeight / 2;
+      const sec = [...document.querySelectorAll('#main [id^="ckba-"]')].find((el) => { const b = el.getBoundingClientRect(); return b.top <= mid && b.bottom >= mid && ss.some((x) => x.ck && "ckba-" + x.ck === el.id); });
+      const m = sec && ss.find((x) => x.ck && "ckba-" + x.ck === sec.id);
+      return m ? { screen: m.key, ver: "ck", title: m.title, route: r } : { screen: "page:" + r, ver: "ck", title: "Canvas Kit tab", route: r };
+    }
     const isDr = r.startsWith("dr-");
     const v3 = !!(PA.v3 && PA.v3.on());
     const ver = isDr ? "dr" : v3 ? "v3" : "v2";
@@ -441,12 +449,15 @@
     const main = document.getElementById("main"); if (!main) return;
     let layer = main.querySelector(":scope > .rv-livepins");
     const c = liveCtx();
-    const list = c ? notes(c.screen).filter((n) => n.ver === c.ver && n.px != null && n.route === c.route) : [];
+    // The Canvas Kit tab holds every mockup, so its pins are every pinned note made on it, whichever mockup it names.
+    const list = !c ? [] : c.route === "before-after-canvas" ? all().filter((n) => n.kind === "note" && n.ver === "ck" && n.px != null && n.route === c.route).sort((x, y) => String(x.at).localeCompare(String(y.at))) : notes(c.screen).filter((n) => n.ver === c.ver && n.px != null && n.route === c.route);
     if (!list.length) { if (layer) layer.remove(); return; }
     if (!layer) { layer = document.createElement("div"); layer.className = "rv-livepins"; main.appendChild(layer); }
     layer.innerHTML = list.map((n, i) => `<button type="button" class="rv-pin" style="left:${Number(n.px)}%;top:${Number(n.py)}px" data-rv-note="${esc(n.id)}" aria-label="Note ${i + 1}: ${esc(n.text || "")}">${i + 1}</button>`).join("");
   }
   window.addEventListener("hashchange", () => { closeComposer(); if (arm) setArm(null); setTimeout(() => { drawFab(); drawLivePins(); }, 60); });
+  let fabTimer = null;
+  window.addEventListener("scroll", () => { if (cur() !== "before-after-canvas" || fabTimer) return; fabTimer = setTimeout(() => { fabTimer = null; drawFab(); }, 200); }, { passive: true });
   window.addEventListener("v3change", () => setTimeout(() => { drawFab(); drawLivePins(); }, 60));
 
   // A pin's note, shown in place.
