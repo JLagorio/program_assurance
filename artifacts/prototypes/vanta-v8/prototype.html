@@ -51707,7 +51707,9 @@ window.PA_CK2 = [{"id": "activity","title": "Program activity","group": "The pro
   function tbl(b) {
     const cols = b.cols.map((t, i) => ({ t, n: numeric(b.rows, i), w: i === 0 ? b.w0 || (b.cols.length >= 6 ? "240px" : undefined) : undefined }));
     const rows = b.rows.map((r) => r.map((v, i) => (b.heat && i > 0 ? heat(v, b.heatMax) : b.t2 && i === 0 ? b.t2(v) : cell(v, b.cols[i], i === 0, b.plainFirst))));
-    const shown = b.rows.length, foot = b.foot || (b.n > shown ? `1–${shown} of ${b.n}` : b.n > 1 ? `${b.n} ${b.noun || "rows"}` : "");
+    const shown = b.rows.length;
+    // A page range says the rows drawn: today's "1–30 of 299" over 8 rows reads "1–8 of 299".
+    const foot = (b.foot || (b.n > shown ? `1–${shown} of ${b.n}` : b.n > 1 ? `${b.n} ${b.noun || "rows"}` : "")).replace(/^\s*1\s*[–-]\s*\d+(\s+of\s+)/, `1–${shown}$1`);
     return table(cols, rows, { foot: foot ? `<span>${esc(foot.replace(/ 25 per page.*$/, ""))}</span>` : "" });
   }
   function heat(v, max) {
