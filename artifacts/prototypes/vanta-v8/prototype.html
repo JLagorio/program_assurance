@@ -52215,7 +52215,11 @@ window.PA.RVSHOTS = {"v2-overview":1,"v2-controls":1,"v2-control":1,"v2-evidence
   const reviewed = (s) => votes(s.key).length > 0 || !!keep(s.key) || notes(s.key).length > 0;
 
   // ——— Open a version live ———
+  // The screen a live page was opened from, so feedback there goes to that card even where two screens share a page
+  // (authorization-decisions and authorization-conditions are both v2's authorization).
+  let origin = null;
   function openLive(s, v, drIdx) {
+    origin = { key: s.key, ver: v, route: v === "dr" ? (s.dr[drIdx || 0] || {}).route : v === "v2" ? v2route(s.route) : s.route, sub: drIdx || 0 };
     if (v === "ck") { location.hash = "before-after-canvas"; setTimeout(() => { const t = document.getElementById("ckba-" + s.ck); if (t) t.scrollIntoView({ block: "start" }); }, 400); return; }
     const route = v === "dr" ? (s.dr[drIdx || 0] || {}).route : s.route;
     if (!route) return;
@@ -52481,7 +52485,9 @@ window.PA.RVSHOTS = {"v2-overview":1,"v2-controls":1,"v2-control":1,"v2-evidence
     const v3 = !!(PA.v3 && PA.v3.on());
     const ver = isDr ? "dr" : v3 ? "v3" : "v2";
     let s = null, sub = 0;
-    if (isDr) { for (const x of ss) { const i = x.dr.findIndex((d) => d.route === r); if (i >= 0) { s = x; sub = i; break; } } }
+    const o = origin && origin.route === r && origin.ver === ver && ss.find((x) => x.key === origin.key);
+    if (o) { s = o; sub = origin.sub; }
+    else if (isDr) { for (const x of ss) { const i = x.dr.findIndex((d) => d.route === r); if (i >= 0) { s = x; sub = i; break; } } }
     // With V3 off, a V3 page shows as the v2 page it replaced (PA.v3.compareAs), so the screen is found by that too.
     else s = ss.find((x) => x.route === r && !x.pattern) || (!v3 ? ss.find((x) => x.route && !x.pattern && v2route(x.route) === r) : null);
     const hd = document.querySelector("#main h1, #main h2");
